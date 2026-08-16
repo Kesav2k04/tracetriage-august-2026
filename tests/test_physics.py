@@ -741,3 +741,46 @@ class TestConstants:
 
     def test_stale_tle_threshold_reasonable(self):
         assert 3 <= TLE_MAX_EPOCH_AGE_DAYS <= 30
+
+
+class TestCorridorWidthsAreMeasured:
+    """A corridor width is a containment band, and A3 measured what it must contain.
+
+    These exist because the first version reused 200 Hz from A3, where it was a
+    reference line drawn on an overlay rather than a tolerance. Nothing in the
+    suite pinned it, so the value could be changed back without a single test
+    turning red, and kill gate 3 would then fail for a reason that is not real.
+    """
+
+    # Within-pass wander of the four corrected carriers measured in A3, in Hz.
+    CORRECTED_WANDER_HZ = (77.0, 639.0, 639.0, 1935.0)
+
+    # Residual around the fitted curve on the one uncorrected observation with
+    # enough per-row detections to measure: obs 14740031, 39 rows.
+    UNCORRECTED_RESIDUAL_MAX_HZ = 140.0
+
+    # Largest constant offset from the predicted curve measured in A3, in Hz.
+    LARGEST_MEASURED_OFFSET_HZ = 14_000.0
+
+    def test_corrected_band_contains_every_carrier_a3_measured(self):
+        needed = max(self.CORRECTED_WANDER_HZ) / 2.0
+        assert needed <= CORRECTED_CORRIDOR_HZ, (
+            f"a {CORRECTED_CORRIDOR_HZ:.0f} Hz half-width cannot contain a carrier "
+            f"that wanders {max(self.CORRECTED_WANDER_HZ):.0f} Hz across its pass; "
+            f"at least {needed:.0f} Hz is required"
+        )
+
+    def test_the_overlay_reference_line_is_not_reused_as_a_tolerance(self):
+        assert CORRECTED_CORRIDOR_HZ > 200.0, (
+            "200 Hz was an annotation drawn on an A3 overlay, not a measurement "
+            "of how far a corrected carrier moves"
+        )
+
+    def test_uncorrected_band_contains_the_measured_residual(self):
+        assert UNCORRECTED_CORRIDOR_HZ >= self.UNCORRECTED_RESIDUAL_MAX_HZ
+
+    def test_offset_search_covers_the_largest_measured_offset(self):
+        assert FREQ_OFFSET_SEARCH_HZ >= self.LARGEST_MEASURED_OFFSET_HZ, (
+            "the corridor is not centred on rx-freq; the search range has to "
+            "reach the largest offset A3 actually saw"
+        )

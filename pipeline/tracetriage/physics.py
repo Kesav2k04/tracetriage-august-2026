@@ -21,7 +21,11 @@ about closest approach), so a visual check cannot find the defect:
   * Time runs bottom to top.  The top row of a SatNOGS waterfall is the END of
     the pass.  The ``row_frac`` convention here is therefore::
 
-        row_frac = 1.0 - elapsed / duration      (0 at top, 1 at bottom)
+        row_frac = elapsed / duration            (0 at the BOTTOM, 1 at the TOP)
+
+    and a row index maps onto it by inverting, because row 0 is the top::
+
+        row_frac = 1.0 - (row + 0.5) / image_height
 
     ``fracs`` in the returned corridor carry the same convention: 0 = pass start
     (which maps to the BOTTOM of the image), 1 = pass end (which maps to the TOP).
@@ -37,7 +41,7 @@ FREE CONSTANT OFFSET
 The three uncorrected observations in A3 sat 14.0, 2.4 and 1.8 kHz off the
 predicted curve.  The corridor is NOT assumed to be centred on rx-freq.
 ``FREQ_OFFSET_SEARCH_HZ`` (±20 kHz) is the stated search range that A7 and the
-model scan over.
+model scan over, which clears the largest measured offset by about 40 percent.
 
 DEGRADED STATES
 ===============
@@ -98,11 +102,24 @@ OMEGA_EARTH: float = 7.292_115_9e-5     # rad/s, Earth sidereal rotation rate
 N_SAMPLES: int = 512
 
 # Half-width of the near-vertical corridor for a corrected capture (Hz).
-# This matches the value used in A3 analysis.
-CORRECTED_CORRIDOR_HZ: float = 200.0
+#
+# Measured, not copied. The 200 Hz used in A3 was a reference line drawn on an
+# overlay, not a containment band, and reusing it here would have failed kill
+# gate 3 for a reason that is not real: the within-pass wander of the four
+# corrected carriers A3 measured is 77, 639, 639 and 1935 Hz, so a 200 Hz
+# half-width fails to contain three of the four. 1935 Hz needs 968 Hz of
+# half-width; 1200 leaves about 24 percent headroom on the worst case seen.
+CORRECTED_CORRIDOR_HZ: float = 1_200.0
 
 # Half-width of the Doppler curve band for an uncorrected capture (Hz).
-# Represents a typical ±2 kHz transmitter offset / thermal drift envelope.
+#
+# Deliberately wide. On the one uncorrected observation in A3 with enough
+# per-row detections to measure (14740031, 39 rows), the residual around the
+# fitted curve had a 95th percentile of 123 Hz and a maximum of 140 Hz. 2 kHz
+# is roughly 16 times that, kept because a corridor that is too narrow fails
+# kill gate 3 for a reason that is not real, while one that is too wide only
+# costs discrimination. Revisit at snapshot scale, with more than one
+# observation behind it.
 UNCORRECTED_CORRIDOR_HZ: float = 2_000.0
 
 # TLE epoch staleness threshold.  If |epoch - pass_midpoint| > this, emit STALE_TLE.
@@ -110,7 +127,9 @@ TLE_MAX_EPOCH_AGE_DAYS: float = 14.0
 
 # Stated search range for the free constant frequency offset (Section 5.4 of the
 # task prompt).  The three uncorrected observations sat 14.0, 2.4 and 1.8 kHz off
-# the predicted curve.  ±20 kHz covers 10× the largest observed offset.
+# the predicted curve, so ±20 kHz covers the largest of those with about 40
+# percent to spare. It is not a wide margin; widen it if a larger offset turns
+# up at snapshot scale.
 FREQ_OFFSET_SEARCH_HZ: float = 20_000.0
 
 # Axis sign convention: the plotted frequency axis runs AGAINST the Doppler sign.

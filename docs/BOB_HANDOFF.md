@@ -36,6 +36,25 @@ not regenerate it.  Key facts for any unit that uses it:
 
 ---
 
+### A4 is closed. Read this before touching physics.py
+
+A4's acceptance has been run live and **it passes**: 199 of 200 observations
+succeed against the API's own `max_altitude`, median absolute error 0.21 deg,
+p99 0.61 deg, 99.5% within 1 deg, the one failure a named `STALE_TLE`. Both
+corridor shapes are emitted and every degraded path returns a reason code.
+
+The orientation guards are real, not decorative: flipping the time mapping fails
+three tests and flipping the use of the sign constant fails three more. One test
+only asserts `AXIS_SIGN_CONVENTION == -1`, which is a tautology, but behavioural
+tests sit beside it, so the constant cannot be misused silently.
+
+**Corridor widths are measurements now, and must stay that way.** The corrected
+half-width shipped at 200 Hz, copied from A3 where that number was a line drawn
+on an overlay, not a tolerance. The four corrected carriers A3 measured wander
+77, 639, 639 and 1935 Hz within their own pass, so 200 Hz contained none of
+them and would have failed kill gate 3 for a reason that is not real. It is
+1200 Hz, and `TestCorridorWidthsAreMeasured` fails if it shrinks back.
+
 ### A3 is closed. Read this before building the corridor in A4
 
 **The answer is BOTH.** Corrected and uncorrected captures both occur in the
