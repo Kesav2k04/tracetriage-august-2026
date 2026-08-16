@@ -67,7 +67,7 @@ Already done before your first task (do not redo):
   verified at 14.9x over CPU. USE IT, and guard against a silent CPU fallback.
   16 GB RAM is the binding constraint, so stream every stage: docs/HARDWARE_PROFILE.md
 - Every literal submission requirement, quoted, with status: docs/SUBMISSION_CHECKLIST.md
-- Draft data contracts you must review and ratify: contracts/
+- Six data contracts, all ratified. Do not re-ratify them: contracts/
 - Doc skeletons, licences, CI config, .gitignore.
 Full inventory with the exact boundary: docs/PRE_BUILD_BASELINE.md
 
@@ -272,31 +272,76 @@ ACCEPTANCE:
 ### A4. Physics corridor module *(~3 coins)*
 
 ```text
-Build pipeline/tracetriage/physics.py: expected-frequency corridor for an
+Build pipeline/tracetriage/physics.py: the expected-frequency corridor for an
 observation, from its own stored metadata. No external TLE lookup, no join.
 
-Already verified, build on it rather than re-testing (section 10):
+A3 IS ANSWERED AND IT CHANGES THIS UNIT. Read docs/DOPPLER_CORRECTION_FINDING.md
+before writing code. The short version:
+
+- SatNOGS waterfalls are SOMETIMES Doppler corrected and sometimes not. Of 24
+  vetted with-signal observations, 4 were corrected (vertical carrier within
+  about a kilohertz of the tuned frequency, 32.4 to 54.2 sigma) and 3 were
+  uncorrected (energy on the predicted curve, 15.1 to 25.1 sigma).
+- NO METADATA FIELD SEPARATES THEM. doppler-correction-per-sec was null and
+  rigctl-port was 4532 on all 24 records, in both groups. Do not key the
+  corridor on metadata. It cannot work.
+- So the corridor is TWO shapes, not one: a swept curve and a near-vertical
+  residual band. Emit both, each with a width band, and let the caller decide.
+  A7 and the model use the disagreement between them; collapsing to one shape
+  early destroys the signal the whole product ranks on.
+
+Already verified, build on it rather than re-testing:
 - the observation's own tle1/tle2 + station_lat/lng/alt + start/end reproduced
   pass geometry to 0.18 deg against the API's reported max_altitude
 - range rate flips sign exactly at peak elevation
 - a 207s pass at 436.4 MHz gave a 14,631 Hz swing = ~118px at 123.46 Hz/px
+- rx-freq lives in client_metadata.radio.parameters and client_metadata is a
+  JSON-encoded STRING, not an object
+
+THREE TRAPS, each of which cost real time in A3:
+
+1. Time runs BOTTOM TO TOP on a SatNOGS waterfall. The top row is the END of the
+   pass. Measured off observation 14740031: the 200 s tick sits at y=258 and the
+   50 s tick at y=1228.
+2. The plotted frequency axis runs AGAINST the Doppler sign. With Doppler
+   positive when the satellite approaches, the trace moves the other way on the
+   rendered axis.
+3. Those two errors CANCEL. A Doppler curve is near odd-symmetric about closest
+   approach, so having both wrong scores 25 sigma and draws an overlay that
+   looks correct. Never confirm an orientation by looking at a picture. If you
+   need to confirm one, scan both options and report the margin between them.
+
+Also: do NOT assume the corridor is centred on rx-freq. The three uncorrected
+traces sat 14.0, 2.4 and 1.8 kHz off the predicted curve. Carry a free constant
+offset as an explicit parameter with a stated search range.
 
 Requirements:
-- SGP4 propagation, geodetic station position, proper ECI->ECEF (the recon script
-  used a first-order GMST adequate only for feasibility; do this properly)
-- output the corridor per the finding from A3, with a width band, not a bare line
-- validate against the API's own rise_azimuth, set_azimuth and max_altitude on a
-  few hundred observations and report the error distribution, not one example
-- explicit degraded states: missing TLE, stale TLE (epoch far from pass),
-  SGP4 non-zero error code, missing station coords, missing frequency
+- SGP4 propagation, geodetic station position, proper ECI->ECEF (the recon
+  script used a first-order GMST adequate only for feasibility; do this properly)
+- output BOTH corridor shapes per observation, each with a width band, plus the
+  named degraded states: missing TLE, stale TLE (epoch far from pass), SGP4
+  non-zero error code, missing station coords, missing frequency
+- validate against the API's own rise_azimuth, set_azimuth and max_altitude on
+  at least 200 observations and report the error DISTRIBUTION, not one example
+
+RATE LIMIT WARNING. The public API throttled this project twice, at 1551 s and
+3419 s, and each block costs an hour of waiting rather than a coin. For 200
+observations you need about 8 listing pages and ZERO waterfall downloads, since
+geometry validation needs only the record. Page with the Link: rel="next" cursor
+(id__lt and end__lte are accepted with HTTP 200 and silently ignored), space
+requests 2 s apart, and CACHE every page to disk on the way in so a rerun costs
+nothing. scripts/a3_doppler_investigation.py already does all of this; copy its
+approach rather than reinventing it.
 
 ACCEPTANCE:
 - tests/test_physics.py with fixed-case tests: known pass -> known elevation
   profile, sign flip at TCA, and a deterministic corridor for a frozen input
+- a test that fails if the time direction or the frequency sign is flipped
 - max_altitude agreement reported as a distribution over >=200 observations,
   written to artifacts/PHYSICS_VALIDATION.json
 - every degraded state returns a named reason code, none raise
 - zero network access in the tests
+- scripts/gate.py passes 7/7 before you report completion
 ```
 
 ---
