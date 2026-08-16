@@ -30,6 +30,7 @@ artifacts/**/*
 !artifacts/.gitkeep
 !artifacts/**/*.json
 !artifacts/**/*.md
+!artifacts/a3_overlays/*.png
 
 # --- secrets ---
 .env
@@ -47,3 +48,6 @@ desktop.ini
 
 # working brief, not part of the judged submission
 BOB_START_HERE.md
+
+# --- A3 investigation cache: API pages and waterfall PNGs, not evidence ---
+.a3_cache/

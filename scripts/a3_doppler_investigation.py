@@ -1,0 +1,863 @@
+"""A3: Doppler correction status investigation.
+
+Answers the one blocking unknown: are SatNOGS waterfalls already Doppler
+corrected at capture, or do they show the full S-curve?
+
+Method, per observation:
+  1. Propagate the observation's own stored TLE across the pass.
+  2. Compute the expected Doppler shift at each sample from the range rate and
+     the observation's rx-freq.
+  3. Call waterfall.parse_waterfall for plot_box, crop_box, hz_per_px, centre_px.
+  4. Measure where the signal actually is: the brightest column in each block
+     of rows, kept only when it stands above that block's own noise floor by a
+     margin in robust sigmas. That gives a frequency offset per unit of pass
+     time, measured rather than assumed.
+  5. Score the measurement against both hypotheses:
+       uncorrected -> the measured track follows the predicted S-curve
+       corrected   -> the measured track is flat near 0 Hz offset
+     The measurement is repeated at three detection settings and the verdict is
+     only accepted when all three agree, so no answer rests on one threshold.
+     UNRESOLVED is a real outcome, not a failure to try.
+  6. Render a side-by-side overlay: untouched waterfall on the left, the same
+     image annotated on the right, so the raw evidence is never painted over.
+
+Run:
+    .venv\\Scripts\\python.exe scripts\\a3_doppler_investigation.py
+
+Output:
+    artifacts/a3_overlays/overlay_<obs_id>.png   (one per observation)
+    artifacts/a3_overlays/summary.json           (machine-readable results)
+
+API responses and waterfall PNGs are cached under .a3_cache/ so that a repeat
+run costs no requests. The SatNOGS API rate-limits hard once a window is spent.
+"""
+
+from __future__ import annotations
+
+import io
+import json
+import logging
+import math
+import os
+import re
+import sys
+import time
+from collections import defaultdict
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from urllib.parse import parse_qs, urlencode, urlparse
+
+import httpx
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO))
+
+from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: E402
+
+logging.basicConfig(level=logging.WARNING)
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+TARGET_OBS = 10
+CANDIDATE_POOL = 30
+MAX_PAGES = 12
+
+# The listing is newest first, and the newest records are scheduled observations
+# that have not run: status "future", waterfall null, waterfall_status "unknown".
+# Vetting also lags capture. Asking for a window that closed several days ago is
+# what makes the first page usable. A same-day end returned 200 future records
+# and zero candidates.
+END_DATE = "2026-08-12T00:00:00Z"
+API_BASE = "https://network.satnogs.org/api/observations/"
+USER_AGENT = (
+    "tracetriage/0.1 (+https://github.com/Kesav2k04/tracetriage-august-2026;"
+    " kesavk659@gmail.com)"
+)
+REQUEST_INTERVAL = 2.0
+RETRY_DELAYS = [5, 15, 45]
+MAX_SLEEP_ON_429 = 120.0   # never block the run for longer than this
+
+CACHE_DIR = Path(os.environ.get("A3_CACHE_DIR") or (REPO / ".a3_cache"))
+OUT_DIR = REPO / "artifacts" / "a3_overlays"
+
+C = 299_792_458.0
+WGS84_A = 6378.137
+WGS84_F = 1.0 / 298.257223563
+OMEGA_EARTH = 7.2921159e-5
+
+N_SAMPLES = 240
+
+# A block's brightest column counts as signal only this far above that block's
+# own robust noise floor. Below it the argmax is just noise and would fabricate
+# a track out of nothing.
+#
+# The measurement is repeated at three (block, z) settings and a verdict is only
+# accepted when all three agree. On a faint or crowded image the argmax hops
+# between features and the answer moves with the threshold, which is the signal
+# that the image cannot settle the question. Requiring agreement makes that
+# visible instead of letting one arbitrary setting decide.
+DETECTION_SETTINGS = [(8, 5.0), (16, 5.0), (32, 4.5)]
+PRIMARY_SETTING = (16, 5.0)
+EDGE_MARGIN_PX = 4
+MIN_SIGNAL_ROWS = 20
+
+# Half-width of the residual corridor drawn for the corrected hypothesis.
+CORRECTED_CORRIDOR_HZ = 200.0
+
+# Decision thresholds, applied per observation.
+CORR_UNCORRECTED = 0.85     # |r| against the predicted curve
+RATIO_LO, RATIO_HI = 0.60, 1.60
+RATIO_CORRECTED = 0.15
+SWING_CORRECTED_HZ = 1500.0
+
+# Viridis runs dark purple to blue to green to yellow, so annotation colours are
+# chosen from outside that ramp. Green would be invisible against the signal.
+UNCORR_COLOR = (255, 45, 45)      # red
+CORR_COLOR = (255, 0, 255)        # magenta
+TRACK_COLOR = (255, 170, 0)       # orange
+CAPTION_H = 78
+
+
+# ---------------------------------------------------------------------------
+# Physics
+# ---------------------------------------------------------------------------
+
+
+def station_ecef(lat_deg: float, lon_deg: float, alt_m: float) -> np.ndarray:
+    lat = math.radians(lat_deg)
+    lon = math.radians(lon_deg)
+    e2 = WGS84_F * (2 - WGS84_F)
+    n = WGS84_A / math.sqrt(1 - e2 * math.sin(lat) ** 2)
+    alt_km = alt_m / 1000.0
+    return np.array([
+        (n + alt_km) * math.cos(lat) * math.cos(lon),
+        (n + alt_km) * math.cos(lat) * math.sin(lon),
+        (n * (1 - e2) + alt_km) * math.sin(lat),
+    ])
+
+
+def gmst(dt: datetime) -> float:
+    jd = (dt - datetime(2000, 1, 1, 12, tzinfo=UTC)).total_seconds() / 86400.0
+    return math.radians(280.46061837 + 360.98564736629 * jd) % (2 * math.pi)
+
+
+def eci_to_ecef(v: np.ndarray, dt: datetime) -> np.ndarray:
+    t = gmst(dt)
+    ct, st = math.cos(t), math.sin(t)
+    return np.array([ct * v[0] + st * v[1], -st * v[0] + ct * v[1], v[2]])
+
+
+def rx_freq_of(obs: dict) -> float | None:
+    """Truth for the tuned frequency is client_metadata.radio.parameters.rx-freq."""
+    try:
+        meta = json.loads(obs["client_metadata"])
+    except Exception:
+        return None
+    params = meta.get("radio", {}).get("parameters", {})
+    for key in ("rx-freq",):
+        v = params.get(key)
+        if v:
+            return float(v)
+    v = obs.get("observation_frequency") or obs.get("transmitter_downlink_low")
+    return float(v) if v else None
+
+
+def compute_doppler_curve(
+    obs: dict,
+) -> tuple[list[float], list[float], list[float]]:
+    """Return (fracs, doppler_hz, max_elevation_deg) across the pass.
+
+    doppler_hz is positive when the satellite is approaching, which is the
+    higher received frequency and therefore the right-hand side of the axis.
+    """
+    from sgp4.api import Satrec, jday  # type: ignore[import]
+
+    sat = Satrec.twoline2rv(obs["tle1"], obs["tle2"])
+    start_dt = datetime.fromisoformat(obs["start"].replace("Z", "+00:00"))
+    end_dt = datetime.fromisoformat(obs["end"].replace("Z", "+00:00"))
+    duration_s = (end_dt - start_dt).total_seconds()
+
+    freq = rx_freq_of(obs)
+    if not freq:
+        raise ValueError("no rx-freq available")
+
+    site = station_ecef(
+        float(obs["station_lat"]), float(obs["station_lng"]), float(obs["station_alt"])
+    )
+    site_hat = site / np.linalg.norm(site)
+
+    fracs: list[float] = []
+    dops: list[float] = []
+    els: list[float] = []
+    for i in range(N_SAMPLES):
+        frac = i / (N_SAMPLES - 1)
+        t = start_dt + timedelta(seconds=duration_s * frac)
+        jd_whole, jd_fr = jday(
+            t.year, t.month, t.day, t.hour, t.minute, t.second + t.microsecond / 1e6
+        )
+        err, r_eci, v_eci = sat.sgp4(jd_whole, jd_fr)
+        if err != 0:
+            continue
+
+        r_ecef = eci_to_ecef(np.array(r_eci), t)
+        v_ecef = eci_to_ecef(np.array(v_eci), t)
+        v_ecef = v_ecef - np.cross(np.array([0.0, 0.0, OMEGA_EARTH]), r_ecef)
+
+        los = r_ecef - site
+        rng = float(np.linalg.norm(los))
+        los_hat = los / rng
+        range_rate = float(np.dot(los_hat, v_ecef))          # km/s, + is receding
+        dops.append(-range_rate * 1000.0 / C * freq)
+        fracs.append(frac)
+
+        els.append(
+            math.degrees(math.asin(max(-1.0, min(1.0, float(np.dot(los_hat, site_hat))))))
+        )
+
+    return fracs, dops, els
+
+
+# ---------------------------------------------------------------------------
+# Signal track measurement
+# ---------------------------------------------------------------------------
+
+
+def measure_track(
+    rgb: np.ndarray, crop_box, row_block: int, z_min: float
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Find the signal column across the spectrogram, in blocks of rows.
+
+    Returns (fracs, x_in_crop, peak_z), all relative to the crop box.
+
+    Three things this has to survive:
+    - The plot border sits inside the crop box and is brighter than anything in
+      the row, so it wins every argmax. EDGE_MARGIN_PX drops it.
+    - A single row of a faint pass does not clear any sane threshold. The
+      Doppler curve moves slowly, so averaging row_block rows costs almost no
+      time resolution and buys roughly sqrt(row_block) in signal to noise.
+    - Nothing is subtracted along the time axis. Removing a per-column median
+      would delete a stationary carrier, which is exactly the shape the
+      corrected hypothesis predicts, and would rig the answer. Nothing is
+      smoothed along the frequency axis either, for the same reason: a box
+      filter across x moved the answer on the noisier of the two fixtures.
+    """
+    x0 = crop_box.x0 + EDGE_MARGIN_PX
+    x1 = crop_box.x1 - EDGE_MARGIN_PX
+    y0 = crop_box.y0 + EDGE_MARGIN_PX
+    y1 = crop_box.y1 - EDGE_MARGIN_PX
+    if x1 - x0 < 20 or y1 - y0 < row_block * 4:
+        return np.empty(0), np.empty(0), np.empty(0)
+
+    lum = rgb[y0:y1, x0:x1].astype(np.float32).mean(axis=2)
+
+    n_blocks = lum.shape[0] // row_block
+    lum = lum[: n_blocks * row_block]
+    blocks = lum.reshape(n_blocks, row_block, lum.shape[1]).mean(axis=1)
+
+    med = np.median(blocks, axis=1, keepdims=True)
+    mad = np.median(np.abs(blocks - med), axis=1, keepdims=True) * 1.4826
+    z = (blocks - med) / np.maximum(mad, 1e-6)
+
+    idx = np.argmax(z, axis=1)
+    peak_z = z[np.arange(n_blocks), idx]
+
+    keep = peak_z >= z_min
+    kept = np.nonzero(keep)[0]
+    # Centre of each kept block, as a fraction of the crop box height, so that
+    # it lines up with the pass timeline the same way the drawing code does.
+    centres = (kept + 0.5) * row_block + EDGE_MARGIN_PX
+    fracs = centres / crop_box.height()
+    x_in_crop = idx[keep].astype(np.float64) + EDGE_MARGIN_PX
+    return fracs, x_in_crop, peak_z[keep]
+
+
+def score_hypotheses(
+    meas_fracs: np.ndarray,
+    meas_hz: np.ndarray,
+    curve_fracs: list[float],
+    curve_hz: list[float],
+) -> dict:
+    """Compare the measured track against both hypotheses.
+
+    Offsets are removed from both series before the shape comparison, because a
+    satellite oscillator sits a few kHz off its nominal frequency and that
+    constant would otherwise be charged against the uncorrected hypothesis.
+    """
+    pred = np.interp(meas_fracs, np.asarray(curve_fracs), np.asarray(curve_hz))
+
+    def swing(a: np.ndarray) -> float:
+        return float(np.percentile(a, 95) - np.percentile(a, 5))
+
+    meas_swing = swing(meas_hz)
+    pred_swing = swing(pred)
+    ratio = meas_swing / pred_swing if pred_swing > 0 else float("nan")
+
+    if meas_hz.std() > 0 and pred.std() > 0:
+        corr = float(np.corrcoef(meas_hz, pred)[0, 1])
+    else:
+        corr = float("nan")
+
+    meas_c = meas_hz - np.median(meas_hz)
+    pred_c = pred - np.median(pred)
+    rms_uncorrected = float(np.sqrt(np.mean((meas_c - pred_c) ** 2)))
+    rms_corrected = float(np.sqrt(np.mean(meas_c ** 2)))
+
+    return {
+        "n_signal_rows": int(meas_hz.size),
+        "measured_swing_hz": meas_swing,
+        "predicted_swing_hz": pred_swing,
+        "swing_ratio": ratio,
+        "correlation": corr,
+        "median_offset_hz": float(np.median(meas_hz)),
+        "rms_vs_uncorrected_hz": rms_uncorrected,
+        "rms_vs_corrected_hz": rms_corrected,
+    }
+
+
+def verdict_for(s: dict) -> tuple[str, str]:
+    """Return (verdict, reason). UNRESOLVED is a legitimate outcome."""
+    n = s["n_signal_rows"]
+    if n < MIN_SIGNAL_ROWS:
+        return "UNRESOLVED", f"only {n} rows carried a detectable signal"
+
+    corr = s["correlation"]
+    ratio = s["swing_ratio"]
+    if not math.isnan(corr) and abs(corr) >= CORR_UNCORRECTED and RATIO_LO <= ratio <= RATIO_HI:
+        sign = "" if corr > 0 else " (axis sign inverted)"
+        return "UNCORRECTED", f"|r|={abs(corr):.2f}, swing ratio {ratio:.2f}{sign}"
+
+    if ratio <= RATIO_CORRECTED and s["measured_swing_hz"] <= SWING_CORRECTED_HZ:
+        return (
+            "CORRECTED",
+            f"track is flat: {s['measured_swing_hz']:.0f} Hz measured against "
+            f"{s['predicted_swing_hz']:.0f} Hz predicted",
+        )
+
+    return (
+        "UNRESOLVED",
+        f"|r|={abs(corr):.2f} and swing ratio {ratio:.2f} match neither hypothesis",
+    )
+
+
+def _empty_stats(curve_hz: list[float]) -> dict:
+    return {
+        "n_signal_rows": 0,
+        "measured_swing_hz": 0.0,
+        "predicted_swing_hz": float(np.ptp(curve_hz)) if curve_hz else 0.0,
+        "swing_ratio": 0.0,
+        "correlation": float("nan"),
+        "median_offset_hz": 0.0,
+        "rms_vs_uncorrected_hz": float("nan"),
+        "rms_vs_corrected_hz": float("nan"),
+        "intensity_elevation_corr": float("nan"),
+    }
+
+
+def _intensity_vs_elevation(
+    fracs: np.ndarray, peak_z: np.ndarray, curve_fracs: list[float], els: list[float]
+) -> float:
+    """Correlate the brightness of the detected track against elevation.
+
+    A satellite is loudest near closest approach, so a real pass should show a
+    positive correlation here. Local interference sitting at a fixed frequency
+    does not care where the satellite is, and lands near zero. This does not
+    decide the verdict; it says whether the thing being measured is plausibly
+    the spacecraft.
+    """
+    if peak_z.size < 4 or not els:
+        return float("nan")
+    el = np.interp(fracs, np.asarray(curve_fracs), np.asarray(els))
+    if el.std() == 0 or peak_z.std() == 0:
+        return float("nan")
+    return float(np.corrcoef(peak_z, el)[0, 1])
+
+
+def analyse(rgb: np.ndarray, geom, curve, els: list[float]) -> tuple[dict, list[dict], tuple]:
+    """Measure at every detection setting; a verdict needs all of them to agree."""
+    curve_fracs, curve_hz = curve
+    centre = geom.centre_px if geom.centre_px is not None else geom.crop_box.width() / 2.0
+
+    per_setting: list[dict] = []
+    primary_stats: dict = {}
+    primary_track: tuple = (np.empty(0), np.empty(0), np.empty(0))
+
+    for block, z_min in DETECTION_SETTINGS:
+        fr, x, pz = measure_track(rgb, geom.crop_box, block, z_min)
+        hz = (x - centre) * geom.hz_per_px
+        if hz.size:
+            stats = score_hypotheses(fr, hz, curve_fracs, curve_hz)
+            stats["intensity_elevation_corr"] = _intensity_vs_elevation(fr, pz, curve_fracs, els)
+        else:
+            stats = _empty_stats(curve_hz)
+        verdict, reason = verdict_for(stats)
+        per_setting.append(
+            {"row_block": block, "z_min": z_min, "verdict": verdict, "reason": reason, **stats}
+        )
+        if (block, z_min) == PRIMARY_SETTING:
+            primary_stats = stats
+            primary_track = (fr, x, pz)
+
+    verdicts = {e["verdict"] for e in per_setting}
+    primary_entry = next(e for e in per_setting if (e["row_block"], e["z_min"]) == PRIMARY_SETTING)
+    if len(verdicts) == 1:
+        consensus = (primary_entry["verdict"], primary_entry["reason"])
+    else:
+        detail = ", ".join(f"block {e['row_block']} -> {e['verdict']}" for e in per_setting)
+        consensus = ("UNRESOLVED", f"detection settings disagree ({detail})")
+
+    return {"consensus": consensus, "primary": primary_stats}, per_setting, primary_track
+
+
+# ---------------------------------------------------------------------------
+# Overlay
+# ---------------------------------------------------------------------------
+
+
+def _font(size: int):
+    """A readable font. Matplotlib ships DejaVu Sans, so it is always present."""
+    try:
+        import matplotlib
+
+        path = Path(matplotlib.get_data_path()) / "fonts" / "ttf" / "DejaVuSans.ttf"
+        return ImageFont.truetype(str(path), size)
+    except Exception:
+        return ImageFont.load_default()
+
+
+def draw_overlay(raw_png: bytes, obs: dict, geom, curve, track, stats, verdict) -> Image.Image:
+    """Raw image on the left, annotated copy on the right, caption above both.
+
+    The left panel is never drawn on. Whatever the annotation claims, the
+    unmodified evidence is in the same file next to it.
+    """
+    base = Image.open(io.BytesIO(raw_png)).convert("RGB")
+    w, h = base.size
+    gap = 10
+    canvas = Image.new("RGB", (w * 2 + gap, h + CAPTION_H), (16, 16, 18))
+    canvas.paste(base, (0, CAPTION_H))
+    canvas.paste(base, (w + gap, CAPTION_H))
+
+    d = ImageDraw.Draw(canvas)
+    ox = w + gap
+    f_title = _font(17)
+    f_body = _font(13)
+
+    crop_box = geom.crop_box
+    if crop_box is None or not geom.hz_per_px:
+        d.text((10, 10), f"obs {obs['id']}: waterfall parse failed ({geom.degraded})",
+               fill=UNCORR_COLOR, font=f_title)
+        return canvas
+
+    hz_per_px = geom.hz_per_px
+    centre_px = geom.centre_px
+    centre_x = ox + crop_box.x0 + (centre_px if centre_px is not None else crop_box.width() / 2.0)
+    y0, y1 = crop_box.y0 + CAPTION_H, crop_box.y1 + CAPTION_H
+
+    # Corrected hypothesis: the residual corridor, two lines rather than a fill
+    # so the pixels underneath stay readable.
+    half = CORRECTED_CORRIDOR_HZ / hz_per_px
+    for x in (centre_x - half, centre_x + half):
+        d.line([(x, y0), (x, y1)], fill=CORR_COLOR, width=1)
+
+    # Uncorrected hypothesis: the predicted S-curve.
+    curve_fracs, curve_hz = curve
+    pts = [
+        (centre_x + hz / hz_per_px, y0 + f * (y1 - y0))
+        for f, hz in zip(curve_fracs, curve_hz, strict=True)
+    ]
+    if len(pts) >= 2:
+        d.line(pts, fill=UNCORR_COLOR, width=2)
+
+    # What was actually measured.
+    meas_fracs, meas_x, _ = track
+    for f, xc in zip(meas_fracs, meas_x, strict=True):
+        px = ox + crop_box.x0 + xc
+        py = y0 + f * (y1 - y0)
+        d.ellipse([px - 2, py - 2, px + 2, py + 2], fill=TRACK_COLOR)
+
+    d.text((10, 8), f"obs {obs['id']}   {verdict[0]}", fill=(245, 245, 245), font=f_title)
+    d.text((10, 30), verdict[1][:110], fill=(200, 200, 205), font=f_body)
+    d.text(
+        (10, 46),
+        f"{obs.get('station_name') or ''}  norad {obs.get('norad_cat_id')}  "
+        f"max_alt {obs.get('max_altitude')} deg   hz/px {hz_per_px:.2f}   "
+        f"predicted swing {stats['predicted_swing_hz']:,.0f} Hz   "
+        f"measured swing {stats['measured_swing_hz']:,.0f} Hz   "
+        f"r {stats['correlation']:+.2f}   blocks {stats['n_signal_rows']}",
+        fill=(200, 200, 205), font=f_body,
+    )
+    d.text((10, 62), "left: raw waterfall, unmodified.   right: same image annotated.",
+           fill=(150, 150, 155), font=f_body)
+
+    lx = ox + 10
+    for colour, label in (
+        (UNCORR_COLOR, "predicted Doppler curve (uncorrected hypothesis)"),
+        (CORR_COLOR, f"+/-{CORRECTED_CORRIDOR_HZ:.0f} Hz corridor (corrected hypothesis)"),
+        (TRACK_COLOR, "measured signal track"),
+    ):
+        d.rectangle([lx, 12, lx + 16, 24], fill=colour)
+        d.text((lx + 22, 11), label, fill=colour, font=f_body)
+        lx += 26 + int(d.textlength(label, font=f_body))
+    return canvas
+
+
+# ---------------------------------------------------------------------------
+# API access, with an on-disk cache
+# ---------------------------------------------------------------------------
+
+
+def _cache_path(kind: str, key: str) -> Path:
+    # Page caches are keyed by the query window. Without that, changing END_DATE
+    # silently replays the previous window's pages under the same file names.
+    p = CACHE_DIR / kind
+    if kind == "pages":
+        p = p / END_DATE.replace(":", "").replace("-", "")
+    p.mkdir(parents=True, exist_ok=True)
+    return p / key
+
+
+def _get(url: str, timeout: float = 60.0) -> tuple[bytes, dict]:
+    headers = {"User-Agent": USER_AGENT}
+    last_exc: Exception | None = None
+    for attempt in range(len(RETRY_DELAYS) + 1):
+        if attempt:
+            wait = RETRY_DELAYS[attempt - 1]
+            print(f"  retry {attempt}: waiting {wait}s")
+            time.sleep(wait)
+        try:
+            resp = httpx.get(url, headers=headers, timeout=timeout, follow_redirects=True)
+            if resp.status_code == 429:
+                retry_after = float(resp.headers.get("Retry-After", 30))
+                if retry_after > MAX_SLEEP_ON_429:
+                    raise SystemExit(
+                        f"\nSatNOGS is rate limiting for another {retry_after:.0f}s "
+                        f"({retry_after / 60:.1f} min). Nothing was lost: rerun this "
+                        f"script after the window resets and it will resume from "
+                        f"{CACHE_DIR}."
+                    )
+                print(f"  429, Retry-After={retry_after:.0f}s")
+                time.sleep(retry_after + 1)
+                continue
+            resp.raise_for_status()
+            return resp.content, dict(resp.headers)
+        except httpx.TimeoutException as exc:
+            last_exc = exc
+            print(f"  timeout: {exc}")
+    raise RuntimeError(f"all retries exhausted for {url}: {last_exc}")
+
+
+def next_cursor(link_header: str | None) -> str | None:
+    """The API pages through a cursor carried in the Link rel=next header.
+
+    Query filters that look like pagination (id__lt and friends) are accepted
+    with HTTP 200 and silently ignored, which returns page one forever.
+    """
+    if not link_header:
+        return None
+    for part in link_header.split(","):
+        if 'rel="next"' not in part:
+            continue
+        start, end = part.find("<"), part.find(">")
+        if start == -1 or end == -1:
+            continue
+        qs = parse_qs(urlparse(part[start + 1:end]).query)
+        if qs.get("cursor"):
+            return qs["cursor"][0]
+    return None
+
+
+def fetch_candidates() -> list[dict]:
+    params = {"format": "json", "end": END_DATE}
+    url = API_BASE + "?" + urlencode(params)
+
+    collected: list[dict] = []
+    reserve: list[dict] = []
+    seen: set[int] = set()
+    rejected: dict[str, int] = defaultdict(int)
+    page_index = 0
+
+    print(f"Fetching with-signal observations (end={END_DATE})")
+    while url and len(collected) < CANDIDATE_POOL and page_index < MAX_PAGES:
+        cached = _cache_path("pages", f"page_{page_index:03d}.json")
+        cached_hdr = _cache_path("pages", f"page_{page_index:03d}.headers.json")
+        if cached.exists() and cached_hdr.exists():
+            raw = cached.read_bytes()
+            headers = json.loads(cached_hdr.read_text(encoding="utf-8"))
+            print(f"  page {page_index}: cache")
+        else:
+            raw, headers = _get(url)
+            cached.write_bytes(raw)
+            cached_hdr.write_text(json.dumps(headers), encoding="utf-8")
+            print(f"  page {page_index}: fetched")
+            time.sleep(REQUEST_INTERVAL)
+
+        page = json.loads(raw)
+        if not page:
+            break
+        page_index += 1
+
+        for obs in page:
+            rejected["seen"] += 1
+            if not (obs.get("waterfall") and obs.get("tle1") and obs.get("tle2")):
+                rejected["no waterfall url or tle"] += 1
+                continue
+            if not obs.get("client_metadata") or rx_freq_of(obs) is None:
+                rejected["no client_metadata or rx-freq"] += 1
+                continue
+            if obs["id"] in seen:
+                rejected["duplicate id"] += 1
+                continue
+            seen.add(obs["id"])
+
+            if obs.get("waterfall_status") == "with-signal":
+                obs["_pool"] = "with-signal"
+                collected.append(obs)
+            elif obs.get("status") == "good":
+                # Vetting lags capture, so a good observation whose waterfall has
+                # not been vetted yet still carries a signal worth measuring.
+                # Kept as a reserve so one throttle window is enough.
+                obs["_pool"] = "good, waterfall not vetted"
+                reserve.append(obs)
+            else:
+                rejected[f"waterfall_status={obs.get('waterfall_status')}"] += 1
+
+        cursor = next_cursor(headers.get("link") or headers.get("Link"))
+        if not cursor:
+            break
+        url = API_BASE + "?" + urlencode({**params, "cursor": cursor})
+
+    print(f"  {len(collected)} with-signal candidates and {len(reserve)} unvetted "
+          f"reserves from {page_index} page(s), {rejected['seen']} records inspected")
+    for key, count in sorted(rejected.items(), key=lambda kv: -kv[1]):
+        if key != "seen":
+            print(f"    {key}: {count}")
+
+    if len(collected) < TARGET_OBS:
+        need = TARGET_OBS - len(collected)
+        print(f"  topping up with {min(need, len(reserve))} unvetted observations; "
+              f"each is labelled in summary.json")
+        collected.extend(reserve[:need])
+    return collected
+
+
+def download_waterfall(obs: dict) -> bytes:
+    cached = _cache_path("waterfalls", f"{obs['id']}.png")
+    if cached.exists():
+        return cached.read_bytes()
+    raw, _ = _get(obs["waterfall"], timeout=90.0)
+    cached.write_bytes(raw)
+    time.sleep(REQUEST_INTERVAL)
+    return raw
+
+
+def client_family(obs: dict) -> str:
+    raw = obs.get("client_version") or ""
+    if not raw:
+        try:
+            meta = json.loads(obs.get("client_metadata") or "{}")
+            raw = meta.get("radio", {}).get("version") or ""
+        except Exception:
+            raw = ""
+    if not raw:
+        return "unknown"
+    clean = re.sub(r"[+.][0-9]+\.g[0-9a-f]{6,}(\.dirty)?$|\.dirty$", "", raw.strip())
+    return clean or "unknown"
+
+
+def select_diverse(candidates: list[dict], target: int) -> list[dict]:
+    by_family: dict[str, list[dict]] = defaultdict(list)
+    for obs in candidates:
+        by_family[client_family(obs)].append(obs)
+    for pool in by_family.values():
+        pool.sort(key=lambda o: -(o.get("max_altitude") or 0))
+
+    families = sorted(by_family, key=lambda f: -len(by_family[f]))
+    print(f"  client families: {', '.join(f'{f}({len(by_family[f])})' for f in families)}")
+
+    selected: list[dict] = []
+    cursors = dict.fromkeys(families, 0)
+    while len(selected) < target:
+        progressed = False
+        for fam in families:
+            i = cursors[fam]
+            if i >= len(by_family[fam]):
+                continue
+            selected.append(by_family[fam][i])
+            cursors[fam] = i + 1
+            progressed = True
+            if len(selected) >= target:
+                break
+        if not progressed:
+            break
+    return selected
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+
+def main() -> None:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+    candidates = fetch_candidates()
+    if not candidates:
+        sys.exit("no with-signal observations returned")
+
+    selected = select_diverse(candidates, TARGET_OBS)
+    print(f"\nSelected {len(selected)} observations "
+          f"from {len({client_family(o) for o in selected})} client families\n")
+
+    results: list[dict] = []
+    for obs in selected:
+        obs_id = obs["id"]
+        fam = client_family(obs)
+        meta = json.loads(obs["client_metadata"])
+        params = meta.get("radio", {}).get("parameters", {})
+        record = {
+            "obs_id": obs_id,
+            "family": fam,
+            "station": obs.get("ground_station"),
+            "station_name": obs.get("station_name"),
+            "norad_cat_id": obs.get("norad_cat_id"),
+            "max_altitude": obs.get("max_altitude"),
+            "rx_freq_hz": rx_freq_of(obs),
+            "doppler-correction-per-sec": params.get("doppler-correction-per-sec"),
+            "rigctl-port": params.get("rigctl-port"),
+            "samp-rate-rx": params.get("samp-rate-rx"),
+            "vetting_pool": obs.get("_pool"),
+            "waterfall_status": obs.get("waterfall_status"),
+            "observation_status": obs.get("status"),
+        }
+        print(f"[obs {obs_id}] {fam}  max_alt={obs.get('max_altitude')}")
+
+        try:
+            raw_png = download_waterfall(obs)
+        except SystemExit:
+            raise
+        except Exception as exc:
+            record |= {"status": "download_failed", "error": str(exc)}
+            results.append(record)
+            print(f"  download failed: {exc}")
+            continue
+
+        start_dt = datetime.fromisoformat(obs["start"].replace("Z", "+00:00"))
+        end_dt = datetime.fromisoformat(obs["end"].replace("Z", "+00:00"))
+        duration_s = (end_dt - start_dt).total_seconds()
+
+        try:
+            geom = parse_waterfall(
+                image_data=raw_png,
+                observation_id=obs_id,
+                pass_duration_s=duration_s,
+                rx_freq_hz=rx_freq_of(obs),
+            )
+        except Exception as exc:
+            record |= {"status": "parse_exception", "error": str(exc)}
+            results.append(record)
+            print(f"  parse raised: {exc}")
+            continue
+
+        record |= {
+            "derivation": geom.derivation,
+            "hz_per_px": geom.hz_per_px,
+            "seconds_per_px": geom.seconds_per_px,
+            "centre_px": geom.centre_px,
+            "geom_degraded": geom.degraded,
+            "pass_duration_s": duration_s,
+        }
+        if geom.derivation == "failed" or not geom.hz_per_px or geom.crop_box is None:
+            record |= {"status": "geometry_failed", "verdict": "UNRESOLVED",
+                       "reason": f"waterfall geometry degraded: {geom.degraded}"}
+            results.append(record)
+            print(f"  geometry degraded: {geom.degraded}")
+            continue
+
+        try:
+            curve_fracs, curve_hz, els = compute_doppler_curve(obs)
+        except Exception as exc:
+            record |= {"status": "physics_failed", "error": str(exc)}
+            results.append(record)
+            print(f"  physics failed: {exc}")
+            continue
+        record["sgp4_max_elevation_deg"] = max(els) if els else None
+
+        record["centre_px_source"] = (
+            "axis zero tick" if geom.centre_px is not None else "geometric midpoint"
+        )
+
+        rgb = np.array(Image.open(io.BytesIO(raw_png)).convert("RGB"))
+        combined, per_setting, track = analyse(rgb, geom, (curve_fracs, curve_hz), els)
+        verdict = combined["consensus"]
+        stats = combined["primary"] or _empty_stats(curve_hz)
+        peak_z = track[2]
+
+        record |= stats
+        record |= {
+            "status": "ok",
+            "verdict": verdict[0],
+            "reason": verdict[1],
+            "median_peak_z": float(np.median(peak_z)) if peak_z.size else None,
+            "detection_settings": per_setting,
+        }
+
+        print(f"  {verdict[0]}: {verdict[1]}")
+        print(f"  predicted swing {stats['predicted_swing_hz']:,.0f} Hz, "
+              f"measured {stats['measured_swing_hz']:,.0f} Hz, "
+              f"rows {stats['n_signal_rows']}")
+
+        img = draw_overlay(
+            raw_png, obs, geom, (curve_fracs, curve_hz), track, stats, verdict,
+        )
+        out_path = OUT_DIR / f"overlay_{obs_id}.png"
+        img.save(str(out_path), optimize=True)
+        record["overlay_file"] = out_path.name
+        results.append(record)
+
+    (OUT_DIR / "summary.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
+
+    # ---- aggregate ----------------------------------------------------------
+    ok = [r for r in results if r.get("status") == "ok"]
+    tally: dict[str, int] = defaultdict(int)
+    for r in results:
+        tally[r.get("verdict", r.get("status", "?"))] += 1
+
+    print("\n" + "=" * 92)
+    print(f"{'obs':>10} {'family':<14} {'alt':>5} {'hz/px':>7} {'pred_Hz':>10} "
+          f"{'meas_Hz':>10} {'ratio':>6} {'r':>7}  verdict")
+    print("-" * 92)
+    for r in results:
+        if r.get("status") != "ok":
+            print(f"{r['obs_id']:>10} {r['family']:<14} {'':>5} {'':>7} {'':>10} "
+                  f"{'':>10} {'':>6} {'':>7}  {r.get('status')}")
+            continue
+        print(f"{r['obs_id']:>10} {r['family']:<14} {r['max_altitude'] or 0:>5.0f} "
+              f"{r['hz_per_px']:>7.2f} {r['predicted_swing_hz']:>10,.0f} "
+              f"{r['measured_swing_hz']:>10,.0f} {r['swing_ratio']:>6.2f} "
+              f"{r['correlation']:>7.3f}  {r['verdict']}")
+
+    print("\nverdict tally: " + ", ".join(f"{k}={v}" for k, v in sorted(tally.items())))
+    print(f"client families with a verdict: "
+          f"{sorted({r['family'] for r in ok})}")
+    print(f"doppler-correction-per-sec seen: "
+          f"{sorted({str(r.get('doppler-correction-per-sec')) for r in results})}")
+    print(f"rigctl-port seen: {sorted({str(r.get('rigctl-port')) for r in results})}")
+
+    by_family_verdict: dict[str, set[str]] = defaultdict(set)
+    for r in ok:
+        by_family_verdict[r["family"]].add(r["verdict"])
+    print("\nper-family verdicts:")
+    for fam, verdicts in sorted(by_family_verdict.items()):
+        print(f"  {fam:<16} {sorted(verdicts)}")
+
+    print(f"\nsummary: {OUT_DIR / 'summary.json'}")
+    print(f"overlays: {len([r for r in results if r.get('overlay_file')])} written to {OUT_DIR}")
+
+
+if __name__ == "__main__":
+    main()
