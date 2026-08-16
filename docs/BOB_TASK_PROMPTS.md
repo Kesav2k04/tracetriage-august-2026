@@ -394,7 +394,18 @@ Target: **~14 coins.**
 - **C3** Local annotation. Writes to local storage only. A test must assert no outbound write to SatNOGS is even possible. *(~2)*
 - **C4** Active-selection replay against random, FIFO, entropy-only and image-confidence orderings. **Gate 6 closes here.** *(~3)*
 - **C5** Static evidence console: Next.js, TypeScript, Carbon. Queue, evidence card, frozen replay, provenance panel, evaluation view. *(~3)*
+- **C5b** **Deploy it to Vercel and keep it live.** Not a Wave D task. See the note below. *(~1)*
 - **C6** Accessibility and failure states: keyboard operation, contrast, reduced motion, no WebGL, and an explicit degraded state for every failure in the injection list. *(~1)*
+
+> ### Why deployment moved out of Wave D
+>
+> The rules never say judges will clone and run the repository. They say it must be "publicly accessible so judges can **review and score**" it. For the June 2026 entry the judges opened the deployed app, watched the video, and read the repo. They did not clone it.
+>
+> So the live URL is the artifact that carries "functional and well-structured solution" and "practicality" for a reviewer with three minutes. Deploy as soon as the console renders one real evidence card, then iterate on a URL that stays up. A link that has been live and improving for ten days is a different artifact from one that appears the night before the deadline.
+>
+> **This changes nothing about the rigor.** Clean-clone reproduction, offline replay, grouped holdouts and claim-drift tests all still get built in Wave D. They are not for the judges' hands. They are what makes the numbers real, and they cover the case where a judge does clone it. Skipping them to chase the demo would be exactly the compromise this project cannot afford.
+>
+> The console is already designed to deploy cleanly: static, precomputed replay, no database, no cloud inference, no credentials. Nothing can break in front of a judge because a backend went down.
 
 ---
 
