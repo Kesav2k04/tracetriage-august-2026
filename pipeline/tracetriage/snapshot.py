@@ -1,4 +1,4 @@
-"""Immutable snapshot builder — unit A1.
+"""Immutable snapshot builder, unit A1.
 
 CLI
 ---
@@ -24,7 +24,7 @@ Design rules (all mandatory, from unit A1 acceptance):
   - end= (not end__lte=) for the date bound.
   - waterfall_status filtered client-side (API returns HTTP 400 for it).
 
-Traps (from SATNOGS_API_RECON.md § 4 — do NOT touch these):
+Traps (from SATNOGS_API_RECON.md section 4, do NOT touch these):
   - end__lte= is silently ignored by the API. Use bare end= only.
   - waterfall_status= is not a filter; returns HTTP 400. Filter client-side.
   - A bare listing returns future observations with null waterfalls. Always
@@ -322,7 +322,14 @@ def run_snapshot(
     pages_dir.mkdir(exist_ok=True)
     wf_dir.mkdir(exist_ok=True)
 
-    manifest_path = ARTIFACTS_DIR / "DATASET_MANIFEST.json"
+    # The manifest is this snapshot's own resume index, so it lives WITH the
+    # snapshot. A single global path made every snapshot share one resume state:
+    # running stage 2 into a different --out would load stage 1's observations,
+    # skip them as already fetched, and then emit a manifest describing files
+    # that are not in the directory it names. The plan runs stage 2 in the
+    # background during Wave B while stage 1 is in use, so that collision was
+    # reachable by design, not hypothetical.
+    manifest_path = out_dir / "DATASET_MANIFEST.json"
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
 
     # Disk space check on the target drive (check both dirs)
@@ -535,6 +542,13 @@ def run_snapshot(
 
     validate_manifest(manifest_doc)
     save_manifest(manifest_path, manifest_doc)
+
+    # Unit A1 names artifacts/DATASET_MANIFEST.json as the deliverable path, so
+    # mirror the canonical manifest there once the run has actually completed.
+    # Only a completed run is mirrored: a partial snapshot must never present
+    # itself as the project's current dataset.
+    save_manifest(ARTIFACTS_DIR / "DATASET_MANIFEST.json", manifest_doc)
+
     log.info(
         "done. obs=%d  waterfalls=%d  missing=%d  decisive=%d  pages=%d",
         len(observations_list), waterfalls_stored, waterfalls_missing, decisive, len(pages_list),
@@ -666,14 +680,22 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     p.add_argument(
         "--end",
-        required=True,
-        help="Upper date bound (ISO 8601, UTC). Sent as bare end= parameter.",
+        default=None,
+        help=(
+            "Upper date bound (ISO 8601, UTC). Sent as a bare end= parameter. "
+            "Required unless --verify is given."
+        ),
     )
     p.add_argument(
         "--target-waterfalls",
         type=int,
-        default=2300,
-        help="Stop after collecting this many usable waterfall artifacts.",
+        default=None,
+        help=(
+            "Stop after collecting this many usable waterfall artifacts. "
+            "Required unless --verify is given, deliberately: this previously "
+            "defaulted to 2300, so any invocation that omitted it silently "
+            "began a production-scale crawl against a volunteer-run public API."
+        ),
     )
     p.add_argument(
         "--out",
@@ -701,7 +723,11 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument(
         "--verify",
         action="store_true",
-        help="After fetching, verify every stored waterfall sha256 and exit.",
+        help=(
+            "Verification mode. Re-hash every stored waterfall in --out against "
+            "its manifest entry and exit. Fetches nothing, so --end and "
+            "--target-waterfalls are not needed with it."
+        ),
     )
     p.add_argument(
         "--verbose", "-v",
@@ -720,6 +746,28 @@ def main(argv: list[str] | None = None) -> None:
 
     out_dir = args.out.resolve()
 
+    # --verify is a verification MODE, not a post-fetch step. It used to run
+    # after run_snapshot(), which meant there was no way to check an existing
+    # snapshot without first completing a full crawl. Combined with the old
+    # --target-waterfalls default, a bare --verify pulled 578 observations and
+    # 870 MB before it was interrupted.
+    if args.verify:
+        manifest_path = out_dir / "DATASET_MANIFEST.json"
+        if not manifest_path.exists():
+            sys.exit(f"no manifest at {manifest_path}; nothing to verify")
+        manifest = load_manifest(manifest_path)
+        observations = manifest.get("observations", [])
+        errors = verify_sha256(out_dir / "waterfalls", observations)
+        if errors:
+            for e in errors:
+                log.error(e)
+            sys.exit(f"{len(errors)} sha256 verification failures")
+        log.info("all sha256 verified OK across %d observations", len(observations))
+        return
+
+    if args.end is None or args.target_waterfalls is None:
+        sys.exit("--end and --target-waterfalls are required unless --verify is given")
+
     snapshot_id = args.snapshot_id or (
         "snap-" + args.end[:10] + f"-stage{args.stage}"
     )
@@ -732,17 +780,6 @@ def main(argv: list[str] | None = None) -> None:
         stage=args.stage,
         sampling_design=args.sampling_design,
     )
-
-    if args.verify:
-        manifest_path = ARTIFACTS_DIR / "DATASET_MANIFEST.json"
-        manifest = load_manifest(manifest_path)
-        wf_dir = out_dir / "waterfalls"
-        errors = verify_sha256(wf_dir, manifest.get("observations", []))
-        if errors:
-            for e in errors:
-                log.error(e)
-            sys.exit(f"{len(errors)} sha256 verification failures")
-        log.info("all sha256 verified OK")
 
 
 if __name__ == "__main__":

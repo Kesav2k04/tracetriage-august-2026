@@ -21,8 +21,17 @@ PY = REPO / ".venv" / "Scripts" / "python.exe"
 
 
 def run(cmd: list[str], cwd: Path = REPO) -> tuple[int, str]:
-    p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
-    return p.returncode, (p.stdout + p.stderr).strip()
+    # text=True alone decodes with the Windows ANSI codepage (cp1252 here), which
+    # raises UnicodeDecodeError on any byte it does not map. That made the gate
+    # crash instead of reporting, and it crashed precisely when it was most
+    # needed: a non-ASCII character in a source file is only echoed by pytest
+    # when a test in that file FAILS. Decode as UTF-8 and never let an
+    # undecodable byte take the gate down.
+    p = subprocess.run(
+        cmd, cwd=cwd, capture_output=True, text=True,
+        encoding="utf-8", errors="replace",
+    )
+    return p.returncode, ((p.stdout or "") + (p.stderr or "")).strip()
 
 
 def check(name: str, ok: bool, detail: str = "") -> bool:

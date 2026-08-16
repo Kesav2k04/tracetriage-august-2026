@@ -663,7 +663,7 @@ class TestResumeAfterInterrupt:
             "sha256": "d" * 64,
             "retrieved_at": "2026-08-16T00:05:00Z",
             "n_observations": 1,
-            "cursor": None,  # ← final page; no next page exists
+            "cursor": None,  # final page; no next page exists
         }
         stored_obs = _obs_manifest_entry(obs_id=55)
 
@@ -671,11 +671,15 @@ class TestResumeAfterInterrupt:
             snapshot_id=snapshot_id,
             obs_entries=[stored_obs],
             pages=[stored_page],
-            completed_at=None,  # ← partial (interrupted before finalisation)
+            completed_at=None,  # partial (interrupted before finalisation)
         )
 
-        # Write the prior manifest to the artifacts dir
-        manifest_path = tmp_path / "DATASET_MANIFEST.json"
+        # The manifest is this snapshot's own resume index, so it lives in --out.
+        # It used to be read from one global artifacts path, which meant every
+        # snapshot shared a single resume state. Corrected in A1b.
+        out_dir = tmp_path / "out"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        manifest_path = out_dir / "DATASET_MANIFEST.json"
         manifest_path.write_text(
             json.dumps(prior_manifest, indent=2), encoding="utf-8"
         )
@@ -734,7 +738,7 @@ class TestResumeAfterInterrupt:
             "sha256": "e" * 64,
             "retrieved_at": "2026-08-16T00:05:00Z",
             "n_observations": 1,
-            "cursor": "cursor_abc",  # ← has a next page
+            "cursor": "cursor_abc",  # has a next page
         }
 
         prior_manifest = _minimal_manifest(
@@ -744,7 +748,8 @@ class TestResumeAfterInterrupt:
             completed_at=None,
         )
 
-        manifest_path = tmp_path / "DATASET_MANIFEST.json"
+        # Resume index lives with the snapshot, not at a global path. See A1b.
+        manifest_path = out_dir / "DATASET_MANIFEST.json"
         manifest_path.write_text(json.dumps(prior_manifest, indent=2), encoding="utf-8")
 
         monkeypatch.setattr(snap_mod.time, "sleep", lambda _: None)
