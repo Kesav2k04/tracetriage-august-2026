@@ -9,12 +9,12 @@
 | | |
 |---|---|
 | **Handoff written** | 2026-08-17, IST |
-| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (see `git log`) |
+| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`) |
 | **Account in use** | account 3 |
 | **Current wave** | Wave A, in progress |
 | **Next unit** | **A4: physics corridor module**. A3 is answered, so A4 is unblocked. |
 | **Open failures** | none. 7/7 standing gates, 166 tests pass offline. |
-| **Last commit** | `69d5c98` (2026-08-16 IST) |
+| **Last commit** | `c7ca696` (2026-08-16 IST) |
 
 ### A3 is closed. Read this before building the corridor in A4
 

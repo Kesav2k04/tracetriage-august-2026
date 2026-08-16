@@ -278,7 +278,7 @@ costs the remaining images rather than the analysis.
 
 **Bob task ID:** `1c7c56d4cfab40a7ca8f2b68cf6f8951` (workspace `tracetriage-august-2026`, account 2)
 
-**Commit:** see the A3 commit in `git log`
+**Commit:** c7ca696
 
 **Outcome:** accepted. 19 A3 tests, 166 offline tests pass. Gate 7/7 after commit.
 
@@ -294,7 +294,7 @@ complete and nothing later overwrites it by accident.
 | 2026-08-16 | after A0 | Data contracts | Added the dataset manifest contract that A1 validates against, declared and installed `jsonschema`, removed the fallback derivation mode from `waterfall_geometry`, and converted five prose-only invariants into enforced `if/then` and `const` rules with 32 tests | `b75844d`, reviewed at A0b-INT in `3df6f98` |
 | 2026-08-16 | after A1 | Snapshot builder | Manifest and resume index moved from a global path into `--out`, `--target-waterfalls` made required, `--verify` made a mode that fetches nothing, two resume tests repointed, gate script decoding fixed | `931d2cd` |
 | 2026-08-16 | after A2 | Waterfall parser | `easyocr` declared as an optional `ocr` extra rather than an undeclared import, `parse_waterfall` given an optional `ocr_results` so the Hz/px derivation is verifiable with no OCR backend, the reading of both fixtures committed to `tests/fixtures/ocr_labels.json`, and an `ocr`-marked drift test added so the cache cannot rot. Gate and CI exclude the marker. | `038ed1a` |
-| 2026-08-16 | during A3 | Doppler investigation | Replaced silently-ignored `id__lt` paging with the Link-header cursor, corrected the query window, replaced a block-averaged peak tracker that was biased toward one hypothesis with a whole-path matched filter scored against a null measured from the image, read the time axis direction off the tick labels and scanned the frequency-axis sign instead of assuming either, added an OCR preflight, and made a rate-limit window cost images rather than the analysis | A3 commit |
+| 2026-08-16 | during A3 | Doppler investigation | Replaced silently-ignored `id__lt` paging with the Link-header cursor, corrected the query window, replaced a block-averaged peak tracker that was biased toward one hypothesis with a whole-path matched filter scored against a null measured from the image, read the time axis direction off the tick labels and scanned the frequency-axis sign instead of assuming either, added an OCR preflight, and made a rate-limit window cost images rather than the analysis | `c7ca696` |
 
 ---
 
