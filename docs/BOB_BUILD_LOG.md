@@ -56,7 +56,7 @@ and their result, what failed, what was repaired, and the **actual** Bobcoins sp
 
 **Coins:** estimated 1, actual 1.
 
-**Commit:** (see below after commit)
+**Commit:** 8ef8d1f
 
 **Outcome:** accepted. All four schemas now have `"status": "ratified"` and `"schema_version": "0.2.0"`. Gate contracts check passes.
 
