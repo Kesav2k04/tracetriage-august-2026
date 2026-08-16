@@ -230,6 +230,7 @@ complete and nothing later overwrites it by accident.
 |---|---|---|---|---|
 | 2026-08-16 | after A0 | Data contracts | Added the dataset manifest contract that A1 validates against, declared and installed `jsonschema`, removed the fallback derivation mode from `waterfall_geometry`, and converted five prose-only invariants into enforced `if/then` and `const` rules with 32 tests | `b75844d`, reviewed at A0b-INT in `3df6f98` |
 | 2026-08-16 | after A1 | Snapshot builder | Manifest and resume index moved from a global path into `--out`, `--target-waterfalls` made required, `--verify` made a mode that fetches nothing, two resume tests repointed, gate script decoding fixed | `931d2cd` |
+| 2026-08-16 | after A2 | Waterfall parser | `easyocr` declared as an optional `ocr` extra rather than an undeclared import, `parse_waterfall` given an optional `ocr_results` so the Hz/px derivation is verifiable with no OCR backend, the reading of both fixtures committed to `tests/fixtures/ocr_labels.json`, and an `ocr`-marked drift test added so the cache cannot rot. Gate and CI exclude the marker. | `038ed1a` |
 
 ---
 
@@ -240,13 +241,13 @@ complete and nothing later overwrites it by accident.
 **Files created/changed:**
 - `pipeline/tracetriage/waterfall.py` (new, production waterfall parser)
 - `tests/test_waterfall.py` (new, 52 offline tests)
-- `contracts/waterfall_geometry.schema.json` (0.2.1 → 0.2.2: made `plot_box` nullable to match `crop_box` — it must be null when parsing fails before plot detection)
+- `contracts/waterfall_geometry.schema.json` (0.2.1 → 0.2.2: made `plot_box` nullable to match `crop_box`, it must be null when parsing fails before plot detection)
 - `docs/BOB_BUILD_LOG.md` (this entry)
 - `scripts/_inspect_fixtures.py` (throwaway debug script used during development)
 
 **Key design decisions:**
 - EasyOCR used for tick-label reading (inverted 4× upscaled image, digit-only allowlist). The minus sign is NOT read by OCR; the sign is inferred from position relative to the detected axis centre (0 Hz tick). This avoids EasyOCR misreading the minus glyph as a digit on small matplotlib fonts.
-- EasyOCR model weights stored at `D:/cache/easyocr/model` (rules: never C:\). Configurable via `EASYOCR_MODULE_PATH` env var. `download_enabled=False` — weights must be pre-installed.
+- EasyOCR model weights stored at `D:/cache/easyocr/model` (rules: never C:\). Configurable via `EASYOCR_MODULE_PATH` env var. `download_enabled=False`, weights must be pre-installed.
 - OCR reader is module-level cached (lazy init) to avoid re-initialising across observations.
 - `plot_box` type changed to `["object", "null"]` in schema (bug fix: schema allowed `crop_box` to be null on failure but not `plot_box`; both must be nullable when parsing fails before plot detection).
 - No fallback-to-constant Hz/px derivation. If OCR fails, record is degraded with `NO_OCR_BACKEND` or `NO_AXIS_DETECTED`.
@@ -264,13 +265,13 @@ complete and nothing later overwrites it by accident.
 - `waterfall_832px_client_2.1.2.png`: 79.81 Hz/px, error 0.233% (< 1% limit) ✓
 
 **Failures and repairs:**
-1. First implementation used label pixel-width to infer kHz-per-tick. Failed: all intervals 1–100 kHz produced the same character-count pattern with ±1 tolerance, so 1 kHz was selected (first candidate), giving 10× wrong Hz/px.
-2. EasyOCR with upright (dark-on-white) image read `-30` as `530` on the 836px image — minus sign glyph misread as `5`. Fixed by inverting the image to white-on-black for OCR, and by discarding sign from OCR (infer sign from tick position instead).
-3. `test_crop_836_colorbar_not_in_cropped_array` was testing for dense non-white columns — failed because the spectrogram data is itself dense. Fixed: test now checks `crop_box.x1 < colorbar_x0` (coordinate-based).
+1. First implementation used label pixel-width to infer kHz-per-tick. Failed: all intervals 1 to 100 kHz produced the same character-count pattern with ±1 tolerance, so 1 kHz was selected (first candidate), giving 10× wrong Hz/px.
+2. EasyOCR with upright (dark-on-white) image read `-30` as `530` on the 836px image, minus sign glyph misread as `5`. Fixed by inverting the image to white-on-black for OCR, and by discarding sign from OCR (infer sign from tick position instead).
+3. `test_crop_836_colorbar_not_in_cropped_array` was testing for dense non-white columns, failed because the spectrogram data is itself dense. Fixed: test now checks `crop_box.x1 < colorbar_x0` (coordinate-based).
 4. `test_failed_record_validates_against_schema` failed because schema required `plot_box` to be non-null but our failed records have `plot_box=None`. Fixed by making `plot_box` nullable in the schema (version bump to 0.2.2).
 5. Lint: 35 errors on first pass (UP045 Optional usage, B904 exception chaining, SIM108, F401, I001). Fixed with `ruff --fix` plus manual edits.
 
-**Coins:** estimated 4–6, actual ~5.
+**Coins:** estimated 4 to 6, actual ~5.
 
 **Bob task ID:** (retrieve from session)
 
