@@ -410,9 +410,19 @@ Build the first two rungs of the model ladder as the honest baseline everything
 later must beat: a centre-energy heuristic, and HOG plus regularised logistic
 regression, both CALIBRATED.
 
-The dataset is built. Read it from the snapshot directory given to you; its
-DATASET_MANIFEST.json is the only source of truth for what exists, and its
-counts block tells you the corpus size before you load a single image.
+The dataset is built and verified. It lives at D:\tracetriage_data\snap-stage1
+with waterfalls/ beside it, and DATASET_MANIFEST.json is the only source of
+truth for what exists. Every sha256 in it was re-verified against the bytes on
+disk. What it holds:
+
+  2,727 observations, 2,500 waterfalls stored, 227 with no waterfall URL
+  739 decisive labels (27.1%): 462 with-signal, 277 without-signal, 1.67:1
+  1,988 unknown (72.9%)
+  271 ground stations, 526 satellites, 613 transmitters
+  chronological, ending 2026-08-10T00:00:00Z, no stratification
+
+Read the counts from the manifest anyway. Numbers pasted into a prompt go stale
+and the manifest does not.
 
 Calibration matters here specifically. Gate 5 requires the physics model to beat
 a CALIBRATED image-only baseline. Beating an uncalibrated one proves nothing

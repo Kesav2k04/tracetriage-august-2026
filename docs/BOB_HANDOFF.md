@@ -13,8 +13,47 @@
 | **Account in use** | account 3 |
 | **Current wave** | Wave A, in progress |
 | **Next unit** | **A6: image-only baseline** |
-| **Open failures** | none. 7/7 standing gates, 293 tests pass offline. |
-| **Last commit** | `68bac8c` (2026-08-17 IST) |
+| **Open failures** | none. 7/7 standing gates, 324 tests pass offline. |
+| **Dataset** | stage 1 built and verified: `D:	racetriage_data\snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
+| **Last commit** | see `git log -1` |
+
+### The stage-1 dataset exists. Read this before A6.
+
+Built with `pipeline.tracetriage.snapshot`, chronological back from
+2026-08-10T00:00:00Z, no stratification. Every sha256 re-verified against the
+bytes on disk with `--verify`.
+
+| | |
+|---|---|
+| Observations | 2,727 |
+| Waterfalls stored | 2,500 |
+| No waterfall URL | 227 (all permanent; zero transient failures) |
+| Decisive labels | 739, 27.1% |
+| with-signal | 462 |
+| without-signal | 277 |
+| unknown | 1,988, 72.9% |
+| Ground stations | 271 |
+| Satellites | 526 |
+| Transmitters | 613 |
+
+**The dominant fact is the unlabelled majority.** Nearly three observations in
+four carry no decisive label. Reading `unknown` as `without-signal` inflates
+the negative class about sevenfold and yields a model that has learned which
+observations a human got round to vetting.
+
+**The base-rate constants in `provenance.py` are a prior, not a measurement of
+this corpus.** `tests/test_base_rates.py` checks them against the built
+snapshot through a Wilson interval; all four hold at 99% on 2,727 observations.
+`BASE_RATE_POSITIVE_FRACTION` holds by 0.0004 and will need re-measuring when
+stage 2 tightens the interval.
+
+**A1 was hardened for throttling after this run.** A 429 now pauses and obeys
+`Retry-After` instead of ending the run, and `THROTTLED`, `TIMEOUT` and
+`HTTP_ERROR` are transient reasons that a later run retries rather than
+burying. Any unit reading the manifest must treat those three as "not fetched",
+never as "no signal".
+
+---
 
 ### A5 is closed. Read this before A6.
 
