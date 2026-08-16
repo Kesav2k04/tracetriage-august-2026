@@ -63,6 +63,11 @@ markers = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# scripts/recon/ holds the read-only probes that produced the measured numbers in
+# docs/SATNOGS_API_RECON.md. They are preserved AS RUN, because reformatting them
+# after the fact would weaken them as provenance for those numbers. They are
+# recon-grade by design and must never be imported into pipeline/.
+extend-exclude = ["scripts/recon"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

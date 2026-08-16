@@ -1,4 +1,7 @@
-import json,urllib.request,time
+import json
+import time
+import urllib.request
+
 UA={"User-Agent":"TraceTriage-recon/0.1 (kesavk659@gmail.com)"}
 req=urllib.request.Request("https://network.satnogs.org/api/observations/?format=json&end=2026-07-15T00:00:00Z",headers=UA)
 d=json.loads(urllib.request.urlopen(req,timeout=60).read())

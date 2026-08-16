@@ -1,4 +1,7 @@
-import json,urllib.request,collections,sys
+import collections
+import json
+import urllib.request
+
 B="https://network.satnogs.org/api/observations/?format=json"
 def get(q,n=1):
     req=urllib.request.Request(B+q,headers={"User-Agent":"TraceTriage-recon/0.1 (kesavk659@gmail.com)"})

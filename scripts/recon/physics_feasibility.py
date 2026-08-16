@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import math
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import numpy as np
 from sgp4.api import Satrec, jday
@@ -45,7 +45,7 @@ def station_ecef(lat_deg: float, lon_deg: float, alt_m: float) -> np.ndarray:
 def gmst(dt: datetime) -> float:
     """Greenwich mean sidereal time in radians (adequate for a feasibility check)."""
     jd = (
-        dt.replace(tzinfo=timezone.utc) - datetime(2000, 1, 1, 12, tzinfo=timezone.utc)
+        dt.replace(tzinfo=UTC) - datetime(2000, 1, 1, 12, tzinfo=UTC)
     ).total_seconds() / 86400.0
     return (math.radians(280.46061837 + 360.98564736629 * jd)) % (2 * math.pi)
 
@@ -136,7 +136,7 @@ def main() -> None:
         print(f"  {frac:4.2f}   {elev:+8.2f}   {rng:9.1f}   {rr:+16.4f}   {dop:+11.0f}")
 
     peak_err = abs(max(elevs) - float(obs["max_altitude"]))
-    print(f"\nVERDICT")
+    print("\nVERDICT")
     print(f"  peak-elevation agreement with API: {peak_err:.2f} deg error")
     if peak_err < 2.0:
         print("  PASS  stored TLE + station coords reproduce the pass geometry.")
