@@ -81,7 +81,7 @@ future observations excluded explicitly. Preserve distinct `labelled_positive` a
 
 **Bob task ID:** (workspace `tracetriage-august-2026`, account 3)
 
-**Commit:** (pending)
+**Commit:** 68bac8c
 
 **Outcome:** accepted. 74 tests pass. 293 offline tests pass. Gate 7/7 after commit.
 
