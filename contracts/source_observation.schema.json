@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tracetriage/source_observation",
+  "title": "Source observation record (snapshot form)",
+  "status": "DRAFT - not authoritative until Bob ratifies it (task A0)",
+  "schema_version": "0.1.0-draft",
+  "description": "One public SatNOGS observation as stored in the immutable snapshot. Field names verified live on 2026-08-16 against network.satnogs.org; see docs/SATNOGS_API_RECON.md section 2.",
+  "type": "object",
+  "required": [
+    "id", "start", "end", "ground_station", "norad_cat_id", "transmitter_uuid",
+    "station_lat", "station_lng", "station_alt", "observation_frequency",
+    "tle0", "tle1", "tle2", "status", "waterfall_status",
+    "_retrieved_at", "_source_url", "_license", "_schema_version"
+  ],
+  "properties": {
+    "id": { "type": "integer", "description": "SatNOGS observation id. Primary key." },
+    "start": { "type": "string", "format": "date-time" },
+    "end": { "type": "string", "format": "date-time" },
+    "ground_station": { "type": "integer", "description": "Station id. GROUPING KEY for cold-station splits." },
+    "norad_cat_id": { "type": "integer" },
+    "sat_id": { "type": ["string", "null"] },
+    "transmitter_uuid": { "type": ["string", "null"], "description": "GROUPING KEY for cold-transmitter splits." },
+    "transmitter_mode": { "type": ["string", "null"] },
+    "transmitter_downlink_low": { "type": ["integer", "null"] },
+    "station_lat": { "type": "number" },
+    "station_lng": { "type": "number" },
+    "station_alt": { "type": "number", "description": "metres" },
+    "observation_frequency": { "type": ["integer", "null"] },
+    "center_frequency": {
+      "type": ["integer", "null"],
+      "description": "MEASURED NULL ON EVERY RECORD INSPECTED. Do not depend on it. Use client_metadata.radio.parameters.rx-freq."
+    },
+    "tle0": { "type": "string" },
+    "tle1": { "type": "string" },
+    "tle2": { "type": "string" },
+    "tle_source": { "type": ["string", "null"] },
+    "max_altitude": { "type": ["number", "null"], "description": "API-reported peak elevation. Used to VALIDATE our SGP4, not as a feature." },
+    "rise_azimuth": { "type": ["number", "null"] },
+    "set_azimuth": { "type": ["number", "null"] },
+    "status": { "enum": ["good", "bad", "failed", "unknown", "future"] },
+    "waterfall": { "type": ["string", "null"], "description": "Artifact URL on wasabisys, a separate failure domain from the API host." },
+    "waterfall_status": {
+      "enum": ["with-signal", "without-signal", "unknown", null],
+      "description": "SILVER label. 'unknown' stays unlabelled. A null waterfall is artifact-unusable, NOT a negative."
+    },
+    "client_version": { "type": ["string", "null"], "description": "Raw. Carries +N.g<sha> and .dirty suffixes." },
+    "client_family": { "type": ["string", "null"], "description": "Derived: client_version normalised. GROUPING KEY for format holdouts." },
+    "client_metadata": {
+      "type": ["string", "null"],
+      "description": "JSON-ENCODED STRING, not an object. Parse it. Holds rx-freq, samp-rate-rx, radio name/version, lo-offset, ppm."
+    },
+    "_retrieved_at": { "type": "string", "format": "date-time" },
+    "_source_url": { "type": "string", "format": "uri" },
+    "_raw_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "_waterfall_sha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "_license": { "const": "CC BY-SA 4.0" },
+    "_license_url": { "const": "https://creativecommons.org/licenses/by-sa/4.0/" },
+    "_schema_version": { "type": "string" }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$comment": "Project-local MCP server exposing TraceTriage's own test and evaluation tools to Bob. The server does not exist yet: Bob implements it (see .bob/TOOL_SPECS.md). Registering it here first means the wiring is one file edit rather than a discovery task. Every tool is READ-ONLY with respect to SatNOGS.",
+  "mcpServers": {
+    "tracetriage": {
+      "command": ".venv/Scripts/python.exe",
+      "args": ["-m", "tracetriage.mcp_server"],
+      "env": {
+        "PYTHONPATH": "pipeline",
+        "TRACETRIAGE_DATA_DIR": "data",
+        "TRACETRIAGE_OFFLINE": "1"
+      },
+      "$comment": "TRACETRIAGE_OFFLINE=1 forces fixture-backed operation so a tool call can never depend on the live network."
+    }
+  }
+}

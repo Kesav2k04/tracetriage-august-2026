@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tracetriage/waterfall_geometry",
+  "title": "Per-observation waterfall pixel mapping",
+  "status": "DRAFT - not authoritative until Bob ratifies it (task A0)",
+  "schema_version": "0.1.0-draft",
+  "description": "The frequency and time calibration of one waterfall image. PER OBSERVATION, never a project constant: measured Hz/px was 123.46 on one client and 80.00 on another. See docs/SATNOGS_API_RECON.md section 7.",
+  "type": "object",
+  "required": ["observation_id", "image_width", "image_height", "plot_box", "derivation", "degraded"],
+  "properties": {
+    "observation_id": { "type": "integer" },
+    "image_width": { "type": "integer" },
+    "image_height": { "type": "integer" },
+    "plot_box": {
+      "type": "object",
+      "required": ["x0", "y0", "x1", "y1"],
+      "description": "Spectrogram area only. Excludes axis labels and the colorbar some clients render.",
+      "properties": {
+        "x0": { "type": "integer" }, "y0": { "type": "integer" },
+        "x1": { "type": "integer" }, "y1": { "type": "integer" }
+      }
+    },
+    "hz_per_px": { "type": ["number", "null"], "description": "Derived from the rendered axis. NEVER from samp-rate-rx." },
+    "seconds_per_px": { "type": ["number", "null"] },
+    "centre_px": { "type": ["number", "null"], "description": "Pixel column of 0 Hz offset." },
+    "derivation": {
+      "enum": ["axis_ticks", "axis_ticks_ocr", "client_family_fallback", "failed"],
+      "description": "How hz_per_px was obtained. 'failed' must produce a degraded state, never a guess."
+    },
+    "derivation_confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "degraded": { "type": ["string", "null"], "description": "Named reason code when the mapping could not be established." }
+  }
+}

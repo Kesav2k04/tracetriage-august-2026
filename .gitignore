@@ -1,0 +1,46 @@
+# --- environment ---
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+node_modules/
+.next/
+dist/
+build/
+
+# --- data plane: never commit the snapshot or the artifacts it derives ---
+data/
+!data/.gitkeep
+*.parquet
+*.npy
+*.npz
+*.pt
+*.pth
+*.onnx
+*.png
+!docs/**/*.png
+!tests/fixtures/**/*.png
+!apps/web/public/**/*.png
+
+# --- generated artifacts: manifests are committed, payloads are not ---
+artifacts/**/*
+!artifacts/.gitkeep
+!artifacts/**/*.json
+!artifacts/**/*.md
+
+# --- secrets ---
+.env
+.env.local
+*.key
+*.pem
+credentials*.json
+
+# --- os / editor ---
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tracetriage/split_manifest",
+  "title": "Grouped split assignment",
+  "status": "DRAFT - not authoritative until Bob ratifies it (task A0)",
+  "schema_version": "0.1.0-draft",
+  "description": "Frozen split assignment. Random image splits leak station, satellite, rendering and duplicate patterns, so every split here is grouped.",
+  "type": "object",
+  "required": ["snapshot_id", "frozen_at", "splits", "grouping_keys", "leakage_checks"],
+  "properties": {
+    "snapshot_id": { "type": "string" },
+    "frozen_at": { "type": "string", "format": "date-time" },
+    "grouping_keys": {
+      "type": "array",
+      "items": { "enum": ["ground_station", "transmitter_uuid", "norad_cat_id", "orbital_revolution", "client_family"] }
+    },
+    "splits": {
+      "type": "object",
+      "required": ["chronological", "cold_station", "cold_transmitter", "cold_combined"],
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "train": { "type": "array", "items": { "type": "integer" } },
+          "calibration": { "type": "array", "items": { "type": "integer" } },
+          "test": { "type": "array", "items": { "type": "integer" } }
+        }
+      }
+    },
+    "leakage_checks": {
+      "type": "object",
+      "description": "Each must be asserted, not assumed.",
+      "properties": {
+        "no_transmitter_across_splits": { "type": "boolean" },
+        "no_revolution_across_splits": { "type": "boolean" },
+        "no_duplicate_image_across_splits": { "type": "boolean" },
+        "no_future_feature_in_train": { "type": "boolean" },
+        "test_set_untouched": { "type": "boolean" }
+      }
+    }
+  }
+}

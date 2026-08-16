@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tracetriage/triage_receipt",
+  "title": "Per-observation evidence receipt",
+  "status": "DRAFT - not authoritative until Bob ratifies it (task A0)",
+  "schema_version": "0.1.0-draft",
+  "description": "Everything shown on one evidence card, and everything needed to reproduce it. If a value is on the card it must be in the receipt.",
+  "type": "object",
+  "required": [
+    "observation_id", "snapshot_id", "model_checksum", "generated_at",
+    "evidence", "scores", "decision", "reason_codes", "provenance"
+  ],
+  "properties": {
+    "observation_id": { "type": "integer" },
+    "snapshot_id": { "type": "string" },
+    "model_checksum": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "evidence": {
+      "type": "object",
+      "description": "Separate axes. Never collapse these into one score.",
+      "properties": {
+        "visible_signal": { "type": ["number", "null"] },
+        "target_consistency": { "type": ["number", "null"] },
+        "artifact_usable": { "type": "boolean" },
+        "physics_available": { "type": "boolean" },
+        "residual_hz": { "type": ["number", "null"] },
+        "corridor_intersects_trace": { "type": ["boolean", "null"] }
+      }
+    },
+    "scores": {
+      "type": "object",
+      "properties": {
+        "calibrated_probability": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "uncertainty": { "type": ["number", "null"] },
+        "ood_score": { "type": ["number", "null"] },
+        "review_value": { "type": ["number", "null"] }
+      }
+    },
+    "decision": {
+      "enum": ["flag_for_review", "no_conflict", "abstain"],
+      "description": "abstain is a first-class outcome, not a failure."
+    },
+    "abstention_reason": { "type": ["string", "null"] },
+    "reason_codes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "From a FIXED rule table. Never from model feature attribution, which is not causality."
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source_url", "retrieved_at", "license", "api_label", "label_origin"],
+      "properties": {
+        "source_url": { "type": "string", "format": "uri" },
+        "retrieved_at": { "type": "string", "format": "date-time" },
+        "license": { "const": "CC BY-SA 4.0" },
+        "api_label": { "type": ["string", "null"] },
+        "label_origin": { "type": "string" },
+        "artifact_sha256": { "type": ["string", "null"] },
+        "split": { "type": ["string", "null"] },
+        "station_id": { "type": "integer" },
+        "transmitter_uuid": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
