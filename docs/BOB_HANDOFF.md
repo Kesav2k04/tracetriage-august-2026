@@ -9,32 +9,32 @@
 | | |
 |---|---|
 | **Handoff written** | 2026-08-16, 19:35 IST |
-| **Written by** | Claude Opus 5 (review lane), after unit A1b |
-| **Bob tasks completed** | **3.** A0 (`8ef8d1f`), A0b-INT (`3df6f98`), A1 (`be915b5`) |
-| **Bob account in use** | account 1 |
-| **Bobcoins consumed** | see `docs/BOBCOIN_BUDGET.md`. 40 is per account, not per project. |
+| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`) |
+| **Account in use** | account 1 |
 | **Current wave** | Wave A, in progress |
-| **Next unit** | **A1b-INT** (accept or reject `931d2cd`), then **A2: waterfall artifact parser** |
+| **Next unit** | **A2: waterfall artifact parser** |
 | **Open failures** | none. 7/7 standing gates, 84 tests pass offline. |
-| **Last commit** | `931d2cd` (2026-08-16, A1b, pending Bob acceptance) |
+| **Last commit** | `2e37c1d` (2026-08-16 IST) |
 
-### A1 status: code accepted, acceptance now actually run
+### A1 is closed. Read this before touching snapshot.py
 
-A1 was reported complete before its acceptance had been executed. `data/snapshots/` was empty and no manifest existed. The acceptance has since been run live and **it passes**: 52 observations, 50 waterfalls, 3 pages in 56 s, and a second run resuming in 0.42 s with zero pages re-fetched.
+A1's acceptance has been run live and **it passes**: 52 observations, 50 waterfalls, 3 pages in 56 s, and a second run resuming in 0.42 s with zero pages re-fetched.
 
-Running it found three defects, fixed in A1b (`931d2cd`, pending your review): the manifest and resume index were global rather than per-snapshot, so stage 2 would have corrupted stage 1; `--target-waterfalls` defaulted to 2300 so omitting it started a production crawl; and `--verify` fetched before verifying. Two of your own `TestResumeAfterInterrupt` cases had been passing by asserting the first defect. `scripts/gate.py` also crashed on non-ASCII subprocess output, which meant it failed to report at the exact moment a test failed.
+Additional hardening was done on the operator's side in commit `931d2cd`. **Do not overwrite, revert or regenerate it.** Three defects were fixed:
 
-**Do not re-run a large snapshot casually.** A1b's investigation already put 578 observations and 870 MB of load on SatNOGS. Always pass `--target-waterfalls` explicitly.
+1. The manifest and the resume index were written to and read from one global path regardless of `--out`. Stage 2 running in the background during Wave B would have loaded stage 1's observations as its own resume state and emitted a manifest describing files in a directory it does not name. The manifest now lives in `--out` and is mirrored to `artifacts/DATASET_MANIFEST.json` only on completion.
+2. `--target-waterfalls` defaulted to 2300, so omitting it began a production-scale crawl. Now required unless `--verify` is given.
+3. `--verify` ran after a full fetch rather than instead of one. It is now a mode that fetches nothing.
 
-**Start each unit in a fresh Bob chat.** Paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then the unit prompt. Carrying one chat across units compounds context into coin burn, which is what the budget note below is about.
+Two `TestResumeAfterInterrupt` cases were repointed at the snapshot directory, and `scripts/gate.py` now decodes subprocess output as UTF-8, because the Windows ANSI codepage crashed it whenever a test failed.
 
-### Burn rate check, 2026-08-16
+**Do not re-run a large snapshot casually.** Investigating those defects already put 578 observations and 870 MB of load on SatNOGS. Always pass `--target-waterfalls` explicitly.
 
-A0 was estimated at 1 coin. Two Bob tasks have consumed 5.42. Remaining Wave A estimates total about 19 coins, so at the observed multiplier Wave A costs roughly 55 to 100.
+**Start each unit in a fresh chat.** Paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then the unit prompt.
 
-**40 is per account, not per project.** The July 28 FAQ removed the single-account ceiling (`BOBCOIN_BUDGET.md` line 3, `MASTER_PLAN_TRACE_TRIAGE.md` line 154): when coins run out, create another trial with a different email you own and follow the published switch procedure. Wave A will probably need a rotation. That is a planned event, not a failure.
+### Budget
 
-What actually costs you is a bad handoff, so the stop-at-3-coins rule and the rotation checklist below are the parts that matter. Re-measure after A1 and rewrite the per-unit numbers from real data. Review, recon and test authoring go to Claude at zero coin cost, with Bob keeping the acceptance decision, per `.bob/rules.md` section 1.
+40 Bobcoins is per trial account, not a project ceiling. The July 28 FAQ removed the single-account limit (`BOBCOIN_BUDGET.md` line 3, `MASTER_PLAN_TRACE_TRIAGE.md` line 154): when coins run out, create another trial with a different email you own and follow the published switch procedure. A rotation is a planned event, not a failure. What costs you is a bad handoff, so the stop-at-3-coins rule and the rotation checklist below are the parts that matter.
 
 ---
 
