@@ -19,6 +19,8 @@ and their result, what failed, what was repaired, and the **actual** Bobcoins sp
 **Tests:** which suite, what result, which specific tests failed
 **Failures and repairs:** what broke, why, what fixed it
 **Coins:** estimated N, actual M
+**Bob task ID:** the task identifier from the Bob session, which is what ties this
+entry to a real task in the account rather than to a claim made about one
 **Commit:** SHA
 **Outcome:** accepted / partial / abandoned, and why
 
@@ -55,6 +57,8 @@ and their result, what failed, what was repaired, and the **actual** Bobcoins sp
 `split_manifest`: added `sampling_design` field to `required` (a stratified sample described as random is a leakage claim that fails review; the snapshot builder must document its stratification here). Added `no_station_across_splits` to `leakage_checks` (the draft had transmitter, revolution, duplicate, and future-feature checks, but cold-station splits need the equivalent station check). Added `required` to the `leakage_checks` object so validators enforce all flags. Added `required: [train, calibration, test]` to each split entry schema.
 
 **Coins:** estimated 1, actual 1.
+
+**Bob task ID:** `a309025a1c82bfb4e34d882d02fa4066` (workspace `tracetriage-august-2026`, account 1)
 
 **Commit:** 8ef8d1f
 
@@ -169,6 +173,8 @@ anything wrong.
 **Coins:** 0. No new code was generated in this step. It is a review and an
 acceptance decision.
 
+**Bob task ID:** not yet recorded. Retrieve it from the Bob session and fill it in.
+
 **Commit:** 3df6f98
 
 **Outcome:** accepted with one correction applied.
@@ -205,6 +211,8 @@ waterfalls). Resumable. Manifest validates against
   with `ruff --fix`; remainder fixed manually. Zero errors on second pass.
 
 **Coins:** estimated 4 to 6, actual ~4.
+
+**Bob task ID:** `0a6a254d9495683ad0ae23538da646b0` (workspace `tracetriage-august-2026`, account 1)
 
 **Commit:** be915b5
 
