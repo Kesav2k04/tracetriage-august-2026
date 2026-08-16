@@ -44,7 +44,11 @@ Required README sections, quoted:
 
 Official Rules line 199 states a shorter list: "Problem statement, AI/technical approach, Solution description". **The five-item list is the superset, so target it.** Where a document disagrees with itself, satisfy the stricter reading.
 
-Repository status: local only, at `D:\IBM August Challenge\tracetriage-august-2026`. **Not yet on GitHub.**
+Repository: **https://github.com/Kesav2k04/tracetriage-august-2026**, created 2026-08-16, **currently PRIVATE**.
+
+Naming follows the June 2026 convention (`decisionlens-june-2026`), which placed 2nd.
+
+> **Flip it to public before the deadline.** This is a hard eligibility line: "Your GitHub repository and video link must be publicly accessible so judges can review and score your submission." Private now protects the approach from other August entrants during the build; changing visibility does **not** alter commit dates, so the day-by-day Bob history stays visible to judges either way. Target the flip for the code freeze, roughly 28 August, and then verify from a logged-out browser.
 
 ### 4. "A published project submission page on the challenge platform"
 
@@ -123,7 +127,7 @@ That last row is live right now: `MASTER_PLAN_TRACE_TRIAGE.md` and `Ultimate_Opp
 |---|---|---|---|
 | 1 | Working prototype via Bob | not started | Bob at A0 |
 | 2 | SkillsBuild certificate | **not started** | nothing. Do it this week. |
-| 3a | Public GitHub repo | **not created** | `gh` auth token invalid |
+| 3a | Public GitHub repo | created, **private**, 4 commits pushed | flip to public at freeze (~28 Aug) |
 | 3b | README with all five sections | drafted | fills in as results land |
 | 4a | Submission page | not started | needs 1, 3, 4b |
 | 4b | Video, max 3 minutes, public | not started | needs a working replay |
