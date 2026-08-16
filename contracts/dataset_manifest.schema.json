@@ -152,8 +152,8 @@
           },
           "waterfall_bytes": { "type": ["integer", "null"], "minimum": 0 },
           "waterfall_missing_reason": {
-            "enum": [null, "NO_WATERFALL_URL", "HTTP_404", "HTTP_ERROR", "TRUNCATED", "ZERO_BYTE", "TIMEOUT"],
-            "description": "Named reason the artifact is unusable, or null when it was stored intact. Never treat any of these as a without-signal label."
+            "enum": [null, "NO_WATERFALL_URL", "HTTP_404", "HTTP_ERROR", "TRUNCATED", "ZERO_BYTE", "TIMEOUT", "THROTTLED"],
+            "description": "Named reason the artifact is unusable, or null when it was stored intact. Never treat any of these as a without-signal label. THROTTLED, TIMEOUT and HTTP_ERROR are transient: the server refused for now rather than reporting on the artifact, and a later run retries them instead of inheriting the hole."
           },
           "waterfall_status": {
             "enum": ["with-signal", "without-signal", "unknown", null],

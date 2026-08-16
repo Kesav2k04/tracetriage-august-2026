@@ -42,6 +42,7 @@ import shutil
 import sys
 import time
 from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
@@ -69,6 +70,28 @@ MIN_FREE_BYTES = 6 * 1024 ** 3  # 6 GB safety margin before aborting
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTRACT_PATH = REPO_ROOT / "contracts" / "dataset_manifest.schema.json"
 ARTIFACTS_DIR = REPO_ROOT / "artifacts"
+
+# --- Throttling ---
+# A public API answers a burst with 429 rather than with data. Two things follow
+# from that, and both were learned the expensive way on a stage-1 run that died
+# at 1,378 of 2,500 waterfalls.
+#
+# First, a 429 is not an error, it is an instruction to wait. Retry-After
+# carries the wait; honouring it is the difference between a run that pauses
+# and a run that ends.
+#
+# Second, and worse: a throttled *waterfall* used to be recorded as HTTP_ERROR,
+# and the resume index treats any recorded observation as done. A transient
+# refusal therefore became a permanent hole, indistinguishable in the manifest
+# from a waterfall that never existed. Throttling arrives in bursts, so those
+# holes would cluster in time and quietly bias the corpus the model trains on.
+# Reasons in TRANSIENT_MISSING_REASONS are excluded from the resume index so a
+# later run tries them again.
+RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
+MAX_RETRIES = 6                 # attempts per request before giving up
+RETRY_BASE_DELAY = 2.0          # seconds; doubles per attempt
+MAX_RETRY_DELAY = 300.0         # cap on any single wait, honoured or computed
+TRANSIENT_MISSING_REASONS = frozenset({"THROTTLED", "TIMEOUT", "HTTP_ERROR"})
 
 log = logging.getLogger("snapshot")
 
@@ -109,6 +132,85 @@ def make_client(timeout: float = API_TIMEOUT) -> httpx.Client:
         follow_redirects=True,
         timeout=timeout,
     )
+
+
+def retry_delay(attempt: int, response: httpx.Response | None = None) -> float:
+    """How long to wait before retry number `attempt` (0-based).
+
+    The server's own Retry-After wins when it sends one, because it knows when
+    the window reopens and exponential guessing does not. Both documented forms
+    are accepted: a delta in seconds, and an HTTP-date. Anything unparseable
+    falls back to the doubling schedule rather than to zero, since treating a
+    bad header as "retry immediately" is how a client turns one 429 into a ban.
+    """
+    if response is not None:
+        raw = response.headers.get("retry-after")
+        if raw:
+            raw = raw.strip()
+            try:
+                return min(max(float(raw), 0.0), MAX_RETRY_DELAY)
+            except ValueError:
+                pass
+            try:
+                when = parsedate_to_datetime(raw)
+                if when is not None:
+                    if when.tzinfo is None:
+                        when = when.replace(tzinfo=UTC)
+                    delta = (when - datetime.now(UTC)).total_seconds()
+                    return min(max(delta, 0.0), MAX_RETRY_DELAY)
+            except (TypeError, ValueError):
+                pass
+    return min(RETRY_BASE_DELAY * (2 ** attempt), MAX_RETRY_DELAY)
+
+
+def get_with_retry(
+    client: httpx.Client,
+    url: str,
+    timeout: float,
+    sleep: Any = None,
+) -> httpx.Response:
+    """GET that waits out throttling instead of dying on it.
+
+    Retries only the statuses that mean "ask again later". A 404 is an answer,
+    not a delay, so it is returned to the caller untouched. Raises the final
+    HTTPStatusError once the attempts are spent, so an outage still stops the
+    run rather than looping forever.
+    """
+    # Resolved here rather than as a default argument: a default binds the
+    # real time.sleep at import, which no test can then patch out, so the
+    # suite would sit through every backoff it asserts.
+    if sleep is None:
+        sleep = time.sleep
+    last_exc: httpx.HTTPError | None = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            resp = client.get(url, timeout=timeout)
+        except httpx.TimeoutException as exc:
+            last_exc = exc
+            wait = retry_delay(attempt)
+            log.warning(
+                "timeout on %s (attempt %d/%d); waiting %.0fs",
+                url, attempt + 1, MAX_RETRIES, wait,
+            )
+            sleep(wait)
+            continue
+
+        if resp.status_code not in RETRYABLE_STATUSES:
+            return resp
+
+        if attempt == MAX_RETRIES - 1:
+            return resp
+
+        wait = retry_delay(attempt, resp)
+        log.warning(
+            "HTTP %d on %s (attempt %d/%d); waiting %.0fs",
+            resp.status_code, url, attempt + 1, MAX_RETRIES, wait,
+        )
+        sleep(wait)
+
+    if last_exc is not None:
+        raise last_exc
+    raise RuntimeError(f"retries exhausted for {url}")  # pragma: no cover
 
 
 def extract_next_cursor(link_header: str | None) -> str | None:
@@ -191,12 +293,35 @@ def validate_manifest(doc: dict[str, Any]) -> None:
         raise RuntimeError(f"Manifest failed schema validation:\n{msgs}")
 
 
+def is_transient_entry(entry: dict[str, Any]) -> bool:
+    """True when this observation failed for a reason worth trying again."""
+    return entry.get("waterfall_missing_reason") in TRANSIENT_MISSING_REASONS
+
+
 def build_resume_index(manifest: dict[str, Any]) -> dict[int, str | None]:
-    """Return {obs_id: sha256_or_None} for observations already stored."""
+    """Return {obs_id: sha256_or_None} for observations that are settled.
+
+    Observations that failed transiently are deliberately left out, so the next
+    run fetches them instead of inheriting the hole. Without this, one burst of
+    throttling permanently removes a time-correlated slice of the corpus.
+    """
     return {
         entry["id"]: entry.get("waterfall_sha256")
         for entry in manifest.get("observations", [])
+        if not is_transient_entry(entry)
     }
+
+
+def drop_transient_entries(
+    observations: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Remove entries the resume index will retry, so they are not duplicated.
+
+    The retry appends a fresh entry for the same id. Leaving the stale one in
+    place would put two records for one observation into the manifest, and the
+    counts derived from it would disagree with what is on disk.
+    """
+    return [e for e in observations if not is_transient_entry(e)]
 
 
 def build_page_index(manifest: dict[str, Any]) -> set[str]:
@@ -221,7 +346,7 @@ def download_waterfall(
     """
     dest.parent.mkdir(parents=True, exist_ok=True)
     try:
-        r = client.get(url, timeout=WATERFALL_TIMEOUT)
+        r = get_with_retry(client, url, WATERFALL_TIMEOUT)
     except httpx.TimeoutException:
         log.warning("TIMEOUT waterfall obs %d", obs_id)
         return None, None, "TIMEOUT"
@@ -232,7 +357,17 @@ def download_waterfall(
     if r.status_code == 404:
         log.warning("HTTP_404 waterfall obs %d", obs_id)
         return None, None, "HTTP_404"
+    if r.status_code == 429:
+        # Survived every retry and the server is still refusing. This is a
+        # "come back later", not a verdict on the artifact, so it is recorded
+        # as THROTTLED: a transient reason the next run picks up again.
+        log.warning("THROTTLED waterfall obs %d after %d attempts", obs_id, MAX_RETRIES)
+        return None, None, "THROTTLED"
     if r.status_code != 200:
+        # Includes 5xx, which get_with_retry already retried. HTTP_ERROR is
+        # itself transient, so these are retried on a later run too; the
+        # separate THROTTLED name exists to keep rate limiting legible in the
+        # manifest rather than hidden inside a generic error bucket.
         log.warning("HTTP_ERROR waterfall obs %d: status %d", obs_id, r.status_code)
         return None, None, "HTTP_ERROR"
 
@@ -348,7 +483,12 @@ def run_snapshot(
     )
 
     pages_list: list[dict[str, Any]] = list(existing.get("pages", []))
-    observations_list: list[dict[str, Any]] = list(existing.get("observations", []))
+    observations_list: list[dict[str, Any]] = drop_transient_entries(
+        list(existing.get("observations", []))
+    )
+    retrying = len(existing.get("observations", [])) - len(observations_list)
+    if retrying:
+        log.info("retrying %d observation(s) that failed transiently", retrying)
 
     waterfalls_stored = sum(
         1 for o in observations_list if o.get("waterfall_missing_reason") is None
@@ -382,7 +522,96 @@ def run_snapshot(
     api_client = make_client(API_TIMEOUT)
     wf_client = make_client(WATERFALL_TIMEOUT)
 
+    def process_observation(obs: dict[str, Any], page_no: int) -> bool:
+        """Fetch one observation's waterfall and record it. True to keep going.
+
+        Shared by the paging loop and the cached-page retry pass so that a
+        retried observation goes through exactly the same path as a fresh one.
+        """
+        nonlocal waterfalls_stored, waterfalls_missing
+
+        obs_id: int = obs["id"]
+        if obs_id in resume_obs:
+            log.debug("skip already-stored obs %d", obs_id)
+            return True
+
+        obs_retrieved_at = datetime.now(UTC).isoformat()
+        wf_url: str | None = obs.get("waterfall") or None
+
+        if not wf_url:
+            entry = build_observation_entry(
+                obs, None, None, "NO_WATERFALL_URL", obs_retrieved_at, None
+            )
+            observations_list.append(entry)
+            resume_obs[obs_id] = None
+            waterfalls_missing += 1
+            log.debug("obs %d: no waterfall URL", obs_id)
+            return True
+
+        dest = waterfall_path(wf_dir, obs_id)
+        time.sleep(REQUEST_INTERVAL)
+        sha, nbytes, reason = download_waterfall(wf_client, obs_id, wf_url, dest)
+
+        if reason is not None:
+            entry = build_observation_entry(
+                obs, None, None, reason, obs_retrieved_at, wf_url
+            )
+            observations_list.append(entry)
+            resume_obs[obs_id] = None
+            waterfalls_missing += 1
+        else:
+            entry = build_observation_entry(
+                obs, sha, nbytes, None, obs_retrieved_at, wf_url
+            )
+            observations_list.append(entry)
+            resume_obs[obs_id] = sha
+            waterfalls_stored += 1
+
+        # Write partial manifest after every observation so resuming
+        # after an interrupt loses at most one observation.
+        _write_partial_manifest(
+            manifest_path, snapshot_id, stage, built_at, None,
+            end, target_waterfalls, sampling_design,
+            pages_list, observations_list, waterfalls_stored, waterfalls_missing,
+            page_no,
+        )
+
+        if waterfalls_stored >= target_waterfalls:
+            log.info("reached target %d waterfalls; stopping.", target_waterfalls)
+            return False
+        return True
+
+    def retry_cached_pages() -> None:
+        """Re-attempt observations left unresolved on pages already fetched.
+
+        Paging resumes from the last stored cursor, so without this the earlier
+        pages are never revisited and anything that failed transiently on them
+        stays missing forever. The listing JSON is already on disk, so this
+        costs no metadata requests: only the waterfalls that are still absent
+        are fetched.
+        """
+        if not pages_list:
+            return
+        for i in range(len(pages_list)):
+            page_file = pages_dir / f"page_{i:05d}.json"
+            if not page_file.exists():
+                continue
+            try:
+                cached = json.loads(page_file.read_bytes())
+            except json.JSONDecodeError:
+                log.warning("cached page %s is unreadable; skipping", page_file.name)
+                continue
+            for obs in cached if isinstance(cached, list) else []:
+                if obs.get("id") in resume_obs:
+                    continue
+                if waterfalls_stored >= target_waterfalls:
+                    return
+                if not process_observation(obs, i):
+                    return
+
     try:
+        retry_cached_pages()
+
         while next_url and waterfalls_stored < target_waterfalls:
             # ---- fetch page ----
             if next_url in fetched_page_urls:
@@ -402,7 +631,7 @@ def run_snapshot(
             time.sleep(REQUEST_INTERVAL)
 
             try:
-                resp = api_client.get(next_url, timeout=API_TIMEOUT)
+                resp = get_with_retry(api_client, next_url, API_TIMEOUT)
                 resp.raise_for_status()
             except httpx.HTTPStatusError as exc:
                 log.error("HTTP error %d fetching page: %s", exc.response.status_code, next_url)
@@ -454,57 +683,7 @@ def run_snapshot(
             # ---- process each observation on this page ----
             obs_list = page_data if isinstance(page_data, list) else []
             for obs in obs_list:
-                obs_id: int = obs["id"]
-
-                if obs_id in resume_obs:
-                    # Already processed in a previous run
-                    log.debug("skip already-stored obs %d", obs_id)
-                    continue
-
-                obs_retrieved_at = datetime.now(UTC).isoformat()
-                wf_url: str | None = obs.get("waterfall") or None
-
-                if not wf_url:
-                    entry = build_observation_entry(
-                        obs, None, None, "NO_WATERFALL_URL", obs_retrieved_at, None
-                    )
-                    observations_list.append(entry)
-                    resume_obs[obs_id] = None
-                    waterfalls_missing += 1
-                    log.debug("obs %d: no waterfall URL", obs_id)
-                    continue
-
-                # Download waterfall
-                dest = waterfall_path(wf_dir, obs_id)
-                time.sleep(REQUEST_INTERVAL)
-                sha, nbytes, reason = download_waterfall(wf_client, obs_id, wf_url, dest)
-
-                if reason is not None:
-                    entry = build_observation_entry(
-                        obs, None, None, reason, obs_retrieved_at, wf_url
-                    )
-                    observations_list.append(entry)
-                    resume_obs[obs_id] = None
-                    waterfalls_missing += 1
-                else:
-                    entry = build_observation_entry(
-                        obs, sha, nbytes, None, obs_retrieved_at, wf_url
-                    )
-                    observations_list.append(entry)
-                    resume_obs[obs_id] = sha
-                    waterfalls_stored += 1
-
-                # Write partial manifest after every observation so resuming
-                # after an interrupt loses at most one observation.
-                _write_partial_manifest(
-                    manifest_path, snapshot_id, stage, built_at, None,
-                    end, target_waterfalls, sampling_design,
-                    pages_list, observations_list, waterfalls_stored, waterfalls_missing,
-                    page_index,
-                )
-
-                if waterfalls_stored >= target_waterfalls:
-                    log.info("reached target %d waterfalls; stopping.", target_waterfalls)
+                if not process_observation(obs, page_index):
                     break
 
             page_index += 1
