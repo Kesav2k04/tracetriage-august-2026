@@ -90,7 +90,14 @@ ARTIFACTS_DIR = REPO_ROOT / "artifacts"
 RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
 MAX_RETRIES = 6                 # attempts per request before giving up
 RETRY_BASE_DELAY = 2.0          # seconds; doubles per attempt
-MAX_RETRY_DELAY = 300.0         # cap on any single wait, honoured or computed
+MAX_RETRY_DELAY = 300.0         # cap on a *computed* backoff
+# A cap on a guess is prudence; the same cap on an explicit instruction is a
+# way of ignoring it. Measured live: SatNOGS answered a burst with
+# Retry-After: 732, and truncating that to 300 just spends two more requests
+# knocking on a window that is still shut. An explicit header is obeyed up to
+# an hour, which bounds the pathological case without second-guessing a
+# reasonable one.
+MAX_SERVER_DELAY = 3600.0
 TRANSIENT_MISSING_REASONS = frozenset({"THROTTLED", "TIMEOUT", "HTTP_ERROR"})
 
 log = logging.getLogger("snapshot")
@@ -148,7 +155,7 @@ def retry_delay(attempt: int, response: httpx.Response | None = None) -> float:
         if raw:
             raw = raw.strip()
             try:
-                return min(max(float(raw), 0.0), MAX_RETRY_DELAY)
+                return min(max(float(raw), 0.0), MAX_SERVER_DELAY)
             except ValueError:
                 pass
             try:
@@ -157,7 +164,7 @@ def retry_delay(attempt: int, response: httpx.Response | None = None) -> float:
                     if when.tzinfo is None:
                         when = when.replace(tzinfo=UTC)
                     delta = (when - datetime.now(UTC)).total_seconds()
-                    return min(max(delta, 0.0), MAX_RETRY_DELAY)
+                    return min(max(delta, 0.0), MAX_SERVER_DELAY)
             except (TypeError, ValueError):
                 pass
     return min(RETRY_BASE_DELAY * (2 ** attempt), MAX_RETRY_DELAY)

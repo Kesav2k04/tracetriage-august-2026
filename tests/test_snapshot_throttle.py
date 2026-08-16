@@ -35,6 +35,7 @@ from pipeline.tracetriage.snapshot import (
     CONTRACT_PATH,
     MAX_RETRIES,
     MAX_RETRY_DELAY,
+    MAX_SERVER_DELAY,
     RETRY_BASE_DELAY,
     TRANSIENT_MISSING_REASONS,
     build_resume_index,
@@ -103,7 +104,18 @@ class TestRetryDelay:
 
     def test_absurd_retry_after_is_capped(self):
         """A day-long Retry-After must not hang the run until tomorrow."""
-        assert retry_delay(0, _resp(429, "99999")) == MAX_RETRY_DELAY
+        assert retry_delay(0, _resp(429, "99999")) == MAX_SERVER_DELAY
+
+    def test_long_but_reasonable_retry_after_is_obeyed_in_full(self):
+        """Measured live: SatNOGS sent Retry-After: 732 on a burst.
+
+        Truncating that to the computed-backoff cap spends two more requests
+        on a window that is still shut, so an explicit header is obeyed past
+        MAX_RETRY_DELAY. The regression this pins is a cap on a server
+        instruction, which is a way of ignoring the instruction.
+        """
+        assert retry_delay(0, _resp(429, "732")) == 732.0
+        assert MAX_SERVER_DELAY > MAX_RETRY_DELAY
 
 
 class TestGetWithRetry:
