@@ -2,7 +2,7 @@
 
 Acceptance criteria (from A2 task prompt):
   1. Hz/px within 1% of 123.46 (836px fixture) and 80.00 (832px fixture)
-  2. Crop excludes ALL axis text and colorbar — assert on pixel content
+  2. Crop excludes ALL axis text and colorbar, asserted on pixel content
   3. Malformed PNG, blank image, zero-byte and unknown layout each return a
      NAMED degraded state (not raised exception)
   4. Property test: crop box always strictly inside image bounds
@@ -40,6 +40,29 @@ from pipeline.tracetriage.waterfall import (
 # ---------------------------------------------------------------------------
 FIXTURE_836 = Path(__file__).parent / "fixtures" / "waterfall_836px_client_v2.3.png"
 FIXTURE_832 = Path(__file__).parent / "fixtures" / "waterfall_832px_client_2.1.2.png"
+
+# Reading the axis glyphs needs a neural OCR model and its weights. Deriving
+# Hz/px from what was read does not. Pinning the second step behind the first
+# would mean 123.46 and 80.00, the two numbers the whole corridor rests on,
+# could only ever be checked on one laptop: every CI runner and every clean
+# clone would skip them. So the OCR reading is captured once by
+# scripts/dump_ocr_fixture.py, committed, and replayed here. The live model is
+# exercised separately by the ocr-marked test at the bottom of this file.
+_OCR_CACHE = json.loads(
+    (Path(__file__).parent / "fixtures" / "ocr_labels.json").read_text(encoding="utf-8")
+)
+
+
+def _cached_ocr(image_name: str) -> list[tuple[float, str, float]]:
+    return [(float(x), str(t), float(c)) for x, t, c in _OCR_CACHE[image_name]["ocr_results"]]
+
+
+OCR_836 = _cached_ocr("waterfall_836px_client_v2.3.png")
+OCR_832 = _cached_ocr("waterfall_832px_client_2.1.2.png")
+
+
+def ocr_for(fixture: Path) -> list[tuple[float, str, float]]:
+    return _cached_ocr(Path(fixture).name)
 
 HZ_PX_836 = 123.46     # measured Hz/px for 836px client
 HZ_PX_832 = 80.00      # measured Hz/px for 832px client
@@ -107,7 +130,8 @@ def _fixture_bytes(path: Path) -> bytes:
 ])
 def test_hz_per_px_within_1pct(fixture, obs_id, duration, expected_hz):
     """Hz/px must be within 1% of the measured value on both client layouts."""
-    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ)
+    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ,
+                              ocr_results=ocr_for(fixture))
     assert result.derivation != "failed", (
         f"Expected successful derivation, got failed: {result.degraded}"
     )
@@ -121,20 +145,22 @@ def test_hz_per_px_within_1pct(fixture, obs_id, duration, expected_hz):
 
 def test_hz_per_px_836_exact_value():
     """836px fixture: hz_per_px ≈ 123.46 Hz/px."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.hz_per_px is not None
     assert abs(result.hz_per_px - HZ_PX_836) / HZ_PX_836 < 0.01
 
 
 def test_hz_per_px_832_exact_value():
     """832px fixture: hz_per_px ≈ 80.00 Hz/px."""
-    result = parse_waterfall(FIXTURE_832, OBS_ID_832, PASS_DURATION_832, RX_FREQ)
+    result = parse_waterfall(FIXTURE_832, OBS_ID_832, PASS_DURATION_832, RX_FREQ,
+                              ocr_results=OCR_832)
     assert result.hz_per_px is not None
     assert abs(result.hz_per_px - HZ_PX_832) / HZ_PX_832 < 0.01
 
 
 # ---------------------------------------------------------------------------
-# 2. Crop excludes axis text and colorbar — assert on pixel content
+# 2. Crop excludes axis text and colorbar, asserted on pixel content
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("fixture,obs_id,duration", [
@@ -148,7 +174,8 @@ def test_crop_excludes_axis_text(fixture, obs_id, duration):
     entirely white is from the margin, not from the spectrogram data.
     The spectrogram data is multi-coloured and should have no all-white columns.
     """
-    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ)
+    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ,
+                              ocr_results=ocr_for(fixture))
     assert result.derivation != "failed", f"Parse failed: {result.degraded}"
     assert result.crop_box is not None
 
@@ -159,7 +186,7 @@ def test_crop_excludes_axis_text(fixture, obs_id, duration):
 
     h, w, _ = cropped.shape
     # No column in the crop should be entirely white (255,255,255).
-    col_min = cropped.min(axis=0).sum(axis=1)    # (W,) — min brightness per column
+    col_min = cropped.min(axis=0).sum(axis=1)    # (W,), min brightness per column
     all_white_cols = np.where(col_min >= 3 * 250)[0]
     assert len(all_white_cols) == 0, (
         f"Crop has {len(all_white_cols)} all-white columns (axis text leak): "
@@ -169,7 +196,8 @@ def test_crop_excludes_axis_text(fixture, obs_id, duration):
 
 def test_crop_836_excludes_colorbar():
     """836px: crop_box.x1 must be strictly left of the colorbar at x=724."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.derivation != "failed"
     assert result.crop_box is not None
     # The colorbar starts at x=724 (measured). The crop must end before it.
@@ -187,7 +215,8 @@ def test_crop_836_colorbar_not_in_cropped_array():
     known colorbar x0, rather than by pixel density (the spectrogram data is
     itself highly non-white and would trigger a density-based test incorrectly).
     """
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.derivation != "failed"
     assert result.crop_box is not None
 
@@ -249,7 +278,9 @@ def test_no_timing_info_returns_degraded():
     Passing None for pass_duration_s must produce a named failure, not a
     silent null on an otherwise successful record.
     """
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, pass_duration_s=None)
+    result = parse_waterfall(
+        FIXTURE_836, OBS_ID_836, pass_duration_s=None, ocr_results=OCR_836
+    )
     assert result.derivation == "failed"
     assert result.degraded == "NO_TIMING_INFO"
 
@@ -258,7 +289,7 @@ def test_black_image_is_not_blank():
     """A pure-black image is NOT blank: it has non-white pixels.
 
     The parse attempt will fail (no plot structure), but the degraded reason
-    should NOT be BLANK_IMAGE — it should be NO_AXIS_DETECTED or UNKNOWN_LAYOUT.
+    should NOT be BLANK_IMAGE, it should be NO_AXIS_DETECTED or UNKNOWN_LAYOUT.
     """
     result = parse_waterfall(_make_black_png(), 99999, 100.0)
     assert result.derivation == "failed"
@@ -307,7 +338,8 @@ def test_all_degraded_states_have_non_null_reason():
 ])
 def test_crop_box_strictly_inside_image(fixture, obs_id, duration):
     """crop_box must be strictly inside the full image bounds."""
-    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ)
+    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ,
+                              ocr_results=ocr_for(fixture))
     if result.derivation == "failed":
         pytest.skip(f"parse failed: {result.degraded}")
 
@@ -325,7 +357,8 @@ def test_crop_box_strictly_inside_image(fixture, obs_id, duration):
 ])
 def test_crop_box_positive_dimensions(fixture, obs_id, duration):
     """crop_box must have positive width and height."""
-    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ)
+    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ,
+                              ocr_results=ocr_for(fixture))
     if result.derivation == "failed":
         pytest.skip(f"parse failed: {result.degraded}")
 
@@ -343,7 +376,8 @@ def test_crop_box_null_exactly_on_failed():
 
 def test_crop_box_non_null_on_success():
     """crop_box must be non-None when derivation != 'failed'."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.derivation != "failed"
     assert result.crop_box is not None
 
@@ -358,7 +392,8 @@ def test_crop_box_non_null_on_success():
 ])
 def test_successful_record_validates_against_schema(fixture, obs_id, duration):
     """A successful parse must produce a record valid against the JSON schema."""
-    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ)
+    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ,
+                              ocr_results=ocr_for(fixture))
     assert result.derivation != "failed", f"Unexpected failure: {result.degraded}"
     errors = validate_against_schema(result)
     assert errors == [], f"Schema validation errors: {errors}"
@@ -438,7 +473,8 @@ def test_schema_rejects_success_without_hz_per_px():
 ])
 def test_to_dict_is_json_serialisable(fixture, obs_id, duration):
     """to_dict() must produce a JSON-serialisable dict (no Box objects)."""
-    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ)
+    result = parse_waterfall(fixture, obs_id, duration, RX_FREQ,
+                              ocr_results=ocr_for(fixture))
     d = result.to_dict()
     serialised = json.dumps(d)
     assert len(serialised) > 0
@@ -454,27 +490,31 @@ def test_to_dict_is_json_serialisable(fixture, obs_id, duration):
 
 def test_observation_id_preserved_on_success():
     """observation_id must equal the value passed in."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.observation_id == OBS_ID_836
 
 
 def test_image_dimensions_836():
     """image_width and image_height must match the PNG dimensions."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.image_width == 836
     assert result.image_height == 1603
 
 
 def test_image_dimensions_832():
     """image_width and image_height must match the PNG dimensions."""
-    result = parse_waterfall(FIXTURE_832, OBS_ID_832, PASS_DURATION_832, RX_FREQ)
+    result = parse_waterfall(FIXTURE_832, OBS_ID_832, PASS_DURATION_832, RX_FREQ,
+                              ocr_results=OCR_832)
     assert result.image_width == 832
     assert result.image_height == 1603
 
 
 def test_seconds_per_px_836():
     """seconds_per_px must equal pass_duration / plot_height (within float tolerance)."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.seconds_per_px is not None
     assert result.plot_box is not None
     expected = PASS_DURATION_836 / result.plot_box.height()
@@ -497,21 +537,24 @@ def test_centre_px_is_null_without_freq():
 
 def test_centre_px_non_null_with_freq():
     """centre_px must be non-None when rx_freq is provided and axis reads cleanly."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     if result.derivation != "failed":
         assert result.centre_px is not None
 
 
 def test_degraded_null_on_success():
     """degraded must be None on a successful parse."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.derivation != "failed"
     assert result.degraded is None
 
 
 def test_derivation_confidence_in_range():
     """derivation_confidence must be in [0, 1] on success."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.derivation != "failed"
     assert result.derivation_confidence is not None
     assert 0.0 <= result.derivation_confidence <= 1.0
@@ -519,7 +562,8 @@ def test_derivation_confidence_in_range():
 
 def test_plot_box_matches_known_836():
     """plot_box for 836px fixture must match the recon-measured value."""
-    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
     assert result.derivation != "failed"
     assert result.plot_box is not None
     assert result.plot_box.x0 == PLOT_BOX_836.x0, f"plot_box.x0={result.plot_box.x0}"
@@ -528,7 +572,8 @@ def test_plot_box_matches_known_836():
 
 def test_plot_box_matches_known_832():
     """plot_box for 832px fixture must match the recon-measured value."""
-    result = parse_waterfall(FIXTURE_832, OBS_ID_832, PASS_DURATION_832, RX_FREQ)
+    result = parse_waterfall(FIXTURE_832, OBS_ID_832, PASS_DURATION_832, RX_FREQ,
+                              ocr_results=OCR_832)
     assert result.derivation != "failed"
     assert result.plot_box is not None
     assert result.plot_box.x0 == PLOT_BOX_832.x0, f"plot_box.x0={result.plot_box.x0}"
@@ -607,7 +652,8 @@ def test_detect_colorbar_836():
 
 def test_detect_colorbar_832_outside_crop():
     """832px may have a detected element to the right, but it must not affect crop."""
-    result = parse_waterfall(FIXTURE_832, OBS_ID_832, PASS_DURATION_832, RX_FREQ)
+    result = parse_waterfall(FIXTURE_832, OBS_ID_832, PASS_DURATION_832, RX_FREQ,
+                              ocr_results=OCR_832)
     assert result.derivation != "failed"
     # The 832px crop_box must end at or before the plot_box x1.
     assert result.crop_box is not None
@@ -649,8 +695,41 @@ def test_box_to_dict():
 def test_path_and_bytes_produce_same_hz():
     """parse_waterfall must produce the same hz_per_px from a Path and from bytes."""
     data = FIXTURE_836.read_bytes()
-    result_path = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
-    result_bytes = parse_waterfall(data, OBS_ID_836, PASS_DURATION_836, RX_FREQ)
+    result_path = parse_waterfall(FIXTURE_836, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                              ocr_results=OCR_836)
+    result_bytes = parse_waterfall(data, OBS_ID_836, PASS_DURATION_836, RX_FREQ,
+                                    ocr_results=OCR_836)
     assert result_path.derivation == result_bytes.derivation
     if result_path.hz_per_px is not None:
         assert abs(result_path.hz_per_px - result_bytes.hz_per_px) < 1e-9
+
+
+# ---------------------------------------------------------------------------
+# Live OCR. Excluded from the offline gate because it needs the easyocr backend
+# and its downloaded weights, neither of which exists on a CI runner or a clean
+# clone. Run it where the weights are installed:
+#     .venv\Scripts\python.exe -m pytest -m ocr -q
+# It is what stops tests/fixtures/ocr_labels.json drifting away from what the
+# model actually reads. Without it the committed cache could silently rot into
+# a set of numbers that agree only with themselves.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.ocr
+@pytest.mark.parametrize(
+    ("fixture", "obs_id", "duration", "expected_hz_px"),
+    [
+        (FIXTURE_836, OBS_ID_836, PASS_DURATION_836, HZ_PX_836),
+        (FIXTURE_832, OBS_ID_832, PASS_DURATION_832, HZ_PX_832),
+    ],
+    ids=["836px", "832px"],
+)
+def test_live_ocr_matches_the_committed_reading(fixture, obs_id, duration, expected_hz_px):
+    live = parse_waterfall(fixture, obs_id, duration, RX_FREQ)
+    cached = parse_waterfall(fixture, obs_id, duration, RX_FREQ, ocr_results=ocr_for(fixture))
+
+    assert live.derivation != "failed", f"live OCR degraded: {live.degraded}"
+    assert live.hz_per_px == pytest.approx(cached.hz_per_px, rel=1e-6), (
+        "the live model no longer reads what tests/fixtures/ocr_labels.json says it read; "
+        "re-run scripts/dump_ocr_fixture.py and inspect the diff before trusting it"
+    )
+    assert live.hz_per_px == pytest.approx(expected_hz_px, rel=HZ_PX_TOLERANCE)

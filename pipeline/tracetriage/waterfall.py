@@ -4,7 +4,7 @@ Per-observation frequency and time calibration of a SatNOGS waterfall PNG.
 
 CRITICAL: The waterfall does NOT span samp-rate-rx. It spans a decimated band
 roughly 32x narrower, and nothing in the API reports that factor. Hz/px was
-measured at 123.46 on one client and 80.00 on another — a 54% spread. This
+measured at 123.46 on one client and 80.00 on another, a 54% spread. This
 module derives Hz/px from the rendered matplotlib axis ticks on every image.
 Assuming samp-rate-rx compresses the Doppler corridor from ~118 px to ~5 px and
 makes kill gate 3 fail for a reason that is entirely a wrong constant.
@@ -20,10 +20,10 @@ See docs/SATNOGS_API_RECON.md section 7 for measured values and the pixel-to-
 frequency mapping rationale.
 
 Runtime dependencies:
-    easyocr    — required for label reading. Install via uv.
+    easyocr   , required for label reading. Install via uv.
                  Set EASYOCR_MODULE_PATH=D:/cache/easyocr to keep weights off C:.
-    Pillow     — image loading
-    numpy      — pixel arithmetic
+    Pillow    , image loading
+    numpy     , pixel arithmetic
 """
 
 from __future__ import annotations
@@ -444,7 +444,7 @@ def _parse_ocr_labels(
         return [None] * len(tick_xs), 0.0
 
     # Step 1: parse absolute integer kHz values from OCR text.
-    # Reject single-character readings that are not "0" — these are almost
+    # Reject single-character readings that are not "0", these are almost
     # always spurious detections of the minus glyph or image noise.
     parsed: list[tuple[float, int, float]] = []   # (centre_x, abs_khz, conf)
     for cx, text, conf in ocr_results:
@@ -685,6 +685,7 @@ def parse_waterfall(
     pass_duration_s: float | None = None,
     rx_freq_hz: float | None = None,
     observation_freq_hz: float | None = None,
+    ocr_results: list[tuple[float, str, float]] | None = None,
 ) -> WaterfallGeometry:
     """Parse a SatNOGS waterfall PNG and derive the pixel-to-frequency mapping.
 
@@ -696,7 +697,7 @@ def parse_waterfall(
         The SatNOGS observation ID (stored verbatim in the returned record).
     pass_duration_s:
         Duration of the pass in seconds (``end - start``). Required to compute
-        ``seconds_per_px``. None if timing is unavailable — the record will be
+        ``seconds_per_px``. None if timing is unavailable, the record will be
         degraded with reason ``NO_TIMING_INFO``.
     rx_freq_hz:
         Receiver centre frequency in Hz, from
@@ -748,14 +749,20 @@ def parse_waterfall(
         return _make_failed(observation_id, img_w, img_h, "NO_AXIS_DETECTED")
 
     # --- Step 5: OCR tick labels ----------------------------------------------
-    try:
-        label_band, _, _ = _extract_label_band(rgb, plot_box)
-        ocr_results = _ocr_labels(label_band)
-    except _DegradedError as exc:
-        return _make_failed(observation_id, img_w, img_h, exc.reason)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("OCR failed for obs %d: %s", observation_id, exc)
-        return _make_failed(observation_id, img_w, img_h, "NO_OCR_BACKEND")
+    # ocr_results may be supplied by the caller. That exists so the Hz/px
+    # derivation can be verified on a machine with no OCR backend and no model
+    # weights, which is every CI runner and every clean clone. Reading the glyphs
+    # and deriving Hz/px from them are separate steps, and only the first one
+    # needs a neural model. Tests pin the second against the committed fixtures.
+    if ocr_results is None:
+        try:
+            label_band, _, _ = _extract_label_band(rgb, plot_box)
+            ocr_results = _ocr_labels(label_band)
+        except _DegradedError as exc:
+            return _make_failed(observation_id, img_w, img_h, exc.reason)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("OCR failed for obs %d: %s", observation_id, exc)
+            return _make_failed(observation_id, img_w, img_h, "NO_OCR_BACKEND")
 
     hz_values, ocr_conf = _parse_ocr_labels(ocr_results, tick_xs, plot_box)
 
