@@ -64,6 +64,22 @@ not regenerate it.  Key facts for any unit that uses it:
 
 ---
 
+### A5 is closed. Read this before touching provenance.py
+
+`ProvenanceRecord` keeps `labelled_positive` and `carries_measurable_trace` as
+separate fields with separate enums, which is what A6 needs: A3 measured that
+only 7 of 24 vetted `with-signal` observations carry a trace anything can score,
+so a baseline trained on "labelled positive" is trained on a target that is
+absent from two thirds of its positives.
+
+**Invariants raise, they never assert.** `python -O` strips assert statements
+and no suite runs under `-O`, so five of the six invariants shipped enforced
+only in the environments that test them. Under `-O` a record constructed
+cleanly with `label_outcome=UNLABELLED` alongside `labelled_positive=True`.
+`TestInvariantsSurviveOptimisedMode` now runs that construction in a subprocess
+under `-O` and fails if it succeeds. Do not convert any invariant back to an
+assert, here or anywhere else on the judged path.
+
 ### A4 is closed. Read this before touching physics.py
 
 A4's acceptance has been run live and **it passes**: 199 of 200 observations

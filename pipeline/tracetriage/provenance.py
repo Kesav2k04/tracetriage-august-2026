@@ -145,6 +145,20 @@ class ArtifactStatus(StrEnum):
 # Exceptions
 # ---------------------------------------------------------------------------
 
+class ProvenanceInvariantError(ValueError):
+    """A structural invariant of a provenance record was violated.
+
+    Deliberately not an ``assert``. Python's ``-O`` flag removes every assert
+    statement, and the test suite never runs under ``-O``, so invariants written
+    as asserts are enforced in every environment that tests them and in none of
+    the environments that matter. Measured before this change: under ``-O`` a
+    record constructed cleanly with ``label_outcome=UNLABELLED`` alongside
+    ``labelled_positive=True`` and ``trace_presence=ABSENT`` alongside
+    ``carries_measurable_trace=True``, which is the exact conflation this unit
+    exists to make impossible.
+    """
+
+
 class FutureObservationError(ValueError):
     """Raised when ``label_from_obs`` receives a future observation.
 
@@ -252,8 +266,9 @@ class ProvenanceRecord:
     source_url: str | None
 
     def __post_init__(self) -> None:
-        # Structural invariants — these cannot be bypassed because the
-        # dataclass is frozen and __post_init__ runs at construction time.
+        # Structural invariants. These raise rather than assert: `python -O`
+        # strips assert statements, which would leave every check below inert
+        # in exactly the runs that are not under test.
         if self.obs_status == "future":
             raise FutureObservationError(
                 f"observation {self.observation_id} has status='future'; "
@@ -261,38 +276,48 @@ class ProvenanceRecord:
                 "Filter them before calling label_from_obs()."
             )
         # labelled_positive must agree with label_outcome
-        assert self.labelled_positive == (self.label_outcome == LabelOutcome.POSITIVE), (
-            "labelled_positive must equal (label_outcome == POSITIVE)"
-        )
+        if self.labelled_positive != (self.label_outcome == LabelOutcome.POSITIVE):
+            raise ProvenanceInvariantError(
+                "labelled_positive must equal (label_outcome == POSITIVE)"
+            )
         # carries_measurable_trace must agree with trace_presence
-        assert self.carries_measurable_trace == (
+        if self.carries_measurable_trace != (
             self.trace_presence == TracePresence.MEASURABLE
-        ), "carries_measurable_trace must equal (trace_presence == MEASURABLE)"
+        ):
+            raise ProvenanceInvariantError(
+                "carries_measurable_trace must equal (trace_presence == MEASURABLE)"
+            )
         # UNLABELLED from a decisive waterfall_status is only allowed when the
         # artifact is missing.  If the artifact is present and waterfall_status
         # is decisive, the outcome must be POSITIVE or NEGATIVE.
         if (
             self.label_outcome == LabelOutcome.UNLABELLED
             and self.waterfall_status_raw in ("with-signal", "without-signal")
+            and self.artifact_status != ArtifactStatus.MISSING
         ):
-            assert self.artifact_status == ArtifactStatus.MISSING, (
+            raise ProvenanceInvariantError(
                 "UNLABELLED outcome with a decisive waterfall_status requires "
-                "a missing artifact; cannot be UNLABELLED when artifact is present "
-                "and waterfall_status is decisive"
+                "a missing artifact; cannot be UNLABELLED when artifact is "
+                "present and waterfall_status is decisive"
             )
         # POSITIVE / NEGATIVE must come from decisive waterfall_status AND a
         # present artifact.
         if self.label_outcome in (LabelOutcome.POSITIVE, LabelOutcome.NEGATIVE):
-            assert self.waterfall_status_raw in ("with-signal", "without-signal"), (
-                f"Decisive label requires decisive waterfall_status; "
-                f"got {self.waterfall_status_raw!r}"
-            )
-            assert self.artifact_status != ArtifactStatus.MISSING, (
-                "Cannot assign POSITIVE or NEGATIVE when the artifact is missing"
-            )
+            if self.waterfall_status_raw not in ("with-signal", "without-signal"):
+                raise ProvenanceInvariantError(
+                    f"Decisive label requires decisive waterfall_status; "
+                    f"got {self.waterfall_status_raw!r}"
+                )
+            if self.artifact_status == ArtifactStatus.MISSING:
+                raise ProvenanceInvariantError(
+                    "Cannot assign POSITIVE or NEGATIVE when the artifact is missing"
+                )
         # A missing artifact must never produce NEGATIVE
-        if self.artifact_status == ArtifactStatus.MISSING:
-            assert self.label_outcome != LabelOutcome.NEGATIVE, (
+        if (
+            self.artifact_status == ArtifactStatus.MISSING
+            and self.label_outcome == LabelOutcome.NEGATIVE
+        ):
+            raise ProvenanceInvariantError(
                 "A missing waterfall must never become a NEGATIVE label"
             )
 

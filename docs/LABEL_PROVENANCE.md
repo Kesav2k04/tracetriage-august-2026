@@ -236,3 +236,21 @@ the `provenance` sub-object of `contracts/triage_receipt.schema.json` via
 - `split` ← passed separately (null until splits are frozen in B1)
 - `station_id` ← `record.ground_station`
 - `transmitter_uuid` ← `record.transmitter_uuid`
+
+## Why the invariants raise instead of asserting
+
+`ProvenanceRecord.__post_init__` enforces its structural invariants with
+explicit `raise ProvenanceInvariantError`, never with `assert`.
+
+`python -O` strips every assert statement, and no test suite runs under `-O`, so
+invariants written as asserts hold in exactly the environments that check them
+and in none of the environments that run the pipeline. Measured before this was
+changed: under `-O` a record constructed cleanly carrying
+`label_outcome=UNLABELLED` together with `labelled_positive=True`, and
+`trace_presence=ABSENT` together with `carries_measurable_trace=True`. That is
+the precise conflation this module exists to make impossible, and the full suite
+stayed green throughout.
+
+`TestInvariantsSurviveOptimisedMode` runs the construction in a subprocess under
+`-O` and fails if it succeeds, so a regression back to `assert` cannot pass
+unnoticed.

@@ -12,6 +12,8 @@ All tests run offline (no network marker needed).
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from pipeline.tracetriage.provenance import (
@@ -23,6 +25,7 @@ from pipeline.tracetriage.provenance import (
     FutureObservationError,
     LabelOrigin,
     LabelOutcome,
+    ProvenanceInvariantError,
     ProvenanceRecord,
     TracePresence,
     label_from_obs,
@@ -167,7 +170,7 @@ class TestMissingWaterfallNeverBecomesNegative:
         """The structural invariant in __post_init__ prevents this combination
         from being created at all, even if someone bypasses label_from_obs().
         """
-        with pytest.raises(AssertionError, match="artifact is missing"):
+        with pytest.raises(ProvenanceInvariantError, match="artifact is missing"):
             ProvenanceRecord(
                 observation_id=1,
                 obs_status="good",
@@ -306,7 +309,7 @@ class TestLabelledPositiveVsMeasurableTraceAreDistinct:
         """If carries_measurable_trace=True, trace_presence must be MEASURABLE.
         __post_init__ enforces this.
         """
-        with pytest.raises(AssertionError):
+        with pytest.raises(ProvenanceInvariantError):
             ProvenanceRecord(
                 observation_id=1,
                 obs_status="good",
@@ -327,7 +330,7 @@ class TestLabelledPositiveVsMeasurableTraceAreDistinct:
 
     def test_ProvenanceRecord_labelled_positive_must_match_label_outcome(self):
         """labelled_positive=True requires label_outcome=POSITIVE."""
-        with pytest.raises(AssertionError):
+        with pytest.raises(ProvenanceInvariantError):
             ProvenanceRecord(
                 observation_id=1,
                 obs_status="good",
@@ -663,3 +666,75 @@ class TestEdgeCases:
         rec = label_from_obs(_obs(waterfall=None, waterfall_status=None))
         assert rec.waterfall_status_raw is None
         assert rec.label_outcome == LabelOutcome.UNLABELLED
+
+
+class TestInvariantsSurviveOptimisedMode:
+    """`python -O` removes every assert statement, and pytest never runs with it.
+
+    Written as asserts, the structural invariants below were enforced in every
+    environment that tests them and in none of the environments that run the
+    pipeline. Under `-O` a record constructed cleanly holding
+    `label_outcome=UNLABELLED` with `labelled_positive=True`, which is the exact
+    conflation this unit exists to prevent. This test is the only thing that
+    catches a regression back to `assert`.
+    """
+
+    SCRIPT = """
+import sys
+sys.path.insert(0, {repo!r})
+from pipeline.tracetriage import provenance as pv
+
+kw = dict(
+    observation_id=1, obs_status="good", waterfall_status_raw="with-signal",
+    label_outcome=pv.LabelOutcome.UNLABELLED,
+    trace_presence=pv.TracePresence.ABSENT,
+    label_origin=list(pv.LabelOrigin)[0],
+    artifact_status=list(pv.ArtifactStatus)[0],
+    labelled_positive=True,
+    carries_measurable_trace=True,
+    pass_end_utc=None, retrieved_at_utc=None, vetting_lag_seconds=None,
+    ground_station=None, transmitter_uuid=None, source_url=None,
+)
+try:
+    pv.ProvenanceRecord(**kw)
+    print("CONSTRUCTED")
+except pv.ProvenanceInvariantError:
+    print("BLOCKED")
+"""
+
+    def _run(self, optimised: bool) -> str:
+        import subprocess
+        import sys as _sys
+
+        repo = str(Path(__file__).resolve().parents[1])
+        cmd = [_sys.executable]
+        if optimised:
+            cmd.append("-O")
+        cmd += ["-c", self.SCRIPT.format(repo=repo)]
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        return (out.stdout + out.stderr).strip()
+
+    def test_blocked_in_normal_mode(self):
+        assert "BLOCKED" in self._run(optimised=False)
+
+    def test_still_blocked_under_dash_O(self):
+        result = self._run(optimised=True)
+        assert "BLOCKED" in result, (
+            "an inconsistent record was constructed under `python -O`; the "
+            f"invariants have regressed to assert statements. Got: {result}"
+        )
+
+    def test_no_assert_statements_remain_in_the_invariant_block(self):
+        source = (
+            Path(__file__).resolve().parents[1]
+            / "pipeline" / "tracetriage" / "provenance.py"
+        ).read_text(encoding="utf-8")
+        post_init = source.split("def __post_init__", 1)[1].split("\n    @property", 1)[0]
+        # Statements, not mentions: a comment explaining why asserts are absent
+        # must not itself trip this.
+        statements = [
+            line.strip()
+            for line in post_init.splitlines()
+            if line.strip().startswith("assert ")
+        ]
+        assert statements == [], f"invariants regressed to assert: {statements}"
