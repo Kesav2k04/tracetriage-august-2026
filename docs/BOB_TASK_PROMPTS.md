@@ -59,9 +59,14 @@ review because image evidence, expected corrected Doppler behaviour, metadata an
 the current network label disagree or remain uncertain.
 
 Already done before your first task (do not redo):
-- Repository, venv (Python 3.12), full dependency stack installed and import-verified.
+- Repository at github.com/Kesav2k04/tracetriage-august-2026 (private until the
+  code freeze), venv on Python 3.12, full stack installed and import-verified.
 - Live API reconnaissance with measured numbers: docs/SATNOGS_API_RECON.md
-- Kill-gate status board with 3 of 6 gates pre-measured: docs/KILL_GATE.md
+- Kill-gate status board, 3 of 6 gates pre-measured: docs/KILL_GATE.md
+- Hardware profile. There is an RTX 3070 Ti and CUDA torch is installed and
+  verified at 14.9x over CPU. USE IT, and guard against a silent CPU fallback.
+  16 GB RAM is the binding constraint, so stream every stage: docs/HARDWARE_PROFILE.md
+- Every literal submission requirement, quoted, with status: docs/SUBMISSION_CHECKLIST.md
 - Draft data contracts you must review and ratify: contracts/
 - Doc skeletons, licences, CI config, .gitignore.
 Full inventory with the exact boundary: docs/PREPARED_BY_CLAUDE.md
