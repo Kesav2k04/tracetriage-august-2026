@@ -14,7 +14,7 @@
 | **Current wave** | Wave A, in progress |
 | **Next unit** | **A5: provenance** |
 | **Open failures** | none. 7/7 standing gates, 215 tests pass offline. |
-| **Last commit** | `c7ca696` (2026-08-16 IST) — A4 commit pending |
+| **Last commit** | `0f21ce7` (2026-08-17 IST) |
 
 ### A4 is closed. Read this before A5.
 

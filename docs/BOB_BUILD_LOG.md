@@ -419,7 +419,7 @@ error distribution.
 
 **Bob task ID:** (workspace `tracetriage-august-2026`, account 3)
 
-**Commit:** (pending)
+**Commit:** 0f21ce7
 
-**Outcome:** accepted. 61 tests pass. 215 offline tests pass. Gate 7/7 after commit.
+**Outcome:** accepted. 61 tests pass. 215 offline tests pass. Gate 7/7.
 
