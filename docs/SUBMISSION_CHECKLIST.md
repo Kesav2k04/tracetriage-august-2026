@@ -126,6 +126,7 @@ That last row is live right now: `MASTER_PLAN_TRACE_TRIAGE.md` and `Ultimate_Opp
 | # | Item | Status | Blocking |
 |---|---|---|---|
 | 1 | Working prototype via Bob | in progress | A0 accepted, Bob at A1 |
+| 1b | Release gate: two blind internal judges score >=18/20, no criterion below 4 | **not started, not tracked anywhere else** | needs 1, and two people who have not seen the build |
 | 2 | SkillsBuild certificate | **not started** | nothing. Do it this week. |
 | 3a | Public GitHub repo | created, **private**, 4 commits pushed | flip to public at freeze (~28 Aug) |
 | 3b | README with all five sections | drafted | fills in as results land |

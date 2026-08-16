@@ -20,9 +20,13 @@
 
 **Start each unit in a fresh Bob chat.** Paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then the unit prompt. Carrying one chat across units compounds context into coin burn, which is what the budget note below is about.
 
-### Budget reality check, 2026-08-16
+### Burn rate check, 2026-08-16
 
-A0 was estimated at 1 coin. Two Bob tasks have consumed 5.42. The remaining Wave A estimates total about 19 coins against 34.58 available, and at the observed rate they will not fit. Re-measure after A1 and rewrite the per-unit numbers in `docs/BOBCOIN_BUDGET.md` from real data. Review, recon and test authoring go to Claude at zero coin cost, with Bob keeping the acceptance decision, per `.bob/rules.md` section 1.
+A0 was estimated at 1 coin. Two Bob tasks have consumed 5.42. Remaining Wave A estimates total about 19 coins, so at the observed multiplier Wave A costs roughly 55 to 100.
+
+**40 is per account, not per project.** The July 28 FAQ removed the single-account ceiling (`BOBCOIN_BUDGET.md` line 3, `MASTER_PLAN_TRACE_TRIAGE.md` line 154): when coins run out, create another trial with a different email you own and follow the published switch procedure. Wave A will probably need a rotation. That is a planned event, not a failure.
+
+What actually costs you is a bad handoff, so the stop-at-3-coins rule and the rotation checklist below are the parts that matter. Re-measure after A1 and rewrite the per-unit numbers from real data. Review, recon and test authoring go to Claude at zero coin cost, with Bob keeping the acceptance decision, per `.bob/rules.md` section 1.
 
 ---
 
