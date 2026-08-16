@@ -4,7 +4,7 @@
   "title": "Source observation record (snapshot form)",
   "status": "ratified",
   "schema_version": "0.2.1",
-  "description": "One public SatNOGS observation as stored in the immutable snapshot. Field names verified live on 2026-08-16 against network.satnogs.org; see docs/SATNOGS_API_RECON.md section 2. Ratified 2026-08-17 by Bob (task A0): removed observation_frequency from required (nullable in practice); confirmed client_metadata is a JSON-encoded string not an object; confirmed center_frequency is null on every record and must never be used as the receiver frequency. Revised 2026-08-17 in A0b review: _schema_version pinned with const so a record written under an older contract cannot silently validate under this one.",
+  "description": "One public SatNOGS observation as stored in the immutable snapshot. Field names verified live on 2026-08-16 against network.satnogs.org; see docs/SATNOGS_API_RECON.md section 2. Ratified 2026-08-16 by Bob (task A0): removed observation_frequency from required (nullable in practice); confirmed client_metadata is a JSON-encoded string not an object; confirmed center_frequency is null on every record and must never be used as the receiver frequency. Revised 2026-08-16 in A0b review: _schema_version pinned with const so a record written under an older contract cannot silently validate under this one.",
   "type": "object",
   "required": [
     "id", "start", "end", "ground_station", "norad_cat_id",

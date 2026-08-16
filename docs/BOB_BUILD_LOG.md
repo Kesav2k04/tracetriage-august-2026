@@ -148,4 +148,4 @@ cannot be shown to have happened.
 
 | Date | Subsystem | Bob build task | Change proposed by | Bob integration task | Accepted? |
 |---|---|---|---|---|---|
-| 2026-08-16 | Data contracts | A0 (commit 8ef8d1f) | Claude, as A0b | pending | pending |
+| 2026-08-16 | Data contracts | A0 (commit 8ef8d1f) | Claude, as A0b | A0b-INT | accepted with one correction (client_version added to dataset_manifest observations entry; date strings corrected 2026-08-17 to 2026-08-16) |

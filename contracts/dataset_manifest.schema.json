@@ -4,7 +4,7 @@
   "title": "Immutable snapshot manifest",
   "status": "ratified",
   "schema_version": "0.2.0",
-  "description": "The receipt for one immutable snapshot of public SatNOGS observations, written to artifacts/DATASET_MANIFEST.json by the snapshot builder (unit A1). It is the provenance record for every downstream number: what was asked for, what came back, when, and the hash of every byte stored. A re-run reads this file to decide what it already has, so it is also the resume state. Created 2026-08-17 during A0 review: unit A1 acceptance requires the manifest to validate against a contract and none existed.",
+  "description": "The receipt for one immutable snapshot of public SatNOGS observations, written to artifacts/DATASET_MANIFEST.json by the snapshot builder (unit A1). It is the provenance record for every downstream number: what was asked for, what came back, when, and the hash of every byte stored. A re-run reads this file to decide what it already has, so it is also the resume state. Created 2026-08-16 during A0 review: unit A1 acceptance requires the manifest to validate against a contract and none existed.",
   "type": "object",
   "required": [
     "snapshot_id",
@@ -162,6 +162,10 @@
           "ground_station": { "type": "integer", "description": "Grouping key for cold-station splits." },
           "norad_cat_id": { "type": ["integer", "null"] },
           "transmitter_uuid": { "type": ["string", "null"], "description": "Grouping key for cold-transmitter splits." },
+          "client_version": {
+            "type": ["string", "null"],
+            "description": "Raw client version string as returned by the API. Carries +N.g<sha> and .dirty suffixes. Kept verbatim. Null on about 6% of records."
+          },
           "client_family": {
             "type": ["string", "null"],
             "description": "client_version normalised to its base release string, with +N.g<sha> and .dirty suffixes removed. Null when the record carries no client version, which is about 6% of records."

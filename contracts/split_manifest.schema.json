@@ -4,7 +4,7 @@
   "title": "Grouped split assignment",
   "status": "ratified",
   "schema_version": "0.2.1",
-  "description": "Frozen split assignment. Random image-level splits leak station, satellite, rendering, and duplicate patterns, so every split here is grouped by a natural entity boundary. Ratified 2026-08-17 by Bob (task A0): added sampling_design field (required; a stratified sample described as random is a leakage claim that will fail review); added orbital_revolution note (derived field, not present on source_observation directly); added no_station_across_splits to leakage_checks. Revised 2026-08-17 in A0b review: every leakage_checks flag is now const true, so a manifest that records a failed check is invalid by construction.",
+  "description": "Frozen split assignment. Random image-level splits leak station, satellite, rendering, and duplicate patterns, so every split here is grouped by a natural entity boundary. Ratified 2026-08-16 by Bob (task A0): added sampling_design field (required; a stratified sample described as random is a leakage claim that will fail review); added orbital_revolution note (derived field, not present on source_observation directly); added no_station_across_splits to leakage_checks. Revised 2026-08-16 in A0b review: every leakage_checks flag is now const true, so a manifest that records a failed check is invalid by construction.",
   "type": "object",
   "required": ["snapshot_id", "frozen_at", "splits", "grouping_keys", "leakage_checks", "sampling_design"],
   "properties": {

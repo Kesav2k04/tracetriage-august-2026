@@ -4,7 +4,7 @@
   "title": "Per-observation evidence receipt",
   "status": "ratified",
   "schema_version": "0.2.1",
-  "description": "Everything shown on one evidence card, and everything needed to reproduce it. Every public number on the card must come from this receipt. If a value is on the card it must be in this receipt. Ratified 2026-08-17 by Bob (task A0): no structural changes needed; clarified that reason_codes come from a fixed rule table only, never from model attribution; added waterfall_geometry_version to evidence for traceability. Revised 2026-08-17 in A0b review: evidence and scores now carry required fields (an empty object used to validate against a contract whose title promises everything on the card), and abstention_reason is conditionally required when decision is abstain.",
+  "description": "Everything shown on one evidence card, and everything needed to reproduce it. Every public number on the card must come from this receipt. If a value is on the card it must be in this receipt. Ratified 2026-08-16 by Bob (task A0): no structural changes needed; clarified that reason_codes come from a fixed rule table only, never from model attribution; added waterfall_geometry_version to evidence for traceability. Revised 2026-08-16 in A0b review: evidence and scores now carry required fields (an empty object used to validate against a contract whose title promises everything on the card), and abstention_reason is conditionally required when decision is abstain.",
   "type": "object",
   "required": [
     "observation_id", "snapshot_id", "model_checksum", "generated_at",
