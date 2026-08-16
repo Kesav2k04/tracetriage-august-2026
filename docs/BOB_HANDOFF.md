@@ -9,12 +9,40 @@
 | | |
 |---|---|
 | **Handoff written** | 2026-08-17, IST |
-| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`), **A4** (pending commit) |
+| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`), **A4** (`0f21ce7`), **A5** (pending commit) |
 | **Account in use** | account 3 |
 | **Current wave** | Wave A, in progress |
-| **Next unit** | **A5: provenance** |
-| **Open failures** | none. 7/7 standing gates, 215 tests pass offline. |
-| **Last commit** | `0f21ce7` (2026-08-17 IST) |
+| **Next unit** | **A6: image-only baseline** |
+| **Open failures** | none. 7/7 standing gates, 293 tests pass offline. |
+| **Last commit** | `0f21ce7` (2026-08-17 IST); A5 commit pending |
+
+### A5 is closed. Read this before A6.
+
+**`pipeline/tracetriage/provenance.py`** is the production provenance module.
+Do not regenerate it.  Key facts for any unit that uses it:
+
+- `label_from_obs(obs)` → `ProvenanceRecord`.  Raises `FutureObservationError`
+  when `obs["status"] == "future"`.  Never raises for any other input.
+- `label_observations(obs_list, *, skip_future=False)` → batch helper.
+- `ProvenanceRecord.label_outcome` — `POSITIVE` / `NEGATIVE` / `UNLABELLED`.
+- `ProvenanceRecord.labelled_positive` — bool shorthand for `POSITIVE` outcome.
+- `ProvenanceRecord.carries_measurable_trace` — bool, separate from the above.
+  At provenance time this is always `False` (trace_presence = `UNVETTED`).
+  A7 or the model updates it to `MEASURABLE` or `VISIBLE_BUT_UNMEASURABLE`.
+- `ProvenanceRecord.vetting_lag_seconds` — seconds between pass end and
+  snapshot retrieval.  Small lag = unvetted recent.  None when timestamps missing.
+- `to_receipt_provenance(record, *, artifact_sha256, split)` → dict assembling
+  the `provenance` sub-object of `contracts/triage_receipt.schema.json`.
+- Base rate constants: `BASE_RATE_DECISIVE_FRACTION = 0.290`,
+  `BASE_RATE_POSITIVE_TO_NEGATIVE = 1.85`.  Do not rebalance silently.
+
+The four structural invariants enforced by `__post_init__`:
+1. `status == "future"` → `FutureObservationError` (never enters label set)
+2. `ArtifactStatus.MISSING` + `LabelOutcome.NEGATIVE` → `AssertionError`
+3. `carries_measurable_trace=True` requires `trace_presence=MEASURABLE`
+4. `labelled_positive=True` requires `label_outcome=POSITIVE`
+
+---
 
 ### A4 is closed. Read this before A5.
 
@@ -192,9 +220,9 @@ Three of six gates pre-measured. See `docs/KILL_GATE.md` for thresholds and evid
 
 ## Exact next task
 
-In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A4: physics corridor module**.
+In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A6: image-only baseline**.
 
-Then A5 (provenance), A6 (baseline), A7 (end-to-end slice).
+Then A7 (end-to-end slice), then Wave B.
 
 ### What A0 settled, so A1 does not rediscover it
 

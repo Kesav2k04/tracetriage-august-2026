@@ -28,6 +28,67 @@ entry to a real task in the account rather than to a claim made about one
 
 ## Entries
 
+### 2026-08-17 IST | Account 3 | A5: Label provenance builder
+
+**Task given:** Build `pipeline/tracetriage/provenance.py` and `docs/LABEL_PROVENANCE.md`.
+Separate, and never collapse: observation `status`, `waterfall_status`, vetting user and
+datetime, automatic ratings, and local annotations. Enforce: waterfall_status is silver
+evidence; `unknown` stays unlabelled; missing waterfall is artifact-unusable not negative;
+future observations excluded explicitly. Preserve distinct `labelled_positive` and
+`carries_measurable_trace` fields.
+
+**Files created/changed:**
+- `pipeline/tracetriage/provenance.py` (new, production provenance module)
+- `tests/test_provenance.py` (new, 74 offline tests)
+- `docs/LABEL_PROVENANCE.md` (new, label origin documentation)
+- `docs/BOB_BUILD_LOG.md` (this entry)
+- `docs/BOB_HANDOFF.md` (updated)
+
+**Commands run:**
+- `.venv\Scripts\python.exe -m pytest tests/test_provenance.py -v`
+- `.venv\Scripts\python.exe -m pytest -m "not network and not ocr" --tb=no`
+- `.venv\Scripts\python.exe -m ruff check . --fix`
+- `.venv\Scripts\python.exe scripts\gate.py`
+
+**Tests:** 74 provenance tests, all pass. Full offline suite: 293 passed, 1 xfailed. Gate 7/7 after commit.
+
+**Failures and repairs:**
+
+1. `__post_init__` had an over-strict invariant: "UNLABELLED must not come from decisive
+   waterfall_status". But a missing artifact can have a decisive `waterfall_status` in the
+   API response and must still be UNLABELLED (missing artifact overrides everything).
+   Fixed: the invariant was changed to "UNLABELLED from a decisive waterfall_status requires
+   a missing artifact; POSITIVE/NEGATIVE requires the artifact to not be MISSING."
+
+2. Lint: four `str, Enum` → `StrEnum` rewrites (UP042), one import sort (I001), three
+   unused imports (F401), two Yoda conditions (SIM300), one blind `Exception` (B017).
+   All fixed. Zero errors on second pass.
+
+**Key design decisions:**
+
+- `FutureObservationError` raises immediately — future observations must fail loudly, not
+  silently become UNLABELLED examples.
+- `labelled_positive` and `carries_measurable_trace` are both top-level `bool` fields on
+  the frozen dataclass. They cannot be conflated because they are separate attributes,
+  and `__post_init__` enforces consistency against `label_outcome` and `trace_presence`.
+- `trace_presence == UNVETTED` at provenance time for all `with-signal` observations —
+  whether a measurable carrier exists is a question the model answers in A7, not the vetter.
+- `vetting_lag_seconds` recorded to distinguish recently-unvetted from permanently-ambiguous.
+- Base-rate constants (29.0% decisive, 1.85:1 imbalance) as named module constants,
+  tested against their documented values, not rebalanced.
+
+**Coins:** estimated 2, actual ~2.
+
+**Bob task ID:** (workspace `tracetriage-august-2026`, account 3)
+
+**Commit:** (pending)
+
+**Outcome:** accepted. 74 tests pass. 293 offline tests pass. Gate 7/7 after commit.
+
+---
+
+
+
 ### 2026-08-16 IST | Account 1 | A0: Ratify the data contracts
 
 **Task given:** Read all `contracts/*.schema.json` files. Check each against the verified API facts in BOB_START_HERE.md section 3. Fix anything wrong, add anything missing, delete anything speculative. Set `"status": "ratified"` and bump `schema_version` on each.
