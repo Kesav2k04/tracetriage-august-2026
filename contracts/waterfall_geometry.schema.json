@@ -3,8 +3,8 @@
   "$id": "tracetriage/waterfall_geometry",
   "title": "Per-observation waterfall pixel mapping",
   "status": "ratified",
-  "schema_version": "0.2.1",
-  "description": "The frequency and time calibration of one waterfall image. PER OBSERVATION, never a project constant: measured Hz/px was 123.46 on one client layout and 80.00 on another. The waterfall does NOT span samp-rate-rx; it spans a decimated band roughly 32x narrower, and nothing in the API reports that factor. Derive Hz/px from the rendered axis ticks on every image. See docs/SATNOGS_API_RECON.md section 7. Ratified 2026-08-16 by Bob (task A0): added crop_box field (the spectrogram area after axis and colorbar removal, which is what the model sees); clarified degraded semantics; tightened derivation enum descriptions. Revised 2026-08-16 in post-ratification review: removed the client_family_fallback derivation mode, because unit A2 requires an explicit degraded state when the axis cannot be read and Hz/px has never been measured as stable within a client family. The null-when-failed rule is now enforced by if/then instead of being stated only in prose.",
+  "schema_version": "0.2.2",
+  "description": "The frequency and time calibration of one waterfall image. PER OBSERVATION, never a project constant: measured Hz/px was 123.46 on one client layout and 80.00 on another. The waterfall does NOT span samp-rate-rx; it spans a decimated band roughly 32x narrower, and nothing in the API reports that factor. Derive Hz/px from the rendered axis ticks on every image. See docs/SATNOGS_API_RECON.md section 7. Ratified 2026-08-16 by Bob (task A0): added crop_box field (the spectrogram area after axis and colorbar removal, which is what the model sees); clarified degraded semantics; tightened derivation enum descriptions. Revised 2026-08-16 in post-ratification review: removed the client_family_fallback derivation mode, because unit A2 requires an explicit degraded state when the axis cannot be read and Hz/px has never been measured as stable within a client family. The null-when-failed rule is now enforced by if/then instead of being stated only in prose. Revised 2026-08-17 (A2): plot_box made nullable to match crop_box — when parsing fails before plot detection, both are null.",
   "type": "object",
   "required": ["observation_id", "image_width", "image_height", "plot_box", "crop_box", "derivation", "degraded"],
   "properties": {
@@ -12,9 +12,9 @@
     "image_width": { "type": "integer", "description": "Full PNG width in pixels including all margins." },
     "image_height": { "type": "integer", "description": "Full PNG height in pixels. Represents the time axis; scales with pass duration, do not hardcode." },
     "plot_box": {
-      "type": "object",
+      "type": ["object", "null"],
       "required": ["x0", "y0", "x1", "y1"],
-      "description": "Bounding box of the spectrogram plot area as drawn by matplotlib, including tick lines but excluding axis labels. Measured by detecting the non-white transition. Two known layouts: x=66..686 (client v2.3-compat) and x=74..677 (client 2.1.2).",
+      "description": "Bounding box of the spectrogram plot area as drawn by matplotlib, including tick lines but excluding axis labels. Measured by detecting the non-white transition. Two known layouts: x=66..686 (client v2.3-compat) and x=74..677 (client 2.1.2). Null only when derivation is 'failed' and parsing failed before plot detection.",
       "properties": {
         "x0": { "type": "integer" },
         "y0": { "type": "integer" },

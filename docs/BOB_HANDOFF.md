@@ -8,13 +8,13 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-16, 19:35 IST |
-| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`) |
-| **Account in use** | account 1 |
+| **Handoff written** | 2026-08-17, IST |
+| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (this commit) |
+| **Account in use** | account 2 |
 | **Current wave** | Wave A, in progress |
-| **Next unit** | **A2: waterfall artifact parser** |
-| **Open failures** | none. 7/7 standing gates, 84 tests pass offline. |
-| **Last commit** | `2e37c1d` (2026-08-16 IST) |
+| **Next unit** | **A3: Doppler correction status resolver** |
+| **Open failures** | none. 7/7 standing gates, 135 tests pass offline. |
+| **Last commit** | (fill in SHA after commit) |
 
 ### A1 is closed. Read this before touching snapshot.py
 
@@ -31,6 +31,17 @@ Two `TestResumeAfterInterrupt` cases were repointed at the snapshot directory, a
 **Do not re-run a large snapshot casually.** Investigating those defects already put 578 observations and 870 MB of load on SatNOGS. Always pass `--target-waterfalls` explicitly.
 
 **Start each unit in a fresh chat.** Paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then the unit prompt.
+
+### A2 is closed. Read this before touching waterfall.py
+
+A2's acceptance has been run live and **it passes**: 52 tests, 135 offline tests, Hz/px within 1% on both client layouts (0.245% error on 836px, 0.233% on 832px), all schema-valid, all degraded states named. Gate 7/7.
+
+Key facts:
+- `pipeline/tracetriage/waterfall.py` is the production parser. EasyOCR is used for tick label reading (inverted 4× image, sign from position not from OCR). `EASYOCR_MODULE_PATH=D:/cache/easyocr/model` must be set or model weights must exist at that path. `download_enabled=False` — no runtime downloads.
+- `contracts/waterfall_geometry.schema.json` is now 0.2.2: `plot_box` is nullable (was 0.2.1 where it was type `"object"` only).
+- The OCR reader is module-level cached. First call per process takes ~5s to load the model; subsequent calls are fast. This is acceptable for batch processing.
+- **Do not redo the axis detection.** The two measured layouts (836px at 123.46 Hz/px, 832px at 80.00 Hz/px) are reproduced within 1% by the OCR-based approach.
+
 
 ### Budget
 
@@ -103,9 +114,9 @@ Three of six gates pre-measured. See `docs/KILL_GATE.md` for thresholds and evid
 
 ## Exact next task
 
-In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A1, the immutable snapshot builder**. Build stage 1 only (2,500 observations, ~2,300 waterfalls, ~4 GB, ~45 min). Stage 2 is kicked off in the background during Wave B.
+In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A3: Doppler correction status resolver**.
 
-Then A2 (waterfall parser), **A3 (blocking Doppler question)**, A4 (physics), A5 (provenance), A6 (baseline), A7 (end-to-end slice).
+Then A4 (physics), A5 (provenance), A6 (baseline), A7 (end-to-end slice).
 
 ### What A0 settled, so A1 does not rediscover it
 

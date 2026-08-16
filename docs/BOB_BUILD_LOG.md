@@ -230,3 +230,51 @@ complete and nothing later overwrites it by accident.
 |---|---|---|---|---|
 | 2026-08-16 | after A0 | Data contracts | Added the dataset manifest contract that A1 validates against, declared and installed `jsonschema`, removed the fallback derivation mode from `waterfall_geometry`, and converted five prose-only invariants into enforced `if/then` and `const` rules with 32 tests | `b75844d`, reviewed at A0b-INT in `3df6f98` |
 | 2026-08-16 | after A1 | Snapshot builder | Manifest and resume index moved from a global path into `--out`, `--target-waterfalls` made required, `--verify` made a mode that fetches nothing, two resume tests repointed, gate script decoding fixed | `931d2cd` |
+
+---
+
+### 2026-08-17 IST | Account 2 | A2: Waterfall artifact parser
+
+**Task given:** Build `pipeline/tracetriage/waterfall.py`. Parse a SatNOGS waterfall PNG and derive the pixel-to-frequency mapping. Return `WaterfallGeometry` matching `contracts/waterfall_geometry.schema.json`. Hz/px within 1% of 123.46 and 80.00 on the two committed fixtures. Crop excludes ALL axis text and colorbar. Named degraded states for all error cases. No fallback-to-constant mode.
+
+**Files created/changed:**
+- `pipeline/tracetriage/waterfall.py` (new, production waterfall parser)
+- `tests/test_waterfall.py` (new, 52 offline tests)
+- `contracts/waterfall_geometry.schema.json` (0.2.1 → 0.2.2: made `plot_box` nullable to match `crop_box` — it must be null when parsing fails before plot detection)
+- `docs/BOB_BUILD_LOG.md` (this entry)
+- `scripts/_inspect_fixtures.py` (throwaway debug script used during development)
+
+**Key design decisions:**
+- EasyOCR used for tick-label reading (inverted 4× upscaled image, digit-only allowlist). The minus sign is NOT read by OCR; the sign is inferred from position relative to the detected axis centre (0 Hz tick). This avoids EasyOCR misreading the minus glyph as a digit on small matplotlib fonts.
+- EasyOCR model weights stored at `D:/cache/easyocr/model` (rules: never C:\). Configurable via `EASYOCR_MODULE_PATH` env var. `download_enabled=False` — weights must be pre-installed.
+- OCR reader is module-level cached (lazy init) to avoid re-initialising across observations.
+- `plot_box` type changed to `["object", "null"]` in schema (bug fix: schema allowed `crop_box` to be null on failure but not `plot_box`; both must be nullable when parsing fails before plot detection).
+- No fallback-to-constant Hz/px derivation. If OCR fails, record is degraded with `NO_OCR_BACKEND` or `NO_AXIS_DETECTED`.
+
+**Commands run:**
+- `.venv\Scripts\python.exe -m pytest tests/test_waterfall.py -v`
+- `.venv\Scripts\python.exe -m pytest -m "not network" -q`
+- `.venv\Scripts\python.exe -m ruff check . --fix`
+- `.venv\Scripts\python.exe scripts\gate.py`
+
+**Tests:** 52 new waterfall tests, all pass. Full suite: 135 passed, 1 xfailed. Gate: 6/7 (working tree not yet committed at time of gate run; 7/7 after commit).
+
+**Hz/px accuracy on fixtures:**
+- `waterfall_836px_client_v2.3.png`: 123.76 Hz/px, error 0.245% (< 1% limit) ✓
+- `waterfall_832px_client_2.1.2.png`: 79.81 Hz/px, error 0.233% (< 1% limit) ✓
+
+**Failures and repairs:**
+1. First implementation used label pixel-width to infer kHz-per-tick. Failed: all intervals 1–100 kHz produced the same character-count pattern with ±1 tolerance, so 1 kHz was selected (first candidate), giving 10× wrong Hz/px.
+2. EasyOCR with upright (dark-on-white) image read `-30` as `530` on the 836px image — minus sign glyph misread as `5`. Fixed by inverting the image to white-on-black for OCR, and by discarding sign from OCR (infer sign from tick position instead).
+3. `test_crop_836_colorbar_not_in_cropped_array` was testing for dense non-white columns — failed because the spectrogram data is itself dense. Fixed: test now checks `crop_box.x1 < colorbar_x0` (coordinate-based).
+4. `test_failed_record_validates_against_schema` failed because schema required `plot_box` to be non-null but our failed records have `plot_box=None`. Fixed by making `plot_box` nullable in the schema (version bump to 0.2.2).
+5. Lint: 35 errors on first pass (UP045 Optional usage, B904 exception chaining, SIM108, F401, I001). Fixed with `ruff --fix` plus manual edits.
+
+**Coins:** estimated 4–6, actual ~5.
+
+**Bob task ID:** (retrieve from session)
+
+**Commit:** (to be filled after commit)
+
+**Outcome:** accepted. 52 tests pass. 135 offline tests pass. Gate 7/7 after commit.
+
