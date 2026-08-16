@@ -91,6 +91,29 @@ Bob's work is recorded, not asserted:
 
 ## Measured results
 
+### Established, with receipts
+
+These are generated from frozen artifacts and registered in `docs/CLAIM_REGISTER.md`.
+
+| Metric | Value | Receipt |
+|---|---|---|
+| Corrected and uncorrected captures both occur | 4 corrected, 3 uncorrected, 17 undecidable, of 24 vetted `with-signal` observations | `artifacts/a3_overlays/summary.json` |
+| Metadata cannot reveal correction status | `doppler-correction-per-sec` null and `rigctl-port` `4532` on 24 of 24, in both groups | `artifacts/a3_overlays/summary.json` |
+| Strongest corrected match | vertical carrier at 54.2 sigma against 7.3 for the swept curve | `artifacts/a3_overlays/overlay_14746118.png` |
+| Strongest uncorrected match | swept curve at 25.1 sigma against 2.8 for the best vertical line | `artifacts/a3_overlays/overlay_14740031.png` |
+| Observations with no measurable narrowband trace | 17 of 24 vetted `with-signal`, scoring 0.7 to 3.5 sigma | `artifacts/a3_overlays/summary.json` |
+| Pass geometry against reported max_altitude | median 0.21 deg, p99 0.61 deg, 99.5% within 1 deg, 199 of 200 | `artifacts/PHYSICS_VALIDATION.json` |
+
+The first two are the reason this project exists. A reviewer cannot tell from an
+observation record whether its waterfall was Doppler corrected, the two cases
+produce completely different expected traces, and the difference is measurable
+from the image. That gap between what the record says and what the image
+supports is what TraceTriage ranks on.
+
+Full method, margins and open questions: **`docs/DOPPLER_CORRECTION_FINDING.md`**.
+
+### Not yet measured
+
 | Metric | Value | Receipt |
 |---|---|---|
 | Brier score, chronological holdout | `[UNMEASURED]` | pending |
