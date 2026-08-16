@@ -44,3 +44,6 @@ desktop.ini
 .DS_Store
 .idea/
 .vscode/
+
+# working brief, not part of the judged submission
+BOB_START_HERE.md
