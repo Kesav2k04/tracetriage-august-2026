@@ -70,6 +70,7 @@ markers = [
     "ocr: test requires the easyocr backend and its downloaded weights (excluded from the offline replay gate)",
     "slow: long-running test",
     "acceptance: judged-path acceptance check",
+    "dataset: test reads a built snapshot from disk (skipped when none is present)",
 ]
 
 [tool.ruff]
