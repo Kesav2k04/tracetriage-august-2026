@@ -361,11 +361,44 @@ Rules:
 - measured base rates to carry forward: 29.0% decisive overall, with a 1.85:1
   positive-to-negative imbalance among decisive labels (docs/KILL_GATE.md gate 1)
 
+MEASURED IN A3, AND EACH ONE IS A LABEL TRAP:
+
+1. A bare listing returns FUTURE observations. One A3 attempt pulled 200
+   consecutive records with status "future", waterfall null and
+   waterfall_status "unknown". Those are not unlabelled examples, they are
+   observations that have not happened yet. Exclude them explicitly and test it.
+   If they reach the label set they become fake negatives at scale.
+2. Vetting lags capture. A recent observation with status "good" and
+   waterfall_status "unknown" is UNVETTED, not negative, and the gap is a
+   function of how long ago the pass ran. Record the vetting lag per record.
+3. `with-signal` is a human judgement that something is visible, not a
+   guarantee that a measurable carrier is present. A3 measured 24 vetted
+   with-signal observations and only 7 carried a narrowband trace strong
+   enough to score at all; the other 17 sat between 0.7 and 3.5 sigma. So the
+   29.0% decisive rate is NOT a 29% measurable rate. Provenance must let a
+   later stage tell "labelled positive" apart from "measurable", because A6's
+   baseline will otherwise train against a target it cannot see.
+
+Also verified and not worth a coin to rediscover: `client_metadata` is a
+JSON-encoded STRING, not an object. `end__lte=` and `id__lt=` are accepted with
+HTTP 200 and silently ignored; page with the Link: rel="next" cursor.
+`waterfall_status=` as a query filter returns HTTP 400; filter it client-side.
+
+RATE LIMIT WARNING. The public API throttled this project twice, at 1551 s and
+3419 s, and a block costs an hour of waiting rather than a coin. If this unit
+needs live records, cache every page to disk on the way in and reuse the cache;
+scripts/a3_doppler_investigation.py already does this. Prefer working from
+artifacts already on disk.
+
 ACCEPTANCE:
 - a provenance record per observation validating against its contract
 - tests asserting unknown never becomes a training label and missing-waterfall
   never becomes a negative
+- a test asserting a status "future" record never enters the label set
+- a test asserting "labelled positive" and "carries a measurable trace" are
+  distinct fields that cannot be conflated
 - docs/LABEL_PROVENANCE.md explains each label origin and its known failure modes
+- scripts/gate.py passes 7/7 before you report completion
 ```
 
 ---
