@@ -27,6 +27,10 @@ data/
 
 # --- generated artifacts: manifests are committed, payloads are not ---
 artifacts/**/*
+# Directories must be re-included first. Git does not descend into an
+# excluded directory, so without this every negation below is dead and
+# the evidence silently never stages.
+!artifacts/**/
 !artifacts/.gitkeep
 !artifacts/**/*.json
 !artifacts/**/*.md

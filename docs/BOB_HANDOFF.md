@@ -9,22 +9,45 @@
 | | |
 |---|---|
 | **Handoff written** | 2026-08-17, IST |
-| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`) |
+| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (see `git log`) |
 | **Account in use** | account 3 |
 | **Current wave** | Wave A, in progress |
-| **Current unit** | **A3: Doppler correction status resolver**, in progress |
-| **Next unit** | **A4: physics corridor module**, blocked until A3 states an answer |
-| **Open failures** | none. 7/7 standing gates, 147 tests pass offline. |
+| **Next unit** | **A4: physics corridor module**. A3 is answered, so A4 is unblocked. |
+| **Open failures** | none. 7/7 standing gates, 166 tests pass offline. |
 | **Last commit** | `69d5c98` (2026-08-16 IST) |
 
-### A3 is in progress
+### A3 is closed. Read this before building the corridor in A4
 
-The investigation harness is built and its analysis is covered by offline tests.
-The live measurement is queued against a rate-limited public API. Units run in
-plan order, so nothing after A3 starts until A3 has an answer written down.
+**The answer is BOTH.** Corrected and uncorrected captures both occur in the
+public network, and **no metadata field distinguishes them**:
+`doppler-correction-per-sec` was null and `rigctl-port` was `4532` on all 24
+observations measured, in both groups. 4 corrected across 4 stations, 4
+satellites and 3 bands; 3 uncorrected across 3 satellites and 2 stations; 17
+carried no measurable narrowband trace. Full method, margins and open questions:
+**`docs/DOPPLER_CORRECTION_FINDING.md`**. Evidence: 24 overlays in
+`artifacts/a3_overlays/`.
 
-**Do not touch `scripts/a3_doppler_investigation.py`.** A re-run costs an hour of
-waiting on the rate-limit window, not a coin.
+So A4's corridor must handle both shapes and must infer correction status from
+the image. Do not key it on metadata, and do not assume the corridor is centred
+on `rx-freq`: the uncorrected traces sat 14.0, 2.4 and 1.8 kHz off it.
+
+**Two calibration facts. Do not re-derive them, and do not check them by eye.**
+
+- **Time runs bottom to top.** The top row is the END of the pass. Measured off
+  observation 14740031: the `200` s tick at y=258, the `50` s tick at y=1228.
+- **The plotted frequency axis runs against the Doppler sign.** Scanned, not
+  assumed; all three uncorrected observations agreed, at 25.1 against 2.0 sigma,
+  15.1 against 1.2, and 15.9 against 1.4.
+
+These two errors cancel, because a Doppler curve is near odd-symmetric about
+closest approach. The first implementation had both wrong, scored 25 sigma and
+looked correct in its overlay. **A visual check cannot catch this class of
+defect.** If A4 needs to confirm an orientation, scan it and report the margin.
+
+**Do not touch `scripts/a3_doppler_investigation.py` or re-run it casually.**
+The public API throttled this project twice, at 1551 s and 3419 s. Pages and
+waterfalls are cached under `.a3_cache/`, so a rerun reproduces every number
+from the same bytes at no request cost, but only while that cache exists.
 
 ### A1 is closed. Read this before touching snapshot.py
 
@@ -130,7 +153,7 @@ Three of six gates pre-measured. See `docs/KILL_GATE.md` for thresholds and evid
 
 ## Exact next task
 
-In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A4: physics corridor module**, once A3 has stated its answer.
+In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A4: physics corridor module**.
 
 Then A5 (provenance), A6 (baseline), A7 (end-to-end slice).
 

@@ -46,7 +46,9 @@ Full detail with method and numbers is in `docs/SATNOGS_API_RECON.md`. The four 
 
 Already proven, so build on it rather than re-testing it: the observation's own stored TLE plus station coordinates reproduced pass geometry to **0.18 degrees** against the API's own `max_altitude`.
 
-Still open, and load-bearing: whether a null `doppler-correction-per-sec` with a populated `rigctl-port` means the waterfall **is** corrected externally. Resolve this before building the corridor overlay, because it decides which curve is correct.
+**Resolved at A3, and the answer is not the one the metadata suggested.** Both corrected and uncorrected captures exist in the public network, and **no metadata field tells them apart**: `doppler-correction-per-sec` was null and `rigctl-port` was `4532` on all 24 observations measured, in both groups. Correction status has to be inferred from the image. Four corrected observations across 4 stations, 4 satellites and 3 bands; three uncorrected across 3 satellites and 2 stations. Full method, margins and open questions: `docs/DOPPLER_CORRECTION_FINDING.md`.
+
+Two calibration facts from A3 that cost a rebuild if forgotten. **Time runs bottom to top**: the top row of a waterfall is the END of the pass, read off the axis of observation 14740031 (the 200 s tick at y=258, the 50 s tick at y=1228). **The plotted frequency axis runs against the Doppler sign.** These two errors cancel, because a Doppler curve is near odd-symmetric about closest approach, so getting both wrong scores 25 sigma and looks right in an overlay. Never accept an orientation from a visual check; scan the sign and report which one won.
 
 ## 6. How to run a task
 

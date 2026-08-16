@@ -1,0 +1,1754 @@
+[
+  {
+    "obs_id": 14746118,
+    "family": "2.1.2",
+    "station": 4791,
+    "station_name": "MEGANISI_1",
+    "norad_cat_id": 63303,
+    "max_altitude": 89.0,
+    "rx_freq_hz": 400650899.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 79.81377670191532,
+    "seconds_per_px": 0.18398967075532602,
+    "centre_px": 302.0,
+    "geom_degraded": null,
+    "pass_duration_s": 285.0,
+    "sgp4_max_elevation_deg": 89.24459214091266,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 54.242964140170514,
+    "sigma_curved": 7.2679071838217535,
+    "frequency_axis_sign": 1,
+    "sigma_curved_by_sign": {
+      "1": 7.2679071838217535,
+      "-1": 7.124223612168721
+    },
+    "vertical_column_offset_hz": -798.1377670191532,
+    "curved_offset_hz": -8141.005223595363,
+    "predicted_swing_hz": 15769.14998458033,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 66.22941244260483,
+        "sigma_curved": 7.034936278850149,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 7.034936278850149,
+          "-1": 6.655795728091228
+        },
+        "vertical_column_offset_hz": -718.3239903172379,
+        "curved_offset_hz": -7662.12256338387
+      },
+      "3": {
+        "sigma_vertical": 54.242964140170514,
+        "sigma_curved": 7.2679071838217535,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 7.2679071838217535,
+          "-1": 7.124223612168721
+        },
+        "vertical_column_offset_hz": -798.1377670191532,
+        "curved_offset_hz": -8141.005223595363
+      },
+      "5": {
+        "sigma_vertical": 52.91604884145562,
+        "sigma_curved": 7.098103055878383,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 7.098103055878383,
+          "-1": 6.946930081186436
+        },
+        "vertical_column_offset_hz": -877.9515437210684,
+        "curved_offset_hz": -8220.819000297277
+      }
+    },
+    "n_drawn_track_points": 1383,
+    "status": "ok",
+    "verdict": "CORRECTED",
+    "reason": "energy follows a vertical line -798 Hz off axis zero: 54.2 sigma against 7.3 for the predicted curve",
+    "overlay_file": "overlay_14746118.png"
+  },
+  {
+    "obs_id": 14746055,
+    "family": "1.9.3",
+    "station": 4272,
+    "station_name": "Sofia SAT Club - Hadji Boby VHF",
+    "norad_cat_id": 41187,
+    "max_altitude": 79.0,
+    "rx_freq_hz": 137460000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 77.4194837369136,
+    "seconds_per_px": 0.39025974025974025,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 601.0,
+    "sgp4_max_elevation_deg": 79.55981063991047,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 32.41694472283802,
+    "sigma_curved": 21.01487768184555,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 20.96141957179537,
+      "-1": 21.01487768184555
+    },
+    "vertical_column_offset_hz": -1161.292256053704,
+    "curved_offset_hz": 0.0,
+    "predicted_swing_hz": 5767.220502093047,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 30.180310651363126,
+        "sigma_curved": 18.53987248347634,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 18.520725894114953,
+          "-1": 18.53987248347634
+        },
+        "vertical_column_offset_hz": -1083.8727723167904,
+        "curved_offset_hz": 77.4194837369136
+      },
+      "3": {
+        "sigma_vertical": 32.41694472283802,
+        "sigma_curved": 21.01487768184555,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 20.96141957179537,
+          "-1": 21.01487768184555
+        },
+        "vertical_column_offset_hz": -1161.292256053704,
+        "curved_offset_hz": 0.0
+      },
+      "5": {
+        "sigma_vertical": 27.46867295840952,
+        "sigma_curved": 18.146317494750587,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 18.1280857958213,
+          "-1": 18.146317494750587
+        },
+        "vertical_column_offset_hz": -1083.8727723167904,
+        "curved_offset_hz": 77.4194837369136
+      }
+    },
+    "n_drawn_track_points": 390,
+    "status": "ok",
+    "verdict": "CORRECTED",
+    "reason": "energy follows a vertical line -1,161 Hz off axis zero: 32.4 sigma against 21.0 for the predicted curve",
+    "overlay_file": "overlay_14746055.png"
+  },
+  {
+    "obs_id": 14737118,
+    "family": "1.8.1",
+    "station": 3153,
+    "station_name": "EI4FNB UHF Omni",
+    "norad_cat_id": 69015,
+    "max_altitude": 86.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 92.5925925925926,
+    "seconds_per_px": 0.287012987012987,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 442.0,
+    "sgp4_max_elevation_deg": 86.257540088296,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.649080845170027,
+    "sigma_curved": 0.8115899324456691,
+    "frequency_axis_sign": 1,
+    "sigma_curved_by_sign": {
+      "1": 0.8115899324456691,
+      "-1": 0.7385129116387554
+    },
+    "vertical_column_offset_hz": 5185.185185185185,
+    "curved_offset_hz": -4166.666666666667,
+    "predicted_swing_hz": 20221.263533605037,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.729076313206274,
+        "sigma_curved": 0.848904267954166,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.848904267954166,
+          "-1": 0.7841413532268214
+        },
+        "vertical_column_offset_hz": 5277.777777777778,
+        "curved_offset_hz": -4259.259259259259
+      },
+      "3": {
+        "sigma_vertical": 1.649080845170027,
+        "sigma_curved": 0.8115899324456691,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.8115899324456691,
+          "-1": 0.7385129116387554
+        },
+        "vertical_column_offset_hz": 5185.185185185185,
+        "curved_offset_hz": -4166.666666666667
+      },
+      "5": {
+        "sigma_vertical": 1.6078483276398483,
+        "sigma_curved": 0.7714490583770953,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.7714490583770953,
+          "-1": 0.7235482413230818
+        },
+        "vertical_column_offset_hz": 5185.185185185185,
+        "curved_offset_hz": -4259.259259259259
+      }
+    },
+    "n_drawn_track_points": 30,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.6 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14737118.png"
+  },
+  {
+    "obs_id": 14740029,
+    "family": "1.6",
+    "station": 91,
+    "station_name": "M0EYT / 2E0NOG",
+    "norad_cat_id": 55051,
+    "max_altitude": 89.0,
+    "rx_freq_hz": 401415000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.5e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 77.26983242447159,
+    "seconds_per_px": 0.18766233766233767,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 289.0,
+    "sgp4_max_elevation_deg": 88.90585201564487,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 3.535962375266602,
+    "sigma_curved": 1.384628231661808,
+    "frequency_axis_sign": 1,
+    "sigma_curved_by_sign": {
+      "1": 1.384628231661808,
+      "-1": 1.24750317530697
+    },
+    "vertical_column_offset_hz": 77.26983242447159,
+    "curved_offset_hz": 2627.174302432034,
+    "predicted_swing_hz": 17625.03267324428,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 3.077272501399974,
+        "sigma_curved": 1.7276886392328883,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.7276886392328883,
+          "-1": 1.290411344000488
+        },
+        "vertical_column_offset_hz": 154.53966484894318,
+        "curved_offset_hz": 5949.777096684313
+      },
+      "3": {
+        "sigma_vertical": 3.535962375266602,
+        "sigma_curved": 1.384628231661808,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.384628231661808,
+          "-1": 1.24750317530697
+        },
+        "vertical_column_offset_hz": 77.26983242447159,
+        "curved_offset_hz": 2627.174302432034
+      },
+      "5": {
+        "sigma_vertical": 3.370793431847694,
+        "sigma_curved": 1.332834372084572,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.332834372084572,
+          "-1": 1.152380986103676
+        },
+        "vertical_column_offset_hz": 77.26983242447159,
+        "curved_offset_hz": 2627.174302432034
+      }
+    },
+    "n_drawn_track_points": 116,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 3.5 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14740029.png"
+  },
+  {
+    "obs_id": 14738773,
+    "family": "2.1.2",
+    "station": 5078,
+    "station_name": "dm43",
+    "norad_cat_id": 46906,
+    "max_altitude": 80.0,
+    "rx_freq_hz": 401120000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e+06",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 95.88495337914972,
+    "seconds_per_px": 0.28211749515816653,
+    "centre_px": 302.0,
+    "geom_degraded": null,
+    "pass_duration_s": 437.0,
+    "sgp4_max_elevation_deg": 79.98327954177206,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.6988453587438501,
+    "sigma_curved": 1.0874115404965996,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 0.8776943330832052,
+      "-1": 1.0874115404965996
+    },
+    "vertical_column_offset_hz": 7095.4865500570795,
+    "curved_offset_hz": -862.9645804123475,
+    "predicted_swing_hz": 17431.347332399513,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.8269933820377684,
+        "sigma_curved": 1.1754401889316404,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.0041747994452728,
+          "-1": 1.1754401889316404
+        },
+        "vertical_column_offset_hz": 7095.4865500570795,
+        "curved_offset_hz": -958.8495337914972
+      },
+      "3": {
+        "sigma_vertical": 1.6988453587438501,
+        "sigma_curved": 1.0874115404965996,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.8776943330832052,
+          "-1": 1.0874115404965996
+        },
+        "vertical_column_offset_hz": 7095.4865500570795,
+        "curved_offset_hz": -862.9645804123475
+      },
+      "5": {
+        "sigma_vertical": 1.490195758574336,
+        "sigma_curved": 0.9089402671148691,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.7930279264398221,
+          "-1": 0.9089402671148691
+        },
+        "vertical_column_offset_hz": 7191.371503436229,
+        "curved_offset_hz": -862.9645804123475
+      }
+    },
+    "n_drawn_track_points": 22,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.7 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14738773.png"
+  },
+  {
+    "obs_id": 14737408,
+    "family": "1.9.3",
+    "station": 4293,
+    "station_name": "M0RVB",
+    "norad_cat_id": 69015,
+    "max_altitude": 59.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 93.16860044558896,
+    "seconds_per_px": 0.2824675324675325,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 435.0,
+    "sgp4_max_elevation_deg": 59.29126671240595,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.0706560768247484,
+    "sigma_curved": 0.7266503872715645,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 0.6291375421045462,
+      "-1": 0.7266503872715645
+    },
+    "vertical_column_offset_hz": 5310.610225398571,
+    "curved_offset_hz": -5124.273024507393,
+    "predicted_swing_hz": 19893.43546321683,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.1097933746837767,
+        "sigma_curved": 0.7892549947423153,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.7217124762830396,
+          "-1": 0.7892549947423153
+        },
+        "vertical_column_offset_hz": 5217.441624952982,
+        "curved_offset_hz": -4751.598622725037
+      },
+      "3": {
+        "sigma_vertical": 1.0706560768247484,
+        "sigma_curved": 0.7266503872715645,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.6291375421045462,
+          "-1": 0.7266503872715645
+        },
+        "vertical_column_offset_hz": 5310.610225398571,
+        "curved_offset_hz": -5124.273024507393
+      },
+      "5": {
+        "sigma_vertical": 1.0458229090114703,
+        "sigma_curved": 0.7139189520120935,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.5920549068212652,
+          "-1": 0.7139189520120935
+        },
+        "vertical_column_offset_hz": -2888.2266138132577,
+        "curved_offset_hz": -4937.935823616215
+      }
+    },
+    "n_drawn_track_points": 2,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.1 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14737408.png"
+  },
+  {
+    "obs_id": 14736773,
+    "family": "1.8.1",
+    "station": 733,
+    "station_name": "VAUBAN-IEPER  ON7XX",
+    "norad_cat_id": 69015,
+    "max_altitude": 33.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 93.16860044558896,
+    "seconds_per_px": 0.2584415584415584,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 398.0,
+    "sgp4_max_elevation_deg": 32.61061442615018,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.310141430950818,
+    "sigma_curved": 0.7623260281754705,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 0.7279910928493493,
+      "-1": 0.7623260281754705
+    },
+    "vertical_column_offset_hz": -4006.2498191603254,
+    "curved_offset_hz": -3633.5754173779696,
+    "predicted_swing_hz": 17989.34236616824,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.3290999605468654,
+        "sigma_curved": 0.8357984864688369,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.8013409022750677,
+          "-1": 0.8357984864688369
+        },
+        "vertical_column_offset_hz": 4099.418419605914,
+        "curved_offset_hz": -3540.4068169323805
+      },
+      "3": {
+        "sigma_vertical": 1.310141430950818,
+        "sigma_curved": 0.7623260281754705,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.7279910928493493,
+          "-1": 0.7623260281754705
+        },
+        "vertical_column_offset_hz": -4006.2498191603254,
+        "curved_offset_hz": -3633.5754173779696
+      },
+      "5": {
+        "sigma_vertical": 1.2769858743875884,
+        "sigma_curved": 0.7339459359788741,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.7038204706025872,
+          "-1": 0.7339459359788741
+        },
+        "vertical_column_offset_hz": 4006.2498191603254,
+        "curved_offset_hz": -3633.5754173779696
+      }
+    },
+    "n_drawn_track_points": 11,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.3 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14736773.png"
+  },
+  {
+    "obs_id": 14740030,
+    "family": "1.6",
+    "station": 91,
+    "station_name": "M0EYT / 2E0NOG",
+    "norad_cat_id": 51827,
+    "max_altitude": 56.0,
+    "rx_freq_hz": 401650000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.5e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 77.26983242447159,
+    "seconds_per_px": 0.1292207792207792,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 199.0,
+    "sgp4_max_elevation_deg": 56.314567190094664,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 3.0298758221115425,
+    "sigma_curved": 1.624223807346552,
+    "frequency_axis_sign": 1,
+    "sigma_curved_by_sign": {
+      "1": 1.624223807346552,
+      "-1": 1.4571419538016108
+    },
+    "vertical_column_offset_hz": 154.53966484894318,
+    "curved_offset_hz": 8267.87206941846,
+    "predicted_swing_hz": 17387.00992085535,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 3.1157770929212645,
+        "sigma_curved": 1.811237635052432,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.811237635052432,
+          "-1": 1.5690556529135697
+        },
+        "vertical_column_offset_hz": 154.53966484894318,
+        "curved_offset_hz": 8190.602236993988
+      },
+      "3": {
+        "sigma_vertical": 3.0298758221115425,
+        "sigma_curved": 1.624223807346552,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.624223807346552,
+          "-1": 1.4571419538016108
+        },
+        "vertical_column_offset_hz": 154.53966484894318,
+        "curved_offset_hz": 8267.87206941846
+      },
+      "5": {
+        "sigma_vertical": 2.943993710247677,
+        "sigma_curved": 1.5646908809750075,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.5646908809750075,
+          "-1": 1.3722215053328821
+        },
+        "vertical_column_offset_hz": 77.26983242447159,
+        "curved_offset_hz": 8113.332404569517
+      }
+    },
+    "n_drawn_track_points": 40,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 3.0 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14740030.png"
+  },
+  {
+    "obs_id": 14745839,
+    "family": "2.1.2",
+    "station": 4451,
+    "station_name": "(\u00af`\u00b7._.\u00b7(\u00af`\u00b7._.\u00b7 I LOVE BALI \u00b7._.\u00b7\u00b4\u00af)\u00b7._.\u00b7\u00b4\u00af)",
+    "norad_cat_id": 24278,
+    "max_altitude": 65.0,
+    "rx_freq_hz": 435850000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 79.81377670191532,
+    "seconds_per_px": 0.19367333763718528,
+    "centre_px": 302.0,
+    "geom_degraded": null,
+    "pass_duration_s": 300.0,
+    "sgp4_max_elevation_deg": 65.01583022889962,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 2.43522464317829,
+    "sigma_curved": 0.9627167783121584,
+    "frequency_axis_sign": 1,
+    "sigma_curved_by_sign": {
+      "1": 0.9627167783121584,
+      "-1": 0.6964992365754251
+    },
+    "vertical_column_offset_hz": 9737.280757633669,
+    "curved_offset_hz": -3352.1786214804433,
+    "predicted_swing_hz": 14950.793663639903,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 3.3016705825401336,
+        "sigma_curved": 1.0702329386779148,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.0702329386779148,
+          "-1": 0.7978561483067629
+        },
+        "vertical_column_offset_hz": 1356.8342039325603,
+        "curved_offset_hz": -3352.1786214804433
+      },
+      "3": {
+        "sigma_vertical": 2.43522464317829,
+        "sigma_curved": 0.9627167783121584,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.9627167783121584,
+          "-1": 0.6964992365754251
+        },
+        "vertical_column_offset_hz": 9737.280757633669,
+        "curved_offset_hz": -3352.1786214804433
+      },
+      "5": {
+        "sigma_vertical": 2.351260942322615,
+        "sigma_curved": 0.9360047897398979,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.9360047897398979,
+          "-1": 0.662309807375092
+        },
+        "vertical_column_offset_hz": 9817.094534335583,
+        "curved_offset_hz": -5826.405699239818
+      }
+    },
+    "n_drawn_track_points": 639,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 2.4 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14745839.png"
+  },
+  {
+    "obs_id": 14746048,
+    "family": "1.9.3",
+    "station": 4349,
+    "station_name": "Sofia SAT Club - Hadji Boby UHF",
+    "norad_cat_id": 33499,
+    "max_altitude": 55.0,
+    "rx_freq_hz": 437387000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 77.26983242447159,
+    "seconds_per_px": 0.32792207792207795,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 505.0,
+    "sgp4_max_elevation_deg": 54.66362920097785,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 36.96205540298381,
+    "sigma_curved": 1.7085084785878446,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 1.5963228119436805,
+      "-1": 1.7085084785878446
+    },
+    "vertical_column_offset_hz": 463.6189945468295,
+    "curved_offset_hz": 5408.888269713011,
+    "predicted_swing_hz": 19301.210303970118,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 41.46130582157493,
+        "sigma_curved": 1.6495945054881704,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.451735487395843,
+          "-1": 1.6495945054881704
+        },
+        "vertical_column_offset_hz": 463.6189945468295,
+        "curved_offset_hz": 5486.158102137482
+      },
+      "3": {
+        "sigma_vertical": 36.96205540298381,
+        "sigma_curved": 1.7085084785878446,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.5963228119436805,
+          "-1": 1.7085084785878446
+        },
+        "vertical_column_offset_hz": 463.6189945468295,
+        "curved_offset_hz": 5408.888269713011
+      },
+      "5": {
+        "sigma_vertical": 28.531048478164067,
+        "sigma_curved": 1.5494368245756218,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.5494368245756218,
+          "-1": 1.3984556189634525
+        },
+        "vertical_column_offset_hz": 463.6189945468295,
+        "curved_offset_hz": -4636.189945468295
+      }
+    },
+    "n_drawn_track_points": 501,
+    "status": "ok",
+    "verdict": "CORRECTED",
+    "reason": "energy follows a vertical line +464 Hz off axis zero: 37.0 sigma against 1.7 for the predicted curve",
+    "overlay_file": "overlay_14746048.png"
+  },
+  {
+    "obs_id": 14736842,
+    "family": "1.8.1",
+    "station": 1416,
+    "station_name": "PE2BZ-437",
+    "norad_cat_id": 69015,
+    "max_altitude": 31.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2048000",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 93.16860044558896,
+    "seconds_per_px": 0.40714285714285714,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 627.0,
+    "sgp4_max_elevation_deg": 31.10211713084359,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 0.9832128347681264,
+    "sigma_curved": 0.7979001920121794,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 0.6238081197156328,
+      "-1": 0.7979001920121794
+    },
+    "vertical_column_offset_hz": -2981.395214258847,
+    "curved_offset_hz": -2049.709209802957,
+    "predicted_swing_hz": 19584.37375966341,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.128591770816955,
+        "sigma_curved": 0.9666104856286373,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.7354070772752546,
+          "-1": 0.9666104856286373
+        },
+        "vertical_column_offset_hz": -2422.3836115853132,
+        "curved_offset_hz": -2049.709209802957
+      },
+      "3": {
+        "sigma_vertical": 0.9832128347681264,
+        "sigma_curved": 0.7979001920121794,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.6238081197156328,
+          "-1": 0.7979001920121794
+        },
+        "vertical_column_offset_hz": -2981.395214258847,
+        "curved_offset_hz": -2049.709209802957
+      },
+      "5": {
+        "sigma_vertical": 0.9379390673663893,
+        "sigma_curved": 0.7073053170467868,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.6044527474576985,
+          "-1": 0.7073053170467868
+        },
+        "vertical_column_offset_hz": -2888.2266138132577,
+        "curved_offset_hz": -2142.877810248546
+      }
+    },
+    "n_drawn_track_points": 8,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.0 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14736842.png"
+  },
+  {
+    "obs_id": 14736730,
+    "family": "1.6",
+    "station": 91,
+    "station_name": "M0EYT / 2E0NOG",
+    "norad_cat_id": 69015,
+    "max_altitude": 52.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.5e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 93.16860044558896,
+    "seconds_per_px": 0.18051948051948052,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 278.0,
+    "sgp4_max_elevation_deg": 52.36098149072626,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 2.646404436762493,
+    "sigma_curved": 2.4629824920296186,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 1.50264124039226,
+      "-1": 2.4629824920296186
+    },
+    "vertical_column_offset_hz": 186.33720089117793,
+    "curved_offset_hz": 7080.813633864761,
+    "predicted_swing_hz": 17850.006198149604,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 3.2611753577316627,
+        "sigma_curved": 2.6312331689139787,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.6848475342995364,
+          "-1": 2.6312331689139787
+        },
+        "vertical_column_offset_hz": 186.33720089117793,
+        "curved_offset_hz": 6987.645033419172
+      },
+      "3": {
+        "sigma_vertical": 2.646404436762493,
+        "sigma_curved": 2.4629824920296186,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.50264124039226,
+          "-1": 2.4629824920296186
+        },
+        "vertical_column_offset_hz": 186.33720089117793,
+        "curved_offset_hz": 7080.813633864761
+      },
+      "5": {
+        "sigma_vertical": 2.425601170048411,
+        "sigma_curved": 2.3766710720899877,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.5185599490450772,
+          "-1": 2.3766710720899877
+        },
+        "vertical_column_offset_hz": 186.33720089117793,
+        "curved_offset_hz": 7080.813633864761
+      }
+    },
+    "n_drawn_track_points": 1496,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 2.6 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14736730.png"
+  },
+  {
+    "obs_id": 14745602,
+    "family": "2.1.2",
+    "station": 5078,
+    "station_name": "dm43",
+    "norad_cat_id": 62081,
+    "max_altitude": 52.0,
+    "rx_freq_hz": 400638000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e+06",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 79.81377670191532,
+    "seconds_per_px": 0.3247256294383473,
+    "centre_px": 302.0,
+    "geom_degraded": null,
+    "pass_duration_s": 503.0,
+    "sgp4_max_elevation_deg": 52.00478292668966,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 53.28140703634095,
+    "sigma_curved": 12.031333176654842,
+    "frequency_axis_sign": 1,
+    "sigma_curved_by_sign": {
+      "1": 12.031333176654842,
+      "-1": 10.187015555736657
+    },
+    "vertical_column_offset_hz": 239.44133010574595,
+    "curved_offset_hz": -7821.750116787701,
+    "predicted_swing_hz": 17173.34524659226,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 42.63974959709447,
+        "sigma_curved": 9.301718031849912,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 9.301718031849912,
+          "-1": 8.186230779244735
+        },
+        "vertical_column_offset_hz": 159.62755340383063,
+        "curved_offset_hz": -7901.563893489616
+      },
+      "3": {
+        "sigma_vertical": 53.28140703634095,
+        "sigma_curved": 12.031333176654842,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 12.031333176654842,
+          "-1": 10.187015555736657
+        },
+        "vertical_column_offset_hz": 239.44133010574595,
+        "curved_offset_hz": -7821.750116787701
+      },
+      "5": {
+        "sigma_vertical": 52.45785475658563,
+        "sigma_curved": 12.31492018372531,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 12.31492018372531,
+          "-1": 10.417604414939374
+        },
+        "vertical_column_offset_hz": 319.25510680766126,
+        "curved_offset_hz": -7901.563893489616
+      }
+    },
+    "n_drawn_track_points": 729,
+    "status": "ok",
+    "verdict": "CORRECTED",
+    "reason": "energy follows a vertical line +239 Hz off axis zero: 53.3 sigma against 12.0 for the predicted curve",
+    "overlay_file": "overlay_14745602.png"
+  },
+  {
+    "obs_id": 14746049,
+    "family": "1.9.3",
+    "station": 4349,
+    "station_name": "Sofia SAT Club - Hadji Boby UHF",
+    "norad_cat_id": 64562,
+    "max_altitude": 28.0,
+    "rx_freq_hz": 401095000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 77.26983242447159,
+    "seconds_per_px": 0.2798701298701299,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 431.0,
+    "sgp4_max_elevation_deg": 27.707605258439592,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.0805927194864509,
+    "sigma_curved": 1.0783678701865362,
+    "frequency_axis_sign": 1,
+    "sigma_curved_by_sign": {
+      "1": 1.0783678701865362,
+      "-1": 0.7941933724729532
+    },
+    "vertical_column_offset_hz": 8422.411734267404,
+    "curved_offset_hz": 6027.046929108784,
+    "predicted_swing_hz": 15032.62569228201,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.2966743532224612,
+        "sigma_curved": 1.359847632748849,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.359847632748849,
+          "-1": 1.0702817902266686
+        },
+        "vertical_column_offset_hz": 2858.9837997054487,
+        "curved_offset_hz": 6104.316761533255
+      },
+      "3": {
+        "sigma_vertical": 1.0805927194864509,
+        "sigma_curved": 1.0783678701865362,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.0783678701865362,
+          "-1": 0.7941933724729532
+        },
+        "vertical_column_offset_hz": 8422.411734267404,
+        "curved_offset_hz": 6027.046929108784
+      },
+      "5": {
+        "sigma_vertical": 1.022569754752355,
+        "sigma_curved": 1.0692202776872353,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.0692202776872353,
+          "-1": 0.7069123711708671
+        },
+        "vertical_column_offset_hz": 12054.093858217568,
+        "curved_offset_hz": 5949.777096684313
+      }
+    },
+    "n_drawn_track_points": 14,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.1 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14746049.png"
+  },
+  {
+    "obs_id": 14744577,
+    "family": "1.8.1",
+    "station": 4151,
+    "station_name": "DEX-X",
+    "norad_cat_id": 69015,
+    "max_altitude": 25.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.5e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 93.16860044558896,
+    "seconds_per_px": 0.16948051948051948,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 261.0,
+    "sgp4_max_elevation_deg": 24.995409542514484,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.8867528180626554,
+    "sigma_curved": 1.7542688137639224,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 1.2786848339861798,
+      "-1": 1.7542688137639224
+    },
+    "vertical_column_offset_hz": -4285.755620497092,
+    "curved_offset_hz": -652.1802031191228,
+    "predicted_swing_hz": 13816.547219139953,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.997388418562595,
+        "sigma_curved": 2.325954060478202,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.3510948757281873,
+          "-1": 2.325954060478202
+        },
+        "vertical_column_offset_hz": -186.33720089117793,
+        "curved_offset_hz": -652.1802031191228
+      },
+      "3": {
+        "sigma_vertical": 1.8867528180626554,
+        "sigma_curved": 1.7542688137639224,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.2786848339861798,
+          "-1": 1.7542688137639224
+        },
+        "vertical_column_offset_hz": -4285.755620497092,
+        "curved_offset_hz": -652.1802031191228
+      },
+      "5": {
+        "sigma_vertical": 1.8545916999604684,
+        "sigma_curved": 1.5200548659888609,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.2740504982991883,
+          "-1": 1.5200548659888609
+        },
+        "vertical_column_offset_hz": -4192.587020051504,
+        "curved_offset_hz": -652.1802031191228
+      }
+    },
+    "n_drawn_track_points": 22,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.9 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14744577.png"
+  },
+  {
+    "obs_id": 14740031,
+    "family": "1.6",
+    "station": 91,
+    "station_name": "M0EYT / 2E0NOG",
+    "norad_cat_id": 63214,
+    "max_altitude": 41.0,
+    "rx_freq_hz": 436400000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.5e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 123.76237623762377,
+    "seconds_per_px": 0.1564935064935065,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 241.0,
+    "sgp4_max_elevation_deg": 41.15287899843906,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 2.8276340038552434,
+    "sigma_curved": 25.10175184368808,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 1.9862514060117191,
+      "-1": 25.10175184368808
+    },
+    "vertical_column_offset_hz": -5693.0693069306935,
+    "curved_offset_hz": -13985.148514851486,
+    "predicted_swing_hz": 16605.61614030486,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 2.5267724297635015,
+        "sigma_curved": 23.46101522821231,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.9439119150292894,
+          "-1": 23.46101522821231
+        },
+        "vertical_column_offset_hz": -6311.881188118812,
+        "curved_offset_hz": -13985.148514851486
+      },
+      "3": {
+        "sigma_vertical": 2.8276340038552434,
+        "sigma_curved": 25.10175184368808,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.9862514060117191,
+          "-1": 25.10175184368808
+        },
+        "vertical_column_offset_hz": -5693.0693069306935,
+        "curved_offset_hz": -13985.148514851486
+      },
+      "5": {
+        "sigma_vertical": 2.7427360190976744,
+        "sigma_curved": 19.10451795619542,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.8447248733779074,
+          "-1": 19.10451795619542
+        },
+        "vertical_column_offset_hz": -6064.3564356435645,
+        "curved_offset_hz": -13985.148514851486
+      }
+    },
+    "n_drawn_track_points": 407,
+    "status": "ok",
+    "verdict": "UNCORRECTED",
+    "reason": "energy follows the predicted Doppler curve: 25.1 sigma against 2.8 for the best vertical line",
+    "overlay_file": "overlay_14740031.png"
+  },
+  {
+    "obs_id": 14746117,
+    "family": "2.1.2",
+    "station": 4791,
+    "station_name": "MEGANISI_1",
+    "norad_cat_id": 46486,
+    "max_altitude": 39.0,
+    "rx_freq_hz": 387174814.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 79.81377670191532,
+    "seconds_per_px": 0.2866365397030342,
+    "centre_px": 302.0,
+    "geom_degraded": null,
+    "pass_duration_s": 444.0,
+    "sgp4_max_elevation_deg": 38.842566649269855,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 0.9023633906817154,
+    "sigma_curved": 1.2326504505468732,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 0.7358264259242361,
+      "-1": 1.2326504505468732
+    },
+    "vertical_column_offset_hz": -7342.867456576209,
+    "curved_offset_hz": -3511.806174884274,
+    "predicted_swing_hz": 8008.269110914646,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 0.9630999661800489,
+        "sigma_curved": 1.509583505422799,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.7595753492993704,
+          "-1": 1.509583505422799
+        },
+        "vertical_column_offset_hz": -7422.681233278125,
+        "curved_offset_hz": -3511.806174884274
+      },
+      "3": {
+        "sigma_vertical": 0.9023633906817154,
+        "sigma_curved": 1.2326504505468732,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.7358264259242361,
+          "-1": 1.2326504505468732
+        },
+        "vertical_column_offset_hz": -7342.867456576209,
+        "curved_offset_hz": -3511.806174884274
+      },
+      "5": {
+        "sigma_vertical": 0.865914187241163,
+        "sigma_curved": 1.0590076888738877,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.6964508915098416,
+          "-1": 1.0590076888738877
+        },
+        "vertical_column_offset_hz": -7263.053679874294,
+        "curved_offset_hz": -3511.806174884274
+      }
+    },
+    "n_drawn_track_points": 6,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.2 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14746117.png"
+  },
+  {
+    "obs_id": 14736812,
+    "family": "1.9.3",
+    "station": 949,
+    "station_name": "SM0KOT - VHF",
+    "norad_cat_id": 69015,
+    "max_altitude": 20.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 92.5925925925926,
+    "seconds_per_px": 0.29935064935064937,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 461.0,
+    "sgp4_max_elevation_deg": 19.443487334870454,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.3748134597598651,
+    "sigma_curved": 0.7683503722911891,
+    "frequency_axis_sign": 1,
+    "sigma_curved_by_sign": {
+      "1": 0.7683503722911891,
+      "-1": 0.742983480174511
+    },
+    "vertical_column_offset_hz": -3148.1481481481483,
+    "curved_offset_hz": -2777.777777777778,
+    "predicted_swing_hz": 16720.006481725868,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.503511260113448,
+        "sigma_curved": 0.8336741558106124,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.8336741558106124,
+          "-1": 0.7950986319041672
+        },
+        "vertical_column_offset_hz": 4907.407407407408,
+        "curved_offset_hz": -3333.3333333333335
+      },
+      "3": {
+        "sigma_vertical": 1.3748134597598651,
+        "sigma_curved": 0.7683503722911891,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.7683503722911891,
+          "-1": 0.742983480174511
+        },
+        "vertical_column_offset_hz": -3148.1481481481483,
+        "curved_offset_hz": -2777.777777777778
+      },
+      "5": {
+        "sigma_vertical": 1.3256317081533953,
+        "sigma_curved": 0.73995754772626,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.73995754772626,
+          "-1": 0.7019547937305033
+        },
+        "vertical_column_offset_hz": -3240.740740740741,
+        "curved_offset_hz": -2685.185185185185
+      }
+    },
+    "n_drawn_track_points": 10,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.4 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14736812.png"
+  },
+  {
+    "obs_id": 14744530,
+    "family": "1.8.1",
+    "station": 3106,
+    "station_name": "DEX-ONE",
+    "norad_cat_id": 69015,
+    "max_altitude": 25.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 92.5925925925926,
+    "seconds_per_px": 0.16948051948051948,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 261.0,
+    "sgp4_max_elevation_deg": 24.995409542514484,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.578174996387804,
+    "sigma_curved": 1.2038380900465113,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 1.024515016578615,
+      "-1": 1.2038380900465113
+    },
+    "vertical_column_offset_hz": 4444.444444444444,
+    "curved_offset_hz": 0.0,
+    "predicted_swing_hz": 13816.547219139953,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.7529654927586893,
+        "sigma_curved": 1.334981821157111,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.1093881033826953,
+          "-1": 1.334981821157111
+        },
+        "vertical_column_offset_hz": 277.77777777777777,
+        "curved_offset_hz": 92.5925925925926
+      },
+      "3": {
+        "sigma_vertical": 1.578174996387804,
+        "sigma_curved": 1.2038380900465113,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.024515016578615,
+          "-1": 1.2038380900465113
+        },
+        "vertical_column_offset_hz": 4444.444444444444,
+        "curved_offset_hz": 0.0
+      },
+      "5": {
+        "sigma_vertical": 1.6001617949502636,
+        "sigma_curved": 1.2064149700400244,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.0283851011906053,
+          "-1": 1.2064149700400244
+        },
+        "vertical_column_offset_hz": 4259.259259259259,
+        "curved_offset_hz": -92.5925925925926
+      }
+    },
+    "n_drawn_track_points": 23,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.6 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14744530.png"
+  },
+  {
+    "obs_id": 14745664,
+    "family": "2.1.2",
+    "station": 1696,
+    "station_name": "PE0SAT-31",
+    "norad_cat_id": 63218,
+    "max_altitude": 30.0,
+    "rx_freq_hz": 436400000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.5e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 127.65957446808511,
+    "seconds_per_px": 0.315687540348612,
+    "centre_px": 302.0,
+    "geom_degraded": null,
+    "pass_duration_s": 489.0,
+    "sgp4_max_elevation_deg": 30.2149679288692,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 2.1666088291531733,
+    "sigma_curved": 15.141844338900132,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 1.1842769359898437,
+      "-1": 15.141844338900132
+    },
+    "vertical_column_offset_hz": -2425.531914893617,
+    "curved_offset_hz": 7148.936170212766,
+    "predicted_swing_hz": 19120.251802095805,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 2.340407010937983,
+        "sigma_curved": 14.71744332196496,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.2688061225646274,
+          "-1": 14.71744332196496
+        },
+        "vertical_column_offset_hz": -2297.872340425532,
+        "curved_offset_hz": 7148.936170212766
+      },
+      "3": {
+        "sigma_vertical": 2.1666088291531733,
+        "sigma_curved": 15.141844338900132,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.1842769359898437,
+          "-1": 15.141844338900132
+        },
+        "vertical_column_offset_hz": -2425.531914893617,
+        "curved_offset_hz": 7148.936170212766
+      },
+      "5": {
+        "sigma_vertical": 2.0212572991069666,
+        "sigma_curved": 13.205453847476154,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.135469155920627,
+          "-1": 13.205453847476154
+        },
+        "vertical_column_offset_hz": -2297.872340425532,
+        "curved_offset_hz": 7148.936170212766
+      }
+    },
+    "n_drawn_track_points": 0,
+    "status": "ok",
+    "verdict": "UNCORRECTED",
+    "reason": "energy follows the predicted Doppler curve: 15.1 sigma against 2.2 for the best vertical line",
+    "overlay_file": "overlay_14745664.png"
+  },
+  {
+    "obs_id": 14737186,
+    "family": "1.9.3",
+    "station": 3433,
+    "station_name": "HA5MI",
+    "norad_cat_id": 69015,
+    "max_altitude": 6.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "1.024e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 92.5925925925926,
+    "seconds_per_px": 0.2883116883116883,
+    "centre_px": 310.0,
+    "geom_degraded": null,
+    "pass_duration_s": 444.0,
+    "sgp4_max_elevation_deg": 5.836944370460175,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.2255431499438791,
+    "sigma_curved": 1.9991822169904085,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 0.786314195491183,
+      "-1": 1.9991822169904085
+    },
+    "vertical_column_offset_hz": 3611.1111111111113,
+    "curved_offset_hz": 277.77777777777777,
+    "predicted_swing_hz": 12508.03253208932,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.279998872035663,
+        "sigma_curved": 2.0421415751965464,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.8485369590275835,
+          "-1": 2.0421415751965464
+        },
+        "vertical_column_offset_hz": -185.1851851851852,
+        "curved_offset_hz": 277.77777777777777
+      },
+      "3": {
+        "sigma_vertical": 1.2255431499438791,
+        "sigma_curved": 1.9991822169904085,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.786314195491183,
+          "-1": 1.9991822169904085
+        },
+        "vertical_column_offset_hz": 3611.1111111111113,
+        "curved_offset_hz": 277.77777777777777
+      },
+      "5": {
+        "sigma_vertical": 1.225928797382041,
+        "sigma_curved": 1.9789168910791533,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 0.780997216129111,
+          "-1": 1.9789168910791533
+        },
+        "vertical_column_offset_hz": 3796.2962962962965,
+        "curved_offset_hz": 185.1851851851852
+      }
+    },
+    "n_drawn_track_points": 144,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 2.0 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14737186.png"
+  },
+  {
+    "obs_id": 14736746,
+    "family": "2.1.2",
+    "station": 342,
+    "station_name": "EA5WA Pobla Llarga",
+    "norad_cat_id": 69015,
+    "max_altitude": 25.0,
+    "rx_freq_hz": 436150000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e+06",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 95.88495337914972,
+    "seconds_per_px": 0.4131697869593286,
+    "centre_px": 302.0,
+    "geom_degraded": null,
+    "pass_duration_s": 640.0,
+    "sgp4_max_elevation_deg": 24.595962336757122,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.2063453629202685,
+    "sigma_curved": 0.9209358610447511,
+    "frequency_axis_sign": 1,
+    "sigma_curved_by_sign": {
+      "1": 0.9209358610447511,
+      "-1": 0.9062567295783039
+    },
+    "vertical_column_offset_hz": -3164.203461511941,
+    "curved_offset_hz": 5753.097202748983,
+    "predicted_swing_hz": 19100.21517668148,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.3780811459461477,
+        "sigma_curved": 1.0249205548539801,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.0249205548539801,
+          "-1": 1.000426774996891
+        },
+        "vertical_column_offset_hz": 4410.707855440887,
+        "curved_offset_hz": 6616.061783161331
+      },
+      "3": {
+        "sigma_vertical": 1.2063453629202685,
+        "sigma_curved": 0.9209358610447511,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.9209358610447511,
+          "-1": 0.9062567295783039
+        },
+        "vertical_column_offset_hz": -3164.203461511941,
+        "curved_offset_hz": 5753.097202748983
+      },
+      "5": {
+        "sigma_vertical": 1.1961499191548286,
+        "sigma_curved": 0.9037022966018452,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 0.9037022966018452,
+          "-1": 0.8589671148849434
+        },
+        "vertical_column_offset_hz": -3260.0884148910905,
+        "curved_offset_hz": 5848.982156128133
+      }
+    },
+    "n_drawn_track_points": 0,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.2 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14736746.png"
+  },
+  {
+    "obs_id": 14735176,
+    "family": "2.1.2",
+    "station": 5078,
+    "station_name": "dm43",
+    "norad_cat_id": 98457,
+    "max_altitude": 24.0,
+    "rx_freq_hz": 401510000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.048e+06",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 79.81377670191532,
+    "seconds_per_px": 0.22143318269851517,
+    "centre_px": 302.0,
+    "geom_degraded": null,
+    "pass_duration_s": 343.0,
+    "sgp4_max_elevation_deg": 24.00272340249962,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 1.233636253585308,
+    "sigma_curved": 1.2557957975972065,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 1.243639993512792,
+      "-1": 1.2557957975972065
+    },
+    "vertical_column_offset_hz": -79.81377670191532,
+    "curved_offset_hz": -9098.770544018345,
+    "predicted_swing_hz": 14221.877709157721,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 1.443508080527803,
+        "sigma_curved": 1.3066751353577297,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.2569995732126424,
+          "-1": 1.3066751353577297
+        },
+        "vertical_column_offset_hz": -9018.956767316431,
+        "curved_offset_hz": -9098.770544018345
+      },
+      "3": {
+        "sigma_vertical": 1.233636253585308,
+        "sigma_curved": 1.2557957975972065,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.243639993512792,
+          "-1": 1.2557957975972065
+        },
+        "vertical_column_offset_hz": -79.81377670191532,
+        "curved_offset_hz": -9098.770544018345
+      },
+      "5": {
+        "sigma_vertical": 1.2456377149491475,
+        "sigma_curved": 1.3017874490769452,
+        "frequency_axis_sign": 1,
+        "sigma_curved_by_sign": {
+          "1": 1.3017874490769452,
+          "-1": 0.7302488163359379
+        },
+        "vertical_column_offset_hz": 0.0,
+        "curved_offset_hz": -2953.1097379708667
+      }
+    },
+    "n_drawn_track_points": 8,
+    "status": "ok",
+    "verdict": "UNRESOLVED",
+    "reason": "no signal stands out: best path is 1.3 sigma against a 8 sigma floor",
+    "overlay_file": "overlay_14735176.png"
+  },
+  {
+    "obs_id": 14745929,
+    "family": "2.1.2",
+    "station": 1696,
+    "station_name": "PE0SAT-31",
+    "norad_cat_id": 63217,
+    "max_altitude": 24.0,
+    "rx_freq_hz": 436400000.0,
+    "doppler-correction-per-sec": null,
+    "rigctl-port": "4532",
+    "samp-rate-rx": "2.5e6",
+    "vetting_pool": "with-signal",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "derivation": "axis_ticks_ocr",
+    "hz_per_px": 127.65957446808511,
+    "seconds_per_px": 0.30213040671400904,
+    "centre_px": 302.0,
+    "geom_degraded": null,
+    "pass_duration_s": 468.0,
+    "sgp4_max_elevation_deg": 23.78176768367459,
+    "centre_px_source": "axis zero tick",
+    "sigma_vertical": 2.3678524930279474,
+    "sigma_curved": 15.943451611024518,
+    "frequency_axis_sign": -1,
+    "sigma_curved_by_sign": {
+      "1": 1.4073130814000434,
+      "-1": 15.943451611024518
+    },
+    "vertical_column_offset_hz": -1787.2340425531916,
+    "curved_offset_hz": 7148.936170212766,
+    "predicted_swing_hz": 18137.486106350414,
+    "per_width": {
+      "1": {
+        "sigma_vertical": 2.203910917571142,
+        "sigma_curved": 15.596556945372237,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.3797886717571792,
+          "-1": 15.596556945372237
+        },
+        "vertical_column_offset_hz": -1659.5744680851064,
+        "curved_offset_hz": 7148.936170212766
+      },
+      "3": {
+        "sigma_vertical": 2.3678524930279474,
+        "sigma_curved": 15.943451611024518,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.4073130814000434,
+          "-1": 15.943451611024518
+        },
+        "vertical_column_offset_hz": -1787.2340425531916,
+        "curved_offset_hz": 7148.936170212766
+      },
+      "5": {
+        "sigma_vertical": 2.203929194907082,
+        "sigma_curved": 13.891994760903609,
+        "frequency_axis_sign": -1,
+        "sigma_curved_by_sign": {
+          "1": 1.3474191757566059,
+          "-1": 13.891994760903609
+        },
+        "vertical_column_offset_hz": -1659.5744680851064,
+        "curved_offset_hz": 7148.936170212766
+      }
+    },
+    "n_drawn_track_points": 0,
+    "status": "ok",
+    "verdict": "UNCORRECTED",
+    "reason": "energy follows the predicted Doppler curve: 15.9 sigma against 2.4 for the best vertical line",
+    "overlay_file": "overlay_14745929.png"
+  }
+]

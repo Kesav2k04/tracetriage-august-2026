@@ -62,7 +62,7 @@ logging.basicConfig(level=logging.WARNING)
 # Configuration
 # ---------------------------------------------------------------------------
 
-TARGET_OBS = 10
+TARGET_OBS = int(os.environ.get("A3_TARGET_OBS", "10"))
 CANDIDATE_POOL = 24
 MAX_PAGES = 6
 
@@ -93,28 +93,25 @@ OMEGA_EARTH = 7.2921159e-5
 
 N_SAMPLES = 240
 
-# A block's brightest column counts as signal only this far above that block's
-# own robust noise floor. Below it the argmax is just noise and would fabricate
-# a track out of nothing.
-#
-# The measurement is repeated at three (block, z) settings and a verdict is only
-# accepted when all three agree. On a faint or crowded image the argmax hops
-# between features and the answer moves with the threshold, which is the signal
-# that the image cannot settle the question. Requiring agreement makes that
-# visible instead of letting one arbitrary setting decide.
-DETECTION_SETTINGS = [(8, 5.0), (16, 5.0), (32, 4.5)]
-PRIMARY_SETTING = (16, 5.0)
+# Both hypotheses are scored as whole paths through the image and compared on a
+# null measured from the image itself. The scan is repeated at three matched
+# filter widths and a verdict is only accepted when all three agree.
+FILTER_WIDTHS = [1, 3, 5]
+PRIMARY_WIDTH = 3
 EDGE_MARGIN_PX = 4
-MIN_SIGNAL_ROWS = 20
+
+# A path has to stand this far above the spread of all vertical paths before it
+# counts as a signal at all, and one hypothesis has to lead the other by this
+# margin before either is called.
+SIGMA_MIN = 8.0
+SIGMA_MARGIN = 3.0
+
+# Below this the two shapes are not distinguishable: a corrected capture and an
+# uncorrected one would draw nearly the same line.
+MIN_PREDICTED_SWING_HZ = 3000.0
 
 # Half-width of the residual corridor drawn for the corrected hypothesis.
 CORRECTED_CORRIDOR_HZ = 200.0
-
-# Decision thresholds, applied per observation.
-CORR_UNCORRECTED = 0.85     # |r| against the predicted curve
-RATIO_LO, RATIO_HI = 0.60, 1.60
-RATIO_CORRECTED = 0.15
-SWING_CORRECTED_HZ = 1500.0
 
 # Viridis runs dark purple to blue to green to yellow, so annotation colours are
 # chosen from outside that ramp. Green would be invisible against the signal.
@@ -228,195 +225,263 @@ def compute_doppler_curve(
 # ---------------------------------------------------------------------------
 
 
-def measure_track(
-    rgb: np.ndarray, crop_box, row_block: int, z_min: float
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Find the signal column across the spectrogram, in blocks of rows.
+def normalised_rows(rgb: np.ndarray, crop_box) -> np.ndarray:
+    """Per-row robust z-scores over the spectrogram interior.
 
-    Returns (fracs, x_in_crop, peak_z), all relative to the crop box.
-
-    Three things this has to survive:
-    - The plot border sits inside the crop box and is brighter than anything in
-      the row, so it wins every argmax. EDGE_MARGIN_PX drops it.
-    - A single row of a faint pass does not clear any sane threshold. The
-      Doppler curve moves slowly, so averaging row_block rows costs almost no
-      time resolution and buys roughly sqrt(row_block) in signal to noise.
-    - Nothing is subtracted along the time axis. Removing a per-column median
-      would delete a stationary carrier, which is exactly the shape the
-      corrected hypothesis predicts, and would rig the answer. Nothing is
-      smoothed along the frequency axis either, for the same reason: a box
-      filter across x moved the answer on the noisier of the two fixtures.
+    Normalising each row separately removes the vertical brightness gradient
+    that changing range puts into every pass, so a row near the horizon and a
+    row at closest approach are scored on the same footing. Nothing is
+    normalised along the time axis: that would delete a stationary carrier,
+    which is the exact shape one of the two hypotheses predicts.
     """
     x0 = crop_box.x0 + EDGE_MARGIN_PX
     x1 = crop_box.x1 - EDGE_MARGIN_PX
     y0 = crop_box.y0 + EDGE_MARGIN_PX
     y1 = crop_box.y1 - EDGE_MARGIN_PX
-    if x1 - x0 < 20 or y1 - y0 < row_block * 4:
-        return np.empty(0), np.empty(0), np.empty(0)
-
     lum = rgb[y0:y1, x0:x1].astype(np.float32).mean(axis=2)
-
-    n_blocks = lum.shape[0] // row_block
-    lum = lum[: n_blocks * row_block]
-    blocks = lum.reshape(n_blocks, row_block, lum.shape[1]).mean(axis=1)
-
-    med = np.median(blocks, axis=1, keepdims=True)
-    mad = np.median(np.abs(blocks - med), axis=1, keepdims=True) * 1.4826
-    z = (blocks - med) / np.maximum(mad, 1e-6)
-
-    idx = np.argmax(z, axis=1)
-    peak_z = z[np.arange(n_blocks), idx]
-
-    keep = peak_z >= z_min
-    kept = np.nonzero(keep)[0]
-    # Centre of each kept block, as a fraction of the crop box height, so that
-    # it lines up with the pass timeline the same way the drawing code does.
-    centres = (kept + 0.5) * row_block + EDGE_MARGIN_PX
-    fracs = centres / crop_box.height()
-    x_in_crop = idx[keep].astype(np.float64) + EDGE_MARGIN_PX
-    return fracs, x_in_crop, peak_z[keep]
+    med = np.median(lum, axis=1, keepdims=True)
+    mad = np.median(np.abs(lum - med), axis=1, keepdims=True) * 1.4826
+    return (lum - med) / np.maximum(mad, 1e-6)
 
 
-def score_hypotheses(
-    meas_fracs: np.ndarray,
-    meas_hz: np.ndarray,
+def _smooth_columns(z: np.ndarray, width: int) -> np.ndarray:
+    """Box-average along frequency, matching a trace a few pixels wide."""
+    if width <= 1:
+        return z
+    pad = width // 2
+    padded = np.pad(z, ((0, 0), (pad, pad)), mode="edge")
+    out = np.empty_like(z)
+    for i in range(z.shape[1]):
+        out[:, i] = padded[:, i:i + width].mean(axis=1)
+    return out
+
+
+def path_score(zs: np.ndarray, cols: np.ndarray, min_valid: float = 0.8) -> float:
+    """Mean normalised intensity along one path through the image.
+
+    Returns NaN when the path leaves the plot for more than 20% of the pass,
+    because a shorter path is a noisier statistic and would win the scan for
+    the wrong reason.
+    """
+    rows = np.arange(zs.shape[0])
+    valid = (cols >= 0) & (cols < zs.shape[1])
+    if valid.mean() < min_valid:
+        return float("nan")
+    return float(zs[rows[valid], cols[valid]].mean())
+
+
+def matched_filter(
+    zs: np.ndarray,
+    centre_px: float,
+    hz_per_px: float,
     curve_fracs: list[float],
     curve_hz: list[float],
 ) -> dict:
-    """Compare the measured track against both hypotheses.
+    """Ask which shape the energy in this image actually follows.
 
-    Offsets are removed from both series before the shape comparison, because a
-    satellite oscillator sits a few kHz off its nominal frequency and that
-    constant would otherwise be charged against the uncorrected hypothesis.
+    Two families of paths are scanned over the same set of horizontal offsets:
+    a vertical line, which is what a Doppler-corrected capture leaves, and the
+    predicted Doppler curve, which is what an uncorrected one leaves. Each is
+    scored as mean normalised intensity along the path.
+
+    Scoring whole paths rather than detecting a peak per row matters here. An
+    earlier version averaged blocks of rows before taking the brightest column,
+    which quietly favoured one answer: near closest approach a real Doppler
+    trace crosses roughly a dozen columns within one block, so averaging smears
+    it away, while a stationary carrier survives untouched. A method that can
+    only see one of the two hypotheses cannot be used to choose between them.
+
+    The null is measured, not assumed: the spread of the vertical scores across
+    every column gives the scale that both families are reported in.
     """
-    pred = np.interp(meas_fracs, np.asarray(curve_fracs), np.asarray(curve_hz))
+    n_rows, n_cols = zs.shape
 
-    def swing(a: np.ndarray) -> float:
-        return float(np.percentile(a, 95) - np.percentile(a, 5))
+    # Row 0 is the top of the image, and the top of a SatNOGS waterfall is the
+    # END of the pass. Read off the axis of observation 14740031: the tick
+    # labelled 200 s sits at y=258 and the one labelled 50 s at y=1228, evenly
+    # spaced, so elapsed time runs bottom to top.
+    row_fracs = 1.0 - (np.arange(n_rows) + 0.5) / n_rows
+    predicted_hz = np.interp(row_fracs, np.asarray(curve_fracs), np.asarray(curve_hz))
+    predicted_px = predicted_hz / hz_per_px
 
-    meas_swing = swing(meas_hz)
-    pred_swing = swing(pred)
-    ratio = meas_swing / pred_swing if pred_swing > 0 else float("nan")
+    # The sign relating a Doppler shift to a direction on the frequency axis is
+    # scanned rather than assumed. Assuming it once already hid a defect: the
+    # time axis was inverted too, and for a curve that is near odd-symmetric
+    # about closest approach the two errors cancel exactly, so the fit looked
+    # excellent while both halves were wrong.
+    out: dict = {}
+    for width in FILTER_WIDTHS:
+        smoothed = _smooth_columns(zs, width)
 
-    if meas_hz.std() > 0 and pred.std() > 0:
-        corr = float(np.corrcoef(meas_hz, pred)[0, 1])
-    else:
-        corr = float("nan")
+        vertical = np.array([
+            path_score(smoothed, np.full(n_rows, c, dtype=int)) for c in range(n_cols)
+        ])
+        finite = vertical[np.isfinite(vertical)]
+        baseline = float(np.median(finite))
+        spread = float(np.median(np.abs(finite - baseline)) * 1.4826) or 1e-9
 
-    meas_c = meas_hz - np.median(meas_hz)
-    pred_c = pred - np.median(pred)
-    rms_uncorrected = float(np.sqrt(np.mean((meas_c - pred_c) ** 2)))
-    rms_corrected = float(np.sqrt(np.mean(meas_c ** 2)))
+        best_v = int(np.nanargmax(vertical))
+        sigma_v = (vertical[best_v] - baseline) / spread
 
-    return {
-        "n_signal_rows": int(meas_hz.size),
-        "measured_swing_hz": meas_swing,
-        "predicted_swing_hz": pred_swing,
-        "swing_ratio": ratio,
-        "correlation": corr,
-        "median_offset_hz": float(np.median(meas_hz)),
-        "rms_vs_uncorrected_hz": rms_uncorrected,
-        "rms_vs_corrected_hz": rms_corrected,
+        offsets = np.arange(-n_cols, n_cols, 1)
+        origin = centre_px - EDGE_MARGIN_PX
+        by_sign: dict[int, tuple[float, int | None]] = {}
+        for sign in (1, -1):
+            curved = np.array([
+                path_score(smoothed, np.rint(origin + sign * predicted_px + o).astype(int))
+                for o in offsets
+            ])
+            if np.all(np.isnan(curved)):
+                by_sign[sign] = (float("nan"), None)
+            else:
+                best_c = int(np.nanargmax(curved))
+                by_sign[sign] = (
+                    float((curved[best_c] - baseline) / spread),
+                    int(offsets[best_c]),
+                )
+
+        def rank(s: int, table: dict = by_sign) -> float:
+            v = table[s][0]
+            return -1e9 if math.isnan(v) else v
+
+        best_sign = max(by_sign, key=rank)
+        sigma_c, best_offset = by_sign[best_sign]
+
+        out[width] = {
+            "sigma_vertical": float(sigma_v),
+            "sigma_curved": float(sigma_c),
+            "frequency_axis_sign": int(best_sign),
+            "sigma_curved_by_sign": {str(s): by_sign[s][0] for s in (1, -1)},
+            "vertical_column_offset_hz": float((best_v - origin) * hz_per_px),
+            "curved_offset_hz": (
+                float(best_offset * hz_per_px) if best_offset is not None else None
+            ),
+        }
+    return out
+
+
+def verdict_from_scores(scores: dict, predicted_swing_hz: float) -> tuple[str, str, dict]:
+    """Decide, or refuse to. UNRESOLVED is a real outcome here, not a failure.
+
+    A verdict needs three things: a signal at all, one hypothesis clearly ahead
+    of the other, and the same call at every filter width. Any of those missing
+    and the image does not settle the question.
+    """
+    primary = scores[PRIMARY_WIDTH]
+    sv, sc = primary["sigma_vertical"], primary["sigma_curved"]
+
+    summary = {
+        "sigma_vertical": sv,
+        "sigma_curved": sc,
+        "frequency_axis_sign": primary["frequency_axis_sign"],
+        "sigma_curved_by_sign": primary["sigma_curved_by_sign"],
+        "vertical_column_offset_hz": primary["vertical_column_offset_hz"],
+        "curved_offset_hz": primary["curved_offset_hz"],
+        "predicted_swing_hz": predicted_swing_hz,
+        "per_width": scores,
     }
 
-
-def verdict_for(s: dict) -> tuple[str, str]:
-    """Return (verdict, reason). UNRESOLVED is a legitimate outcome."""
-    n = s["n_signal_rows"]
-    if n < MIN_SIGNAL_ROWS:
-        return "UNRESOLVED", f"only {n} rows carried a detectable signal"
-
-    corr = s["correlation"]
-    ratio = s["swing_ratio"]
-    if not math.isnan(corr) and abs(corr) >= CORR_UNCORRECTED and RATIO_LO <= ratio <= RATIO_HI:
-        sign = "" if corr > 0 else " (axis sign inverted)"
-        return "UNCORRECTED", f"|r|={abs(corr):.2f}, swing ratio {ratio:.2f}{sign}"
-
-    if ratio <= RATIO_CORRECTED and s["measured_swing_hz"] <= SWING_CORRECTED_HZ:
+    if predicted_swing_hz < MIN_PREDICTED_SWING_HZ:
         return (
-            "CORRECTED",
-            f"track is flat: {s['measured_swing_hz']:.0f} Hz measured against "
-            f"{s['predicted_swing_hz']:.0f} Hz predicted",
+            "UNRESOLVED",
+            f"predicted swing is only {predicted_swing_hz:,.0f} Hz, too small to "
+            f"tell the two shapes apart",
+            summary,
         )
 
-    return (
-        "UNRESOLVED",
-        f"|r|={abs(corr):.2f} and swing ratio {ratio:.2f} match neither hypothesis",
-    )
+    best = max([s for s in (sv, sc) if not math.isnan(s)], default=float("nan"))
+    if math.isnan(best) or best < SIGMA_MIN:
+        return (
+            "UNRESOLVED",
+            f"no signal stands out: best path is {best:.1f} sigma against a "
+            f"{SIGMA_MIN:.0f} sigma floor",
+            summary,
+        )
+
+    def call(entry: dict) -> str:
+        a, b = entry["sigma_vertical"], entry["sigma_curved"]
+        if math.isnan(a) or math.isnan(b):
+            return "UNRESOLVED"
+        if b - a >= SIGMA_MARGIN:
+            return "UNCORRECTED"
+        if a - b >= SIGMA_MARGIN:
+            return "CORRECTED"
+        return "UNRESOLVED"
+
+    calls = {w: call(scores[w]) for w in FILTER_WIDTHS}
+    if len(set(calls.values())) > 1:
+        detail = ", ".join(f"width {w} -> {v}" for w, v in calls.items())
+        return "UNRESOLVED", f"filter widths disagree ({detail})", summary
+
+    verdict = calls[PRIMARY_WIDTH]
+    if verdict == "UNCORRECTED":
+        reason = (
+            f"energy follows the predicted Doppler curve: {sc:.1f} sigma against "
+            f"{sv:.1f} for the best vertical line"
+        )
+    elif verdict == "CORRECTED":
+        reason = (
+            f"energy follows a vertical line {primary['vertical_column_offset_hz']:+,.0f} Hz "
+            f"off axis zero: {sv:.1f} sigma against {sc:.1f} for the predicted curve"
+        )
+    else:
+        reason = (
+            f"neither shape leads: vertical {sv:.1f} sigma, curved {sc:.1f} sigma, "
+            f"inside the {SIGMA_MARGIN:.0f} sigma margin"
+        )
+    return verdict, reason, summary
 
 
-def _empty_stats(curve_hz: list[float]) -> dict:
-    return {
-        "n_signal_rows": 0,
-        "measured_swing_hz": 0.0,
-        "predicted_swing_hz": float(np.ptp(curve_hz)) if curve_hz else 0.0,
-        "swing_ratio": 0.0,
-        "correlation": float("nan"),
-        "median_offset_hz": 0.0,
-        "rms_vs_uncorrected_hz": float("nan"),
-        "rms_vs_corrected_hz": float("nan"),
-        "intensity_elevation_corr": float("nan"),
-    }
+def visible_track(rgb: np.ndarray, crop_box, z_min: float = 4.0):
+    """Per-row brightest column, for drawing only. Never feeds the verdict.
 
-
-def _intensity_vs_elevation(
-    fracs: np.ndarray, peak_z: np.ndarray, curve_fracs: list[float], els: list[float]
-) -> float:
-    """Correlate the brightness of the detected track against elevation.
-
-    A satellite is loudest near closest approach, so a real pass should show a
-    positive correlation here. Local interference sitting at a fixed frequency
-    does not care where the satellite is, and lands near zero. This does not
-    decide the verdict; it says whether the thing being measured is plausibly
-    the spacecraft.
+    One row at a time, with no averaging, so a fast-sweeping trace is not
+    smeared into the background before it can be drawn.
     """
-    if peak_z.size < 4 or not els:
-        return float("nan")
-    el = np.interp(fracs, np.asarray(curve_fracs), np.asarray(els))
-    if el.std() == 0 or peak_z.std() == 0:
-        return float("nan")
-    return float(np.corrcoef(peak_z, el)[0, 1])
+    zs = normalised_rows(rgb, crop_box)
+    idx = np.argmax(zs, axis=1)
+    peak = zs[np.arange(zs.shape[0]), idx]
+    keep = peak >= z_min
+    rows = np.nonzero(keep)[0]
+    fracs = (rows + EDGE_MARGIN_PX + 0.5) / crop_box.height()
+    return fracs, idx[keep].astype(np.float64) + EDGE_MARGIN_PX, peak[keep]
 
 
-def analyse(rgb: np.ndarray, geom, curve, els: list[float]) -> tuple[dict, list[dict], tuple]:
-    """Measure at every detection setting; a verdict needs all of them to agree."""
+def analyse(rgb: np.ndarray, geom, curve, els: list[float]) -> tuple[dict, dict, tuple]:
+    """Score both hypotheses on one observation and return a verdict."""
     curve_fracs, curve_hz = curve
     centre = geom.centre_px if geom.centre_px is not None else geom.crop_box.width() / 2.0
 
-    per_setting: list[dict] = []
-    primary_stats: dict = {}
-    primary_track: tuple = (np.empty(0), np.empty(0), np.empty(0))
+    zs = normalised_rows(rgb, geom.crop_box)
+    scores = matched_filter(zs, centre, geom.hz_per_px, curve_fracs, curve_hz)
+    swing = float(np.percentile(curve_hz, 95) - np.percentile(curve_hz, 5)) if curve_hz else 0.0
+    verdict, reason, summary = verdict_from_scores(scores, swing)
 
-    for block, z_min in DETECTION_SETTINGS:
-        fr, x, pz = measure_track(rgb, geom.crop_box, block, z_min)
-        hz = (x - centre) * geom.hz_per_px
-        if hz.size:
-            stats = score_hypotheses(fr, hz, curve_fracs, curve_hz)
-            stats["intensity_elevation_corr"] = _intensity_vs_elevation(fr, pz, curve_fracs, els)
-        else:
-            stats = _empty_stats(curve_hz)
-        verdict, reason = verdict_for(stats)
-        per_setting.append(
-            {"row_block": block, "z_min": z_min, "verdict": verdict, "reason": reason, **stats}
-        )
-        if (block, z_min) == PRIMARY_SETTING:
-            primary_stats = stats
-            primary_track = (fr, x, pz)
+    track = visible_track(rgb, geom.crop_box)
+    summary["n_drawn_track_points"] = int(track[0].size)
+    return {"consensus": (verdict, reason), "primary": summary}, scores, track
 
-    verdicts = {e["verdict"] for e in per_setting}
-    primary_entry = next(e for e in per_setting if (e["row_block"], e["z_min"]) == PRIMARY_SETTING)
-    if len(verdicts) == 1:
-        consensus = (primary_entry["verdict"], primary_entry["reason"])
-    else:
-        detail = ", ".join(f"block {e['row_block']} -> {e['verdict']}" for e in per_setting)
-        consensus = ("UNRESOLVED", f"detection settings disagree ({detail})")
-
-    return {"consensus": consensus, "primary": primary_stats}, per_setting, primary_track
 
 
 # ---------------------------------------------------------------------------
 # Overlay
 # ---------------------------------------------------------------------------
+
+
+def _save(img: Image.Image, path: Path) -> None:
+    """Write an overlay as a 256-colour PNG.
+
+    A spectrogram is noise-dominated and compresses badly in truecolour: the
+    full set came to 38.9 MB, and 16.4 MB with a palette. Measured against the
+    source on observation 14745929 the cost is a mean absolute error of 0.06
+    of 255 per channel, with the 99th percentile at 1. The untouched source is
+    also still one request away from the observation id recorded beside it.
+    """
+    img.convert("P", palette=Image.ADAPTIVE, colors=256).save(str(path), optimize=True)
+
+
+def _fmt(v) -> str:
+    return "n/a" if v is None or (isinstance(v, float) and math.isnan(v)) else f"{v:.1f}"
 
 
 def _font(size: int):
@@ -467,8 +532,12 @@ def draw_overlay(raw_png: bytes, obs: dict, geom, curve, track, stats, verdict) 
 
     # Uncorrected hypothesis: the predicted S-curve.
     curve_fracs, curve_hz = curve
+    sign = stats.get("frequency_axis_sign", 1)
+    offset_px = (stats.get("curved_offset_hz") or 0.0) / hz_per_px
+    # Time runs bottom to top on a SatNOGS waterfall, so the start of the pass
+    # is drawn at y1 and the end at y0.
     pts = [
-        (centre_x + hz / hz_per_px, y0 + f * (y1 - y0))
+        (centre_x + sign * hz / hz_per_px + offset_px, y1 - f * (y1 - y0))
         for f, hz in zip(curve_fracs, curve_hz, strict=True)
     ]
     if len(pts) >= 2:
@@ -487,9 +556,9 @@ def draw_overlay(raw_png: bytes, obs: dict, geom, curve, track, stats, verdict) 
         (10, 46),
         f"{obs.get('station_name') or ''}  norad {obs.get('norad_cat_id')}  "
         f"max_alt {obs.get('max_altitude')} deg   hz/px {hz_per_px:.2f}   "
-        f"predicted swing {stats['predicted_swing_hz']:,.0f} Hz   "
-        f"measured swing {stats['measured_swing_hz']:,.0f} Hz   "
-        f"r {stats['correlation']:+.2f}   blocks {stats['n_signal_rows']}",
+        f"predicted swing {stats.get('predicted_swing_hz') or 0:,.0f} Hz   "
+        f"curved {_fmt(stats.get('sigma_curved'))} sigma   "
+        f"vertical {_fmt(stats.get('sigma_vertical'))} sigma",
         fill=(200, 200, 205), font=f_body,
     )
     d.text((10, 62), "left: raw waterfall, unmodified.   right: same image annotated.",
@@ -859,11 +928,11 @@ def main() -> None:
             # of the evidence, and a missing image reads as a hidden one.
             empty = (np.empty(0), np.empty(0), np.empty(0))
             img = draw_overlay(
-                raw_png, obs, geom, ([], []), empty, _empty_stats([]),
+                raw_png, obs, geom, ([], []), empty, {},
                 ("UNRESOLVED", reason),
             )
             out_path = OUT_DIR / f"overlay_{obs_id}.png"
-            img.save(str(out_path), optimize=True)
+            _save(img, out_path)
             record["overlay_file"] = out_path.name
             results.append(record)
             print(f"  geometry degraded: {geom.degraded}")
@@ -883,30 +952,23 @@ def main() -> None:
         )
 
         rgb = np.array(Image.open(io.BytesIO(raw_png)).convert("RGB"))
-        combined, per_setting, track = analyse(rgb, geom, (curve_fracs, curve_hz), els)
+        combined, scores, track = analyse(rgb, geom, (curve_fracs, curve_hz), els)
         verdict = combined["consensus"]
-        stats = combined["primary"] or _empty_stats(curve_hz)
-        peak_z = track[2]
+        stats = combined["primary"]
 
         record |= stats
-        record |= {
-            "status": "ok",
-            "verdict": verdict[0],
-            "reason": verdict[1],
-            "median_peak_z": float(np.median(peak_z)) if peak_z.size else None,
-            "detection_settings": per_setting,
-        }
+        record |= {"status": "ok", "verdict": verdict[0], "reason": verdict[1]}
 
         print(f"  {verdict[0]}: {verdict[1]}")
         print(f"  predicted swing {stats['predicted_swing_hz']:,.0f} Hz, "
-              f"measured {stats['measured_swing_hz']:,.0f} Hz, "
-              f"rows {stats['n_signal_rows']}")
+              f"curved {stats['sigma_curved']:.1f} sigma, "
+              f"vertical {stats['sigma_vertical']:.1f} sigma")
 
         img = draw_overlay(
             raw_png, obs, geom, (curve_fracs, curve_hz), track, stats, verdict,
         )
         out_path = OUT_DIR / f"overlay_{obs_id}.png"
-        img.save(str(out_path), optimize=True)
+        _save(img, out_path)
         record["overlay_file"] = out_path.name
         results.append(record)
 
@@ -920,17 +982,17 @@ def main() -> None:
 
     print("\n" + "=" * 92)
     print(f"{'obs':>10} {'family':<14} {'alt':>5} {'hz/px':>7} {'pred_Hz':>10} "
-          f"{'meas_Hz':>10} {'ratio':>6} {'r':>7}  verdict")
+          f"{'curved_s':>10} {'vert_s':>10} {'vert_off':>10}  verdict")
     print("-" * 92)
     for r in results:
         if r.get("status") != "ok":
             print(f"{r['obs_id']:>10} {r['family']:<14} {'':>5} {'':>7} {'':>10} "
-                  f"{'':>10} {'':>6} {'':>7}  {r.get('status')}")
+                  f"{'':>10} {'':>10} {'':>10}  {r.get('status')}")
             continue
         print(f"{r['obs_id']:>10} {r['family']:<14} {r['max_altitude'] or 0:>5.0f} "
               f"{r['hz_per_px']:>7.2f} {r['predicted_swing_hz']:>10,.0f} "
-              f"{r['measured_swing_hz']:>10,.0f} {r['swing_ratio']:>6.2f} "
-              f"{r['correlation']:>7.3f}  {r['verdict']}")
+              f"{r['sigma_curved']:>10.1f} {r['sigma_vertical']:>10.1f} "
+              f"{r['vertical_column_offset_hz']:>+10,.0f}  {r['verdict']}")
 
     print("\nverdict tally: " + ", ".join(f"{k}={v}" for k, v in sorted(tally.items())))
     print(f"client families with a verdict: "
