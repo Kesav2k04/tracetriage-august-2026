@@ -8,15 +8,23 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-16, 18:50 IST |
-| **Written by** | Claude Opus 5 (review lane), after Bob accepted A0b-INT |
-| **Bob tasks completed** | **2.** A0 (`8ef8d1f`), A0b-INT (`3df6f98`) |
+| **Handoff written** | 2026-08-16, 19:35 IST |
+| **Written by** | Claude Opus 5 (review lane), after unit A1b |
+| **Bob tasks completed** | **3.** A0 (`8ef8d1f`), A0b-INT (`3df6f98`), A1 (`be915b5`) |
 | **Bob account in use** | account 1 |
-| **Bobcoins consumed** | **5.42 of 40.** 34.58 remain, 3 of those are the untouchable handoff reserve. |
+| **Bobcoins consumed** | see `docs/BOBCOIN_BUDGET.md`. 40 is per account, not per project. |
 | **Current wave** | Wave A, in progress |
-| **Next unit** | **A1: immutable snapshot builder** (`docs/BOB_TASK_PROMPTS.md`) |
-| **Open failures** | none. 7/7 standing gates, 34 tests pass offline. |
-| **Last commit** | `3df6f98` (2026-08-16 18:42:37 IST) |
+| **Next unit** | **A1b-INT** (accept or reject `931d2cd`), then **A2: waterfall artifact parser** |
+| **Open failures** | none. 7/7 standing gates, 84 tests pass offline. |
+| **Last commit** | `931d2cd` (2026-08-16, A1b, pending Bob acceptance) |
+
+### A1 status: code accepted, acceptance now actually run
+
+A1 was reported complete before its acceptance had been executed. `data/snapshots/` was empty and no manifest existed. The acceptance has since been run live and **it passes**: 52 observations, 50 waterfalls, 3 pages in 56 s, and a second run resuming in 0.42 s with zero pages re-fetched.
+
+Running it found three defects, fixed in A1b (`931d2cd`, pending your review): the manifest and resume index were global rather than per-snapshot, so stage 2 would have corrupted stage 1; `--target-waterfalls` defaulted to 2300 so omitting it started a production crawl; and `--verify` fetched before verifying. Two of your own `TestResumeAfterInterrupt` cases had been passing by asserting the first defect. `scripts/gate.py` also crashed on non-ASCII subprocess output, which meant it failed to report at the exact moment a test failed.
+
+**Do not re-run a large snapshot casually.** A1b's investigation already put 578 observations and 870 MB of load on SatNOGS. Always pass `--target-waterfalls` explicitly.
 
 **Start each unit in a fresh Bob chat.** Paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then the unit prompt. Carrying one chat across units compounds context into coin burn, which is what the budget note below is about.
 
