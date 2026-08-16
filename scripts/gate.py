@@ -56,7 +56,10 @@ def main() -> int:
     n_dirty = len(out.splitlines())
     results.append(check("working tree committed", out == "", f"{n_dirty} uncommitted"))
 
-    rc, out = run(["git", "grep", "-lIE", r"ghp_|github_pat_|-----BEGIN [A-Z ]*PRIVATE KEY"])
+    rc, out = run([
+        "git", "grep", "-lIE",
+        r"ghp_[0-9A-Za-z]{36,}|github_pat_[0-9A-Za-z_]{36,}|-----BEGIN [A-Z ]*PRIVATE KEY",
+    ])
     # git grep exits 1 when it finds nothing, which is the good case here
     results.append(check("no secrets tracked", out == "", out[:70]))
 

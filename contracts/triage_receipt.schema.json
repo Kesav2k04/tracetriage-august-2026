@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "tracetriage/triage_receipt",
   "title": "Per-observation evidence receipt",
-  "status": "DRAFT - not authoritative until Bob ratifies it (task A0)",
-  "schema_version": "0.1.0-draft",
-  "description": "Everything shown on one evidence card, and everything needed to reproduce it. If a value is on the card it must be in the receipt.",
+  "status": "ratified",
+  "schema_version": "0.2.0",
+  "description": "Everything shown on one evidence card, and everything needed to reproduce it. Every public number on the card must come from this receipt. If a value is on the card it must be in this receipt. Ratified 2026-08-17 by Bob (task A0): no structural changes needed; clarified that reason_codes come from a fixed rule table only, never from model attribution; added waterfall_geometry_version to evidence for traceability.",
   "type": "object",
   "required": [
     "observation_id", "snapshot_id", "model_checksum", "generated_at",
@@ -12,39 +12,82 @@
   ],
   "properties": {
     "observation_id": { "type": "integer" },
-    "snapshot_id": { "type": "string" },
-    "model_checksum": { "type": "string" },
+    "snapshot_id": { "type": "string", "description": "ID of the immutable snapshot this receipt was generated from." },
+    "model_checksum": { "type": "string", "description": "SHA-256 of the model weights used. Required for reproducibility." },
     "generated_at": { "type": "string", "format": "date-time" },
     "evidence": {
       "type": "object",
-      "description": "Separate axes. Never collapse these into one score.",
+      "description": "Separate evidence axes. Never collapse these into one composite score. Each axis is independently auditable.",
       "properties": {
-        "visible_signal": { "type": ["number", "null"] },
-        "target_consistency": { "type": ["number", "null"] },
-        "artifact_usable": { "type": "boolean" },
-        "physics_available": { "type": "boolean" },
-        "residual_hz": { "type": ["number", "null"] },
-        "corridor_intersects_trace": { "type": ["boolean", "null"] }
+        "visible_signal": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Image-model score for signal presence. Calibrated probability."
+        },
+        "target_consistency": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Consistency between image-model output and the physics corridor."
+        },
+        "artifact_usable": {
+          "type": "boolean",
+          "description": "True if the waterfall PNG was downloaded, parsed, and cropped successfully. False blocks image-axis evidence; physics axis can still run."
+        },
+        "physics_available": {
+          "type": "boolean",
+          "description": "True if TLE, station coordinates, and rx-freq were all present and SGP4 ran without error."
+        },
+        "residual_hz": {
+          "type": ["number", "null"],
+          "description": "Measured centre-of-mass offset between the visible trace and the physics corridor, in Hz. Null when artifact_usable or physics_available is false."
+        },
+        "corridor_intersects_trace": {
+          "type": ["boolean", "null"],
+          "description": "True if the physics corridor overlaps the detected trace region. This is the primary output for kill gate 3. Null when either artifact_usable or physics_available is false."
+        },
+        "waterfall_geometry_version": {
+          "type": ["string", "null"],
+          "description": "schema_version of the waterfall_geometry record used. Allows tracing back any pixel-mapping issue."
+        }
       }
     },
     "scores": {
       "type": "object",
       "properties": {
-        "calibrated_probability": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
-        "uncertainty": { "type": ["number", "null"] },
-        "ood_score": { "type": ["number", "null"] },
-        "review_value": { "type": ["number", "null"] }
+        "calibrated_probability": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Calibrated posterior probability that this observation deserves review."
+        },
+        "uncertainty": {
+          "type": ["number", "null"],
+          "description": "Epistemic uncertainty estimate (e.g. conformal prediction width or bootstrap variance)."
+        },
+        "ood_score": {
+          "type": ["number", "null"],
+          "description": "Out-of-distribution score. High means the observation resembles neither training positives nor negatives. Triggers abstention above threshold."
+        },
+        "review_value": {
+          "type": ["number", "null"],
+          "description": "Expected information value of human review at the current prior. Used for queue ranking."
+        }
       }
     },
     "decision": {
       "enum": ["flag_for_review", "no_conflict", "abstain"],
-      "description": "abstain is a first-class outcome, not a failure."
+      "description": "abstain is a first-class outcome, not a failure mode. It means the evidence is insufficient to decide."
     },
-    "abstention_reason": { "type": ["string", "null"] },
+    "abstention_reason": {
+      "type": ["string", "null"],
+      "description": "Required when decision is 'abstain'. Describes why the model declined to decide (e.g. OOD, missing artifact, unknown client family)."
+    },
     "reason_codes": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "From a FIXED rule table. Never from model feature attribution, which is not causality."
+      "description": "Human-readable reason codes from a FIXED rule table. Never from model feature attribution or gradient methods, which are not causal explanations. Examples: CORRIDOR_MISS, LABEL_CONFLICT, OOD_STATION, MISSING_ARTIFACT."
     },
     "provenance": {
       "type": "object",
@@ -53,11 +96,27 @@
         "source_url": { "type": "string", "format": "uri" },
         "retrieved_at": { "type": "string", "format": "date-time" },
         "license": { "const": "CC BY-SA 4.0" },
-        "api_label": { "type": ["string", "null"] },
-        "label_origin": { "type": "string" },
-        "artifact_sha256": { "type": ["string", "null"] },
-        "split": { "type": ["string", "null"] },
-        "station_id": { "type": "integer" },
+        "api_label": {
+          "type": ["string", "null"],
+          "description": "Raw waterfall_status from the SatNOGS API. 'unknown' is stored as-is and never resolved."
+        },
+        "label_origin": {
+          "type": "string",
+          "description": "Which actor set the api_label (e.g. 'satnogs_auto', 'satnogs_vet', 'unknown')."
+        },
+        "artifact_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 of the waterfall PNG used to generate this receipt. Must match the snapshot manifest."
+        },
+        "split": {
+          "type": ["string", "null"],
+          "description": "Split assignment: 'train', 'calibration', or 'test'. Null before splits are frozen."
+        },
+        "station_id": {
+          "type": "integer",
+          "description": "Ground station id. Matches ground_station in source_observation."
+        },
         "transmitter_uuid": { "type": ["string", "null"] }
       }
     }

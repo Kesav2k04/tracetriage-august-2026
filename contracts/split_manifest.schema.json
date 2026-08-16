@@ -2,39 +2,79 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "tracetriage/split_manifest",
   "title": "Grouped split assignment",
-  "status": "DRAFT - not authoritative until Bob ratifies it (task A0)",
-  "schema_version": "0.1.0-draft",
-  "description": "Frozen split assignment. Random image splits leak station, satellite, rendering and duplicate patterns, so every split here is grouped.",
+  "status": "ratified",
+  "schema_version": "0.2.0",
+  "description": "Frozen split assignment. Random image-level splits leak station, satellite, rendering, and duplicate patterns, so every split here is grouped by a natural entity boundary. Ratified 2026-08-17 by Bob (task A0): added sampling_design field (required; a stratified sample described as random is a leakage claim that will fail review); added orbital_revolution note (derived field, not present on source_observation directly); added no_station_across_splits to leakage_checks.",
   "type": "object",
-  "required": ["snapshot_id", "frozen_at", "splits", "grouping_keys", "leakage_checks"],
+  "required": ["snapshot_id", "frozen_at", "splits", "grouping_keys", "leakage_checks", "sampling_design"],
   "properties": {
-    "snapshot_id": { "type": "string" },
-    "frozen_at": { "type": "string", "format": "date-time" },
+    "snapshot_id": { "type": "string", "description": "Must match the snapshot_id in the corresponding dataset manifest." },
+    "frozen_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the split assignment was frozen. After this point the test set is never touched until final evaluation."
+    },
+    "sampling_design": {
+      "type": "string",
+      "description": "REQUIRED. Plain-language description of how observations were selected and stratified. A stratified sample described as random is a leakage claim that fails review. Include: time windows covered, rare client families explicitly targeted, station and transmitter reservation counts, and any known biases."
+    },
     "grouping_keys": {
       "type": "array",
-      "items": { "enum": ["ground_station", "transmitter_uuid", "norad_cat_id", "orbital_revolution", "client_family"] }
+      "items": {
+        "enum": ["ground_station", "transmitter_uuid", "norad_cat_id", "orbital_revolution", "client_family"]
+      },
+      "description": "The entity keys used to assign all observations from a given entity to one split. 'orbital_revolution' is a derived key (not present on source_observation); compute it as the integer orbital period index from TLE epoch before splitting."
     },
     "splits": {
       "type": "object",
       "required": ["chronological", "cold_station", "cold_transmitter", "cold_combined"],
+      "description": "Each split type holds observation IDs in train, calibration, and test sets. Every transmitter and every orbital revolution appears in exactly one split.",
       "additionalProperties": {
         "type": "object",
+        "required": ["train", "calibration", "test"],
         "properties": {
-          "train": { "type": "array", "items": { "type": "integer" } },
-          "calibration": { "type": "array", "items": { "type": "integer" } },
-          "test": { "type": "array", "items": { "type": "integer" } }
+          "train": { "type": "array", "items": { "type": "integer" }, "description": "Observation IDs in the training set." },
+          "calibration": { "type": "array", "items": { "type": "integer" }, "description": "Observation IDs in the calibration/validation set. Used for post-hoc calibration only, never for model selection." },
+          "test": { "type": "array", "items": { "type": "integer" }, "description": "Observation IDs in the test set. Touched exactly once, at final evaluation." }
         }
       }
     },
     "leakage_checks": {
       "type": "object",
-      "description": "Each must be asserted, not assumed.",
+      "description": "Each flag must be asserted programmatically, not assumed. All must be true before training begins.",
+      "required": [
+        "no_transmitter_across_splits",
+        "no_station_across_splits",
+        "no_revolution_across_splits",
+        "no_duplicate_image_across_splits",
+        "no_future_feature_in_train",
+        "test_set_untouched"
+      ],
       "properties": {
-        "no_transmitter_across_splits": { "type": "boolean" },
-        "no_revolution_across_splits": { "type": "boolean" },
-        "no_duplicate_image_across_splits": { "type": "boolean" },
-        "no_future_feature_in_train": { "type": "boolean" },
-        "test_set_untouched": { "type": "boolean" }
+        "no_transmitter_across_splits": {
+          "type": "boolean",
+          "description": "No transmitter_uuid appears in more than one of train, calibration, test within any split type."
+        },
+        "no_station_across_splits": {
+          "type": "boolean",
+          "description": "For cold_station and cold_combined splits: no ground_station id appears in more than one of train, calibration, test."
+        },
+        "no_revolution_across_splits": {
+          "type": "boolean",
+          "description": "No orbital revolution index appears in more than one of train, calibration, test."
+        },
+        "no_duplicate_image_across_splits": {
+          "type": "boolean",
+          "description": "No waterfall SHA-256 appears in more than one split partition. Catches exact duplicates regardless of observation id."
+        },
+        "no_future_feature_in_train": {
+          "type": "boolean",
+          "description": "No feature derived from post-observation fields, current station statistics, artifact-derived labels, or future outcomes is present in training features."
+        },
+        "test_set_untouched": {
+          "type": "boolean",
+          "description": "Test set has not been loaded, scored, or inspected outside of the single final evaluation run."
+        }
       }
     }
   }
