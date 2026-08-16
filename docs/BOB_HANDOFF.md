@@ -14,7 +14,7 @@
 | **Current wave** | Wave A, in progress |
 | **Next unit** | **A3: Doppler correction status resolver** |
 | **Open failures** | none. 7/7 standing gates, 135 tests pass offline. |
-| **Last commit** | (fill in SHA after commit) |
+| **Last commit** | `75b115e` (2026-08-16 IST) |
 
 ### A1 is closed. Read this before touching snapshot.py
 
@@ -57,14 +57,14 @@ Additional hardening in `038ed1a`. **Do not overwrite it.** EasyOCR's weights ar
 
 ## What exists right now
 
-Scaffold and verified reconnaissance only. **No production code exists.** `pipeline/tracetriage/` contains an empty `__init__.py` and nothing else.
+**Two production modules exist and both are closed.** `pipeline/tracetriage/snapshot.py` (A1, the immutable snapshot builder) and `pipeline/tracetriage/waterfall.py` (A2, the pixel-mapping parser). Do not regenerate either. Everything below this line describes the scaffold that predates them and is still accurate.
 
 Working and verified:
 
 - Python **3.12.13** venv at `.venv`, with the full stack installed and every import confirmed: polars 1.43.2, pyarrow 25.0.1, numpy 2.5.2, scipy 1.18.0, Pillow 12.3.0, opencv 5.0.0, **sgp4 2.27**, **torch 2.13.0+cpu**, torchvision 0.28.0, scikit-learn 1.9.0, scikit-image 0.26.0, httpx, tenacity, matplotlib, onnxruntime 1.28.0, pytest 9.1.1.
 - `pytest -m "not network"` passes. `conftest.py` blocks socket access in unmarked tests, so the offline-replay claim is enforced rather than asserted.
 - CI at `.github/workflows/ci.yml`: clean clone, offline suite, claim drift, secret scan.
-- Draft contracts in `contracts/`, all marked `DRAFT` and awaiting your ratification.
+- Six contracts in `contracts/`, all ratified. Do not re-ratify them.
 - Doc skeletons, MIT `LICENSE`, `DATA_LICENSE.md`, `.gitignore`, `.env.example`.
 
 Exhaustive inventory with the boundary: **`docs/PRE_BUILD_BASELINE.md`**.
