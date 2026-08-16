@@ -9,12 +9,12 @@
 | | |
 |---|---|
 | **Handoff written** | 2026-08-17, IST |
-| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`), **A4** (`0f21ce7`), **A5** (pending commit) |
+| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`), **A4** (`0f21ce7`), **A5** (`68bac8c`) |
 | **Account in use** | account 3 |
 | **Current wave** | Wave A, in progress |
 | **Next unit** | **A6: image-only baseline** |
 | **Open failures** | none. 7/7 standing gates, 293 tests pass offline. |
-| **Last commit** | `0f21ce7` (2026-08-17 IST); A5 commit pending |
+| **Last commit** | `68bac8c` (2026-08-17 IST) |
 
 ### A5 is closed. Read this before A6.
 
