@@ -236,7 +236,7 @@ def test_receipt_accepts_abstain_with_a_reason() -> None:
 def manifest(**overrides: Any) -> dict[str, Any]:
     doc: dict[str, Any] = {
         "snapshot_id": "snap-2026-08-17-stage1",
-        "schema_version": "0.2.0",
+        "schema_version": "0.2.1",
         "stage": 1,
         "built_at": "2026-08-17T00:00:00Z",
         "completed_at": "2026-08-17T00:45:00Z",
@@ -274,6 +274,8 @@ def manifest(**overrides: Any) -> dict[str, Any]:
                 "waterfall_sha256": "c" * 64,
                 "waterfall_missing_reason": None,
                 "ground_station": 42,
+                "client_version": "2.1.2",
+                "client_family": "2.1.2",
             }
         ],
     }

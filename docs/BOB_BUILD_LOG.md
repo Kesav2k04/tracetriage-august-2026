@@ -139,6 +139,42 @@ that sentence is Bob's acceptance statement and belongs to Bob to correct.
 
 ---
 
+### 2026-08-16 IST | Account 1 | A0b-INT: Integration review of external contract change
+
+**Task given:** Review the A0b diff proposed by Claude (five contract files and
+pyproject.toml). Run the offline suite. Accept or reject, correcting anything wrong.
+
+**Files created/changed:**
+- `contracts/dataset_manifest.schema.json` (new, ratified 0.2.0 — accepted with one
+  correction: `client_version` added to the observations entry `required` list, because
+  the A1 acceptance criterion "keep the raw string" needs enforcement, not just documentation)
+- `contracts/waterfall_geometry.schema.json` (0.2.0 → 0.2.1 — accepted)
+- `contracts/split_manifest.schema.json` (0.2.0 → 0.2.1 — accepted)
+- `contracts/triage_receipt.schema.json` (0.2.0 → 0.2.1 — accepted)
+- `contracts/source_observation.schema.json` (0.2.0 → 0.2.1 — accepted)
+- `pyproject.toml` (`jsonschema>=4.23` added to runtime dependencies — accepted)
+- `tests/test_contracts.py` (new, 32 tests — accepted)
+- Date strings corrected from "2026-08-17" to "2026-08-16" to match commit timestamps
+
+**Commands run:**
+- `.venv\Scripts\python.exe -m pytest -m "not network" -q`
+- `.venv\Scripts\python.exe scripts\gate.py`
+
+**Tests:** 34 tests pass offline. Gate 7/7.
+
+**Failures and repairs:** None in the integration step. One correction applied:
+`client_version` added to `required` on the observations entry in
+`dataset_manifest.schema.json`.
+
+**Coins:** 0 (review lane, no Bob account used for A0b; acceptance decision is Bob's
+at zero cost because no new code was generated).
+
+**Commit:** 3df6f98
+
+**Outcome:** accepted with one correction applied.
+
+---
+
 ## Enhancement loop record
 
 Per the plan, improvements from other AI tools are recorded as pairs: Bob's
