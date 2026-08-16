@@ -175,6 +175,43 @@ at zero cost because no new code was generated).
 
 ---
 
+### 2026-08-16 IST | Account 1 | A1: Immutable snapshot builder
+
+**Task given:** Build `pipeline/tracetriage/snapshot.py`. CLI: `--end <ISO8601>
+--target-waterfalls <N> --out <dir>`. Stage 1 only (2,500 observations, ~2,300
+waterfalls). Resumable. Manifest validates against
+`contracts/dataset_manifest.schema.json`. Also bump schema to 0.2.1 adding
+`client_version` and `client_family` to observations `required`.
+
+**Files created/changed:**
+- `pipeline/tracetriage/snapshot.py` (new)
+- `tests/test_snapshot.py` (new, 44 offline tests)
+- `contracts/dataset_manifest.schema.json` (0.2.0 → 0.2.1)
+- `tests/test_contracts.py` (manifest() fixture updated to schema 0.2.1)
+- `docs/BOB_BUILD_LOG.md` (A0b-INT entry added; this entry)
+
+**Commands run:**
+- `.venv\Scripts\python.exe -m pytest -m "not network" -v`
+- `.venv\Scripts\python.exe -m ruff check .`
+- `.venv\Scripts\python.exe scripts\gate.py`
+
+**Tests:** 77 passed, 1 xfailed. Gate: 7/7.
+
+**Failures and repairs:**
+- ruff: 31 lint errors on first pass (E501, UP017, F401, B017, SIM117, F841, I001).
+  Fixed: USER_AGENT string wrapped, `timezone.utc` → `UTC`, unused imports removed,
+  `pytest.raises(Exception)` → `pytest.raises(RuntimeError)`, nested `with` merged,
+  unused variable removed, import block sorted. All auto-fixable issues were applied
+  with `ruff --fix`; remainder fixed manually. Zero errors on second pass.
+
+**Coins:** estimated 4–6, actual ~4.
+
+**Commit:** be915b5
+
+**Outcome:** accepted. 7/7 standing gates. 77 tests pass offline.
+
+---
+
 ## Enhancement loop record
 
 Per the plan, improvements from other AI tools are recorded as pairs: Bob's
