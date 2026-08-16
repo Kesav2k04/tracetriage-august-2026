@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | **Handoff written** | 2026-08-17, IST |
-| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (this commit) |
+| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`) |
 | **Account in use** | account 2 |
 | **Current wave** | Wave A, in progress |
 | **Next unit** | **A3: Doppler correction status resolver** |
