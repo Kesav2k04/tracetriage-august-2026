@@ -14,7 +14,7 @@
 | **Current wave** | Wave A, in progress |
 | **Next unit** | **A6: image-only baseline** |
 | **Open failures** | none. 7/7 standing gates, 324 tests pass offline. |
-| **Dataset** | stage 1 built and verified: `D:	racetriage_data\snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
+| **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
 | **Last commit** | see `git log -1` |
 
 ### The stage-1 dataset exists. Read this before A6.
