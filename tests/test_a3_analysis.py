@@ -180,3 +180,30 @@ class TestPagination:
     def test_absent_next_link_ends_paging(self):
         assert a3.next_cursor(None) is None
         assert a3.next_cursor('<https://example.invalid/?cursor=x>; rel="prev"') is None
+
+
+class TestThrottleTolerance:
+    def test_downloads_stop_without_losing_what_was_already_fetched(self, monkeypatch):
+        """A closed rate-limit window must cost the remaining images, not the run."""
+        calls = {"n": 0}
+
+        def fake_download(obs):
+            calls["n"] += 1
+            if calls["n"] > 2:
+                raise a3.Throttled("rate limited for another 3000s")
+            return b"png-bytes"
+
+        monkeypatch.setattr(a3, "download_waterfall", fake_download)
+        selected = [{"id": i} for i in range(5)]
+        images = a3.download_all(selected)
+        assert set(images) == {0, 1}
+
+    def test_other_download_errors_do_not_stop_the_batch(self, monkeypatch):
+        def fake_download(obs):
+            if obs["id"] == 1:
+                raise RuntimeError("connection reset")
+            return b"png-bytes"
+
+        monkeypatch.setattr(a3, "download_waterfall", fake_download)
+        images = a3.download_all([{"id": i} for i in range(4)])
+        assert set(images) == {0, 2, 3}

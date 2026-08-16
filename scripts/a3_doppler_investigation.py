@@ -64,14 +64,16 @@ logging.basicConfig(level=logging.WARNING)
 
 TARGET_OBS = 10
 CANDIDATE_POOL = 24
-MAX_PAGES = 12
+MAX_PAGES = 6
 
 # The listing is newest first, and the newest records are scheduled observations
 # that have not run: status "future", waterfall null, waterfall_status "unknown".
 # Vetting also lags capture. Asking for a window that closed several days ago is
 # what makes the first page usable. A same-day end returned 200 future records
-# and zero candidates.
-END_DATE = "2026-08-12T00:00:00Z"
+# and zero candidates. Six days back is far enough that vetting has caught up on
+# most of the window, which is what makes with-signal common enough to stop
+# paging early.
+END_DATE = "2026-08-10T00:00:00Z"
 API_BASE = "https://network.satnogs.org/api/observations/"
 USER_AGENT = (
     "tracetriage/0.1 (+https://github.com/Kesav2k04/tracetriage-august-2026;"
@@ -510,6 +512,15 @@ def draw_overlay(raw_png: bytes, obs: dict, geom, curve, track, stats, verdict) 
 # ---------------------------------------------------------------------------
 
 
+class Throttled(Exception):
+    """The API is rate limiting for longer than this run is willing to wait.
+
+    Raised rather than exiting, so that whatever is already cached still gets
+    measured and written. A partial answer with named gaps beats no answer, and
+    a resumed run re-fetches nothing.
+    """
+
+
 def _cache_path(kind: str, key: str) -> Path:
     # Page caches are keyed by the query window. Without that, changing END_DATE
     # silently replays the previous window's pages under the same file names.
@@ -533,11 +544,9 @@ def _get(url: str, timeout: float = 60.0) -> tuple[bytes, dict]:
             if resp.status_code == 429:
                 retry_after = float(resp.headers.get("Retry-After", 30))
                 if retry_after > MAX_SLEEP_ON_429:
-                    raise SystemExit(
-                        f"\nSatNOGS is rate limiting for another {retry_after:.0f}s "
-                        f"({retry_after / 60:.1f} min). Nothing was lost: rerun this "
-                        f"script after the window resets and it will resume from "
-                        f"{CACHE_DIR}."
+                    raise Throttled(
+                        f"rate limited for another {retry_after:.0f}s "
+                        f"({retry_after / 60:.1f} min)"
                     )
                 print(f"  429, Retry-After={retry_after:.0f}s")
                 time.sleep(retry_after + 1)
@@ -581,18 +590,18 @@ def fetch_candidates() -> list[dict]:
     page_index = 0
 
     def enough() -> bool:
-        """Stop as soon as the pool can satisfy the task.
+        """Stop as soon as the vetted pool can satisfy the task.
 
-        The anonymous quota is small and a page is a request, so paging past
-        what is needed is what puts the run back behind an hour-long throttle.
-        Diversity is part of the stopping rule because the task requires at
-        least three client families, not just ten observations.
+        The anonymous quota is small and every page is a request, so paging past
+        what is needed is what puts the run behind another hour-long throttle.
+        Diversity is part of the rule because the task requires at least three
+        client families, not just ten observations. MAX_PAGES bounds the worst
+        case; the reserve covers the case where vetting has not caught up.
         """
-        if len(collected) >= CANDIDATE_POOL:
-            return True
-        pool = collected + reserve
-        families = {client_family(o) for o in pool}
-        return len(pool) >= CANDIDATE_POOL and len(families) >= 3
+        return (
+            len(collected) >= TARGET_OBS
+            and len({client_family(o) for o in collected}) >= 3
+        )
 
     print(f"Fetching with-signal observations (end={END_DATE})")
     while url and not enough() and page_index < MAX_PAGES:
@@ -668,6 +677,30 @@ def download_waterfall(obs: dict) -> bytes:
     return raw
 
 
+def download_all(selected: list[dict]) -> dict[int, bytes]:
+    """Fetch every waterfall before any measurement runs.
+
+    All network work happens here and nothing after this point touches the
+    network. If the window closes mid-way, the observations already cached are
+    still measured, written and rendered.
+    """
+    images: dict[int, bytes] = {}
+    for i, obs in enumerate(selected, 1):
+        cached = _cache_path("waterfalls", f"{obs['id']}.png").exists()
+        try:
+            images[obs["id"]] = download_waterfall(obs)
+            print(f"  [{i}/{len(selected)}] obs {obs['id']}: "
+                  f"{'cache' if cached else 'fetched'}")
+        except Throttled as exc:
+            print(f"  [{i}/{len(selected)}] obs {obs['id']}: {exc}")
+            print(f"  stopping downloads with {len(images)} of {len(selected)} in hand; "
+                  f"measuring those and leaving the rest for a resumed run")
+            break
+        except Exception as exc:
+            print(f"  [{i}/{len(selected)}] obs {obs['id']}: download failed: {exc}")
+    return images
+
+
 def client_family(obs: dict) -> str:
     raw = obs.get("client_version") or ""
     if not raw:
@@ -715,17 +748,52 @@ def select_diverse(candidates: list[dict], target: int) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 
+def preflight() -> None:
+    """Fail before spending a request if the environment cannot read an axis.
+
+    parse_waterfall needs the OCR weights to derive Hz/px per observation.
+    Without them every record degrades to NO_OCR_BACKEND, and discovering that
+    after the downloads costs a rate-limit window rather than a second. A wrong
+    EASYOCR_MODULE_PATH is silent otherwise: the parser logs a warning and
+    returns a degraded record, so the run looks like it worked.
+    """
+    from pipeline.tracetriage import waterfall as wf
+
+    try:
+        wf._get_ocr_reader()
+    except Exception as exc:
+        sys.exit(
+            f"preflight failed: no OCR backend ({exc}). Every observation would "
+            f"degrade and the run would spend the rate-limit window for nothing.\n"
+            f"Weights are expected at {wf._EASYOCR_MODEL_DIR}. Either put "
+            f"craft_mlt_25k.pth and english_g2.pth there, or unset "
+            f"EASYOCR_MODULE_PATH to fall back to the packaged default."
+        )
+    print(f"preflight: OCR reader ready at {wf._EASYOCR_MODEL_DIR}")
+
+
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    preflight()
 
-    candidates = fetch_candidates()
+    try:
+        candidates = fetch_candidates()
+    except Throttled as exc:
+        sys.exit(f"no observation pages available: {exc}. Rerun after the window "
+                 f"resets; cached pages under {CACHE_DIR} are reused.")
     if not candidates:
-        sys.exit("no with-signal observations returned")
+        sys.exit("no usable observations returned")
 
     selected = select_diverse(candidates, TARGET_OBS)
     print(f"\nSelected {len(selected)} observations "
-          f"from {len({client_family(o) for o in selected})} client families\n")
+          f"from {len({client_family(o) for o in selected})} client families")
+
+    print("\nDownloading waterfalls (this is the last network step)")
+    images = download_all(selected)
+    if not images:
+        sys.exit("no waterfalls could be fetched; rerun after the rate-limit window")
+    print(f"  {len(images)} of {len(selected)} waterfalls available\n")
 
     results: list[dict] = []
     for obs in selected:
@@ -750,14 +818,12 @@ def main() -> None:
         }
         print(f"[obs {obs_id}] {fam}  max_alt={obs.get('max_altitude')}")
 
-        try:
-            raw_png = download_waterfall(obs)
-        except SystemExit:
-            raise
-        except Exception as exc:
-            record |= {"status": "download_failed", "error": str(exc)}
+        raw_png = images.get(obs_id)
+        if raw_png is None:
+            record |= {"status": "not_downloaded",
+                       "error": "rate-limit window closed before this one was fetched"}
             results.append(record)
-            print(f"  download failed: {exc}")
+            print("  skipped: not downloaded")
             continue
 
         start_dt = datetime.fromisoformat(obs["start"].replace("Z", "+00:00"))
@@ -786,8 +852,19 @@ def main() -> None:
             "pass_duration_s": duration_s,
         }
         if geom.derivation == "failed" or not geom.hz_per_px or geom.crop_box is None:
+            reason = f"waterfall geometry degraded: {geom.degraded}"
             record |= {"status": "geometry_failed", "verdict": "UNRESOLVED",
-                       "reason": f"waterfall geometry degraded: {geom.degraded}"}
+                       "reason": reason}
+            # Still render it. An observation that could not be measured is part
+            # of the evidence, and a missing image reads as a hidden one.
+            empty = (np.empty(0), np.empty(0), np.empty(0))
+            img = draw_overlay(
+                raw_png, obs, geom, ([], []), empty, _empty_stats([]),
+                ("UNRESOLVED", reason),
+            )
+            out_path = OUT_DIR / f"overlay_{obs_id}.png"
+            img.save(str(out_path), optimize=True)
+            record["overlay_file"] = out_path.name
             results.append(record)
             print(f"  geometry degraded: {geom.degraded}")
             continue
