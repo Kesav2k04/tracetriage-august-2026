@@ -63,7 +63,7 @@ logging.basicConfig(level=logging.WARNING)
 # ---------------------------------------------------------------------------
 
 TARGET_OBS = 10
-CANDIDATE_POOL = 30
+CANDIDATE_POOL = 24
 MAX_PAGES = 12
 
 # The listing is newest first, and the newest records are scheduled observations
@@ -580,8 +580,22 @@ def fetch_candidates() -> list[dict]:
     rejected: dict[str, int] = defaultdict(int)
     page_index = 0
 
+    def enough() -> bool:
+        """Stop as soon as the pool can satisfy the task.
+
+        The anonymous quota is small and a page is a request, so paging past
+        what is needed is what puts the run back behind an hour-long throttle.
+        Diversity is part of the stopping rule because the task requires at
+        least three client families, not just ten observations.
+        """
+        if len(collected) >= CANDIDATE_POOL:
+            return True
+        pool = collected + reserve
+        families = {client_family(o) for o in pool}
+        return len(pool) >= CANDIDATE_POOL and len(families) >= 3
+
     print(f"Fetching with-signal observations (end={END_DATE})")
-    while url and len(collected) < CANDIDATE_POOL and page_index < MAX_PAGES:
+    while url and not enough() and page_index < MAX_PAGES:
         cached = _cache_path("pages", f"page_{page_index:03d}.json")
         cached_hdr = _cache_path("pages", f"page_{page_index:03d}.headers.json")
         if cached.exists() and cached_hdr.exists():
