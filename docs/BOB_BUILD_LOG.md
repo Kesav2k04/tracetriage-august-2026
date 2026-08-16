@@ -173,7 +173,7 @@ anything wrong.
 **Coins:** 0. No new code was generated in this step. It is a review and an
 acceptance decision.
 
-**Bob task ID:** not yet recorded. Retrieve it from the Bob session and fill it in.
+**Bob task ID:** `a309025a1c82bfb4e34d882d02fa4066` (workspace `tracetriage-august-2026`, account 1). Same ID as A0: this review ran inside the A0 session rather than a fresh one, so the two units share a task.
 
 **Commit:** 3df6f98
 
