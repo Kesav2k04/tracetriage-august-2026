@@ -12,20 +12,19 @@
 | **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`) |
 | **Account in use** | account 3 |
 | **Current wave** | Wave A, in progress |
-| **A3** | investigation harness built, measurement pending a public API rate-limit window |
-| **Next unit** | **A5: Label provenance builder.** It depends on neither A3 nor A4. |
+| **Current unit** | **A3: Doppler correction status resolver**, in progress |
+| **Next unit** | **A4: physics corridor module**, blocked until A3 states an answer |
 | **Open failures** | none. 7/7 standing gates, 147 tests pass offline. |
 | **Last commit** | `69d5c98` (2026-08-16 IST) |
 
-### Read this before picking a unit
+### A3 is in progress
 
-**A4 is still blocked.** A3 decides which Doppler curve is correct and its
-measurement has not returned yet, so the corridor overlay cannot be built. Take
-**A5** now. A5 reads observation status, waterfall status and vetting fields; it
-touches no physics and no image geometry, so it cannot conflict with A3 or A4.
+The investigation harness is built and its analysis is covered by offline tests.
+The live measurement is queued against a rate-limited public API. Units run in
+plan order, so nothing after A3 starts until A3 has an answer written down.
 
-**Do not touch `scripts/a3_doppler_investigation.py`.** Its run is queued against
-a rate-limited public API and a re-run costs an hour of waiting, not a coin.
+**Do not touch `scripts/a3_doppler_investigation.py`.** A re-run costs an hour of
+waiting on the rate-limit window, not a coin.
 
 ### A1 is closed. Read this before touching snapshot.py
 
@@ -131,9 +130,9 @@ Three of six gates pre-measured. See `docs/KILL_GATE.md` for thresholds and evid
 
 ## Exact next task
 
-In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A5: Label provenance builder**.
+In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A4: physics corridor module**, once A3 has stated its answer.
 
-Then A4 (physics, once A3 has an answer), A6 (baseline), A7 (end-to-end slice).
+Then A5 (provenance), A6 (baseline), A7 (end-to-end slice).
 
 ### What A0 settled, so A1 does not rediscover it
 
