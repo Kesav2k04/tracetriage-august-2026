@@ -8,15 +8,21 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-16, 15:05 IST |
-| **Written by** | Claude Opus 5 (pre-Bob setup session) |
-| **Bob tasks completed** | **0** |
-| **Bob account in use** | none yet, account 1 not started |
-| **Bobcoins consumed** | 0 |
-| **Current wave** | Wave A, not started |
-| **Next unit** | **A0: ratify the data contracts** (`docs/BOB_TASK_PROMPTS.md`) |
-| **Open failures** | none |
-| **Last commit** | see `git log -1` |
+| **Handoff written** | 2026-08-16, 18:50 IST |
+| **Written by** | Claude Opus 5 (review lane), after Bob accepted A0b-INT |
+| **Bob tasks completed** | **2.** A0 (`8ef8d1f`), A0b-INT (`3df6f98`) |
+| **Bob account in use** | account 1 |
+| **Bobcoins consumed** | **5.42 of 40.** 34.58 remain, 3 of those are the untouchable handoff reserve. |
+| **Current wave** | Wave A, in progress |
+| **Next unit** | **A1: immutable snapshot builder** (`docs/BOB_TASK_PROMPTS.md`) |
+| **Open failures** | none. 7/7 standing gates, 34 tests pass offline. |
+| **Last commit** | `3df6f98` (2026-08-16 18:42:37 IST) |
+
+**Start each unit in a fresh Bob chat.** Paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then the unit prompt. Carrying one chat across units compounds context into coin burn, which is what the budget note below is about.
+
+### Budget reality check, 2026-08-16
+
+A0 was estimated at 1 coin. Two Bob tasks have consumed 5.42. The remaining Wave A estimates total about 19 coins against 34.58 available, and at the observed rate they will not fit. Re-measure after A1 and rewrite the per-unit numbers in `docs/BOBCOIN_BUDGET.md` from real data. Review, recon and test authoring go to Claude at zero coin cost, with Bob keeping the acceptance decision, per `.bob/rules.md` section 1.
 
 ---
 
@@ -85,9 +91,16 @@ Three of six gates pre-measured. See `docs/KILL_GATE.md` for thresholds and evid
 
 ## Exact next task
 
-Paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A0**.
+In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A1, the immutable snapshot builder**. Build stage 1 only (2,500 observations, ~2,300 waterfalls, ~4 GB, ~45 min). Stage 2 is kicked off in the background during Wave B.
 
-Then A1 (snapshot), A2 (waterfall parser), **A3 (blocking Doppler question)**, A4 (physics), A5 (provenance), A6 (baseline), A7 (end-to-end slice).
+Then A2 (waterfall parser), **A3 (blocking Doppler question)**, A4 (physics), A5 (provenance), A6 (baseline), A7 (end-to-end slice).
+
+### What A0 settled, so A1 does not rediscover it
+
+- Five contracts in `contracts/` are `ratified`. `dataset_manifest.schema.json` is the one A1 writes against, and A1's acceptance ("manifest validates against its contract") now has a contract to validate against.
+- `jsonschema>=4.23` is installed and declared. The venv has **no `pip`**, it is uv-managed: `uv pip install <pkg>` with `VIRTUAL_ENV` set to the project `.venv`.
+- `tests/test_contracts.py` already rejects a manifest that claims `end__lte` or `waterfall_status` as a server-side filter. A1 does not need to re-test those two traps at the schema level, only in the client.
+- **Carry into A1:** `client_version` and `client_family` are in the manifest's observation entry but not in its `required` list. Both are nullable, so adding them is free and is what enforces the "keep the raw string" requirement. Do it while writing the emitter.
 
 ---
 
