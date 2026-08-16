@@ -3,8 +3,8 @@
   "$id": "tracetriage/waterfall_geometry",
   "title": "Per-observation waterfall pixel mapping",
   "status": "ratified",
-  "schema_version": "0.2.0",
-  "description": "The frequency and time calibration of one waterfall image. PER OBSERVATION, never a project constant: measured Hz/px was 123.46 on one client layout and 80.00 on another. The waterfall does NOT span samp-rate-rx; it spans a decimated band roughly 32x narrower, and nothing in the API reports that factor. Derive Hz/px from the rendered axis ticks on every image. See docs/SATNOGS_API_RECON.md section 7. Ratified 2026-08-17 by Bob (task A0): added crop_box field (the spectrogram area after axis and colorbar removal, which is what the model sees); clarified degraded semantics; tightened derivation enum descriptions.",
+  "schema_version": "0.2.1",
+  "description": "The frequency and time calibration of one waterfall image. PER OBSERVATION, never a project constant: measured Hz/px was 123.46 on one client layout and 80.00 on another. The waterfall does NOT span samp-rate-rx; it spans a decimated band roughly 32x narrower, and nothing in the API reports that factor. Derive Hz/px from the rendered axis ticks on every image. See docs/SATNOGS_API_RECON.md section 7. Ratified 2026-08-17 by Bob (task A0): added crop_box field (the spectrogram area after axis and colorbar removal, which is what the model sees); clarified degraded semantics; tightened derivation enum descriptions. Revised 2026-08-17 in A0b review: removed the client_family_fallback derivation mode, because unit A2 requires an explicit degraded state when the axis cannot be read and Hz/px has never been measured as stable within a client family. The null-when-failed rule is now enforced by if/then instead of being stated only in prose.",
   "type": "object",
   "required": ["observation_id", "image_width", "image_height", "plot_box", "crop_box", "derivation", "degraded"],
   "properties": {
@@ -43,11 +43,11 @@
     },
     "centre_px": {
       "type": ["number", "null"],
-      "description": "Pixel column (within crop_box, 0-based from its left edge) corresponding to the 0 Hz offset relative to the receiver centre frequency. Null when hz_per_px is null."
+      "description": "Pixel column (within crop_box, 0-based from its left edge) corresponding to the 0 Hz offset relative to the receiver centre frequency. Null when hz_per_px is null, and ALSO null when the axis was read successfully but rx-freq is unavailable, which happens on the 6% of records carrying no client_metadata. A null here does not invalidate hz_per_px."
     },
     "derivation": {
-      "enum": ["axis_ticks", "axis_ticks_ocr", "client_family_fallback", "failed"],
-      "description": "How hz_per_px was obtained. 'axis_ticks': read directly from detected matplotlib tick positions. 'axis_ticks_ocr': tick positions plus OCR of tick labels. 'client_family_fallback': used a lookup table keyed on client_family when axis detection failed but the client family is known. 'failed': could not establish Hz/px; hz_per_px and crop_box are null, degraded is a non-null reason code."
+      "enum": ["axis_ticks", "axis_ticks_ocr", "failed"],
+      "description": "How hz_per_px was obtained. 'axis_ticks': read directly from detected matplotlib tick positions. 'axis_ticks_ocr': tick positions plus OCR of tick labels. 'failed': could not establish Hz/px; hz_per_px and crop_box are null, degraded is a non-null reason code. There is deliberately NO fallback-to-constant mode. Hz/px varied 54% across a three-image sample and has never been measured as stable within a client family, so substituting a per-family constant would put a wrong pixel mapping into the corridor silently, which is the exact way kill gate 3 fails for a reason that is not real."
     },
     "derivation_confidence": {
       "type": ["number", "null"],
@@ -59,5 +59,35 @@
       "type": ["string", "null"],
       "description": "Named reason code when the mapping could not be established. Non-null exactly when derivation is 'failed'. Example codes: NO_AXIS_DETECTED, BLANK_IMAGE, ZERO_BYTE, MALFORMED_PNG, UNKNOWN_LAYOUT, ALPHA_ONLY."
     }
-  }
+  },
+  "allOf": [
+    {
+      "$comment": "Enforces the null-exactly-when-failed rule that the field descriptions state. Without this, a record claiming derivation 'axis_ticks' could omit hz_per_px entirely and still validate, which is the silent wrong-constant failure this contract exists to prevent.",
+      "if": {
+        "properties": { "derivation": { "const": "failed" } },
+        "required": ["derivation"]
+      },
+      "then": {
+        "properties": {
+          "hz_per_px": { "type": "null" },
+          "crop_box": { "type": "null" },
+          "seconds_per_px": { "type": "null" },
+          "centre_px": { "type": "null" },
+          "derivation_confidence": { "type": "null" },
+          "degraded": { "type": "string", "minLength": 1 }
+        },
+        "required": ["degraded"]
+      },
+      "else": {
+        "properties": {
+          "hz_per_px": { "type": "number", "exclusiveMinimum": 0 },
+          "crop_box": { "type": "object" },
+          "seconds_per_px": { "type": "number", "exclusiveMinimum": 0 },
+          "derivation_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "degraded": { "type": "null" }
+        },
+        "required": ["hz_per_px", "crop_box", "seconds_per_px", "derivation_confidence", "degraded"]
+      }
+    }
+  ]
 }

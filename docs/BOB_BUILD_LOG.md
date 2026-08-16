@@ -62,6 +62,83 @@ and their result, what failed, what was repaired, and the **actual** Bobcoins sp
 
 ---
 
+## A0b. Contract gaps closed after external review (2026-08-16)
+
+**Proposed by:** Claude (Anthropic), acting under the review lane in `.bob/rules.md`
+section 1. No Bob coins spent. **Pending Bob integration review.** Nothing here
+ships until Bob reviews the diff, runs the suite, and accepts or rejects it.
+
+**Why it exists.** A review of A0 against the A1 and A2 acceptance criteria found
+two blockers and one defect. A1 acceptance reads "manifest validates against its
+contract", and no contract for the dataset manifest existed. `jsonschema` was
+neither installed nor listed in `pyproject.toml`, so nothing in the project could
+validate a document against any contract at all. Separately, four contracts stated
+invariants in `description` prose that the schema did not enforce.
+
+**Files:**
+
+`contracts/dataset_manifest.schema.json` (new, ratified 0.2.0). Covers the A1
+requirements: snapshot id, exact query, stage, per-page and per-artifact sha256,
+UTC retrieval timestamps, CC BY-SA 4.0 licence and URL, counts, sampling design.
+`counts` and `sampling_design` are required. Two recon traps are encoded as
+schema, not comments: `query.filters` forbids `end__lte` (returns HTTP 200 and is
+silently ignored) and forbids `waterfall_status` (returns HTTP 400, filter
+client-side). `waterfall_missing_reason` is a named enum, so an unusable artifact
+carries a reason code and can never be confused with a without-signal label. An
+if/then makes `waterfall_sha256` non-null exactly when that reason is null, which
+also makes the file usable as the resume index.
+
+`contracts/waterfall_geometry.schema.json` (0.2.0 to 0.2.1). Removed
+`client_family_fallback` from the `derivation` enum. A2 requires an explicit
+degraded state when the axis cannot be read, Hz/px varied 54% across a
+three-image sample, and stability within a client family has never been measured.
+That mode licensed a wrong constant to enter the pixel mapping silently. Added
+if/then enforcing the null-exactly-when-failed rule. One correction to the review
+prompt: `centre_px` stays nullable on a successful derivation, because it needs
+`rx-freq` from `client_metadata`, which is absent on about 6% of records. A good
+axis read with no `rx-freq` is a real state and must not be forced to fail.
+
+`contracts/split_manifest.schema.json` (0.2.0 to 0.2.1). All six `leakage_checks`
+flags are now `const: true`. A manifest recording a failed check no longer
+validates. The consequence is deliberate and is written into the field
+description: a failing check halts the freeze and is recorded in
+`docs/KILL_GATE.md` with its measured value, rather than being stored here as a
+`false` that a later reader might scroll past.
+
+`contracts/triage_receipt.schema.json` (0.2.0 to 0.2.1). `evidence` requires
+`artifact_usable` and `physics_available`, since every other field's nullability
+is defined in terms of them. `scores` requires `calibrated_probability`, nullable,
+so a receipt must say that no score was produced rather than omitting the field.
+if/then requires a non-empty `abstention_reason` when `decision` is `abstain`.
+
+`contracts/source_observation.schema.json` (0.2.0 to 0.2.1). `_schema_version`
+pinned with `const`, matching the `const` already used on `_license`.
+
+`pyproject.toml`. Added `jsonschema>=4.23` to `[project] dependencies`, not to
+`dev`, because the snapshot builder validates the manifest at write time.
+
+`tests/test_contracts.py` (new, 32 tests). Every contract is checked as legal
+Draft 2020-12 and as ratified with a semver. The rest are behavioural: each
+invariant that was prose before A0b now has a case asserting a violating document
+is rejected. A geometry record claiming `axis_ticks` with no `hz_per_px`, a split
+manifest with one leakage flag false, an abstaining receipt with no reason, and a
+manifest claiming `end__lte` as its date bound all fail.
+
+**Environment note for the next task.** The venv has no `pip`. It is uv-managed.
+Install with `uv pip install <pkg>` after setting `VIRTUAL_ENV` to the project
+`.venv`, not `python -m pip`.
+
+**Open nit, not fixed.** The four A0 schema descriptions say "Ratified
+2026-08-17". Both A0 commits are dated 2026-08-16 18:21 +0530. Left alone because
+that sentence is Bob's acceptance statement and belongs to Bob to correct.
+
+**Gate before commit:** 6/7, with only `working tree committed` red. Lint clean,
+34 tests pass offline.
+
+**Coins:** 0.
+
+---
+
 ## Enhancement loop record
 
 Per the plan, improvements from other AI tools are recorded as pairs: Bob's
@@ -71,4 +148,4 @@ cannot be shown to have happened.
 
 | Date | Subsystem | Bob build task | Change proposed by | Bob integration task | Accepted? |
 |---|---|---|---|---|---|
-| | | | | | |
+| 2026-08-16 | Data contracts | A0 (commit 8ef8d1f) | Claude, as A0b | pending | pending |

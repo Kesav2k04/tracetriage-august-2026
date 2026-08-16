@@ -3,8 +3,8 @@
   "$id": "tracetriage/source_observation",
   "title": "Source observation record (snapshot form)",
   "status": "ratified",
-  "schema_version": "0.2.0",
-  "description": "One public SatNOGS observation as stored in the immutable snapshot. Field names verified live on 2026-08-16 against network.satnogs.org; see docs/SATNOGS_API_RECON.md section 2. Ratified 2026-08-17 by Bob (task A0): removed observation_frequency from required (nullable in practice); confirmed client_metadata is a JSON-encoded string not an object; confirmed center_frequency is null on every record and must never be used as the receiver frequency.",
+  "schema_version": "0.2.1",
+  "description": "One public SatNOGS observation as stored in the immutable snapshot. Field names verified live on 2026-08-16 against network.satnogs.org; see docs/SATNOGS_API_RECON.md section 2. Ratified 2026-08-17 by Bob (task A0): removed observation_frequency from required (nullable in practice); confirmed client_metadata is a JSON-encoded string not an object; confirmed center_frequency is null on every record and must never be used as the receiver frequency. Revised 2026-08-17 in A0b review: _schema_version pinned with const so a record written under an older contract cannot silently validate under this one.",
   "type": "object",
   "required": [
     "id", "start", "end", "ground_station", "norad_cat_id",
@@ -85,6 +85,9 @@
     },
     "_license": { "const": "CC BY-SA 4.0" },
     "_license_url": { "const": "https://creativecommons.org/licenses/by-sa/4.0/" },
-    "_schema_version": { "type": "string", "description": "Must match the schema_version of this file." }
+    "_schema_version": {
+      "const": "0.2.1",
+      "description": "Pins the record to the contract version that wrote it. Bumping schema_version above means bumping this const too, and records stored under an earlier version validate against their own pinned copy of the contract, not this one."
+    }
   }
 }

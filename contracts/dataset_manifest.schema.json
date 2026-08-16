@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tracetriage/dataset_manifest",
+  "title": "Immutable snapshot manifest",
+  "status": "ratified",
+  "schema_version": "0.2.0",
+  "description": "The receipt for one immutable snapshot of public SatNOGS observations, written to artifacts/DATASET_MANIFEST.json by the snapshot builder (unit A1). It is the provenance record for every downstream number: what was asked for, what came back, when, and the hash of every byte stored. A re-run reads this file to decide what it already has, so it is also the resume state. Created 2026-08-17 during A0 review: unit A1 acceptance requires the manifest to validate against a contract and none existed.",
+  "type": "object",
+  "required": [
+    "snapshot_id",
+    "schema_version",
+    "stage",
+    "built_at",
+    "query",
+    "counts",
+    "sampling_design",
+    "license",
+    "license_url",
+    "pages",
+    "observations"
+  ],
+  "properties": {
+    "snapshot_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable identifier for this snapshot. Must match the snapshot_id recorded in split_manifest and in every triage_receipt generated from it."
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "description": "Version of this contract that the manifest was written against."
+    },
+    "stage": {
+      "type": "integer",
+      "enum": [1, 2],
+      "description": "1 is the 2,500-observation build-and-debug snapshot. 2 is the 30,000-observation stratified snapshot that carries statistical power on the cold-entity holdouts."
+    },
+    "built_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp when the builder started this snapshot."
+    },
+    "completed_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "UTC timestamp when the last page was stored. Null while a resumable run is still in progress, which is how a re-run tells a partial snapshot from a finished one."
+    },
+    "query": {
+      "type": "object",
+      "description": "The exact request that produced this snapshot, recorded so it can be replayed and audited.",
+      "required": ["base_url", "end", "target_waterfalls", "filters", "user_agent", "request_interval_seconds"],
+      "properties": {
+        "base_url": {
+          "const": "https://network.satnogs.org/api/observations/",
+          "description": "Observations live on network.satnogs.org. db.satnogs.org/api/observations/ returns 404."
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The upper date bound, sent as a bare end= parameter. end__lte= returns HTTP 200 and is silently ignored, so it must never appear here or in filters. An unbounded listing returns future observations with null waterfalls."
+        },
+        "target_waterfalls": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of usable waterfall artifacts the run was asked to collect."
+        },
+        "filters": {
+          "type": "object",
+          "description": "Query parameters actually sent, verbatim. Only status, vetted_status, ground_station, satellite__norad_cat_id, transmitter_mode, start and end are honoured by the API. waterfall_status is not a filter and returns HTTP 400; it is applied client-side and must not appear here.",
+          "not": { "anyOf": [{ "required": ["end__lte"] }, { "required": ["waterfall_status"] }] }
+        },
+        "user_agent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The User-Agent sent, including a contact address. SatNOGS is volunteer-run."
+        },
+        "request_interval_seconds": {
+          "type": "number",
+          "minimum": 0.4,
+          "description": "Delay between requests. 0.4 is the floor agreed for this project."
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "description": "Every count is derived from the stored artifacts, never hand-typed. observations_stored must equal the length of the observations array.",
+      "required": [
+        "observations_requested",
+        "observations_stored",
+        "waterfalls_stored",
+        "waterfalls_missing"
+      ],
+      "properties": {
+        "observations_requested": { "type": "integer", "minimum": 0 },
+        "observations_stored": { "type": "integer", "minimum": 0 },
+        "waterfalls_stored": { "type": "integer", "minimum": 0 },
+        "waterfalls_missing": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Observations with no usable waterfall artifact, for any reason. These are artifact-unusable and are never negative training examples."
+        },
+        "pages_fetched": { "type": "integer", "minimum": 0 },
+        "waterfall_status_decisive": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count with waterfall_status of with-signal or without-signal. Measured at 29.0% over a 600-observation sample. unknown is not decisive and stays unlabelled."
+        }
+      }
+    },
+    "sampling_design": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Plain-language description of how observations were selected. A stratified sample described as random is a leakage claim that fails review. For stage 2, state the time windows covered, which rare client families were deliberately targeted, and how many stations and transmitters were reserved for the cold pools."
+    },
+    "license": { "const": "CC BY-SA 4.0" },
+    "license_url": { "const": "https://creativecommons.org/licenses/by-sa/4.0/" },
+    "pages": {
+      "type": "array",
+      "description": "One entry per raw API page response, stored unmodified. The hash is over the raw response bytes before any parsing.",
+      "items": {
+        "type": "object",
+        "required": ["url", "sha256", "retrieved_at", "n_observations"],
+        "properties": {
+          "url": { "type": "string", "format": "uri" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "retrieved_at": { "type": "string", "format": "date-time" },
+          "n_observations": { "type": "integer", "minimum": 0 },
+          "cursor": {
+            "type": ["string", "null"],
+            "description": "Cursor taken from the Link: <...>; rel=\"next\" response header. Null on the final page."
+          }
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "description": "One entry per stored observation. This is the resume index: a re-run skips any id present here whose artifact hash still verifies.",
+      "items": {
+        "type": "object",
+        "required": ["id", "source_url", "retrieved_at", "waterfall_url", "waterfall_sha256", "waterfall_missing_reason"],
+        "properties": {
+          "id": { "type": "integer" },
+          "source_url": { "type": "string", "format": "uri" },
+          "retrieved_at": { "type": "string", "format": "date-time" },
+          "waterfall_url": {
+            "type": ["string", "null"],
+            "description": "Artifact URL. Null when the API reported no waterfall. The artifact host is a separate failure domain from the API host."
+          },
+          "waterfall_sha256": {
+            "type": ["string", "null"],
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "SHA-256 of the downloaded PNG bytes. Non-null exactly when waterfall_missing_reason is null."
+          },
+          "waterfall_bytes": { "type": ["integer", "null"], "minimum": 0 },
+          "waterfall_missing_reason": {
+            "enum": [null, "NO_WATERFALL_URL", "HTTP_404", "HTTP_ERROR", "TRUNCATED", "ZERO_BYTE", "TIMEOUT"],
+            "description": "Named reason the artifact is unusable, or null when it was stored intact. Never treat any of these as a without-signal label."
+          },
+          "waterfall_status": {
+            "enum": ["with-signal", "without-signal", "unknown", null],
+            "description": "Silver label as returned by the API, stored verbatim. Filtered client-side because the API rejects it as a filter."
+          },
+          "ground_station": { "type": "integer", "description": "Grouping key for cold-station splits." },
+          "norad_cat_id": { "type": ["integer", "null"] },
+          "transmitter_uuid": { "type": ["string", "null"], "description": "Grouping key for cold-transmitter splits." },
+          "client_family": {
+            "type": ["string", "null"],
+            "description": "client_version normalised to its base release string, with +N.g<sha> and .dirty suffixes removed. Null when the record carries no client version, which is about 6% of records."
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "waterfall_missing_reason": { "type": "null" } }, "required": ["waterfall_missing_reason"] },
+            "then": {
+              "properties": {
+                "waterfall_sha256": { "type": "string" },
+                "waterfall_url": { "type": "string" }
+              },
+              "required": ["waterfall_sha256", "waterfall_url"]
+            },
+            "else": { "properties": { "waterfall_sha256": { "type": "null" } } }
+          }
+        ]
+      }
+    }
+  }
+}
