@@ -432,8 +432,9 @@ SIX TRAPS, EACH MEASURED, EACH WITH A COST:
 
 1. Most of this corpus carries no label at all. waterfall_status is "unknown" on
    roughly seven observations in ten. Reading "unknown" as "without-signal"
-   inflates the negative class about ninefold and produces a model that has
-   learned which observations a human got round to vetting. Use
+   turns 277 negatives into 2,265, inflating that class more than sevenfold, and
+   produces a model that has learned which observations a human got round to
+   vetting rather than anything about signals. Use
    provenance.label_from_obs and drop every UNLABELLED record from both training
    and evaluation. Do not invent a label for them.
 
@@ -460,10 +461,10 @@ SIX TRAPS, EACH MEASURED, EACH WITH A COST:
    failed must be excluded and counted, never scored as zero energy. A silent
    zero here reads as a confident negative.
 
-6. Accuracy is meaningless at this imbalance. Among decisive labels the split is
-   close to two positives per negative, so predicting "positive" always scores
-   about 66 percent and has learned nothing. Report Brier score, log loss,
-   calibration slope and intercept, and a reliability curve.
+6. Accuracy is meaningless at this imbalance. Among the 739 decisive labels the
+   split is 1.67 positives per negative, so a model that answers "positive"
+   every time scores 62.5 percent and has learned nothing. Report Brier score,
+   log loss, calibration slope and intercept, and a reliability curve.
 
 REQUIREMENTS:
 - temporary chronological split only. Do not touch the frozen test set; B1
