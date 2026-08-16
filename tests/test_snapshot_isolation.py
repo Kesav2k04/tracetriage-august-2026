@@ -1,7 +1,7 @@
 """Regression tests for snapshot isolation and the verification mode.
 
 Three defects found by actually running unit A1 against the live API, all fixed
-in A1b and pinned here.
+during A1 hardening and pinned here.
 
 1. The manifest was written to, resumed from, and verified against one global
    path (`artifacts/DATASET_MANIFEST.json`) regardless of `--out`. The plan runs

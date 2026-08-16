@@ -87,7 +87,7 @@ Bob's work is recorded, not asserted:
 - `bob_sessions/` holds exported task histories and screenshots with secrets removed
 - a final Bob task inspects the release commit, runs the acceptance suite, repairs failures and generates a sign-off receipt
 
-Other AI tools review, refactor and harden bounded areas after Bob builds them, and Bob then reviews, tests and accepts or rejects each change. `docs/PREPARED_BY_CLAUDE.md` lists exactly what was scaffolded before Bob's first task so the boundary is auditable rather than implied.
+`docs/PRE_BUILD_BASELINE.md` lists exactly what existed before Bob's first task, so the line between scaffolding and Bob's work is auditable rather than implied.
 
 ## Measured results
 

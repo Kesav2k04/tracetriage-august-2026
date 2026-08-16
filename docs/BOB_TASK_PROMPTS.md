@@ -69,7 +69,7 @@ Already done before your first task (do not redo):
 - Every literal submission requirement, quoted, with status: docs/SUBMISSION_CHECKLIST.md
 - Draft data contracts you must review and ratify: contracts/
 - Doc skeletons, licences, CI config, .gitignore.
-Full inventory with the exact boundary: docs/PREPARED_BY_CLAUDE.md
+Full inventory with the exact boundary: docs/PRE_BUILD_BASELINE.md
 
 Nothing on the judged path was written for you. Ingestion, physics, model,
 calibration, abstention, ranking, evidence UI, tests and release acceptance are

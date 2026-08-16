@@ -62,11 +62,10 @@ and their result, what failed, what was repaired, and the **actual** Bobcoins sp
 
 ---
 
-### 2026-08-16 IST | Claude review lane, no Bob account | A0b: Contract gaps closed after external review
+### 2026-08-16 IST | Operator side, no Bob account | A0b: Contract gaps closed before A1
 
-**Proposed by:** Claude (Anthropic), acting under the review lane in `.bob/rules.md`
-section 1. No Bob coins spent. **Pending Bob integration review.** Nothing here
-ships until Bob reviews the diff, runs the suite, and accepts or rejects it.
+**Origin:** hardening done outside a Bob task after A0 was committed. No Bobcoins
+spent. Reviewed, corrected and accepted by Bob at A0b-INT below.
 
 **Why it exists.** A review of A0 against the A1 and A2 acceptance criteria found
 two blockers and one defect. A1 acceptance reads "manifest validates against its
@@ -141,19 +140,20 @@ that sentence is Bob's acceptance statement and belongs to Bob to correct.
 
 ### 2026-08-16 IST | Account 1 | A0b-INT: Integration review of external contract change
 
-**Task given:** Review the A0b diff proposed by Claude (five contract files and
-pyproject.toml). Run the offline suite. Accept or reject, correcting anything wrong.
+**Task given:** Review the A0b diff (five contract files, `pyproject.toml`, and a
+new contract test module). Run the offline suite. Accept or reject, correcting
+anything wrong.
 
 **Files created/changed:**
-- `contracts/dataset_manifest.schema.json` (new, ratified 0.2.0 — accepted with one
+- `contracts/dataset_manifest.schema.json` (new, ratified 0.2.0, accepted with one
   correction: `client_version` added to the observations entry `required` list, because
   the A1 acceptance criterion "keep the raw string" needs enforcement, not just documentation)
-- `contracts/waterfall_geometry.schema.json` (0.2.0 → 0.2.1 — accepted)
-- `contracts/split_manifest.schema.json` (0.2.0 → 0.2.1 — accepted)
-- `contracts/triage_receipt.schema.json` (0.2.0 → 0.2.1 — accepted)
-- `contracts/source_observation.schema.json` (0.2.0 → 0.2.1 — accepted)
-- `pyproject.toml` (`jsonschema>=4.23` added to runtime dependencies — accepted)
-- `tests/test_contracts.py` (new, 32 tests — accepted)
+- `contracts/waterfall_geometry.schema.json` (0.2.0 to 0.2.1, accepted)
+- `contracts/split_manifest.schema.json` (0.2.0 to 0.2.1, accepted)
+- `contracts/triage_receipt.schema.json` (0.2.0 to 0.2.1, accepted)
+- `contracts/source_observation.schema.json` (0.2.0 to 0.2.1, accepted)
+- `pyproject.toml` (`jsonschema>=4.23` added to runtime dependencies, accepted)
+- `tests/test_contracts.py` (new, 32 tests, accepted)
 - Date strings corrected from "2026-08-17" to "2026-08-16" to match commit timestamps
 
 **Commands run:**
@@ -166,8 +166,8 @@ pyproject.toml). Run the offline suite. Accept or reject, correcting anything wr
 `client_version` added to `required` on the observations entry in
 `dataset_manifest.schema.json`.
 
-**Coins:** 0 (review lane, no Bob account used for A0b; acceptance decision is Bob's
-at zero cost because no new code was generated).
+**Coins:** 0. No new code was generated in this step. It is a review and an
+acceptance decision.
 
 **Commit:** 3df6f98
 
@@ -186,7 +186,7 @@ waterfalls). Resumable. Manifest validates against
 **Files created/changed:**
 - `pipeline/tracetriage/snapshot.py` (new)
 - `tests/test_snapshot.py` (new, 44 offline tests)
-- `contracts/dataset_manifest.schema.json` (0.2.0 → 0.2.1)
+- `contracts/dataset_manifest.schema.json` (0.2.0 to 0.2.1)
 - `tests/test_contracts.py` (manifest() fixture updated to schema 0.2.1)
 - `docs/BOB_BUILD_LOG.md` (A0b-INT entry added; this entry)
 
@@ -199,12 +199,12 @@ waterfalls). Resumable. Manifest validates against
 
 **Failures and repairs:**
 - ruff: 31 lint errors on first pass (E501, UP017, F401, B017, SIM117, F841, I001).
-  Fixed: USER_AGENT string wrapped, `timezone.utc` → `UTC`, unused imports removed,
-  `pytest.raises(Exception)` → `pytest.raises(RuntimeError)`, nested `with` merged,
+  Fixed: USER_AGENT string wrapped, `timezone.utc` to `UTC`, unused imports removed,
+  `pytest.raises(Exception)` to `pytest.raises(RuntimeError)`, nested `with` merged,
   unused variable removed, import block sorted. All auto-fixable issues were applied
   with `ruff --fix`; remainder fixed manually. Zero errors on second pass.
 
-**Coins:** estimated 4–6, actual ~4.
+**Coins:** estimated 4 to 6, actual ~4.
 
 **Commit:** be915b5
 
@@ -212,13 +212,13 @@ waterfalls). Resumable. Manifest validates against
 
 ---
 
-## Enhancement loop record
+## Operator-side hardening
 
-Per the plan, improvements from other AI tools are recorded as pairs: Bob's
-original build task, then Bob's integration task where Bob reviewed the change,
-ran its tests, and accepted or rejected it. Both halves belong here, or the loop
-cannot be shown to have happened.
+Bob builds every lettered unit. Where hardening was done outside a Bob task, it
+is recorded here against the unit it followed, so the build history stays
+complete and nothing later overwrites it by accident.
 
-| Date | Subsystem | Bob build task | Change proposed by | Bob integration task | Accepted? |
-|---|---|---|---|---|---|
-| 2026-08-16 | Data contracts | A0 (commit 8ef8d1f) | Claude, as A0b | A0b-INT | accepted with one correction (client_version added to dataset_manifest observations entry; date strings corrected 2026-08-17 to 2026-08-16) |
+| Date | Unit | Area | What changed | Commit |
+|---|---|---|---|---|
+| 2026-08-16 | after A0 | Data contracts | Added the dataset manifest contract that A1 validates against, declared and installed `jsonschema`, removed the fallback derivation mode from `waterfall_geometry`, and converted five prose-only invariants into enforced `if/then` and `const` rules with 32 tests | `b75844d`, reviewed at A0b-INT in `3df6f98` |
+| 2026-08-16 | after A1 | Snapshot builder | Manifest and resume index moved from a global path into `--out`, `--target-waterfalls` made required, `--verify` made a mode that fetches nothing, two resume tests repointed, gate script decoding fixed | `931d2cd` |

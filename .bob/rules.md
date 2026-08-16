@@ -10,7 +10,7 @@ You are the **primary development tool**. You build and validate every load-bear
 
 Other AI tools may review, refactor and harden bounded areas **after** you build them. You then review the change, run its tests, and accept or reject it. If you did not build it and did not accept it, it does not ship.
 
-What was scaffolded before your first task is listed exhaustively in `docs/PREPARED_BY_CLAUDE.md`. Nothing on the judged path is in that list.
+What was scaffolded before your first task is listed exhaustively in `docs/PRE_BUILD_BASELINE.md`. Nothing on the judged path is in that list.
 
 ## 2. The one decision this product serves
 

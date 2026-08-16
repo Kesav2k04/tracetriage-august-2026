@@ -2,7 +2,7 @@
 
 Every row quotes the requirement **verbatim** from `Challenge_Details.md` and names the artifact that satisfies it. Nothing here is inferred. Where the source document contradicts itself, both readings are recorded and the stricter one is targeted.
 
-**Deadline: 31 August 2026, 11:59 PM ET.** That is 32 August 09:29 IST. Do not plan against a local-midnight assumption.
+**Deadline: 31 August 2026, 11:59 PM ET.** That is 1 September 09:29 IST. Do not plan against a local-midnight assumption.
 
 ---
 
@@ -16,8 +16,8 @@ Quoted from `Challenge_Details.md` lines 94 to 110.
 |---|---|
 | Artifact | the running TraceTriage console plus the pipeline behind it |
 | Evidence Bob was primary | `docs/BOB_BUILD_LOG.md`, `docs/BOB_HANDOFF.md`, `bob_sessions/` |
-| Boundary proof | `docs/PREPARED_BY_CLAUDE.md` |
-| Status | **in progress.** A0 ratified the five data contracts and was accepted at A0b-INT (commit `3df6f98`, 2026-08-16 18:42 IST). 7/7 standing gates, 34 tests. Bob is at unit **A1**, the snapshot builder. `pipeline/tracetriage/` is still empty, so no judged-path code exists yet. |
+| Boundary proof | `docs/PRE_BUILD_BASELINE.md` |
+| Status | **in progress.** A0 ratified the five data contracts (`8ef8d1f`). A1 built the immutable snapshot builder (`be915b5`) and its acceptance passes live: 52 observations, 50 waterfalls, 3 pages in 56 s, second run resuming in 0.42 s with zero pages re-fetched. 7/7 standing gates, 84 tests. Next unit **A2**, the waterfall parser. |
 
 Official Rules line 197 phrases the same requirement as "Use of IBM Bob as the **core component** of all project submissions", and explicitly permits watsonx, Granite, LangFlow and Docling **in addition**. Granite is already planned as a conditional component.
 

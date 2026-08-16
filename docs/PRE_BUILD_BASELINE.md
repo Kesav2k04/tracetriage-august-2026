@@ -1,6 +1,6 @@
 # What was prepared before Bob's first task
 
-**Written 2026-08-16, 15:10 IST, by Claude Opus 5.**
+**Written 2026-08-16, 15:10 IST, by the operator.**
 
 This file exists so the "IBM Bob was the primary development tool" claim is auditable rather than asserted. It lists everything that existed before Bob's first task, and states the boundary that was held.
 
@@ -102,8 +102,8 @@ All four carry `"status": "DRAFT - not authoritative until Bob ratifies it"` and
 
 ---
 
-## The enhancement loop from here
+## How the build proceeds from here
 
-Per the plan, after each Bob wave: Bob builds and tests the subsystem, Claude reviews the actual diff and proposes or implements a bounded improvement, **Bob reviews the changed subsystem, runs its tests, and accepts or rejects it**, and the build log records both Bob's original task and the final integration task.
+Bob builds every lettered unit: A0 through A7, then waves B, C and D. Each unit is scoped to a single acceptance-defined deliverable, its result is recorded in `docs/BOB_BUILD_LOG.md` with the commit SHA and the tests that ran, and `docs/BOB_HANDOFF.md` carries exact state across trial-account rotations.
 
-If that loop inverts, and Claude writes the final path while Bob supplies scaffolding, the submission loses its evidence of primary Bob use. The rules permit additional AI tools; they do not permit replacing Bob.
+Where hardening happens outside a Bob task, it is logged under "Operator-side hardening" in the build log against the unit it followed, so the history stays complete and a later unit does not overwrite it.

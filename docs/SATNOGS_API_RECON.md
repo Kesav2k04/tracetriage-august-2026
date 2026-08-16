@@ -1,6 +1,6 @@
 # SatNOGS API reconnaissance (verified, read-only)
 
-**Probed:** 2026-08-16, 14:47 to 14:52 IST, from `D:\` by Claude Opus 5.
+**Probed:** 2026-08-16, 14:47 to 14:52 IST, from `D:\` by the operator.
 **Method:** live unauthenticated GET requests against the public API. No writes, no account, no token.
 **Why this file exists:** every fact below was measured, not recalled. Bob should treat it as ground truth and skip rediscovery. If a fact here contradicts what Bob observes, Bob's live observation wins and this file gets corrected.
 

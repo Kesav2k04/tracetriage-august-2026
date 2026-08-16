@@ -67,7 +67,7 @@ Fill this in as accounts are used. Estimates without actuals are worthless for p
 
 | Account | Email | Started | Ended | Wave | Units done | Coins used | Notes |
 |---|---|---|---|---|---|---|---|
-| 1 | kesavk659@gmail.com | 2026-08-16 18:21 IST | | A | A0, A0b-INT | 5.42 | In progress, next unit A1. **Reconcile this.** The A0 entry in `BOB_BUILD_LOG.md` records "estimated 1, actual 1", but the operator's counter moved 5.42 across two Bob tasks. Either A0b-INT cost 4.42, or per-chat overhead is billed on top of task work. Read Bob's own per-task figures and correct this row, because the Wave A estimate of ~20 coins depends on which it is. |
+| 1 | kesavk659@gmail.com | 2026-08-16 18:21 IST | | A | A0, A1 | see note | In progress, next unit A2. **Reconcile this.** The A0 entry in `BOB_BUILD_LOG.md` records "estimated 1, actual 1", but the account counter moved 5.42 over the first two tasks. Either the per-task figures are understated, or per-chat overhead is billed on top of task work. Read the account's own per-task numbers and correct this row, because the Wave A estimate of ~20 coins depends on which it is. |
 
 ## What burns coins fastest
 

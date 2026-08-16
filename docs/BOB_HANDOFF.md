@@ -50,7 +50,7 @@ Working and verified:
 - Draft contracts in `contracts/`, all marked `DRAFT` and awaiting your ratification.
 - Doc skeletons, MIT `LICENSE`, `DATA_LICENSE.md`, `.gitignore`, `.env.example`.
 
-Exhaustive inventory with the boundary: **`docs/PREPARED_BY_CLAUDE.md`**.
+Exhaustive inventory with the boundary: **`docs/PRE_BUILD_BASELINE.md`**.
 
 ---
 

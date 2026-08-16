@@ -676,7 +676,7 @@ class TestResumeAfterInterrupt:
 
         # The manifest is this snapshot's own resume index, so it lives in --out.
         # It used to be read from one global artifacts path, which meant every
-        # snapshot shared a single resume state. Corrected in A1b.
+        # snapshot shared a single resume state. Corrected during A1 hardening.
         out_dir = tmp_path / "out"
         out_dir.mkdir(parents=True, exist_ok=True)
         manifest_path = out_dir / "DATASET_MANIFEST.json"
@@ -748,7 +748,8 @@ class TestResumeAfterInterrupt:
             completed_at=None,
         )
 
-        # Resume index lives with the snapshot, not at a global path. See A1b.
+        # Resume index lives with the snapshot, not at a global path.
+        # See the A1 hardening note in docs/BOB_HANDOFF.md.
         manifest_path = out_dir / "DATASET_MANIFEST.json"
         manifest_path.write_text(json.dumps(prior_manifest, indent=2), encoding="utf-8")
 
