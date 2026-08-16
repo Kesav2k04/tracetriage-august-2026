@@ -52,6 +52,12 @@ Full method and numbers: `docs/SATNOGS_API_RECON.md`. The short version:
 
 ---
 
+## Decisions already taken. Do not re-open these.
+
+- **Snapshot size: 10,000 observations, ~16 GB.** Decided 2026-08-16 15:20 IST against an approved 20 GB budget, to reach ~1,017 decisive negatives. A 2,000-observation snapshot gives only ~200 and cannot support a cold-entity claim. Task A1 carries the arithmetic.
+- **Concept is settled.** TraceTriage, August Space theme. Do not re-select the concept, re-research competitors, or reconsider the rejected PassCast design.
+- **Python 3.12**, not the machine's 3.14, for wheel coverage across opencv, scikit-image and onnxruntime.
+
 ## The one blocking unknown
 
 **Are SatNOGS waterfalls already Doppler-corrected at capture?**

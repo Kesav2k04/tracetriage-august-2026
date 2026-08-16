@@ -126,8 +126,24 @@ Verified facts, do not rediscover (docs/SATNOGS_API_RECON.md sections 1, 4, 9):
 - a bare listing returns FUTURE observations with null waterfalls; always date-bound
 - no auth needed; send a real User-Agent with a contact address; 0.4s between requests
 
+SNAPSHOT SIZE IS DECIDED. Do not re-derive it, do not scale it down.
+Target 10,000 observations, not 2,000. The operator approved a 20 GB budget on
+2026-08-16 specifically to buy a balanced decisive-negative set.
+
+The arithmetic, from the measured rates in docs/KILL_GATE.md gate 1:
+  10,000 observations
+  x 92.3% waterfall presence   = ~9,230 waterfalls  = ~15.7 GB at 1.7 MB mean
+  x 10.17% without-signal      = ~1,017 decisive NEGATIVES
+  x 18.83% with-signal         = ~1,883 decisive POSITIVES
+A 2,000-observation snapshot would yield only ~200 decisive negatives, which is
+too thin to hold up a cold-entity claim. That is the whole reason for 10,000.
+
+Budget check before you start: ~16 GB of PNG plus raw JSON. Confirm free space
+on D: first and abort with a clear message if it is short. Do not part-download.
+
 Requirements:
 - CLI: --end <ISO8601> --target-waterfalls <N> --out data/snapshots/<id>/
+  (default N=10000; the flag exists for small test runs, not for shrinking the real one)
 - store the RAW json response per page, unmodified, plus a sha256 of each
 - store per observation: retrieval timestamp (UTC), source URL, sha256 of the
   waterfall bytes, CC BY-SA 4.0 licence string, schema_version

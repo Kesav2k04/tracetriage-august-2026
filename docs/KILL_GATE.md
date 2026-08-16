@@ -41,7 +41,23 @@ Entity spread passes with enormous margin in a sample less than a third of the r
 
 Decisive negatives ran at **10.2%** (61/600), against 18.8% positives, a **1.85 : 1** positive-to-negative imbalance among decisive labels.
 
-A 2,000-waterfall snapshot yields roughly 380 decisive positives and 200 decisive negatives. If the evaluation needs 1,000 decisive per class, the snapshot must grow to roughly **10,000 observations and about 17 GB**. Decide the target decisive-negative count *before* starting the download. Report the imbalance; do not silently rebalance it.
+A 2,000-waterfall snapshot yields roughly 380 decisive positives and 200 decisive negatives, which is too thin to hold up a cold-entity claim.
+
+### DECIDED, 2026-08-16 15:20 IST: snapshot target is 10,000 observations
+
+The operator approved a **20 GB** data budget for exactly this reason. At the measured rates:
+
+| | |
+|---|---|
+| Observations fetched | 10,000 |
+| Waterfalls at 92.3% | ~9,230, about **15.7 GB** at 1.7 MB mean |
+| Decisive negatives at 10.17% | **~1,017** |
+| Decisive positives at 18.83% | ~1,883 |
+| Cursor pages at 25/page | ~400, roughly 15 minutes at 0.4 s spacing |
+
+That clears roughly 1,000 decisive per class on the negative side, which is the binding one. Task A1 carries this number and must not scale it down.
+
+Report the 1.85:1 imbalance in the results; do not silently rebalance it.
 
 ---
 
