@@ -410,18 +410,72 @@ Build the first two rungs of the model ladder as the honest baseline everything
 later must beat: a centre-energy heuristic, and HOG plus regularised logistic
 regression, both CALIBRATED.
 
-Calibration matters here specifically. Gate 5 requires the physics model to beat a
-CALIBRATED image-only baseline. Beating an uncalibrated one proves nothing except
-that calibration works.
+The dataset is built. Read it from the snapshot directory given to you; its
+DATASET_MANIFEST.json is the only source of truth for what exists, and its
+counts block tells you the corpus size before you load a single image.
 
-Requirements:
-- temporary chronological split only. Do not touch the frozen test set.
-- report Brier score, log loss, calibration slope and intercept, reliability plot
-- write artifacts/BASELINE_RECEIPT.json with every number and the input hashes
+Calibration matters here specifically. Gate 5 requires the physics model to beat
+a CALIBRATED image-only baseline. Beating an uncalibrated one proves nothing
+except that calibration works.
+
+SIX TRAPS, EACH MEASURED, EACH WITH A COST:
+
+1. Most of this corpus carries no label at all. waterfall_status is "unknown" on
+   roughly seven observations in ten. Reading "unknown" as "without-signal"
+   inflates the negative class about ninefold and produces a model that has
+   learned which observations a human got round to vetting. Use
+   provenance.label_from_obs and drop every UNLABELLED record from both training
+   and evaluation. Do not invent a label for them.
+
+2. A missing waterfall is not a negative. Some observations have no waterfall
+   URL at all, and ArtifactStatus.MISSING means the artifact is unusable, which
+   is a different fact from "no signal was present".
+
+3. Some missing reasons are transient. THROTTLED, TIMEOUT and HTTP_ERROR mean
+   the server refused for now, not that the artifact is bad. Exclude them and
+   count them separately from the permanent reasons, so the exclusion table
+   distinguishes "not fetched" from "not usable".
+
+4. Train against labelled_positive. Never against carries_measurable_trace.
+   A3 measured this: of 24 vetted with-signal observations, only 7 carried a
+   narrowband trace a whole-path matched filter could find at all. "with-signal"
+   is a human saying something is visible, not a promise that a narrow carrier
+   exists. Training against MEASURABLE trains against a target that is invisible
+   in most positive examples. provenance.py keeps these as two separate fields
+   for exactly this reason; do not collapse them.
+
+5. The geometry parse is allowed to fail, and a failure is not a prediction.
+   The centre-energy heuristic needs hz_per_px and crop_box from A2, which
+   degrade by design when the axis cannot be read. An observation whose geometry
+   failed must be excluded and counted, never scored as zero energy. A silent
+   zero here reads as a confident negative.
+
+6. Accuracy is meaningless at this imbalance. Among decisive labels the split is
+   close to two positives per negative, so predicting "positive" always scores
+   about 66 percent and has learned nothing. Report Brier score, log loss,
+   calibration slope and intercept, and a reliability curve.
+
+REQUIREMENTS:
+- temporary chronological split only. Do not touch the frozen test set; B1
+  builds the real splits. Note in the receipt that a random split would leak,
+  because a few hundred ground stations are spread across the corpus and station
+  identity carries signal.
+- report a prior-only model as the floor: predict the training base rate for
+  every observation. A baseline that cannot beat that on Brier score has learned
+  nothing, and the receipt must say so plainly if that is what happened.
+- measure the base rates from the manifest and record them. The constants in
+  provenance.py are a prior from a recon sample, not a measurement of this
+  corpus; tests/test_base_rates.py checks the two against each other.
+- write artifacts/BASELINE_RECEIPT.json with every number, the snapshot id, the
+  manifest sha256, the seed, and an exclusion table whose counts sum to the
+  corpus size.
 
 ACCEPTANCE:
 - both baselines train and score reproducibly from a fixed seed
 - BASELINE_RECEIPT.json exists and its numbers regenerate identically on re-run
+- the exclusion counts sum to the number of observations in the manifest, with
+  no residual bucket
+- the prior-only floor is reported next to both baselines
 - docs/PRIOR_ART_BASELINES.md records what these are and why they are the bar
 ```
 
