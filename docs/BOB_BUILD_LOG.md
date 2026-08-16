@@ -26,7 +26,7 @@ and their result, what failed, what was repaired, and the **actual** Bobcoins sp
 
 ## Entries
 
-### 2026-08-17 IST | Account 1 | A0: Ratify the data contracts
+### 2026-08-16 IST | Account 1 | A0: Ratify the data contracts
 
 **Task given:** Read all `contracts/*.schema.json` files. Check each against the verified API facts in BOB_START_HERE.md section 3. Fix anything wrong, add anything missing, delete anything speculative. Set `"status": "ratified"` and bump `schema_version` on each.
 
@@ -62,7 +62,7 @@ and their result, what failed, what was repaired, and the **actual** Bobcoins sp
 
 ---
 
-## A0b. Contract gaps closed after external review (2026-08-16)
+### 2026-08-16 IST | Claude review lane, no Bob account | A0b: Contract gaps closed after external review
 
 **Proposed by:** Claude (Anthropic), acting under the review lane in `.bob/rules.md`
 section 1. No Bob coins spent. **Pending Bob integration review.** Nothing here

@@ -17,7 +17,7 @@ Quoted from `Challenge_Details.md` lines 94 to 110.
 | Artifact | the running TraceTriage console plus the pipeline behind it |
 | Evidence Bob was primary | `docs/BOB_BUILD_LOG.md`, `docs/BOB_HANDOFF.md`, `bob_sessions/` |
 | Boundary proof | `docs/PREPARED_BY_CLAUDE.md` |
-| Status | **not started.** Bob begins at unit A0. |
+| Status | **in progress.** A0 ratified the five data contracts and was accepted at A0b-INT (commit `3df6f98`, 2026-08-16 18:42 IST). 7/7 standing gates, 34 tests. Bob is at unit **A1**, the snapshot builder. `pipeline/tracetriage/` is still empty, so no judged-path code exists yet. |
 
 Official Rules line 197 phrases the same requirement as "Use of IBM Bob as the **core component** of all project submissions", and explicitly permits watsonx, Granite, LangFlow and Docling **in addition**. Granite is already planned as a conditional component.
 
@@ -125,7 +125,7 @@ That last row is live right now: `MASTER_PLAN_TRACE_TRIAGE.md` and `Ultimate_Opp
 
 | # | Item | Status | Blocking |
 |---|---|---|---|
-| 1 | Working prototype via Bob | not started | Bob at A0 |
+| 1 | Working prototype via Bob | in progress | A0 accepted, Bob at A1 |
 | 2 | SkillsBuild certificate | **not started** | nothing. Do it this week. |
 | 3a | Public GitHub repo | created, **private**, 4 commits pushed | flip to public at freeze (~28 Aug) |
 | 3b | README with all five sections | drafted | fills in as results land |
