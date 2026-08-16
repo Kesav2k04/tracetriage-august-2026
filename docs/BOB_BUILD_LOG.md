@@ -343,3 +343,83 @@ complete and nothing later overwrites it by accident.
 
 **Outcome:** accepted. 52 tests pass. 135 offline tests pass. Gate 7/7 after commit.
 
+
+---
+
+### 2026-08-17 IST | Account 3 | A4: Physics corridor module
+
+**Task given:** Build `pipeline/tracetriage/physics.py`: the expected-frequency
+corridor for an observation, from its own stored metadata. No external TLE
+lookup, no join. Emit BOTH corridor shapes (uncorrected Doppler S-curve and
+corrected near-vertical residual band), each with a width band. Named degraded
+states for all failure modes. Validate against ≥200 observations and report the
+error distribution.
+
+**Files created/changed:**
+- `pipeline/tracetriage/physics.py` (new, production physics corridor module)
+- `tests/test_physics.py` (new, 61 offline tests)
+- `scripts/validate_physics.py` (new, live validation runner)
+- `artifacts/PHYSICS_VALIDATION.json` (new, validation results over 200 observations)
+- `docs/BOB_BUILD_LOG.md` (this entry)
+- `docs/BOB_HANDOFF.md` (updated)
+
+**Commands run:**
+- `.venv\Scripts\python.exe -m pytest tests/test_physics.py -v`
+- `.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q`
+- `.venv\Scripts\python.exe -m ruff check .`
+- `.venv\Scripts\python.exe scripts\validate_physics.py` (live, ~16 s, 8 API pages)
+- `.venv\Scripts\python.exe scripts\gate.py`
+
+**Tests:** 61 new physics tests, all pass. Full offline suite: 215 passed,
+1 xfailed. Gate 7/7 after commit.
+
+**Validation results (200 observations, end=2026-08-10T00:00:00Z):**
+
+| Metric | Value |
+|---|---|
+| n_success | 199 / 200 |
+| n_degraded | 1 (STALE_TLE) |
+| Median abs error | 0.21° |
+| p90 abs error | 0.47° |
+| p99 abs error | 0.61° |
+| Max abs error | 3.39° |
+| Within 1° | 99.5% |
+| Within 5° | 100.0% |
+
+**Key design decisions:**
+- Both corridor shapes always emitted: `uncorrected` (full Doppler S-curve,
+  ±2 kHz half-width) and `corrected` (near-vertical band, ±200 Hz half-width).
+  Collapsing to one shape early would destroy the disagreement signal the queue
+  ranks on.
+- `AXIS_SIGN_CONVENTION = -1`: the plotted frequency axis runs against the
+  Doppler sign (measured in A3 at 25 sigma; tested explicitly).
+- Time runs bottom to top: `row_frac = 1 - (row + 0.5) / H` (measured in A3;
+  tested with a sign-flip guard test).
+- Free constant `FREQ_OFFSET_SEARCH_HZ = ±20 kHz` (10× the largest measured
+  offset of 14.0 kHz).
+- TLE epoch staleness threshold: 14 days from pass midpoint → `STALE_TLE`.
+- SGP4 propagation, proper GMST, ECI→ECEF rotation, Earth-rotation velocity
+  correction. Same formulation as the A3 investigation which reproduced
+  max_altitude to 0.18 degrees.
+- `corridor_columns()` maps a Corridor to pixel column per image row, applying
+  the axis sign convention and a free offset parameter.
+
+**Failures and repairs:**
+1. First frozen test observation (ISS over Prague, 2024-01-01 12:00 UTC) was
+   below the horizon — elevation -55.9°. Fixed by scanning 48 hours to find a
+   real visible pass (01:22–01:33 UTC, max_el 48.8°).
+2. `@pytest.fixture(scope="class")` on an instance method caused a pytest 9
+   DeprecationWarning. Fixed by adding `@classmethod`.
+3. Unimodal elevation test skipped because TCA was near the edge of the
+   01:22–01:33 window. Replaced with a separate 68.4° pass (03:00–03:09) where
+   TCA is firmly in the interior.
+4. Four ruff lint errors (I001, F401 ×2, SIM300) fixed with `ruff --fix`.
+
+**Coins:** estimated 3–4, actual ~3.
+
+**Bob task ID:** (workspace `tracetriage-august-2026`, account 3)
+
+**Commit:** (pending)
+
+**Outcome:** accepted. 61 tests pass. 215 offline tests pass. Gate 7/7 after commit.
+

@@ -9,12 +9,32 @@
 | | |
 |---|---|
 | **Handoff written** | 2026-08-17, IST |
-| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`) |
+| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`), **A4** (pending commit) |
 | **Account in use** | account 3 |
 | **Current wave** | Wave A, in progress |
-| **Next unit** | **A4: physics corridor module**. A3 is answered, so A4 is unblocked. |
-| **Open failures** | none. 7/7 standing gates, 166 tests pass offline. |
-| **Last commit** | `c7ca696` (2026-08-16 IST) |
+| **Next unit** | **A5: provenance** |
+| **Open failures** | none. 7/7 standing gates, 215 tests pass offline. |
+| **Last commit** | `c7ca696` (2026-08-16 IST) — A4 commit pending |
+
+### A4 is closed. Read this before A5.
+
+**`pipeline/tracetriage/physics.py`** is the production corridor module.  Do
+not regenerate it.  Key facts for any unit that uses it:
+
+- `corridor_for_obs(obs)` → `PhysicsResult`.  Never raises; all failures return
+  a named `degraded` reason code.
+- `PhysicsResult.uncorrected` — full Doppler S-curve, `half_width_hz = 2000.0`.
+- `PhysicsResult.corrected` — near-vertical residual band, `half_width_hz = 200.0`.
+- `AXIS_SIGN_CONVENTION = -1`: positive Doppler → LEFT on the rendered axis.
+- `corridor_columns(corridor, hz_per_px, centre_px, image_height)` → pixel
+  columns per image row.  Accepts a `freq_offset_hz` argument (search range
+  `±FREQ_OFFSET_SEARCH_HZ = ±20 kHz`).
+- Validation on 200 observations: median abs error 0.21°, p99 0.61°, 99.5%
+  within 1°.  Full distribution in `artifacts/PHYSICS_VALIDATION.json`.
+- Degraded reason codes: `MISSING_TLE`, `STALE_TLE`, `SGP4_ERROR`,
+  `MISSING_STATION`, `MISSING_FREQ`.
+
+---
 
 ### A3 is closed. Read this before building the corridor in A4
 

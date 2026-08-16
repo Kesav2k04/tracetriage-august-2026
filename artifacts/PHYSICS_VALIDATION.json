@@ -1,0 +1,2020 @@
+{
+  "generated_at": "2026-08-16T19:28:06.179665+00:00",
+  "end_date_filter": "2026-08-10T00:00:00Z",
+  "n_observations_fetched": 200,
+  "distribution": {
+    "n_success": 199,
+    "n_degraded": 1,
+    "n_total": 200,
+    "degraded_by_reason": {
+      "STALE_TLE": 1
+    },
+    "mean_abs_error_deg": 0.24898026859365976,
+    "median_abs_error_deg": 0.20819727380630582,
+    "p90_abs_error_deg": 0.4652877091407931,
+    "p95_abs_error_deg": 0.5221600157732468,
+    "p99_abs_error_deg": 0.6059992791377764,
+    "max_abs_error_deg": 3.38606770514032,
+    "pct_within_1deg": 99.49748743718592,
+    "pct_within_2deg": 99.49748743718592,
+    "pct_within_5deg": 100.0
+  },
+  "observations": [
+    {
+      "obs_id": 14746129,
+      "status": "ok",
+      "reported_max_alt_deg": 85.0,
+      "sgp4_max_alt_deg": 84.6641,
+      "error_deg": -0.3359,
+      "abs_error_deg": 0.3359,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.745
+    },
+    {
+      "obs_id": 14745696,
+      "status": "ok",
+      "reported_max_alt_deg": 90.0,
+      "sgp4_max_alt_deg": 89.9444,
+      "error_deg": -0.0556,
+      "abs_error_deg": 0.0556,
+      "tca_frac": 0.510763,
+      "tle_epoch_age_days": 0.676
+    },
+    {
+      "obs_id": 14744333,
+      "status": "ok",
+      "reported_max_alt_deg": 27.0,
+      "sgp4_max_alt_deg": 27.1047,
+      "error_deg": 0.1047,
+      "abs_error_deg": 0.1047,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.795
+    },
+    {
+      "obs_id": 14746118,
+      "status": "ok",
+      "reported_max_alt_deg": 89.0,
+      "sgp4_max_alt_deg": 89.2761,
+      "error_deg": 0.2761,
+      "abs_error_deg": 0.2761,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.483
+    },
+    {
+      "obs_id": 14740801,
+      "status": "ok",
+      "reported_max_alt_deg": 81.0,
+      "sgp4_max_alt_deg": 80.8592,
+      "error_deg": -0.1408,
+      "abs_error_deg": 0.1408,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.472
+    },
+    {
+      "obs_id": 14745873,
+      "status": "ok",
+      "reported_max_alt_deg": 52.0,
+      "sgp4_max_alt_deg": 52.1173,
+      "error_deg": 0.1173,
+      "abs_error_deg": 0.1173,
+      "tca_frac": 0.510763,
+      "tle_epoch_age_days": 0.454
+    },
+    {
+      "obs_id": 14746035,
+      "status": "ok",
+      "reported_max_alt_deg": 66.0,
+      "sgp4_max_alt_deg": 65.9652,
+      "error_deg": -0.0348,
+      "abs_error_deg": 0.0348,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.662
+    },
+    {
+      "obs_id": 14746063,
+      "status": "ok",
+      "reported_max_alt_deg": 8.0,
+      "sgp4_max_alt_deg": 8.0053,
+      "error_deg": 0.0053,
+      "abs_error_deg": 0.0053,
+      "tca_frac": 0.493151,
+      "tle_epoch_age_days": 0.502
+    },
+    {
+      "obs_id": 14735176,
+      "status": "ok",
+      "reported_max_alt_deg": 24.0,
+      "sgp4_max_alt_deg": 24.0029,
+      "error_deg": 0.0029,
+      "abs_error_deg": 0.0029,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 1.061
+    },
+    {
+      "obs_id": 14740031,
+      "status": "ok",
+      "reported_max_alt_deg": 41.0,
+      "sgp4_max_alt_deg": 41.1531,
+      "error_deg": 0.1531,
+      "abs_error_deg": 0.1531,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.479
+    },
+    {
+      "obs_id": 14744941,
+      "status": "ok",
+      "reported_max_alt_deg": 23.0,
+      "sgp4_max_alt_deg": 23.1827,
+      "error_deg": 0.1827,
+      "abs_error_deg": 0.1827,
+      "tca_frac": 0.508806,
+      "tle_epoch_age_days": 0.648
+    },
+    {
+      "obs_id": 14739506,
+      "status": "ok",
+      "reported_max_alt_deg": 50.0,
+      "sgp4_max_alt_deg": 50.4563,
+      "error_deg": 0.4563,
+      "abs_error_deg": 0.4563,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.493
+    },
+    {
+      "obs_id": 14734719,
+      "status": "ok",
+      "reported_max_alt_deg": 22.0,
+      "sgp4_max_alt_deg": 22.0769,
+      "error_deg": 0.0769,
+      "abs_error_deg": 0.0769,
+      "tca_frac": 0.866928,
+      "tle_epoch_age_days": 0.615
+    },
+    {
+      "obs_id": 14732362,
+      "status": "ok",
+      "reported_max_alt_deg": 21.0,
+      "sgp4_max_alt_deg": 20.8683,
+      "error_deg": -0.1317,
+      "abs_error_deg": 0.1317,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.523
+    },
+    {
+      "obs_id": 14745988,
+      "status": "ok",
+      "reported_max_alt_deg": 22.0,
+      "sgp4_max_alt_deg": 21.918,
+      "error_deg": -0.082,
+      "abs_error_deg": 0.082,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.615
+    },
+    {
+      "obs_id": 14745725,
+      "status": "ok",
+      "reported_max_alt_deg": 24.0,
+      "sgp4_max_alt_deg": 24.4504,
+      "error_deg": 0.4504,
+      "abs_error_deg": 0.4504,
+      "tca_frac": 0.493151,
+      "tle_epoch_age_days": 0.86
+    },
+    {
+      "obs_id": 14737345,
+      "status": "ok",
+      "reported_max_alt_deg": 20.0,
+      "sgp4_max_alt_deg": 20.1121,
+      "error_deg": 0.1121,
+      "abs_error_deg": 0.1121,
+      "tca_frac": 0.508806,
+      "tle_epoch_age_days": 1.733
+    },
+    {
+      "obs_id": 14745695,
+      "status": "ok",
+      "reported_max_alt_deg": 79.0,
+      "sgp4_max_alt_deg": 79.4975,
+      "error_deg": 0.4975,
+      "abs_error_deg": 0.4975,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.48
+    },
+    {
+      "obs_id": 14745731,
+      "status": "ok",
+      "reported_max_alt_deg": 74.0,
+      "sgp4_max_alt_deg": 74.0569,
+      "error_deg": 0.0569,
+      "abs_error_deg": 0.0569,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.533
+    },
+    {
+      "obs_id": 14737600,
+      "status": "ok",
+      "reported_max_alt_deg": 77.0,
+      "sgp4_max_alt_deg": 76.5175,
+      "error_deg": -0.4825,
+      "abs_error_deg": 0.4825,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.748
+    },
+    {
+      "obs_id": 14737477,
+      "status": "ok",
+      "reported_max_alt_deg": 38.0,
+      "sgp4_max_alt_deg": 37.8498,
+      "error_deg": -0.1502,
+      "abs_error_deg": 0.1502,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.734
+    },
+    {
+      "obs_id": 14746034,
+      "status": "ok",
+      "reported_max_alt_deg": 83.0,
+      "sgp4_max_alt_deg": 83.247,
+      "error_deg": 0.247,
+      "abs_error_deg": 0.247,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.48
+    },
+    {
+      "obs_id": 14746079,
+      "status": "ok",
+      "reported_max_alt_deg": 47.0,
+      "sgp4_max_alt_deg": 46.724,
+      "error_deg": -0.276,
+      "abs_error_deg": 0.276,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.487
+    },
+    {
+      "obs_id": 14746123,
+      "status": "ok",
+      "reported_max_alt_deg": 27.0,
+      "sgp4_max_alt_deg": 27.3444,
+      "error_deg": 0.3444,
+      "abs_error_deg": 0.3444,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.659
+    },
+    {
+      "obs_id": 14736758,
+      "status": "ok",
+      "reported_max_alt_deg": 25.0,
+      "sgp4_max_alt_deg": 25.168,
+      "error_deg": 0.168,
+      "abs_error_deg": 0.168,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.747
+    },
+    {
+      "obs_id": 14737017,
+      "status": "ok",
+      "reported_max_alt_deg": 33.0,
+      "sgp4_max_alt_deg": 32.6429,
+      "error_deg": -0.3571,
+      "abs_error_deg": 0.3571,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.747
+    },
+    {
+      "obs_id": 14736890,
+      "status": "ok",
+      "reported_max_alt_deg": 33.0,
+      "sgp4_max_alt_deg": 33.106,
+      "error_deg": 0.106,
+      "abs_error_deg": 0.106,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.748
+    },
+    {
+      "obs_id": 14737421,
+      "status": "ok",
+      "reported_max_alt_deg": 20.0,
+      "sgp4_max_alt_deg": 20.2691,
+      "error_deg": 0.2691,
+      "abs_error_deg": 0.2691,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.747
+    },
+    {
+      "obs_id": 14746148,
+      "status": "ok",
+      "reported_max_alt_deg": 20.0,
+      "sgp4_max_alt_deg": 20.304,
+      "error_deg": 0.304,
+      "abs_error_deg": 0.304,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.481
+    },
+    {
+      "obs_id": 14736723,
+      "status": "ok",
+      "reported_max_alt_deg": 60.0,
+      "sgp4_max_alt_deg": 60.0421,
+      "error_deg": 0.0421,
+      "abs_error_deg": 0.0421,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14737506,
+      "status": "ok",
+      "reported_max_alt_deg": 14.0,
+      "sgp4_max_alt_deg": 14.0155,
+      "error_deg": 0.0155,
+      "abs_error_deg": 0.0155,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.747
+    },
+    {
+      "obs_id": 14736730,
+      "status": "ok",
+      "reported_max_alt_deg": 52.0,
+      "sgp4_max_alt_deg": 52.3622,
+      "error_deg": 0.3622,
+      "abs_error_deg": 0.3622,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736806,
+      "status": "ok",
+      "reported_max_alt_deg": 31.0,
+      "sgp4_max_alt_deg": 30.9231,
+      "error_deg": -0.0769,
+      "abs_error_deg": 0.0769,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736818,
+      "status": "ok",
+      "reported_max_alt_deg": 25.0,
+      "sgp4_max_alt_deg": 25.1571,
+      "error_deg": 0.1571,
+      "abs_error_deg": 0.1571,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.747
+    },
+    {
+      "obs_id": 14744577,
+      "status": "ok",
+      "reported_max_alt_deg": 25.0,
+      "sgp4_max_alt_deg": 24.9954,
+      "error_deg": -0.0046,
+      "abs_error_deg": 0.0046,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14744530,
+      "status": "ok",
+      "reported_max_alt_deg": 25.0,
+      "sgp4_max_alt_deg": 24.9954,
+      "error_deg": -0.0046,
+      "abs_error_deg": 0.0046,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736728,
+      "status": "ok",
+      "reported_max_alt_deg": 27.0,
+      "sgp4_max_alt_deg": 27.2938,
+      "error_deg": 0.2938,
+      "abs_error_deg": 0.2938,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736746,
+      "status": "ok",
+      "reported_max_alt_deg": 25.0,
+      "sgp4_max_alt_deg": 24.5968,
+      "error_deg": -0.4032,
+      "abs_error_deg": 0.4032,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.748
+    },
+    {
+      "obs_id": 14737535,
+      "status": "ok",
+      "reported_max_alt_deg": 48.0,
+      "sgp4_max_alt_deg": 47.862,
+      "error_deg": -0.138,
+      "abs_error_deg": 0.138,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737202,
+      "status": "ok",
+      "reported_max_alt_deg": 34.0,
+      "sgp4_max_alt_deg": 33.8554,
+      "error_deg": -0.1446,
+      "abs_error_deg": 0.1446,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.748
+    },
+    {
+      "obs_id": 14737233,
+      "status": "ok",
+      "reported_max_alt_deg": 15.0,
+      "sgp4_max_alt_deg": 15.0649,
+      "error_deg": 0.0649,
+      "abs_error_deg": 0.0649,
+      "tca_frac": 0.508806,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14744734,
+      "status": "ok",
+      "reported_max_alt_deg": 28.0,
+      "sgp4_max_alt_deg": 27.9657,
+      "error_deg": -0.0343,
+      "abs_error_deg": 0.0343,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.465
+    },
+    {
+      "obs_id": 14737442,
+      "status": "ok",
+      "reported_max_alt_deg": 11.0,
+      "sgp4_max_alt_deg": 10.3309,
+      "error_deg": -0.6691,
+      "abs_error_deg": 0.6691,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737548,
+      "status": "ok",
+      "reported_max_alt_deg": 8.0,
+      "sgp4_max_alt_deg": 7.6905,
+      "error_deg": -0.3095,
+      "abs_error_deg": 0.3095,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.747
+    },
+    {
+      "obs_id": 14736921,
+      "status": "ok",
+      "reported_max_alt_deg": 24.0,
+      "sgp4_max_alt_deg": 23.8504,
+      "error_deg": -0.1496,
+      "abs_error_deg": 0.1496,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.748
+    },
+    {
+      "obs_id": 14736978,
+      "status": "ok",
+      "reported_max_alt_deg": 18.0,
+      "sgp4_max_alt_deg": 18.3008,
+      "error_deg": 0.3008,
+      "abs_error_deg": 0.3008,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14737367,
+      "status": "ok",
+      "reported_max_alt_deg": 16.0,
+      "sgp4_max_alt_deg": 15.9138,
+      "error_deg": -0.0862,
+      "abs_error_deg": 0.0862,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14737592,
+      "status": "ok",
+      "reported_max_alt_deg": 9.0,
+      "sgp4_max_alt_deg": 9.1411,
+      "error_deg": 0.1411,
+      "abs_error_deg": 0.1411,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737406,
+      "status": "ok",
+      "reported_max_alt_deg": 71.0,
+      "sgp4_max_alt_deg": 70.851,
+      "error_deg": -0.149,
+      "abs_error_deg": 0.149,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14736786,
+      "status": "ok",
+      "reported_max_alt_deg": 53.0,
+      "sgp4_max_alt_deg": 52.9326,
+      "error_deg": -0.0674,
+      "abs_error_deg": 0.0674,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14745929,
+      "status": "ok",
+      "reported_max_alt_deg": 24.0,
+      "sgp4_max_alt_deg": 23.7824,
+      "error_deg": -0.2176,
+      "abs_error_deg": 0.2176,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.479
+    },
+    {
+      "obs_id": 14746117,
+      "status": "ok",
+      "reported_max_alt_deg": 39.0,
+      "sgp4_max_alt_deg": 38.8427,
+      "error_deg": -0.1573,
+      "abs_error_deg": 0.1573,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.492
+    },
+    {
+      "obs_id": 14737160,
+      "status": "ok",
+      "reported_max_alt_deg": 16.0,
+      "sgp4_max_alt_deg": 16.1846,
+      "error_deg": 0.1846,
+      "abs_error_deg": 0.1846,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737003,
+      "status": "ok",
+      "reported_max_alt_deg": 25.0,
+      "sgp4_max_alt_deg": 24.5842,
+      "error_deg": -0.4158,
+      "abs_error_deg": 0.4158,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737285,
+      "status": "ok",
+      "reported_max_alt_deg": 33.0,
+      "sgp4_max_alt_deg": 32.5323,
+      "error_deg": -0.4677,
+      "abs_error_deg": 0.4677,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736773,
+      "status": "ok",
+      "reported_max_alt_deg": 33.0,
+      "sgp4_max_alt_deg": 32.6112,
+      "error_deg": -0.3888,
+      "abs_error_deg": 0.3888,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737605,
+      "status": "ok",
+      "reported_max_alt_deg": 28.0,
+      "sgp4_max_alt_deg": 27.9512,
+      "error_deg": -0.0488,
+      "abs_error_deg": 0.0488,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737198,
+      "status": "ok",
+      "reported_max_alt_deg": 75.0,
+      "sgp4_max_alt_deg": 74.8665,
+      "error_deg": -0.1335,
+      "abs_error_deg": 0.1335,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737397,
+      "status": "ok",
+      "reported_max_alt_deg": 16.0,
+      "sgp4_max_alt_deg": 15.9202,
+      "error_deg": -0.0798,
+      "abs_error_deg": 0.0798,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736956,
+      "status": "ok",
+      "reported_max_alt_deg": 44.0,
+      "sgp4_max_alt_deg": 44.356,
+      "error_deg": 0.356,
+      "abs_error_deg": 0.356,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736781,
+      "status": "ok",
+      "reported_max_alt_deg": 51.0,
+      "sgp4_max_alt_deg": 50.8113,
+      "error_deg": -0.1887,
+      "abs_error_deg": 0.1887,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736913,
+      "status": "ok",
+      "reported_max_alt_deg": 10.0,
+      "sgp4_max_alt_deg": 10.0728,
+      "error_deg": 0.0728,
+      "abs_error_deg": 0.0728,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 1.731
+    },
+    {
+      "obs_id": 14737322,
+      "status": "ok",
+      "reported_max_alt_deg": 46.0,
+      "sgp4_max_alt_deg": 46.2082,
+      "error_deg": 0.2082,
+      "abs_error_deg": 0.2082,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736971,
+      "status": "ok",
+      "reported_max_alt_deg": 29.0,
+      "sgp4_max_alt_deg": 28.5187,
+      "error_deg": -0.4813,
+      "abs_error_deg": 0.4813,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736753,
+      "status": "ok",
+      "reported_max_alt_deg": 29.0,
+      "sgp4_max_alt_deg": 28.5187,
+      "error_deg": -0.4813,
+      "abs_error_deg": 0.4813,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737162,
+      "status": "ok",
+      "reported_max_alt_deg": 61.0,
+      "sgp4_max_alt_deg": 60.8956,
+      "error_deg": -0.1044,
+      "abs_error_deg": 0.1044,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737118,
+      "status": "ok",
+      "reported_max_alt_deg": 86.0,
+      "sgp4_max_alt_deg": 86.2953,
+      "error_deg": 0.2953,
+      "abs_error_deg": 0.2953,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737189,
+      "status": "ok",
+      "reported_max_alt_deg": 29.0,
+      "sgp4_max_alt_deg": 29.0409,
+      "error_deg": 0.0409,
+      "abs_error_deg": 0.0409,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736800,
+      "status": "ok",
+      "reported_max_alt_deg": 50.0,
+      "sgp4_max_alt_deg": 49.814,
+      "error_deg": -0.186,
+      "abs_error_deg": 0.186,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737358,
+      "status": "ok",
+      "reported_max_alt_deg": 18.0,
+      "sgp4_max_alt_deg": 18.0304,
+      "error_deg": 0.0304,
+      "abs_error_deg": 0.0304,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14737059,
+      "status": "ok",
+      "reported_max_alt_deg": 14.0,
+      "sgp4_max_alt_deg": 13.9351,
+      "error_deg": -0.0649,
+      "abs_error_deg": 0.0649,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.747
+    },
+    {
+      "obs_id": 14736835,
+      "status": "ok",
+      "reported_max_alt_deg": 9.0,
+      "sgp4_max_alt_deg": 8.5912,
+      "error_deg": -0.4088,
+      "abs_error_deg": 0.4088,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737513,
+      "status": "ok",
+      "reported_max_alt_deg": 62.0,
+      "sgp4_max_alt_deg": 61.4569,
+      "error_deg": -0.5431,
+      "abs_error_deg": 0.5431,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14736794,
+      "status": "ok",
+      "reported_max_alt_deg": 9.0,
+      "sgp4_max_alt_deg": 8.6726,
+      "error_deg": -0.3274,
+      "abs_error_deg": 0.3274,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737408,
+      "status": "ok",
+      "reported_max_alt_deg": 59.0,
+      "sgp4_max_alt_deg": 59.2923,
+      "error_deg": 0.2923,
+      "abs_error_deg": 0.2923,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14732518,
+      "status": "ok",
+      "reported_max_alt_deg": 21.0,
+      "sgp4_max_alt_deg": 20.4961,
+      "error_deg": -0.5039,
+      "abs_error_deg": 0.5039,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.469
+    },
+    {
+      "obs_id": 14736826,
+      "status": "ok",
+      "reported_max_alt_deg": 23.0,
+      "sgp4_max_alt_deg": 22.7442,
+      "error_deg": -0.2558,
+      "abs_error_deg": 0.2558,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.747
+    },
+    {
+      "obs_id": 14737186,
+      "status": "ok",
+      "reported_max_alt_deg": 6.0,
+      "sgp4_max_alt_deg": 5.8369,
+      "error_deg": -0.1631,
+      "abs_error_deg": 0.1631,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14737139,
+      "status": "ok",
+      "reported_max_alt_deg": 9.0,
+      "sgp4_max_alt_deg": 8.4827,
+      "error_deg": -0.5173,
+      "abs_error_deg": 0.5173,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14737024,
+      "status": "ok",
+      "reported_max_alt_deg": 9.0,
+      "sgp4_max_alt_deg": 8.4827,
+      "error_deg": -0.5173,
+      "abs_error_deg": 0.5173,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14736861,
+      "status": "ok",
+      "reported_max_alt_deg": 5.0,
+      "sgp4_max_alt_deg": 4.9295,
+      "error_deg": -0.0705,
+      "abs_error_deg": 0.0705,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737501,
+      "status": "ok",
+      "reported_max_alt_deg": 24.0,
+      "sgp4_max_alt_deg": 24.0245,
+      "error_deg": 0.0245,
+      "abs_error_deg": 0.0245,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14746055,
+      "status": "ok",
+      "reported_max_alt_deg": 79.0,
+      "sgp4_max_alt_deg": 79.5682,
+      "error_deg": 0.5682,
+      "abs_error_deg": 0.5682,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 1.108
+    },
+    {
+      "obs_id": 14737171,
+      "status": "ok",
+      "reported_max_alt_deg": 17.0,
+      "sgp4_max_alt_deg": 16.8929,
+      "error_deg": -0.1071,
+      "abs_error_deg": 0.1071,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14746106,
+      "status": "ok",
+      "reported_max_alt_deg": 66.0,
+      "sgp4_max_alt_deg": 66.5011,
+      "error_deg": 0.5011,
+      "abs_error_deg": 0.5011,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 1.108
+    },
+    {
+      "obs_id": 14735743,
+      "status": "ok",
+      "reported_max_alt_deg": 17.0,
+      "sgp4_max_alt_deg": 16.5942,
+      "error_deg": -0.4058,
+      "abs_error_deg": 0.4058,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.477
+    },
+    {
+      "obs_id": 14746078,
+      "status": "ok",
+      "reported_max_alt_deg": 37.0,
+      "sgp4_max_alt_deg": 37.2167,
+      "error_deg": 0.2167,
+      "abs_error_deg": 0.2167,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.608
+    },
+    {
+      "obs_id": 14736898,
+      "status": "ok",
+      "reported_max_alt_deg": 17.0,
+      "sgp4_max_alt_deg": 17.1055,
+      "error_deg": 0.1055,
+      "abs_error_deg": 0.1055,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737238,
+      "status": "ok",
+      "reported_max_alt_deg": 19.0,
+      "sgp4_max_alt_deg": 18.9759,
+      "error_deg": -0.0241,
+      "abs_error_deg": 0.0241,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14746049,
+      "status": "ok",
+      "reported_max_alt_deg": 28.0,
+      "sgp4_max_alt_deg": 27.7075,
+      "error_deg": -0.2925,
+      "abs_error_deg": 0.2925,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.677
+    },
+    {
+      "obs_id": 14736842,
+      "status": "ok",
+      "reported_max_alt_deg": 31.0,
+      "sgp4_max_alt_deg": 31.1042,
+      "error_deg": 0.1042,
+      "abs_error_deg": 0.1042,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737091,
+      "status": "ok",
+      "reported_max_alt_deg": 46.0,
+      "sgp4_max_alt_deg": 46.2987,
+      "error_deg": 0.2987,
+      "abs_error_deg": 0.2987,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14736742,
+      "status": "ok",
+      "reported_max_alt_deg": 19.0,
+      "sgp4_max_alt_deg": 18.9185,
+      "error_deg": -0.0815,
+      "abs_error_deg": 0.0815,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.744
+    },
+    {
+      "obs_id": 14736883,
+      "status": "ok",
+      "reported_max_alt_deg": 24.0,
+      "sgp4_max_alt_deg": 23.4502,
+      "error_deg": -0.5498,
+      "abs_error_deg": 0.5498,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.732
+    },
+    {
+      "obs_id": 14736864,
+      "status": "ok",
+      "reported_max_alt_deg": 29.0,
+      "sgp4_max_alt_deg": 28.5603,
+      "error_deg": -0.4397,
+      "abs_error_deg": 0.4397,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14737313,
+      "status": "ok",
+      "reported_max_alt_deg": 10.0,
+      "sgp4_max_alt_deg": 10.1505,
+      "error_deg": 0.1505,
+      "abs_error_deg": 0.1505,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.744
+    },
+    {
+      "obs_id": 14736980,
+      "status": "ok",
+      "reported_max_alt_deg": 89.0,
+      "sgp4_max_alt_deg": 89.4013,
+      "error_deg": 0.4013,
+      "abs_error_deg": 0.4013,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.746
+    },
+    {
+      "obs_id": 14745872,
+      "status": "ok",
+      "reported_max_alt_deg": 22.0,
+      "sgp4_max_alt_deg": 21.6617,
+      "error_deg": -0.3383,
+      "abs_error_deg": 0.3383,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.466
+    },
+    {
+      "obs_id": 14737293,
+      "status": "ok",
+      "reported_max_alt_deg": 13.0,
+      "sgp4_max_alt_deg": 12.5437,
+      "error_deg": -0.4563,
+      "abs_error_deg": 0.4563,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.745
+    },
+    {
+      "obs_id": 14736946,
+      "status": "ok",
+      "reported_max_alt_deg": 6.0,
+      "sgp4_max_alt_deg": 5.7471,
+      "error_deg": -0.2529,
+      "abs_error_deg": 0.2529,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.744
+    },
+    {
+      "obs_id": 14736906,
+      "status": "ok",
+      "reported_max_alt_deg": 6.0,
+      "sgp4_max_alt_deg": 5.6982,
+      "error_deg": -0.3018,
+      "abs_error_deg": 0.3018,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.744
+    },
+    {
+      "obs_id": 14736812,
+      "status": "ok",
+      "reported_max_alt_deg": 20.0,
+      "sgp4_max_alt_deg": 19.4437,
+      "error_deg": -0.5563,
+      "abs_error_deg": 0.5563,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.73
+    },
+    {
+      "obs_id": 14740030,
+      "status": "ok",
+      "reported_max_alt_deg": 56.0,
+      "sgp4_max_alt_deg": 56.3141,
+      "error_deg": 0.3141,
+      "abs_error_deg": 0.3141,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.452
+    },
+    {
+      "obs_id": 14736938,
+      "status": "ok",
+      "reported_max_alt_deg": 25.0,
+      "sgp4_max_alt_deg": 24.8631,
+      "error_deg": -0.1369,
+      "abs_error_deg": 0.1369,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.743
+    },
+    {
+      "obs_id": 14739488,
+      "status": "ok",
+      "reported_max_alt_deg": 87.0,
+      "sgp4_max_alt_deg": 86.9004,
+      "error_deg": -0.0996,
+      "abs_error_deg": 0.0996,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.481
+    },
+    {
+      "obs_id": 14737035,
+      "status": "ok",
+      "reported_max_alt_deg": 11.0,
+      "sgp4_max_alt_deg": 11.0631,
+      "error_deg": 0.0631,
+      "abs_error_deg": 0.0631,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.744
+    },
+    {
+      "obs_id": 14738773,
+      "status": "ok",
+      "reported_max_alt_deg": 80.0,
+      "sgp4_max_alt_deg": 79.9782,
+      "error_deg": -0.0218,
+      "abs_error_deg": 0.0218,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.87
+    },
+    {
+      "obs_id": 14745683,
+      "status": "ok",
+      "reported_max_alt_deg": 81.0,
+      "sgp4_max_alt_deg": 81.4626,
+      "error_deg": 0.4626,
+      "abs_error_deg": 0.4626,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.467
+    },
+    {
+      "obs_id": 14737127,
+      "status": "ok",
+      "reported_max_alt_deg": 14.0,
+      "sgp4_max_alt_deg": 14.1305,
+      "error_deg": 0.1305,
+      "abs_error_deg": 0.1305,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.744
+    },
+    {
+      "obs_id": 14746100,
+      "status": "ok",
+      "reported_max_alt_deg": 85.0,
+      "sgp4_max_alt_deg": 84.4657,
+      "error_deg": -0.5343,
+      "abs_error_deg": 0.5343,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.913
+    },
+    {
+      "obs_id": 14735287,
+      "status": "ok",
+      "reported_max_alt_deg": 62.0,
+      "sgp4_max_alt_deg": 65.3861,
+      "error_deg": 3.3861,
+      "abs_error_deg": 3.3861,
+      "tca_frac": 0.655577,
+      "tle_epoch_age_days": 0.461
+    },
+    {
+      "obs_id": 14737254,
+      "status": "ok",
+      "reported_max_alt_deg": 24.0,
+      "sgp4_max_alt_deg": 23.6947,
+      "error_deg": -0.3053,
+      "abs_error_deg": 0.3053,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 1.728
+    },
+    {
+      "obs_id": 14739515,
+      "status": "ok",
+      "reported_max_alt_deg": 48.0,
+      "sgp4_max_alt_deg": 48.2677,
+      "error_deg": 0.2677,
+      "abs_error_deg": 0.2677,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.906
+    },
+    {
+      "obs_id": 14746116,
+      "status": "ok",
+      "reported_max_alt_deg": 50.0,
+      "sgp4_max_alt_deg": 49.5644,
+      "error_deg": -0.4356,
+      "abs_error_deg": 0.4356,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.677
+    },
+    {
+      "obs_id": 14746033,
+      "status": "ok",
+      "reported_max_alt_deg": 69.0,
+      "sgp4_max_alt_deg": 68.9221,
+      "error_deg": -0.0779,
+      "abs_error_deg": 0.0779,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.488
+    },
+    {
+      "obs_id": 14744259,
+      "status": "ok",
+      "reported_max_alt_deg": 64.0,
+      "sgp4_max_alt_deg": 63.7138,
+      "error_deg": -0.2862,
+      "abs_error_deg": 0.2862,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.666
+    },
+    {
+      "obs_id": 14746074,
+      "status": "ok",
+      "reported_max_alt_deg": 51.0,
+      "sgp4_max_alt_deg": 51.0427,
+      "error_deg": 0.0427,
+      "abs_error_deg": 0.0427,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.441
+    },
+    {
+      "obs_id": 14744940,
+      "status": "ok",
+      "reported_max_alt_deg": 47.0,
+      "sgp4_max_alt_deg": 46.8457,
+      "error_deg": -0.1543,
+      "abs_error_deg": 0.1543,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.906
+    },
+    {
+      "obs_id": 14745839,
+      "status": "ok",
+      "reported_max_alt_deg": 65.0,
+      "sgp4_max_alt_deg": 65.0162,
+      "error_deg": 0.0162,
+      "abs_error_deg": 0.0162,
+      "tca_frac": 0.438356,
+      "tle_epoch_age_days": 0.442
+    },
+    {
+      "obs_id": 14745681,
+      "status": "ok",
+      "reported_max_alt_deg": 28.0,
+      "sgp4_max_alt_deg": 27.5353,
+      "error_deg": -0.4647,
+      "abs_error_deg": 0.4647,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.824
+    },
+    {
+      "obs_id": 14746042,
+      "status": "ok",
+      "reported_max_alt_deg": 61.0,
+      "sgp4_max_alt_deg": 61.0087,
+      "error_deg": 0.0087,
+      "abs_error_deg": 0.0087,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.45
+    },
+    {
+      "obs_id": 14745974,
+      "status": "ok",
+      "reported_max_alt_deg": 27.0,
+      "sgp4_max_alt_deg": 27.0778,
+      "error_deg": 0.0778,
+      "abs_error_deg": 0.0778,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.741
+    },
+    {
+      "obs_id": 14746057,
+      "status": "ok",
+      "reported_max_alt_deg": 49.0,
+      "sgp4_max_alt_deg": 49.1693,
+      "error_deg": 0.1693,
+      "abs_error_deg": 0.1693,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.74
+    },
+    {
+      "obs_id": 14744108,
+      "status": "ok",
+      "reported_max_alt_deg": 34.0,
+      "sgp4_max_alt_deg": 34.3326,
+      "error_deg": 0.3326,
+      "abs_error_deg": 0.3326,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.678
+    },
+    {
+      "obs_id": 14745667,
+      "status": "ok",
+      "reported_max_alt_deg": 84.0,
+      "sgp4_max_alt_deg": 84.0242,
+      "error_deg": 0.0242,
+      "abs_error_deg": 0.0242,
+      "tca_frac": 0.219178,
+      "tle_epoch_age_days": 0.684
+    },
+    {
+      "obs_id": 14744775,
+      "status": "ok",
+      "reported_max_alt_deg": 79.0,
+      "sgp4_max_alt_deg": 78.8461,
+      "error_deg": -0.1539,
+      "abs_error_deg": 0.1539,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.716
+    },
+    {
+      "obs_id": 14746077,
+      "status": "ok",
+      "reported_max_alt_deg": 87.0,
+      "sgp4_max_alt_deg": 87.2047,
+      "error_deg": 0.2047,
+      "abs_error_deg": 0.2047,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.486
+    },
+    {
+      "obs_id": 14745665,
+      "status": "ok",
+      "reported_max_alt_deg": 30.0,
+      "sgp4_max_alt_deg": 30.2128,
+      "error_deg": 0.2128,
+      "abs_error_deg": 0.2128,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.74
+    },
+    {
+      "obs_id": 14745664,
+      "status": "ok",
+      "reported_max_alt_deg": 30.0,
+      "sgp4_max_alt_deg": 30.2155,
+      "error_deg": 0.2155,
+      "abs_error_deg": 0.2155,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.74
+    },
+    {
+      "obs_id": 14745651,
+      "status": "ok",
+      "reported_max_alt_deg": 30.0,
+      "sgp4_max_alt_deg": 30.2128,
+      "error_deg": 0.2128,
+      "abs_error_deg": 0.2128,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.74
+    },
+    {
+      "obs_id": 14745682,
+      "status": "ok",
+      "reported_max_alt_deg": 86.0,
+      "sgp4_max_alt_deg": 85.6431,
+      "error_deg": -0.3569,
+      "abs_error_deg": 0.3569,
+      "tca_frac": 0.510763,
+      "tle_epoch_age_days": 0.42
+    },
+    {
+      "obs_id": 14746032,
+      "status": "ok",
+      "reported_max_alt_deg": 64.0,
+      "sgp4_max_alt_deg": 63.4478,
+      "error_deg": -0.5522,
+      "abs_error_deg": 0.5522,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.48
+    },
+    {
+      "obs_id": 14746048,
+      "status": "ok",
+      "reported_max_alt_deg": 55.0,
+      "sgp4_max_alt_deg": 54.6657,
+      "error_deg": -0.3343,
+      "abs_error_deg": 0.3343,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.498
+    },
+    {
+      "obs_id": 14732277,
+      "status": "ok",
+      "reported_max_alt_deg": 52.0,
+      "sgp4_max_alt_deg": 52.1791,
+      "error_deg": 0.1791,
+      "abs_error_deg": 0.1791,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.481
+    },
+    {
+      "obs_id": 14746073,
+      "status": "ok",
+      "reported_max_alt_deg": 81.0,
+      "sgp4_max_alt_deg": 80.8425,
+      "error_deg": -0.1575,
+      "abs_error_deg": 0.1575,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.505
+    },
+    {
+      "obs_id": 14745837,
+      "status": "ok",
+      "reported_max_alt_deg": 58.0,
+      "sgp4_max_alt_deg": 57.9689,
+      "error_deg": -0.0311,
+      "abs_error_deg": 0.0311,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.498
+    },
+    {
+      "obs_id": 14740029,
+      "status": "ok",
+      "reported_max_alt_deg": 89.0,
+      "sgp4_max_alt_deg": 89.0086,
+      "error_deg": 0.0086,
+      "abs_error_deg": 0.0086,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.664
+    },
+    {
+      "obs_id": 14746062,
+      "status": "ok",
+      "reported_max_alt_deg": 77.0,
+      "sgp4_max_alt_deg": 76.7978,
+      "error_deg": -0.2022,
+      "abs_error_deg": 0.2022,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 1.538
+    },
+    {
+      "obs_id": 14739478,
+      "status": "ok",
+      "reported_max_alt_deg": 84.0,
+      "sgp4_max_alt_deg": 83.9204,
+      "error_deg": -0.0796,
+      "abs_error_deg": 0.0796,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.985
+    },
+    {
+      "obs_id": 14746086,
+      "status": "ok",
+      "reported_max_alt_deg": 79.0,
+      "sgp4_max_alt_deg": 79.3421,
+      "error_deg": 0.3421,
+      "abs_error_deg": 0.3421,
+      "tca_frac": 0.516634,
+      "tle_epoch_age_days": 0.505
+    },
+    {
+      "obs_id": 14746051,
+      "status": "ok",
+      "reported_max_alt_deg": 66.0,
+      "sgp4_max_alt_deg": 66.1873,
+      "error_deg": 0.1873,
+      "abs_error_deg": 0.1873,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.498
+    },
+    {
+      "obs_id": 14745680,
+      "status": "ok",
+      "reported_max_alt_deg": 31.0,
+      "sgp4_max_alt_deg": 31.212,
+      "error_deg": 0.212,
+      "abs_error_deg": 0.212,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.862
+    },
+    {
+      "obs_id": 14744967,
+      "status": "ok",
+      "reported_max_alt_deg": 32.0,
+      "sgp4_max_alt_deg": 32.4504,
+      "error_deg": 0.4504,
+      "abs_error_deg": 0.4504,
+      "tca_frac": 0.7182,
+      "tle_epoch_age_days": 0.461
+    },
+    {
+      "obs_id": 14745604,
+      "status": "ok",
+      "reported_max_alt_deg": 85.0,
+      "sgp4_max_alt_deg": 84.4781,
+      "error_deg": -0.5219,
+      "abs_error_deg": 0.5219,
+      "tca_frac": 0.510763,
+      "tle_epoch_age_days": 0.46
+    },
+    {
+      "obs_id": 14745602,
+      "status": "ok",
+      "reported_max_alt_deg": 52.0,
+      "sgp4_max_alt_deg": 52.0055,
+      "error_deg": 0.0055,
+      "abs_error_deg": 0.0055,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.503
+    },
+    {
+      "obs_id": 14746031,
+      "status": "ok",
+      "reported_max_alt_deg": 62.0,
+      "sgp4_max_alt_deg": 62.4145,
+      "error_deg": 0.4145,
+      "abs_error_deg": 0.4145,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.48
+    },
+    {
+      "obs_id": 14744258,
+      "status": "ok",
+      "reported_max_alt_deg": 78.0,
+      "sgp4_max_alt_deg": 77.7639,
+      "error_deg": -0.2361,
+      "abs_error_deg": 0.2361,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.667
+    },
+    {
+      "obs_id": 14745992,
+      "status": "ok",
+      "reported_max_alt_deg": 54.0,
+      "sgp4_max_alt_deg": 54.0458,
+      "error_deg": 0.0458,
+      "abs_error_deg": 0.0458,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.497
+    },
+    {
+      "obs_id": 14745803,
+      "status": "ok",
+      "reported_max_alt_deg": 49.0,
+      "sgp4_max_alt_deg": 48.6765,
+      "error_deg": -0.3235,
+      "abs_error_deg": 0.3235,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.496
+    },
+    {
+      "obs_id": 14746072,
+      "status": "ok",
+      "reported_max_alt_deg": 81.0,
+      "sgp4_max_alt_deg": 80.8069,
+      "error_deg": -0.1931,
+      "abs_error_deg": 0.1931,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.445
+    },
+    {
+      "obs_id": 14732601,
+      "status": "ok",
+      "reported_max_alt_deg": 36.0,
+      "sgp4_max_alt_deg": 36.4114,
+      "error_deg": 0.4114,
+      "abs_error_deg": 0.4114,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.462
+    },
+    {
+      "obs_id": 14734014,
+      "status": "ok",
+      "reported_max_alt_deg": 59.0,
+      "sgp4_max_alt_deg": 58.62,
+      "error_deg": -0.38,
+      "abs_error_deg": 0.38,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.462
+    },
+    {
+      "obs_id": 14734009,
+      "status": "ok",
+      "reported_max_alt_deg": 59.0,
+      "sgp4_max_alt_deg": 58.62,
+      "error_deg": -0.38,
+      "abs_error_deg": 0.38,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.462
+    },
+    {
+      "obs_id": 14746041,
+      "status": "degraded",
+      "reason": "STALE_TLE",
+      "reported_max_alt_deg": 85.0
+    },
+    {
+      "obs_id": 14744939,
+      "status": "ok",
+      "reported_max_alt_deg": 24.0,
+      "sgp4_max_alt_deg": 23.3953,
+      "error_deg": -0.6047,
+      "abs_error_deg": 0.6047,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.483
+    },
+    {
+      "obs_id": 14746105,
+      "status": "ok",
+      "reported_max_alt_deg": 82.0,
+      "sgp4_max_alt_deg": 82.1731,
+      "error_deg": 0.1731,
+      "abs_error_deg": 0.1731,
+      "tca_frac": 0.493151,
+      "tle_epoch_age_days": 0.633
+    },
+    {
+      "obs_id": 14746071,
+      "status": "ok",
+      "reported_max_alt_deg": 5.0,
+      "sgp4_max_alt_deg": 4.9907,
+      "error_deg": -0.0093,
+      "abs_error_deg": 0.0093,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.455
+    },
+    {
+      "obs_id": 14746054,
+      "status": "ok",
+      "reported_max_alt_deg": 74.0,
+      "sgp4_max_alt_deg": 73.8823,
+      "error_deg": -0.1177,
+      "abs_error_deg": 0.1177,
+      "tca_frac": 0.493151,
+      "tle_epoch_age_days": 0.633
+    },
+    {
+      "obs_id": 14737346,
+      "status": "ok",
+      "reported_max_alt_deg": 62.0,
+      "sgp4_max_alt_deg": 62.0193,
+      "error_deg": 0.0193,
+      "abs_error_deg": 0.0193,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 1.72
+    },
+    {
+      "obs_id": 14746076,
+      "status": "ok",
+      "reported_max_alt_deg": 33.0,
+      "sgp4_max_alt_deg": 32.7313,
+      "error_deg": -0.2687,
+      "abs_error_deg": 0.2687,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.465
+    },
+    {
+      "obs_id": 14745795,
+      "status": "ok",
+      "reported_max_alt_deg": 14.0,
+      "sgp4_max_alt_deg": 13.7015,
+      "error_deg": -0.2985,
+      "abs_error_deg": 0.2985,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.469
+    },
+    {
+      "obs_id": 14745417,
+      "status": "ok",
+      "reported_max_alt_deg": 72.0,
+      "sgp4_max_alt_deg": 72.2808,
+      "error_deg": 0.2808,
+      "abs_error_deg": 0.2808,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.447
+    },
+    {
+      "obs_id": 14740028,
+      "status": "ok",
+      "reported_max_alt_deg": 90.0,
+      "sgp4_max_alt_deg": 89.6374,
+      "error_deg": -0.3626,
+      "abs_error_deg": 0.3626,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.471
+    },
+    {
+      "obs_id": 14744188,
+      "status": "ok",
+      "reported_max_alt_deg": 33.0,
+      "sgp4_max_alt_deg": 33.0839,
+      "error_deg": 0.0839,
+      "abs_error_deg": 0.0839,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.806
+    },
+    {
+      "obs_id": 14741578,
+      "status": "ok",
+      "reported_max_alt_deg": 78.0,
+      "sgp4_max_alt_deg": 78.3525,
+      "error_deg": 0.3525,
+      "abs_error_deg": 0.3525,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.462
+    },
+    {
+      "obs_id": 14745867,
+      "status": "ok",
+      "reported_max_alt_deg": 84.0,
+      "sgp4_max_alt_deg": 83.9345,
+      "error_deg": -0.0655,
+      "abs_error_deg": 0.0655,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.71
+    },
+    {
+      "obs_id": 14746030,
+      "status": "ok",
+      "reported_max_alt_deg": 57.0,
+      "sgp4_max_alt_deg": 56.9174,
+      "error_deg": -0.0826,
+      "abs_error_deg": 0.0826,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.623
+    },
+    {
+      "obs_id": 14745823,
+      "status": "ok",
+      "reported_max_alt_deg": 41.0,
+      "sgp4_max_alt_deg": 41.082,
+      "error_deg": 0.082,
+      "abs_error_deg": 0.082,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.492
+    },
+    {
+      "obs_id": 14746056,
+      "status": "ok",
+      "reported_max_alt_deg": 74.0,
+      "sgp4_max_alt_deg": 74.112,
+      "error_deg": 0.112,
+      "abs_error_deg": 0.112,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.471
+    },
+    {
+      "obs_id": 14744657,
+      "status": "ok",
+      "reported_max_alt_deg": 54.0,
+      "sgp4_max_alt_deg": 54.3297,
+      "error_deg": 0.3297,
+      "abs_error_deg": 0.3297,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.471
+    },
+    {
+      "obs_id": 14739450,
+      "status": "ok",
+      "reported_max_alt_deg": 71.0,
+      "sgp4_max_alt_deg": 71.1557,
+      "error_deg": 0.1557,
+      "abs_error_deg": 0.1557,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.445
+    },
+    {
+      "obs_id": 14742036,
+      "status": "ok",
+      "reported_max_alt_deg": 14.0,
+      "sgp4_max_alt_deg": 13.7049,
+      "error_deg": -0.2951,
+      "abs_error_deg": 0.2951,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.8
+    },
+    {
+      "obs_id": 14745663,
+      "status": "ok",
+      "reported_max_alt_deg": 38.0,
+      "sgp4_max_alt_deg": 38.046,
+      "error_deg": 0.046,
+      "abs_error_deg": 0.046,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.806
+    },
+    {
+      "obs_id": 14745613,
+      "status": "ok",
+      "reported_max_alt_deg": 38.0,
+      "sgp4_max_alt_deg": 38.0424,
+      "error_deg": 0.0424,
+      "abs_error_deg": 0.0424,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.806
+    },
+    {
+      "obs_id": 14745608,
+      "status": "ok",
+      "reported_max_alt_deg": 38.0,
+      "sgp4_max_alt_deg": 38.0424,
+      "error_deg": 0.0424,
+      "abs_error_deg": 0.0424,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.806
+    },
+    {
+      "obs_id": 14735286,
+      "status": "ok",
+      "reported_max_alt_deg": 64.0,
+      "sgp4_max_alt_deg": 64.5248,
+      "error_deg": 0.5248,
+      "abs_error_deg": 0.5248,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.621
+    },
+    {
+      "obs_id": 14746069,
+      "status": "ok",
+      "reported_max_alt_deg": 82.0,
+      "sgp4_max_alt_deg": 81.9807,
+      "error_deg": -0.0193,
+      "abs_error_deg": 0.0193,
+      "tca_frac": 0.516634,
+      "tle_epoch_age_days": 0.466
+    },
+    {
+      "obs_id": 14746085,
+      "status": "ok",
+      "reported_max_alt_deg": 81.0,
+      "sgp4_max_alt_deg": 80.5756,
+      "error_deg": -0.4244,
+      "abs_error_deg": 0.4244,
+      "tca_frac": 0.506849,
+      "tle_epoch_age_days": 0.466
+    },
+    {
+      "obs_id": 14745836,
+      "status": "ok",
+      "reported_max_alt_deg": 51.0,
+      "sgp4_max_alt_deg": 50.8013,
+      "error_deg": -0.1987,
+      "abs_error_deg": 0.1987,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.666
+    },
+    {
+      "obs_id": 14746047,
+      "status": "ok",
+      "reported_max_alt_deg": 53.0,
+      "sgp4_max_alt_deg": 52.5659,
+      "error_deg": -0.4341,
+      "abs_error_deg": 0.4341,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.666
+    },
+    {
+      "obs_id": 14746029,
+      "status": "ok",
+      "reported_max_alt_deg": 83.0,
+      "sgp4_max_alt_deg": 82.5537,
+      "error_deg": -0.4463,
+      "abs_error_deg": 0.4463,
+      "tca_frac": 0.508806,
+      "tle_epoch_age_days": 0.707
+    },
+    {
+      "obs_id": 14746050,
+      "status": "ok",
+      "reported_max_alt_deg": 62.0,
+      "sgp4_max_alt_deg": 62.2119,
+      "error_deg": 0.2119,
+      "abs_error_deg": 0.2119,
+      "tca_frac": 0.497065,
+      "tle_epoch_age_days": 0.666
+    },
+    {
+      "obs_id": 14745802,
+      "status": "ok",
+      "reported_max_alt_deg": 21.0,
+      "sgp4_max_alt_deg": 20.6796,
+      "error_deg": -0.3204,
+      "abs_error_deg": 0.3204,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.709
+    },
+    {
+      "obs_id": 14745973,
+      "status": "ok",
+      "reported_max_alt_deg": 86.0,
+      "sgp4_max_alt_deg": 85.958,
+      "error_deg": -0.042,
+      "abs_error_deg": 0.042,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.47
+    },
+    {
+      "obs_id": 14745679,
+      "status": "ok",
+      "reported_max_alt_deg": 60.0,
+      "sgp4_max_alt_deg": 60.3724,
+      "error_deg": 0.3724,
+      "abs_error_deg": 0.3724,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.977
+    },
+    {
+      "obs_id": 14745603,
+      "status": "ok",
+      "reported_max_alt_deg": 54.0,
+      "sgp4_max_alt_deg": 54.165,
+      "error_deg": 0.165,
+      "abs_error_deg": 0.165,
+      "tca_frac": 1.0,
+      "tle_epoch_age_days": 1.721
+    },
+    {
+      "obs_id": 14745684,
+      "status": "ok",
+      "reported_max_alt_deg": 26.0,
+      "sgp4_max_alt_deg": 26.2915,
+      "error_deg": 0.2915,
+      "abs_error_deg": 0.2915,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.462
+    },
+    {
+      "obs_id": 14740027,
+      "status": "ok",
+      "reported_max_alt_deg": 90.0,
+      "sgp4_max_alt_deg": 89.7205,
+      "error_deg": -0.2795,
+      "abs_error_deg": 0.2795,
+      "tca_frac": 0.500978,
+      "tle_epoch_age_days": 0.741
+    },
+    {
+      "obs_id": 14745817,
+      "status": "ok",
+      "reported_max_alt_deg": 62.0,
+      "sgp4_max_alt_deg": 62.2605,
+      "error_deg": 0.2605,
+      "abs_error_deg": 0.2605,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 3.837
+    },
+    {
+      "obs_id": 14745784,
+      "status": "ok",
+      "reported_max_alt_deg": 49.0,
+      "sgp4_max_alt_deg": 48.5786,
+      "error_deg": -0.4214,
+      "abs_error_deg": 0.4214,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.49
+    },
+    {
+      "obs_id": 14739426,
+      "status": "ok",
+      "reported_max_alt_deg": 26.0,
+      "sgp4_max_alt_deg": 26.2971,
+      "error_deg": 0.2971,
+      "abs_error_deg": 0.2971,
+      "tca_frac": 0.508806,
+      "tle_epoch_age_days": 0.494
+    },
+    {
+      "obs_id": 14745866,
+      "status": "ok",
+      "reported_max_alt_deg": 54.0,
+      "sgp4_max_alt_deg": 53.7782,
+      "error_deg": -0.2218,
+      "abs_error_deg": 0.2218,
+      "tca_frac": 0.499022,
+      "tle_epoch_age_days": 0.424
+    },
+    {
+      "obs_id": 14741857,
+      "status": "ok",
+      "reported_max_alt_deg": 87.0,
+      "sgp4_max_alt_deg": 86.7922,
+      "error_deg": -0.2078,
+      "abs_error_deg": 0.2078,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 1.033
+    },
+    {
+      "obs_id": 14741742,
+      "status": "ok",
+      "reported_max_alt_deg": 61.0,
+      "sgp4_max_alt_deg": 60.7648,
+      "error_deg": -0.2352,
+      "abs_error_deg": 0.2352,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.696
+    },
+    {
+      "obs_id": 14744107,
+      "status": "ok",
+      "reported_max_alt_deg": 23.0,
+      "sgp4_max_alt_deg": 23.2618,
+      "error_deg": 0.2618,
+      "abs_error_deg": 0.2618,
+      "tca_frac": 0.495108,
+      "tle_epoch_age_days": 0.952
+    },
+    {
+      "obs_id": 14741733,
+      "status": "ok",
+      "reported_max_alt_deg": 69.0,
+      "sgp4_max_alt_deg": 68.5382,
+      "error_deg": -0.4618,
+      "abs_error_deg": 0.4618,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 1.03
+    },
+    {
+      "obs_id": 14745976,
+      "status": "ok",
+      "reported_max_alt_deg": 20.0,
+      "sgp4_max_alt_deg": 19.8262,
+      "error_deg": -0.1738,
+      "abs_error_deg": 0.1738,
+      "tca_frac": 0.504892,
+      "tle_epoch_age_days": 0.481
+    },
+    {
+      "obs_id": 14746075,
+      "status": "ok",
+      "reported_max_alt_deg": 60.0,
+      "sgp4_max_alt_deg": 59.8132,
+      "error_deg": -0.1868,
+      "abs_error_deg": 0.1868,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.48
+    },
+    {
+      "obs_id": 14741879,
+      "status": "ok",
+      "reported_max_alt_deg": 82.0,
+      "sgp4_max_alt_deg": 81.7934,
+      "error_deg": -0.2066,
+      "abs_error_deg": 0.2066,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.695
+    },
+    {
+      "obs_id": 14741752,
+      "status": "ok",
+      "reported_max_alt_deg": 61.0,
+      "sgp4_max_alt_deg": 60.7314,
+      "error_deg": -0.2686,
+      "abs_error_deg": 0.2686,
+      "tca_frac": 0.502935,
+      "tle_epoch_age_days": 0.696
+    }
+  ]
+}
