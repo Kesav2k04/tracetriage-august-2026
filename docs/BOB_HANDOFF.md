@@ -54,7 +54,9 @@ Full method and numbers: `docs/SATNOGS_API_RECON.md`. The short version:
 
 ## Decisions already taken. Do not re-open these.
 
-- **Snapshot size: 10,000 observations, ~16 GB.** Decided 2026-08-16 15:20 IST against an approved 20 GB budget, to reach ~1,017 decisive negatives. A 2,000-observation snapshot gives only ~200 and cannot support a cold-entity claim. Task A1 carries the arithmetic.
+- **Snapshot is staged: 2,500 observations (~4 GB) then 30,000 (~47 GB).** Decided 2026-08-16 15:40 IST. Disk is not a constraint (103 GB free on D:, 1 TB external available). Stage 1 unblocks gates 3 to 5 in about 45 minutes; stage 2 runs overnight while you work on Wave B, and reaches ~3,050 decisive negatives, which is what the cold-entity holdouts need for usable bootstrap intervals. Task A1 carries the arithmetic and the stratification requirement.
+- **Use the GPU.** RTX 3070 Ti, 8 GB VRAM, `torch 2.13.0+cu126` installed and verified, **14.9x measured** over CPU. CI stays CPU on purpose. Guard against a silent CPU fallback: a run that lands on CPU still finishes, just fifteen times slower, and says nothing. See `docs/HARDWARE_PROFILE.md`.
+- **16 GB RAM is the binding constraint, not disk.** Stream every stage. A full image tensor stack is ~26 GB in float32 and will not fit.
 - **Concept is settled.** TraceTriage, August Space theme. Do not re-select the concept, re-research competitors, or reconsider the rejected PassCast design.
 - **Python 3.12**, not the machine's 3.14, for wheel coverage across opencv, scikit-image and onnxruntime.
 

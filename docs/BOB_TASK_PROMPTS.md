@@ -126,20 +126,45 @@ Verified facts, do not rediscover (docs/SATNOGS_API_RECON.md sections 1, 4, 9):
 - a bare listing returns FUTURE observations with null waterfalls; always date-bound
 - no auth needed; send a real User-Agent with a contact address; 0.4s between requests
 
-SNAPSHOT SIZE IS DECIDED. Do not re-derive it, do not scale it down.
-Target 10,000 observations, not 2,000. The operator approved a 20 GB budget on
-2026-08-16 specifically to buy a balanced decisive-negative set.
+SNAPSHOT SIZE IS DECIDED AND STAGED. Do not re-derive it, do not scale it down.
+Disk is NOT a constraint (954 GB NVMe, 103 GB free on D:, 1 TB external available).
+
+  Stage 1:  2,500 observations  ~4 GB   ~45 min
+  Stage 2: 30,000 observations ~47 GB   ~5 h, run OVERNIGHT
+
+Build stage 1 first and move on. It unblocks kill gates 3, 4 and 5 immediately
+and is enough to build and debug every Wave A module. Kick stage 2 off in the
+background while you work on Wave B. Resumability (below) is what makes this free.
 
 The arithmetic, from the measured rates in docs/KILL_GATE.md gate 1:
-  10,000 observations
-  x 92.3% waterfall presence   = ~9,230 waterfalls  = ~15.7 GB at 1.7 MB mean
-  x 10.17% without-signal      = ~1,017 decisive NEGATIVES
-  x 18.83% with-signal         = ~1,883 decisive POSITIVES
-A 2,000-observation snapshot would yield only ~200 decisive negatives, which is
-too thin to hold up a cold-entity claim. That is the whole reason for 10,000.
+  30,000 observations
+  x 92.3% waterfall presence   = ~27,700 waterfalls = ~47 GB at 1.7 MB mean
+  x 10.17% without-signal      = ~3,050 decisive NEGATIVES
+  x 18.83% with-signal         = ~5,650 decisive POSITIVES
+Why not 2,000: it yields ~200 decisive negatives. When whole stations and
+transmitters are held out, each cold-entity test set is a fraction of that, and
+a grouped bootstrap over a few hundred examples gives intervals too wide to
+claim anything. Statistical power on the cold-entity holdouts is the reason for
+the size, not completeness for its own sake.
 
-Budget check before you start: ~16 GB of PNG plus raw JSON. Confirm free space
-on D: first and abort with a clear message if it is short. Do not part-download.
+STRATIFY stage 2. Do not just take a bigger contiguous block, which mostly buys
+more of the same stations. Spend the size on: multiple time windows (so the
+chronological holdout tests real drift), deliberate coverage of rare client
+families (at least six exist, 6% of records have NO client version, and the
+"unsupported client format" failure state needs real examples), and enough
+distinct stations and transmitters reserved for the cold pools that holding
+them out still leaves a usable training set. Record the sampling design in the
+manifest: a stratified sample described as random is a leakage claim that will
+fail review.
+
+MEMORY IS THE REAL CONSTRAINT, NOT DISK. 16 GB RAM. A 47 GB snapshot cannot be
+loaded, and neither can a tenth of it. Stream everything: polars.scan_parquet
+not read_parquet, batch the images, release arrays between batches. A 9,230-image
+RGB stack at 604x1550 is ~26 GB in float32 and does not fit. See
+docs/HARDWARE_PROFILE.md.
+
+Check free space before each stage and abort with a clear message if short.
+Do not part-download.
 
 Requirements:
 - CLI: --end <ISO8601> --target-waterfalls <N> --out data/snapshots/<id>/
