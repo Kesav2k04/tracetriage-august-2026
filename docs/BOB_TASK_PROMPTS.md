@@ -578,7 +578,24 @@ ACCEPTANCE:
 
 ---
 
-## A7b-INT: integration review of the gate-3 measurement (Bob accepts or rejects)
+## A7b-INT: integration review of the gate-3 measurement (NOT RUN, superseded)
+
+> **Decision, 17 August 2026: this unit was skipped.** The operator chose to move
+> Bob straight to Wave B rather than spend 2 coins on an acceptance review of the
+> gate-3 repair. The three findings that constrain Wave B were folded into the B1
+> prompt instead (`BOB_PASTE_2_B1.txt`), so Bob is told the corrected-corridor
+> result rather than asked to ratify it.
+>
+> What this costs, recorded rather than argued: the gate-3 repair is the one piece
+> of load-bearing work on the judged path that Bob did not build and did not
+> accept. Bob built the module it replaced. If a judge asks who wrote the gate-3
+> statistic, the honest answer is the operator, reviewed by a second AI, not Bob.
+> Everything else in Wave A is Bob's.
+>
+> The unit below is kept unrun so the decision is inspectable and so it can still
+> be handed to Bob later if coins allow.
+
+### Original unit text
 
 **This is an enhancement-loop unit, not a build unit.** You built A7 (`5d9b323`).
 An operator-side review found the gate-3 check could not fail and replaced it.
