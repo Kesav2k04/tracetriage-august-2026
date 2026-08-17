@@ -14,7 +14,7 @@ The plan sets six thresholds that must pass before TraceTriage is worth building
 | 2 | Metadata coverage for the corridor | ≥80% of the sample computable | **PRE-PASSED** |
 | 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **PASSED, 3/3 testable (100%); 4 of 7 not testable, and the 3 span 2 stations on 1 night** |
 | 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** |
-| 5 | Physics beats image-only on Brier | strict improvement, chronological split | **OPEN** |
+| 5 | Physics beats image-only on Brier | strict improvement, chronological split | **NOT ESTABLISHED. Margin +0.02080, 95% CI -0.01271 to +0.05022 on 88 test observations across 88 episodes. A narrower arm (image + corridor) does clear zero and survives correction; the gate as worded does not.** |
 | 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **OPEN** |
 
 ---
@@ -185,13 +185,47 @@ If below 80%, the labelling protocol is the problem, not the model. Fix the prot
 
 ---
 
-## Gate 5: physics improves probability quality — OPEN
+## Gate 5: physics improves probability quality — NOT ESTABLISHED
 
 **Threshold:** the physics-conditioned model lowers Brier score against a calibrated image-only baseline on a temporary chronological split.
 
-Both baselines are Bob's Wave A and B work. The comparison must be against a **calibrated** image-only baseline, not a raw one, or the improvement is just calibration wearing a physics costume.
+**Measured 17 Aug 2026 in B2-B6.** Receipt: `artifacts/FUSION_RECEIPT.json`. Run:
+`.venv/Scripts/python.exe scripts/run_fusion.py --n-boot 4000`.
 
-Use the temporary chronological split here. The frozen test set is not touched at this stage.
+> The physics-conditioned arm has the lower Brier score by 0.02080, but the 95% interval
+> (-0.01271 to 0.05022) spans zero on 88 test observations across 88 episodes. A point
+> estimate in the right direction with an interval containing zero is not a gain, and
+> reporting it as one would be the same error unit A7 made. The gate is not met.
+
+The wording was not changed to fit the result, and the challenger was not redefined to
+manufacture a pass. `physics_conditioned` is the arm the gate names, and that arm is what
+was tested.
+
+**What was established instead, on the same 88 observations.** Removing the geometry block
+leaves `image_corridor`, which beats calibrated image-only on both metrics:
+
+| comparison | margin | 95% CI | Bonferroni CI (7 comparisons) |
+|---|---|---|---|
+| Brier | +0.02026 | +0.00695 to +0.03435 | +0.00296 to +0.03976, survives |
+| risk-coverage area | +0.05736 | +0.02688 to +0.09369 | +0.01797 to +0.10579, survives |
+
+`image_corridor` was nominated after reading the ladder, which is why the corrected
+interval travels with it.
+
+**Why the gate's own challenger fails while a narrower arm succeeds.** The geometry block
+carries no usable signal on this corpus. Its seven features measured marginal AUC between
+0.466 and 0.567 before any head was fitted, and `physics_only` scores Brier 0.2136 against
+the 0.2085 prior-only floor with a calibration slope of -0.07. Adding it to image widens
+the combined interval past zero.
+
+**What this does not license.** The corridor block is physics, so "physics helps" is
+supported in the specific form measured: the fitted Doppler corridor helps, the orbital
+geometry summary does not. Any claim broader than that is not in evidence here.
+
+The comparison was against a **calibrated** image-only baseline, calibrated by the same
+method on the same partition, so the improvement is not calibration wearing a physics
+costume. The frozen test set was not touched: all four splits report against their own
+test partitions and the chronological split is the one the gate names.
 
 ---
 
@@ -213,4 +247,17 @@ Do not submit another image-only waterfall classifier under this plan. The plan 
 
 ## Failure log
 
-*No gate failures recorded. Gates 3 to 6 are unmeasured, which is not the same as passing.*
+**17 Aug 2026, gate 5: NOT ESTABLISHED.** The physics-conditioned arm did not lower Brier
+score against a calibrated image-only baseline by a margin whose interval clears zero
+(+0.02080, 95% CI -0.01271 to +0.05022, n=88 observations across 88 episodes). Cause: the
+orbital-geometry feature block carries no usable signal on this corpus (marginal AUC 0.466
+to 0.567 across its seven features; `physics_only` Brier 0.2136 against a 0.2085
+prior-only floor), and adding it to the image arm widens the interval past zero. Action
+taken: the block was dropped by the ablation rule, and the shipped arm is `image_corridor`,
+which does clear zero on both Brier and risk-coverage area and survives Bonferroni
+correction. The gate's wording was left intact and its challenger was not redefined.
+Recorded rather than retried, because the honest failure of a specific claim is worth more
+here than a restated claim that passes. Full detail in the gate 5 section above and in
+`artifacts/FUSION_RECEIPT.json`.
+
+*Gate 4 and gate 6 remain unmeasured, which is not the same as passing.*
