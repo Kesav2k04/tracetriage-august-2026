@@ -506,11 +506,18 @@ baseline. Do not rebuild any of them. Read docs/BOB_HANDOFF.md first.
 CHOOSE THE OBSERVATION DELIBERATELY. Gate 3 asks whether the corridor intersects
 the trace, and that question is only answerable on an observation where the
 trace was actually located. A3 measured 7 of them and wrote every number to
-artifacts/a3_overlays/summary.json. Pick one of those and say which and why.
-14740031 is an uncorrected capture whose trace was located at 25.1 sigma;
-14745602 is a corrected one whose carrier intensity rises and falls with
-elevation. An observation A3 recorded as UNRESOLVED cannot answer gate 3, and
-choosing one silently turns a null result into an apparent failure.
+artifacts/a3_overlays/summary.json, a list of 24 records keyed on obs_id with
+verdict, sigma_vertical, sigma_curved and frequency_axis_sign on each. The seven
+with a verdict other than UNRESOLVED are:
+
+  CORRECTED    14746118 (sv 54.2), 14745602 (53.3), 14746048 (37.0), 14746055 (32.4)
+  UNCORRECTED  14740031 (sc 25.1), 14745929 (15.9), 14745664 (15.1)
+
+Pick one and say which and why. 14740031 is the strongest uncorrected case, so
+the corridor has a curve to intersect; 14745602 is a corrected one whose carrier
+intensity rises and falls with elevation across the pass. An observation A3
+recorded as UNRESOLVED cannot answer gate 3, and choosing one silently turns a
+null result into an apparent failure.
 
 SEVEN TRAPS, EACH ALREADY PAID FOR ONCE:
 
