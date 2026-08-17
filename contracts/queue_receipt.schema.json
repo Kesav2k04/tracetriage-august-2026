@@ -128,6 +128,17 @@
             "oneOf": [{ "type": "integer" }, { "type": "null" }],
             "description": "Queue length after episode deduplication, so the cost of duplicate control is visible rather than inferred."
           },
+          "n_episodes_deduplicated": {
+            "oneOf": [{ "type": "integer" }, { "type": "null" }],
+            "description": "Observations removed by episode deduplication. Nearly zero on this corpus, because pass episodes hold 1.004 observations each and only 8 of 2716 hold more than one. Reported as a count so an inert rule is not mistaken for an exercised one."
+          },
+          "n_degraded_revolution": {
+            "oneOf": [{ "type": "integer" }, { "type": "null" }],
+            "description": "Observations whose TLE would not yield a revolution index. These merge into one group per (station, satellite), which widens the interval rather than narrowing it, so the degraded case fails safe."
+          },
+          "concentration": {
+            "oneOf": [{ "$ref": "#/$defs/concentration_record" }, { "type": "null" }]
+          },
           "n_at_bound_obs": {
             "oneOf": [{ "type": "integer" }, { "type": "null" }],
             "description": "Observations whose fitted offset sits at the search-window bound. A value at the edge of its own search window is a floor, not a measurement, so the count is reported wherever offsets are ranked."
@@ -169,6 +180,69 @@
     }
   },
   "$defs": {
+    "clustering": {
+      "type": "object",
+      "required": ["measurable", "n_groups", "n_observations"],
+      "additionalProperties": false,
+      "description": "How much of the variance in the conflict indicator sits between groups rather than within them. This is what a grouped interval exists to absorb, so it is measured rather than assumed.",
+      "properties": {
+        "measurable": { "type": "boolean" },
+        "reason": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+        "icc": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }],
+          "description": "One-way random-effects intra-class correlation. A negative value is a real result on small samples and means within-group variance exceeds between-group variance; it is reported as measured."
+        },
+        "design_effect": {
+          "oneOf": [{ "type": "number", "minimum": 1 }, { "type": "null" }],
+          "description": "1 + (mean group size - 1) * max(ICC, 0). The factor by which a clustered variance exceeds the independence variance. Near 1 means this grouping buys nothing."
+        },
+        "n_groups": { "oneOf": [{ "type": "integer" }, { "type": "null" }] },
+        "n_observations": { "oneOf": [{ "type": "integer" }, { "type": "null" }] },
+        "mean_group_size": { "oneOf": [{ "type": "number" }, { "type": "null" }] },
+        "size_adjusted_mean_group_size": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }]
+        }
+      }
+    },
+    "concentration_record": {
+      "type": "object",
+      "required": ["caps", "n_admitted_to_budget", "n_displaced_total", "budget", "budget_filled", "binding"],
+      "additionalProperties": false,
+      "description": "Entity-concentration control, so one noisy station cannot fill a reviewer's budget. Shares fixed in docs/C2_PREREGISTRATION.md before the effect on lift was measured.",
+      "properties": {
+        "caps": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["share_of_budget", "entries_at_budget", "n_displaced", "reason_code", "bound"],
+            "additionalProperties": false,
+            "properties": {
+              "share_of_budget": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+              "entries_at_budget": { "type": "integer", "minimum": 1 },
+              "n_displaced": { "type": "integer", "minimum": 0 },
+              "displaced_obs_ids": { "type": "array", "items": { "type": "integer" } },
+              "reason_code": { "type": "string" },
+              "bound": {
+                "type": "boolean",
+                "description": "Whether this cap displaced anything. A cap is credited whenever it would have blocked an entry, even if another cap would have blocked it too, so a false here is a property of the data rather than of the order the caps are checked in."
+              }
+            }
+          }
+        },
+        "n_admitted_to_budget": { "type": "integer", "minimum": 0 },
+        "n_displaced_total": { "type": "integer", "minimum": 0 },
+        "budget": { "type": "integer", "minimum": 0 },
+        "budget_filled": {
+          "type": "boolean",
+          "description": "False when the caps left the budget short, which changes what \"at the same budget\" means in the gate's wording and so cannot be left to inference."
+        },
+        "binding": {
+          "type": "boolean",
+          "description": "Whether any entry was displaced. False means the caps are inert on this split, reported as such rather than implied to have been exercised."
+        },
+        "note": { "type": "string" }
+      }
+    },
     "queue_entry": {
       "type": "object",
       "required": [
@@ -201,10 +275,23 @@
               "STALE_CATALOGUE_FREQ",
               "DEAD_CAPTURE",
               "OFFSET_AT_BOUND",
-              "NO_REASON"
+              "NO_REASON",
+              "DISPLACED_STATION_CAP",
+              "DISPLACED_TRANSMITTER_CAP"
             ]
           },
-          "description": "Fixed vocabulary. NO_REASON means the observation is ranked but triggers no conflict criterion."
+          "description": "Fixed vocabulary, kept identical to QUEUE_REASONS in code by a test. NO_REASON means the observation is ranked but triggers no conflict criterion. The two DISPLACED codes say where a reviewer meets the entry, not what is wrong with it, so they sit alongside any conflict reasons rather than replacing them."
+        },
+        "displaced_by_cap": {
+          "oneOf": [
+            { "type": "string", "enum": ["DISPLACED_STATION_CAP", "DISPLACED_TRANSMITTER_CAP"] },
+            { "type": "null" }
+          ],
+          "description": "Which entity cap displaced this entry below the budget line, if any. The entry is retained: a displaced observation is still a real candidate and a silently dropped row is a suppressed finding."
+        },
+        "within_budget": {
+          "type": "boolean",
+          "description": "Whether this entry falls inside the review budget after capping."
         },
         "is_conflict": {
           "type": "boolean",
@@ -317,7 +404,73 @@
               "maxItems": 2
             },
             { "type": "null" }
-          ]
+          ],
+          "description": "The interval the verdict was decided on. When two groupings are available this is their union, which is conservative in both directions, so a verdict cannot be obtained by preferring whichever grouping clears the threshold."
+        },
+        "lift_ci95_episode": {
+          "oneOf": [
+            { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            { "type": "null" }
+          ],
+          "description": "Interval from resampling pass episodes, (station, satellite, orbital revolution). The finer grouping, and nearly inert on this corpus: episodes hold 1.004 observations each, so there is no within-episode correlation for it to absorb."
+        },
+        "lift_ci95_station": {
+          "oneOf": [
+            { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            { "type": "null" }
+          ],
+          "description": "Interval from resampling ground stations. Stations nest episodes, so this subsumes the episode grouping. A receiver and its local-oscillator error belong to a station and persist across passes, which is the correlation the grouped interval was introduced to absorb. Null when no station grouping was supplied or it could not be measured, in which case station_interval_note says which."
+        },
+        "governing_interval": {
+          "oneOf": [
+            { "type": "string", "enum": ["union_of_episode_and_station", "episode_only"] },
+            { "type": "null" }
+          ],
+          "description": "Which interval decided the verdict. Named rather than implied, so a reader does not have to infer it from the numbers."
+        },
+        "station_interval_note": {
+          "oneOf": [{ "type": "string" }, { "type": "null" }],
+          "description": "Why the station interval is absent, when it is. An absent measurement carries its reason."
+        },
+        "verdict_episode_only": {
+          "oneOf": [
+            { "type": "string", "enum": ["PASSED", "NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE"] },
+            { "type": "null" }
+          ],
+          "description": "The verdict the episode-grouped interval alone would have given. Reported so the effect of adopting the conservative grouping is visible, not so that the more favourable of the two can be quoted."
+        },
+        "n_station_groups": {
+          "oneOf": [{ "type": "integer" }, { "type": "null" }],
+          "description": "Distinct ground stations resampled for the station interval."
+        },
+        "episode_clustering": {
+          "oneOf": [{ "$ref": "#/$defs/clustering" }, { "type": "null" }]
+        },
+        "station_clustering": {
+          "oneOf": [{ "$ref": "#/$defs/clustering" }, { "type": "null" }]
+        },
+        "uncapped_reference": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["lift_point", "lift_ci95_episode", "verdict_if_it_were_eligible", "note"],
+              "additionalProperties": false,
+              "properties": {
+                "lift_point": { "oneOf": [{ "type": "number" }, { "type": "null" }] },
+                "lift_ci95_episode": {
+                  "oneOf": [
+                    { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                    { "type": "null" }
+                  ]
+                },
+                "verdict_if_it_were_eligible": { "type": "string" },
+                "n_queue_conflicts": { "oneOf": [{ "type": "integer" }, { "type": "null" }] },
+                "note": { "type": "string", "minLength": 40 }
+              }
+            },
+            { "type": "null" }
+          ],
+          "description": "Lift on the queue before entity-concentration caps. A reference point for the price of diversity, explicitly not eligible to be the verdict, because the shipped queue is the capped one."
         },
         "fifo_lift_over_random": {
           "oneOf": [{ "type": "number" }, { "type": "null" }],

@@ -1214,3 +1214,105 @@ finding, rather than because of a defect in the statistic.
 .venv/Scripts/python.exe scripts/run_queue.py --n-boot 4000
 .venv/Scripts/python.exe scripts/gate.py
 ```
+
+**Continued: duplicate control and entity-concentration limits.**
+
+**What the unit found before building anything.** Two episode groupings were in
+use and both were called "pass episode". `splits.py` partitions on
+`(ground_station, norad_cat_id, orbital_revolution)`, computed from TLE mean
+motion. `run_queue.py` and `run_fusion.py` grouped by
+`(ground_station, norad_cat_id, start[:13])`, an hour bucket, and every grouped
+interval in Waves B and C resampled that, gate 5's included. An hour bucket splits
+any pass crossing an hour boundary into two groups, which is pseudoreplication in
+the resampling unit: the same error as reading three measurements that shared two
+ground stations as three independent confirmations. Measured difference on this
+corpus: 2716 revolution episodes against 2722 hour buckets, 7 revolution episodes
+holding 17 observations split across more than one bucket, 1 bucket merging 2
+revolutions. Small here. Not small on a multi-day snapshot, where an hour has no
+orbital meaning. The queue now uses the canonical key. Dead code went with it:
+`ep_key` was defined, unused, and hardcoded the revolution to 0.
+
+**And then the finding that reshaped the unit.** Mean observations per revolution
+episode is 1.004, and only 8 of 2716 episodes hold more than one. On the 88
+decisive observations of the chronological test partition it is exactly 1.000 over
+87 episodes. An episode-grouped bootstrap over singleton groups is an ordinary
+bootstrap: there is no within-episode variance for it to absorb, so the grouping
+discipline Waves B and C were careful about was not doing anything on this data.
+The intra-class correlation reports that as not measurable, with its counts,
+rather than as a zero, because "measured, no clustering" is a different and false
+claim.
+
+The correlation is at the station, which is where the justification pointed all
+along: a receiver and its local-oscillator error belong to a station and persist
+across passes. Measured on the decisive subsets, the conflict indicator's ICC
+across stations is 0.0887 on chronological, 0.0784 on cold_station, 0.1347 on
+cold_transmitter and 0.0909 on cold_combined, for design effects of 1.132 to
+1.552.
+
+**Both intervals are now published and the verdict takes their union.** Stations
+nest episodes, so a station-clustered resample subsumes the episode one. The
+pre-registration said "the wider interval governs" and the implementation refines
+that to the union, because a wider interval is not necessarily the conservative
+one for a one-sided test: cold_station's station interval [2.026, 3.896] is wider
+than its episode interval [1.920, 3.012] and has the higher lower bound, so
+quoting the wider one would claim 2.026 where a defensible grouping supports
+1.920. The union is at least as wide as either and conservative in both
+directions. No verdict changes under it, which is a robustness result and not the
+reason it was chosen.
+
+**Entity-concentration caps.** Station 10% of budget, transmitter 20%, both fixed
+in `docs/C2_PREREGISTRATION.md` and committed before the effect on lift was
+measured. A displaced entry moves below the budget line, keeps its place in the
+queue and carries a reason from the fixed vocabulary; nothing is deleted. Measured
+cost, with the shipped queue being the capped one:
+
+| Split | Displaced | Capped lift | Uncapped lift | Conflicts capped / uncapped |
+|---|---|---|---|---|
+| chronological | 4 | 1.582 | 1.582 | 20 / 20 |
+| cold_station | 40 | 2.253 | 3.005 | 27 / 36 |
+| cold_transmitter | 4 | 1.656 | 1.608 | 34 / 33 |
+| cold_combined | 10 | 1.292 | 1.292 | 17 / 17 |
+
+cold_station is where diversity is expensive: 40 displaced, 9 conflicts lost, lift
+from 3.005 to 2.253, still PASSED. Reported rather than resolved by quoting
+whichever queue scored better, which is what the pre-registration exists to
+prevent.
+
+Two defects in this unit's own reporting, found and fixed before the numbers were
+published. The greedy pass credited a displacement only to the first cap that
+would have blocked it, so the transmitter cap would have read as inert when it had
+simply never been reached, making "inert" a property of dict ordering rather than
+of the data. And `n_displaced_total` summed the per-entity lists, which double
+counts an entry blocked by two caps. Under the corrected attribution the
+transmitter cap is genuinely inert on all four splits: no transmitter reaches 10
+entries inside any top-50 budget.
+
+**Episode deduplication removed 3, 0, 1 and 5 observations.** The count is
+published for the same reason the corpus's zero SHA-256 duplicates are: a rule the
+data barely exercises must not be presented as one that was tested by it. The rule
+itself is covered by constructed cases.
+
+**Contract 0.2.0 extended.** `clustering` and `concentration_record` are defined
+and closed. A cap reports whether it bound, `budget_filled` reports whether the
+caps left the budget short (which changes what "at the same budget" means in the
+gate's wording), and `uncapped_reference` is closed with a mandatory note stating
+that it is not eligible to be the verdict. The reasons vocabulary in the schema and
+`QUEUE_REASONS` in code are held identical by a test.
+
+**Results.** 660 offline tests pass, up from 610 at C1: 26 in
+`tests/test_queue_lift_bootstrap.py` and 22 in `tests/test_queue_concentration.py`.
+Lint clean. Two of those tests were themselves wrong on first writing, both by
+asserting a property the fixture did not have: one expected a split with a single
+conflict episode to be unmeasurable when about 63% of its draws still survive, and
+one expected identical group means to give an ICC near zero when the estimator
+correctly returns -1/(m-1). Both are now pinned to what the estimator actually
+does, with the reasoning recorded next to them.
+
+**Corrected gate 6 on the shipped queue:**
+
+| Split | Verdict | Point | Episode CI | Station CI | Governing union |
+|---|---|---|---|---|---|
+| chronological | NOT_ESTABLISHED | 1.582 | [1.353, 1.740] | [1.374, 1.755] | [1.353, 1.755] |
+| cold_station | PASSED | 2.253 | [1.920, 3.012] | [2.026, 3.896] | [1.920, 3.896] |
+| cold_transmitter | NOT_ESTABLISHED | 1.656 | [1.462, 1.835] | [1.340, 1.913] | [1.340, 1.913] |
+| cold_combined | NOT_ESTABLISHED | 1.292 | [1.073, 1.520] | [1.137, 1.515] | [1.073, 1.520] |

@@ -237,12 +237,12 @@ test partitions and the chronological split is the one the gate names.
 interval.** Receipt: `artifacts/QUEUE_RECEIPT.json`. Run:
 `.venv/Scripts/python.exe scripts/run_queue.py --seed 42 --n-boot 4000`
 
-> The queue's point lift is 1.60 on the chronological split (20 conflicts in 50 examined,
-> expected 12.5 by random). The 95% grouped interval is 1.354 to 1.760, which contains
-> the 1.5 threshold. A point estimate above the bar whose interval straddles it does not
-> establish the claim, for the same reason gate 5 was recorded as NOT_ESTABLISHED. The
-> bootstrap median is 1.592, so the point estimate is not the product of a skewed
-> resample; the interval is simply wide on 88 observations across 88 episodes.
+> The queue's point lift is 1.582 on the chronological split (20 conflicts in 50
+> examined, expected 12.644 by random). The governing 95% interval is 1.353 to 1.755,
+> which contains the 1.5 threshold. A point estimate above the bar whose interval
+> straddles it does not establish the claim, for the same reason gate 5 was recorded as
+> NOT_ESTABLISHED. The bootstrap median is 1.589, so the point estimate is not the
+> product of a skewed resample; the interval is simply wide on 88 decisive observations.
 
 **The C1 interval was wrong, and this is what it was.** C1 published 1.00 to 1.20
 against a point estimate of 1.60, and every split showed the same shape: the
@@ -273,31 +273,39 @@ fails against the old loop rather than merely passing against the new one.
 3. `DEAD_CAPTURE`: `flat_row_frac ≥ 0.15`.
 
 **Every ordering's lift over random (chronological split, budget = 50, n_decisive = 88,
-random expects 12.5 conflicts):**
+random expects 12.644 conflicts):**
 
 | Ordering | Conflicts at budget | Lift over random |
 |---|---|---|
-| Review-value queue | 20 | 1.600 |
-| FIFO | 14 | 1.120 |
-| Image uncertainty | 14 | 1.120 |
-| Physics-only | 13 | 1.040 |
-| Random | 12.5 expected | 1.000 by definition |
+| Review-value queue | 20 | 1.582 |
+| Image uncertainty | 15 | 1.186 |
+| FIFO | 14 | 1.107 |
+| Physics-only | 13 | 1.028 |
+| Random | 12.644 expected | 1.000 by definition |
 
 All five orderings are on one scale, so they are comparable. These are point
 estimates. C4 adds the paired interval for each comparison, drawn from the same
 episode resample under both orderings, because a ratio between two orderings
 needs the same draw under both to mean anything.
 
-**Per-split results:**
+**Per-split results, on the shipped queue, measured 2026-08-18 in C2.** The
+governing interval is the union of the episode-grouped and station-clustered
+intervals, which is conservative in both directions.
 
-| Split | Verdict | Point lift | 95% CI | Bootstrap median | n_decisive | Episodes |
+| Split | Verdict | Point lift | Episode CI | Station CI | Governing (union) | n_decisive |
 |---|---|---|---|---|---|---|
-| chronological | NOT_ESTABLISHED | 1.600 | [1.354, 1.760] | 1.592 | 88 | 88 |
-| cold_station | PASSED | 3.005 | [2.493, 3.454] | 2.961 | 217 | 217 |
-| cold_transmitter | NOT_ESTABLISHED | 1.625 | [1.429, 1.829] | 1.638 | 96 | 96 |
-| cold_combined | NOT_ESTABLISHED | 1.292 | [1.073, 1.520] | 1.322 | 76 | 76 |
+| chronological | NOT_ESTABLISHED | 1.582 | [1.353, 1.740] | [1.374, 1.755] | [1.353, 1.755] | 88 |
+| cold_station | PASSED | 2.253 | [1.920, 3.012] | [2.026, 3.896] | [1.920, 3.896] | 217 |
+| cold_transmitter | NOT_ESTABLISHED | 1.656 | [1.462, 1.835] | [1.340, 1.913] | [1.340, 1.913] | 96 |
+| cold_combined | NOT_ESTABLISHED | 1.292 | [1.073, 1.520] | [1.137, 1.515] | [1.073, 1.520] | 76 |
 
-cold_combined moved from FAILED to NOT_ESTABLISHED, and that is a rule change
+Taking the union rather than "the wider interval" matters, and cold_station is the
+case that shows why. Its station interval is wider than its episode interval and
+yet has the higher lower bound, so quoting the wider one would report 2.026 when a
+defensible grouping supports only 1.920. No verdict changes under the union here,
+which is a robustness result rather than a reason to have chosen it.
+
+cold_combined is NOT_ESTABLISHED rather than FAILED, and that is a rule change
 rather than a number change. C1 called any point estimate at or below 1.5 a
 failure. An interval of [1.073, 1.520] contains the threshold, so it does not
 refute the gate any more than it establishes it. FAILED is now reserved for an
@@ -306,9 +314,55 @@ other direction.
 
 cold_station passes on 217 decisive observations, and it is the split where a
 reviewer meets stations the model has never seen. That is the operating condition
-the queue exists for, and it is the strongest result in the wave. It does not
-substitute for the chronological split, which is the primary and is not
-established.
+the queue exists for. It does not substitute for the chronological split, which is
+the primary and is not established.
+
+**What entity-concentration control cost, per the C2 pre-registration.** The
+shipped queue is the capped queue, because not spending a reviewer's budget on one
+station is a product requirement. The uncapped numbers are reported as a reference
+and were never eligible to be the verdict.
+
+| Split | Displaced from the budget | Capped lift | Uncapped lift | Conflicts capped / uncapped |
+|---|---|---|---|---|
+| chronological | 4 | 1.582 | 1.582 | 20 / 20 |
+| cold_station | 40 | 2.253 | 3.005 | 27 / 36 |
+| cold_transmitter | 4 | 1.656 | 1.608 | 34 / 33 |
+| cold_combined | 10 | 1.292 | 1.292 | 17 / 17 |
+
+cold_station is where diversity is expensive: capping one station at 5 of 50
+displaced 40 candidates and cost 9 conflicts, dropping lift from 3.005 to 2.253.
+The split still passes. That is the price of a queue that does not hand a reviewer
+40 captures from the same site, and it is reported rather than resolved by quoting
+whichever queue scored better.
+
+The station cap bound on all four splits. The transmitter cap displaced nothing on
+any of them, so it is inert on this corpus and recorded as inert. A cap is credited
+with a displacement whenever it would have blocked an entry, even where another cap
+would also have blocked it, so that result is a property of the data and not of the
+order the caps are checked in.
+
+**Episode deduplication is nearly inert here, and the count is reported for the
+same reason.** It removed 3, 0, 1 and 5 observations across the four splits,
+because pass episodes hold 1.004 observations each on this corpus and only 8 of
+2716 hold more than one. The rule is real and tested against constructed
+duplicates; the data barely exercises it.
+
+**Two groupings, because the finer one was measuring nothing.** The 88 decisive
+observations of the chronological test partition fall into 87 pass episodes of mean
+size 1.000, so the episode intra-class correlation is not computable and is
+reported as not measurable with its counts. The episode-grouped bootstrap used
+throughout Waves B and C was therefore resampling singleton groups, which is an
+ordinary bootstrap. Clustering by ground station is present and material on every
+split: ICC 0.0887, 0.0784, 0.1347 and 0.0909, design effects 1.132 to 1.552,
+consistent with a receiver and a local-oscillator error shared across a station's
+passes. Both intervals are published and the union governs.
+
+The queue's episode key also moved from `(station, satellite, start[:13])` to
+`(station, satellite, orbital_revolution)`, the key `splits.py` partitions on. An
+hour bucket splits any pass crossing an hour boundary into two groups. Measured
+difference on this corpus: 2716 revolution episodes against 2722 hour buckets, 17
+observations affected, so the correction is small here and would not be on a
+multi-day snapshot.
 
 The cold_station PASSED result is notable: a strong signal that the queue selects observations that a reviewer with no station familiarity finds actionable. The chronological split's narrow CI reflects the small test set (88 decisive obs) and the ratio statistic's known skewness under small samples.
 

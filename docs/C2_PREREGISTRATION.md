@@ -90,6 +90,27 @@ of diversity. It is not eligible to be the verdict. If capping lowers lift, that
 is the measured price of not spending a reviewer's budget on one station, and it
 is reported as such rather than resolved by picking whichever queue scores better.
 
+## 4a. Addendum, added after measuring: which population the ICC is computed on
+
+The 0.1409 quoted in section 2 was measured over all 409 ranked observations of
+the chronological test partition, which is what motivated adopting the station
+grouping. The receipt reports the ICC over the 88 decisively-labelled observations
+instead, because those are the rows the conflict indicator exists for and the
+population the interval is drawn from. On that subset it is 0.0887 with a design
+effect of 1.132. Both are real; they are different populations, and the receipt's
+is the one the verdict depends on. Recorded here so the two numbers are not read
+as a discrepancy.
+
+Measured on the decisive subsets, station clustering is present on every split:
+chronological 0.0887, cold_station 0.0784, cold_transmitter 0.1347, cold_combined
+0.0909, with design effects from 1.132 to 1.552.
+
+The episode ICC on the same subsets is not measurable at all, and that is the
+finding that reshaped this unit: the 88 decisive observations of the chronological
+test partition fall into 87 pass episodes, mean size 1.000. There is no
+within-episode variance to partition, so the episode-grouped bootstrap published
+throughout Waves B and C was resampling singleton groups.
+
 ## 5. What would falsify the caps
 
 If the caps displace so few entries that they never bind, they are decoration and

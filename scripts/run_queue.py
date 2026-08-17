@@ -44,11 +44,13 @@ from pipeline.tracetriage.queue import (  # noqa: E402
     CONFLICT_CRITERIA,
     _disagreement_value,
     _episode_key,
+    apply_concentration_caps,
     baseline_fifo,
     baseline_image_uncertainty,
     baseline_physics_only,
     classify_reasons,
     composite_score,
+    compute_lift,
     deduplicate_by_episode,
     is_conflict,
     measure_gate6_split,
@@ -60,6 +62,7 @@ from pipeline.tracetriage.splits import (  # noqa: E402
     _PAGES_DIR,
     _load_a3_verdicts,
     _load_raw_pages,
+    orbital_revolution_index,
 )
 
 _SPLIT_MANIFEST = _REPO / "artifacts" / "SPLIT_MANIFEST.json"
@@ -112,6 +115,34 @@ def _client_family(rec: dict[str, Any]) -> str:
     return v.split("+")[0].split("-")[0].strip() or "unknown"
 
 
+#: Cache of computed revolution indices, so the TLE arithmetic runs once per
+#: observation rather than once per lookup.
+_REV_CACHE: dict[int, int] = {}
+
+
+def _revolution_of(obs_id: int, raw: dict[int, dict[str, Any]]) -> int:
+    """Orbital revolution index at the observation's start, from its TLE.
+
+    The same computation splits.py partitions on, so the queue's episode grouping
+    and the split's leakage guarantee agree on what a pass is. A TLE that will not
+    parse yields -1, matching splits.py: that merges the affected observations of
+    one satellite over one station into a single group, which widens the interval
+    rather than narrowing it, so the degraded case fails safe. The count of
+    degraded rows is reported per split.
+    """
+    if obs_id in _REV_CACHE:
+        return _REV_CACHE[obs_id]
+    rec = raw.get(obs_id, {})
+    try:
+        rev = orbital_revolution_index(
+            rec.get("tle1") or "", rec.get("tle2") or "", rec["start"]
+        )
+    except Exception:
+        rev = -1
+    _REV_CACHE[obs_id] = rev
+    return rev
+
+
 def build_feature_rows(
     raw: dict[int, dict[str, Any]],
     corridor_cache: dict[int, dict[str, Any]],
@@ -122,10 +153,14 @@ def build_feature_rows(
         row: dict[str, Any] = {
             "obs_id": oid,
             "waterfall_status": rec.get("waterfall_status"),
+            # (station, satellite, orbital revolution), the same key splits.py
+            # partitions on. Not an hour bucket: a pass crossing an hour boundary
+            # would become two groups, and a grouped interval built on that
+            # treats correlated captures as independent.
             "episode": (
                 rec.get("ground_station"),
                 rec.get("norad_cat_id"),
-                rec.get("start", "")[:13],
+                _revolution_of(oid, raw),
             ),
             "ground_station": rec.get("ground_station"),
             "norad_cat_id": rec.get("norad_cat_id"),
@@ -402,30 +437,23 @@ def build_split_queue(
     # Sort by composite score descending, break ties by obs_id ascending
     ranked = sorted(candidate_ids, key=lambda x: (-scores[x], x))
 
-    # Episode deduplication
-    def ep_key(oid: int) -> str:
-        rec = raw.get(oid, {})
-        gs = rec.get("ground_station", 0)
-        nc = rec.get("norad_cat_id", 0)
-        # orbital_revolution: use the feature_rows version (already computed)
-        # re-derive: stored in feature_rows as the episode tuple
-        fr = feature_rows.get(oid, {})
-        ep = fr.get("episode")
-        if ep and len(ep) == 3:
-            return _episode_key(ep[0], ep[1], 0)  # use episode tuple's gs/norad
-        return _episode_key(gs, nc, 0)
-
-    # Better: read orbital revolution from the manifest or split
-    # The episode in feature_rows is (ground_station, norad_cat_id, start[:13])
-    # For dedup, use (ground_station, norad_cat_id, start[:13]) as the episode key
+    # Episode deduplication, on the canonical key.
+    #
+    # The key is (ground_station, norad_cat_id, orbital_revolution), which is what
+    # splits.py partitions on. The previous key here was
+    # (ground_station, norad_cat_id, start[:13]), an hour bucket, which splits any
+    # pass crossing an hour boundary into two groups and so treats correlated
+    # captures as independent in every grouped interval built on it. Measured
+    # difference on this corpus: 2716 revolution episodes against 2722 hour
+    # buckets, 17 observations affected. Small here, and not small on a multi-day
+    # snapshot, where an hour bucket has no orbital meaning at all.
     def proper_ep_key(oid: int) -> str:
-        fr = feature_rows.get(oid, {})
-        ep = fr.get("episode")
-        if ep and len(ep) == 3:
-            return str(ep)
         rec = raw.get(oid, {})
-        return str((rec.get("ground_station"), rec.get("norad_cat_id"),
-                    rec.get("start", "")[:13]))
+        return _episode_key(
+            rec.get("ground_station", -1),
+            rec.get("norad_cat_id", -1),
+            _revolution_of(oid, raw),
+        )
 
     # Build dedup entry list
     dedup_entries = [
@@ -441,7 +469,31 @@ def build_split_queue(
 
     # Re-sort after dedup (dedup keeps the highest-score per episode)
     deduped.sort(key=lambda e: (-e["score"], e["obs_id"]))
-    final_ranked_ids = [e["obs_id"] for e in deduped]
+    deduped_ranked_ids = [e["obs_id"] for e in deduped]
+
+    # Entity-concentration caps, so one noisy station cannot fill a reviewer's
+    # budget. Shares fixed in docs/C2_PREREGISTRATION.md and committed before the
+    # effect on lift was measured. Displaced entries stay in the queue below the
+    # budget line and carry a reason; nothing is deleted.
+    cap_budget = min(REVIEW_BUDGET, len(deduped_ranked_ids))
+    final_ranked_ids, concentration = apply_concentration_caps(
+        deduped_ranked_ids,
+        {
+            "ground_station": {
+                oid: raw.get(oid, {}).get("ground_station") for oid in deduped_ranked_ids
+            },
+            "transmitter_uuid": {
+                oid: raw.get(oid, {}).get("transmitter_uuid")
+                for oid in deduped_ranked_ids
+            },
+        },
+        cap_budget,
+    )
+    displaced_reason_of = {
+        oid: entry["reason_code"]
+        for entry in concentration["caps"].values()
+        for oid in entry["displaced_obs_ids"]
+    }
 
     # Conflict flags for decisive observations
     conflict_flags: dict[int, bool] = {}
@@ -477,6 +529,13 @@ def build_split_queue(
             oid: is_conflict(reasons_map[oid]) for oid in decisive_ranked
         }
         decisive_episode_of = {oid: proper_ep_key(oid) for oid in decisive_ranked}
+        # Stations nest episodes, so a station-clustered resample subsumes the
+        # episode one. Both intervals are reported and the verdict takes their
+        # union, fixed in docs/C2_PREREGISTRATION.md before either was computed.
+        decisive_station_of = {
+            oid: f"station-{raw.get(oid, {}).get('ground_station', 'unknown')}"
+            for oid in decisive_ranked
+        }
         decisive_budget = min(REVIEW_BUDGET, len(decisive_ranked))
 
         gate6_result = measure_gate6_split(
@@ -488,10 +547,38 @@ def build_split_queue(
             fifo_order,
             img_order,
             phys_order,
+            station_of=decisive_station_of,
             n_boot=n_boot,
             seed=seed,
             threshold=GATE6_THRESHOLD,
         )
+
+        # The uncapped queue, measured as a reference point only. Not eligible to
+        # be the verdict: the shipped queue is the capped one, because
+        # duplicate-safe diversity is a product requirement rather than an
+        # optimisation. Reported so the cost of that diversity is visible.
+        uncapped_decisive = [oid for oid in deduped_ranked_ids if oid in decisive_ids]
+        uncapped = compute_lift(
+            uncapped_decisive,
+            decisive_conflict_flags,
+            decisive_episode_of,
+            decisive_budget,
+            n_boot=n_boot,
+            seed=seed,
+            threshold=GATE6_THRESHOLD,
+        )
+        gate6_result["uncapped_reference"] = {
+            "lift_point": uncapped.lift_point,
+            "lift_ci95_episode": uncapped.ci95,
+            "verdict_if_it_were_eligible": uncapped.verdict,
+            "n_queue_conflicts": uncapped.n_queue_conflicts,
+            "note": (
+                "Reference only. The shipped queue is the capped queue and the "
+                "verdict above is measured on it. This row exists so the price of "
+                "entity-concentration control is on record instead of hidden by "
+                "reporting only whichever queue scored better."
+            ),
+        }
 
     # Build the full queue entries
     queue_entries = []
@@ -501,12 +588,20 @@ def build_split_queue(
         at_bound = cr.get("offset_at_bound") if not cr.get("degraded") else None
         flat_frac = cr.get("flat_row_frac") if not cr.get("degraded") else None
         ws = raw[oid].get("waterfall_status") if oid in raw else "unknown"
+        # A displaced entry carries the cap that displaced it, from the fixed
+        # vocabulary. It keeps its conflict reasons: being displaced says where a
+        # reviewer will meet it, not what is wrong with it.
+        reasons = list(reasons_map[oid])
+        if oid in displaced_reason_of:
+            reasons = reasons + [displaced_reason_of[oid]]
         entry = {
             "obs_id": oid,
             "episode_key": proper_ep_key(oid),
             "rank": rank_idx,
             "score": float(scores[oid]),
-            "reasons": reasons_map[oid],
+            "reasons": reasons,
+            "displaced_by_cap": displaced_reason_of.get(oid),
+            "within_budget": rank_idx <= cap_budget,
             "is_conflict": is_conflict(reasons_map[oid]),
             "waterfall_status": ws or "unknown",
             "model_prob": shipped_probs.get(oid),
@@ -525,6 +620,11 @@ def build_split_queue(
         "n_test_total": len(candidate_ids),
         "n_test_decisive": n_decisive_test,
         "n_queue_after_dedup": len(final_ranked_ids),
+        "n_episodes_deduplicated": len(candidate_ids) - len(deduped_ranked_ids),
+        "n_degraded_revolution": sum(
+            1 for oid in final_ranked_ids if _revolution_of(oid, raw) == -1
+        ),
+        "concentration": concentration,
         "n_at_bound_obs": sum(
             1 for oid in final_ranked_ids
             if corridor_cache.get(oid, {}).get("offset_at_bound") is True
@@ -765,6 +865,9 @@ def main() -> None:
                 "n_test_total": r.get("n_test_total"),
                 "n_test_decisive": r.get("n_test_decisive"),
                 "n_queue_after_dedup": r.get("n_queue_after_dedup"),
+                "n_episodes_deduplicated": r.get("n_episodes_deduplicated"),
+                "n_degraded_revolution": r.get("n_degraded_revolution"),
+                "concentration": r.get("concentration"),
                 "n_at_bound_obs": r.get("n_at_bound_obs"),
             }
             for r in per_split_results

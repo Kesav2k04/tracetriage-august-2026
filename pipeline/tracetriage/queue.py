@@ -75,7 +75,212 @@ QUEUE_REASONS: dict[str, str] = {
         "The observation is ranked by composite review-value score but triggers "
         "no actionable conflict criterion."
     ),
+    "DISPLACED_STATION_CAP": (
+        "Ranked inside the review budget but displaced below it because its ground "
+        "station had already filled its share of the budget. Still a candidate, "
+        "still in the queue, and not deleted."
+    ),
+    "DISPLACED_TRANSMITTER_CAP": (
+        "Ranked inside the review budget but displaced below it because its "
+        "transmitter had already filled its share of the budget. Still a candidate, "
+        "still in the queue, and not deleted."
+    ),
 }
+
+# ---------------------------------------------------------------------------
+# Entity concentration
+# ---------------------------------------------------------------------------
+
+#: Share of the review budget any single entity may occupy. Fixed in
+#: docs/C2_PREREGISTRATION.md and committed before the effect on lift was
+#: measured. Station 10%: five entries is enough for a reviewer to recognise a
+#: systematic fault at one site, and it leaves 45 of 50 slots for the other 270
+#: stations. Transmitter 20%: one transmitter already holds 312 of 2727
+#: observations, 11.4% of the corpus, so a cap at its corpus share would bind on
+#: ordinary data rather than on flooding.
+CONCENTRATION_CAPS: dict[str, float] = {
+    "ground_station": 0.10,
+    "transmitter_uuid": 0.20,
+}
+
+#: Which reason each capped entity records when it displaces an entry.
+_CAP_REASON: dict[str, str] = {
+    "ground_station": "DISPLACED_STATION_CAP",
+    "transmitter_uuid": "DISPLACED_TRANSMITTER_CAP",
+}
+
+
+def cap_entries(budget: int, share: float) -> int:
+    """Entries one entity may hold at a given budget, at least one.
+
+    Rounded up, so a cap can never silently become zero on a small budget and
+    exclude an entity from review altogether.
+    """
+    return max(1, math.ceil(share * budget))
+
+
+def apply_concentration_caps(
+    ranked_obs_ids: list[int],
+    entity_of: dict[str, dict[int, Any]],
+    budget: int,
+    caps: dict[str, float] | None = None,
+) -> tuple[list[int], dict[str, Any]]:
+    """Reorder a ranking so no single entity floods the review budget.
+
+    One greedy pass down the ranking. An entry whose station or transmitter has
+    already filled its quota within the budget slice is displaced below the
+    budget line, keeps its relative order among the displaced, and carries a
+    reason. Nothing is deleted: a displaced observation is still a real candidate,
+    and a silently dropped row is a suppressed finding.
+
+    ``entity_of`` maps an entity name to a per-observation lookup. An observation
+    missing from a lookup is treated as its own singleton entity, because an
+    unknown station cannot be shown to share a receiver with anything.
+
+    Returns the reordered ranking and a record carrying, per entity, the cap in
+    entries, the number displaced, and the observations displaced. The record also
+    carries ``budget_filled``, because a cap tight enough to leave the budget
+    short changes what "at the same budget" means in the gate's wording, and that
+    has to be visible rather than inferred.
+    """
+    caps = CONCENTRATION_CAPS if caps is None else caps
+    quota = {name: cap_entries(budget, share) for name, share in caps.items()}
+    counts: dict[str, dict[Any, int]] = {name: {} for name in caps}
+
+    admitted: list[int] = []
+    displaced: list[int] = []
+    displaced_by: dict[str, list[int]] = {name: [] for name in caps}
+
+    for oid in ranked_obs_ids:
+        if len(admitted) >= budget:
+            displaced.append(oid)
+            continue
+
+        # Every cap that would block this entry, not just the first one found.
+        # Stopping at the first would make a cap look inert when it was simply
+        # never reached: an entry blocked by both its station and its transmitter
+        # would be attributed to whichever cap the loop happened to check first,
+        # and the other would report zero displacements as though it had never
+        # bound on anything.
+        blocking = [
+            name
+            for name in caps
+            if counts[name].get(
+                entity_of.get(name, {}).get(oid, ("__unknown__", oid)), 0
+            )
+            >= quota[name]
+        ]
+
+        if not blocking:
+            admitted.append(oid)
+            for name in caps:
+                value = entity_of.get(name, {}).get(oid, ("__unknown__", oid))
+                counts[name][value] = counts[name].get(value, 0) + 1
+        else:
+            displaced.append(oid)
+            for name in blocking:
+                displaced_by[name].append(oid)
+
+    # An entry can be blocked by more than one cap, so the per-entity lists
+    # overlap and cannot be summed. The distinct count is what "displaced" means.
+    displaced_distinct = {oid for v in displaced_by.values() for oid in v}
+    record = {
+        "caps": {
+            name: {
+                "share_of_budget": share,
+                "entries_at_budget": quota[name],
+                "n_displaced": len(displaced_by[name]),
+                "displaced_obs_ids": displaced_by[name],
+                "reason_code": _CAP_REASON.get(name, "DISPLACED_STATION_CAP"),
+                "bound": len(displaced_by[name]) > 0,
+            }
+            for name, share in caps.items()
+        },
+        "n_admitted_to_budget": len(admitted),
+        "n_displaced_total": len(displaced_distinct),
+        "budget": budget,
+        "budget_filled": len(admitted) >= min(budget, len(ranked_obs_ids)),
+        "binding": len(displaced_distinct) > 0,
+    }
+    inert = [name for name in caps if not displaced_by[name]]
+    if inert:
+        record["note"] = (
+            f"Caps that displaced nothing at budget {budget} over "
+            f"{len(ranked_obs_ids)} ranked observations: {sorted(inert)}. Reported "
+            f"as inert on this split rather than as exercised. A cap is credited "
+            f"with a displacement whenever it would have blocked the entry, even "
+            f"if another cap would have blocked it too, so an inert result here is "
+            f"a property of the data and not of the order the caps are checked in."
+        )
+    return admitted + displaced, record
+
+
+def intraclass_correlation(groups: list[list[float]]) -> dict[str, Any]:
+    """One-way random-effects intra-class correlation on unequal group sizes.
+
+    Answers the question a grouped interval exists to answer: how much of the
+    variance in an outcome sits between groups rather than within them. Reported
+    with the design effect ``1 + (mean group size - 1) * ICC``, which is the
+    factor by which a clustered variance exceeds the independence variance.
+
+    This is what showed that the episode grouping was doing nothing on this
+    corpus. Episodes hold 1.004 observations each, so there is no within-episode
+    variance to partition, while stations hold 2.86 in the chronological test
+    partition and carry an ICC of 0.1409 on the conflict indicator.
+
+    A negative ICC is a real result on small samples and means the within-group
+    variance exceeds the between-group variance. It is reported as measured and
+    clamped only where it feeds the design effect, which cannot sensibly fall
+    below 1.
+    """
+    populated = [g for g in groups if g]
+    n_total = sum(len(g) for g in populated)
+    k = len(populated)
+    if k < 2 or n_total <= k:
+        return {
+            "measurable": False,
+            "reason": (
+                f"An intra-class correlation needs at least 2 populated groups and "
+                f"more observations than groups. Got {k} groups over {n_total} "
+                f"observations."
+            ),
+            "icc": None,
+            "design_effect": None,
+            "n_groups": k,
+            "n_observations": n_total,
+            "mean_group_size": (n_total / k) if k else None,
+        }
+
+    grand = sum(sum(g) for g in populated) / n_total
+    ss_between = sum(len(g) * (sum(g) / len(g) - grand) ** 2 for g in populated)
+    ss_within = sum(
+        sum((x - sum(g) / len(g)) ** 2 for x in g) for g in populated
+    )
+    ms_between = ss_between / (k - 1)
+    ms_within = ss_within / (n_total - k)
+
+    # Size-adjusted mean group size for unequal groups, the standard n_0.
+    sum_sq = sum(len(g) ** 2 for g in populated)
+    n0 = (n_total - sum_sq / n_total) / (k - 1)
+
+    denominator = ms_between + (n0 - 1) * ms_within
+    # A zero denominator means both variance components are zero: every group
+    # holds the same constant value, so there is no variance to partition and
+    # the correlation is undefined rather than perfect. Reported as zero, which
+    # gives a design effect of 1 and leaves the interval unchanged.
+    icc = 0.0 if denominator == 0 else (ms_between - ms_within) / denominator
+
+    mean_size = n_total / k
+    return {
+        "measurable": True,
+        "reason": None,
+        "icc": float(icc),
+        "design_effect": float(1 + (mean_size - 1) * max(icc, 0.0)),
+        "n_groups": k,
+        "n_observations": n_total,
+        "mean_group_size": float(mean_size),
+        "size_adjusted_mean_group_size": float(n0),
+    }
 
 # ---------------------------------------------------------------------------
 # Conflict definition (fixed before measuring)
@@ -374,6 +579,33 @@ class LiftResult:
         }
 
 
+def verdict_from_interval(
+    lo: float,
+    hi: float,
+    threshold: float,
+    point_in_ci: bool = True,
+) -> tuple[str, str]:
+    """The gate 6 decision rule, in one place.
+
+    Extracted so the same rule decides a single-grouping interval and a combined
+    one. A rule written twice is a rule that will eventually disagree with itself,
+    and the two copies would be exactly where a verdict quietly diverged from its
+    interval.
+    """
+    if not point_in_ci:
+        return "inconsistent_interval", "NOT_MEASURABLE"
+    if lo > threshold:
+        return "above_threshold", "PASSED"
+    if hi < threshold:
+        # The whole interval sits below the bar. This is the only shape that
+        # refutes the gate rather than failing to establish it.
+        return "below_threshold", "FAILED"
+    # The interval contains the threshold. Gate 5's precedent, applied in both
+    # directions: an interval spanning the bar neither establishes the claim nor
+    # refutes it, whichever side the point estimate falls on.
+    return "spans_threshold", "NOT_ESTABLISHED"
+
+
 def compute_lift(
     ranked_obs_ids: list[int],
     conflict_flags: dict[int, bool],
@@ -566,23 +798,7 @@ def compute_lift(
             f"so no verdict is reported."
         )
 
-    if not point_in_ci:
-        direction = "inconsistent_interval"
-        verdict = "NOT_MEASURABLE"
-    elif lo > threshold:
-        direction = "above_threshold"
-        verdict = "PASSED"
-    elif hi < threshold:
-        # The whole interval sits below the bar. This is the only shape that
-        # refutes the gate rather than failing to establish it.
-        direction = "below_threshold"
-        verdict = "FAILED"
-    else:
-        # The interval contains the threshold. Gate 5's precedent, applied in
-        # both directions: an interval spanning the bar neither establishes the
-        # claim nor refutes it, whichever side the point estimate falls on.
-        direction = "spans_threshold"
-        verdict = "NOT_ESTABLISHED"
+    direction, verdict = verdict_from_interval(lo, hi, threshold, point_in_ci)
 
     return LiftResult(
         n_queue_conflicts=n_q_conflicts,
@@ -667,6 +883,11 @@ _GATE6_RESULT_KEYS: dict[str, Any] = {
     "n_queue_conflicts": None,
     "lift_point": None,
     "lift_ci95": None,
+    "lift_ci95_episode": None,
+    "lift_ci95_station": None,
+    "governing_interval": None,
+    "station_interval_note": None,
+    "verdict_episode_only": None,
     "fifo_lift_over_random": None,
     "image_uncertainty_lift_over_random": None,
     "physics_only_lift_over_random": None,
@@ -678,7 +899,27 @@ _GATE6_RESULT_KEYS: dict[str, Any] = {
     "verdict": None,
     "direction": None,
     "n_groups": None,
+    "n_station_groups": None,
+    "episode_clustering": None,
+    "station_clustering": None,
+    "uncapped_reference": None,
 }
+
+
+def _grouped_values(
+    obs_ids: list[int],
+    flags: dict[int, bool],
+    group_of: dict[int, str] | None,
+) -> list[list[float]]:
+    """Conflict indicators bucketed by group, for an intra-class correlation."""
+    if group_of is None:
+        return []
+    buckets: dict[str, list[float]] = {}
+    for oid in obs_ids:
+        if oid not in flags:
+            continue
+        buckets.setdefault(group_of[oid], []).append(1.0 if flags[oid] else 0.0)
+    return [buckets[k] for k in sorted(buckets)]
 
 
 def _gate6_result(**fields: Any) -> dict[str, Any]:
@@ -730,15 +971,33 @@ def measure_gate6_split(
     image_uncertainty_order: list[int],
     physics_only_order: list[int],
     *,
+    station_of: dict[int, str] | None = None,
     n_boot: int = 4000,
     seed: int = 42,
     threshold: float = 1.5,
 ) -> dict[str, Any]:
-    """Gate 6 measurement for one split.
+    """Gate 6 measurement for one split, under two groupings.
 
     Returns a per-split result dict matching ``split_gate6_result`` in the schema.
-    When the split cannot be measured (e.g., zero decisive labels, or the budget
-    exceeds the pool), returns a NOT_MEASURABLE result with a reason.
+    When the split cannot be measured (zero decisive labels, no conflicts to find,
+    too few surviving resamples, or an interval inconsistent with its own point
+    estimate), returns a NOT_MEASURABLE result carrying that specific reason.
+
+    Two intervals are reported whenever ``station_of`` is supplied. The pass
+    episode is the finer grouping and is what Waves B and C have published. It is
+    also nearly inert on this corpus: episodes hold 1.004 observations each, so
+    there is no within-episode correlation for the interval to absorb. The
+    conflict indicator does cluster by ground station, with an intra-class
+    correlation of 0.1409 over the chronological test partition and a design
+    effect of 1.262, which is consistent with a shared receiver and a shared
+    local-oscillator error persisting across passes.
+
+    The verdict is decided on the union of the two intervals. The pre-registration
+    said "the wider one", and the union refines that: a wider interval is not
+    necessarily the more conservative one for a one-sided threshold test, because
+    it may also be shifted upward. The union is at least as wide as either and is
+    conservative in both directions, so it cannot be gamed by preferring whichever
+    grouping clears the bar.
     """
     n = len(queue_obs_ids)
     n_decisive = len(conflict_flags)
@@ -761,6 +1020,18 @@ def measure_gate6_split(
         queue_obs_ids, conflict_flags, episode_of,
         eff_budget, n_boot=n_boot, seed=seed, threshold=threshold,
     )
+
+    # The second grouping. Every episode lies within exactly one station, so a
+    # station-clustered resample subsumes the episode one, and the two are
+    # combined by union rather than by choosing between them. Fixed in
+    # docs/C2_PREREGISTRATION.md before either was computed on the shipped queue.
+    station_result = None
+    if station_of is not None:
+        station_result = compute_lift(
+            queue_obs_ids, conflict_flags, station_of,
+            eff_budget, n_boot=n_boot, seed=seed, threshold=threshold,
+        )
+
     if result.verdict == "NOT_MEASURABLE":
         return _gate6_result(
             measurable=False,
@@ -793,23 +1064,65 @@ def measure_gate6_split(
             return None
         return float(found) / result.n_random_conflicts
 
+    # Combine the two groupings. The union is conservative in both directions.
+    ep_lo, ep_hi = result.ci95
+    if station_result is not None and station_result.verdict != "NOT_MEASURABLE":
+        st_lo, st_hi = station_result.ci95
+        gov_lo, gov_hi = min(ep_lo, st_lo), max(ep_hi, st_hi)
+        governing = "union_of_episode_and_station"
+        station_ci = [st_lo, st_hi]
+        station_groups = station_result.n_groups
+        station_note = None
+    else:
+        gov_lo, gov_hi = ep_lo, ep_hi
+        governing = "episode_only"
+        station_ci = None
+        station_groups = (
+            station_result.n_groups if station_result is not None else None
+        )
+        station_note = (
+            station_result.not_measurable_reason
+            if station_result is not None
+            else "No station grouping was supplied for this split."
+        )
+
+    gov_direction, gov_verdict = verdict_from_interval(
+        gov_lo, gov_hi, threshold, result.point_in_ci
+    )
+
     return _gate6_result(
         measurable=True,
-        verdict=result.verdict,
-        direction=result.direction,
+        verdict=gov_verdict,
+        direction=gov_direction,
         not_measurable_reason=None,
         n_queue_examined=eff_budget,
         n_random_conflicts=result.n_random_conflicts,
         n_queue_conflicts=result.n_queue_conflicts,
         lift_point=result.lift_point,
-        lift_ci95=result.ci95,
+        lift_ci95=[gov_lo, gov_hi],
+        lift_ci95_episode=[ep_lo, ep_hi],
+        lift_ci95_station=station_ci,
+        governing_interval=governing,
+        station_interval_note=station_note,
+        verdict_episode_only=result.verdict,
         fifo_lift_over_random=_lift_over_random(fifo_order),
         image_uncertainty_lift_over_random=_lift_over_random(image_uncertainty_order),
         physics_only_lift_over_random=_lift_over_random(physics_only_order),
         n_boot=n_boot,
         n_boot_effective=result.n_boot_effective,
         n_groups=result.n_groups,
+        n_station_groups=station_groups,
         bootstrap_median=result.bootstrap_median,
         point_in_ci=result.point_in_ci,
         consistency_note=result.consistency_note,
+        episode_clustering=intraclass_correlation(
+            _grouped_values(queue_obs_ids, conflict_flags, episode_of)
+        ),
+        station_clustering=(
+            intraclass_correlation(
+                _grouped_values(queue_obs_ids, conflict_flags, station_of)
+            )
+            if station_of is not None
+            else None
+        ),
     )
