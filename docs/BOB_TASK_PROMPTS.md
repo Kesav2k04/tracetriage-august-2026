@@ -499,21 +499,74 @@ One observation, all the way through: snapshot -> waterfall parse -> physics
 corridor -> provenance -> baseline score -> evidence receipt -> rendered card.
 
 Thin but complete. No breadth. The point is proving the seam works before Wave B
-builds volume on top of it.
+builds volume on top of it. Everything you need is already built and committed:
+A1 snapshot, A2 waterfall parser, A4 physics corridor, A5 provenance, A6
+baseline. Do not rebuild any of them. Read docs/BOB_HANDOFF.md first.
 
-Requirements:
-- artifacts/TRIAGE_RECEIPT.json for that one observation, matching its contract
+CHOOSE THE OBSERVATION DELIBERATELY. Gate 3 asks whether the corridor intersects
+the trace, and that question is only answerable on an observation where the
+trace was actually located. A3 measured 7 of them and wrote every number to
+artifacts/a3_overlays/summary.json. Pick one of those and say which and why.
+14740031 is an uncorrected capture whose trace was located at 25.1 sigma;
+14745602 is a corrected one whose carrier intensity rises and falls with
+elevation. An observation A3 recorded as UNRESOLVED cannot answer gate 3, and
+choosing one silently turns a null result into an apparent failure.
+
+SEVEN TRAPS, EACH ALREADY PAID FOR ONCE:
+
+1. Time runs BOTTOM TO TOP. The top row of a SatNOGS waterfall is the END of the
+   pass. Read off the axis of 14740031: the tick labelled 200 s sits at y=258
+   and 50 s at y=1228.
+
+2. The plotted frequency axis runs AGAINST the Doppler sign. A4 carries this as
+   AXIS_SIGN_CONVENTION = -1.
+
+3. Those two errors CANCEL. A Doppler curve is near odd-symmetric about closest
+   approach, so having both wrong scores 25 sigma and the overlay looks correct
+   to the eye. A visual check cannot catch it. If you touch either convention,
+   the thing that catches you is the apparent frequency drift against real time:
+   +85 Hz/s is not a Doppler shift any orbit can produce.
+
+4. Correction status varies per observation and NO metadata field reveals it.
+   doppler-correction-per-sec is null and rigctl-port is 4532 on captures that
+   are plainly corrected and on captures that are plainly not. Read the status
+   for your chosen observation from A3's summary.json; do not infer it.
+
+5. The corrected corridor half-width is 1200 Hz, not 200. It was 200, which
+   contained none of the four corrected carriers A3 measured, whose within-pass
+   wander is 77, 639, 639 and 1935 Hz. Do not "tighten" it without a
+   measurement that says so.
+
+6. A failed geometry parse is a named degraded state, never a fabricated number.
+   The same rule the baselines follow: exclude and count, do not substitute.
+
+7. Reason codes come from a fixed rule table. Never from a model attribution,
+   never from a saliency map, never phrased as though the model explained itself.
+
+REQUIREMENTS:
+- artifacts/TRIAGE_RECEIPT.json for that one observation, matching
+  contracts/triage_receipt.schema.json
+- the baseline probability comes from the CALIBRATED model in
+  artifacts/BASELINE_RECEIPT.json whose beats_floor entry is true. A model that
+  does not beat the prior-only floor is not a comparison target; read the
+  receipt rather than assuming which one that is.
 - a rendered card (static is fine) showing: waterfall, corridor, detected trace,
   residual, artifact checks, current API label, provenance, source link,
   deterministic reason codes
-- every reason code comes from a fixed rule table, never from a model attribution
+- reuse pipeline.tracetriage.baseline._geometry_of for the parse; it caches, and
+  parsing the same image twice costs a minute of OCR for nothing
 
 ACCEPTANCE:
-- the receipt regenerates byte-identically from the same snapshot and seed
+- the receipt regenerates from the same snapshot and seed with every number
+  identical. Regenerate it to prove that; do not hand-edit an artifact to match
+  a code change. A6 was hand-patched after its runner changed and the receipt
+  then described code that had never produced it.
 - the card renders with the network disabled
-- gate 3 can now be evaluated: state whether the corridor intersects the trace
+- gate 3 is evaluated: state whether the corridor intersects the trace, with the
+  numbers, for the named observation
 - update docs/KILL_GATE.md gate 3 with the result. If it FAILS, re-verify the
-  Hz/px derivation before accepting the failure (section 7 explains why).
+  Hz/px derivation before accepting the failure, because a wrong Hz/px moves the
+  corridor bodily and fails a gate that is not actually failing.
 ```
 
 ---
