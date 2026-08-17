@@ -361,15 +361,39 @@ def _build_chronological_split(
     rng: random.Random,  # noqa: ARG001 – kept for API uniformity
 ) -> tuple[dict[int, str], dict]:
     """Assign each observation to train / calibration / test by start time,
-    with entity-level transmitter guarantee.
+    grouped by pass episode.
 
     Algorithm:
     1. Sort observations by start_unix.
-    2. Cut at the 70% and 85% time-ordered positions to get raw partitions.
-    3. For each transmitter, find the earliest partition it appears in.
-       Move ALL obs for that transmitter to that partition.
-    4. Re-sort and re-cut to ensure sizes remain reasonable (no re-cut needed:
-       the constraint only moves obs earlier, never later, so train stays ≥ 70%).
+    2. Cut at the 70% and 85% time-ordered positions.
+    3. Assign each (station, satellite, revolution) episode to the partition its
+       earliest observation fell in, so a single pass never straddles the boundary.
+
+    **The grouping key is the episode, not the transmitter, and that is a change
+    from the first version.** Grouping by transmitter here collapsed the split:
+    measured 2,595 / 78 / 54 against the intended 70 / 15 / 15, leaving 18 decisive
+    labels in test. The cause is the corpus, not the code. All 2,727 observations
+    come from one evening, so 211 of 613 transmitters are observed on both sides of
+    the 70% mark, and "assign each transmitter to the earliest partition it appears
+    in" pulls nearly everything into train. A time cut and an entity grouping over
+    the same axis are in direct conflict on a single-night corpus, and the entity
+    grouping wins by construction.
+
+    Episode grouping resolves it because a pass lasts about ten minutes, so an
+    episode almost never straddles a cut: 2,716 episodes over 2,727 observations,
+    and the measured split is 1,909 / 408 / 410 with 88 decisive labels in test.
+
+    This split holds out *time*, on entities the model has seen. Holding out
+    entities is what the other three splits are for, so a transmitter appearing on
+    both sides here is the design rather than a leak, and
+    ``no_transmitter_across_splits`` reports its measured crossing count for this
+    split instead of claiming the guarantee.
+
+    One caveat that no grouping can fix, carried from A6's audit: a single evening
+    cannot demonstrate temporal generalisation however it is ordered. This split's
+    value is as the common reference for comparing models on identical data, which
+    is what kill gate 5 asks for. It is not evidence that the model survives a
+    month.
 
     Returns (partition_map {obs_id → "train"|"calibration"|"test"},
              meta dict with cut time boundaries).
@@ -392,21 +416,25 @@ def _build_chronological_split(
     for oid in raw_test_ids:
         raw_map[oid] = "test"
 
-    # Transmitter-level guarantee: each transmitter belongs to exactly one
-    # partition — the earliest one it appears in.
+    # Episode-level guarantee: one satellite pass over one station is one sample, so
+    # every observation of it lands where its earliest observation landed. Grouping by
+    # transmitter here instead is what collapsed the split to 2595/78/54; see the
+    # docstring.
     partition_order = {"train": 0, "calibration": 1, "test": 2}
-    tx_partition: dict[str, str] = {}
+    episode_partition: dict[tuple[int, int, int], str] = {}
     for row in sorted_rows:
-        tx = row["transmitter_uuid"]
+        key = (row["ground_station"], row["norad_cat_id"], row["orbital_revolution"])
         p = raw_map[row["id"]]
-        if tx not in tx_partition:
-            tx_partition[tx] = p
-        else:
-            if partition_order[p] < partition_order[tx_partition[tx]]:
-                tx_partition[tx] = p
+        known = episode_partition.get(key)
+        if known is None or partition_order[p] < partition_order[known]:
+            episode_partition[key] = p
 
-    # Apply transmitter partition
-    final_map: dict[int, str] = {r["id"]: tx_partition[r["transmitter_uuid"]] for r in rows}
+    final_map: dict[int, str] = {
+        r["id"]: episode_partition[
+            (r["ground_station"], r["norad_cat_id"], r["orbital_revolution"])
+        ]
+        for r in rows
+    }
 
     meta = {
         "n_raw_train": len(raw_train_ids),
@@ -798,11 +826,18 @@ def check_field_classification(pages_dir: Path) -> dict[str, Any]:
 CHECK_SCOPES: dict[str, dict[str, Any]] = {
     "no_transmitter_across_splits": {
         "entity": "transmitter",
-        "applies_to": ["chronological", "cold_transmitter", "cold_combined"],
+        "applies_to": ["cold_transmitter", "cold_combined"],
         "by_design": {
             "cold_station": (
                 "the held-out entity is the ground station, and one transmitter is "
                 "observed from many stations that land on both sides of the boundary."
+            ),
+            "chronological": (
+                "this split holds out time, on entities the model has seen, so a "
+                "transmitter observed before and after the cut is the point rather "
+                "than a leak. Grouping by transmitter here was tried and collapsed "
+                "the split to 2595/78/54, because 211 of 613 transmitters are "
+                "observed on both sides of a single evening's 70% mark."
             ),
         },
     },
@@ -811,8 +846,8 @@ CHECK_SCOPES: dict[str, dict[str, Any]] = {
         "applies_to": ["cold_station", "cold_combined"],
         "by_design": {
             "chronological": (
-                "the held-out entity is the transmitter and the cut is by time, so a "
-                "station keeps observing across the boundary."
+                "the cut is by time, on entities the model has seen, so a station "
+                "keeps observing across the boundary."
             ),
             "cold_transmitter": (
                 "the held-out entity is the transmitter, and one station observes many "
@@ -1144,8 +1179,13 @@ def build_splits(
             "Stage-1 snapshot: 2,727 observations collected chronologically "
             "backwards from 2026-08-10T00:00:00Z, all from a single UTC day "
             "(2026-08-09). "
-            "Chronological split: entity-grouped by transmitter_uuid, 70/15/15 "
-            "by time-ordered observation count. "
+            "Chronological split: 70/15/15 by time-ordered observation count, grouped "
+            "by (station, satellite, revolution) pass episode so no single pass "
+            "straddles a cut. It holds out time on entities the model has seen, so "
+            "transmitters and stations appear on both sides by design. Grouping it by "
+            "transmitter instead was tried and collapsed it to 2,595/78/54, leaving 18 "
+            "decisive test labels, because 211 of 613 transmitters are observed on "
+            "both sides of a single evening's 70% mark. "
             "Cold-station: 20% of ground stations (by random draw, seed-controlled) "
             "held out for test, 10% for calibration. "
             "Cold-transmitter: 20% of transmitters held out, 10% for calibration; "

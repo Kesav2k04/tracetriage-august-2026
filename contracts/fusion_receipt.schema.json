@@ -1,0 +1,440 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tracetriage/fusion_receipt",
+  "title": "Fusion ladder, calibration and kill gate 5",
+  "status": "ratified",
+  "schema_version": "0.1.0",
+  "description": "The measured result of the fusion ladder, including kill gate 5's verdict. Ratified 2026-08-17 in B2-B6. This contract exists because the receipt is the artifact a judge reads to decide whether the physics claim is real, and every way that claim could be overstated was available while it was being written. Four shapes are therefore invalid by construction rather than by review. A comparison cannot report a margin without the interval, the observation count and the episode count that produced it, because a margin alone is a number with no support. A comparison's direction is a four-valued enum rather than a boolean, because a two-valued verdict reports an interval lying entirely below zero as an absence of difference, which hides a measured harm behind a null; the operator's own first version of this code did exactly that. A gate verdict must carry a statement, so a bare 'PASSED' cannot travel without the sentence that qualifies it. And an infeasible risk ceiling must carry a reason, so 'no threshold was found' cannot be mistaken for 'no threshold was needed'. The ablation block must carry both the nominal and the multiplicity-corrected rule with the deciding rule named, because reporting only the rule that was applied would conceal that they disagree.",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_version",
+    "generated_at",
+    "snapshot_id",
+    "seed",
+    "split_manifest_sha256",
+    "arm_ladder",
+    "gate5",
+    "ablation_conclusion",
+    "splits"
+  ],
+  "properties": {
+    "schema": { "const": "FUSION_RECEIPT" },
+    "schema_version": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "snapshot_id": { "type": "string", "description": "Must match the dataset manifest." },
+    "seed": { "type": "integer" },
+    "unit": { "type": "string" },
+    "split_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Digest of the split manifest these results were measured against. Without it a receipt cannot be tied to the splits that produced it, and a re-split would silently invalidate every number here."
+    },
+    "caches": { "type": "object" },
+    "feature_admissibility": {
+      "type": "object",
+      "description": "Which source fields each block read, checked against FIELD_CLASSIFICATION. A block that read a post-observation field is a leak, so the check is recorded rather than assumed."
+    },
+    "arm_ladder": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["name", "blocks"],
+        "properties": {
+          "name": { "type": "string" },
+          "blocks": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "description": "The ladder as declared, so a reader can see which arms existed before any were compared."
+    },
+    "gate5": { "$ref": "#/$defs/gate_verdict" },
+    "ablation_conclusion": { "$ref": "#/$defs/ablation" },
+    "size_matched_control": {
+      "type": "object",
+      "description": "Separates the cost of a smaller training partition from the cost of unseen entities. Required reading before any cold-split drop is attributed to entity novelty."
+    },
+    "splits": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/split_result" }
+    }
+  },
+  "$defs": {
+    "comparison": {
+      "type": "object",
+      "required": ["margin", "ci95", "direction"],
+      "properties": {
+        "margin": { "type": "number" },
+        "ci95": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            { "type": "null" }
+          ],
+          "description": "Null only when the comparison is unmeasurable, which the direction must then say."
+        },
+        "direction": {
+          "enum": [
+            "challenger_better",
+            "reference_better",
+            "indistinguishable",
+            "unmeasurable"
+          ],
+          "description": "Four states, not two. 'reference_better' is a measured harm and a stronger finding than 'indistinguishable'; collapsing the two reports harm as an absent effect. 'unmeasurable' is distinct again: it means the resampling could not produce an interval, which is a fact about the method rather than about the models."
+        },
+        "distinguishable": { "type": "boolean" },
+        "challenger_better": { "type": "boolean" },
+        "n_observations": { "type": "integer", "minimum": 1 },
+        "n_groups": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Episodes resampled. Required because an interval over observations rather than episodes is too narrow by roughly the mean group size, and the only way a reader can tell which was done is to see both counts."
+        },
+        "mean_group_size": { "type": "number" },
+        "n_boot": { "type": "integer", "minimum": 1 },
+        "n_usable_resamples": { "type": "integer", "minimum": 0 },
+        "n_degenerate_resamples": { "type": "integer", "minimum": 0 },
+        "n_comparisons": { "type": "integer", "minimum": 1 },
+        "ci_adjusted": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "adjusted_confidence": { "type": "number" },
+        "survives_correction": { "type": "boolean" },
+        "seed": { "type": "integer" },
+        "note": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "direction": {
+                "enum": ["challenger_better", "reference_better", "indistinguishable"]
+              }
+            },
+            "required": ["direction"]
+          },
+          "then": {
+            "required": ["ci95", "n_observations", "n_groups"],
+            "properties": { "ci95": { "type": "array" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "direction": { "const": "unmeasurable" } },
+            "required": ["direction"]
+          },
+          "then": {
+            "required": ["note", "n_usable_resamples"],
+            "description": "An unmeasurable comparison has to say why, or it is indistinguishable from a tie in every downstream reading."
+          }
+        }
+      ]
+    },
+    "gate_verdict": {
+      "type": "object",
+      "required": ["verdict", "statement", "challenger", "reference"],
+      "properties": {
+        "verdict": {
+          "enum": ["PASSED", "NOT_ESTABLISHED", "FAILED", "UNMEASURABLE"],
+          "description": "NOT_ESTABLISHED and FAILED are separate outcomes. A point estimate in the right direction with an interval spanning zero has not established the claim; a point estimate in the wrong direction with an interval clearing zero has failed it. Folding them together would let either be reported as the other."
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 40,
+          "description": "The verdict in prose, carrying the numbers it rests on. A bare enum can be quoted out of context; a statement cannot."
+        },
+        "challenger": { "type": "string" },
+        "reference": { "type": "string" },
+        "gate_text": {
+          "type": "string",
+          "description": "The gate as originally worded, so a reader can check the verdict against the claim rather than against a paraphrase of it."
+        },
+        "comparison": { "$ref": "#/$defs/comparison" },
+        "split": { "type": "string" }
+      }
+    },
+    "ablation_rule_outcome": {
+      "type": "object",
+      "required": ["blocks", "shipped_blocks", "shipped_arm", "shipped_arm_was_measured"],
+      "properties": {
+        "blocks": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "required": ["decision", "better_on", "worse_on"],
+            "properties": {
+              "decision": { "enum": ["RETAIN", "DROP", "NOT_ESTABLISHED"] },
+              "better_on": { "type": "array", "items": { "type": "string" } },
+              "worse_on": { "type": "array", "items": { "type": "string" } }
+            },
+            "description": "The evidence lists are required even when empty, because 'retained on nothing' and 'retained on two splits' are different claims and a bare decision cannot tell them apart."
+          }
+        },
+        "shipped_blocks": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "shipped_arm": { "type": ["string", "null"] },
+        "shipped_arm_was_measured": {
+          "type": "boolean",
+          "description": "False when the rule selects a block combination no arm on the ladder fitted. Its score would then come from a fresh fit that no interval in this receipt covers, and the receipt has to admit that rather than quote a number for it."
+        }
+      }
+    },
+    "ablation": {
+      "type": "object",
+      "required": [
+        "rules",
+        "deciding_rule",
+        "nominal",
+        "multiplicity_corrected",
+        "rules_disagree_on",
+        "shipped_blocks",
+        "min_train_for_verdict",
+        "min_train_justification",
+        "splits_used",
+        "splits_below_training_floor",
+        "caveat"
+      ],
+      "properties": {
+        "rules": {
+          "type": "object",
+          "required": ["nominal", "multiplicity_corrected"],
+          "additionalProperties": { "type": "string" }
+        },
+        "deciding_rule": { "enum": ["nominal", "multiplicity_corrected"] },
+        "why_the_corrected_rule_decides": { "type": "string" },
+        "nominal": { "$ref": "#/$defs/ablation_rule_outcome" },
+        "multiplicity_corrected": { "$ref": "#/$defs/ablation_rule_outcome" },
+        "rules_disagree_on": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Required even when empty. Reporting only the rule that was applied would conceal that another defensible rule reaches a different answer."
+        },
+        "min_train_for_verdict": { "type": "integer", "minimum": 1 },
+        "min_train_justification": {
+          "type": "string",
+          "minLength": 40,
+          "description": "Why the floor is where it is. A threshold that excludes a split from the decision needs a measured reason, or it is indistinguishable from excluding the split that gave an inconvenient answer."
+        },
+        "splits_used": { "type": "array", "items": { "type": "string" } },
+        "splits_below_training_floor": { "type": "array", "items": { "type": "string" } },
+        "shipped_blocks": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "shipped_arm": { "type": ["string", "null"] },
+        "shipped_arm_scores": { "type": ["object", "null"] },
+        "caveat": {
+          "type": "string",
+          "minLength": 40,
+          "description": "The retain decision reads test-set comparisons, so the shipped arm's score is optimistic. Required so the number cannot travel without the sentence."
+        }
+      }
+    },
+    "risk_ceiling": {
+      "type": "object",
+      "required": ["chosen_on_calibration"],
+      "properties": {
+        "chosen_on_calibration": {
+          "type": "object",
+          "required": ["feasible", "target_risk"],
+          "properties": {
+            "feasible": { "type": "boolean" },
+            "target_risk": { "type": "number" },
+            "threshold": { "type": ["number", "null"] },
+            "reason": { "type": "string" }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": { "feasible": { "const": false } },
+                "required": ["feasible"]
+              },
+              "then": {
+                "required": ["reason"],
+                "description": "An infeasible ceiling must say why. Without a reason, 'no threshold' reads as 'no threshold needed'."
+              }
+            },
+            {
+              "if": {
+                "properties": { "feasible": { "const": true } },
+                "required": ["feasible"]
+              },
+              "then": {
+                "required": ["threshold"],
+                "properties": { "threshold": { "type": "number" } }
+              }
+            }
+          ]
+        },
+        "achieved_on_test": {
+          "type": "object",
+          "description": "The risk the calibration-chosen threshold actually reached on test. Required whenever the ceiling was feasible, because a ceiling chosen on calibration and never verified is a promise, not a measurement.",
+          "properties": {
+            "held": {
+              "type": ["boolean", "null"],
+              "description": "Null when nothing was kept, which is not the same as the ceiling failing."
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "chosen_on_calibration": {
+            "properties": { "feasible": { "const": true } },
+            "required": ["feasible"]
+          }
+        }
+      },
+      "then": { "required": ["achieved_on_test"] }
+    },
+    "split_result": {
+      "type": "object",
+      "required": ["split", "degraded", "counts"],
+      "properties": {
+        "split": { "type": "string" },
+        "degraded": { "type": ["string", "null"] },
+        "counts": {
+          "type": "object",
+          "required": ["train", "calibration", "test"],
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "note": { "type": "string" },
+        "arms": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["brier", "auc", "ece", "calibration_slope", "calibrator"],
+            "properties": {
+              "brier": { "type": "number", "minimum": 0, "maximum": 1 },
+              "log_loss": { "type": "number", "minimum": 0 },
+              "auc": { "type": "number", "minimum": 0, "maximum": 1 },
+              "ece": { "type": "number", "minimum": 0, "maximum": 1 },
+              "calibration_slope": { "type": "number" },
+              "calibration_intercept": { "type": "number" },
+              "calibrator": { "type": "string" }
+            }
+          }
+        },
+        "comparisons": { "type": "object", "additionalProperties": { "$ref": "#/$defs/comparison" } },
+        "multiplicity_adjusted": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["n_comparisons", "ci_adjusted", "survives_correction", "direction_adjusted"],
+            "properties": {
+              "n_comparisons": { "type": "integer", "minimum": 1 },
+              "ci_adjusted": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "survives_correction": { "type": "boolean" },
+              "direction_adjusted": {
+                "enum": ["challenger_better", "reference_better", "indistinguishable"],
+                "description": "Required, and three-valued for the same reason 'direction' is four-valued. A correction that can only express a surviving gain makes a surviving harm unrepresentable, and a rule reading it then treats a missing correction as an absent harm."
+              },
+              "margin": { "type": "number" },
+              "family_alpha": { "type": "number" },
+              "per_comparison_alpha": { "type": "number" },
+              "confidence_level": { "type": "number" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "selective": {
+          "type": "object",
+          "properties": {
+            "aurc": { "type": "number" },
+            "aurc_image_only": { "type": "number" },
+            "aurc_vs_image_only": { "$ref": "#/$defs/comparison" },
+            "aurc_shipped_arm": { "type": "number" },
+            "aurc_shipped_vs_image_only": { "$ref": "#/$defs/comparison" },
+            "multiplicity_family_size": { "type": "integer", "minimum": 1 },
+            "curve": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "required": ["threshold", "coverage", "risk", "n_kept"],
+                "properties": {
+                  "threshold": { "type": "number" },
+                  "coverage": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "risk": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+                  "n_kept": { "type": "integer", "minimum": 0 },
+                  "n_groups_kept": { "type": "integer", "minimum": 0 },
+                  "n_errors": { "type": "integer", "minimum": 0 }
+                }
+              }
+            },
+            "ceilings": { "type": "array", "items": { "$ref": "#/$defs/risk_ceiling" } }
+          }
+        },
+        "ood": {
+          "type": "object",
+          "properties": {
+            "detector": { "type": "object" },
+            "n_test_flagged": { "type": "integer", "minimum": 0 },
+            "by_axis_counts": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+            "risk_by_novelty": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": ["flagged", "unflagged", "risk_ratio_state", "informative"],
+                "properties": {
+                  "risk_ratio": { "type": ["number", "null"] },
+                  "risk_ratio_state": {
+                    "type": "string",
+                    "description": "Why the ratio is or is not a number. A null ratio from an empty cell and a null ratio from a zero denominator are different facts, and both differ from 'not computed'. On a cold split every test row is novel by construction, so the unflagged cell is empty and the axis carries no contrast at all; without this field that reads as a failed measurement."
+                  },
+                  "informative": { "type": "boolean" },
+                  "flagged": { "$ref": "#/$defs/novelty_cell" },
+                  "unflagged": { "$ref": "#/$defs/novelty_cell" }
+                }
+              }
+            }
+          }
+        },
+        "seed_sensitivity": { "type": ["object", "null"] },
+        "ensemble": { "type": ["object", "null"] }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "degraded": { "type": "null" } },
+            "required": ["degraded"]
+          },
+          "then": {
+            "required": ["arms", "comparisons"],
+            "description": "A split that is not degraded must carry results. A receipt with neither a result nor a stated reason is the shape that lets a silent failure pass as a completed run."
+          }
+        },
+        {
+          "if": {
+            "properties": { "degraded": { "type": "string" } },
+            "required": ["degraded"]
+          },
+          "then": {
+            "required": ["note"],
+            "description": "A degraded split says what it could not do."
+          }
+        }
+      ]
+    },
+    "novelty_cell": {
+      "type": "object",
+      "required": ["n"],
+      "properties": {
+        "n": { "type": "integer", "minimum": 0 },
+        "risk": { "type": ["number", "null"] },
+        "n_errors": { "type": "integer", "minimum": 0 },
+        "mean_confidence": { "type": ["number", "null"] }
+      }
+    }
+  }
+}

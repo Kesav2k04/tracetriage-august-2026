@@ -1,0 +1,4984 @@
+{
+ "schema": "FUSION_RECEIPT",
+ "schema_version": "0.1.0",
+ "contract": "contracts/fusion_receipt.schema.json",
+ "unit": "B2-B6",
+ "generated_at": "2026-08-17T17:53:26.105313+00:00",
+ "seed": 42,
+ "snapshot_id": "snap-20260817-stage1",
+ "split_manifest_sha256": "2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199",
+ "feature_admissibility": {
+  "blocks": {
+   "physics": [
+    "tle1",
+    "tle2",
+    "start",
+    "end",
+    "station_lat",
+    "station_lng",
+    "station_alt",
+    "client_metadata",
+    "observation_frequency",
+    "transmitter_downlink_low"
+   ],
+   "corridor": [
+    "tle1",
+    "tle2",
+    "start",
+    "end",
+    "station_lat",
+    "station_lng",
+    "station_alt",
+    "client_metadata",
+    "observation_frequency",
+    "waterfall"
+   ],
+   "metadata": [
+    "transmitter_mode",
+    "transmitter_type",
+    "transmitter_baud",
+    "transmitter_downlink_low",
+    "transmitter_downlink_drift",
+    "transmitter_invert",
+    "transmitter_status",
+    "transmitter_unconfirmed",
+    "client_version",
+    "client_metadata",
+    "observation_frequency",
+    "rise_azimuth",
+    "set_azimuth",
+    "max_altitude",
+    "station_lat"
+   ],
+   "image": [
+    "waterfall"
+   ]
+  },
+  "n_fields": 36
+ },
+ "caches": {
+  "corridor_rows": 743,
+  "hog_rows": 739,
+  "hog_dim": 16740
+ },
+ "arm_ladder": [
+  {
+   "name": "prior_only",
+   "blocks": []
+  },
+  {
+   "name": "image_only",
+   "blocks": [
+    "image"
+   ]
+  },
+  {
+   "name": "physics_only",
+   "blocks": [
+    "physics"
+   ]
+  },
+  {
+   "name": "corridor_only",
+   "blocks": [
+    "corridor"
+   ]
+  },
+  {
+   "name": "metadata_only",
+   "blocks": [
+    "metadata"
+   ]
+  },
+  {
+   "name": "image_metadata",
+   "blocks": [
+    "image",
+    "metadata"
+   ]
+  },
+  {
+   "name": "image_physics",
+   "blocks": [
+    "image",
+    "physics"
+   ]
+  },
+  {
+   "name": "image_corridor",
+   "blocks": [
+    "image",
+    "corridor"
+   ]
+  },
+  {
+   "name": "physics_conditioned",
+   "blocks": [
+    "image",
+    "physics",
+    "corridor"
+   ]
+  },
+  {
+   "name": "full_fusion",
+   "blocks": [
+    "image",
+    "physics",
+    "corridor",
+    "metadata"
+   ]
+  }
+ ],
+ "gate5": {
+  "gate": 5,
+  "wording": "Require the physics-conditioned model to lower Brier score against a calibrated image-only baseline.",
+  "challenger": "physics_conditioned",
+  "reference": "image_only",
+  "decided_on": "chronological",
+  "verdict": "NOT_ESTABLISHED",
+  "statement": "The physics-conditioned arm has the lower Brier score by 0.02080, but the 95% interval (-0.01271 to 0.05022) spans zero on 88 test observations across 88 episodes. A point estimate in the right direction with an interval containing zero is not a gain, and reporting it as one would be the same error unit A7 made. The gate is not met.",
+  "per_split": {
+   "chronological": {
+    "measurable": true,
+    "margin": 0.020803151476893846,
+    "ci95": [
+     -0.012706046326324062,
+     0.0502184040411207
+    ],
+    "direction": "indistinguishable",
+    "distinguishable": false,
+    "challenger_better": false,
+    "n_observations": 88,
+    "n_groups": 88,
+    "challenger_brier": 0.12869697104668723,
+    "reference_brier": 0.14950012252358108
+   },
+   "cold_station": {
+    "measurable": true,
+    "margin": -0.00019619613570088907,
+    "ci95": [
+     -0.01959046822293724,
+     0.018440994671982274
+    ],
+    "direction": "indistinguishable",
+    "distinguishable": false,
+    "challenger_better": false,
+    "n_observations": 217,
+    "n_groups": 217,
+    "challenger_brier": 0.21613364314466843,
+    "reference_brier": 0.21593744700896753
+   },
+   "cold_transmitter": {
+    "measurable": true,
+    "margin": -0.000859759066891716,
+    "ci95": [
+     -0.05220733440580648,
+     0.05575182786662871
+    ],
+    "direction": "indistinguishable",
+    "distinguishable": false,
+    "challenger_better": false,
+    "n_observations": 96,
+    "n_groups": 96,
+    "challenger_brier": 0.20155114433374313,
+    "reference_brier": 0.2006913852668514
+   },
+   "cold_combined": {
+    "measurable": true,
+    "margin": -0.07997493246078079,
+    "ci95": [
+     -0.11595652321310855,
+     -0.045449666982110316
+    ],
+    "direction": "reference_better",
+    "distinguishable": true,
+    "challenger_better": false,
+    "n_observations": 76,
+    "n_groups": 76,
+    "challenger_brier": 0.20957867364055544,
+    "reference_brier": 0.12960374117977463
+   },
+   "chronological_size_matched": {
+    "measurable": true,
+    "margin": -0.018627283476461136,
+    "ci95": [
+     -0.05843719836915494,
+     0.019035051206966063
+    ],
+    "direction": "indistinguishable",
+    "distinguishable": false,
+    "challenger_better": false,
+    "n_observations": 88,
+    "n_groups": 88,
+    "challenger_brier": 0.1647670451469924,
+    "reference_brier": 0.14613976167053125
+   }
+  }
+ },
+ "ablation_conclusion": {
+  "rules": {
+   "nominal": "Retain a block if an arm containing it beat image-only with a 95% interval clearing zero on a split with at least 300 decisive training rows, and no such split showed it reliably worse.",
+   "multiplicity_corrected": "The same, but the interval must clear zero after Bonferroni correction over the comparison family run on that split."
+  },
+  "deciding_rule": "multiplicity_corrected",
+  "why_the_corrected_rule_decides": "The correction was promoted from a report to a gate after the nominal rule retained the metadata block on one split whose interval did not survive correction, so this is a rule tightened after seeing a number and that is worth stating. It stands on two grounds independent of which way it fell: gate 5 already reports corrected intervals, so holding the ablation to a weaker standard would be the inconsistency; and this ladder runs 5 comparisons on each of 4 splits, where one nominal win by chance is the expected outcome rather than evidence. The corrected rule also selects a combination the ladder actually fitted, so the shipped arm carries a measured score and an interval, which the nominal rule's selection does not.",
+  "min_train_for_verdict": 300,
+  "min_train_justification": "Set from the size-matched control, not from taste. The corridor block loses roughly 0.036 Brier on the chronological split purely by cutting the training partition from 530 rows to 188, which exceeds the 0.020 it gains at full size. Below the floor a verdict measures the sample size instead of the block, so those splits still appear in the receipt and still inform the training-size caveat; they do not decide whether a block ships.",
+  "splits_used": [
+   "chronological",
+   "cold_station",
+   "cold_transmitter"
+  ],
+  "splits_below_training_floor": [
+   "cold_combined"
+  ],
+  "nominal": {
+   "blocks": {
+    "physics": {
+     "decision": "DROP",
+     "better_on": [],
+     "worse_on": [
+      "cold_station/image_physics"
+     ]
+    },
+    "corridor": {
+     "decision": "RETAIN",
+     "better_on": [
+      "chronological/image_corridor"
+     ],
+     "worse_on": []
+    },
+    "metadata": {
+     "decision": "RETAIN",
+     "better_on": [
+      "cold_station/image_metadata"
+     ],
+     "worse_on": []
+    }
+   },
+   "shipped_blocks": [
+    "image",
+    "corridor",
+    "metadata"
+   ],
+   "shipped_arm": null,
+   "shipped_arm_was_measured": false
+  },
+  "multiplicity_corrected": {
+   "blocks": {
+    "physics": {
+     "decision": "DROP",
+     "better_on": [],
+     "worse_on": [
+      "cold_station/image_physics"
+     ]
+    },
+    "corridor": {
+     "decision": "RETAIN",
+     "better_on": [
+      "chronological/image_corridor"
+     ],
+     "worse_on": []
+    },
+    "metadata": {
+     "decision": "NOT_ESTABLISHED",
+     "better_on": [],
+     "worse_on": []
+    }
+   },
+   "shipped_blocks": [
+    "image",
+    "corridor"
+   ],
+   "shipped_arm": "image_corridor",
+   "shipped_arm_was_measured": true
+  },
+  "rules_disagree_on": [
+   "metadata"
+  ],
+  "shipped_blocks": [
+   "image",
+   "corridor"
+  ],
+  "shipped_arm": "image_corridor",
+  "shipped_arm_scores": {
+   "split": "chronological",
+   "brier": 0.12923607884575866,
+   "auc": 0.8746898263027295,
+   "ece": 0.07130435876916258,
+   "calibration_slope": 1.483470830430276
+  },
+  "caveat": "The retain decision reads test-set comparisons, so the shipped arm's Brier is optimistic by an amount this corpus cannot measure. A second snapshot is the only thing that settles it, and until then the number travels with this sentence."
+ },
+ "size_matched_control": {
+  "target_train_n": 188,
+  "achieved_train_n": 188,
+  "full_chronological_train_n": 530,
+  "purpose": "Separates the cost of unseen entities from the cost of a smaller training set. Compare cold_combined against this row, not against the full chronological split.",
+  "image_only": {
+   "full_chronological_brier": 0.14950012252358108,
+   "size_matched_brier": 0.14613976167053125,
+   "cold_combined_brier": 0.12960374117977463,
+   "cost_of_smaller_train": -0.003360360853049832,
+   "cost_of_unseen_entities": -0.016536020490756614
+  },
+  "physics_conditioned": {
+   "full_chronological_brier": 0.12869697104668723,
+   "size_matched_brier": 0.1647670451469924,
+   "cold_combined_brier": 0.20957867364055544,
+   "cost_of_smaller_train": 0.03607007410030516,
+   "cost_of_unseen_entities": 0.044811628493563044
+  }
+ },
+ "splits": [
+  {
+   "split": "chronological",
+   "degraded": null,
+   "counts": {
+    "train": 530,
+    "calibration": 121,
+    "test": 88,
+    "train_with_image": 530,
+    "test_with_image": 88,
+    "test_with_corridor": 88
+   },
+   "test_positive_rate": 0.7045454545454546,
+   "train_positive_rate": 0.5981132075471698,
+   "arms": {
+    "prior_only": {
+     "blocks": [],
+     "degraded": null,
+     "n_columns": 0,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.2000000000000002,
+     "brier": 0.208506236805555,
+     "log_loss": 0.6077735006906795,
+     "auc": 0.5,
+     "ece": 0.01857632312277102,
+     "calibration_slope": 0.42165011177388967,
+     "calibration_intercept": 0.5396490497973697,
+     "mean_prediction": 0.6859691314226836
+    },
+    "image_only": {
+     "blocks": [
+      "image"
+     ],
+     "degraded": null,
+     "n_columns": 2,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 0.8500000000000001,
+     "brier": 0.14950012252358108,
+     "log_loss": 0.46478606167522846,
+     "auc": 0.8418114143920595,
+     "ece": 0.04819642400219383,
+     "calibration_slope": 1.1419103867961011,
+     "calibration_intercept": 0.09996868893795771,
+     "mean_prediction": 0.6775493121070973
+    },
+    "physics_only": {
+     "blocks": [
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 16,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.21364186361965334,
+     "log_loss": 0.6258436602903125,
+     "auc": 0.575062034739454,
+     "ece": 0.03944637303187191,
+     "calibration_slope": -0.07485516217557849,
+     "calibration_intercept": 0.9293642928586803,
+     "mean_prediction": 0.6918679598034632
+    },
+    "corridor_only": {
+     "blocks": [
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 20,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.75,
+     "brier": 0.18743270235245,
+     "log_loss": 0.549877289800424,
+     "auc": 0.7847394540942928,
+     "ece": 0.14748313773514235,
+     "calibration_slope": 8.28248432289781,
+     "calibration_intercept": -5.929072349253981,
+     "mean_prediction": 0.7195465553056319
+    },
+    "metadata_only": {
+     "blocks": [
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 45,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 3.6500000000000004,
+     "brier": 0.20011287400891076,
+     "log_loss": 0.5888089617246405,
+     "auc": 0.6513647642679901,
+     "ece": 0.06149594572326406,
+     "calibration_slope": 1.722439534722635,
+     "calibration_intercept": -0.3973526073379874,
+     "mean_prediction": 0.6786323309325364
+    },
+    "image_metadata": {
+     "blocks": [
+      "image",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 47,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.75,
+     "brier": 0.16069910235944065,
+     "log_loss": 0.49315408203751915,
+     "auc": 0.8200992555831266,
+     "ece": 0.0850282413430786,
+     "calibration_slope": 2.0382534443613833,
+     "calibration_intercept": -0.5048952893505634,
+     "mean_prediction": 0.6790439268816086
+    },
+    "image_physics": {
+     "blocks": [
+      "image",
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 18,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.05,
+     "brier": 0.1520416912329438,
+     "log_loss": 0.5726739090967775,
+     "auc": 0.8337468982630273,
+     "ece": 0.14202337805097712,
+     "calibration_slope": 0.6057097658692686,
+     "calibration_intercept": 0.38141171708144717,
+     "mean_prediction": 0.6866583980947033
+    },
+    "image_corridor": {
+     "blocks": [
+      "image",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 22,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 0.9500000000000001,
+     "brier": 0.12923607884575866,
+     "log_loss": 0.40211650829777396,
+     "auc": 0.8746898263027295,
+     "ece": 0.07130435876916258,
+     "calibration_slope": 1.483470830430276,
+     "calibration_intercept": -0.24565512042709,
+     "mean_prediction": 0.707569119218726
+    },
+    "physics_conditioned": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 38,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.05,
+     "brier": 0.12869697104668723,
+     "log_loss": 0.5135000424759291,
+     "auc": 0.8926799007444168,
+     "ece": 0.11139113570968584,
+     "calibration_slope": 0.7158406273370848,
+     "calibration_intercept": 0.17424462704432367,
+     "mean_prediction": 0.7052938443929683
+    },
+    "full_fusion": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 83,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.0,
+     "brier": 0.1503402568354024,
+     "log_loss": 0.49798871860669897,
+     "auc": 0.8796526054590571,
+     "ece": 0.12904373745863082,
+     "calibration_slope": 1.163073532789625,
+     "calibration_intercept": -0.10393273984493381,
+     "mean_prediction": 0.7022423335967617
+    }
+   },
+   "comparisons": {
+    "image_metadata_vs_image_only": {
+     "margin": -0.011198979835859556,
+     "ci95": [
+      -0.04223537889868669,
+      0.01966599331989351
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_physics_vs_image_only": {
+     "margin": -0.002541568709362722,
+     "ci95": [
+      -0.032664937861224305,
+      0.023155889638774973
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_corridor_vs_image_only": {
+     "margin": 0.020264043677822457,
+     "ci95": [
+      0.006950965547512503,
+      0.03435159948951016
+     ],
+     "direction": "challenger_better",
+     "distinguishable": true,
+     "challenger_better": true,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": 0.020803151476893846,
+     "ci95": [
+      -0.012706046326324062,
+      0.0502184040411207
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "full_fusion_vs_image_only": {
+     "margin": -0.0008401343118213036,
+     "ci95": [
+      -0.04187646801832863,
+      0.03936309983532877
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_only_vs_prior_only": {
+     "margin": 0.05900611428197388,
+     "ci95": [
+      0.01843680690495302,
+      0.09990604891906447
+     ],
+     "direction": "challenger_better",
+     "distinguishable": true,
+     "challenger_better": true,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    }
+   },
+   "multiplicity_adjusted": {
+    "image_corridor_vs_image_only": {
+     "n_comparisons": 7,
+     "family_alpha": 0.05,
+     "per_comparison_alpha": 0.0071428571428571435,
+     "confidence_level": 0.9928571428571429,
+     "margin": 0.020264043677822457,
+     "ci_adjusted": [
+      0.002959260381135832,
+      0.03976305257275872
+     ],
+     "survives_correction": true,
+     "direction_adjusted": "challenger_better",
+     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+    }
+   },
+   "ensemble": {
+    "seed_sensitivity": {
+     "seeds": [
+      1,
+      2,
+      3,
+      42,
+      999
+     ],
+     "max_abs_difference": 0.0,
+     "identical": true,
+     "note": "Zero spread means the learner ignores its seed, so a multi-seed ensemble would average identical models and report zero uncertainty. Uncertainty here comes from the grouped bootstrap and the episode-bootstrap ensemble."
+    },
+    "episode_bootstrap": {
+     "n_members": 20,
+     "n_train_episodes": 529,
+     "mean_std": 0.05819964772006467,
+     "max_std": 0.15984469442510504,
+     "degraded": null,
+     "brier": 0.13029597129369302,
+     "single_fit_brier": 0.12869697104668723,
+     "helps": false
+    }
+   },
+   "selective": {
+    "curve": [
+     {
+      "threshold": 0.5,
+      "coverage": 1.0,
+      "n_kept": 88,
+      "n_groups_kept": 88,
+      "risk": 0.18181818181818182,
+      "n_errors": 16
+     },
+     {
+      "threshold": 0.5125,
+      "coverage": 0.9772727272727273,
+      "n_kept": 86,
+      "n_groups_kept": 86,
+      "risk": 0.1744186046511628,
+      "n_errors": 15
+     },
+     {
+      "threshold": 0.525,
+      "coverage": 0.8977272727272727,
+      "n_kept": 79,
+      "n_groups_kept": 79,
+      "risk": 0.12658227848101267,
+      "n_errors": 10
+     },
+     {
+      "threshold": 0.5375,
+      "coverage": 0.8636363636363636,
+      "n_kept": 76,
+      "n_groups_kept": 76,
+      "risk": 0.11842105263157894,
+      "n_errors": 9
+     },
+     {
+      "threshold": 0.55,
+      "coverage": 0.8636363636363636,
+      "n_kept": 76,
+      "n_groups_kept": 76,
+      "risk": 0.11842105263157894,
+      "n_errors": 9
+     },
+     {
+      "threshold": 0.5625,
+      "coverage": 0.8636363636363636,
+      "n_kept": 76,
+      "n_groups_kept": 76,
+      "risk": 0.11842105263157894,
+      "n_errors": 9
+     },
+     {
+      "threshold": 0.575,
+      "coverage": 0.8409090909090909,
+      "n_kept": 74,
+      "n_groups_kept": 74,
+      "risk": 0.12162162162162163,
+      "n_errors": 9
+     },
+     {
+      "threshold": 0.5875,
+      "coverage": 0.8181818181818182,
+      "n_kept": 72,
+      "n_groups_kept": 72,
+      "risk": 0.1111111111111111,
+      "n_errors": 8
+     },
+     {
+      "threshold": 0.6,
+      "coverage": 0.7954545454545454,
+      "n_kept": 70,
+      "n_groups_kept": 70,
+      "risk": 0.08571428571428572,
+      "n_errors": 6
+     },
+     {
+      "threshold": 0.6125,
+      "coverage": 0.7613636363636364,
+      "n_kept": 67,
+      "n_groups_kept": 67,
+      "risk": 0.08955223880597014,
+      "n_errors": 6
+     },
+     {
+      "threshold": 0.625,
+      "coverage": 0.7386363636363636,
+      "n_kept": 65,
+      "n_groups_kept": 65,
+      "risk": 0.07692307692307693,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.6375,
+      "coverage": 0.7045454545454546,
+      "n_kept": 62,
+      "n_groups_kept": 62,
+      "risk": 0.08064516129032258,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.65,
+      "coverage": 0.6818181818181818,
+      "n_kept": 60,
+      "n_groups_kept": 60,
+      "risk": 0.08333333333333333,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.6625,
+      "coverage": 0.6704545454545454,
+      "n_kept": 59,
+      "n_groups_kept": 59,
+      "risk": 0.0847457627118644,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.675,
+      "coverage": 0.6704545454545454,
+      "n_kept": 59,
+      "n_groups_kept": 59,
+      "risk": 0.0847457627118644,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.6875,
+      "coverage": 0.6704545454545454,
+      "n_kept": 59,
+      "n_groups_kept": 59,
+      "risk": 0.0847457627118644,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.7,
+      "coverage": 0.625,
+      "n_kept": 55,
+      "n_groups_kept": 55,
+      "risk": 0.09090909090909091,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.7125,
+      "coverage": 0.625,
+      "n_kept": 55,
+      "n_groups_kept": 55,
+      "risk": 0.09090909090909091,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.725,
+      "coverage": 0.6136363636363636,
+      "n_kept": 54,
+      "n_groups_kept": 54,
+      "risk": 0.09259259259259259,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.7375,
+      "coverage": 0.6022727272727273,
+      "n_kept": 53,
+      "n_groups_kept": 53,
+      "risk": 0.09433962264150944,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.75,
+      "coverage": 0.5795454545454546,
+      "n_kept": 51,
+      "n_groups_kept": 51,
+      "risk": 0.0784313725490196,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.7625,
+      "coverage": 0.5568181818181818,
+      "n_kept": 49,
+      "n_groups_kept": 49,
+      "risk": 0.061224489795918366,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.775,
+      "coverage": 0.5340909090909091,
+      "n_kept": 47,
+      "n_groups_kept": 47,
+      "risk": 0.06382978723404255,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.7875000000000001,
+      "coverage": 0.5227272727272727,
+      "n_kept": 46,
+      "n_groups_kept": 46,
+      "risk": 0.06521739130434782,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.8,
+      "coverage": 0.48863636363636365,
+      "n_kept": 43,
+      "n_groups_kept": 43,
+      "risk": 0.06976744186046512,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.8125,
+      "coverage": 0.4659090909090909,
+      "n_kept": 41,
+      "n_groups_kept": 41,
+      "risk": 0.07317073170731707,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.825,
+      "coverage": 0.42045454545454547,
+      "n_kept": 37,
+      "n_groups_kept": 37,
+      "risk": 0.05405405405405406,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.8375,
+      "coverage": 0.375,
+      "n_kept": 33,
+      "n_groups_kept": 33,
+      "risk": 0.030303030303030304,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8500000000000001,
+      "coverage": 0.36363636363636365,
+      "n_kept": 32,
+      "n_groups_kept": 32,
+      "risk": 0.03125,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8625,
+      "coverage": 0.3409090909090909,
+      "n_kept": 30,
+      "n_groups_kept": 30,
+      "risk": 0.03333333333333333,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.875,
+      "coverage": 0.29545454545454547,
+      "n_kept": 26,
+      "n_groups_kept": 26,
+      "risk": 0.038461538461538464,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8875,
+      "coverage": 0.2840909090909091,
+      "n_kept": 25,
+      "n_groups_kept": 25,
+      "risk": 0.04,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9,
+      "coverage": 0.2727272727272727,
+      "n_kept": 24,
+      "n_groups_kept": 24,
+      "risk": 0.041666666666666664,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9125000000000001,
+      "coverage": 0.26136363636363635,
+      "n_kept": 23,
+      "n_groups_kept": 23,
+      "risk": 0.043478260869565216,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.925,
+      "coverage": 0.23863636363636365,
+      "n_kept": 21,
+      "n_groups_kept": 21,
+      "risk": 0.047619047619047616,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9375,
+      "coverage": 0.19318181818181818,
+      "n_kept": 17,
+      "n_groups_kept": 17,
+      "risk": 0.058823529411764705,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.95,
+      "coverage": 0.14772727272727273,
+      "n_kept": 13,
+      "n_groups_kept": 13,
+      "risk": 0.07692307692307693,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9625,
+      "coverage": 0.125,
+      "n_kept": 11,
+      "n_groups_kept": 11,
+      "risk": 0.09090909090909091,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9750000000000001,
+      "coverage": 0.125,
+      "n_kept": 11,
+      "n_groups_kept": 11,
+      "risk": 0.09090909090909091,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9875,
+      "coverage": 0.07954545454545454,
+      "n_kept": 7,
+      "n_groups_kept": 7,
+      "risk": 0.14285714285714285,
+      "n_errors": 1
+     },
+     {
+      "threshold": 1.0,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     }
+    ],
+    "aurc": 0.08321145917747737,
+    "aurc_image_only": 0.13084146458718976,
+    "aurc_vs_image_only": {
+     "margin": 0.04763000540971239,
+     "ci95": [
+      -0.035048723082974374,
+      0.12131101890779286
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      -0.06506008165186228,
+      0.1492247501399535
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "aurc_shipped_arm": 0.07348295030343599,
+    "aurc_shipped_vs_image_only": {
+     "margin": 0.05735851428375377,
+     "ci95": [
+      0.026880049939984278,
+      0.09368937272096899
+     ],
+     "direction": "challenger_better",
+     "distinguishable": true,
+     "challenger_better": true,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      0.017967758553437786,
+      0.10579406525358977
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": true,
+     "n_observations": 88,
+     "n_groups": 88,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "multiplicity_family_size": 7,
+    "ceilings": [
+     {
+      "chosen_on_calibration": {
+       "feasible": true,
+       "target_risk": 0.05,
+       "min_coverage": 0.05,
+       "threshold": 0.8375,
+       "calibration_risk": 0.05,
+       "calibration_coverage": 0.3305785123966942,
+       "calibration_n_kept": 40,
+       "note": "Chosen on the calibration partition. The risk achieved on test is a separate measurement and may exceed the target."
+      },
+      "achieved_on_test": {
+       "threshold": 0.8375,
+       "target_risk": 0.05,
+       "coverage": 0.375,
+       "n_kept": 33,
+       "n_total": 88,
+       "n_groups_kept": 33,
+       "risk": 0.030303030303030304,
+       "risk_ci95": [
+        0.0,
+        0.09090909090909091
+       ],
+       "n_errors": 1,
+       "held": false,
+       "held_at_point_estimate": true,
+       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": true,
+       "target_risk": 0.1,
+       "min_coverage": 0.05,
+       "threshold": 0.825,
+       "calibration_risk": 0.06521739130434782,
+       "calibration_coverage": 0.38016528925619836,
+       "calibration_n_kept": 46,
+       "note": "Chosen on the calibration partition. The risk achieved on test is a separate measurement and may exceed the target."
+      },
+      "achieved_on_test": {
+       "threshold": 0.825,
+       "target_risk": 0.1,
+       "coverage": 0.42045454545454547,
+       "n_kept": 37,
+       "n_total": 88,
+       "n_groups_kept": 37,
+       "risk": 0.05405405405405406,
+       "risk_ci95": [
+        0.0,
+        0.13513513513513514
+       ],
+       "n_errors": 2,
+       "held": false,
+       "held_at_point_estimate": true,
+       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": true,
+       "target_risk": 0.2,
+       "min_coverage": 0.05,
+       "threshold": 0.6375,
+       "calibration_risk": 0.1797752808988764,
+       "calibration_coverage": 0.7355371900826446,
+       "calibration_n_kept": 89,
+       "note": "Chosen on the calibration partition. The risk achieved on test is a separate measurement and may exceed the target."
+      },
+      "achieved_on_test": {
+       "threshold": 0.6375,
+       "target_risk": 0.2,
+       "coverage": 0.7045454545454546,
+       "n_kept": 62,
+       "n_total": 88,
+       "n_groups_kept": 62,
+       "risk": 0.08064516129032258,
+       "risk_ci95": [
+        0.016129032258064516,
+        0.16129032258064516
+       ],
+       "n_errors": 5,
+       "held": true,
+       "held_at_point_estimate": true,
+       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+      }
+     }
+    ]
+   },
+   "ood": {
+    "detector": {
+     "n_train": 530,
+     "n_seen_stations": 97,
+     "n_seen_transmitters": 251,
+     "seen_client_families": [
+      "0.9",
+      "1.5",
+      "1.6",
+      "1.8.1",
+      "1.9.2",
+      "1.9.3",
+      "2.0.1",
+      "2.1",
+      "2.1.1",
+      "2.1.2",
+      "unknown"
+     ],
+     "seen_bands": [
+      "other",
+      "s_band",
+      "uhf_400",
+      "uhf_70cm",
+      "vhf_2m"
+     ],
+     "novelty_features": [
+      "max_elevation_deg",
+      "pass_duration_s",
+      "doppler_swing_hz",
+      "doppler_rate_max_hz_s",
+      "tle_epoch_age_days"
+     ],
+     "distance_quantile_99": 6.9633921904705085,
+     "degraded": null,
+     "note": "distance_quantile_99 is the 99th percentile of the training set's own distances, so 'novel' means further out than 99% of training data rather than past a number chosen by hand."
+    },
+    "n_test_flagged": 52,
+    "by_axis_counts": {
+     "unseen_station": 12,
+     "unseen_transmitter": 40,
+     "unseen_client_family": 0,
+     "unseen_band": 0,
+     "feature_novelty": 0
+    },
+    "risk_by_novelty": {
+     "unseen_station": {
+      "flagged": {
+       "n": 12,
+       "risk": 0.16666666666666666,
+       "n_errors": 2,
+       "mean_confidence": 0.8409856747380919
+      },
+      "unflagged": {
+       "n": 76,
+       "risk": 0.18421052631578946,
+       "n_errors": 14,
+       "mean_confidence": 0.7576894837061591
+      },
+      "risk_ratio": 0.9047619047619048,
+      "risk_ratio_state": "measured",
+      "informative": false
+     },
+     "unseen_transmitter": {
+      "flagged": {
+       "n": 40,
+       "risk": 0.2,
+       "n_errors": 8,
+       "mean_confidence": 0.7585556474240812
+      },
+      "unflagged": {
+       "n": 48,
+       "risk": 0.16666666666666666,
+       "n_errors": 8,
+       "mean_confidence": 0.7777917283658738
+      },
+      "risk_ratio": 1.2000000000000002,
+      "risk_ratio_state": "measured",
+      "informative": true
+     },
+     "unseen_client_family": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 88,
+       "risk": 0.18181818181818182,
+       "n_errors": 16,
+       "mean_confidence": 0.7690480552105136
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "unseen_band": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 88,
+       "risk": 0.18181818181818182,
+       "n_errors": 16,
+       "mean_confidence": 0.7690480552105136
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "feature_novelty": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 88,
+       "risk": 0.18181818181818182,
+       "n_errors": 16,
+       "mean_confidence": 0.7690480552105136
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "is_ood": {
+      "flagged": {
+       "n": 52,
+       "risk": 0.19230769230769232,
+       "n_errors": 10,
+       "mean_confidence": 0.7775779614196221
+      },
+      "unflagged": {
+       "n": 36,
+       "risk": 0.16666666666666666,
+       "n_errors": 6,
+       "mean_confidence": 0.7567270795751344
+      },
+      "risk_ratio": 1.153846153846154,
+      "risk_ratio_state": "measured",
+      "informative": true
+     }
+    }
+   }
+  },
+  {
+   "split": "cold_station",
+   "degraded": null,
+   "counts": {
+    "train": 408,
+    "calibration": 114,
+    "test": 217,
+    "train_with_image": 408,
+    "test_with_image": 217,
+    "test_with_corridor": 209
+   },
+   "test_positive_rate": 0.6682027649769585,
+   "train_positive_rate": 0.6470588235294118,
+   "arms": {
+    "prior_only": {
+     "blocks": [],
+     "degraded": null,
+     "n_columns": 0,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 3.8000000000000003,
+     "brier": 0.2630256094842042,
+     "log_loss": 0.7192432581877762,
+     "auc": 0.5,
+     "ece": 0.20326775354221394,
+     "calibration_slope": -0.09645042834292424,
+     "calibration_intercept": 0.6865259557659573,
+     "mean_prediction": 0.4649350114347446
+    },
+    "image_only": {
+     "blocks": [
+      "image"
+     ],
+     "degraded": null,
+     "n_columns": 2,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.05,
+     "brier": 0.21593744700896753,
+     "log_loss": 0.6244869958100777,
+     "auc": 0.778639846743295,
+     "ece": 0.1575405143385701,
+     "calibration_slope": 1.8954154615169034,
+     "calibration_intercept": 0.5797040145160894,
+     "mean_prediction": 0.5242033946214609
+    },
+    "physics_only": {
+     "blocks": [
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 16,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.35,
+     "brier": 0.28528273685979516,
+     "log_loss": 0.7681691492483929,
+     "auc": 0.44166666666666665,
+     "ece": 0.2696817700868347,
+     "calibration_slope": -1.0931773757871508,
+     "calibration_intercept": 0.45736104126075855,
+     "mean_prediction": 0.4426239836597837
+    },
+    "corridor_only": {
+     "blocks": [
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 20,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.6500000000000004,
+     "brier": 0.24466713102586551,
+     "log_loss": 0.6890690335517168,
+     "auc": 0.6050766283524904,
+     "ece": 0.18528241090507636,
+     "calibration_slope": 0.38512700321527543,
+     "calibration_intercept": 0.6386005859718769,
+     "mean_prediction": 0.5235303951420076
+    },
+    "metadata_only": {
+     "blocks": [
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 41,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.6500000000000004,
+     "brier": 0.2261131470935143,
+     "log_loss": 0.6397926573439887,
+     "auc": 0.6755747126436782,
+     "ece": 0.21425927415207977,
+     "calibration_slope": 1.3779079367239295,
+     "calibration_intercept": 0.8013508911245225,
+     "mean_prediction": 0.5001368503909523
+    },
+    "image_metadata": {
+     "blocks": [
+      "image",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 43,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.4,
+     "brier": 0.19921699844739507,
+     "log_loss": 0.583160605253829,
+     "auc": 0.7370689655172413,
+     "ece": 0.14383238209049223,
+     "calibration_slope": 1.3763143231674055,
+     "calibration_intercept": 0.592725063838798,
+     "mean_prediction": 0.541377309300224
+    },
+    "image_physics": {
+     "blocks": [
+      "image",
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 18,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.35,
+     "brier": 0.23131204533302746,
+     "log_loss": 0.6565382228590775,
+     "auc": 0.6550766283524905,
+     "ece": 0.18809726106036329,
+     "calibration_slope": 1.283259414952333,
+     "calibration_intercept": 0.6920183881716132,
+     "mean_prediction": 0.5101188880413174
+    },
+    "image_corridor": {
+     "blocks": [
+      "image",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 22,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.25,
+     "brier": 0.20999886165340062,
+     "log_loss": 0.6190667708808717,
+     "auc": 0.6879310344827586,
+     "ece": 0.13358643572602102,
+     "calibration_slope": 0.6497913006447568,
+     "calibration_intercept": 0.5060972436815964,
+     "mean_prediction": 0.5724169309401388
+    },
+    "physics_conditioned": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 38,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.5,
+     "brier": 0.21613364314466843,
+     "log_loss": 0.631888577133482,
+     "auc": 0.6717432950191571,
+     "ece": 0.15752040161648156,
+     "calibration_slope": 0.6023290801766971,
+     "calibration_intercept": 0.5412293032632878,
+     "mean_prediction": 0.5626064107856298
+    },
+    "full_fusion": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 79,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 114 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.4,
+     "brier": 0.19764336893111498,
+     "log_loss": 0.5853387784001736,
+     "auc": 0.7217432950191571,
+     "ece": 0.13843781673130534,
+     "calibration_slope": 0.7169576256677046,
+     "calibration_intercept": 0.4685769875102625,
+     "mean_prediction": 0.5871478285393206
+    }
+   },
+   "comparisons": {
+    "image_metadata_vs_image_only": {
+     "margin": 0.016720448561572447,
+     "ci95": [
+      0.0036810479800532285,
+      0.030069835878420298
+     ],
+     "direction": "challenger_better",
+     "distinguishable": true,
+     "challenger_better": true,
+     "n_observations": 217,
+     "n_groups": 217,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_physics_vs_image_only": {
+     "margin": -0.01537459832405996,
+     "ci95": [
+      -0.021901159911278185,
+      -0.009400753732757639
+     ],
+     "direction": "reference_better",
+     "distinguishable": true,
+     "challenger_better": false,
+     "n_observations": 217,
+     "n_groups": 217,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_corridor_vs_image_only": {
+     "margin": 0.005938585355566882,
+     "ci95": [
+      -0.013688976274526659,
+      0.02432549745089395
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 217,
+     "n_groups": 217,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": -0.00019619613570088907,
+     "ci95": [
+      -0.01959046822293724,
+      0.018440994671982274
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 217,
+     "n_groups": 217,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "full_fusion_vs_image_only": {
+     "margin": 0.018294078077852525,
+     "ci95": [
+      -0.0047538258253886885,
+      0.04014787198651723
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 217,
+     "n_groups": 217,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_only_vs_prior_only": {
+     "margin": 0.047088162475236645,
+     "ci95": [
+      0.03248845320787263,
+      0.06068019911211968
+     ],
+     "direction": "challenger_better",
+     "distinguishable": true,
+     "challenger_better": true,
+     "n_observations": 217,
+     "n_groups": 217,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    }
+   },
+   "multiplicity_adjusted": {
+    "image_metadata_vs_image_only": {
+     "n_comparisons": 7,
+     "family_alpha": 0.05,
+     "per_comparison_alpha": 0.0071428571428571435,
+     "confidence_level": 0.9928571428571429,
+     "margin": 0.016720448561572447,
+     "ci_adjusted": [
+      -0.0012778691952284027,
+      0.034452285374485164
+     ],
+     "survives_correction": false,
+     "direction_adjusted": "indistinguishable",
+     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+    },
+    "image_physics_vs_image_only": {
+     "n_comparisons": 7,
+     "family_alpha": 0.05,
+     "per_comparison_alpha": 0.0071428571428571435,
+     "confidence_level": 0.9928571428571429,
+     "margin": -0.01537459832405996,
+     "ci_adjusted": [
+      -0.02449143491310843,
+      -0.0073509331352127555
+     ],
+     "survives_correction": true,
+     "direction_adjusted": "reference_better",
+     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+    }
+   },
+   "ensemble": {
+    "seed_sensitivity": {
+     "seeds": [
+      1,
+      2,
+      3,
+      42,
+      999
+     ],
+     "max_abs_difference": 0.0,
+     "identical": true,
+     "note": "Zero spread means the learner ignores its seed, so a multi-seed ensemble would average identical models and report zero uncertainty. Uncertainty here comes from the grouped bootstrap and the episode-bootstrap ensemble."
+    },
+    "episode_bootstrap": {
+     "n_members": 20,
+     "n_train_episodes": 408,
+     "mean_std": 0.0647200960075843,
+     "max_std": 0.36396650508497924,
+     "degraded": null,
+     "brier": 0.21715023934195637,
+     "single_fit_brier": 0.21613364314466843,
+     "helps": false
+    }
+   },
+   "selective": {
+    "curve": [
+     {
+      "threshold": 0.5,
+      "coverage": 1.0,
+      "n_kept": 217,
+      "n_groups_kept": 217,
+      "risk": 0.35944700460829493,
+      "n_errors": 78
+     },
+     {
+      "threshold": 0.5125,
+      "coverage": 0.9308755760368663,
+      "n_kept": 202,
+      "n_groups_kept": 202,
+      "risk": 0.33663366336633666,
+      "n_errors": 68
+     },
+     {
+      "threshold": 0.525,
+      "coverage": 0.8663594470046083,
+      "n_kept": 188,
+      "n_groups_kept": 188,
+      "risk": 0.3351063829787234,
+      "n_errors": 63
+     },
+     {
+      "threshold": 0.5375,
+      "coverage": 0.815668202764977,
+      "n_kept": 177,
+      "n_groups_kept": 177,
+      "risk": 0.3333333333333333,
+      "n_errors": 59
+     },
+     {
+      "threshold": 0.55,
+      "coverage": 0.7603686635944701,
+      "n_kept": 165,
+      "n_groups_kept": 165,
+      "risk": 0.3333333333333333,
+      "n_errors": 55
+     },
+     {
+      "threshold": 0.5625,
+      "coverage": 0.7142857142857143,
+      "n_kept": 155,
+      "n_groups_kept": 155,
+      "risk": 0.32903225806451614,
+      "n_errors": 51
+     },
+     {
+      "threshold": 0.575,
+      "coverage": 0.6774193548387096,
+      "n_kept": 147,
+      "n_groups_kept": 147,
+      "risk": 0.30612244897959184,
+      "n_errors": 45
+     },
+     {
+      "threshold": 0.5875,
+      "coverage": 0.631336405529954,
+      "n_kept": 137,
+      "n_groups_kept": 137,
+      "risk": 0.291970802919708,
+      "n_errors": 40
+     },
+     {
+      "threshold": 0.6,
+      "coverage": 0.6175115207373272,
+      "n_kept": 134,
+      "n_groups_kept": 134,
+      "risk": 0.291044776119403,
+      "n_errors": 39
+     },
+     {
+      "threshold": 0.6125,
+      "coverage": 0.5668202764976958,
+      "n_kept": 123,
+      "n_groups_kept": 123,
+      "risk": 0.2682926829268293,
+      "n_errors": 33
+     },
+     {
+      "threshold": 0.625,
+      "coverage": 0.48847926267281105,
+      "n_kept": 106,
+      "n_groups_kept": 106,
+      "risk": 0.2641509433962264,
+      "n_errors": 28
+     },
+     {
+      "threshold": 0.6375,
+      "coverage": 0.45161290322580644,
+      "n_kept": 98,
+      "n_groups_kept": 98,
+      "risk": 0.2653061224489796,
+      "n_errors": 26
+     },
+     {
+      "threshold": 0.65,
+      "coverage": 0.4009216589861751,
+      "n_kept": 87,
+      "n_groups_kept": 87,
+      "risk": 0.22988505747126436,
+      "n_errors": 20
+     },
+     {
+      "threshold": 0.6625,
+      "coverage": 0.3640552995391705,
+      "n_kept": 79,
+      "n_groups_kept": 79,
+      "risk": 0.22784810126582278,
+      "n_errors": 18
+     },
+     {
+      "threshold": 0.675,
+      "coverage": 0.3225806451612903,
+      "n_kept": 70,
+      "n_groups_kept": 70,
+      "risk": 0.17142857142857143,
+      "n_errors": 12
+     },
+     {
+      "threshold": 0.6875,
+      "coverage": 0.2903225806451613,
+      "n_kept": 63,
+      "n_groups_kept": 63,
+      "risk": 0.1746031746031746,
+      "n_errors": 11
+     },
+     {
+      "threshold": 0.7,
+      "coverage": 0.271889400921659,
+      "n_kept": 59,
+      "n_groups_kept": 59,
+      "risk": 0.15254237288135594,
+      "n_errors": 9
+     },
+     {
+      "threshold": 0.7125,
+      "coverage": 0.2488479262672811,
+      "n_kept": 54,
+      "n_groups_kept": 54,
+      "risk": 0.14814814814814814,
+      "n_errors": 8
+     },
+     {
+      "threshold": 0.725,
+      "coverage": 0.22119815668202766,
+      "n_kept": 48,
+      "n_groups_kept": 48,
+      "risk": 0.16666666666666666,
+      "n_errors": 8
+     },
+     {
+      "threshold": 0.7375,
+      "coverage": 0.2073732718894009,
+      "n_kept": 45,
+      "n_groups_kept": 45,
+      "risk": 0.17777777777777778,
+      "n_errors": 8
+     },
+     {
+      "threshold": 0.75,
+      "coverage": 0.18433179723502305,
+      "n_kept": 40,
+      "n_groups_kept": 40,
+      "risk": 0.2,
+      "n_errors": 8
+     },
+     {
+      "threshold": 0.7625,
+      "coverage": 0.16129032258064516,
+      "n_kept": 35,
+      "n_groups_kept": 35,
+      "risk": 0.17142857142857143,
+      "n_errors": 6
+     },
+     {
+      "threshold": 0.775,
+      "coverage": 0.15207373271889402,
+      "n_kept": 33,
+      "n_groups_kept": 33,
+      "risk": 0.15151515151515152,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.7875000000000001,
+      "coverage": 0.1336405529953917,
+      "n_kept": 29,
+      "n_groups_kept": 29,
+      "risk": 0.13793103448275862,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.8,
+      "coverage": 0.12903225806451613,
+      "n_kept": 28,
+      "n_groups_kept": 28,
+      "risk": 0.10714285714285714,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.8125,
+      "coverage": 0.1152073732718894,
+      "n_kept": 25,
+      "n_groups_kept": 25,
+      "risk": 0.08,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.825,
+      "coverage": 0.11059907834101383,
+      "n_kept": 24,
+      "n_groups_kept": 24,
+      "risk": 0.08333333333333333,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.8375,
+      "coverage": 0.11059907834101383,
+      "n_kept": 24,
+      "n_groups_kept": 24,
+      "risk": 0.08333333333333333,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.8500000000000001,
+      "coverage": 0.10138248847926268,
+      "n_kept": 22,
+      "n_groups_kept": 22,
+      "risk": 0.09090909090909091,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.8625,
+      "coverage": 0.10138248847926268,
+      "n_kept": 22,
+      "n_groups_kept": 22,
+      "risk": 0.09090909090909091,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.875,
+      "coverage": 0.10138248847926268,
+      "n_kept": 22,
+      "n_groups_kept": 22,
+      "risk": 0.09090909090909091,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.8875,
+      "coverage": 0.10138248847926268,
+      "n_kept": 22,
+      "n_groups_kept": 22,
+      "risk": 0.09090909090909091,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.9,
+      "coverage": 0.0967741935483871,
+      "n_kept": 21,
+      "n_groups_kept": 21,
+      "risk": 0.09523809523809523,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.9125000000000001,
+      "coverage": 0.08755760368663594,
+      "n_kept": 19,
+      "n_groups_kept": 19,
+      "risk": 0.10526315789473684,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.925,
+      "coverage": 0.08755760368663594,
+      "n_kept": 19,
+      "n_groups_kept": 19,
+      "risk": 0.10526315789473684,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.9375,
+      "coverage": 0.08294930875576037,
+      "n_kept": 18,
+      "n_groups_kept": 18,
+      "risk": 0.1111111111111111,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.95,
+      "coverage": 0.07834101382488479,
+      "n_kept": 17,
+      "n_groups_kept": 17,
+      "risk": 0.11764705882352941,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.9625,
+      "coverage": 0.07373271889400922,
+      "n_kept": 16,
+      "n_groups_kept": 16,
+      "risk": 0.125,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.9750000000000001,
+      "coverage": 0.059907834101382486,
+      "n_kept": 13,
+      "n_groups_kept": 13,
+      "risk": 0.15384615384615385,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.9875,
+      "coverage": 0.04608294930875576,
+      "n_kept": 10,
+      "n_groups_kept": 10,
+      "risk": 0.1,
+      "n_errors": 1
+     },
+     {
+      "threshold": 1.0,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     }
+    ],
+    "aurc": 0.2528337169925671,
+    "aurc_image_only": 0.25493771910941576,
+    "aurc_vs_image_only": {
+     "margin": 0.0021040021168486356,
+     "ci95": [
+      -0.0858628736847764,
+      0.0913506650728455
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      -0.12198009936944738,
+      0.11959057886739184
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": false,
+     "n_observations": 217,
+     "n_groups": 217,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "aurc_shipped_arm": 0.2377423299128653,
+    "aurc_shipped_vs_image_only": {
+     "margin": 0.017195389196550448,
+     "ci95": [
+      -0.0705878097614328,
+      0.10563441632789515
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      -0.09825716126755873,
+      0.13659290420187695
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": false,
+     "n_observations": 217,
+     "n_groups": 217,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "multiplicity_family_size": 7,
+    "ceilings": [
+     {
+      "chosen_on_calibration": {
+       "feasible": false,
+       "target_risk": 0.05,
+       "min_coverage": 0.05,
+       "threshold": null,
+       "best_calibration_risk": 0.16666666666666666,
+       "best_calibration_coverage": 0.05263157894736842,
+       "reason": "No confidence threshold holds risk at or below 0.050 while keeping at least 5% of observations. The lowest calibration risk available at that coverage is 0.167"
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": false,
+       "target_risk": 0.1,
+       "min_coverage": 0.05,
+       "threshold": null,
+       "best_calibration_risk": 0.16666666666666666,
+       "best_calibration_coverage": 0.05263157894736842,
+       "reason": "No confidence threshold holds risk at or below 0.100 while keeping at least 5% of observations. The lowest calibration risk available at that coverage is 0.167"
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": true,
+       "target_risk": 0.2,
+       "min_coverage": 0.05,
+       "threshold": 0.8125,
+       "calibration_risk": 0.16666666666666666,
+       "calibration_coverage": 0.05263157894736842,
+       "calibration_n_kept": 6,
+       "note": "Chosen on the calibration partition. The risk achieved on test is a separate measurement and may exceed the target."
+      },
+      "achieved_on_test": {
+       "threshold": 0.8125,
+       "target_risk": 0.2,
+       "coverage": 0.1152073732718894,
+       "n_kept": 25,
+       "n_total": 217,
+       "n_groups_kept": 25,
+       "risk": 0.08,
+       "risk_ci95": [
+        0.0,
+        0.2
+       ],
+       "n_errors": 2,
+       "held": true,
+       "held_at_point_estimate": true,
+       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+      }
+     }
+    ]
+   },
+   "ood": {
+    "detector": {
+     "n_train": 408,
+     "n_seen_stations": 73,
+     "n_seen_transmitters": 206,
+     "seen_client_families": [
+      "0.9",
+      "1.6",
+      "1.8.1",
+      "1.9.2",
+      "1.9.3",
+      "2.1.1",
+      "2.1.2",
+      "unknown"
+     ],
+     "seen_bands": [
+      "other",
+      "s_band",
+      "uhf_400",
+      "uhf_70cm",
+      "vhf_2m"
+     ],
+     "novelty_features": [
+      "max_elevation_deg",
+      "pass_duration_s",
+      "doppler_swing_hz",
+      "doppler_rate_max_hz_s",
+      "tle_epoch_age_days"
+     ],
+     "distance_quantile_99": 5.929676209861516,
+     "degraded": null,
+     "note": "distance_quantile_99 is the 99th percentile of the training set's own distances, so 'novel' means further out than 99% of training data rather than past a number chosen by hand."
+    },
+    "n_test_flagged": 217,
+    "by_axis_counts": {
+     "unseen_station": 217,
+     "unseen_transmitter": 96,
+     "unseen_client_family": 14,
+     "unseen_band": 0,
+     "feature_novelty": 6
+    },
+    "risk_by_novelty": {
+     "unseen_station": {
+      "flagged": {
+       "n": 217,
+       "risk": 0.35944700460829493,
+       "n_errors": 78,
+       "mean_confidence": 0.655772233375331
+      },
+      "unflagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "unseen_transmitter": {
+      "flagged": {
+       "n": 96,
+       "risk": 0.4583333333333333,
+       "n_errors": 44,
+       "mean_confidence": 0.6620997740687877
+      },
+      "unflagged": {
+       "n": 121,
+       "risk": 0.2809917355371901,
+       "n_errors": 34,
+       "mean_confidence": 0.6507520358003571
+      },
+      "risk_ratio": 1.6311274509803921,
+      "risk_ratio_state": "measured",
+      "informative": true
+     },
+     "unseen_client_family": {
+      "flagged": {
+       "n": 14,
+       "risk": 0.2857142857142857,
+       "n_errors": 4,
+       "mean_confidence": 0.6315333945076641
+      },
+      "unflagged": {
+       "n": 203,
+       "risk": 0.3645320197044335,
+       "n_errors": 74,
+       "mean_confidence": 0.6574438774351702
+      },
+      "risk_ratio": 0.7837837837837838,
+      "risk_ratio_state": "measured",
+      "informative": false
+     },
+     "unseen_band": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 217,
+       "risk": 0.35944700460829493,
+       "n_errors": 78,
+       "mean_confidence": 0.655772233375331
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "feature_novelty": {
+      "flagged": {
+       "n": 6,
+       "risk": 0.3333333333333333,
+       "n_errors": 2,
+       "mean_confidence": 0.6331811526987088
+      },
+      "unflagged": {
+       "n": 211,
+       "risk": 0.36018957345971564,
+       "n_errors": 76,
+       "mean_confidence": 0.6564146337737183
+      },
+      "risk_ratio": 0.9254385964912281,
+      "risk_ratio_state": "measured",
+      "informative": false
+     },
+     "is_ood": {
+      "flagged": {
+       "n": 217,
+       "risk": 0.35944700460829493,
+       "n_errors": 78,
+       "mean_confidence": 0.655772233375331
+      },
+      "unflagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     }
+    }
+   }
+  },
+  {
+   "split": "cold_transmitter",
+   "degraded": null,
+   "counts": {
+    "train": 612,
+    "calibration": 31,
+    "test": 96,
+    "train_with_image": 612,
+    "test_with_image": 96,
+    "test_with_corridor": 91
+   },
+   "test_positive_rate": 0.5833333333333334,
+   "train_positive_rate": 0.6388888888888888,
+   "arms": {
+    "prior_only": {
+     "blocks": [],
+     "degraded": null,
+     "n_columns": 0,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.7000000000000002,
+     "brier": 0.25294071107308586,
+     "log_loss": 0.6990307237963288,
+     "auc": 0.5,
+     "ece": 0.09942411939529666,
+     "calibration_slope": -0.02157168825620386,
+     "calibration_intercept": 0.3350401773926313,
+     "mean_prediction": 0.4839092139380367
+    },
+    "image_only": {
+     "blocks": [
+      "image"
+     ],
+     "degraded": null,
+     "n_columns": 2,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 0.4,
+     "brier": 0.2006913852668514,
+     "log_loss": 0.6673652845558437,
+     "auc": 0.8200892857142857,
+     "ece": 0.1791931997842584,
+     "calibration_slope": 0.5068087938625125,
+     "calibration_intercept": 0.6371283873969131,
+     "mean_prediction": 0.4788713658862505
+    },
+    "physics_only": {
+     "blocks": [
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 16,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.24738592035745086,
+     "log_loss": 0.6878547252897974,
+     "auc": 0.5348214285714286,
+     "ece": 0.08173204834275001,
+     "calibration_slope": 1.678632254349854,
+     "calibration_intercept": 0.32945964267955735,
+     "mean_prediction": 0.5016012849905833
+    },
+    "corridor_only": {
+     "blocks": [
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 20,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.2223334291808976,
+     "log_loss": 0.6317763241785409,
+     "auc": 0.6915178571428572,
+     "ece": 0.12601282455306423,
+     "calibration_slope": 1.7303496794044158,
+     "calibration_intercept": 0.43350188211613505,
+     "mean_prediction": 0.5029420269500293
+    },
+    "metadata_only": {
+     "blocks": [
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 46,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.05,
+     "brier": 0.2685960173130469,
+     "log_loss": 0.7313996660188385,
+     "auc": 0.5464285714285714,
+     "ece": 0.17449758360749765,
+     "calibration_slope": 0.42042348178133493,
+     "calibration_intercept": 0.4586408168602362,
+     "mean_prediction": 0.43667856801308025
+    },
+    "image_metadata": {
+     "blocks": [
+      "image",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 48,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 0.9500000000000001,
+     "brier": 0.24293787658367091,
+     "log_loss": 0.7116139972759542,
+     "auc": 0.6892857142857143,
+     "ece": 0.17777075376265689,
+     "calibration_slope": 0.47164868614511046,
+     "calibration_intercept": 0.5131552268634897,
+     "mean_prediction": 0.45846806735747697
+    },
+    "image_physics": {
+     "blocks": [
+      "image",
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 18,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.2237312258499812,
+     "log_loss": 0.6401381574496731,
+     "auc": 0.7879464285714286,
+     "ece": 0.16528650537645392,
+     "calibration_slope": 4.379284308308313,
+     "calibration_intercept": 0.30719024422799757,
+     "mean_prediction": 0.503261281021905
+    },
+    "image_corridor": {
+     "blocks": [
+      "image",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 22,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.05,
+     "brier": 0.195158124126799,
+     "log_loss": 0.5846558747740773,
+     "auc": 0.8107142857142857,
+     "ece": 0.14184153401607708,
+     "calibration_slope": 0.7997989714516729,
+     "calibration_intercept": 0.6143352047405157,
+     "mean_prediction": 0.45808707292399936
+    },
+    "physics_conditioned": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 38,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.20155114433374313,
+     "log_loss": 0.5886890431031485,
+     "auc": 0.8151785714285714,
+     "ece": 0.12326792275332242,
+     "calibration_slope": 2.98584833784412,
+     "calibration_intercept": 0.3183615895149089,
+     "mean_prediction": 0.5245132058319802
+    },
+    "full_fusion": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 84,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 31 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.20724317625864253,
+     "log_loss": 0.6010402098825162,
+     "auc": 0.7665178571428571,
+     "ece": 0.13926355999842,
+     "calibration_slope": 1.698450791591521,
+     "calibration_intercept": 0.5306117266537372,
+     "mean_prediction": 0.4935039698123142
+    }
+   },
+   "comparisons": {
+    "image_metadata_vs_image_only": {
+     "margin": -0.042246491316819484,
+     "ci95": [
+      -0.08931899445908968,
+      0.004829832400366936
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_physics_vs_image_only": {
+     "margin": -0.023039840583129745,
+     "ci95": [
+      -0.07157591704162934,
+      0.027998620163929035
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_corridor_vs_image_only": {
+     "margin": 0.005533261140052442,
+     "ci95": [
+      -0.04598009419946529,
+      0.0598223905596948
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": -0.000859759066891716,
+     "ci95": [
+      -0.05220733440580648,
+      0.05575182786662871
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "full_fusion_vs_image_only": {
+     "margin": -0.006551790991791102,
+     "ci95": [
+      -0.05940211470835841,
+      0.04890553428304981
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_only_vs_prior_only": {
+     "margin": 0.05224932580623439,
+     "ci95": [
+      -0.007769399396415853,
+      0.10916655270318631
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    }
+   },
+   "multiplicity_adjusted": {},
+   "ensemble": {
+    "seed_sensitivity": {
+     "seeds": [
+      1,
+      2,
+      3,
+      42,
+      999
+     ],
+     "max_abs_difference": 0.0,
+     "identical": true,
+     "note": "Zero spread means the learner ignores its seed, so a multi-seed ensemble would average identical models and report zero uncertainty. Uncertainty here comes from the grouped bootstrap and the episode-bootstrap ensemble."
+    },
+    "episode_bootstrap": {
+     "n_members": 20,
+     "n_train_episodes": 611,
+     "mean_std": 0.07328587177344198,
+     "max_std": 0.4092713079376627,
+     "degraded": null,
+     "brier": 0.17981777731225188,
+     "single_fit_brier": 0.20155114433374313,
+     "helps": true
+    }
+   },
+   "selective": {
+    "curve": [
+     {
+      "threshold": 0.5,
+      "coverage": 1.0,
+      "n_kept": 96,
+      "n_groups_kept": 96,
+      "risk": 0.28125,
+      "n_errors": 27
+     },
+     {
+      "threshold": 0.5125,
+      "coverage": 0.8958333333333334,
+      "n_kept": 86,
+      "n_groups_kept": 86,
+      "risk": 0.2558139534883721,
+      "n_errors": 22
+     },
+     {
+      "threshold": 0.525,
+      "coverage": 0.75,
+      "n_kept": 72,
+      "n_groups_kept": 72,
+      "risk": 0.2222222222222222,
+      "n_errors": 16
+     },
+     {
+      "threshold": 0.5375,
+      "coverage": 0.6458333333333334,
+      "n_kept": 62,
+      "n_groups_kept": 62,
+      "risk": 0.1935483870967742,
+      "n_errors": 12
+     },
+     {
+      "threshold": 0.55,
+      "coverage": 0.5520833333333334,
+      "n_kept": 53,
+      "n_groups_kept": 53,
+      "risk": 0.11320754716981132,
+      "n_errors": 6
+     },
+     {
+      "threshold": 0.5625,
+      "coverage": 0.4479166666666667,
+      "n_kept": 43,
+      "n_groups_kept": 43,
+      "risk": 0.11627906976744186,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.575,
+      "coverage": 0.375,
+      "n_kept": 36,
+      "n_groups_kept": 36,
+      "risk": 0.1388888888888889,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.5875,
+      "coverage": 0.34375,
+      "n_kept": 33,
+      "n_groups_kept": 33,
+      "risk": 0.12121212121212122,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.6,
+      "coverage": 0.3333333333333333,
+      "n_kept": 32,
+      "n_groups_kept": 32,
+      "risk": 0.125,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.6125,
+      "coverage": 0.2916666666666667,
+      "n_kept": 28,
+      "n_groups_kept": 28,
+      "risk": 0.10714285714285714,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.625,
+      "coverage": 0.2604166666666667,
+      "n_kept": 25,
+      "n_groups_kept": 25,
+      "risk": 0.08,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.6375,
+      "coverage": 0.23958333333333334,
+      "n_kept": 23,
+      "n_groups_kept": 23,
+      "risk": 0.08695652173913043,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.65,
+      "coverage": 0.21875,
+      "n_kept": 21,
+      "n_groups_kept": 21,
+      "risk": 0.09523809523809523,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.6625,
+      "coverage": 0.19791666666666666,
+      "n_kept": 19,
+      "n_groups_kept": 19,
+      "risk": 0.05263157894736842,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.675,
+      "coverage": 0.19791666666666666,
+      "n_kept": 19,
+      "n_groups_kept": 19,
+      "risk": 0.05263157894736842,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.6875,
+      "coverage": 0.14583333333333334,
+      "n_kept": 14,
+      "n_groups_kept": 14,
+      "risk": 0.07142857142857142,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.7,
+      "coverage": 0.14583333333333334,
+      "n_kept": 14,
+      "n_groups_kept": 14,
+      "risk": 0.07142857142857142,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.7125,
+      "coverage": 0.13541666666666666,
+      "n_kept": 13,
+      "n_groups_kept": 13,
+      "risk": 0.07692307692307693,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.725,
+      "coverage": 0.125,
+      "n_kept": 12,
+      "n_groups_kept": 12,
+      "risk": 0.08333333333333333,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.7375,
+      "coverage": 0.11458333333333333,
+      "n_kept": 11,
+      "n_groups_kept": 11,
+      "risk": 0.09090909090909091,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.75,
+      "coverage": 0.09375,
+      "n_kept": 9,
+      "n_groups_kept": 9,
+      "risk": 0.1111111111111111,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.7625,
+      "coverage": 0.09375,
+      "n_kept": 9,
+      "n_groups_kept": 9,
+      "risk": 0.1111111111111111,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.775,
+      "coverage": 0.07291666666666667,
+      "n_kept": 7,
+      "n_groups_kept": 7,
+      "risk": 0.14285714285714285,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.7875000000000001,
+      "coverage": 0.0625,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.8,
+      "coverage": 0.0625,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.8125,
+      "coverage": 0.0625,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.825,
+      "coverage": 0.052083333333333336,
+      "n_kept": 5,
+      "n_groups_kept": 5,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.8375,
+      "coverage": 0.052083333333333336,
+      "n_kept": 5,
+      "n_groups_kept": 5,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.8500000000000001,
+      "coverage": 0.03125,
+      "n_kept": 3,
+      "n_groups_kept": 3,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.8625,
+      "coverage": 0.020833333333333332,
+      "n_kept": 2,
+      "n_groups_kept": 2,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.875,
+      "coverage": 0.020833333333333332,
+      "n_kept": 2,
+      "n_groups_kept": 2,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.8875,
+      "coverage": 0.020833333333333332,
+      "n_kept": 2,
+      "n_groups_kept": 2,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9,
+      "coverage": 0.020833333333333332,
+      "n_kept": 2,
+      "n_groups_kept": 2,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9125000000000001,
+      "coverage": 0.020833333333333332,
+      "n_kept": 2,
+      "n_groups_kept": 2,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.925,
+      "coverage": 0.010416666666666666,
+      "n_kept": 1,
+      "n_groups_kept": 1,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9375,
+      "coverage": 0.010416666666666666,
+      "n_kept": 1,
+      "n_groups_kept": 1,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.95,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9625,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9750000000000001,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9875,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 1.0,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     }
+    ],
+    "aurc": 0.15121704970142708,
+    "aurc_image_only": 0.20643243900234937,
+    "aurc_vs_image_only": {
+     "margin": 0.05521538930092229,
+     "ci95": [
+      -0.046433188101130445,
+      0.15919857436452584
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      -0.09025329285214062,
+      0.19748562907435382
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "aurc_shipped_arm": 0.1904954526135323,
+    "aurc_shipped_vs_image_only": {
+     "margin": 0.015936986388817076,
+     "ci95": [
+      -0.08374383694450215,
+      0.11945532976384036
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      -0.12306948367514092,
+      0.15858184748142282
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "multiplicity_family_size": 7,
+    "ceilings": [
+     {
+      "chosen_on_calibration": {
+       "feasible": false,
+       "target_risk": 0.05,
+       "min_coverage": 0.05,
+       "threshold": null,
+       "best_calibration_risk": 0.2,
+       "best_calibration_coverage": 0.6451612903225806,
+       "reason": "No confidence threshold holds risk at or below 0.050 while keeping at least 5% of observations. The lowest calibration risk available at that coverage is 0.200"
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": false,
+       "target_risk": 0.1,
+       "min_coverage": 0.05,
+       "threshold": null,
+       "best_calibration_risk": 0.2,
+       "best_calibration_coverage": 0.6451612903225806,
+       "reason": "No confidence threshold holds risk at or below 0.100 while keeping at least 5% of observations. The lowest calibration risk available at that coverage is 0.200"
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": true,
+       "target_risk": 0.2,
+       "min_coverage": 0.05,
+       "threshold": 0.5375,
+       "calibration_risk": 0.2,
+       "calibration_coverage": 0.6451612903225806,
+       "calibration_n_kept": 20,
+       "note": "Chosen on the calibration partition. The risk achieved on test is a separate measurement and may exceed the target."
+      },
+      "achieved_on_test": {
+       "threshold": 0.5375,
+       "target_risk": 0.2,
+       "coverage": 0.6458333333333334,
+       "n_kept": 62,
+       "n_total": 96,
+       "n_groups_kept": 62,
+       "risk": 0.1935483870967742,
+       "risk_ci95": [
+        0.0967741935483871,
+        0.2903225806451613
+       ],
+       "n_errors": 12,
+       "held": false,
+       "held_at_point_estimate": true,
+       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+      }
+     }
+    ]
+   },
+   "ood": {
+    "detector": {
+     "n_train": 612,
+     "n_seen_stations": 114,
+     "n_seen_transmitters": 248,
+     "seen_client_families": [
+      "0.9",
+      "1.3.4",
+      "1.5",
+      "1.6",
+      "1.8.1",
+      "1.9.2",
+      "1.9.3",
+      "2.0.1",
+      "2.1",
+      "2.1.1",
+      "2.1.2",
+      "unknown"
+     ],
+     "seen_bands": [
+      "other",
+      "s_band",
+      "uhf_400",
+      "uhf_70cm",
+      "vhf_2m"
+     ],
+     "novelty_features": [
+      "max_elevation_deg",
+      "pass_duration_s",
+      "doppler_swing_hz",
+      "doppler_rate_max_hz_s",
+      "tle_epoch_age_days"
+     ],
+     "distance_quantile_99": 7.2845119261375375,
+     "degraded": null,
+     "note": "distance_quantile_99 is the 99th percentile of the training set's own distances, so 'novel' means further out than 99% of training data rather than past a number chosen by hand."
+    },
+    "n_test_flagged": 96,
+    "by_axis_counts": {
+     "unseen_station": 2,
+     "unseen_transmitter": 96,
+     "unseen_client_family": 0,
+     "unseen_band": 0,
+     "feature_novelty": 1
+    },
+    "risk_by_novelty": {
+     "unseen_station": {
+      "flagged": {
+       "n": 2,
+       "risk": 0.0,
+       "n_errors": 0,
+       "mean_confidence": 0.5375930933392459
+      },
+      "unflagged": {
+       "n": 94,
+       "risk": 0.2872340425531915,
+       "n_errors": 27,
+       "mean_confidence": 0.5967137577553463
+      },
+      "risk_ratio": 0.0,
+      "risk_ratio_state": "measured",
+      "informative": false
+     },
+     "unseen_transmitter": {
+      "flagged": {
+       "n": 96,
+       "risk": 0.28125,
+       "n_errors": 27,
+       "mean_confidence": 0.5954820772466777
+      },
+      "unflagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "unseen_client_family": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 96,
+       "risk": 0.28125,
+       "n_errors": 27,
+       "mean_confidence": 0.5954820772466777
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "unseen_band": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 96,
+       "risk": 0.28125,
+       "n_errors": 27,
+       "mean_confidence": 0.5954820772466777
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "feature_novelty": {
+      "flagged": {
+       "n": 1,
+       "risk": 0.0,
+       "n_errors": 0,
+       "mean_confidence": 0.7483485832990702
+      },
+      "unflagged": {
+       "n": 95,
+       "risk": 0.28421052631578947,
+       "n_errors": 27,
+       "mean_confidence": 0.5938729561303366
+      },
+      "risk_ratio": 0.0,
+      "risk_ratio_state": "measured",
+      "informative": false
+     },
+     "is_ood": {
+      "flagged": {
+       "n": 96,
+       "risk": 0.28125,
+       "n_errors": 27,
+       "mean_confidence": 0.5954820772466777
+      },
+      "unflagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     }
+    }
+   }
+  },
+  {
+   "split": "cold_combined",
+   "degraded": null,
+   "counts": {
+    "train": 188,
+    "calibration": 49,
+    "test": 76,
+    "train_with_image": 188,
+    "test_with_image": 76,
+    "test_with_corridor": 71
+   },
+   "test_positive_rate": 0.868421052631579,
+   "train_positive_rate": 0.6223404255319149,
+   "arms": {
+    "prior_only": {
+     "blocks": [],
+     "degraded": null,
+     "n_columns": 0,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.55,
+     "brier": 0.22843930046447652,
+     "log_loss": 0.6499732479651158,
+     "auc": 0.5,
+     "ece": 0.3378955052773519,
+     "calibration_slope": 0.22728318971764494,
+     "calibration_intercept": 1.8591028564871999,
+     "mean_prediction": 0.5305255473542271
+    },
+    "image_only": {
+     "blocks": [
+      "image"
+     ],
+     "degraded": null,
+     "n_columns": 2,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.4500000000000002,
+     "brier": 0.12960374117977463,
+     "log_loss": 0.42745804293436973,
+     "auc": 0.796969696969697,
+     "ece": 0.18301185719445742,
+     "calibration_slope": 1.7400830746445997,
+     "calibration_intercept": 0.9052966375676063,
+     "mean_prediction": 0.6854091954371215
+    },
+    "physics_only": {
+     "blocks": [
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 16,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.2655976995552402,
+     "log_loss": 0.7248696378125209,
+     "auc": 0.5651515151515152,
+     "ece": 0.3938984256999227,
+     "calibration_slope": 0.46946844279493416,
+     "calibration_intercept": 1.9265504105602436,
+     "mean_prediction": 0.48124706230204445
+    },
+    "corridor_only": {
+     "blocks": [
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 20,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.21868470933499948,
+     "log_loss": 0.6302328087520626,
+     "auc": 0.7242424242424242,
+     "ece": 0.3396596115180565,
+     "calibration_slope": 1.4189991660282095,
+     "calibration_intercept": 1.929344126764981,
+     "mean_prediction": 0.5287614411135224
+    },
+    "metadata_only": {
+     "blocks": [
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 37,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 3.7,
+     "brier": 0.2192606388752723,
+     "log_loss": 0.6315009149683106,
+     "auc": 0.6439393939393939,
+     "ece": 0.32401422390073875,
+     "calibration_slope": 0.9452028029751774,
+     "calibration_intercept": 1.7876622099036235,
+     "mean_prediction": 0.5444068287308401
+    },
+    "image_metadata": {
+     "blocks": [
+      "image",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 39,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.6,
+     "brier": 0.15906256713649122,
+     "log_loss": 0.49441202962966974,
+     "auc": 0.7560606060606061,
+     "ece": 0.26012238532685006,
+     "calibration_slope": 1.449996248207642,
+     "calibration_intercept": 1.458317117411018,
+     "mean_prediction": 0.6288121716528239
+    },
+    "image_physics": {
+     "blocks": [
+      "image",
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 18,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.3000000000000003,
+     "brier": 0.19948441807755465,
+     "log_loss": 0.5922126893245541,
+     "auc": 0.7681818181818182,
+     "ece": 0.33435354775432613,
+     "calibration_slope": 1.5549058646598657,
+     "calibration_intercept": 1.8089922599986854,
+     "mean_prediction": 0.5563246197828273
+    },
+    "image_corridor": {
+     "blocks": [
+      "image",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 22,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.1725791764478762,
+     "log_loss": 0.5313237527906027,
+     "auc": 0.8303030303030303,
+     "ece": 0.2987828890934515,
+     "calibration_slope": 1.8764645332878263,
+     "calibration_intercept": 1.6128927565028377,
+     "mean_prediction": 0.5820396065759882
+    },
+    "physics_conditioned": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 38,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.20957867364055544,
+     "log_loss": 0.6114006345439653,
+     "auc": 0.806060606060606,
+     "ece": 0.3523094602171712,
+     "calibration_slope": 1.595425323691883,
+     "calibration_intercept": 2.177314751501401,
+     "mean_prediction": 0.5235354268377864
+    },
+    "full_fusion": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 75,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 49 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 3.75,
+     "brier": 0.19486148297530606,
+     "log_loss": 0.5758890224609433,
+     "auc": 0.8590909090909091,
+     "ece": 0.3382721626609393,
+     "calibration_slope": 1.8059188952673104,
+     "calibration_intercept": 2.4547094558847973,
+     "mean_prediction": 0.5317933899354014
+    }
+   },
+   "comparisons": {
+    "image_metadata_vs_image_only": {
+     "margin": -0.02945882595671659,
+     "ci95": [
+      -0.053064573309065305,
+      -0.005955998890905112
+     ],
+     "direction": "reference_better",
+     "distinguishable": true,
+     "challenger_better": false,
+     "n_observations": 76,
+     "n_groups": 76,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_physics_vs_image_only": {
+     "margin": -0.06988067689778,
+     "ci95": [
+      -0.09070639978357209,
+      -0.04572959939585135
+     ],
+     "direction": "reference_better",
+     "distinguishable": true,
+     "challenger_better": false,
+     "n_observations": 76,
+     "n_groups": 76,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_corridor_vs_image_only": {
+     "margin": -0.04297543526810157,
+     "ci95": [
+      -0.07205385279299195,
+      -0.014846061041300438
+     ],
+     "direction": "reference_better",
+     "distinguishable": true,
+     "challenger_better": false,
+     "n_observations": 76,
+     "n_groups": 76,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": -0.07997493246078079,
+     "ci95": [
+      -0.11595652321310855,
+      -0.045449666982110316
+     ],
+     "direction": "reference_better",
+     "distinguishable": true,
+     "challenger_better": false,
+     "n_observations": 76,
+     "n_groups": 76,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "full_fusion_vs_image_only": {
+     "margin": -0.06525774179553144,
+     "ci95": [
+      -0.10407368686567059,
+      -0.025949301520226533
+     ],
+     "direction": "reference_better",
+     "distinguishable": true,
+     "challenger_better": false,
+     "n_observations": 76,
+     "n_groups": 76,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_only_vs_prior_only": {
+     "margin": 0.0988355592847018,
+     "ci95": [
+      0.07048274712583884,
+      0.12410533545887703
+     ],
+     "direction": "challenger_better",
+     "distinguishable": true,
+     "challenger_better": true,
+     "n_observations": 76,
+     "n_groups": 76,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    }
+   },
+   "multiplicity_adjusted": {
+    "image_metadata_vs_image_only": {
+     "n_comparisons": 7,
+     "family_alpha": 0.05,
+     "per_comparison_alpha": 0.0071428571428571435,
+     "confidence_level": 0.9928571428571429,
+     "margin": -0.02945882595671659,
+     "ci_adjusted": [
+      -0.06253435921381711,
+      0.0022636693416375944
+     ],
+     "survives_correction": false,
+     "direction_adjusted": "indistinguishable",
+     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+    },
+    "image_physics_vs_image_only": {
+     "n_comparisons": 7,
+     "family_alpha": 0.05,
+     "per_comparison_alpha": 0.0071428571428571435,
+     "confidence_level": 0.9928571428571429,
+     "margin": -0.06988067689778,
+     "ci_adjusted": [
+      -0.09938084029172299,
+      -0.03730556301373011
+     ],
+     "survives_correction": true,
+     "direction_adjusted": "reference_better",
+     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+    },
+    "image_corridor_vs_image_only": {
+     "n_comparisons": 7,
+     "family_alpha": 0.05,
+     "per_comparison_alpha": 0.0071428571428571435,
+     "confidence_level": 0.9928571428571429,
+     "margin": -0.04297543526810157,
+     "ci_adjusted": [
+      -0.08283041727569573,
+      -0.006777959634701027
+     ],
+     "survives_correction": true,
+     "direction_adjusted": "reference_better",
+     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+    },
+    "physics_conditioned_vs_image_only": {
+     "n_comparisons": 7,
+     "family_alpha": 0.05,
+     "per_comparison_alpha": 0.0071428571428571435,
+     "confidence_level": 0.9928571428571429,
+     "margin": -0.07997493246078079,
+     "ci_adjusted": [
+      -0.12942127483800384,
+      -0.03174206152867241
+     ],
+     "survives_correction": true,
+     "direction_adjusted": "reference_better",
+     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+    },
+    "full_fusion_vs_image_only": {
+     "n_comparisons": 7,
+     "family_alpha": 0.05,
+     "per_comparison_alpha": 0.0071428571428571435,
+     "confidence_level": 0.9928571428571429,
+     "margin": -0.06525774179553144,
+     "ci_adjusted": [
+      -0.11646577343885146,
+      -0.012292045741789843
+     ],
+     "survives_correction": true,
+     "direction_adjusted": "reference_better",
+     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+    }
+   },
+   "ensemble": {
+    "seed_sensitivity": {
+     "seeds": [
+      1,
+      2,
+      3,
+      42,
+      999
+     ],
+     "max_abs_difference": 0.0,
+     "identical": true,
+     "note": "Zero spread means the learner ignores its seed, so a multi-seed ensemble would average identical models and report zero uncertainty. Uncertainty here comes from the grouped bootstrap and the episode-bootstrap ensemble."
+    },
+    "episode_bootstrap": {
+     "n_members": 20,
+     "n_train_episodes": 188,
+     "mean_std": 0.1320342693705455,
+     "max_std": 0.4491880368443502,
+     "degraded": null,
+     "brier": 0.2010412977447692,
+     "single_fit_brier": 0.20957867364055544,
+     "helps": true
+    }
+   },
+   "selective": {
+    "curve": [
+     {
+      "threshold": 0.5,
+      "coverage": 1.0,
+      "n_kept": 76,
+      "n_groups_kept": 76,
+      "risk": 0.21052631578947367,
+      "n_errors": 16
+     },
+     {
+      "threshold": 0.5125,
+      "coverage": 0.9210526315789473,
+      "n_kept": 70,
+      "n_groups_kept": 70,
+      "risk": 0.2,
+      "n_errors": 14
+     },
+     {
+      "threshold": 0.525,
+      "coverage": 0.8289473684210527,
+      "n_kept": 63,
+      "n_groups_kept": 63,
+      "risk": 0.19047619047619047,
+      "n_errors": 12
+     },
+     {
+      "threshold": 0.5375,
+      "coverage": 0.75,
+      "n_kept": 57,
+      "n_groups_kept": 57,
+      "risk": 0.17543859649122806,
+      "n_errors": 10
+     },
+     {
+      "threshold": 0.55,
+      "coverage": 0.6842105263157895,
+      "n_kept": 52,
+      "n_groups_kept": 52,
+      "risk": 0.19230769230769232,
+      "n_errors": 10
+     },
+     {
+      "threshold": 0.5625,
+      "coverage": 0.6710526315789473,
+      "n_kept": 51,
+      "n_groups_kept": 51,
+      "risk": 0.19607843137254902,
+      "n_errors": 10
+     },
+     {
+      "threshold": 0.575,
+      "coverage": 0.5789473684210527,
+      "n_kept": 44,
+      "n_groups_kept": 44,
+      "risk": 0.18181818181818182,
+      "n_errors": 8
+     },
+     {
+      "threshold": 0.5875,
+      "coverage": 0.5526315789473685,
+      "n_kept": 42,
+      "n_groups_kept": 42,
+      "risk": 0.19047619047619047,
+      "n_errors": 8
+     },
+     {
+      "threshold": 0.6,
+      "coverage": 0.47368421052631576,
+      "n_kept": 36,
+      "n_groups_kept": 36,
+      "risk": 0.19444444444444445,
+      "n_errors": 7
+     },
+     {
+      "threshold": 0.6125,
+      "coverage": 0.3815789473684211,
+      "n_kept": 29,
+      "n_groups_kept": 29,
+      "risk": 0.1724137931034483,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.625,
+      "coverage": 0.3026315789473684,
+      "n_kept": 23,
+      "n_groups_kept": 23,
+      "risk": 0.21739130434782608,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.6375,
+      "coverage": 0.2236842105263158,
+      "n_kept": 17,
+      "n_groups_kept": 17,
+      "risk": 0.29411764705882354,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.65,
+      "coverage": 0.19736842105263158,
+      "n_kept": 15,
+      "n_groups_kept": 15,
+      "risk": 0.3333333333333333,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.6625,
+      "coverage": 0.17105263157894737,
+      "n_kept": 13,
+      "n_groups_kept": 13,
+      "risk": 0.38461538461538464,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.675,
+      "coverage": 0.15789473684210525,
+      "n_kept": 12,
+      "n_groups_kept": 12,
+      "risk": 0.3333333333333333,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.6875,
+      "coverage": 0.14473684210526316,
+      "n_kept": 11,
+      "n_groups_kept": 11,
+      "risk": 0.36363636363636365,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.7,
+      "coverage": 0.14473684210526316,
+      "n_kept": 11,
+      "n_groups_kept": 11,
+      "risk": 0.36363636363636365,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.7125,
+      "coverage": 0.13157894736842105,
+      "n_kept": 10,
+      "n_groups_kept": 10,
+      "risk": 0.4,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.725,
+      "coverage": 0.11842105263157894,
+      "n_kept": 9,
+      "n_groups_kept": 9,
+      "risk": 0.3333333333333333,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.7375,
+      "coverage": 0.10526315789473684,
+      "n_kept": 8,
+      "n_groups_kept": 8,
+      "risk": 0.375,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.75,
+      "coverage": 0.09210526315789473,
+      "n_kept": 7,
+      "n_groups_kept": 7,
+      "risk": 0.2857142857142857,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.7625,
+      "coverage": 0.07894736842105263,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.3333333333333333,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.775,
+      "coverage": 0.07894736842105263,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.3333333333333333,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.7875000000000001,
+      "coverage": 0.07894736842105263,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.3333333333333333,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.8,
+      "coverage": 0.07894736842105263,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.3333333333333333,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.8125,
+      "coverage": 0.07894736842105263,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.3333333333333333,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.825,
+      "coverage": 0.07894736842105263,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.3333333333333333,
+      "n_errors": 2
+     },
+     {
+      "threshold": 0.8375,
+      "coverage": 0.06578947368421052,
+      "n_kept": 5,
+      "n_groups_kept": 5,
+      "risk": 0.2,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8500000000000001,
+      "coverage": 0.05263157894736842,
+      "n_kept": 4,
+      "n_groups_kept": 4,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.8625,
+      "coverage": 0.05263157894736842,
+      "n_kept": 4,
+      "n_groups_kept": 4,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.875,
+      "coverage": 0.05263157894736842,
+      "n_kept": 4,
+      "n_groups_kept": 4,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.8875,
+      "coverage": 0.05263157894736842,
+      "n_kept": 4,
+      "n_groups_kept": 4,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9,
+      "coverage": 0.02631578947368421,
+      "n_kept": 2,
+      "n_groups_kept": 2,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9125000000000001,
+      "coverage": 0.013157894736842105,
+      "n_kept": 1,
+      "n_groups_kept": 1,
+      "risk": 0.0,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.925,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9375,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.95,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9625,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9750000000000001,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 0.9875,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     },
+     {
+      "threshold": 1.0,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     }
+    ],
+    "aurc": 0.21078996266652283,
+    "aurc_image_only": 0.07374803055020458,
+    "aurc_vs_image_only": {
+     "margin": -0.13704193211631827,
+     "ci95": [
+      -0.2723521713333185,
+      -0.026134964409153198
+     ],
+     "direction": "reference_better",
+     "distinguishable": true,
+     "challenger_better": false,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      -0.32103967033539677,
+      0.00811862368717614
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": false,
+     "n_observations": 76,
+     "n_groups": 76,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "aurc_shipped_arm": 0.1031204606747958,
+    "aurc_shipped_vs_image_only": {
+     "margin": -0.029372430124591217,
+     "ci95": [
+      -0.1383185558205386,
+      0.05613765977502633
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      -0.17295019414184268,
+      0.08273546169929456
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": false,
+     "n_observations": 76,
+     "n_groups": 76,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "multiplicity_family_size": 7,
+    "ceilings": [
+     {
+      "chosen_on_calibration": {
+       "feasible": false,
+       "target_risk": 0.05,
+       "min_coverage": 0.05,
+       "threshold": null,
+       "best_calibration_risk": 0.125,
+       "best_calibration_coverage": 0.16326530612244897,
+       "reason": "No confidence threshold holds risk at or below 0.050 while keeping at least 5% of observations. The lowest calibration risk available at that coverage is 0.125"
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": false,
+       "target_risk": 0.1,
+       "min_coverage": 0.05,
+       "threshold": null,
+       "best_calibration_risk": 0.125,
+       "best_calibration_coverage": 0.16326530612244897,
+       "reason": "No confidence threshold holds risk at or below 0.100 while keeping at least 5% of observations. The lowest calibration risk available at that coverage is 0.125"
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": true,
+       "target_risk": 0.2,
+       "min_coverage": 0.05,
+       "threshold": 0.65,
+       "calibration_risk": 0.125,
+       "calibration_coverage": 0.16326530612244897,
+       "calibration_n_kept": 8,
+       "note": "Chosen on the calibration partition. The risk achieved on test is a separate measurement and may exceed the target."
+      },
+      "achieved_on_test": {
+       "threshold": 0.65,
+       "target_risk": 0.2,
+       "coverage": 0.19736842105263158,
+       "n_kept": 15,
+       "n_total": 76,
+       "n_groups_kept": 15,
+       "risk": 0.3333333333333333,
+       "risk_ci95": [
+        0.13333333333333333,
+        0.6
+       ],
+       "n_errors": 5,
+       "held": false,
+       "held_at_point_estimate": false,
+       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+      }
+     }
+    ]
+   },
+   "ood": {
+    "detector": {
+     "n_train": 188,
+     "n_seen_stations": 36,
+     "n_seen_transmitters": 103,
+     "seen_client_families": [
+      "0.9",
+      "1.6",
+      "1.8.1",
+      "1.9.2",
+      "1.9.3",
+      "2.0.1",
+      "2.1.1",
+      "2.1.2",
+      "unknown"
+     ],
+     "seen_bands": [
+      "other",
+      "s_band",
+      "uhf_400",
+      "uhf_70cm",
+      "vhf_2m"
+     ],
+     "novelty_features": [
+      "max_elevation_deg",
+      "pass_duration_s",
+      "doppler_swing_hz",
+      "doppler_rate_max_hz_s",
+      "tle_epoch_age_days"
+     ],
+     "distance_quantile_99": 7.240868280004514,
+     "degraded": null,
+     "note": "distance_quantile_99 is the 99th percentile of the training set's own distances, so 'novel' means further out than 99% of training data rather than past a number chosen by hand."
+    },
+    "n_test_flagged": 76,
+    "by_axis_counts": {
+     "unseen_station": 76,
+     "unseen_transmitter": 76,
+     "unseen_client_family": 0,
+     "unseen_band": 0,
+     "feature_novelty": 0
+    },
+    "risk_by_novelty": {
+     "unseen_station": {
+      "flagged": {
+       "n": 76,
+       "risk": 0.21052631578947367,
+       "n_errors": 16,
+       "mean_confidence": 0.6120246879397474
+      },
+      "unflagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "unseen_transmitter": {
+      "flagged": {
+       "n": 76,
+       "risk": 0.21052631578947367,
+       "n_errors": 16,
+       "mean_confidence": 0.6120246879397474
+      },
+      "unflagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "unseen_client_family": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 76,
+       "risk": 0.21052631578947367,
+       "n_errors": 16,
+       "mean_confidence": 0.6120246879397474
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "unseen_band": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 76,
+       "risk": 0.21052631578947367,
+       "n_errors": 16,
+       "mean_confidence": 0.6120246879397474
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "feature_novelty": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 76,
+       "risk": 0.21052631578947367,
+       "n_errors": 16,
+       "mean_confidence": 0.6120246879397474
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "is_ood": {
+      "flagged": {
+       "n": 76,
+       "risk": 0.21052631578947367,
+       "n_errors": 16,
+       "mean_confidence": 0.6120246879397474
+      },
+      "unflagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     }
+    }
+   }
+  },
+  {
+   "split": "chronological_size_matched",
+   "degraded": null,
+   "counts": {
+    "train": 188,
+    "calibration": 121,
+    "test": 88,
+    "train_with_image": 188,
+    "test_with_image": 88,
+    "test_with_corridor": 88
+   },
+   "test_positive_rate": 0.7045454545454546,
+   "train_positive_rate": 0.5797872340425532,
+   "arms": {
+    "prior_only": {
+     "blocks": [],
+     "degraded": null,
+     "n_columns": 0,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.45,
+     "brier": 0.20850586534077428,
+     "log_loss": 0.607772638477843,
+     "auc": 0.5,
+     "ece": 0.01856632209084308,
+     "calibration_slope": 0.4216561782575712,
+     "calibration_intercept": 0.53962474961903,
+     "mean_prediction": 0.6859791324546115
+    },
+    "image_only": {
+     "blocks": [
+      "image"
+     ],
+     "degraded": null,
+     "n_columns": 2,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 0.7,
+     "brier": 0.14613976167053125,
+     "log_loss": 0.4641251358277046,
+     "auc": 0.8014888337468983,
+     "ece": 0.10012167968841139,
+     "calibration_slope": 1.2403420073751692,
+     "calibration_intercept": -0.11853755027607102,
+     "mean_prediction": 0.696760042163732
+    },
+    "physics_only": {
+     "blocks": [
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 16,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.2140801585700351,
+     "log_loss": 0.6279406171430324,
+     "auc": 0.5223325062034739,
+     "ece": 0.05638885617368633,
+     "calibration_slope": -0.09240130479837529,
+     "calibration_intercept": 0.9403534334233751,
+     "mean_prediction": 0.6839366462412136
+    },
+    "corridor_only": {
+     "blocks": [
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 20,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.19558106271990738,
+     "log_loss": 0.5722954570760331,
+     "auc": 0.7258064516129032,
+     "ece": 0.12613154557553458,
+     "calibration_slope": 6.8804460144809045,
+     "calibration_intercept": -5.047239760384272,
+     "mean_prediction": 0.7170291748575729
+    },
+    "metadata_only": {
+     "blocks": [
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 40,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.19987268307992156,
+     "log_loss": 0.5882699616490722,
+     "auc": 0.5992555831265509,
+     "ece": 0.038576198325124905,
+     "calibration_slope": 1.604130044823896,
+     "calibration_intercept": -0.32232124810614854,
+     "mean_prediction": 0.6800824094428463
+    },
+    "image_metadata": {
+     "blocks": [
+      "image",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 42,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.6,
+     "brier": 0.16898628807581942,
+     "log_loss": 0.5176070043023597,
+     "auc": 0.7735732009925558,
+     "ece": 0.07685570873992356,
+     "calibration_slope": 2.0915238802932277,
+     "calibration_intercept": -0.5945881189003713,
+     "mean_prediction": 0.6792427410929044
+    },
+    "image_physics": {
+     "blocks": [
+      "image",
+      "physics"
+     ],
+     "degraded": null,
+     "n_columns": 18,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 1.3,
+     "brier": 0.16062348777358085,
+     "log_loss": 0.5880355284936989,
+     "auc": 0.8039702233250621,
+     "ece": 0.130994492164497,
+     "calibration_slope": 0.5450654810425799,
+     "calibration_intercept": 0.4018685271435848,
+     "mean_prediction": 0.7016135137689697
+    },
+    "image_corridor": {
+     "blocks": [
+      "image",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 22,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.1500000000000004,
+     "brier": 0.16674383259244066,
+     "log_loss": 0.5000737905383441,
+     "auc": 0.8728287841191067,
+     "ece": 0.13811661114330015,
+     "calibration_slope": 4.585071361584403,
+     "calibration_intercept": -2.9213247776491866,
+     "mean_prediction": 0.7253828306579015
+    },
+    "physics_conditioned": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor"
+     ],
+     "degraded": null,
+     "n_columns": 38,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 2.2,
+     "brier": 0.1647670451469924,
+     "log_loss": 0.530854154995017,
+     "auc": 0.8839950372208437,
+     "ece": 0.1564685944343281,
+     "calibration_slope": 1.3440439254391328,
+     "calibration_intercept": -0.40539456528073026,
+     "mean_prediction": 0.7233313861293578
+    },
+    "full_fusion": {
+     "blocks": [
+      "image",
+      "physics",
+      "corridor",
+      "metadata"
+     ],
+     "degraded": null,
+     "n_columns": 78,
+     "calibrator": "temperature",
+     "calibrator_chosen_because": "only 121 calibration labels, below the 200 floor for isotonic; a one-parameter fit is what this sample supports",
+     "temperature": 4.0,
+     "brier": 0.17949310661328838,
+     "log_loss": 0.541826905361741,
+     "auc": 0.794044665012407,
+     "ece": 0.09770418072923008,
+     "calibration_slope": 1.393700929261177,
+     "calibration_intercept": -0.26086868437771954,
+     "mean_prediction": 0.6968723213925135
+    }
+   },
+   "comparisons": {
+    "image_metadata_vs_image_only": {
+     "margin": -0.02284652640528814,
+     "ci95": [
+      -0.05236412698793207,
+      0.0070390396868862445
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_physics_vs_image_only": {
+     "margin": -0.014483726103049611,
+     "ci95": [
+      -0.049561041164650356,
+      0.017498206774833457
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_corridor_vs_image_only": {
+     "margin": -0.020604070921909388,
+     "ci95": [
+      -0.05015583095693899,
+      0.008624816564496691
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": -0.018627283476461136,
+     "ci95": [
+      -0.05843719836915494,
+      0.019035051206966063
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "full_fusion_vs_image_only": {
+     "margin": -0.03335334494275712,
+     "ci95": [
+      -0.07400155608839315,
+      0.0053550505857528985
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    },
+    "image_only_vs_prior_only": {
+     "margin": 0.06236610367024305,
+     "ci95": [
+      0.024080196689437325,
+      0.10099816476092756
+     ],
+     "direction": "challenger_better",
+     "distinguishable": true,
+     "challenger_better": true,
+     "n_observations": 88,
+     "n_groups": 88,
+     "mean_group_size": 1.0,
+     "n_boot": 4000,
+     "seed": 42,
+     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+    }
+   },
+   "multiplicity_adjusted": {},
+   "ensemble": {
+    "seed_sensitivity": {
+     "seeds": [
+      1,
+      2,
+      3,
+      42,
+      999
+     ],
+     "max_abs_difference": 0.0,
+     "identical": true,
+     "note": "Zero spread means the learner ignores its seed, so a multi-seed ensemble would average identical models and report zero uncertainty. Uncertainty here comes from the grouped bootstrap and the episode-bootstrap ensemble."
+    },
+    "episode_bootstrap": {
+     "n_members": 20,
+     "n_train_episodes": 188,
+     "mean_std": 0.09858246908499786,
+     "max_std": 0.34726312615434435,
+     "degraded": null,
+     "brier": 0.14348704266890658,
+     "single_fit_brier": 0.1647670451469924,
+     "helps": true
+    }
+   },
+   "selective": {
+    "curve": [
+     {
+      "threshold": 0.5,
+      "coverage": 1.0,
+      "n_kept": 88,
+      "n_groups_kept": 88,
+      "risk": 0.26136363636363635,
+      "n_errors": 23
+     },
+     {
+      "threshold": 0.5125,
+      "coverage": 0.9886363636363636,
+      "n_kept": 87,
+      "n_groups_kept": 87,
+      "risk": 0.26436781609195403,
+      "n_errors": 23
+     },
+     {
+      "threshold": 0.525,
+      "coverage": 0.9659090909090909,
+      "n_kept": 85,
+      "n_groups_kept": 85,
+      "risk": 0.25882352941176473,
+      "n_errors": 22
+     },
+     {
+      "threshold": 0.5375,
+      "coverage": 0.9545454545454546,
+      "n_kept": 84,
+      "n_groups_kept": 84,
+      "risk": 0.25,
+      "n_errors": 21
+     },
+     {
+      "threshold": 0.55,
+      "coverage": 0.9318181818181818,
+      "n_kept": 82,
+      "n_groups_kept": 82,
+      "risk": 0.24390243902439024,
+      "n_errors": 20
+     },
+     {
+      "threshold": 0.5625,
+      "coverage": 0.9204545454545454,
+      "n_kept": 81,
+      "n_groups_kept": 81,
+      "risk": 0.24691358024691357,
+      "n_errors": 20
+     },
+     {
+      "threshold": 0.575,
+      "coverage": 0.9090909090909091,
+      "n_kept": 80,
+      "n_groups_kept": 80,
+      "risk": 0.25,
+      "n_errors": 20
+     },
+     {
+      "threshold": 0.5875,
+      "coverage": 0.8636363636363636,
+      "n_kept": 76,
+      "n_groups_kept": 76,
+      "risk": 0.2236842105263158,
+      "n_errors": 17
+     },
+     {
+      "threshold": 0.6,
+      "coverage": 0.8522727272727273,
+      "n_kept": 75,
+      "n_groups_kept": 75,
+      "risk": 0.21333333333333335,
+      "n_errors": 16
+     },
+     {
+      "threshold": 0.6125,
+      "coverage": 0.8295454545454546,
+      "n_kept": 73,
+      "n_groups_kept": 73,
+      "risk": 0.1917808219178082,
+      "n_errors": 14
+     },
+     {
+      "threshold": 0.625,
+      "coverage": 0.8181818181818182,
+      "n_kept": 72,
+      "n_groups_kept": 72,
+      "risk": 0.19444444444444445,
+      "n_errors": 14
+     },
+     {
+      "threshold": 0.6375,
+      "coverage": 0.7954545454545454,
+      "n_kept": 70,
+      "n_groups_kept": 70,
+      "risk": 0.17142857142857143,
+      "n_errors": 12
+     },
+     {
+      "threshold": 0.65,
+      "coverage": 0.7727272727272727,
+      "n_kept": 68,
+      "n_groups_kept": 68,
+      "risk": 0.16176470588235295,
+      "n_errors": 11
+     },
+     {
+      "threshold": 0.6625,
+      "coverage": 0.7272727272727273,
+      "n_kept": 64,
+      "n_groups_kept": 64,
+      "risk": 0.15625,
+      "n_errors": 10
+     },
+     {
+      "threshold": 0.675,
+      "coverage": 0.6931818181818182,
+      "n_kept": 61,
+      "n_groups_kept": 61,
+      "risk": 0.13114754098360656,
+      "n_errors": 8
+     },
+     {
+      "threshold": 0.6875,
+      "coverage": 0.6363636363636364,
+      "n_kept": 56,
+      "n_groups_kept": 56,
+      "risk": 0.10714285714285714,
+      "n_errors": 6
+     },
+     {
+      "threshold": 0.7,
+      "coverage": 0.6136363636363636,
+      "n_kept": 54,
+      "n_groups_kept": 54,
+      "risk": 0.1111111111111111,
+      "n_errors": 6
+     },
+     {
+      "threshold": 0.7125,
+      "coverage": 0.5909090909090909,
+      "n_kept": 52,
+      "n_groups_kept": 52,
+      "risk": 0.09615384615384616,
+      "n_errors": 5
+     },
+     {
+      "threshold": 0.725,
+      "coverage": 0.5568181818181818,
+      "n_kept": 49,
+      "n_groups_kept": 49,
+      "risk": 0.08163265306122448,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.7375,
+      "coverage": 0.5454545454545454,
+      "n_kept": 48,
+      "n_groups_kept": 48,
+      "risk": 0.08333333333333333,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.75,
+      "coverage": 0.48863636363636365,
+      "n_kept": 43,
+      "n_groups_kept": 43,
+      "risk": 0.09302325581395349,
+      "n_errors": 4
+     },
+     {
+      "threshold": 0.7625,
+      "coverage": 0.4772727272727273,
+      "n_kept": 42,
+      "n_groups_kept": 42,
+      "risk": 0.07142857142857142,
+      "n_errors": 3
+     },
+     {
+      "threshold": 0.775,
+      "coverage": 0.38636363636363635,
+      "n_kept": 34,
+      "n_groups_kept": 34,
+      "risk": 0.029411764705882353,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.7875000000000001,
+      "coverage": 0.3181818181818182,
+      "n_kept": 28,
+      "n_groups_kept": 28,
+      "risk": 0.03571428571428571,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8,
+      "coverage": 0.25,
+      "n_kept": 22,
+      "n_groups_kept": 22,
+      "risk": 0.045454545454545456,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8125,
+      "coverage": 0.23863636363636365,
+      "n_kept": 21,
+      "n_groups_kept": 21,
+      "risk": 0.047619047619047616,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.825,
+      "coverage": 0.19318181818181818,
+      "n_kept": 17,
+      "n_groups_kept": 17,
+      "risk": 0.058823529411764705,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8375,
+      "coverage": 0.19318181818181818,
+      "n_kept": 17,
+      "n_groups_kept": 17,
+      "risk": 0.058823529411764705,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8500000000000001,
+      "coverage": 0.17045454545454544,
+      "n_kept": 15,
+      "n_groups_kept": 15,
+      "risk": 0.06666666666666667,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8625,
+      "coverage": 0.1590909090909091,
+      "n_kept": 14,
+      "n_groups_kept": 14,
+      "risk": 0.07142857142857142,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.875,
+      "coverage": 0.125,
+      "n_kept": 11,
+      "n_groups_kept": 11,
+      "risk": 0.09090909090909091,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.8875,
+      "coverage": 0.125,
+      "n_kept": 11,
+      "n_groups_kept": 11,
+      "risk": 0.09090909090909091,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9,
+      "coverage": 0.09090909090909091,
+      "n_kept": 8,
+      "n_groups_kept": 8,
+      "risk": 0.125,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9125000000000001,
+      "coverage": 0.06818181818181818,
+      "n_kept": 6,
+      "n_groups_kept": 6,
+      "risk": 0.16666666666666666,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.925,
+      "coverage": 0.056818181818181816,
+      "n_kept": 5,
+      "n_groups_kept": 5,
+      "risk": 0.2,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9375,
+      "coverage": 0.056818181818181816,
+      "n_kept": 5,
+      "n_groups_kept": 5,
+      "risk": 0.2,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.95,
+      "coverage": 0.056818181818181816,
+      "n_kept": 5,
+      "n_groups_kept": 5,
+      "risk": 0.2,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9625,
+      "coverage": 0.056818181818181816,
+      "n_kept": 5,
+      "n_groups_kept": 5,
+      "risk": 0.2,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9750000000000001,
+      "coverage": 0.03409090909090909,
+      "n_kept": 3,
+      "n_groups_kept": 3,
+      "risk": 0.3333333333333333,
+      "n_errors": 1
+     },
+     {
+      "threshold": 0.9875,
+      "coverage": 0.03409090909090909,
+      "n_kept": 3,
+      "n_groups_kept": 3,
+      "risk": 0.3333333333333333,
+      "n_errors": 1
+     },
+     {
+      "threshold": 1.0,
+      "coverage": 0.0,
+      "n_kept": 0,
+      "n_groups_kept": 0,
+      "risk": null,
+      "n_errors": 0
+     }
+    ],
+    "aurc": 0.12145842753690436,
+    "aurc_image_only": 0.13105461510707417,
+    "aurc_vs_image_only": {
+     "margin": 0.009596187570169806,
+     "ci95": [
+      -0.08730513047001973,
+      0.10032753868569198
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      -0.12580571677363736,
+      0.13481961235716683
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "aurc_shipped_arm": 0.09484138269521833,
+    "aurc_shipped_vs_image_only": {
+     "margin": 0.03621323241185584,
+     "ci95": [
+      -0.013744214335954965,
+      0.08661262484458195
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 7,
+     "ci_adjusted": [
+      -0.03122480789972901,
+      0.11040538022492986
+     ],
+     "adjusted_confidence": 0.9928571428571429,
+     "survives_correction": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "n_boot": 2000,
+     "n_usable_resamples": 2000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+    },
+    "multiplicity_family_size": 7,
+    "ceilings": [
+     {
+      "chosen_on_calibration": {
+       "feasible": false,
+       "target_risk": 0.05,
+       "min_coverage": 0.05,
+       "threshold": null,
+       "best_calibration_risk": 0.10344827586206896,
+       "best_calibration_coverage": 0.2396694214876033,
+       "reason": "No confidence threshold holds risk at or below 0.050 while keeping at least 5% of observations. The lowest calibration risk available at that coverage is 0.103"
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": false,
+       "target_risk": 0.1,
+       "min_coverage": 0.05,
+       "threshold": null,
+       "best_calibration_risk": 0.10344827586206896,
+       "best_calibration_coverage": 0.2396694214876033,
+       "reason": "No confidence threshold holds risk at or below 0.100 while keeping at least 5% of observations. The lowest calibration risk available at that coverage is 0.103"
+      }
+     },
+     {
+      "chosen_on_calibration": {
+       "feasible": true,
+       "target_risk": 0.2,
+       "min_coverage": 0.05,
+       "threshold": 0.675,
+       "calibration_risk": 0.16,
+       "calibration_coverage": 0.6198347107438017,
+       "calibration_n_kept": 75,
+       "note": "Chosen on the calibration partition. The risk achieved on test is a separate measurement and may exceed the target."
+      },
+      "achieved_on_test": {
+       "threshold": 0.675,
+       "target_risk": 0.2,
+       "coverage": 0.6931818181818182,
+       "n_kept": 61,
+       "n_total": 88,
+       "n_groups_kept": 61,
+       "risk": 0.13114754098360656,
+       "risk_ci95": [
+        0.04918032786885246,
+        0.22950819672131148
+       ],
+       "n_errors": 8,
+       "held": false,
+       "held_at_point_estimate": true,
+       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+      }
+     }
+    ]
+   },
+   "ood": {
+    "detector": {
+     "n_train": 188,
+     "n_seen_stations": 54,
+     "n_seen_transmitters": 127,
+     "seen_client_families": [
+      "0.9",
+      "1.6",
+      "1.8.1",
+      "1.9.3",
+      "2.0.1",
+      "2.1.1",
+      "2.1.2",
+      "unknown"
+     ],
+     "seen_bands": [
+      "other",
+      "s_band",
+      "uhf_400",
+      "uhf_70cm",
+      "vhf_2m"
+     ],
+     "novelty_features": [
+      "max_elevation_deg",
+      "pass_duration_s",
+      "doppler_swing_hz",
+      "doppler_rate_max_hz_s",
+      "tle_epoch_age_days"
+     ],
+     "distance_quantile_99": 4.923475356341928,
+     "degraded": null,
+     "note": "distance_quantile_99 is the 99th percentile of the training set's own distances, so 'novel' means further out than 99% of training data rather than past a number chosen by hand."
+    },
+    "n_test_flagged": 65,
+    "by_axis_counts": {
+     "unseen_station": 16,
+     "unseen_transmitter": 53,
+     "unseen_client_family": 0,
+     "unseen_band": 0,
+     "feature_novelty": 0
+    },
+    "risk_by_novelty": {
+     "unseen_station": {
+      "flagged": {
+       "n": 16,
+       "risk": 0.0625,
+       "n_errors": 1,
+       "mean_confidence": 0.7748451071535102
+      },
+      "unflagged": {
+       "n": 72,
+       "risk": 0.3055555555555556,
+       "n_errors": 22,
+       "mean_confidence": 0.7303465046421489
+      },
+      "risk_ratio": 0.20454545454545453,
+      "risk_ratio_state": "measured",
+      "informative": false
+     },
+     "unseen_transmitter": {
+      "flagged": {
+       "n": 53,
+       "risk": 0.2830188679245283,
+       "n_errors": 15,
+       "mean_confidence": 0.713545745475175
+      },
+      "unflagged": {
+       "n": 35,
+       "risk": 0.22857142857142856,
+       "n_errors": 8,
+       "mean_confidence": 0.7761298725287601
+      },
+      "risk_ratio": 1.2382075471698113,
+      "risk_ratio_state": "measured",
+      "informative": true
+     },
+     "unseen_client_family": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 88,
+       "risk": 0.26136363636363635,
+       "n_errors": 23,
+       "mean_confidence": 0.7384371596442146
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "unseen_band": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 88,
+       "risk": 0.26136363636363635,
+       "n_errors": 23,
+       "mean_confidence": 0.7384371596442146
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "feature_novelty": {
+      "flagged": {
+       "n": 0,
+       "risk": null,
+       "n_errors": 0,
+       "mean_confidence": null
+      },
+      "unflagged": {
+       "n": 88,
+       "risk": 0.26136363636363635,
+       "n_errors": 23,
+       "mean_confidence": 0.7384371596442146
+      },
+      "risk_ratio": null,
+      "risk_ratio_state": "one cell was empty",
+      "informative": false
+     },
+     "is_ood": {
+      "flagged": {
+       "n": 65,
+       "risk": 0.24615384615384617,
+       "n_errors": 16,
+       "mean_confidence": 0.7283333932110314
+      },
+      "unflagged": {
+       "n": 23,
+       "risk": 0.30434782608695654,
+       "n_errors": 7,
+       "mean_confidence": 0.7669912821727757
+      },
+      "risk_ratio": 0.8087912087912088,
+      "risk_ratio_state": "measured",
+      "informative": false
+     }
+    }
+   }
+  }
+ ]
+}

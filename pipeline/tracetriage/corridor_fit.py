@@ -96,6 +96,15 @@ __all__ = [
 # sigma scores there. The plot border itself is bright and would win any scan.
 EDGE_MARGIN_PX: int = 4
 
+#: Smallest per-row spread the normalisation will divide by, in grey levels.
+#:
+#: One grey level. Measured on the stage-1 snapshot, a row's MAD is either exactly 0
+#: or at least 2.471, so any floor inside that gap leaves every row with variation
+#: untouched while stopping a flat row from being amplified. The previous value, 1e-6,
+#: turned flat rows into matched-filter responses of up to 8.6e6. See
+#: :func:`normalised_rows`.
+MAD_FLOOR: float = 1.0
+
 
 @dataclass(frozen=True)
 class GateThresholds:
@@ -233,6 +242,27 @@ def normalised_rows(rgb: np.ndarray, crop_box: Any) -> np.ndarray:
     gradient that changing slant range puts into every pass. Nothing is
     normalised along time, because that would erase a stationary carrier, and a
     stationary carrier is what the corrected hypothesis predicts.
+
+    **On the divisor floor.** This used to be ``np.maximum(mad, 1e-6)``, which reads
+    like a guard against division by zero and is not one. A perfectly flat row has
+    MAD exactly 0, so that floor multiplied its deviations by a million, and the
+    matched filter then reported sigma values up to 8.6e6 on 14 of 716 decisive
+    observations. A sigma of eight million in units of the null spread does not mean
+    an overwhelming detection; it means the row had no spread to measure against.
+
+    Measured on the stage-1 snapshot, the MAD of a row is either exactly 0.0 or at
+    least 2.471, with nothing in between: 2.471 is the smallest non-zero value the
+    8-bit luminance quantisation can produce after the 1.4826 scaling. So a floor
+    anywhere in (0, 2.471) leaves every row with any variation bit-identical, and
+    ``MAD_FLOOR = 1.0`` is one grey level, chosen inside that gap on a physical
+    argument rather than to fit the data. Gate 3's three measured observations have a
+    minimum row MAD of 2.471, so their receipt is unchanged by construction, and
+    ``tests/test_corridor_fit.py`` pins that.
+
+    A flat row now normalises to exactly zero, which is the honest reading: no
+    variation means no evidence of a trace either way.
+    :func:`flat_row_fraction` reports how much of an image is affected, because a
+    waterfall with a sixth of its rows dead is a data-quality finding in itself.
     """
     x0 = crop_box.x0 + EDGE_MARGIN_PX
     x1 = crop_box.x1 - EDGE_MARGIN_PX
@@ -241,7 +271,33 @@ def normalised_rows(rgb: np.ndarray, crop_box: Any) -> np.ndarray:
     lum = rgb[y0:y1, x0:x1].astype(np.float32).mean(axis=2)
     med = np.median(lum, axis=1, keepdims=True)
     mad = np.median(np.abs(lum - med), axis=1, keepdims=True) * 1.4826
-    return (lum - med) / np.maximum(mad, 1e-6)
+    return (lum - med) / np.maximum(mad, MAD_FLOOR)
+
+
+def flat_row_fraction(rgb: np.ndarray, crop_box: Any) -> dict[str, Any]:
+    """Fraction of spectrogram rows with no luminance variation at all.
+
+    A flat row is dead capture time: the receiver produced a constant value for that
+    instant across the whole band. It carries no evidence about a trace, and before
+    the divisor floor was fixed it produced the largest matched-filter responses in
+    the corpus. Reported as a feature so the model can use "this capture is partly
+    dead" rather than being handed a spurious detection from it.
+    """
+    x0 = crop_box.x0 + EDGE_MARGIN_PX
+    x1 = crop_box.x1 - EDGE_MARGIN_PX
+    y0 = crop_box.y0 + EDGE_MARGIN_PX
+    y1 = crop_box.y1 - EDGE_MARGIN_PX
+    lum = rgb[y0:y1, x0:x1].astype(np.float32).mean(axis=2)
+    med = np.median(lum, axis=1, keepdims=True)
+    mad = (np.median(np.abs(lum - med), axis=1) * 1.4826).astype(float)
+    n_rows = int(mad.size)
+    n_flat = int((mad <= 0.0).sum())
+    return {
+        "n_rows": n_rows,
+        "n_flat_rows": n_flat,
+        "flat_row_frac": (n_flat / n_rows) if n_rows else None,
+        "min_row_mad": float(mad.min()) if n_rows else None,
+    }
 
 
 def smooth_columns(z: np.ndarray, width: int) -> np.ndarray:

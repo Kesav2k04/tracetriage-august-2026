@@ -3,15 +3,51 @@
     "check": "no_transmitter_across_splits",
     "split": "chronological",
     "entity": "transmitter",
-    "guaranteed": true,
+    "guaranteed": false,
     "n_examined": 2727,
     "n_entities": 613,
-    "n_violators": 0,
+    "n_violators": 211,
     "n_skipped_excluded": 0,
     "n_skipped_no_key": 0,
-    "result": "PASS",
-    "detail": "Examined 2727 obs, 613 transmitters. Violators: 0.",
-    "examples": []
+    "result": "BY_DESIGN",
+    "detail": "211 of 613 transmitters cross a partition boundary here, over 2727 observations. Not a leak: this split holds out time, on entities the model has seen, so a transmitter observed before and after the cut is the point rather than a leak. Grouping by transmitter here was tried and collapsed the split to 2595/78/54, because 211 of 613 transmitters are observed on both sides of a single evening's 70% mark.",
+    "examples": [
+      {
+        "key": "28YcVVTwEWMugs9qYova7j",
+        "partitions": [
+          "test",
+          "train"
+        ]
+      },
+      {
+        "key": "2GvxE2TC9BsEVdqLoG7F3D",
+        "partitions": [
+          "test",
+          "train"
+        ]
+      },
+      {
+        "key": "2ZjLbY4VkHtxZhHwDMWy9H",
+        "partitions": [
+          "test",
+          "train"
+        ]
+      },
+      {
+        "key": "2y8DRYd4fMKKHYrP67s6Fb",
+        "partitions": [
+          "calibration",
+          "train"
+        ]
+      },
+      {
+        "key": "32PEtq4PvydqcNv8xrmnZZ",
+        "partitions": [
+          "test",
+          "train"
+        ]
+      }
+    ]
   },
   {
     "check": "no_transmitter_across_splits",
@@ -99,45 +135,45 @@
     "guaranteed": false,
     "n_examined": 2727,
     "n_entities": 271,
-    "n_violators": 39,
+    "n_violators": 159,
     "n_skipped_excluded": 0,
     "n_skipped_no_key": 0,
     "result": "BY_DESIGN",
-    "detail": "39 of 271 stations cross a partition boundary here, over 2727 observations. Not a leak: the held-out entity is the transmitter and the cut is by time, so a station keeps observing across the boundary.",
+    "detail": "159 of 271 stations cross a partition boundary here, over 2727 observations. Not a leak: the cut is by time, on entities the model has seen, so a station keeps observing across the boundary.",
     "examples": [
       {
-        "key": "1466",
+        "key": "1058",
         "partitions": [
           "calibration",
-          "train"
+          "test"
         ]
       },
       {
-        "key": "1685",
-        "partitions": [
-          "test",
-          "train"
-        ]
-      },
-      {
-        "key": "1860",
-        "partitions": [
-          "calibration",
-          "train"
-        ]
-      },
-      {
-        "key": "1861",
-        "partitions": [
-          "calibration",
-          "train"
-        ]
-      },
-      {
-        "key": "1864",
+        "key": "106",
         "partitions": [
           "calibration",
           "test",
+          "train"
+        ]
+      },
+      {
+        "key": "1118",
+        "partitions": [
+          "calibration",
+          "train"
+        ]
+      },
+      {
+        "key": "1167",
+        "partitions": [
+          "calibration",
+          "test"
+        ]
+      },
+      {
+        "key": "1190",
+        "partitions": [
+          "calibration",
           "train"
         ]
       }
@@ -353,7 +389,7 @@
     "split": "all",
     "entity": "process",
     "guaranteed": true,
-    "n_examined": 993,
+    "n_examined": 1349,
     "n_entities": 4,
     "n_violators": 0,
     "n_skipped_excluded": 0,

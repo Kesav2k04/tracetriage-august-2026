@@ -275,32 +275,60 @@ class TestTransmitterNotAcrossSplits:
     These are the two splits where transmitter is the grouping entity.
     """
 
-    @pytest.mark.parametrize("split_name", ["chronological", "cold_transmitter"])
-    def test_transmitter_in_exactly_one_partition(self, split_name, split_manifest, rows):
+    @pytest.mark.parametrize(
+        "split_name", ["chronological", "cold_station", "cold_transmitter", "cold_combined"]
+    )
+    def test_transmitter_partitioning_matches_what_the_split_claims(
+        self, split_name, split_manifest, rows
+    ):
+        """Whether a transmitter may cross is read from the scope table, not hardcoded.
+
+        This test used to be parametrized over ``["chronological", "cold_transmitter"]``.
+        When the chronological split stopped grouping by transmitter, it failed with 211
+        violators, which was correct behaviour reported as a defect. Hardcoding a scope
+        in a test makes the test a second place the scope can be wrong, so both the
+        claimed and the by-design cases are now driven from ``CHECK_SCOPES``.
+        """
         if not rows:
             pytest.skip("No rows available")
+        from pipeline.tracetriage.splits import CHECK_SCOPES  # noqa: PLC0415
+
+        scope = CHECK_SCOPES["no_transmitter_across_splits"]
+        claimed = split_name in scope["applies_to"]
 
         split_data = split_manifest["splits"][split_name]
         id_to_tx = {r["id"]: r["transmitter_uuid"] for r in rows}
 
         tx_to_parts: dict[str, set[str]] = {}
         for part_name, obs_ids in split_data.items():
+            if part_name == "excluded":
+                continue  # belongs to no partition, so it cannot cross one
             for oid in obs_ids:
                 tx = id_to_tx.get(oid)
                 if tx is None:
                     continue
-                if tx not in tx_to_parts:
-                    tx_to_parts[tx] = set()
-                tx_to_parts[tx].add(part_name)
+                tx_to_parts.setdefault(tx, set()).add(part_name)
 
-        n_checked = len(tx_to_parts)
-        assert n_checked > 0, f"{split_name}: checked 0 transmitters — test is vacuous"
-
+        assert tx_to_parts, f"{split_name}: checked 0 transmitters, the test is vacuous"
         violators = {tx: parts for tx, parts in tx_to_parts.items() if len(parts) > 1}
-        assert not violators, (
-            f"{split_name}: {len(violators)} transmitter(s) appear in multiple partitions. "
-            f"First violator: {next(iter(violators))} in {next(iter(violators.values()))}"
-        )
+
+        if claimed:
+            assert not violators, (
+                f"{split_name} claims no_transmitter_across_splits but "
+                f"{len(violators)} transmitter(s) appear in multiple partitions. "
+                f"First: {next(iter(violators))} in {next(iter(violators.values()))}"
+            )
+        else:
+            assert split_name in scope["by_design"], (
+                f"{split_name} neither claims the guarantee nor explains why not"
+            )
+            recorded = split_manifest["leakage_checks"][
+                "no_transmitter_across_splits"
+            ]["by_design_crossings"][split_name]["n_crossing"]
+            assert recorded == len(violators), (
+                f"{split_name}: the manifest records {recorded} by-design crossings, "
+                f"this test counted {len(violators)}"
+            )
 
 
 # ---------------------------------------------------------------------------

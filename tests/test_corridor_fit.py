@@ -441,3 +441,76 @@ def test_thresholds_are_the_documented_values():
     assert t.swing_scale_factors == (0.25, 0.5, 2.0, 4.0)
     assert t.min_swing_hz == 3_000.0
     assert t.exclude_at_bound is True
+
+
+class TestMadFloor:
+    """The divisor floor in ``normalised_rows``.
+
+    A row with no luminance variation has MAD exactly 0. The floor used to be 1e-6,
+    which looks like a division-by-zero guard and is not one: it multiplied a flat
+    row's deviations by a million, and the matched filter then reported sigma up to
+    8.6e6 on 14 of 716 decisive observations. Eight million in units of the null
+    spread is not an overwhelming detection; it is a row with no spread.
+    """
+
+    def _crop(self, w: int, h: int):
+        from pipeline.tracetriage.waterfall import Box
+
+        return Box(x0=0, y0=0, x1=w, y1=h)
+
+    def test_a_flat_row_normalises_to_zero_not_to_a_million(self) -> None:
+        from pipeline.tracetriage.corridor_fit import EDGE_MARGIN_PX, normalised_rows
+
+        h, w = 20, 40
+        rgb = np.zeros((h, w, 3), dtype=np.uint8)
+        rgb[:] = 100  # every row perfectly flat
+        zs = normalised_rows(rgb, self._crop(w, h))
+        assert zs.shape == (h - 2 * EDGE_MARGIN_PX, w - 2 * EDGE_MARGIN_PX)
+        assert np.abs(zs).max() == 0.0, (
+            f"a flat image must normalise to exactly zero, got max |z| = {np.abs(zs).max()}"
+        )
+
+    def test_a_row_with_variation_is_unaffected_by_the_floor(self) -> None:
+        """The safety argument for the change.
+
+        Measured on the snapshot, a row's MAD is either 0 or at least 2.471, so a floor
+        of 1.0 sits inside that gap and cannot alter any row that has variation. This
+        checks the arithmetic directly: with MAD well above the floor, the z-scores are
+        what the unfloored formula gives.
+        """
+        from pipeline.tracetriage.corridor_fit import MAD_FLOOR, normalised_rows
+
+        h, w = 20, 40
+        rng = np.random.default_rng(0)
+        lum = rng.integers(40, 220, size=(h, w)).astype(np.uint8)
+        rgb = np.repeat(lum[:, :, None], 3, axis=2)
+        zs = normalised_rows(rgb, self._crop(w, h))
+
+        inner = lum[4:-4, 4:-4].astype(np.float32)
+        med = np.median(inner, axis=1, keepdims=True)
+        mad = np.median(np.abs(inner - med), axis=1, keepdims=True) * 1.4826
+        assert mad.min() > MAD_FLOOR, "test data must exceed the floor for this to mean anything"
+        assert np.allclose(zs, (inner - med) / mad), (
+            "the floor must be inert on rows that have variation"
+        )
+
+    def test_the_floor_sits_inside_the_measured_gap(self) -> None:
+        """0 < MAD_FLOOR < 2.471, the smallest non-zero MAD 8-bit luminance can give."""
+        from pipeline.tracetriage.corridor_fit import MAD_FLOOR
+
+        smallest_nonzero_mad = (5.0 / 3.0) * 1.4826  # one quantisation step, scaled
+        assert 0.0 < MAD_FLOOR < smallest_nonzero_mad
+
+    def test_flat_rows_are_counted_and_reported(self) -> None:
+        from pipeline.tracetriage.corridor_fit import flat_row_fraction
+
+        h, w = 20, 40
+        rng = np.random.default_rng(1)
+        lum = rng.integers(40, 220, size=(h, w)).astype(np.uint8)
+        lum[6:9, :] = 77  # three flat rows inside the crop
+        rgb = np.repeat(lum[:, :, None], 3, axis=2)
+        stats = flat_row_fraction(rgb, self._crop(w, h))
+        assert stats["n_flat_rows"] == 3
+        assert stats["n_rows"] == h - 8
+        assert stats["flat_row_frac"] == pytest.approx(3 / (h - 8))
+        assert stats["min_row_mad"] == 0.0

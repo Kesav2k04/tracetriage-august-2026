@@ -25,6 +25,7 @@ SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
 
 EXPECTED = {
     "dataset_manifest",
+    "fusion_receipt",
     "source_observation",
     "split_manifest",
     "triage_receipt",
@@ -367,3 +368,323 @@ def test_manifest_requires_a_sampling_design() -> None:
     doc = manifest()
     del doc["sampling_design"]
     assert not is_valid("dataset_manifest", doc)
+
+
+# ---------------------------------------------------------------------------
+# fusion_receipt: the artifact carrying kill gate 5's verdict
+# ---------------------------------------------------------------------------
+
+
+def _comparison(**overrides: Any) -> dict[str, Any]:
+    base = {
+        "margin": 0.02,
+        "ci95": [0.007, 0.034],
+        "direction": "challenger_better",
+        "distinguishable": True,
+        "challenger_better": True,
+        "n_observations": 88,
+        "n_groups": 88,
+        "n_boot": 4000,
+        "seed": 42,
+    }
+    base.update(overrides)
+    return base
+
+
+def _ablation_outcome(**overrides: Any) -> dict[str, Any]:
+    base = {
+        "blocks": {
+            "corridor": {"decision": "RETAIN", "better_on": ["chronological"], "worse_on": []}
+        },
+        "shipped_blocks": ["image", "corridor"],
+        "shipped_arm": "image_corridor",
+        "shipped_arm_was_measured": True,
+    }
+    base.update(overrides)
+    return base
+
+
+def fusion_receipt(**overrides: Any) -> dict[str, Any]:
+    base = {
+        "schema": "FUSION_RECEIPT",
+        "schema_version": "0.1.0",
+        "generated_at": "2026-08-17T22:00:00Z",
+        "snapshot_id": "snap-stage1",
+        "seed": 42,
+        "split_manifest_sha256": "a" * 64,
+        "arm_ladder": [
+            {"name": "image_only", "blocks": ["image"]},
+            {"name": "image_corridor", "blocks": ["image", "corridor"]},
+        ],
+        "gate5": {
+            "verdict": "NOT_ESTABLISHED",
+            "statement": (
+                "The margin is positive but the interval spans zero on 88 observations, "
+                "so the gate is not met."
+            ),
+            "challenger": "physics_conditioned",
+            "reference": "image_only",
+        },
+        "ablation_conclusion": {
+            "rules": {"nominal": "n", "multiplicity_corrected": "c"},
+            "deciding_rule": "multiplicity_corrected",
+            "nominal": _ablation_outcome(),
+            "multiplicity_corrected": _ablation_outcome(),
+            "rules_disagree_on": [],
+            "shipped_blocks": ["image", "corridor"],
+            "min_train_for_verdict": 300,
+            "min_train_justification": (
+                "Set from the size-matched control: below this the verdict measures the "
+                "sample size rather than the block."
+            ),
+            "splits_used": ["chronological"],
+            "splits_below_training_floor": ["cold_combined"],
+            "caveat": (
+                "The retain decision reads test-set comparisons, so the shipped arm's "
+                "Brier is optimistic by an amount this corpus cannot measure."
+            ),
+        },
+        "splits": [
+            {
+                "split": "chronological",
+                "degraded": None,
+                "counts": {"train": 530, "calibration": 121, "test": 88},
+                "arms": {
+                    "image_only": {
+                        "brier": 0.1495,
+                        "auc": 0.842,
+                        "ece": 0.0482,
+                        "calibration_slope": 1.14,
+                        "calibrator": "temperature",
+                    }
+                },
+                "comparisons": {"image_corridor_vs_image_only": _comparison()},
+            }
+        ],
+    }
+    base.update(overrides)
+    return base
+
+
+def test_fusion_receipt_accepts_the_real_artifact() -> None:
+    """The shipped receipt must validate, not just a fixture shaped like it."""
+    path = CONTRACT_DIR.parent / "artifacts" / "FUSION_RECEIPT.json"
+    if not path.exists():
+        pytest.skip("no receipt generated in this checkout")
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    v = validator("fusion_receipt")
+    errors = sorted(v.iter_errors(doc), key=lambda e: list(e.absolute_path))
+    assert not errors, "\n".join(
+        f"{list(e.absolute_path)}: {e.message}" for e in errors[:10]
+    )
+
+
+def test_fusion_receipt_accepts_a_clean_fixture() -> None:
+    assert is_valid("fusion_receipt", fusion_receipt())
+
+
+def test_fusion_receipt_rejects_a_two_valued_direction() -> None:
+    """The whole reason ``direction`` is an enum.
+
+    A boolean verdict reports an interval lying entirely below zero as an absence of
+    difference. That hides a measured harm behind a null, and the operator's own first
+    version of this bootstrap did exactly that.
+    """
+    doc = fusion_receipt()
+    doc["splits"][0]["comparisons"]["x"] = _comparison(direction=False)
+    assert not is_valid("fusion_receipt", doc)
+    doc["splits"][0]["comparisons"]["x"] = _comparison(direction="better")
+    assert not is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_decisive_comparison_with_no_interval() -> None:
+    doc = fusion_receipt()
+    doc["splits"][0]["comparisons"]["x"] = _comparison(ci95=None)
+    assert not is_valid("fusion_receipt", doc), (
+        "a comparison cannot claim a direction while reporting no interval"
+    )
+
+
+def test_fusion_receipt_rejects_a_margin_with_no_group_count() -> None:
+    """An interval over observations rather than episodes is too narrow.
+
+    The only way a reader can tell which was done is to see both counts, so a comparison
+    that omits the episode count is rejected.
+    """
+    doc = fusion_receipt()
+    bad = _comparison()
+    del bad["n_groups"]
+    doc["splits"][0]["comparisons"]["x"] = bad
+    assert not is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_unmeasurable_without_a_reason() -> None:
+    doc = fusion_receipt()
+    doc["splits"][0]["comparisons"]["x"] = _comparison(
+        direction="unmeasurable", ci95=None
+    )
+    assert not is_valid("fusion_receipt", doc), (
+        "'unmeasurable' without a note is indistinguishable from a tie downstream"
+    )
+    doc["splits"][0]["comparisons"]["x"] = _comparison(
+        direction="unmeasurable",
+        ci95=None,
+        note="Only 3 of 4000 resamples produced a finite statistic.",
+        n_usable_resamples=3,
+    )
+    assert is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_bare_gate_verdict() -> None:
+    """A verdict must carry the sentence that qualifies it."""
+    doc = fusion_receipt()
+    doc["gate5"]["statement"] = "PASSED"
+    assert not is_valid("fusion_receipt", doc)
+    del doc["gate5"]["statement"]
+    assert not is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_an_unknown_verdict() -> None:
+    """NOT_ESTABLISHED and FAILED are separate outcomes and neither is a free-text field."""
+    doc = fusion_receipt()
+    doc["gate5"]["verdict"] = "MOSTLY_PASSED"
+    assert not is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_an_infeasible_ceiling_with_no_reason() -> None:
+    doc = fusion_receipt()
+    doc["splits"][0]["selective"] = {
+        "ceilings": [{"chosen_on_calibration": {"feasible": False, "target_risk": 0.05}}]
+    }
+    assert not is_valid("fusion_receipt", doc), (
+        "'no threshold found' must not be readable as 'no threshold needed'"
+    )
+    doc["splits"][0]["selective"]["ceilings"][0]["chosen_on_calibration"]["reason"] = (
+        "No threshold holds risk at or below 0.050 while keeping at least 5% of rows."
+    )
+    assert is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_feasible_ceiling_never_verified_on_test() -> None:
+    """A ceiling chosen on calibration and not verified is a promise, not a measurement."""
+    doc = fusion_receipt()
+    doc["splits"][0]["selective"] = {
+        "ceilings": [
+            {
+                "chosen_on_calibration": {
+                    "feasible": True,
+                    "target_risk": 0.05,
+                    "threshold": 0.8375,
+                }
+            }
+        ]
+    }
+    assert not is_valid("fusion_receipt", doc)
+    doc["splits"][0]["selective"]["ceilings"][0]["achieved_on_test"] = {"held": True}
+    assert is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_correction_that_cannot_express_a_harm() -> None:
+    """``direction_adjusted`` is required for the reason the DROP branch went dead.
+
+    A correction reporting only ``survives_correction`` as a one-sided boolean makes a
+    surviving harm unrepresentable, and a rule reading it treats the missing correction as
+    an absent harm.
+    """
+    doc = fusion_receipt()
+    doc["splits"][0]["multiplicity_adjusted"] = {
+        "image_corridor_vs_image_only": {
+            "n_comparisons": 7,
+            "ci_adjusted": [0.003, 0.039],
+            "survives_correction": True,
+        }
+    }
+    assert not is_valid("fusion_receipt", doc)
+    doc["splits"][0]["multiplicity_adjusted"]["image_corridor_vs_image_only"][
+        "direction_adjusted"
+    ] = "challenger_better"
+    assert is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_novelty_ratio_with_no_state() -> None:
+    """A null ratio from an empty cell differs from one from a zero denominator.
+
+    On a cold split every test row is novel by construction, so the unflagged cell is
+    empty and the axis carries no contrast. Without the state field that reads as a failed
+    measurement.
+    """
+    doc = fusion_receipt()
+    doc["splits"][0]["ood"] = {
+        "risk_by_novelty": {
+            "unseen_station": {
+                "flagged": {"n": 76},
+                "unflagged": {"n": 0},
+                "risk_ratio": None,
+                "informative": False,
+            }
+        }
+    }
+    assert not is_valid("fusion_receipt", doc)
+    doc["splits"][0]["ood"]["risk_by_novelty"]["unseen_station"]["risk_ratio_state"] = (
+        "one cell was empty"
+    )
+    assert is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_an_ablation_hiding_that_the_rules_disagree() -> None:
+    doc = fusion_receipt()
+    del doc["ablation_conclusion"]["rules_disagree_on"]
+    assert not is_valid("fusion_receipt", doc)
+    doc = fusion_receipt()
+    del doc["ablation_conclusion"]["nominal"]
+    assert not is_valid("fusion_receipt", doc), (
+        "reporting only the applied rule would conceal that another rule disagrees"
+    )
+
+
+def test_fusion_receipt_rejects_a_shipped_arm_with_no_measured_flag() -> None:
+    """A selected combination nothing fitted has no interval behind its score."""
+    doc = fusion_receipt()
+    del doc["ablation_conclusion"]["multiplicity_corrected"]["shipped_arm_was_measured"]
+    assert not is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_training_floor_with_no_justification() -> None:
+    """A threshold excluding a split from the decision needs a measured reason."""
+    doc = fusion_receipt()
+    doc["ablation_conclusion"]["min_train_justification"] = "because"
+    assert not is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_shipped_score_with_no_caveat() -> None:
+    doc = fusion_receipt()
+    del doc["ablation_conclusion"]["caveat"]
+    assert not is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_result_with_no_split_digest() -> None:
+    """Without the digest a receipt cannot be tied to the splits that produced it."""
+    doc = fusion_receipt()
+    del doc["split_manifest_sha256"]
+    assert not is_valid("fusion_receipt", doc)
+    doc = fusion_receipt(split_manifest_sha256="not-a-digest")
+    assert not is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_clean_split_with_no_results() -> None:
+    """Neither a result nor a stated reason is how a silent failure passes as a run."""
+    doc = fusion_receipt()
+    del doc["splits"][0]["arms"]
+    assert not is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_rejects_a_degraded_split_that_does_not_say_why() -> None:
+    doc = fusion_receipt()
+    doc["splits"][0] = {
+        "split": "cold_combined",
+        "degraded": "TOO_FEW_DECISIVE_LABELS",
+        "counts": {"train": 5, "calibration": 2, "test": 1},
+    }
+    assert not is_valid("fusion_receipt", doc)
+    doc["splits"][0]["note"] = "Fewer than 20 decisive labels cannot support a comparison."
+    assert is_valid("fusion_receipt", doc)
