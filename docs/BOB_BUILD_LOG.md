@@ -1458,3 +1458,151 @@ have started committing private notes silently.
 `verify` reports both intact.
 
 **Results.** 721 offline tests pass, up from 680. Lint clean.
+
+## C5. Static evidence console
+
+**Task given:** a static console that renders every measurement, deployed and
+kept live.
+
+**Live at https://tracetriage.vercel.app.** Next.js 15 static export: five routes,
+32 pre-rendered pages, no server, no database, no runtime fetch and no
+credentials. Between 8 and 18 kB over the wire per page.
+
+**Two absences were being published as measurements.** Both were found while
+wiring pages to the receipts, and both have the same shape: a value that was
+missing for a mechanical reason and rendered as "not measured", which says
+something false about work that was done.
+
+The export read every receipt field with `.get()`. Two of the names it guessed
+were wrong, so the console shipped four splits whose partition counts were all
+`{}` and two arm sections that were `null`. Nothing failed; the pages rendered.
+`_require` now refuses to substitute a null for a field it failed to find, names
+the keys that are actually present in the error, and refuses an empty container,
+while still passing a legitimate `0` or `False`. Fourteen tests pin it.
+
+Separately, the queue receipt described its episode key as `start[:13]`, an hour
+bucket, long after the code had moved to the orbital revolution index. The prose
+was wrong rather than the grouping, which is worse than a wrong number: a reader
+checking the clustering would have been checking the wrong thing. The key is now
+pinned by value in the contract, so restoring the hour bucket fails validation
+rather than passing quietly.
+
+**Contract `queue_receipt.schema.json` 0.2.0 to 0.3.0.** `schema_version` pinned
+by `const`, so a receipt written by an older script cannot validate against this
+schema and be read as current. The `deduplication` block closed to unknown keys.
+The degraded revolution count promoted to a required field with its policy beside
+it, because an observation whose revolution index will not propagate deduplicates
+against nothing and that has to be counted rather than absorbed.
+
+**WebGL earns its place, and pays for it.** Contrast stretch and false colour are
+per-pixel work on a 620x1540 image driven by a slider, which is the one thing on
+this site that canvas2D would drop frames on. One fullscreen quad, one immutable
+R8 texture uploaded once, render on demand with no animation loop, device pixel
+ratio capped at 2, context created when the canvas becomes visible and released
+with `WEBGL_lose_context`, and no `readPixels` anywhere. Colour management is
+switched off on upload, because the stored bytes are measured intensities and
+letting the browser convert them to the display profile would change the numbers
+the page claims to show.
+
+The first version had the initialisation effect depend on the draw callback. Every
+slider tick therefore destroyed the program, the texture and the context and
+re-decoded the image: the exact cost WebGL was chosen to avoid, while walking into
+the browser's live-context cap. The uniforms now live in a ref and the draw
+callback is stable.
+
+**The image is never displayed wider than its own pixels.** Upscaling a measured
+intensity map invents detail the measurement does not have, and a promoted layer
+rasterises its whole box, so a 2x display size is a 4x raster of a picture already
+at its own resolution. At 1:1 the corridor overlay's 113 px gap between the
+predicted and fitted curves is the real gap, in real pixels.
+
+**The corridor overlay is computed by the pipeline, not redrawn by the console.**
+`physics.corridor_columns` maps the predicted Doppler curve to pixel columns
+through the axis sign convention, and the exported path is what the matched filter
+scored. Measured on the rendered page: the predicted curve starts at column
+379.82, the fitted curve at 266.82, a gap of exactly 113.0 px, which is 13,985 Hz,
+which is 32 ppm. A curve the console drew for itself would be a picture of the
+physics rather than evidence of it.
+
+**Client bundle for the queue route: 306 kB to 7.5 kB.** The filterable table is a
+client component and imported one constant and three formatters from the data
+layer, which imports the four receipt files. Importing one label pulled all of
+them across the boundary, including the per-observation corridor coordinate arrays
+that only the server-rendered observation pages draw. The labels and the
+formatters now live in modules with nothing behind them.
+
+**Carbon Gray 100, with one departure.** Carbon's `text-03` is Gray 60, the
+placeholder colour rather than a text colour, and it measures 3.60:1 on this
+background and 3.01:1 on a tile. Every caption, table label and chart tick on this
+console used it. It is Gray 50 here, measured at 5.46:1 and 4.56:1, and the
+placeholder keeps its own token.
+
+**What the console will not do.** It renders numbers; it does not compute them. No
+model runs in the browser, nothing is fetched from a third party, and the one thing
+the page calculates is how to map stored intensities to screen colours, which the
+waterfall viewer states on every card.
+
+**Results.** 732 offline tests pass, up from 721. Lint clean. 8/8 standing gates.
+
+## C6. Accessibility and failure states
+
+**Task given:** keyboard operation, contrast, reduced motion, no WebGL, and an
+explicit degraded state for every failure in the injection list.
+
+**Measured, not asserted.** `apps/web/audit/a11y-probe.js` resolves the real
+painted background behind each text node by walking up and compositing until it
+finds an opaque colour. Comparing text against a transparent parent reports
+`rgba(0, 0, 0, 0)` and scores every dark page as perfect, which is the failure mode
+this probe exists to avoid. It also counts what it skipped, so an empty result
+reads as "nothing was measured" rather than "everything passed".
+
+Across five page types, including the queue in its filtered and its empty state:
+
+| Check | Result |
+|---|---|
+| Text nodes measured | 1,475 |
+| Below their contrast requirement | 0 |
+| Focusable elements | 99 |
+| Not reachable, or focused with no visible ring | 0 |
+| Images, canvases and SVGs with no text alternative | 0 |
+| Heading levels skipped | 0 |
+| Pages with exactly one h1 | 5 of 5 |
+
+**Every failure state is explicit rather than blank.**
+
+No WebGL2, or a lost context: the same image renders as a plain `img`, the reason
+is named, and the contrast controls are removed rather than left sitting there
+dead. Verified by disabling `getContext` and navigating: the image paints, the
+corridor overlay stays drawn, the controls disappear, and the note names the cause.
+
+JavaScript off: a `noscript` block hides the empty canvas and serves the same
+waterfall as an image. The corridor overlay is server-rendered SVG and needs
+nothing, so a reader with scripting off still sees the measurement drawn on the
+trace. The queue's filter controls hide themselves and say why; 60 rows still
+render from the server.
+
+A filter matching nothing: a stated empty result carrying the full queue size, so
+an empty table cannot be misread as a broken one.
+
+Reduced motion: honoured globally, in 3.9 kB of CSS for the whole site.
+
+**The degraded-state table on the provenance page counts itself.** Its right-hand
+column is computed from the shipped cards rather than typed, because a hand-written
+zero goes stale the first time the shipped set changes. Every count is currently
+zero, and the page says so out loud: these 25 observations are the top of a queue,
+so they carry the cleanest geometry in the corpus, and the degraded paths are
+covered by the offline suite and by forcing them in a browser rather than by this
+data.
+
+**One claim was wrong and is corrected.** The provenance page said there is no
+network request after load. The router prefetches the next page's data when a link
+enters the viewport. Measured on the built site, every request the page makes is
+same-origin, which is the property that actually matters, and the page now says
+that instead.
+
+**Headers.** A content security policy that permits no origin but this site's own,
+plus `nosniff`, `no-referrer`, a closed permissions policy and HSTS. Verified live
+on the deployed site with zero console warnings under the policy.
+
+**Results.** 732 offline tests pass. Lint clean. 8/8 standing gates. Wave C
+complete.

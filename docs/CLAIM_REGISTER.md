@@ -40,6 +40,16 @@ updating the README without regenerating the receipt fails CI.
 | Queue never loses to any baseline | 0 of 12 comparisons reach baseline_better under either grouping | KILL_GATE.md C4 section | `artifacts/QUEUE_RECEIPT.json` replay_conclusion | C4 | 2026-08-18 |
 | Conflicts found at budget 50 (chronological) | queue 20, image uncertainty 15, FIFO 14, physics-only 13 | KILL_GATE.md C4 section | `artifacts/QUEUE_RECEIPT.json` replay_episode | C4 | 2026-08-18 |
 | Superseded: gate 6 CI published in C1 | [1.00, 1.20] was a resample artefact, not a measurement | KILL_GATE.md failure log | reproduced at [1.0000, 1.2200] from the old loop | C2 | 2026-08-18 |
+| Fitted corridor offset, obs 14740031 | 113.0 px, 13,985 Hz, 32 ppm, read off the rendered overlay at 1:1 | console observation page | `apps/web/public/data/cards.json` corridor | C5 | 2026-08-18 |
+| Console contrast, five page types | 1,475 text nodes measured, 0 below requirement | C6 build log entry | `apps/web/audit/a11y-probe.js` output | C6 | 2026-08-18 |
+| Console keyboard reachability | 99 focusable elements, 0 unreachable, 0 without a focus ring | C6 build log entry | `apps/web/audit/a11y-probe.js` output | C6 | 2026-08-18 |
+| Carbon text-03 fails contrast as a text colour | 3.60:1 on the page background, 3.01:1 on a tile, against a 4.5:1 requirement | C5 build log entry, globals.css | computed from the Gray 100 palette | C5 | 2026-08-18 |
+| Console client bundle, queue route | 306 kB to 7.5 kB after the data layer stopped crossing the client boundary | C5 build log entry | `next build` route table | C5 | 2026-08-18 |
+| Console page weight over the wire | 8 to 18 kB brotli per page, 3.9 kB CSS for the whole site | C5 build log entry | measured against the deployed site | C5 | 2026-08-18 |
+| Degraded states exercised by shipped cards | 0 of 25, stated on the page rather than implied | console provenance page | `apps/web/public/data/cards.json` | C6 | 2026-08-18 |
+| Superseded: console reported four splits with no partition counts | `{}` on all four, and two null arm sections, from `.get()` against wrong key names | C5 build log entry | fixed by `_require` in `scripts/build_console_data.py` | C5 | 2026-08-18 |
+| Superseded: queue receipt named an hour bucket as its episode key | `start[:13]` in the prose while the code grouped by orbital revolution | C5 build log entry | key now pinned by `const` in `contracts/queue_receipt.schema.json` | C5 | 2026-08-18 |
+| Superseded: console claimed no network request after load | the router prefetches same-origin RSC payloads on link visibility | console provenance page | measured request list on the built site | C6 | 2026-08-18 |
 
 ## Pre-registered limits
 
