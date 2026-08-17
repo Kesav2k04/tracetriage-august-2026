@@ -3,7 +3,7 @@
  "schema_version": "0.1.0",
  "contract": "contracts/queue_receipt.schema.json",
  "unit": "C1",
- "generated_at": "2026-08-17T19:30:30.757285+00:00",
+ "generated_at": "2026-08-17T19:40:20.821330+00:00",
  "seed": 42,
  "snapshot_id": "snap-20260817-stage1",
  "split_manifest_sha256": "2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199",
@@ -6648,8 +6648,8 @@
     "n_queue_conflicts": 36,
     "lift_point": 3.004615384615385,
     "lift_ci95": [
-     2.0100000000000002,
-     2.516470588235294
+     2.0064,
+     2.5103604004449385
     ],
     "lift_vs_fifo": 1.3353846153846156,
     "lift_vs_image_uncertainty": 1.418846153846154,
@@ -6675,7 +6675,7 @@
     "n_queue_conflicts": 33,
     "lift_point": 1.6246153846153846,
     "lift_ci95": [
-     1.1,
+     1.0999999999999999,
      1.32
     ],
     "lift_vs_fifo": 1.0338461538461539,
@@ -6749,8 +6749,8 @@
     "n_queue_conflicts": 36,
     "lift_point": 3.004615384615385,
     "lift_ci95": [
-     2.0100000000000002,
-     2.516470588235294
+     2.0064,
+     2.5103604004449385
     ],
     "lift_vs_fifo": 1.3353846153846156,
     "lift_vs_image_uncertainty": 1.418846153846154,
@@ -6768,7 +6768,7 @@
     "n_queue_conflicts": 33,
     "lift_point": 1.6246153846153846,
     "lift_ci95": [
-     1.1,
+     1.0999999999999999,
      1.32
     ],
     "lift_vs_fifo": 1.0338461538461539,

@@ -410,7 +410,7 @@ def compute_lift(
             ci95=[float("nan"), float("nan")],
             n_budget=budget,
             n_total=n,
-            n_groups=len(set(episode_of.values())),
+            n_groups=len(sorted(set(episode_of.values()))),
             n_boot=n_boot,
             seed=seed,
             direction="unmeasurable",
@@ -421,7 +421,8 @@ def compute_lift(
     lift_point = float(n_q_conflicts) / n_random if n_random > 0 else float("nan")
 
     # Grouped bootstrap: resample episodes, not observations.
-    episodes = list(set(episode_of.values()))
+    # Sort for determinism: set iteration order is not guaranteed in Python.
+    episodes = sorted(set(episode_of.values()))
     episode_to_obs: dict[str, list[int]] = {}
     for oid in ranked_obs_ids:
         ep = episode_of[oid]
