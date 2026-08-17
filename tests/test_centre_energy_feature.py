@@ -165,3 +165,33 @@ class TestDegenerateInputsReturnNone:
     def test_inverted_strip_bounds(self):
         assert centre_strip_score(_noise(), 100, 100) is None
         assert centre_strip_score(_noise(), 100, 90) is None
+
+
+class TestHogCropIsMandatory:
+    """HOG must see the spectrogram, not the page it is printed on.
+
+    `_hog_features` used to resize the whole PNG, axes and colorbar included,
+    while the module docstring said "the cropped spectrogram". Measured on this
+    corpus, HOG over the full image predicts which of the six busiest ground
+    stations produced an observation at 70.5% against a 24.6% majority-class
+    baseline; cropping drops that to 57.3%. With 129 of 148 validation
+    observations on a station seen in training, a model reading the furniture can
+    score by recognising the station instead of by finding a signal.
+
+    The guard below pins the failure mode that would silently reintroduce it: an
+    unparseable image must be excluded, never fed a full-frame vector.
+    """
+
+    def test_unparseable_image_is_excluded_not_full_framed(self, tmp_path):
+        from PIL import Image
+
+        from pipeline.tracetriage.baseline import _hog_features
+
+        # Flat grey, no axes, no ticks: the parser cannot find a plot box here.
+        path = tmp_path / "not_a_waterfall.png"
+        Image.fromarray(np.full((240, 320), 128, dtype=np.uint8)).save(path)
+
+        assert _hog_features(path) is None, (
+            "an image whose geometry cannot be parsed produced a feature vector; "
+            "that is the full-frame path returning, which is the leak"
+        )

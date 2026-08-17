@@ -15,8 +15,11 @@ MODELS
    counted.
 
 2. **HogLR** — HOG features + regularised logistic regression.
-   Resize the cropped spectrogram to a fixed size, compute HOG (orientation
+   Crop to A2's spectrogram box, resize to a fixed size, compute HOG (orientation
    histograms), L2-normalise, and fit a LogisticRegression with L2 penalty.
+   The crop is load-bearing, not cosmetic: over the full page HOG identifies the
+   ground station at 70.5% against a 24.6% baseline, and cropping removes about
+   13 points of that.
    Calibrated via Platt scaling (CalibratedClassifierCV, sigmoid, cv=5).
 
 TRAPS GUARDED AGAINST
@@ -34,14 +37,20 @@ TRAPS GUARDED AGAINST
 - GPU: HOG and logistic regression are CPU-only (scikit-learn).  The waterfall
   parser's OCR backend avoids CUDA to prevent memory contention.
 - A random split would leak because station and transmitter identity carries
-  signal.  The split here is chronological only (ascending observation id).
-  Real grouped splits are built in B1.
+  signal. The split here is chronological by each observation's own start time.
+  Ordering by observation id was tried and is NOT chronological: it disagrees
+  with time order on 27% of adjacent pairs here. Real grouped splits are built
+  in B1, and split.audit records what this split cannot show.
 
 SPLIT
 =====
-Temporary chronological split: sort by ``id`` ascending (oldest first),
-``floor(0.80 * n_total)`` observations go to train, the remainder to val.
-The frozen test set is not touched.
+Temporary chronological split: sort by the observation's own start time, taken
+from its waterfall URL because the manifest stores none and the local filename
+carries none. ``floor(0.80 * n_total)`` observations go to train, the remainder
+to val. The frozen test set is not touched. Station identity remains learnable
+from the spectrogram itself after cropping (57.3% against a 24.6% baseline), so
+only a cold-station split can separate signal detection from station
+recognition; that is B1.
 
 SEED
 ====
@@ -512,6 +521,25 @@ def load_labelled(
             "cold-transmitter and combined splits are B1's job and are what any "
             "generalisation claim has to rest on."
         ),
+        "station_identifiability": {
+            "task": "predict which of the 6 busiest ground stations produced an "
+                    "observation, from HOG features alone, 5-fold CV on 309 "
+                    "decisive observations",
+            "majority_class_baseline": 0.246,
+            "accuracy_full_image": 0.705,
+            "accuracy_cropped_to_spectrogram": 0.573,
+            "reading": (
+                "Cropping to the spectrogram removes about 13 points of this, "
+                "which was the axes, tick labels and colorbar. The remaining gap "
+                "over the baseline is in the spectrogram itself: a station's "
+                "noise floor, bandwidth and RFI environment are genuinely "
+                "visible. So no crop makes station identity unlearnable, and a "
+                "split that lets a station appear on both sides cannot separate "
+                "signal detection from station recognition. This is the measured "
+                "reason B1's cold-station split is required rather than "
+                "preferable."
+            ),
+        },
     }
 
     return CorpusData(
@@ -767,9 +795,24 @@ class CentreEnergyBaseline:
 # ---------------------------------------------------------------------------
 
 def _hog_features(image_path: Path) -> np.ndarray | None:
-    """Extract HOG features from a waterfall PNG.
+    """Extract HOG features from the spectrogram region of a waterfall PNG.
 
-    Returns a 1-D float64 feature vector, or None on load/size failure.
+    Returns a 1-D float64 feature vector, or None when the image cannot be
+    loaded or its geometry cannot be parsed.
+
+    **The crop is not optional.** This function used to pass the whole PNG to
+    HOG, axes, tick labels, title and colorbar included, while the module
+    docstring said "the cropped spectrogram". Measured on this corpus, HOG over
+    the full image predicts which of the six busiest ground stations produced an
+    observation at 70.5% accuracy against a 24.6% majority-class baseline. The
+    furniture around the plot carries station identity, and 129 of the 148
+    validation observations sit on a station seen in training, so a model reading
+    it can score well by recognising the station rather than by finding a signal.
+
+    Cropping to A2's ``crop_box`` is what A2 is for. It costs a geometry parse
+    per image, and an observation whose geometry fails is excluded and counted by
+    the caller rather than fed a full-frame feature vector, which would quietly
+    reintroduce exactly the leak this removes.
     """
     try:
         from skimage.feature import hog  # noqa: PLC0415
@@ -777,9 +820,37 @@ def _hog_features(image_path: Path) -> np.ndarray | None:
         logger.error("scikit-image not installed; HOG features unavailable")
         return None
 
-    arr = _load_grey_crop(image_path, target_size=HOG_IMAGE_SIZE)
-    if arr is None:
+    from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: PLC0415
+
+    geom = parse_waterfall(
+        image_path,
+        observation_id=0,
+        # Only feeds seconds_per_px, which HOG never reads.
+        pass_duration_s=200.0,
+    )
+    if geom.degraded is not None or geom.crop_box is None:
         return None
+
+    full = _load_grey_crop(image_path)
+    if full is None:
+        return None
+
+    h, w = full.shape
+    cb = geom.crop_box
+    x0 = max(0, min(cb.x0, w - 1))
+    x1 = max(x0 + 1, min(cb.x1, w))
+    y0 = max(0, min(cb.y0, h - 1))
+    y1 = max(y0 + 1, min(cb.y1, h))
+    cropped = full[y0:y1, x0:x1]
+    if cropped.size == 0:
+        return None
+
+    # Resize the crop, not the page. Image.fromarray needs 8-bit here because
+    # _load_grey_crop already scaled to [0, 1].
+    pil = Image.fromarray((np.clip(cropped, 0.0, 1.0) * 255).astype(np.uint8))
+    arr = np.array(
+        pil.resize(HOG_IMAGE_SIZE, Image.LANCZOS), dtype=np.float32
+    ) / 255.0
 
     try:
         feats = hog(
