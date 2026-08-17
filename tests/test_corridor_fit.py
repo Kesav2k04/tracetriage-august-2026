@@ -354,6 +354,80 @@ def test_tiny_image_is_degraded():
     assert fit.degraded == "IMAGE_TOO_SMALL"
 
 
+def test_small_swing_is_not_testable():
+    """A tiny swing cannot distinguish shapes, so it must not be scored.
+
+    Permuting nearly-equal values gives nearly the same path, so truth and null
+    both collapse toward noise and a p-value can turn significant on pixel
+    quantisation alone. A3 refuses a verdict below the same 3 kHz. Only
+    ``span > 0`` was checked before this guard, which would have let a grazing
+    low-elevation pass through as testable.
+    """
+    tiny = s_curve(swing_hz=400.0)          # 800 Hz peak to peak, under 3 kHz
+    zs = paint(tiny, offset_hz=0.0)
+    cal = calibrate_against_nulls(
+        zs, tiny, HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ,
+        thresholds=GateThresholds(n_nulls=20),
+    )
+    assert cal.p_value is None
+    assert cal.discriminates is None
+
+
+def test_swing_just_above_the_floor_is_testable():
+    """The floor must not exclude a genuine pass, so pin both sides of it."""
+    ok = s_curve(swing_hz=2_000.0)          # 4 kHz peak to peak, over 3 kHz
+    zs = paint(ok, offset_hz=0.0)
+    cal = calibrate_against_nulls(
+        zs, ok, HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ,
+        thresholds=GateThresholds(n_nulls=20),
+    )
+    assert cal.p_value is not None
+    assert cal.discriminates is True
+
+
+def test_a_fit_that_saturates_its_bound_does_not_discriminate():
+    """A saturated fit may not have found the optimum, so it is excluded.
+
+    ``offset_at_bound`` was computed and stored but consulted nowhere, which made
+    the choice silent.
+
+    Saturation has to be constructed rather than assumed. A tight bound alone
+    does not force it: the search takes the argmax inside its window, and with no
+    signal in reach that argmax lands on interior noise, not on the edge. So the
+    trace is planted just OUTSIDE the bound, close enough that the smoothed
+    kernel at the edge still touches it, which makes the edge the genuine
+    optimum.
+    """
+    c = s_curve()
+    tight = GateThresholds(n_nulls=20, offset_ppm_limit=1.0)
+    bound_px = int((tight.offset_ppm_limit * RX_FREQ_HZ / 1e6) / HZ_PER_PX)
+    zs = paint(c, offset_hz=px_to_offset_hz(bound_px + 2, HZ_PER_PX))
+    cal = calibrate_against_nulls(
+        zs, c, HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ, thresholds=tight,
+    )
+    assert cal.offset_at_bound is True, (
+        f"expected the fit to saturate a {bound_px} px bound"
+    )
+    assert cal.discriminates is False
+
+
+def test_a3_offset_relates_by_exactly_minus_one_not_by_identity():
+    """A3's stored offset and ours differ by a fixed factor of -1, by construction.
+
+    A3's ``curved_offset_hz`` is a raw column-shift-to-Hz conversion with no sign
+    compensation. Ours is the ``freq_offset_hz`` that ``corridor_columns``
+    expects, so it carries ``AXIS_SIGN_CONVENTION``. The magnitudes agreeing to
+    six significant figures is a real cross-check between two separately written
+    estimators, but the numbers are never equal including sign, and describing
+    them as reproducing each other invites someone to "fix" one of them.
+    """
+    for off_px in (5, -17, 113):
+        a3_style = off_px * HZ_PER_PX
+        ours = px_to_offset_hz(off_px, HZ_PER_PX)
+        assert ours == pytest.approx(-a3_style)
+        assert abs(ours) == pytest.approx(abs(a3_style))
+
+
 def test_thresholds_are_the_documented_values():
     """These numbers are published, so a silent edit has to fail a test."""
     t = DEFAULT_THRESHOLDS
@@ -365,3 +439,5 @@ def test_thresholds_are_the_documented_values():
     assert t.p_value_max == 0.05
     assert t.seed == 42
     assert t.swing_scale_factors == (0.25, 0.5, 2.0, 4.0)
+    assert t.min_swing_hz == 3_000.0
+    assert t.exclude_at_bound is True

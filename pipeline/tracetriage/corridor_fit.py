@@ -139,6 +139,16 @@ class GateThresholds:
     # that is the truth. These hold smoothness fixed and vary only magnitude.
     swing_scale_factors: tuple[float, ...] = (0.25, 0.5, 2.0, 4.0)
 
+    # Minimum predicted Doppler swing before a corridor counts as having a shape
+    # worth testing. Matches MIN_PREDICTED_SWING_HZ in
+    # scripts/a3_doppler_investigation.py, which refuses a verdict below it.
+    min_swing_hz: float = 3_000.0
+
+    # When the fitted offset saturates its own bound, the search may not have
+    # found the true optimum. True excludes the observation from the gate rather
+    # than only flagging it.
+    exclude_at_bound: bool = True
+
     # Seed for the scrambled null control.
     seed: int = 42
 
@@ -186,6 +196,21 @@ THRESHOLD_RATIONALE: dict[str, str] = {
         "0.25, 0.5, 2 and 4 times the predicted swing. Each is as smooth and as "
         "monotone as the prediction, so together they separate 'the physics "
         "predicted the right swing' from 'a bright smooth path exists somewhere'."
+    ),
+    "min_swing_hz": (
+        "3,000 Hz of predicted swing before a corridor counts as having a testable "
+        "shape. The same figure A3 uses in MIN_PREDICTED_SWING_HZ, and for the same "
+        "reason: permuting nearly-equal values gives nearly the same path, so truth "
+        "and null both collapse toward noise and a p-value can turn significant on "
+        "pixel quantisation. Only span > 0 was checked before, which would have let "
+        "a grazing low-elevation pass through as testable."
+    ),
+    "exclude_at_bound": (
+        "True. A fit that saturates its own ppm bound may not have found the true "
+        "optimum, so its sigma is a lower bound and the observation is excluded "
+        "rather than merely flagged. None of the three scored observations saturates "
+        "(+32.0, -16.4, -16.4 ppm against 50), so this changes nothing today and "
+        "closes a silent path at snapshot scale."
     ),
     "p_value_max": (
         "0.05 one-sided. The true corridor must beat at least 95 percent of "
@@ -448,6 +473,10 @@ class NullCalibration:
     # Answers the objection that the test only rewards any smooth path.
     scaled_swing_sigmas: dict[str, float] = field(default_factory=dict)
     beats_scaled_swing: bool | None = None
+    # True when the fitted offset saturated its bound, so the sigma is a lower
+    # bound on the achievable fit rather than the best one.
+    offset_at_bound: bool | None = None
+    corridor_span_hz: float | None = None
     discriminates: bool | None = None
 
     def summary(self) -> dict[str, Any]:
@@ -462,6 +491,8 @@ class NullCalibration:
             "margin_over_best_null": self.margin_over_best_null,
             "scaled_swing_sigmas": self.scaled_swing_sigmas,
             "beats_scaled_swing": self.beats_scaled_swing,
+            "offset_at_bound": self.offset_at_bound,
+            "corridor_span_hz": self.corridor_span_hz,
             "discriminates": self.discriminates,
         }
 
@@ -505,7 +536,17 @@ def calibrate_against_nulls(
         # and the comparison is vacuous by construction rather than informative.
         # Measured: on the four CORRECTED observations the corrected corridor is
         # identically 0 Hz across the whole pass, and true and null sigmas agreed
-        # to every decimal place.
+        # to every decimal place. physics.py sets corrected.doppler_hz to zeros
+        # unconditionally, so this branch only ever catches corrected corridors.
+        return _empty(float(true_sigma))
+
+    if span < thresholds.min_swing_hz:
+        # A small swing cannot distinguish one shape from another: a permutation
+        # of nearly-equal values is nearly the same path, so truth and null both
+        # collapse toward noise and a p-value can come out significant on pixel
+        # quantisation alone. A3 refuses a verdict below the same 3 kHz for the
+        # same reason. Only `span > 0` was checked before, which let a grazing
+        # low-elevation pass through as testable.
         return _empty(float(true_sigma))
 
     sigmas: list[float] = []
@@ -541,6 +582,12 @@ def calibrate_against_nulls(
         all(true_sigma > v for v in scaled.values()) if scaled else None
     )
 
+    # A fit that saturates its own bound may not have found the true optimum, so
+    # the sigma is a lower bound rather than the best available. This was computed
+    # in fit_offset and then never consulted anywhere, which is a silent choice.
+    # Now it is an explicit one.
+    at_bound = abs(true_off) >= bound_px
+
     return NullCalibration(
         n_nulls=len(arr),
         true_sigma=float(true_sigma),
@@ -553,8 +600,12 @@ def calibrate_against_nulls(
         margin_over_best_null=float(true_sigma - null_max),
         scaled_swing_sigmas=scaled,
         beats_scaled_swing=beats_scaled,
+        offset_at_bound=at_bound,
+        corridor_span_hz=span,
         discriminates=bool(
-            p_value <= thresholds.p_value_max and (beats_scaled is not False)
+            p_value <= thresholds.p_value_max
+            and (beats_scaled is not False)
+            and not (at_bound and thresholds.exclude_at_bound)
         ),
     )
 

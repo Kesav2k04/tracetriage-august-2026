@@ -1,7 +1,7 @@
 {
   "gate": 3,
   "question": "Does the expected corridor intersect a visible target-like trace?",
-  "generated_at": "2026-08-17T13:22:45.631405+00:00",
+  "generated_at": "2026-08-17T13:38:44.518885+00:00",
   "verdict": "PASSED",
   "threshold": 0.7,
   "observations_decisive": 7,
@@ -16,7 +16,11 @@
     "distinct_transmitters": 3,
     "distinct_days": 1,
     "distinct_station_days": 2,
-    "note": "The discriminating rate is over observations, not over independent episodes. Per-observation evidence is strong: each beats 200 nulls with 0 reaching it, and each beats all four scaled-swing controls. The cross-observation rate does not carry three independent samples."
+    "note": "The discriminating rate is over observations, not over independent episodes. Per-observation evidence is strong: each beats 200 nulls with 0 reaching it, and each beats all four scaled-swing controls. The cross-observation rate does not carry three independent samples.",
+    "groups_scored": 2,
+    "grouped_discriminating_rate": 1.0,
+    "grouped_clears_threshold": true,
+    "group_key": "(ground_station, UTC date)"
   },
   "not_testable_note": "A corrected corridor is identically 0 Hz across the pass, so it is a vertical line with a free horizontal offset and predicts no shape. Gate 3 can only be asked of uncorrected captures, where an S-curve is predicted and can be wrong. Excluding these is a limit on the gate's scope, not a pass.",
   "thresholds": {
@@ -36,7 +40,14 @@
     "search_window_factor": "2.0 times the corridor half-width. The per-row search has to be wider than the corridor or a row outside the corridor could never be detected and the coverage figure would be one by construction, which is the exact defect this module exists to remove.",
     "n_nulls": "200 scrambled corridors per observation. Enough for an empirical p-value to resolve 0.005, which is finer than the 0.05 the gate reads, and cheap because the offset search shifts precomputed columns rather than recomputing the curve.",
     "swing_scale_factors": "0.25, 0.5, 2 and 4 times the predicted swing. Each is as smooth and as monotone as the prediction, so together they separate 'the physics predicted the right swing' from 'a bright smooth path exists somewhere'.",
+    "min_swing_hz": "3,000 Hz of predicted swing before a corridor counts as having a testable shape. The same figure A3 uses in MIN_PREDICTED_SWING_HZ, and for the same reason: permuting nearly-equal values gives nearly the same path, so truth and null both collapse toward noise and a p-value can turn significant on pixel quantisation. Only span > 0 was checked before, which would have let a grazing low-elevation pass through as testable.",
+    "exclude_at_bound": "True. A fit that saturates its own ppm bound may not have found the true optimum, so its sigma is a lower bound and the observation is excluded rather than merely flagged. None of the three scored observations saturates (+32.0, -16.4, -16.4 ppm against 50), so this changes nothing today and closes a silent path at snapshot scale.",
     "p_value_max": "0.05 one-sided. The true corridor must beat at least 95 percent of corridors built by permuting its own Doppler samples in time. Both get the same bounded offset search, so neither is advantaged by the free parameter."
+  },
+  "claim": {
+    "established": "After fitting one constant frequency offset bounded at 50 ppm, the predicted Doppler SHAPE fits the observed trace significantly better than corridors built by permuting the same Doppler values in time, and better than the same curve rescaled to 0.25x, 0.5x, 2x or 4x its predicted swing. The shape and the magnitude of the SGP4 prediction are both doing work.",
+    "not_established": "That the corridor sits where physics places it without a fitted offset. All three fitted offsets are 40 to 84 percent of their own predicted swing, so each needed a large slide to fit. This is a shape test, not an absolute-position test, and the plan's phrase 'corridor intersects a visible trace' is looser than what is measured here. The per-row position diagnostic (fit.coverage, fit.corridor_hit) is null on every scored observation because these traces do not clear the per-row detection floor.",
+    "why_the_offset_is_not_a_fudge": "A cubesat oscillator drifts and the SatNOGS transmitter frequency a station tunes to is community-maintained, so an absolute-position test would be testing the database rather than the orbital mechanics. The offset is a real physical quantity and is reported per observation as fitted_offset_ppm."
   },
   "method": "Per observation: fit one constant frequency offset bounded at offset_ppm_limit ppm of the downlink, scoring the predicted curve with a matched filter and taking the best offset. Then repeat the identical fit for n_nulls corridors built by permuting the observation's own Doppler samples in time, which preserves every frequency value and the whole swing while destroying the monotone shape. The statistic is the one-sided empirical p-value of the true corridor against that null distribution. An observation discriminates when p <= p_value_max. The gate passes when the discriminating rate over scored observations reaches the threshold. Per-row residuals and coverage are reported as diagnostics but are not the gate: these traces integrate to significance along the path while individual rows stay below z_min, so a per-row instrument reports zero detections on a trace A3 localised at high sigma.",
   "observations": [
@@ -87,6 +98,8 @@
         "margin_over_best_null": null,
         "scaled_swing_sigmas": {},
         "beats_scaled_swing": null,
+        "offset_at_bound": null,
+        "corridor_span_hz": null,
         "discriminates": null
       },
       "null_controls": [
@@ -186,6 +199,8 @@
         "margin_over_best_null": null,
         "scaled_swing_sigmas": {},
         "beats_scaled_swing": null,
+        "offset_at_bound": null,
+        "corridor_span_hz": null,
         "discriminates": null
       },
       "null_controls": [
@@ -285,6 +300,8 @@
         "margin_over_best_null": null,
         "scaled_swing_sigmas": {},
         "beats_scaled_swing": null,
+        "offset_at_bound": null,
+        "corridor_span_hz": null,
         "discriminates": null
       },
       "null_controls": [
@@ -384,6 +401,8 @@
         "margin_over_best_null": null,
         "scaled_swing_sigmas": {},
         "beats_scaled_swing": null,
+        "offset_at_bound": null,
+        "corridor_span_hz": null,
         "discriminates": null
       },
       "null_controls": [
@@ -488,6 +507,8 @@
           "4x": 0.3063157681414943
         },
         "beats_scaled_swing": true,
+        "offset_at_bound": false,
+        "corridor_span_hz": 17289.651679120747,
         "discriminates": true
       },
       "null_controls": [
@@ -615,6 +636,8 @@
           "4x": -3.489597051715675
         },
         "beats_scaled_swing": true,
+        "offset_at_bound": false,
+        "corridor_span_hz": 19480.07861597743,
         "discriminates": true
       },
       "null_controls": [
@@ -742,6 +765,8 @@
           "4x": -1.5298815685440044
         },
         "beats_scaled_swing": true,
+        "offset_at_bound": false,
+        "corridor_span_hz": 18628.085741132025,
         "discriminates": true
       },
       "null_controls": [

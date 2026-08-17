@@ -295,10 +295,33 @@ def main() -> int:
         ),
     }
 
+    # Collapse correlated observations before computing the rate, rather than
+    # disclosing the correlation only in prose. A consumer that reads
+    # clears_threshold without reading entity_grouping's note would otherwise
+    # inherit the overstatement, and at snapshot scale that matters.
+    by_group: dict[tuple[Any, Any], list[bool]] = {}
+    for r in scored:
+        key = (r["station_id"], _day(r))
+        by_group.setdefault(key, []).append(
+            bool(r["null_calibration"]["discriminates"])
+        )
+    # A group counts as discriminating only if every observation in it does, so
+    # collapsing can never manufacture a pass.
+    group_flags = [all(v) for v in by_group.values()]
+    grouped_rate = sum(group_flags) / len(group_flags) if group_flags else None
+    grouped_clears = grouped_rate is not None and grouped_rate >= args.gate_threshold
+
+    grouping["groups_scored"] = len(group_flags)
+    grouping["grouped_discriminating_rate"] = grouped_rate
+    grouping["grouped_clears_threshold"] = grouped_clears
+    grouping["group_key"] = "(ground_station, UTC date)"
+
     if not scored:
         verdict = "UNMEASURABLE"
-    elif clears_threshold:
+    elif clears_threshold and grouped_clears:
         verdict = "PASSED"
+    elif clears_threshold and not grouped_clears:
+        verdict = "PASSED_UNGROUPED_ONLY"
     else:
         verdict = "FAILED"
 
@@ -332,6 +355,33 @@ def main() -> int:
             "seed": DEFAULT_THRESHOLDS.seed,
         },
         "threshold_rationale": THRESHOLD_RATIONALE,
+        "claim": {
+            "established": (
+                "After fitting one constant frequency offset bounded at 50 ppm, the "
+                "predicted Doppler SHAPE fits the observed trace significantly better "
+                "than corridors built by permuting the same Doppler values in time, "
+                "and better than the same curve rescaled to 0.25x, 0.5x, 2x or 4x its "
+                "predicted swing. The shape and the magnitude of the SGP4 prediction "
+                "are both doing work."
+            ),
+            "not_established": (
+                "That the corridor sits where physics places it without a fitted "
+                "offset. All three fitted offsets are 40 to 84 percent of their own "
+                "predicted swing, so each needed a large slide to fit. This is a "
+                "shape test, not an absolute-position test, and the plan's phrase "
+                "'corridor intersects a visible trace' is looser than what is "
+                "measured here. The per-row position diagnostic (fit.coverage, "
+                "fit.corridor_hit) is null on every scored observation because these "
+                "traces do not clear the per-row detection floor."
+            ),
+            "why_the_offset_is_not_a_fudge": (
+                "A cubesat oscillator drifts and the SatNOGS transmitter frequency a "
+                "station tunes to is community-maintained, so an absolute-position "
+                "test would be testing the database rather than the orbital "
+                "mechanics. The offset is a real physical quantity and is reported "
+                "per observation as fitted_offset_ppm."
+            ),
+        },
         "method": (
             "Per observation: fit one constant frequency offset bounded at "
             "offset_ppm_limit ppm of the downlink, scoring the predicted curve with "
@@ -366,7 +416,11 @@ def main() -> int:
     print(f"  stations / sats / days  "
           f"{grouping['distinct_stations']} / {grouping['distinct_satellites']}"
           f" / {grouping['distinct_days']}")
-    print(f"  discriminating rate     "
+    g_rate = grouping["grouped_discriminating_rate"]
+    g_txt = f"{g_rate:.3f}" if g_rate is not None else "n/a"
+    print(f"  grouped rate            {g_txt}"
+          f"  over {grouping['groups_scored']} {grouping['group_key']} groups")
+    print(f"  per-observation rate    "
           f"{f'{hit_rate:.3f}' if hit_rate is not None else 'n/a'}"
           f"  (threshold {args.gate_threshold})")
     print()

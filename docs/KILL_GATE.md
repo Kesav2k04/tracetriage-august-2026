@@ -116,7 +116,19 @@ The fitted offsets reproduce A3's independently measured `curved_offset_hz` for 
 
 The predicted swing beats every rescaling on every observation. The measurement is confirming the magnitude SGP4 predicted, not the presence of a smooth line.
 
-**Gate 3 passes: 3 of 3 testable observations discriminate (100%) against a 70% threshold.**
+**Gate 3 passes: 3 of 3 testable observations discriminate (100%) against a 70% threshold, and 2 of 2 independent (station, date) groups.**
+
+### What this establishes, and what it does not
+
+Precision matters here, because the gate's own name is looser than the measurement.
+
+**Established.** After fitting one constant frequency offset bounded at 50 ppm, the predicted Doppler **shape** fits the observed trace significantly better than corridors built by permuting the same Doppler values in time, and better than the same curve rescaled to 0.25x, 0.5x, 2x or 4x its swing. Both the shape and the magnitude of the SGP4 prediction are doing work.
+
+**Not established.** That the corridor sits where physics places it with no fitted offset. The three fitted offsets are 40 to 84 percent of their own predicted swing, so each needed a substantial slide before it fit. This is a **shape** test, not an absolute-position test, and "corridor intersects a visible trace" reads as a position claim. The per-row position diagnostic is `null` on all three scored observations, so no observation has a measured `coverage >= 0.70`.
+
+**Why the offset is not a fudge.** A cubesat oscillator drifts and the SatNOGS transmitter frequency a station tunes to is community-maintained, so an absolute-position test would be testing the database rather than the orbital mechanics. The offset is a real physical quantity, reported per observation as `fitted_offset_ppm`, and it is one of the project's findings rather than a nuisance parameter to hide.
+
+This distinction is machine-readable in the receipt's `claim` block, not left in prose.
 
 ### The scope limit, which is a real finding and not a pass
 
@@ -144,7 +156,14 @@ Per-row residuals and corridor coverage are in the receipt as `fit.*` and are **
 
 ### Thresholds
 
-Every threshold is a constant in `pipeline/tracetriage/corridor_fit.py`, fixed before any observation was scored, with its reasoning in `THRESHOLD_RATIONALE` and pinned by `tests/test_corridor_fit.py::test_thresholds_are_the_documented_values`: `z_min=4.0`, `min_detect_frac=0.30`, `coverage_threshold=0.70`, `offset_ppm_limit=50.0`, `n_nulls=200`, `p_value_max=0.05`, `swing_scale_factors=(0.25, 0.5, 2.0, 4.0)`, `seed=42`.
+Every threshold is a constant in `pipeline/tracetriage/corridor_fit.py`, fixed before any observation was scored, with its reasoning in `THRESHOLD_RATIONALE` and pinned by `tests/test_corridor_fit.py::test_thresholds_are_the_documented_values`: `z_min=4.0`, `min_detect_frac=0.30`, `coverage_threshold=0.70`, `offset_ppm_limit=50.0`, `n_nulls=200`, `p_value_max=0.05`, `swing_scale_factors=(0.25, 0.5, 2.0, 4.0)`, `min_swing_hz=3000.0`, `exclude_at_bound=True`, `seed=42`.
+
+Two of those close paths that were silent rather than wrong:
+
+- **`min_swing_hz=3000.0`.** Only `span > 0` was checked before, so a grazing low-elevation pass with a technically nonzero but tiny swing would have been marked testable. Permuting nearly-equal values gives nearly the same path, so truth and null both collapse toward noise and a p-value can come out significant on pixel quantisation alone. A3 refuses a verdict below the same 3 kHz for the same reason. Not live in this receipt: the three swings are 16.6 to 19.5 kHz.
+- **`exclude_at_bound=True`.** `offset_at_bound` was computed and then consulted nowhere. A fit that saturates its ppm bound may not have found the true optimum, so its sigma is a lower bound and the observation is now excluded rather than merely flagged. Not live here either: the three offsets are +32.0, -16.4 and -16.4 ppm against a 50 ppm limit.
+
+One documentation correction. The fitted offsets and A3's `curved_offset_hz` agree to six significant figures **in magnitude and are always opposite in sign**, because A3's value is a raw column-shift-to-Hz conversion while ours carries `AXIS_SIGN_CONVENTION`. The magnitude agreement is a real cross-check between two separately written estimators; describing them as reproducing each other would invite someone to "fix" one of them. Pinned by `test_a3_offset_relates_by_exactly_minus_one_not_by_identity`.
 
 ### Physics verification (Trap 1 and 2 guard)
 
