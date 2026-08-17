@@ -12,7 +12,7 @@ The plan sets six thresholds that must pass before TraceTriage is worth building
 |---|---|---|---|
 | 1 | Dataset volume and entity spread | ≥2,000 mature waterfalls, ≥12 transmitters, ≥30 stations | **PRE-PASSED on feasibility** |
 | 2 | Metadata coverage for the corridor | ≥80% of the sample computable | **PRE-PASSED** |
-| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **PASSED, 3/3 testable (100%); 4 of 7 not testable** |
+| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **PASSED, 3/3 testable (100%); 4 of 7 not testable, and the 3 span 2 stations on 1 night** |
 | 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** |
 | 5 | Physics beats image-only on Brier | strict improvement, chronological split | **OPEN** |
 | 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **OPEN** |
@@ -124,7 +124,19 @@ The predicted swing beats every rescaling on every observation. The measurement 
 
 So the physics-conditioned part of TraceTriage has predictive content **only on uncorrected captures**. A3 found 3 uncorrected among 24 vetted with-signal observations. Excluding the corrected four is a limit on the gate's scope, recorded as `observations_not_testable` in the receipt. It is not a pass, and any claim about physics value has to carry it.
 
-**n = 3 is small.** Each observation carries its own p-value at the 1/201 floor, so the per-observation evidence is strong, but the cross-observation rate rests on three cases. Wave B re-runs this at snapshot scale.
+### n = 3, and the three are not independent
+
+Each observation carries its own p-value at the 1/201 floor and beats all four scaled-swing controls, so the **per-observation** evidence is strong. The **cross-observation rate does not carry three independent samples**, and the receipt now records why under `entity_grouping`:
+
+| obs | NORAD | station | window (UTC, 2026-08-09) |
+|---|---|---|---|
+| 14740031 | 63214 | 91 | 23:50:08 to 23:54:09 |
+| 14745664 | 63218 | 1696 | 23:32:49 to 23:40:58 |
+| 14745929 | 63217 | 1696 | 23:43:40 to 23:51:28 |
+
+2 ground stations, 3 satellites, **1 UTC night**, all inside a 22-minute window. The NORAD IDs are consecutive, so these are almost certainly one deployment cluster. Two of the three share station 1696 three minutes apart, which is exactly why they fit an identical -7,149 Hz offset: the same receiver carries the same local-oscillator error and the same stale transmitter frequency, so that is **one systematic offset measured twice**, not two independent confirmations.
+
+The plan requires bootstrapping "by orbital episode or day, not by image row" and keeping each transmitter and orbital revolution in one split. By that rule this is closer to 2 station-days on 1 night than to n=3. Gate 3 is passed, and the generalisation it supports is narrow until Wave B re-runs it at snapshot scale across stations, bands and dates.
 
 ### Diagnostics that are reported but are not the gate
 

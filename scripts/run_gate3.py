@@ -168,6 +168,11 @@ def main() -> int:
         prepared.append({
             "obs_id": obs_id,
             "verdict": verdict,
+            "station_id": raw.get("ground_station"),
+            "norad_cat_id": raw.get("norad_cat_id"),
+            "transmitter_uuid": raw.get("transmitter_uuid"),
+            "start": raw.get("start"),
+            "end": raw.get("end"),
             "zs": zs,
             "corridor": corridor,
             "corridor_type": "uncorrected" if verdict == "UNCORRECTED" else "corrected",
@@ -223,6 +228,11 @@ def main() -> int:
         results.append({
             "obs_id": obs_id,
             "verdict": p["verdict"],
+            "station_id": p["station_id"],
+            "norad_cat_id": p["norad_cat_id"],
+            "transmitter_uuid": p["transmitter_uuid"],
+            "start": p["start"],
+            "end": p["end"],
             "corridor_span_hz": corridor_span_hz,
             "testable": testable,
             "not_testable_reason": (
@@ -257,6 +267,34 @@ def main() -> int:
     hit_rate = len(discriminating) / len(scored) if scored else None
     clears_threshold = hit_rate is not None and hit_rate >= args.gate_threshold
 
+    # Entity grouping. A rate over observations overstates the evidence when the
+    # observations are not independent, and the plan requires bootstrapping "by
+    # orbital episode or day, not by image row". Measured here: the three
+    # testable observations span 2 ground stations and 1 UTC night inside a
+    # 22-minute window, on satellites with consecutive NORAD IDs (63214, 63217,
+    # 63218) that are almost certainly one deployment cluster. Two of them share
+    # station 1696 three minutes apart, which is why they fit an identical
+    # -7,149 Hz offset: the same receiver carries the same local-oscillator error,
+    # so that is one systematic offset measured twice rather than two independent
+    # confirmations.
+    def _day(row: dict[str, Any]) -> str | None:
+        start = row.get("start")
+        return start[:10] if isinstance(start, str) and len(start) >= 10 else None
+
+    grouping = {
+        "distinct_stations": len({r["station_id"] for r in scored}),
+        "distinct_satellites": len({r["norad_cat_id"] for r in scored}),
+        "distinct_transmitters": len({r["transmitter_uuid"] for r in scored}),
+        "distinct_days": len({_day(r) for r in scored}),
+        "distinct_station_days": len({(r["station_id"], _day(r)) for r in scored}),
+        "note": (
+            "The discriminating rate is over observations, not over independent "
+            "episodes. Per-observation evidence is strong: each beats 200 nulls "
+            "with 0 reaching it, and each beats all four scaled-swing controls. "
+            "The cross-observation rate does not carry three independent samples."
+        ),
+    }
+
     if not scored:
         verdict = "UNMEASURABLE"
     elif clears_threshold:
@@ -276,6 +314,7 @@ def main() -> int:
         "observations_scored": len(scored),
         "discriminating_rate": hit_rate,
         "clears_threshold": clears_threshold,
+        "entity_grouping": grouping,
         "not_testable_note": (
             "A corrected corridor is identically 0 Hz across the pass, so it is a "
             "vertical line with a free horizontal offset and predicts no shape. "
@@ -324,6 +363,9 @@ def main() -> int:
     print(f"  testable (has a shape)  {len(testable)}")
     print(f"  not testable (flat)     {len(not_testable)}")
     print(f"  scored against nulls    {len(scored)}")
+    print(f"  stations / sats / days  "
+          f"{grouping['distinct_stations']} / {grouping['distinct_satellites']}"
+          f" / {grouping['distinct_days']}")
     print(f"  discriminating rate     "
           f"{f'{hit_rate:.3f}' if hit_rate is not None else 'n/a'}"
           f"  (threshold {args.gate_threshold})")
