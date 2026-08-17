@@ -28,6 +28,75 @@ entry to a real task in the account rather than to a claim made about one
 
 ## Entries
 
+### 2026-08-17 IST | Account 3 | A6: Image-only baselines (centre-energy + HOG+LR)
+
+**Task given:** Build the first two rungs of the model ladder as the honest baseline
+everything later must beat: a centre-energy heuristic and HOG+regularised logistic
+regression, both calibrated. Write `artifacts/BASELINE_RECEIPT.json` with every
+number. Report the prior-only floor. Exclusion table must sum to corpus size.
+
+**Files created/changed:**
+- `pipeline/tracetriage/baseline.py` (new, production baseline module)
+- `scripts/run_baseline.py` (new, CLI runner)
+- `tests/test_baseline.py` (new, 46 tests)
+- `artifacts/BASELINE_RECEIPT.json` (new, generated receipt)
+- `docs/PRIOR_ART_BASELINES.md` (new, baseline documentation)
+- `docs/BOB_BUILD_LOG.md` (this entry)
+- `docs/BOB_HANDOFF.md` (updated)
+
+**Commands run:**
+- `.venv\Scripts\python.exe -m pytest tests/test_baseline.py -v`
+- `.venv\Scripts\python.exe -m pytest -m "not network and not ocr" --tb=no -q`
+- `.venv\Scripts\python.exe -m ruff check pipeline/tracetriage/baseline.py scripts/run_baseline.py tests/test_baseline.py --fix`
+- `.venv\Scripts\python.exe scripts/run_baseline.py --snapshot D:/tracetriage_data/snap-stage1 --out artifacts/BASELINE_RECEIPT.json --seed 42`
+
+**Tests:** 46 baseline tests pass. Full offline suite: 368 passed, 2 deselected, 1 xfailed. Lint: 0 errors.
+
+**Key results (seed=42, chronological split, snap-stage1):**
+
+| Model | Brier | LogLoss | CalSlope | ECE | Beats floor? |
+|---|---|---|---|---|---|
+| prior_only | 0.2258 | 0.6442 | 0.260 | 0.0463 | — |
+| centre_energy | 0.2258 | 0.6442 | 0.260 | 0.0463 | No |
+| hog_logistic_regression | **0.1958** | **0.5826** | 1.449 | 0.1048 | Yes |
+
+**Gate-5 bar: hog_logistic_regression, Brier = 0.1958.**
+
+**Failures and repairs:**
+
+1. Manifest observation records use `waterfall_url` (not `waterfall`), `retrieved_at`
+   (not `_retrieved_at`), and have no `status` or `end` field. Built
+   `_adapt_obs_for_provenance()` adapter but decided to read the manifest fields
+   directly in the loader (simpler, avoids provenance dependency for what is just
+   label reading). The provenance adapter is in the module for future use.
+
+2. Dataset-level test `test_unknown_label_bucket_is_1988` was wrong: 1988 is the
+   total count of `waterfall_status == "unknown"` rows, but 227 of those have no URL
+   and go into `n_missing_url`. The bucket `n_unknown_label` correctly holds 1761.
+   Fixed and documented in the test.
+
+3. Lint: SIM108, UP037 ×2, F401 ×5, F841, E501 ×4, I001 ×5. All fixed.
+
+4. CentreEnergy did not beat the prior-only floor (Brier difference < 1e-4).
+   This is recorded plainly in the receipt (`beats_floor.centre_energy = false`)
+   and in `docs/PRIOR_ART_BASELINES.md`. It is a real finding, not a bug.
+   The gate-5 comparison uses HOG+LR, which does beat the floor.
+
+**Split note:** Chronological only (sort by id ascending, oldest 80% = train).
+A random split would leak because station identity carries signal. B1 builds
+the real grouped splits.
+
+**Runtime:** ~21 min on CPU (EasyOCR on 739 decisive waterfalls for CentreEnergy).
+HOG+LR extraction and training: ~4 min.
+
+**Coins:** estimated 3, actual ~3.
+
+**Commit:** (see `git log -1`)
+
+**Outcome:** accepted. 46 tests pass. 368 offline tests pass. Lint clean.
+
+---
+
 ### 2026-08-17 IST | Account 3 | A5: Label provenance builder
 
 **Task given:** Build `pipeline/tracetriage/provenance.py` and `docs/LABEL_PROVENANCE.md`.

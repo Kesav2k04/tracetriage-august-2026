@@ -1,0 +1,143 @@
+{
+  "schema": "BASELINE_RECEIPT",
+  "schema_version": "0.1.0",
+  "generated_at": "2026-08-17T04:57:39.584293+00:00",
+  "unit": "A6",
+  "seed": 42,
+  "snapshot_id": "snap-20260817-stage1",
+  "manifest_sha256": "9fb0c0a28175e7ef8f5d396cfe576f3e9cb4e3208b4358d1caaf054124d97f05",
+  "split": {
+    "method": "chronological_ascending_id",
+    "train_fraction": 0.8,
+    "note": "A random split would leak because station identity carries signal. Real grouped (cold-station, cold-transmitter, combined) splits are built in B1.  This is a temporary split for gate-5 baseline only.",
+    "n_train_total": 591,
+    "n_train_positive": 364,
+    "n_train_negative": 227,
+    "n_val_total": 148,
+    "n_val_positive": 98,
+    "n_val_negative": 50,
+    "train_prior": 0.615905
+  },
+  "exclusion_table": {
+    "corpus_total": 2727,
+    "n_missing_url": 227,
+    "n_transient_fail": 0,
+    "n_unknown_label": 1761,
+    "n_positive": 462,
+    "n_negative": 277,
+    "n_geometry_fail_train": 0,
+    "n_geometry_fail_val": 0
+  },
+  "base_rates": {
+    "corpus_decisive_fraction": 0.270994,
+    "decisive_positive_fraction": 0.615905,
+    "note": "Measured from the manifest; not from provenance.py constants"
+  },
+  "results": [
+    {
+      "model_name": "prior_only",
+      "n_scored": 148,
+      "n_excluded": 0,
+      "brier_score": 0.225843,
+      "log_loss": 0.64419,
+      "calibration_slope": 0.25984,
+      "calibration_intercept": 0.550271,
+      "reliability_bins": [
+        {
+          "bin_lower": 0.6,
+          "bin_upper": 0.7,
+          "mean_predicted": 0.615905,
+          "fraction_positive": 0.662162,
+          "n": 148
+        }
+      ],
+      "ece": 0.046257
+    },
+    {
+      "model_name": "centre_energy",
+      "n_scored": 148,
+      "n_excluded": 0,
+      "brier_score": 0.225849,
+      "log_loss": 0.644202,
+      "calibration_slope": 0.259753,
+      "calibration_intercept": 0.550377,
+      "reliability_bins": [
+        {
+          "bin_lower": 0.6,
+          "bin_upper": 0.7,
+          "mean_predicted": 0.615846,
+          "fraction_positive": 0.662162,
+          "n": 148
+        }
+      ],
+      "ece": 0.046316
+    },
+    {
+      "model_name": "hog_logistic_regression",
+      "n_scored": 148,
+      "n_excluded": 0,
+      "brier_score": 0.195822,
+      "log_loss": 0.582603,
+      "calibration_slope": 1.449361,
+      "calibration_intercept": -0.56483,
+      "reliability_bins": [
+        {
+          "bin_lower": 0.0,
+          "bin_upper": 0.1,
+          "mean_predicted": 0.01556,
+          "fraction_positive": 1.0,
+          "n": 1
+        },
+        {
+          "bin_lower": 0.3,
+          "bin_upper": 0.4,
+          "mean_predicted": 0.341458,
+          "fraction_positive": 0.0,
+          "n": 1
+        },
+        {
+          "bin_lower": 0.4,
+          "bin_upper": 0.5,
+          "mean_predicted": 0.463707,
+          "fraction_positive": 0.25,
+          "n": 4
+        },
+        {
+          "bin_lower": 0.5,
+          "bin_upper": 0.6,
+          "mean_predicted": 0.552765,
+          "fraction_positive": 0.333333,
+          "n": 18
+        },
+        {
+          "bin_lower": 0.6,
+          "bin_upper": 0.7,
+          "mean_predicted": 0.655752,
+          "fraction_positive": 0.533333,
+          "n": 45
+        },
+        {
+          "bin_lower": 0.7,
+          "bin_upper": 0.8,
+          "mean_predicted": 0.749275,
+          "fraction_positive": 0.76,
+          "n": 50
+        },
+        {
+          "bin_lower": 0.8,
+          "bin_upper": 0.9,
+          "mean_predicted": 0.850751,
+          "fraction_positive": 0.965517,
+          "n": 29
+        }
+      ],
+      "ece": 0.104755
+    }
+  ],
+  "floor_note": "The prior_only model predicts train_prior for every observation. A model whose Brier score does not beat the prior has learned nothing. Gate 5 requires physics to beat the CALIBRATED image-only baseline (hog_logistic_regression), not the uncalibrated raw score. centre_energy failed to beat the prior on this corpus and is therefore not a valid gate-5 comparison target.",
+  "beats_floor": {
+    "centre_energy": false,
+    "hog_logistic_regression": true,
+    "note": "True = Brier score is strictly lower than prior_only. False = model has learned nothing; use this fact in the gate-5 comparison. centre_energy=False on this corpus: the brightness-ratio heuristic is not discriminative at the dataset level (all 591 train obs scored; calibration converged to the prior). hog_logistic_regression=True: HOG+LR beats the prior-only floor."
+  }
+}
