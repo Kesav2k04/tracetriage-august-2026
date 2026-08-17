@@ -1,0 +1,429 @@
+/**
+ * The console's data layer.
+ *
+ * Everything is read from JSON produced by scripts/build_console_data.py at build
+ * time. Nothing is fetched at runtime and nothing is computed here: a number
+ * displayed by this console was measured by the pipeline and validated against
+ * its contract before it reached disk. If a value is missing, the console says so
+ * rather than filling it in, because a console that computes its own version of a
+ * claim is a second implementation nobody tested.
+ */
+import cardsJson from "@/public/data/cards.json";
+import evaluationJson from "@/public/data/evaluation.json";
+import provenanceJson from "@/public/data/provenance.json";
+import queueJson from "@/public/data/queue.json";
+
+export {
+  NON_ACTIONABLE,
+  REASON_LABELS,
+  type QueueReason,
+  type QueueRow,
+} from "./queue-view";
+
+import type { QueueReason } from "./queue-view";
+
+export interface QueueEntry {
+  obs_id: number;
+  rank: number;
+  score: number;
+  reasons: QueueReason[];
+  is_conflict: boolean | null;
+  within_budget: boolean | null;
+  displaced_by_cap: string | null;
+  waterfall_status: string;
+  model_prob: number | null;
+  fitted_offset_ppm: number | null;
+  offset_at_bound: boolean | null;
+  flat_row_frac: number | null;
+  ensemble_uncertainty: number | null;
+  episode_key: string;
+}
+
+export interface CorridorGeometry {
+  fitted_offset_hz: number;
+  fitted_offset_ppm: number | null;
+  offset_at_bound: boolean | null;
+  half_width_px: number;
+  half_width_hz: number;
+  max_elevation_deg: number;
+  tca_frac: number;
+  rows: number[];
+  fitted_px: number[];
+  predicted_px: number[];
+  vertical_px: number;
+  sigma_curved: number | null;
+  sigma_vertical: number | null;
+  note: string;
+}
+
+export interface Card {
+  obs_id: number;
+  degraded: string | null;
+  image?: string;
+  thumb?: string;
+  width?: number;
+  height?: number;
+  bytes?: number;
+  source_sha256?: string;
+  intensity?: string;
+  hz_per_px?: number;
+  seconds_per_px?: number;
+  centre_px?: number | null;
+  derivation?: string;
+  derivation_confidence?: number | null;
+  rx_freq_hz?: number | null;
+  start?: string;
+  end?: string;
+  ground_station?: number;
+  station_name?: string;
+  norad_cat_id?: number;
+  transmitter_uuid?: string;
+  transmitter_mode?: string;
+  waterfall_status?: string;
+  corridor?: CorridorGeometry | null;
+  corridor_note?: string | null;
+}
+
+export { fmt, fmtInterval, verdictColour, type Verdict } from "./format";
+
+import type { Verdict } from "./format";
+
+export interface SplitGate6 {
+  measurable: boolean;
+  not_measurable_reason: string | null;
+  n_queue_examined: number | null;
+  n_random_conflicts: number | null;
+  n_queue_conflicts: number | null;
+  lift_point: number | null;
+  lift_ci95: [number, number] | null;
+  lift_ci95_episode: [number, number] | null;
+  lift_ci95_station: [number, number] | null;
+  governing_interval: string | null;
+  verdict_episode_only: Verdict | null;
+  bootstrap_median: number | null;
+  point_in_ci: boolean | null;
+  n_boot: number | null;
+  n_boot_effective: number | null;
+  n_groups: number | null;
+  n_station_groups: number | null;
+  verdict: Verdict;
+  direction: string | null;
+  fifo_lift_over_random: number | null;
+  image_uncertainty_lift_over_random: number | null;
+  physics_only_lift_over_random: number | null;
+  episode_clustering: Clustering | null;
+  station_clustering: Clustering | null;
+  replay_episode: Replay | null;
+  replay_station: Replay | null;
+  replay_conclusion: ReplayConclusion | null;
+  uncapped_reference: {
+    lift_point: number | null;
+    lift_ci95_episode: [number, number] | null;
+    verdict_if_it_were_eligible: string;
+    n_queue_conflicts: number | null;
+    note: string;
+  } | null;
+}
+
+export interface Clustering {
+  measurable: boolean;
+  reason: string | null;
+  icc: number | null;
+  design_effect: number | null;
+  n_groups: number | null;
+  n_observations: number | null;
+  mean_group_size: number | null;
+}
+
+export interface Replay {
+  measurable: boolean;
+  reason: string | null;
+  budget?: number;
+  n_population?: number;
+  n_total_conflicts?: number;
+  random_expected_conflicts?: number;
+  n_groups?: number;
+  n_degenerate_resamples?: number;
+  orderings: Record<
+    string,
+    {
+      n_conflicts_at_budget: number;
+      lift_over_random: number;
+      lift_ci95: [number, number] | null;
+      measurable: boolean;
+      reason: string | null;
+    }
+  >;
+  comparisons: Record<
+    string,
+    {
+      measurable: boolean;
+      reason: string | null;
+      diff_point: number | null;
+      diff_ci95: [number, number] | null;
+      diff_ci_adjusted: [number, number] | null;
+      diff_median?: number | null;
+      ratio_point: number | null;
+      ratio_ci95?: [number, number] | null;
+      ratio_ci_adjusted?: [number, number] | null;
+      direction: string;
+      survives_correction: boolean | null;
+      n_comparisons: number;
+      adjusted_confidence?: number;
+      n_effective?: number;
+      statistic?: string;
+    }
+  >;
+  note?: string;
+}
+
+export interface ReplayConclusion {
+  measurable: boolean;
+  reason: string | null;
+  baselines: Record<
+    string,
+    {
+      claim: string;
+      direction_episode: string | null;
+      direction_station: string | null;
+      survives_correction_episode: boolean | null;
+      survives_correction_station: boolean | null;
+      diff_point: number | null;
+      diff_ci_adjusted_episode: [number, number] | null;
+      diff_ci_adjusted_station: [number, number] | null;
+      reason: string | null;
+    }
+  >;
+  n_baselines?: number;
+  n_beaten_under_both_groupings?: number;
+  beaten?: string[];
+  lost_to?: string[];
+  rule?: string;
+}
+
+const queueData = queueJson as unknown as {
+  generated_at: string;
+  seed: number;
+  review_budget: { n_observations: number; rationale: string };
+  conflict_definition: {
+    criteria: Array<{
+      reason_code: string;
+      description: string;
+      threshold: string | number;
+      measurable_from_snapshot: boolean;
+    }>;
+    fixed_before_measuring: boolean;
+    caveats: string[] | string;
+  };
+  deduplication: Record<string, unknown>;
+  per_split_summaries: Array<{
+    split: string;
+    n_test_total: number | null;
+    n_test_decisive: number | null;
+    n_queue_after_dedup: number | null;
+    n_episodes_deduplicated: number | null;
+    n_degraded_revolution: number | null;
+    n_at_bound_obs: number | null;
+    concentration: {
+      caps: Record<
+        string,
+        {
+          share_of_budget: number;
+          entries_at_budget: number;
+          n_displaced: number;
+          bound: boolean;
+          reason_code: string;
+        }
+      >;
+      n_admitted_to_budget: number;
+      n_displaced_total: number;
+      budget: number;
+      budget_filled: boolean;
+      binding: boolean;
+      note?: string;
+    } | null;
+  }>;
+  entries: QueueEntry[];
+  receipt_sha256: string;
+};
+
+const cardsData = cardsJson as unknown as {
+  n_requested: number;
+  n_built: number;
+  n_degraded: number;
+  named_observations: number[];
+  intensity_note: string;
+  attribution: string;
+  cards: Card[];
+};
+
+export interface ArmMetrics {
+  blocks: string[];
+  degraded: string | null;
+  n_columns: number;
+  calibrator: string;
+  calibrator_chosen_because: string;
+  brier: number;
+  log_loss: number;
+  auc: number;
+  ece: number;
+  calibration_slope: number;
+  calibration_intercept: number;
+  mean_prediction: number;
+}
+
+export interface SelectivePoint {
+  threshold: number;
+  coverage: number;
+  n_kept: number;
+  n_groups_kept: number;
+  risk: number;
+  n_errors: number;
+}
+
+export interface FusionSplit {
+  split: string;
+  degraded: string | null;
+  counts: Record<string, number>;
+  test_positive_rate: number | null;
+  arms: Record<string, ArmMetrics>;
+  comparisons: Record<
+    string,
+    {
+      margin: number | null;
+      ci95: [number, number] | null;
+      ci95_adjusted?: [number, number] | null;
+      direction: string;
+      distinguishable: boolean;
+      challenger_better?: boolean;
+      n_observations?: number;
+      n_groups?: number;
+    }
+  >;
+  multiplicity_adjusted: Record<string, unknown> | null;
+  ensemble: Record<string, unknown> | null;
+  selective: { curve: SelectivePoint[]; [k: string]: unknown } | null;
+  ood: Record<string, unknown> | null;
+}
+
+export interface Gate5 {
+  gate: number;
+  wording: string;
+  challenger: string;
+  reference: string;
+  decided_on: string;
+  verdict: Verdict;
+  statement: string;
+  per_split: Record<
+    string,
+    {
+      measurable: boolean;
+      margin: number | null;
+      ci95: [number, number] | null;
+      ci95_adjusted?: [number, number] | null;
+      direction: string;
+      distinguishable: boolean;
+      challenger_better: boolean;
+      n_observations: number | null;
+      n_groups: number | null;
+      challenger_brier: number | null;
+      reference_brier: number | null;
+    }
+  >;
+}
+
+export interface AblationConclusion {
+  rules: Record<string, string>;
+  deciding_rule: string;
+  why_the_corrected_rule_decides: string;
+  blocks?: Record<
+    string,
+    {
+      retained: boolean;
+      retained_nominal?: boolean;
+      reason: string;
+      [k: string]: unknown;
+    }
+  >;
+  [k: string]: unknown;
+}
+
+const evaluationData = evaluationJson as unknown as {
+  gate6: {
+    gate: number;
+    wording: string;
+    decided_on: string;
+    verdict: Verdict;
+    statement: string;
+    per_split: Record<string, SplitGate6>;
+  };
+  gate5: Gate5;
+  ablation_conclusion: AblationConclusion;
+  arm_ladder: Array<{ name: string; blocks: string[] }>;
+  size_matched_control: Record<string, unknown>;
+  fusion_splits: FusionSplit[];
+  receipt_sha256: { queue: string; fusion: string };
+};
+
+const provenanceData = provenanceJson as unknown as {
+  snapshot_id: string;
+  split_manifest_sha256: string;
+  splits: Array<{ name: string; counts: Record<string, number> }>;
+  receipts: Array<{ name: string; sha256: string; bytes: number }>;
+  contracts: Array<{
+    name: string;
+    version: string;
+    status: string;
+    sha256: string;
+  }>;
+};
+
+export const queue = queueData;
+export const cards = cardsData;
+export const evaluation = evaluationData;
+export const provenance = provenanceData;
+
+export const cardById = new Map<number, Card>(
+  cardsData.cards.map((card) => [card.obs_id, card]),
+);
+
+export const entryById = new Map<number, QueueEntry>(
+  queueData.entries.map((entry) => [entry.obs_id, entry]),
+);
+
+/** Observations with imagery, in queue order. These are the routable cards. */
+export const showcaseIds: number[] = cardsData.cards
+  .filter((card) => !card.degraded)
+  .map((card) => card.obs_id)
+  .sort((a, b) => {
+    const ra = entryById.get(a)?.rank ?? Number.MAX_SAFE_INTEGER;
+    const rb = entryById.get(b)?.rank ?? Number.MAX_SAFE_INTEGER;
+    return ra - rb;
+  });
+
+/**
+ * A gate 6 split, or a build failure.
+ *
+ * Rendering "not measured" because a split is missing from the receipt would say
+ * something false about a measurement that exists, so a missing split stops the
+ * build instead. Every page that needs one goes through here.
+ */
+export function requireGate6Split(name: string): SplitGate6 {
+  const split = evaluationData.gate6.per_split[name];
+  if (!split) {
+    throw new Error(
+      `gate 6 has no ${name} split; the receipt carries ` +
+        `${Object.keys(evaluationData.gate6.per_split).join(", ")}.`,
+    );
+  }
+  return split;
+}
+
+export function requireQueueSplit(name: string) {
+  const summary = queueData.per_split_summaries.find((s) => s.split === name);
+  if (!summary) {
+    throw new Error(`the queue receipt has no ${name} split summary.`);
+  }
+  return summary;
+}
+

@@ -12,8 +12,10 @@ dist/
 build/
 
 # --- data plane: never commit the snapshot or the artifacts it derives ---
-data/
-!data/.gitkeep
+# Root-anchored. An unanchored `data/` also matched apps/web/public/data, which
+# is the console's committed build input, so the deploy silently had no numbers.
+/data/
+!/data/.gitkeep
 *.parquet
 *.npy
 *.npz
@@ -62,3 +64,12 @@ BOB_START_HERE.md
 
 # --- A3 investigation cache: API pages and waterfall PNGs, not evidence ---
 .a3_cache/
+
+# --- console build output ---
+# apps/web/out is what `next build` writes: it is the deploy artifact, derived
+# entirely from public/ and the receipts, and committing it would put a second
+# copy of every waterfall in the history. The imagery under public/ is committed
+# because the console cannot be rebuilt without it; the export is not.
+apps/web/out/
+apps/web/tsconfig.tsbuildinfo
+.playwright-mcp/

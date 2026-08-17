@@ -827,7 +827,7 @@ def main() -> None:
 
     receipt: dict[str, Any] = {
         "schema": "QUEUE_RECEIPT",
-        "schema_version": "0.2.0",
+        "schema_version": "0.3.0",
         "contract": "contracts/queue_receipt.schema.json",
         "unit": "C2",
         "generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
@@ -870,12 +870,25 @@ def main() -> None:
             ),
         },
         "deduplication": {
-            "key": ["ground_station", "norad_cat_id", "start_prefix_13chars"],
+            "key": ["ground_station", "norad_cat_id", "orbital_revolution"],
             "rule": (
-                "One observation per (ground_station, norad_cat_id, start[:13]) "
-                "episode. When an episode appears more than once, the observation "
-                "with the highest composite score is kept; ties are broken by "
-                "lower obs_id for determinism."
+                "One observation per (ground_station, norad_cat_id, "
+                "orbital_revolution) episode, where the revolution index comes "
+                "from SGP4 propagation of the TLE that was current at the "
+                "observation start. When an episode appears more than once, the "
+                "observation with the highest composite score is kept; ties are "
+                "broken by lower obs_id for determinism. An hour bucket was the "
+                "earlier key and was wrong: it split one pass across a boundary "
+                "and merged two passes that fell in the same hour."
+            ),
+            "n_degraded_revolution": (
+                primary_split.get("n_degraded_revolution") if primary_split else None
+            ),
+            "degraded_revolution_policy": (
+                "When SGP4 cannot supply a revolution index the observation "
+                "falls back to its own obs_id as the episode key, so it "
+                "deduplicates against nothing and is counted here rather than "
+                "silently grouped."
             ),
             "n_episodes_before": (
                 len(primary_queue) if primary_queue else 0

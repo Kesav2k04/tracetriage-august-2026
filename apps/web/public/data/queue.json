@@ -1,0 +1,7599 @@
+{
+ "generated_at": "2026-08-17T22:01:44.893605+00:00",
+ "seed": 42,
+ "review_budget": {
+  "n_observations": 50,
+  "rationale": "Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test)."
+ },
+ "conflict_definition": {
+  "criteria": [
+   {
+    "reason_code": "MODEL_LABEL_DISAGREE",
+    "description": "Shipped arm (image_corridor) predicts with calibrated probability \u2265 0.75 that the observation is positive when the label is without-signal, or \u2264 0.25 (confident negative) when the label is with-signal.",
+    "threshold": {
+     "prob_positive_floor": 0.75,
+     "prob_negative_ceiling": 0.25
+    },
+    "measurable_from_snapshot": true
+   },
+   {
+    "reason_code": "STALE_CATALOGUE_FREQ",
+    "description": "Fitted frequency offset magnitude \u2265 20 ppm of the catalogue downlink frequency and offset_at_bound is false. Implies the SatNOGS transmitter catalogue frequency is at least 20 ppm stale.",
+    "threshold": {
+     "abs_offset_ppm_min": 20.0
+    },
+    "measurable_from_snapshot": true
+   },
+   {
+    "reason_code": "DEAD_CAPTURE",
+    "description": "flat_row_frac \u2265 0.15: at least 15% of waterfall rows carry no luminance variation, indicating substantial dead capture time.",
+    "threshold": {
+     "flat_row_frac_min": 0.15
+    },
+    "measurable_from_snapshot": true
+   }
+  ],
+  "fixed_before_measuring": true,
+  "caveats": [
+   "MODEL_LABEL_DISAGREE uses all decisively-labelled observations, not only single-vetted ones. The SatNOGS waterfall_status_user field is present in the snapshot but the single-vetter count per observation is not stored; restricting to single-vetted records would require a second API call not made at snapshot time.",
+   "DOPPLER_UNCORRECTED_OUTLIER is not included as a criterion. A3 identified only 3 UNCORRECTED observations (out of 24 vetted); applying the criterion to the remaining corpus would be a guess. It is named in QUEUE_REASONS and listed as NOT_APPLICABLE in the per-split state because the data do not support it.",
+   "Corridor features are unavailable for 18 observations (4 NO_IMAGE + 14 PHYSICS_STALE_TLE). Those observations score 0 on the offset and flat-row signals and rank on disagreement alone."
+  ]
+ },
+ "deduplication": {
+  "key": [
+   "ground_station",
+   "norad_cat_id",
+   "orbital_revolution"
+  ],
+  "rule": "One observation per (ground_station, norad_cat_id, orbital_revolution) episode, where the revolution index comes from SGP4 propagation of the TLE that was current at the observation start. When an episode appears more than once, the observation with the highest composite score is kept; ties are broken by lower obs_id for determinism. An hour bucket was the earlier key and was wrong: it split one pass across a boundary and merged two passes that fell in the same hour.",
+  "n_degraded_revolution": 0,
+  "degraded_revolution_policy": "When SGP4 cannot supply a revolution index the observation falls back to its own obs_id as the episode key, so it deduplicates against nothing and is counted here rather than silently grouped.",
+  "n_episodes_before": 407,
+  "n_episodes_after": 407,
+  "n_observations_after": 407,
+  "sha256_duplicate_policy": "Different episodes that share a waterfall SHA-256 are both kept; they represent physically different passes. The test suite covers this with a constructed case because the stage-1 corpus has 0 SHA-256 duplicates.",
+  "n_sha256_duplicates_in_corpus": 0
+ },
+ "per_split_summaries": [
+  {
+   "split": "chronological",
+   "degraded": null,
+   "n_test_total": 410,
+   "n_test_decisive": 87,
+   "n_queue_after_dedup": 407,
+   "n_episodes_deduplicated": 3,
+   "n_degraded_revolution": 0,
+   "concentration": {
+    "caps": {
+     "ground_station": {
+      "share_of_budget": 0.1,
+      "entries_at_budget": 5,
+      "n_displaced": 4,
+      "displaced_obs_ids": [
+       14740028,
+       14733022,
+       14733025,
+       14738773
+      ],
+      "reason_code": "DISPLACED_STATION_CAP",
+      "bound": true
+     },
+     "transmitter_uuid": {
+      "share_of_budget": 0.2,
+      "entries_at_budget": 10,
+      "n_displaced": 0,
+      "displaced_obs_ids": [],
+      "reason_code": "DISPLACED_TRANSMITTER_CAP",
+      "bound": false
+     }
+    },
+    "n_admitted_to_budget": 50,
+    "n_displaced_total": 4,
+    "budget": 50,
+    "budget_filled": true,
+    "binding": true,
+    "note": "Caps that displaced nothing at budget 50 over 407 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+   },
+   "n_at_bound_obs": 0
+  },
+  {
+   "split": "cold_station",
+   "degraded": null,
+   "n_test_total": 403,
+   "n_test_decisive": 217,
+   "n_queue_after_dedup": 403,
+   "n_episodes_deduplicated": 0,
+   "n_degraded_revolution": 0,
+   "concentration": {
+    "caps": {
+     "ground_station": {
+      "share_of_budget": 0.1,
+      "entries_at_budget": 5,
+      "n_displaced": 40,
+      "displaced_obs_ids": [
+       14732950,
+       14733004,
+       14733024,
+       14732947,
+       14732961,
+       14732969,
+       14732957,
+       14732985,
+       14733002,
+       14732990,
+       14745421,
+       14732955,
+       14732971,
+       14732986,
+       14732952,
+       14733020,
+       14733003,
+       14732944,
+       14745149,
+       14745426,
+       14745591,
+       14745822,
+       14745823,
+       14732997,
+       14745423,
+       14745152,
+       14744387,
+       14744958,
+       14744042,
+       14746117,
+       14732945,
+       14744699,
+       14733006,
+       14745150,
+       14740028,
+       14732956,
+       14743765,
+       14732991,
+       14744383,
+       14745821
+      ],
+      "reason_code": "DISPLACED_STATION_CAP",
+      "bound": true
+     },
+     "transmitter_uuid": {
+      "share_of_budget": 0.2,
+      "entries_at_budget": 10,
+      "n_displaced": 0,
+      "displaced_obs_ids": [],
+      "reason_code": "DISPLACED_TRANSMITTER_CAP",
+      "bound": false
+     }
+    },
+    "n_admitted_to_budget": 50,
+    "n_displaced_total": 40,
+    "budget": 50,
+    "budget_filled": true,
+    "binding": true,
+    "note": "Caps that displaced nothing at budget 50 over 403 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+   },
+   "n_at_bound_obs": 2
+  },
+  {
+   "split": "cold_transmitter",
+   "degraded": null,
+   "n_test_total": 353,
+   "n_test_decisive": 95,
+   "n_queue_after_dedup": 352,
+   "n_episodes_deduplicated": 1,
+   "n_degraded_revolution": 0,
+   "concentration": {
+    "caps": {
+     "ground_station": {
+      "share_of_budget": 0.1,
+      "entries_at_budget": 5,
+      "n_displaced": 4,
+      "displaced_obs_ids": [
+       14744215,
+       14745822,
+       14742589,
+       14742666
+      ],
+      "reason_code": "DISPLACED_STATION_CAP",
+      "bound": true
+     },
+     "transmitter_uuid": {
+      "share_of_budget": 0.2,
+      "entries_at_budget": 10,
+      "n_displaced": 0,
+      "displaced_obs_ids": [],
+      "reason_code": "DISPLACED_TRANSMITTER_CAP",
+      "bound": false
+     }
+    },
+    "n_admitted_to_budget": 50,
+    "n_displaced_total": 4,
+    "budget": 50,
+    "budget_filled": true,
+    "binding": true,
+    "note": "Caps that displaced nothing at budget 50 over 352 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+   },
+   "n_at_bound_obs": 1
+  },
+  {
+   "split": "cold_combined",
+   "degraded": null,
+   "n_test_total": 183,
+   "n_test_decisive": 76,
+   "n_queue_after_dedup": 178,
+   "n_episodes_deduplicated": 5,
+   "n_degraded_revolution": 0,
+   "concentration": {
+    "caps": {
+     "ground_station": {
+      "share_of_budget": 0.1,
+      "entries_at_budget": 5,
+      "n_displaced": 10,
+      "displaced_obs_ids": [
+       14743768,
+       14745823,
+       14744042,
+       14744383,
+       14743769,
+       14745589,
+       14743765,
+       14733702,
+       14733776,
+       14733984
+      ],
+      "reason_code": "DISPLACED_STATION_CAP",
+      "bound": true
+     },
+     "transmitter_uuid": {
+      "share_of_budget": 0.2,
+      "entries_at_budget": 10,
+      "n_displaced": 0,
+      "displaced_obs_ids": [],
+      "reason_code": "DISPLACED_TRANSMITTER_CAP",
+      "bound": false
+     }
+    },
+    "n_admitted_to_budget": 50,
+    "n_displaced_total": 10,
+    "budget": 50,
+    "budget_filled": true,
+    "binding": true,
+    "note": "Caps that displaced nothing at budget 50 over 178 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+   },
+   "n_at_bound_obs": 1
+  }
+ ],
+ "entries": [
+  {
+   "obs_id": 14746092,
+   "rank": 1,
+   "score": 0.879634,
+   "reasons": [
+    "MODEL_LABEL_DISAGREE"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 15.81643713097386,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0008701562693841566,
+   "episode_key": "5078:52899:8"
+  },
+  {
+   "obs_id": 14735140,
+   "rank": 2,
+   "score": 0.849634,
+   "reasons": [
+    "MODEL_LABEL_DISAGREE"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": 4.968765475027567,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0013410340791557126,
+   "episode_key": "5078:68481:7"
+  },
+  {
+   "obs_id": 14732518,
+   "rank": 3,
+   "score": 0.599878,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 42.146972575163595,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.006671441666601089,
+   "episode_key": "4806:40025:7"
+  },
+  {
+   "obs_id": 14745718,
+   "rank": 4,
+   "score": 0.59622,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 31.150391425594748,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.011447656107680802,
+   "episode_key": "4272:5485:10"
+  },
+  {
+   "obs_id": 14745990,
+   "rank": 5,
+   "score": 0.596098,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 31.72103614498779,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.027128428699168507,
+   "episode_key": "4272:64535:6"
+  },
+  {
+   "obs_id": 14744250,
+   "rank": 6,
+   "score": 0.593171,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 25.149575564743802,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.01625884998666388,
+   "episode_key": "5068:46487:5"
+  },
+  {
+   "obs_id": 14746054,
+   "rank": 7,
+   "score": 0.584634,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": -19.224820676709484,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.027338289382304225,
+   "episode_key": "4272:1430:9"
+  },
+  {
+   "obs_id": 14744187,
+   "rank": 8,
+   "score": 0.583659,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 26.242873167553913,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0073163143972895155,
+   "episode_key": "4151:98293:10"
+  },
+  {
+   "obs_id": 14733024,
+   "rank": 9,
+   "score": 0.583049,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 22.65686410505387,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.00268966040005163,
+   "episode_key": "91:60556:7"
+  },
+  {
+   "obs_id": 14744248,
+   "rank": 10,
+   "score": 0.581585,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.5,
+   "fitted_offset_ppm": -25.33919637553257,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.019907193547722603,
+   "episode_key": "5068:60520:11"
+  },
+  {
+   "obs_id": 14742034,
+   "rank": 11,
+   "score": 0.579146,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.5,
+   "fitted_offset_ppm": 24.890884735121112,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.017706158570929997,
+   "episode_key": "5024:67683:18"
+  },
+  {
+   "obs_id": 14740027,
+   "rank": 12,
+   "score": 0.577622,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 32.04662812752402,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.05323299037870947,
+   "episode_key": "91:63239:11"
+  },
+  {
+   "obs_id": 14740031,
+   "rank": 13,
+   "score": 0.574451,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 32.04662812752402,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.017805109082264948,
+   "episode_key": "91:63214:7"
+  },
+  {
+   "obs_id": 14741735,
+   "rank": 14,
+   "score": 0.572317,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 18.86089168107372,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.004551457794577974,
+   "episode_key": "40:98330:10"
+  },
+  {
+   "obs_id": 14742036,
+   "rank": 15,
+   "score": 0.568902,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 22.84126535421183,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.005736278104528299,
+   "episode_key": "5024:60237:12"
+  },
+  {
+   "obs_id": 14745664,
+   "rank": 16,
+   "score": 0.565976,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": -16.38161358893851,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.009057801709369075,
+   "episode_key": "1696:63218:11"
+  },
+  {
+   "obs_id": 14745929,
+   "rank": 17,
+   "score": 0.564268,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.5,
+   "fitted_offset_ppm": -16.38161358893851,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.01871850146223006,
+   "episode_key": "1696:63217:7"
+  },
+  {
+   "obs_id": 14735884,
+   "rank": 18,
+   "score": 0.556707,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.5,
+   "fitted_offset_ppm": -14.23699108694947,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.017606084161358608,
+   "episode_key": "5078:32785:6"
+  },
+  {
+   "obs_id": 14736746,
+   "rank": 19,
+   "score": 0.554268,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 11.651731122537969,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.013940333359108478,
+   "episode_key": "342:69015:11"
+  },
+  {
+   "obs_id": 14745985,
+   "rank": 20,
+   "score": 0.551341,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.25,
+   "fitted_offset_ppm": 36.20501354113628,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.001928220397615263,
+   "episode_key": "4349:64550:6"
+  },
+  {
+   "obs_id": 14735176,
+   "rank": 21,
+   "score": 0.55,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 22.66137965186009,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.004749756471296994,
+   "episode_key": "5078:98457:16"
+  },
+  {
+   "obs_id": 14735743,
+   "rank": 22,
+   "score": 0.546098,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": -39.19886108781715,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.001284252011865627,
+   "episode_key": "858:63217:7"
+  },
+  {
+   "obs_id": 14745984,
+   "rank": 23,
+   "score": 0.545122,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": -12.972320046275032,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.048309861118982965,
+   "episode_key": "4349:64549:10"
+  },
+  {
+   "obs_id": 14742229,
+   "rank": 24,
+   "score": 0.544146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 18.66405843461511,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0035518402041156746,
+   "episode_key": "3677:98293:10"
+  },
+  {
+   "obs_id": 14744259,
+   "rank": 25,
+   "score": 0.541707,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.2857142857142857,
+   "fitted_offset_ppm": -22.312534863335724,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0032834891302105478,
+   "episode_key": "5068:64537:10"
+  },
+  {
+   "obs_id": 14745341,
+   "rank": 26,
+   "score": 0.539634,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": -16.939401517024,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.005438153468655652,
+   "episode_key": "3918:63235:11"
+  },
+  {
+   "obs_id": 14745823,
+   "rank": 27,
+   "score": 0.539512,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 9.070337463211027,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.005228238445693087,
+   "episode_key": "4791:39249:6"
+  },
+  {
+   "obs_id": 14740029,
+   "rank": 28,
+   "score": 0.538415,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 10.972137185194576,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.039981985341064126,
+   "episode_key": "91:55051:10"
+  },
+  {
+   "obs_id": 14745983,
+   "rank": 29,
+   "score": 0.537805,
+   "reasons": [
+    "MODEL_LABEL_DISAGREE"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": -7.9475543680072525,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0008838461074780154,
+   "episode_key": "4349:40054:9"
+  },
+  {
+   "obs_id": 14745342,
+   "rank": 30,
+   "score": 0.535244,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 9.964353833543528,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.041274308561705664,
+   "episode_key": "3953:63235:11"
+  },
+  {
+   "obs_id": 14745663,
+   "rank": 31,
+   "score": 0.535,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": -16.38161358893851,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0024418501316897353,
+   "episode_key": "1696:63237:12"
+  },
+  {
+   "obs_id": 14745773,
+   "rank": 32,
+   "score": 0.532683,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": -2.190053896811259,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.026467508594157675,
+   "episode_key": "4330:29709:6"
+  },
+  {
+   "obs_id": 14745601,
+   "rank": 33,
+   "score": 0.530732,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 9.479395622679373,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.004308071829400141,
+   "episode_key": "5078:25544:7"
+  },
+  {
+   "obs_id": 14740030,
+   "rank": 34,
+   "score": 0.53061,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": 18.660957911549218,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.00189594108526973,
+   "episode_key": "91:51827:7"
+  },
+  {
+   "obs_id": 14744188,
+   "rank": 35,
+   "score": 0.529024,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": -18.5590594723167,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0015582381077687115,
+   "episode_key": "4151:63237:12"
+  },
+  {
+   "obs_id": 14737233,
+   "rank": 36,
+   "score": 0.528293,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 8.704107064762804,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.005320048548694021,
+   "episode_key": "3689:69015:26"
+  },
+  {
+   "obs_id": 14745911,
+   "rank": 37,
+   "score": 0.524878,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": 17.17463327522006,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0013947747262320245,
+   "episode_key": "4451:27844:6"
+  },
+  {
+   "obs_id": 14737313,
+   "rank": 38,
+   "score": 0.521829,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 6.5953195033233785,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.042040190717840584,
+   "episode_key": "3918:69015:11"
+  },
+  {
+   "obs_id": 14745611,
+   "rank": 39,
+   "score": 0.519756,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 30.9783630885428,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.001015031567562732,
+   "episode_key": "2173:67290:12"
+  },
+  {
+   "obs_id": 14737501,
+   "rank": 40,
+   "score": 0.51878,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": -9.892979254985068,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.006351252236330312,
+   "episode_key": "4702:69015:11"
+  },
+  {
+   "obs_id": 14743373,
+   "rank": 41,
+   "score": 0.518659,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 1.395009536696094,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0034671089174269916,
+   "episode_key": "40:63235:11"
+  },
+  {
+   "obs_id": 14742035,
+   "rank": 42,
+   "score": 0.518049,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": -3.6487131912462147,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.009836935026373445,
+   "episode_key": "5024:27848:6"
+  },
+  {
+   "obs_id": 14744185,
+   "rank": 43,
+   "score": 0.517317,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6532805209405047,
+   "fitted_offset_ppm": -8.505585652868874,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.011621269574133878,
+   "episode_key": "4151:63235:11"
+  },
+  {
+   "obs_id": 14746049,
+   "rank": 44,
+   "score": 0.514268,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": -13.292657443469851,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0014444429229655404,
+   "episode_key": "4349:64562:10"
+  },
+  {
+   "obs_id": 14734009,
+   "rank": 45,
+   "score": 0.513171,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -24.628856810563047,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007743976160923919,
+   "episode_key": "4394:61781:7"
+  },
+  {
+   "obs_id": 14745839,
+   "rank": 46,
+   "score": 0.512561,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": -8.606739715475552,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.011392901737070403,
+   "episode_key": "4451:24278:5"
+  },
+  {
+   "obs_id": 14744775,
+   "rank": 47,
+   "score": 0.511341,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 0.8886533945926722,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.011536304526838924,
+   "episode_key": "4326:46507:11"
+  },
+  {
+   "obs_id": 14745821,
+   "rank": 48,
+   "score": 0.511341,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 9.070338728268256,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0025011694393866934,
+   "episode_key": "4791:46487:5"
+  },
+  {
+   "obs_id": 14746117,
+   "rank": 49,
+   "score": 0.510122,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 9.070337346076116,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.003208223745448911,
+   "episode_key": "4791:46486:6"
+  },
+  {
+   "obs_id": 14745661,
+   "rank": 50,
+   "score": 0.508049,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": true,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": 14.725054789184078,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.000991682683291345,
+   "episode_key": "1696:58340:7"
+  },
+  {
+   "obs_id": 14740028,
+   "rank": 51,
+   "score": 0.525976,
+   "reasons": [
+    "NO_REASON",
+    "DISPLACED_STATION_CAP"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": "DISPLACED_STATION_CAP",
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 7.667443795057191,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.010404494749456707,
+   "episode_key": "91:40014:7"
+  },
+  {
+   "obs_id": 14733022,
+   "rank": 52,
+   "score": 0.52061,
+   "reasons": [
+    "NO_REASON",
+    "DISPLACED_STATION_CAP"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": "DISPLACED_STATION_CAP",
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": -5.20924770993188,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.048986331285882485,
+   "episode_key": "91:63235:11"
+  },
+  {
+   "obs_id": 14733025,
+   "rank": 53,
+   "score": 0.513049,
+   "reasons": [
+    "NO_REASON",
+    "DISPLACED_STATION_CAP"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": "DISPLACED_STATION_CAP",
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": -12.513878792823489,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0016777002830368122,
+   "episode_key": "91:63216:11"
+  },
+  {
+   "obs_id": 14738773,
+   "rank": 54,
+   "score": 0.510366,
+   "reasons": [
+    "NO_REASON",
+    "DISPLACED_STATION_CAP"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": "DISPLACED_STATION_CAP",
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 2.1513875658464983,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0273372606367489,
+   "episode_key": "5078:46906:13"
+  },
+  {
+   "obs_id": 14745612,
+   "rank": 55,
+   "score": 0.507439,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": -28.67301296020186,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0013685857510013655,
+   "episode_key": "2173:62616:12"
+  },
+  {
+   "obs_id": 14733021,
+   "rank": 56,
+   "score": 0.505366,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 0.9643035013574356,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.013463781147701966,
+   "episode_key": "91:60527:11"
+  },
+  {
+   "obs_id": 14745607,
+   "rank": 57,
+   "score": 0.502561,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -18.43390113530143,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.000750287666864371,
+   "episode_key": "431:63238:11"
+  },
+  {
+   "obs_id": 14733026,
+   "rank": 58,
+   "score": 0.5,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": -11.529397658148747,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0010426533657209218,
+   "episode_key": "91:52422:7"
+  },
+  {
+   "obs_id": 14746047,
+   "rank": 59,
+   "score": 0.499756,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 5.003650327603948,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0022371156837179937,
+   "episode_key": "4349:64534:10"
+  },
+  {
+   "obs_id": 14745822,
+   "rank": 60,
+   "score": 0.497683,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": 10.47243354906905,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0010649593101330537,
+   "episode_key": "4791:54150:5"
+  },
+  {
+   "obs_id": 14732116,
+   "rank": 61,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5096:63235:11"
+  },
+  {
+   "obs_id": 14732117,
+   "rank": 62,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5096:98395:11"
+  },
+  {
+   "obs_id": 14732160,
+   "rank": 63,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5061:62391:19"
+  },
+  {
+   "obs_id": 14732276,
+   "rank": 64,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4649:46505:7"
+  },
+  {
+   "obs_id": 14732277,
+   "rank": 65,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4649:46504:7"
+  },
+  {
+   "obs_id": 14732332,
+   "rank": 66,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4649:67683:19"
+  },
+  {
+   "obs_id": 14732362,
+   "rank": 67,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4649:25544:8"
+  },
+  {
+   "obs_id": 14732373,
+   "rank": 68,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4649:67685:19"
+  },
+  {
+   "obs_id": 14732547,
+   "rank": 69,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4856:43679:12"
+  },
+  {
+   "obs_id": 14732601,
+   "rank": 70,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4856:61781:7"
+  },
+  {
+   "obs_id": 14734173,
+   "rank": 71,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4609:67291:12"
+  },
+  {
+   "obs_id": 14734701,
+   "rank": 72,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1710:43880:10"
+  },
+  {
+   "obs_id": 14734719,
+   "rank": 73,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1710:40012:9"
+  },
+  {
+   "obs_id": 14734902,
+   "rank": 74,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4451:98254:346"
+  },
+  {
+   "obs_id": 14735096,
+   "rank": 75,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4910:32785:6"
+  },
+  {
+   "obs_id": 14735284,
+   "rank": 76,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4910:59778:9"
+  },
+  {
+   "obs_id": 14735285,
+   "rank": 77,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4910:52899:8"
+  },
+  {
+   "obs_id": 14735286,
+   "rank": 78,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4910:98329:9"
+  },
+  {
+   "obs_id": 14735287,
+   "rank": 79,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4910:58555:7"
+  },
+  {
+   "obs_id": 14735429,
+   "rank": 80,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4702:98293:10"
+  },
+  {
+   "obs_id": 14735770,
+   "rank": 81,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "858:63216:11"
+  },
+  {
+   "obs_id": 14736012,
+   "rank": 82,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1860:98395:11"
+  },
+  {
+   "obs_id": 14736013,
+   "rank": 83,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1860:98293:10"
+  },
+  {
+   "obs_id": 14736723,
+   "rank": 84,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "34:69015:26"
+  },
+  {
+   "obs_id": 14736728,
+   "rank": 85,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "40:69015:11"
+  },
+  {
+   "obs_id": 14736742,
+   "rank": 86,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "168:69015:11"
+  },
+  {
+   "obs_id": 14736753,
+   "rank": 87,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "431:69015:11"
+  },
+  {
+   "obs_id": 14736758,
+   "rank": 88,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "509:69015:11"
+  },
+  {
+   "obs_id": 14736766,
+   "rank": 89,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "657:69015:10"
+  },
+  {
+   "obs_id": 14736781,
+   "rank": 90,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "763:69015:11"
+  },
+  {
+   "obs_id": 14736786,
+   "rank": 91,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "766:69015:11"
+  },
+  {
+   "obs_id": 14736794,
+   "rank": 92,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "804:69015:11"
+  },
+  {
+   "obs_id": 14736800,
+   "rank": 93,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "868:69015:11"
+  },
+  {
+   "obs_id": 14736806,
+   "rank": 94,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "897:69015:11"
+  },
+  {
+   "obs_id": 14736818,
+   "rank": 95,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1058:69015:11"
+  },
+  {
+   "obs_id": 14736826,
+   "rank": 96,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1167:69015:11"
+  },
+  {
+   "obs_id": 14736835,
+   "rank": 97,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1298:69015:11"
+  },
+  {
+   "obs_id": 14736861,
+   "rank": 98,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1585:69015:11"
+  },
+  {
+   "obs_id": 14736864,
+   "rank": 99,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1592:69015:11"
+  },
+  {
+   "obs_id": 14736883,
+   "rank": 100,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1663:69015:26"
+  },
+  {
+   "obs_id": 14736890,
+   "rank": 101,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1685:69015:11"
+  },
+  {
+   "obs_id": 14736898,
+   "rank": 102,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1698:69015:11"
+  },
+  {
+   "obs_id": 14736906,
+   "rank": 103,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1710:69015:11"
+  },
+  {
+   "obs_id": 14736913,
+   "rank": 104,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1725:69015:26"
+  },
+  {
+   "obs_id": 14736921,
+   "rank": 105,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1768:69015:11"
+  },
+  {
+   "obs_id": 14736938,
+   "rank": 106,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:69015:11"
+  },
+  {
+   "obs_id": 14736946,
+   "rank": 107,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2029:69015:11"
+  },
+  {
+   "obs_id": 14736956,
+   "rank": 108,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2125:69015:11"
+  },
+  {
+   "obs_id": 14736971,
+   "rank": 109,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2173:69015:11"
+  },
+  {
+   "obs_id": 14736978,
+   "rank": 110,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2183:69015:26"
+  },
+  {
+   "obs_id": 14736980,
+   "rank": 111,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2271:69015:11"
+  },
+  {
+   "obs_id": 14737003,
+   "rank": 112,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2545:69015:11"
+  },
+  {
+   "obs_id": 14737017,
+   "rank": 113,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2659:69015:11"
+  },
+  {
+   "obs_id": 14737024,
+   "rank": 114,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2694:69015:26"
+  },
+  {
+   "obs_id": 14737035,
+   "rank": 115,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2729:69015:11"
+  },
+  {
+   "obs_id": 14737059,
+   "rank": 116,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2914:69015:11"
+  },
+  {
+   "obs_id": 14737091,
+   "rank": 117,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3015:69015:26"
+  },
+  {
+   "obs_id": 14737127,
+   "rank": 118,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3168:69015:11"
+  },
+  {
+   "obs_id": 14737139,
+   "rank": 119,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3170:69015:26"
+  },
+  {
+   "obs_id": 14737160,
+   "rank": 120,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3315:69015:11"
+  },
+  {
+   "obs_id": 14737162,
+   "rank": 121,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3347:69015:11"
+  },
+  {
+   "obs_id": 14737171,
+   "rank": 122,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3348:69015:11"
+  },
+  {
+   "obs_id": 14737189,
+   "rank": 123,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3438:69015:11"
+  },
+  {
+   "obs_id": 14737198,
+   "rank": 124,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3584:69015:11"
+  },
+  {
+   "obs_id": 14737202,
+   "rank": 125,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3590:69015:11"
+  },
+  {
+   "obs_id": 14737238,
+   "rank": 126,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3704:69015:11"
+  },
+  {
+   "obs_id": 14737254,
+   "rank": 127,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3794:69015:26"
+  },
+  {
+   "obs_id": 14737263,
+   "rank": 128,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3804:69015:25"
+  },
+  {
+   "obs_id": 14737285,
+   "rank": 129,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3855:69015:11"
+  },
+  {
+   "obs_id": 14737293,
+   "rank": 130,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3856:69015:11"
+  },
+  {
+   "obs_id": 14737322,
+   "rank": 131,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3944:69015:11"
+  },
+  {
+   "obs_id": 14737345,
+   "rank": 132,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3991:69015:26"
+  },
+  {
+   "obs_id": 14737346,
+   "rank": 133,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4022:69015:26"
+  },
+  {
+   "obs_id": 14737358,
+   "rank": 134,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4035:69015:26"
+  },
+  {
+   "obs_id": 14737367,
+   "rank": 135,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4084:69015:26"
+  },
+  {
+   "obs_id": 14737397,
+   "rank": 136,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4222:69015:11"
+  },
+  {
+   "obs_id": 14737406,
+   "rank": 137,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4255:69015:26"
+  },
+  {
+   "obs_id": 14737421,
+   "rank": 138,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4317:69015:11"
+  },
+  {
+   "obs_id": 14737442,
+   "rank": 139,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4372:69015:11"
+  },
+  {
+   "obs_id": 14737477,
+   "rank": 140,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4595:69015:26"
+  },
+  {
+   "obs_id": 14737506,
+   "rank": 141,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4704:69015:11"
+  },
+  {
+   "obs_id": 14737513,
+   "rank": 142,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4761:69015:11"
+  },
+  {
+   "obs_id": 14737535,
+   "rank": 143,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4829:69015:11"
+  },
+  {
+   "obs_id": 14737548,
+   "rank": 144,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4857:69015:11"
+  },
+  {
+   "obs_id": 14737592,
+   "rank": 145,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5063:69015:11"
+  },
+  {
+   "obs_id": 14737600,
+   "rank": 146,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5075:69015:11"
+  },
+  {
+   "obs_id": 14737605,
+   "rank": 147,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5087:69015:11"
+  },
+  {
+   "obs_id": 14738066,
+   "rank": 148,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1685:3669:5"
+  },
+  {
+   "obs_id": 14738300,
+   "rank": 149,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3590:57175:7"
+  },
+  {
+   "obs_id": 14738306,
+   "rank": 150,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3590:98293:10"
+  },
+  {
+   "obs_id": 14738356,
+   "rank": 151,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3590:5680:6"
+  },
+  {
+   "obs_id": 14738540,
+   "rank": 152,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2729:61784:7"
+  },
+  {
+   "obs_id": 14739331,
+   "rank": 153,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:46505:7"
+  },
+  {
+   "obs_id": 14739332,
+   "rank": 154,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:25397:6"
+  },
+  {
+   "obs_id": 14739370,
+   "rank": 155,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:44530:6"
+  },
+  {
+   "obs_id": 14739374,
+   "rank": 156,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5042:39430:6"
+  },
+  {
+   "obs_id": 14739375,
+   "rank": 157,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5042:24278:5"
+  },
+  {
+   "obs_id": 14739382,
+   "rank": 158,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:43236:8"
+  },
+  {
+   "obs_id": 14739383,
+   "rank": 159,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:59918:7"
+  },
+  {
+   "obs_id": 14739425,
+   "rank": 160,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:43440:6"
+  },
+  {
+   "obs_id": 14739426,
+   "rank": 161,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:61739:7"
+  },
+  {
+   "obs_id": 14739450,
+   "rank": 162,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:39086:6"
+  },
+  {
+   "obs_id": 14739478,
+   "rank": 163,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:20442:14"
+  },
+  {
+   "obs_id": 14739488,
+   "rank": 164,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:60079:7"
+  },
+  {
+   "obs_id": 14739506,
+   "rank": 165,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4497:61743:7"
+  },
+  {
+   "obs_id": 14739514,
+   "rank": 166,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5042:58818:6"
+  },
+  {
+   "obs_id": 14739515,
+   "rank": 167,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5042:40042:13"
+  },
+  {
+   "obs_id": 14740801,
+   "rank": 168,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5061:62394:7"
+  },
+  {
+   "obs_id": 14740842,
+   "rank": 169,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5061:60246:13"
+  },
+  {
+   "obs_id": 14741556,
+   "rank": 170,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "37:98332:22"
+  },
+  {
+   "obs_id": 14741559,
+   "rank": 171,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "40:98332:6"
+  },
+  {
+   "obs_id": 14741562,
+   "rank": 172,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "106:98332:6"
+  },
+  {
+   "obs_id": 14741574,
+   "rank": 173,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "509:98332:6"
+  },
+  {
+   "obs_id": 14741578,
+   "rank": 174,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "657:98332:6"
+  },
+  {
+   "obs_id": 14741584,
+   "rank": 175,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "897:98332:6"
+  },
+  {
+   "obs_id": 14741587,
+   "rank": 176,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1058:98332:6"
+  },
+  {
+   "obs_id": 14741690,
+   "rank": 177,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4545:98332:22"
+  },
+  {
+   "obs_id": 14741700,
+   "rank": 178,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4704:98332:6"
+  },
+  {
+   "obs_id": 14741733,
+   "rank": 179,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "34:98330:15"
+  },
+  {
+   "obs_id": 14741738,
+   "rank": 180,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "431:98330:10"
+  },
+  {
+   "obs_id": 14741742,
+   "rank": 181,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "509:98330:10"
+  },
+  {
+   "obs_id": 14741748,
+   "rank": 182,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "868:98330:10"
+  },
+  {
+   "obs_id": 14741750,
+   "rank": 183,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "897:98330:10"
+  },
+  {
+   "obs_id": 14741752,
+   "rank": 184,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1058:98330:10"
+  },
+  {
+   "obs_id": 14741760,
+   "rank": 185,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1441:98330:10"
+  },
+  {
+   "obs_id": 14741764,
+   "rank": 186,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1592:98330:10"
+  },
+  {
+   "obs_id": 14741780,
+   "rank": 187,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3015:98330:15"
+  },
+  {
+   "obs_id": 14741793,
+   "rank": 188,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3313:98330:10"
+  },
+  {
+   "obs_id": 14741796,
+   "rank": 189,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3347:98330:10"
+  },
+  {
+   "obs_id": 14741802,
+   "rank": 190,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3438:98330:10"
+  },
+  {
+   "obs_id": 14741811,
+   "rank": 191,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3657:98330:10"
+  },
+  {
+   "obs_id": 14741826,
+   "rank": 192,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3944:98330:10"
+  },
+  {
+   "obs_id": 14741842,
+   "rank": 193,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4255:98330:15"
+  },
+  {
+   "obs_id": 14741844,
+   "rank": 194,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4293:98330:15"
+  },
+  {
+   "obs_id": 14741857,
+   "rank": 195,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4595:98330:15"
+  },
+  {
+   "obs_id": 14741868,
+   "rank": 196,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4761:98330:10"
+  },
+  {
+   "obs_id": 14741879,
+   "rank": 197,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4829:98330:10"
+  },
+  {
+   "obs_id": 14741899,
+   "rank": 198,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5087:98330:10"
+  },
+  {
+   "obs_id": 14742080,
+   "rank": 199,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3106:98293:10"
+  },
+  {
+   "obs_id": 14743369,
+   "rank": 200,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1441:63235:11"
+  },
+  {
+   "obs_id": 14743370,
+   "rank": 201,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3313:63235:11"
+  },
+  {
+   "obs_id": 14743371,
+   "rank": 202,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "897:63235:11"
+  },
+  {
+   "obs_id": 14743372,
+   "rank": 203,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1592:63235:11"
+  },
+  {
+   "obs_id": 14743375,
+   "rank": 204,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "37:63235:11"
+  },
+  {
+   "obs_id": 14743376,
+   "rank": 205,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3015:63235:11"
+  },
+  {
+   "obs_id": 14743377,
+   "rank": 206,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3944:63235:11"
+  },
+  {
+   "obs_id": 14743378,
+   "rank": 207,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "452:63235:11"
+  },
+  {
+   "obs_id": 14743379,
+   "rank": 208,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4293:63235:11"
+  },
+  {
+   "obs_id": 14744106,
+   "rank": 209,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4391:41188:11"
+  },
+  {
+   "obs_id": 14744107,
+   "rank": 210,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4391:27607:14"
+  },
+  {
+   "obs_id": 14744108,
+   "rank": 211,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4391:64559:10"
+  },
+  {
+   "obs_id": 14744258,
+   "rank": 212,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5068:64553:10"
+  },
+  {
+   "obs_id": 14744328,
+   "rank": 213,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4255:63235:11"
+  },
+  {
+   "obs_id": 14744329,
+   "rank": 214,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "949:63235:11"
+  },
+  {
+   "obs_id": 14744330,
+   "rank": 215,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "106:63235:11"
+  },
+  {
+   "obs_id": 14744331,
+   "rank": 216,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4545:63235:11"
+  },
+  {
+   "obs_id": 14744332,
+   "rank": 217,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3153:63235:11"
+  },
+  {
+   "obs_id": 14744333,
+   "rank": 218,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3093:63235:12"
+  },
+  {
+   "obs_id": 14744334,
+   "rank": 219,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3584:63235:11"
+  },
+  {
+   "obs_id": 14744335,
+   "rank": 220,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4372:63235:11"
+  },
+  {
+   "obs_id": 14744336,
+   "rank": 221,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3746:63235:11"
+  },
+  {
+   "obs_id": 14744337,
+   "rank": 222,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3168:63235:11"
+  },
+  {
+   "obs_id": 14744338,
+   "rank": 223,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1725:63235:11"
+  },
+  {
+   "obs_id": 14744655,
+   "rank": 224,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3855:63238:11"
+  },
+  {
+   "obs_id": 14744656,
+   "rank": 225,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3855:98293:10"
+  },
+  {
+   "obs_id": 14744657,
+   "rank": 226,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3855:40014:7"
+  },
+  {
+   "obs_id": 14744734,
+   "rank": 227,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4825:64881:7"
+  },
+  {
+   "obs_id": 14744937,
+   "rank": 228,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1861:60237:11"
+  },
+  {
+   "obs_id": 14744938,
+   "rank": 229,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1861:20442:13"
+  },
+  {
+   "obs_id": 14744939,
+   "rank": 230,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1861:27844:6"
+  },
+  {
+   "obs_id": 14744940,
+   "rank": 231,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1861:40042:13"
+  },
+  {
+   "obs_id": 14744941,
+   "rank": 232,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1861:49402:9"
+  },
+  {
+   "obs_id": 14744967,
+   "rank": 233,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2107:61781:7"
+  },
+  {
+   "obs_id": 14745191,
+   "rank": 234,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1920:39444:7"
+  },
+  {
+   "obs_id": 14745196,
+   "rank": 235,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4206:39444:7"
+  },
+  {
+   "obs_id": 14745197,
+   "rank": 236,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4210:39444:7"
+  },
+  {
+   "obs_id": 14745200,
+   "rank": 237,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4410:39444:7"
+  },
+  {
+   "obs_id": 14745201,
+   "rank": 238,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4825:39444:7"
+  },
+  {
+   "obs_id": 14745203,
+   "rank": 239,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4963:39444:7"
+  },
+  {
+   "obs_id": 14745204,
+   "rank": 240,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "5028:39444:7"
+  },
+  {
+   "obs_id": 14745319,
+   "rank": 241,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2416:59112:8"
+  },
+  {
+   "obs_id": 14745339,
+   "rank": 242,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3677:63235:11"
+  },
+  {
+   "obs_id": 14745340,
+   "rank": 243,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3336:63235:11"
+  },
+  {
+   "obs_id": 14745432,
+   "rank": 244,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "754:25544:7"
+  },
+  {
+   "obs_id": 14745492,
+   "rank": 245,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4690:31115:3"
+  },
+  {
+   "obs_id": 14745493,
+   "rank": 246,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4690:38758:269"
+  },
+  {
+   "obs_id": 14745520,
+   "rank": 247,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4690:43440:6"
+  },
+  {
+   "obs_id": 14745521,
+   "rank": 248,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "71:46504:6"
+  },
+  {
+   "obs_id": 14745522,
+   "rank": 249,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "71:37841:8"
+  },
+  {
+   "obs_id": 14745523,
+   "rank": 250,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3295:43678:6"
+  },
+  {
+   "obs_id": 14745604,
+   "rank": 251,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4690:46469:6"
+  },
+  {
+   "obs_id": 14745606,
+   "rank": 252,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "431:98395:11"
+  },
+  {
+   "obs_id": 14745608,
+   "rank": 253,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "431:63237:12"
+  },
+  {
+   "obs_id": 14745610,
+   "rank": 254,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2173:98395:11"
+  },
+  {
+   "obs_id": 14745613,
+   "rank": 255,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2173:63237:12"
+  },
+  {
+   "obs_id": 14745615,
+   "rank": 256,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1466:63238:11"
+  },
+  {
+   "obs_id": 14745616,
+   "rank": 257,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1466:63213:11"
+  },
+  {
+   "obs_id": 14745633,
+   "rank": 258,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1672:63215:7"
+  },
+  {
+   "obs_id": 14745640,
+   "rank": 259,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2968:32953:6"
+  },
+  {
+   "obs_id": 14745651,
+   "rank": 260,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "431:63218:11"
+  },
+  {
+   "obs_id": 14745660,
+   "rank": 261,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1696:98395:11"
+  },
+  {
+   "obs_id": 14745662,
+   "rank": 262,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1696:63213:11"
+  },
+  {
+   "obs_id": 14745665,
+   "rank": 263,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2173:63218:11"
+  },
+  {
+   "obs_id": 14745670,
+   "rank": 264,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2410:40054:9"
+  },
+  {
+   "obs_id": 14745675,
+   "rank": 265,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:98308:1498"
+  },
+  {
+   "obs_id": 14745676,
+   "rank": 266,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:64557:10"
+  },
+  {
+   "obs_id": 14745677,
+   "rank": 267,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:98395:11"
+  },
+  {
+   "obs_id": 14745678,
+   "rank": 268,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:98255:391"
+  },
+  {
+   "obs_id": 14745679,
+   "rank": 269,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "71:20442:13"
+  },
+  {
+   "obs_id": 14745680,
+   "rank": 270,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "71:60246:13"
+  },
+  {
+   "obs_id": 14745681,
+   "rank": 271,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "71:43679:12"
+  },
+  {
+   "obs_id": 14745682,
+   "rank": 272,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4690:49316:6"
+  },
+  {
+   "obs_id": 14745683,
+   "rank": 273,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4690:43441:7"
+  },
+  {
+   "obs_id": 14745684,
+   "rank": 274,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3295:49399:6"
+  },
+  {
+   "obs_id": 14745695,
+   "rank": 275,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4690:28054:6"
+  },
+  {
+   "obs_id": 14745696,
+   "rank": 276,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4690:62578:9"
+  },
+  {
+   "obs_id": 14745697,
+   "rank": 277,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2968:43880:10"
+  },
+  {
+   "obs_id": 14745699,
+   "rank": 278,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4595:63215:7"
+  },
+  {
+   "obs_id": 14745700,
+   "rank": 279,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4595:61756:13"
+  },
+  {
+   "obs_id": 14745701,
+   "rank": 280,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4595:60472:12"
+  },
+  {
+   "obs_id": 14745702,
+   "rank": 281,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4595:49773:7"
+  },
+  {
+   "obs_id": 14745714,
+   "rank": 282,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4111:63300:6"
+  },
+  {
+   "obs_id": 14745715,
+   "rank": 283,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4111:40054:9"
+  },
+  {
+   "obs_id": 14745716,
+   "rank": 284,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4111:64535:6"
+  },
+  {
+   "obs_id": 14745721,
+   "rank": 285,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2125:63215:7"
+  },
+  {
+   "obs_id": 14745722,
+   "rank": 286,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2125:98395:11"
+  },
+  {
+   "obs_id": 14745723,
+   "rank": 287,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2125:63238:11"
+  },
+  {
+   "obs_id": 14745724,
+   "rank": 288,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2125:63213:11"
+  },
+  {
+   "obs_id": 14745725,
+   "rank": 289,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "71:60209:13"
+  },
+  {
+   "obs_id": 14745731,
+   "rank": 290,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3295:43792:7"
+  },
+  {
+   "obs_id": 14745737,
+   "rank": 291,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4680:41188:7"
+  },
+  {
+   "obs_id": 14745738,
+   "rank": 292,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4680:58023:11"
+  },
+  {
+   "obs_id": 14745739,
+   "rank": 293,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4680:98293:10"
+  },
+  {
+   "obs_id": 14745744,
+   "rank": 294,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:41339:5"
+  },
+  {
+   "obs_id": 14745745,
+   "rank": 295,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:46504:6"
+  },
+  {
+   "obs_id": 14745746,
+   "rank": 296,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:43440:5"
+  },
+  {
+   "obs_id": 14745747,
+   "rank": 297,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:60083:6"
+  },
+  {
+   "obs_id": 14745748,
+   "rank": 298,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:25544:7"
+  },
+  {
+   "obs_id": 14745749,
+   "rank": 299,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:20442:13"
+  },
+  {
+   "obs_id": 14745757,
+   "rank": 300,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:57795:6"
+  },
+  {
+   "obs_id": 14745758,
+   "rank": 301,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:44353:33"
+  },
+  {
+   "obs_id": 14745759,
+   "rank": 302,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:20439:5"
+  },
+  {
+   "obs_id": 14745760,
+   "rank": 303,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:44349:11"
+  },
+  {
+   "obs_id": 14745761,
+   "rank": 304,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:40908:6"
+  },
+  {
+   "obs_id": 14745767,
+   "rank": 305,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2178:38735:4"
+  },
+  {
+   "obs_id": 14745768,
+   "rank": 306,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2178:59917:5"
+  },
+  {
+   "obs_id": 14745769,
+   "rank": 307,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2178:24278:5"
+  },
+  {
+   "obs_id": 14745770,
+   "rank": 308,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2178:20442:13"
+  },
+  {
+   "obs_id": 14745783,
+   "rank": 309,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "754:98292:597"
+  },
+  {
+   "obs_id": 14745784,
+   "rank": 310,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "754:98878:7"
+  },
+  {
+   "obs_id": 14745786,
+   "rank": 311,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4094:40086:10"
+  },
+  {
+   "obs_id": 14745787,
+   "rank": 312,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3794:59774:7"
+  },
+  {
+   "obs_id": 14745793,
+   "rank": 313,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4655:41182:8"
+  },
+  {
+   "obs_id": 14745794,
+   "rank": 314,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4655:41179:8"
+  },
+  {
+   "obs_id": 14745795,
+   "rank": 315,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4655:49399:7"
+  },
+  {
+   "obs_id": 14745802,
+   "rank": 316,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2968:35935:10"
+  },
+  {
+   "obs_id": 14745803,
+   "rank": 317,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2968:33499:7"
+  },
+  {
+   "obs_id": 14745832,
+   "rank": 318,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4460:63300:6"
+  },
+  {
+   "obs_id": 14745833,
+   "rank": 319,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4460:40054:9"
+  },
+  {
+   "obs_id": 14745834,
+   "rank": 320,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4460:64549:10"
+  },
+  {
+   "obs_id": 14745835,
+   "rank": 321,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4460:64550:6"
+  },
+  {
+   "obs_id": 14745836,
+   "rank": 322,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4460:64534:10"
+  },
+  {
+   "obs_id": 14745837,
+   "rank": 323,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4460:33499:7"
+  },
+  {
+   "obs_id": 14745864,
+   "rank": 324,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "812:98395:11"
+  },
+  {
+   "obs_id": 14745865,
+   "rank": 325,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "812:35932:18"
+  },
+  {
+   "obs_id": 14745866,
+   "rank": 326,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "812:54361:6"
+  },
+  {
+   "obs_id": 14745867,
+   "rank": 327,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "812:35935:10"
+  },
+  {
+   "obs_id": 14745871,
+   "rank": 328,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4451:46906:12"
+  },
+  {
+   "obs_id": 14745872,
+   "rank": 329,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4451:61738:6"
+  },
+  {
+   "obs_id": 14745873,
+   "rank": 330,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4451:46912:6"
+  },
+  {
+   "obs_id": 14745971,
+   "rank": 331,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1672:66670:12"
+  },
+  {
+   "obs_id": 14745972,
+   "rank": 332,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1672:63238:11"
+  },
+  {
+   "obs_id": 14745973,
+   "rank": 333,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1672:40014:7"
+  },
+  {
+   "obs_id": 14745974,
+   "rank": 334,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1672:63218:11"
+  },
+  {
+   "obs_id": 14745975,
+   "rank": 335,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4022:57192:7"
+  },
+  {
+   "obs_id": 14745976,
+   "rank": 336,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4022:57194:7"
+  },
+  {
+   "obs_id": 14745988,
+   "rank": 337,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2968:40012:9"
+  },
+  {
+   "obs_id": 14745991,
+   "rank": 338,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2410:35932:18"
+  },
+  {
+   "obs_id": 14745992,
+   "rank": 339,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2410:33499:7"
+  },
+  {
+   "obs_id": 14746025,
+   "rank": 340,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:98267:390"
+  },
+  {
+   "obs_id": 14746026,
+   "rank": 341,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:64592:6"
+  },
+  {
+   "obs_id": 14746027,
+   "rank": 342,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:64549:10"
+  },
+  {
+   "obs_id": 14746028,
+   "rank": 343,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:64535:6"
+  },
+  {
+   "obs_id": 14746029,
+   "rank": 344,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:35935:10"
+  },
+  {
+   "obs_id": 14746030,
+   "rank": 345,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:40018:9"
+  },
+  {
+   "obs_id": 14746031,
+   "rank": 346,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:59108:7"
+  },
+  {
+   "obs_id": 14746032,
+   "rank": 347,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:59098:7"
+  },
+  {
+   "obs_id": 14746033,
+   "rank": 348,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:63304:7"
+  },
+  {
+   "obs_id": 14746034,
+   "rank": 349,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:59107:7"
+  },
+  {
+   "obs_id": 14746035,
+   "rank": 350,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1864:59809:10"
+  },
+  {
+   "obs_id": 14746037,
+   "rank": 351,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4094:64549:10"
+  },
+  {
+   "obs_id": 14746040,
+   "rank": 352,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4595:63242:7"
+  },
+  {
+   "obs_id": 14746041,
+   "rank": 353,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4595:98275:406"
+  },
+  {
+   "obs_id": 14746042,
+   "rank": 354,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4595:51827:7"
+  },
+  {
+   "obs_id": 14746050,
+   "rank": 355,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4111:64534:10"
+  },
+  {
+   "obs_id": 14746051,
+   "rank": 356,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4111:33499:7"
+  },
+  {
+   "obs_id": 14746056,
+   "rank": 357,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2125:40014:7"
+  },
+  {
+   "obs_id": 14746057,
+   "rank": 358,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2125:63218:11"
+  },
+  {
+   "obs_id": 14746062,
+   "rank": 359,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4680:25984:22"
+  },
+  {
+   "obs_id": 14746063,
+   "rank": 360,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4680:33591:7"
+  },
+  {
+   "obs_id": 14746069,
+   "rank": 361,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:60079:6"
+  },
+  {
+   "obs_id": 14746070,
+   "rank": 362,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2987:60243:7"
+  },
+  {
+   "obs_id": 14746071,
+   "rank": 363,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2987:27845:6"
+  },
+  {
+   "obs_id": 14746072,
+   "rank": 364,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:38761:6"
+  },
+  {
+   "obs_id": 14746073,
+   "rank": 365,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:52085:6"
+  },
+  {
+   "obs_id": 14746074,
+   "rank": 366,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4186:7530:5"
+  },
+  {
+   "obs_id": 14746075,
+   "rank": 367,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:58818:6"
+  },
+  {
+   "obs_id": 14746076,
+   "rank": 368,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:59067:6"
+  },
+  {
+   "obs_id": 14746077,
+   "rank": 369,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:57792:6"
+  },
+  {
+   "obs_id": 14746078,
+   "rank": 370,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:62934:8"
+  },
+  {
+   "obs_id": 14746079,
+   "rank": 371,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "3538:61786:7"
+  },
+  {
+   "obs_id": 14746085,
+   "rank": 372,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2178:60079:6"
+  },
+  {
+   "obs_id": 14746086,
+   "rank": 373,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "2178:52085:6"
+  },
+  {
+   "obs_id": 14746100,
+   "rank": 374,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4655:41183:13"
+  },
+  {
+   "obs_id": 14746105,
+   "rank": 375,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4094:1430:9"
+  },
+  {
+   "obs_id": 14746106,
+   "rank": 376,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4094:41187:16"
+  },
+  {
+   "obs_id": 14746116,
+   "rank": 377,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4791:64559:10"
+  },
+  {
+   "obs_id": 14746123,
+   "rank": 378,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "4460:59809:10"
+  },
+  {
+   "obs_id": 14746129,
+   "rank": 379,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "812:98602:11"
+  },
+  {
+   "obs_id": 14746148,
+   "rank": 380,
+   "score": 0.496768,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0004933148148095507,
+   "episode_key": "1672:63217:7"
+  },
+  {
+   "obs_id": 14745817,
+   "rank": 381,
+   "score": 0.495122,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 15.874260897449007,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007586555218545539,
+   "episode_key": "4451:40931:56"
+  },
+  {
+   "obs_id": 14745159,
+   "rank": 382,
+   "score": 0.493659,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": 9.697251798840208,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.001067426168420473,
+   "episode_key": "3020:46912:6"
+  },
+  {
+   "obs_id": 14745820,
+   "rank": 383,
+   "score": 0.493659,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": -18.089797459213685,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0013959912430199562,
+   "episode_key": "4791:59588:6"
+  },
+  {
+   "obs_id": 14745605,
+   "rank": 384,
+   "score": 0.489878,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.2857142857142857,
+   "fitted_offset_ppm": -2.894001214399685,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.002236368245124662,
+   "episode_key": "431:55056:12"
+  },
+  {
+   "obs_id": 14745158,
+   "rank": 385,
+   "score": 0.489146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9517814601158195,
+   "fitted_offset_ppm": 9.696524493010847,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0008878474464569887,
+   "episode_key": "3020:46914:13"
+  },
+  {
+   "obs_id": 14746038,
+   "rank": 386,
+   "score": 0.488537,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 14.047064161660963,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0006780022952898633,
+   "episode_key": "3742:68795:8"
+  },
+  {
+   "obs_id": 14736730,
+   "rank": 387,
+   "score": 0.488537,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -16.02119691257405,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.1370757180156658,
+   "ensemble_uncertainty": 3.1022834407785314e-05,
+   "episode_key": "91:69015:11"
+  },
+  {
+   "obs_id": 14737408,
+   "rank": 388,
+   "score": 0.485122,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 11.748877735887636,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007635320263186033,
+   "episode_key": "4293:69015:26"
+  },
+  {
+   "obs_id": 14744257,
+   "rank": 389,
+   "score": 0.483415,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.17572323438839757,
+   "fitted_offset_ppm": 4.925619370867743,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0017226340333456438,
+   "episode_key": "5068:35932:18"
+  },
+  {
+   "obs_id": 14737118,
+   "rank": 390,
+   "score": 0.479756,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 10.827060007387878,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0006527549360781759,
+   "episode_key": "3153:69015:11"
+  },
+  {
+   "obs_id": 14736812,
+   "rank": 391,
+   "score": 0.475976,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -9.765583536075338,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007211397259149694,
+   "episode_key": "949:69015:26"
+  },
+  {
+   "obs_id": 14736773,
+   "rank": 392,
+   "score": 0.467927,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 8.331022394538506,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007328163864421525,
+   "episode_key": "733:69015:11"
+  },
+  {
+   "obs_id": 14734014,
+   "rank": 393,
+   "score": 0.467317,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 7.3300169079056685,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0008096581039374794,
+   "episode_key": "5049:61781:7"
+  },
+  {
+   "obs_id": 14736842,
+   "rank": 394,
+   "score": 0.46061,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 4.699551094355055,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007723683202092979,
+   "episode_key": "1416:69015:11"
+  },
+  {
+   "obs_id": 14742033,
+   "rank": 395,
+   "score": 0.454634,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": -6.568048560764767,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0011801146659084355,
+   "episode_key": "5024:28895:26"
+  },
+  {
+   "obs_id": 14744577,
+   "rank": 396,
+   "score": 0.453171,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 1.4953117118402448,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007276394128977719,
+   "episode_key": "4151:69015:11"
+  },
+  {
+   "obs_id": 14737186,
+   "rank": 397,
+   "score": 0.451463,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -0.6368858827875221,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007729963132253971,
+   "episode_key": "3433:69015:26"
+  },
+  {
+   "obs_id": 14745667,
+   "rank": 398,
+   "score": 0.447927,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "without-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": -2.4814259753242394,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0013818850021725274,
+   "episode_key": "1466:43188:10"
+  },
+  {
+   "obs_id": 14745602,
+   "rank": 399,
+   "score": 0.42622,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -21.913836024567527,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.00023424309653857645,
+   "episode_key": "5078:62081:7"
+  },
+  {
+   "obs_id": 14745417,
+   "rank": 400,
+   "score": 0.419146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 17.77703451558786,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.00016342755510329455,
+   "episode_key": "3020:39086:6"
+  },
+  {
+   "obs_id": 14746118,
+   "rank": 401,
+   "score": 0.410366,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -15.339191354335334,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0001237029961306281,
+   "episode_key": "4791:63303:7"
+  },
+  {
+   "obs_id": 14746048,
+   "rank": 402,
+   "score": 0.40561,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -12.366367243912167,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.00038035156962229537,
+   "episode_key": "4349:33499:7"
+  },
+  {
+   "obs_id": 14733023,
+   "rank": 403,
+   "score": 0.405244,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -12.14989053801386,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0004549815230147848,
+   "episode_key": "91:61222:13"
+  },
+  {
+   "obs_id": 14745711,
+   "rank": 404,
+   "score": 0.398537,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 10.414478542489261,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0003799286200057152,
+   "episode_key": "4349:63300:6"
+  },
+  {
+   "obs_id": 14745989,
+   "rank": 405,
+   "score": 0.376829,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 2.810899615029576,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0003882145620756044,
+   "episode_key": "4272:41188:7"
+  },
+  {
+   "obs_id": 14744530,
+   "rank": 406,
+   "score": 0.311524,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -0.0,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007462812896004598,
+   "episode_key": "3106:69015:11"
+  },
+  {
+   "obs_id": 14746055,
+   "rank": 407,
+   "score": 0.230549,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "within_budget": false,
+   "displaced_by_cap": null,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -0.0,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0003684064080360082,
+   "episode_key": "4272:41187:16"
+  }
+ ],
+ "receipt_sha256": "d518df80595152311c225757b8b8080338fb9ea5ed1077c5e2e5a13475773382"
+}

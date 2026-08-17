@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="TraceTriage">
+  <rect width="32" height="32" fill="#161616"/>
+  <!-- The commanded receive frequency: where a corrected capture would sit. -->
+  <line x1="16" y1="3" x2="16" y2="29" stroke="#6f6f6f" stroke-width="1" stroke-dasharray="2 2"/>
+  <!-- The Doppler curve, offset from it. That gap is the whole project. -->
+  <path d="M9 3 C 13 10, 14 22, 21 29" fill="none" stroke="#4589ff" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

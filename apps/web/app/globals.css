@@ -1,0 +1,229 @@
+/*
+ * Design foundation.
+ *
+ * The values below are IBM Carbon's: the Gray 100 theme palette, the type scale,
+ * the 8px spacing steps and the productive motion curves. They are written here
+ * as custom properties rather than pulled from @carbon/styles because the console
+ * needs a few dozen tokens and not a component library, and every kilobyte of
+ * JavaScript on this page competes with a WebGL context that has real work to do.
+ *
+ * Carbon is used because this is an IBM challenge and Carbon is IBM's design
+ * system. Deviating from it would cost a point of alignment for no gain.
+ */
+
+:root {
+  /* Carbon Gray 100 backgrounds */
+  --ui-background: #161616;
+  --ui-01: #262626;
+  --ui-02: #393939;
+  --ui-03: #393939;
+  --ui-04: #6f6f6f;
+  --ui-05: #f4f4f4;
+  --field-01: #262626;
+  --hover-ui: #353535;
+
+  /* Text.
+     One deliberate departure from Carbon's naming. Carbon's text-03 is Gray 60
+     (#6f6f6f) and is the placeholder colour, not a text colour: measured against
+     this theme's two surfaces it gives 3.60:1 on the page background and 3.01:1
+     on a tile, both under the 4.5:1 that small text needs. Every caption, table
+     label and axis tick on this console would have failed. --text-03 is
+     therefore Gray 50, which measures 5.46:1 and 4.56:1, and the placeholder
+     grey keeps its own token so a real placeholder can still use it. */
+  --text-01: #f4f4f4;
+  --text-02: #c6c6c6;
+  --text-03: #8d8d8d;
+  --text-04: #ffffff;
+  --text-05: #8d8d8d;
+  --text-placeholder: #6f6f6f;
+
+  /* Carbon interactive and status */
+  --interactive-01: #0f62fe;
+  --interactive-02: #6f6f6f;
+  --interactive-04: #4589ff;
+  --link-01: #78a9ff;
+  --support-01: #fa4d56; /* error red */
+  --support-02: #42be65; /* success green */
+  --support-03: #f1c21b; /* warning yellow */
+  --support-04: #4589ff; /* information blue */
+  --support-05: #ff832b; /* caution orange */
+
+  /* Verdict colours. Deliberately not a red/green pair: three of the four gate
+     states are neither pass nor fail, and colouring them as failures would say
+     something the measurements do not. */
+  --verdict-passed: #42be65;
+  --verdict-not-established: #f1c21b;
+  --verdict-failed: #fa4d56;
+  --verdict-not-measurable: #8d8d8d;
+
+  /* Spacing, Carbon's steps */
+  --sp-01: 0.125rem;
+  --sp-02: 0.25rem;
+  --sp-03: 0.5rem;
+  --sp-04: 0.75rem;
+  --sp-05: 1rem;
+  --sp-06: 1.5rem;
+  --sp-07: 2rem;
+  --sp-08: 2.5rem;
+  --sp-09: 3rem;
+  --sp-10: 4rem;
+  --sp-12: 6rem;
+
+  /* Type scale */
+  --type-caption: 0.75rem;
+  --type-label: 0.75rem;
+  --type-helper: 0.75rem;
+  --type-body: 0.875rem;
+  --type-body-long: 1rem;
+  --type-heading-01: 0.875rem;
+  --type-heading-02: 1rem;
+  --type-heading-03: 1.25rem;
+  --type-heading-04: 1.75rem;
+  --type-heading-05: 2rem;
+  --type-heading-06: 2.625rem;
+  --type-display-01: 3.375rem;
+
+  /* Motion. Carbon's productive curves. */
+  --ease-productive-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+  --ease-productive-entrance: cubic-bezier(0, 0, 0.38, 0.9);
+  --ease-productive-exit: cubic-bezier(0.2, 0, 1, 0.9);
+  --ease-expressive-standard: cubic-bezier(0.4, 0.14, 0.3, 1);
+  --dur-fast-01: 70ms;
+  --dur-fast-02: 110ms;
+  --dur-moderate-01: 150ms;
+  --dur-moderate-02: 240ms;
+  --dur-slow-01: 400ms;
+  --dur-slow-02: 700ms;
+
+  --border-subtle: #393939;
+  --border-strong: #6f6f6f;
+  --focus: #ffffff;
+
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+
+  --max-width: 76rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* The page is dark and the form controls should know it, so the browser draws
+     native scrollbars and focus rings that belong to the same surface. */
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--ui-background);
+  color: var(--text-01);
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+a {
+  color: var(--link-01);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* One focus treatment everywhere, on the element that actually receives focus.
+   Carbon uses a 2px inset white ring on dark surfaces. */
+:where(a, button, [tabindex], input, select, summary):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+code,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+/* Skip link: visible only once focused, and it must land above everything. */
+.skip-link {
+  position: absolute;
+  left: var(--sp-05);
+  top: -4rem;
+  z-index: 100;
+  padding: var(--sp-03) var(--sp-05);
+  background: var(--interactive-01);
+  color: #fff;
+  transition: top var(--dur-fast-02) var(--ease-productive-standard);
+}
+
+.skip-link:focus {
+  top: var(--sp-05);
+}
+
+.shell {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--sp-05);
+}
+
+/* Every number in this console is a measurement, so the tabular figures matter:
+   columns of digits have to line up or a reader compares the wrong things. */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The waterfall and its controls.
+   The image is never displayed wider than its own pixels: upscaling a measured
+   intensity map invents detail the measurement does not have, and a promoted
+   layer rasterises its whole box, so a 2x display size is a 4x raster for a
+   picture that is already at its own resolution. */
+.viewer {
+  display: grid;
+  gap: var(--sp-06);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.viewer-controls {
+  min-width: 0;
+}
+
+@media (min-width: 64rem) {
+  .viewer {
+    grid-template-columns: minmax(0, auto) minmax(19rem, 26rem);
+  }
+
+  .viewer-controls {
+    position: sticky;
+    top: 4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
