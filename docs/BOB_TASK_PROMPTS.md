@@ -578,6 +578,128 @@ ACCEPTANCE:
 
 ---
 
+## A7b-INT: integration review of the gate-3 measurement (Bob accepts or rejects)
+
+**This is an enhancement-loop unit, not a build unit.** You built A7 (`5d9b323`).
+An operator-side review found the gate-3 check could not fail and replaced it.
+Commit `c22433f`. Your job is to review that change, run it, and either accept it
+or reject it with a reason. Do not rebuild it, and do not accept it on the
+strength of this description. Estimated **2 coins.**
+
+### What was wrong with your A7
+
+Read `D:\IBM August Challenge\A7_VERIFICATION_2026-08-17.md` first. The short
+version, all of it measured:
+
+1. `_check_corridor_intersects` computed `trace_half_width_hz = 3 * hz_per_px / 2`
+   and compared it against `half_w`. Both sides are constants. The left is a
+   matched-filter kernel width, 116 to 192 Hz across the two client layouts; the
+   right is a hardcoded 1200 or 2000 Hz. The check returned True for all seven of
+   A3's decisive observations and cannot return False for any normal waterfall.
+2. It reported 1/1 = 100% against a 70% threshold. One observation cannot
+   measure a rate.
+3. The comment justified the pass with "A3 measured max deviation 140 Hz" and
+   then admitted A3 does not store per-row deviations. That number is a comment
+   in `physics.py` and a literal in `tests/test_physics.py:760`, never a
+   measurement.
+4. `corridor_for_obs` was called without a frequency offset, so the corridor sat
+   at rx-freq. A3's stored `curved_offset_hz` for obs 14740031 is -13,985 Hz
+   against a corridor whose outer edge is 10,303 Hz from rx-freq. The trace was
+   3,682 Hz outside the band, so the honest reading of your own artifact is a
+   miss by 7x the half-width.
+5. Geometry came from `baseline._geometry_of`, which omits `rx_freq_hz`.
+   `waterfall.py:795` only attempts `centre_px` when a receiver frequency is
+   supplied, so `centre_px` was None and the corridor could not have been placed
+   on the image even in principle.
+6. `target_consistency` used `min(1, sigma_curved / sigma_vertical)` for every
+   observation. That is right only for an uncorrected pass. For a corrected pass
+   the vertical trace IS the evidence, so it inverts. It scored the four
+   corrected observations 0.046 to 0.648 and saturated the three uncorrected at
+   exactly 1.000. Obs 14746048 carries a 37.0 sigma vertical trace and was rated
+   0.046, the least consistent of the set.
+7. `model_checksum` hashed `BASELINE_RECEIPT.json`, not `hoglr_model.pkl`.
+8. `_A3_VERDICT_TABLE` was hardcoded while its comment claimed it read
+   `summary.json`, and it had drifted: 14746055 listed UNCORRECTED where A3
+   records CORRECTED.
+9. A7 shipped zero tests.
+
+### Your acceptance checks
+
+Run each. Report the actual output, not a summary of it.
+
+1. `python scripts/gate.py` reaches 7/7.
+2. `python -m pytest -m "not network" -q` passes. Expect 406 passed, 1 xfailed.
+3. `python scripts/run_gate3.py` reproduces `artifacts/GATE3_RECEIPT.json`:
+   verdict PASSED, 3 testable, 4 not testable, discriminating rate 1.000, and
+   p = 0.005 with 0 of 200 nulls reaching the truth on each of 14740031,
+   14745664 and 14745929.
+4. Run it twice. Everything except `generated_at` must be byte-identical.
+5. Mutation check, and this is the one that matters. Make the residual a
+   constant again:
+   in `pipeline/tracetriage/corridor_fit.py`, replace the body of the
+   `resid_out.append(...)` line with `resid_out.append(3.0 * hz_per_px / 2.0)`.
+   `tests/test_corridor_fit.py::test_coverage_falls_as_the_trace_moves_off_the_curve`
+   must fail with `[1.0, 1.0, 1.0, 1.0]`. Revert it.
+6. Second mutation: in `px_to_offset_hz`, drop `/ AXIS_SIGN_CONVENTION`. Three
+   tests must fail. Revert it.
+7. `artifacts/TRIAGE_RECEIPT.json` validates against
+   `contracts/triage_receipt.schema.json`, and its `model_checksum` equals
+   `sha256(artifacts/hoglr_model.pkl)`. Check that by hand.
+
+### Judgement calls to accept or reject on their merits
+
+You are the one who decides these. Each is a defensible choice, not an obvious
+one, and rejecting any of them is a legitimate outcome if you can say why.
+
+1. **The offset bound is 50 ppm of the downlink.** A fitted constant frequency
+   offset is necessary, because a cubesat oscillator drifts and the SatNOGS
+   transmitter frequency is community-maintained. But the bound decides how much
+   discriminating power survives: A3's own scan allowed plus or minus 76.9 kHz,
+   which is 9.3x the Doppler swing and lets the curve land anywhere. Is 50 ppm
+   right? At 400 MHz it is 20 kHz against a 17 kHz swing, so the offset range
+   still exceeds the signal. Argue it or tighten it.
+2. **The gate statistic is a null-calibrated p-value, not per-row coverage.**
+   Per-row detection at 4.0 robust z finds 2.1% of rows on obs 14740031, because
+   the trace integrates to significance along the path while no single row
+   clears the floor. So coverage is reported as a diagnostic and the gate reads
+   the path statistic. Is that the right instrument, and is `min_detect_frac`
+   still meaningful if the gate does not use it?
+3. **Four of seven observations are declared NOT TESTABLE.** The corrected
+   corridor is identically 0 Hz, a vertical line with a free offset, so it
+   predicts no shape and every null reproduces it. This is the largest claim in
+   the change: it says the physics has predictive content only on uncorrected
+   captures, which is a minority of observations. Check `physics.py` and confirm
+   the corrected corridor really is all zeros. If it is, this belongs in the
+   README's limitations, and Wave B's fusion design has to account for it.
+4. **The nulls are time permutations, and time reversal was rejected** because
+   A3 showed a Doppler curve is near odd-symmetric about closest approach. Are
+   permutations plus the four scaled swings enough? A permuted curve is jagged,
+   so a skeptic can say the test rewards smoothness. The scaled-swing controls
+   are the answer to that, and they hold shape fixed while varying magnitude.
+   Judge whether they close it.
+5. **`target_consistency` maps through `x / (1 + x)` instead of clipping at
+   1.0.** Keeps resolution above a ratio of 1 rather than saturating. Check the
+   value moved from 1.000 to 0.899 on obs 14740031 and that nothing downstream
+   assumed the clip.
+
+### Then
+
+- Append your task to `docs/BOB_BUILD_LOG.md` in the existing format: task,
+  files, commands, tests, failures, repairs, coins, commit SHA, Bob task ID.
+- If you accept, say so and record which of the five judgement calls you
+  independently agree with, and any you would change later.
+- If you reject any part, say exactly what and why, and fix it yourself.
+- Collect your Bob task ID before the session closes. `REGISTRY.md` needs it.
+
+### Do not
+
+- Do not re-report gate 3 as 1/1, and do not restore the constant check.
+- Do not widen a corridor or a bound to make something pass. If a number fails,
+  that is a result.
+- Do not describe the corrected-corridor exclusion as a pass.
+
+---
+
 # Wave B: splits, fusion, calibration, abstention
 
 Target: **~14 coins.** Do not start until gates 3, 4 and 5 have recorded results.
