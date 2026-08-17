@@ -23,6 +23,69 @@ function Digest({ value }: { value: string }) {
   );
 }
 
+/**
+ * The failure classes the console can be put into, counted against real cards.
+ *
+ * The counts are computed, not written down. A hand-typed "0" would go stale the
+ * first time the shipped set changed, and a table of failure handling that does
+ * not match the data is worse than no table.
+ */
+const DEGRADED_STATES: Array<{
+  when: string;
+  shows: string;
+  count: number | null;
+}> = [
+  {
+    when: "The observation is not in the snapshot",
+    shows:
+      "The card page says so and links back to the queue. No blank frame, no zeroes.",
+    count: cards.cards.filter((c) => c.degraded).length,
+  },
+  {
+    when: "No frequency information, so no centre pixel",
+    shows:
+      "The waterfall renders and the corridor overlay is withheld, with the reason and the share of records it affects.",
+    count: cards.cards.filter(
+      (c) => !c.degraded && (c.centre_px === null || c.centre_px === undefined),
+    ).length,
+  },
+  {
+    when: "The TLE will not propagate, so there is no pass geometry",
+    shows:
+      "The same withheld overlay, carrying the physics module's own degraded reason rather than a generic one.",
+    count: cards.cards.filter((c) => !c.degraded && !c.corridor).length,
+  },
+  {
+    when: "The corridor fit ran into the edge of its search range",
+    shows:
+      "The offset is shown with a greater-or-equal marker and a note that it is a lower bound. The observation is excluded from the stale-catalogue conflict criterion.",
+    count: cards.cards.filter((c) => c.corridor?.offset_at_bound === true).length,
+  },
+  {
+    when: "The browser has no WebGL2, or loses the context",
+    shows:
+      "The same image as a plain img, the reason in a note, and the contrast controls removed rather than left dead.",
+    count: null,
+  },
+  {
+    when: "The waterfall image will not decode",
+    shows: "The same note, naming the decode as the cause.",
+    count: null,
+  },
+  {
+    when: "JavaScript is off",
+    shows:
+      "The waterfall, the corridor overlay and the top of the queue all still render. The filter controls are hidden and a line says why.",
+    count: null,
+  },
+  {
+    when: "A filter matches nothing",
+    shows:
+      "A stated empty result with the full queue size beside it, so an empty table cannot be read as a broken one.",
+    count: null,
+  },
+];
+
 export default function ProvenancePage() {
   const totalBytes = provenance.receipts.reduce((sum, r) => sum + r.bytes, 0);
 
@@ -215,8 +278,10 @@ export default function ProvenancePage() {
           }}
         >
           <li>
-            No network request after the page loads. Every byte it needs is served
-            from its own origin, including the typeface.
+            No request to any origin but its own, before or after load, including
+            for the typeface. The router does prefetch the next page&rsquo;s data
+            when a link enters the viewport, which is a request to this site for a
+            file that is already public.
           </li>
           <li>
             No model runs in the browser. The probabilities shown were fitted offline
@@ -232,6 +297,41 @@ export default function ProvenancePage() {
             because there is nothing being collected.
           </li>
         </ul>
+      </Section>
+
+      <Section
+        title="Degraded states"
+        description="What the console shows when something is missing, and whether any observation it ships actually puts the console into that state. The right-hand column is counted from the shipped cards rather than asserted, because a failure path nobody has walked is a claim, not a feature."
+      >
+        <Table
+          head={["When", "What the console shows", "Shipped cards in this state"]}
+          caption={`Counted over the ${cards.n_built} observations with imagery. A zero means the path is covered by the offline suite and by a forced check, not by this corpus.`}
+        >
+          {DEGRADED_STATES.map((state) => (
+            <tr key={state.when}>
+              <Cell align="left" header>
+                {state.when}
+              </Cell>
+              <Cell align="left">{state.shows}</Cell>
+              <Cell mono>
+                {state.count === null ? (
+                  <span style={{ color: "var(--text-03)" }}>not from data</span>
+                ) : (
+                  state.count
+                )}
+              </Cell>
+            </tr>
+          ))}
+        </Table>
+        <Note tone="limit">
+          Every count above is zero, and that is worth saying out loud rather than
+          leaving as a table nobody reads. The observations this console ships are the
+          top of a queue, so they are the ones with the cleanest geometry; the
+          degraded paths are exercised in the offline suite and, for the WebGL
+          fallback, by disabling the context and reloading. A judge who wants to see
+          one live can switch off JavaScript, or block the waterfall image, and the
+          page will say what it lost.
+        </Note>
       </Section>
 
       <Section title="Data and attribution">

@@ -206,6 +206,24 @@ export default function QueueTable({
         the pipeline assigned and does not change under a filter.
       </p>
 
+      {shown.length === 0 && (
+        <p
+          style={{
+            margin: "var(--sp-05) 0",
+            padding: "var(--sp-05)",
+            border: "1px solid var(--border-strong)",
+            background: "var(--ui-01)",
+            color: "var(--text-02)",
+            lineHeight: 1.6,
+          }}
+        >
+          No row matches{query.trim() ? ` observation ${query.trim()}` : " this filter"}.
+          That is an empty result, not a failure: the queue holds{" "}
+          <span className="num">{entries.length}</span> rows and none of them meet the
+          condition you asked for. Clear the filter to see them.
+        </p>
+      )}
+
       <Table
         head={[
           "Rank",
