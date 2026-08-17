@@ -627,3 +627,140 @@ error distribution.
 
 **Outcome:** accepted. 61 tests pass. 215 offline tests pass. Gate 7/7.
 
+
+---
+
+## B1. Grouped split builder and leakage audit
+
+### 17 Aug 2026 IST | account 3 | B1: grouped splits, leakage audit
+
+**Task given:** build the four real splits (chronological, cold-station,
+cold-transmitter, cold-combined) with entity grouping by transmitter and by orbital
+revolution, NORAD rideshare clusters held out together, no duplicate image across a
+boundary, no post-observation field usable as a feature, and A3's correction verdict
+recorded per observation so the corrected/uncorrected asymmetry stays visible. Emit
+`artifacts/SPLIT_MANIFEST.json` against `contracts/split_manifest.schema.json` and
+`artifacts/LEAKAGE_AUDIT.json` with one row per check. Report any partition where the
+uncorrected count is zero, because the physics arm cannot be evaluated there.
+
+**Files created/changed:**
+- `pipeline/tracetriage/splits.py` (new, Bob)
+- `scripts/build_splits.py` (new, Bob)
+- `tests/test_splits.py` (new, Bob)
+- `tests/test_split_guarantees.py` (new, operator)
+- `contracts/split_manifest.schema.json` (0.2.1 to 0.3.0, operator)
+- `tests/test_contracts.py` (operator)
+- `artifacts/SPLIT_MANIFEST.json`, `artifacts/LEAKAGE_AUDIT.json`
+
+**Commands run:**
+
+    .venv/Scripts/python.exe scripts/build_splits.py
+    .venv/Scripts/python.exe -m pytest -m "not network" -q
+    .venv/Scripts/python.exe -m ruff check pipeline scripts tests
+    .venv/Scripts/python.exe scripts/gate.py
+
+**Tests:** 459 passed, 1 xfailed, up from 410. 25 of the new tests are in
+`tests/test_split_guarantees.py` and use synthetic rows, so they do not depend on the
+snapshot being clean. Five mutations were planted in `splits.py` (never report a
+crossing; strict tier match reverts to version 1; dedup reassigns instead of
+excluding; vacuity guard disabled; unclassified field ignored) and all five were
+caught.
+
+**Failures and repairs:**
+
+1. **Cold-combined, version 1 (Bob).** One-cold-one-warm observations went to train.
+   A transmitter in the cold test tier observed from a train station landed in train
+   while the same transmitter observed from a test station landed in test, so it sat
+   in two partitions. Bob read this as the two entity guarantees being jointly
+   unsatisfiable and scoped both checks out of the split with a `SCOPE_NOTE`. The
+   manifest still published a flat `true` for both. The diagnosis was wrong: the
+   guarantees are satisfiable, at the cost of discarding the mixed observations.
+
+2. **Cold-combined, version 2 (operator, first repair).** Excluded the mixed pairs
+   but kept calibration as "both axes cold, not both test". That puts (test-station,
+   cal-transmitter) in calibration and (test-station, test-transmitter) in test, so a
+   test-tier station appears in both. Measured: **12 transmitters and 4 stations
+   crossing.** Both checks still reported clean, because version 1's exemptions were
+   still in force. An exemption outlived the reason for it and hid a live violation.
+   Fixed by the strict rule: keep an observation only where its station tier and its
+   transmitter tier agree, exclude otherwise. Measured 0 crossings on all four checks.
+
+3. **Cold-combined tier sizing.** Reusing the single-axis 0.20/0.10 fractions leaves
+   a 16-observation calibration set, because an intersection scales as the product of
+   the two fractions. The first replacement, 0.30/0.30, gave a test set larger than
+   train and only 73 decisive training labels, which would have measured an
+   undertrained model rather than the cost of unseen entities. Settled on 0.25/0.20:
+   train 945 (188 decisive), calibration 110 (49), test 183 (76). The measured curve
+   is in the constant's docstring.
+
+4. **`KeyError: 14746129`.** `_extract_partition_maps` did not reconstruct the
+   `excluded` bucket, so the entity checks raised on lookup rather than skipping.
+
+5. **Flat booleans in the manifest (Bob).** `leakage_checks` held six literal `True`
+   values written by hand, disconnected from the audit that said something weaker. A
+   bare boolean cannot carry a scope, which is how the file came to assert "no
+   transmitter crosses" while two split types were exempt. Schema 0.3.0 makes each
+   entry an object with `passed` (still const true), a required `applies_to`, and an
+   `n_examined` of at least 1.
+
+6. **`n_examined` reported as 2727 on every audit row (Bob),** regardless of what the
+   check examined. The real counts range from 1119 to 2727. An unmeasured constant
+   standing in for a measurement is the A7 gate-3 failure repeating, so the count now
+   comes from the check itself.
+
+7. **`no_future_feature_in_train` was an assertion, not a check (Bob).** It listed
+   eight excluded fields, written by hand. The record carries 50 fields, 12 of them
+   unsafe, and the list had missed `status` (SatNOGS derives it from vetting, so it is
+   the label under another name), `demoddata` (decoded frames: a frame count answers
+   the question the model is asked), `payload`, `archived`, `archive_url` and
+   `transmitter_updated`. Replaced with `FIELD_CLASSIFICATION`, which covers every
+   field and fails the freeze on one it does not cover.
+
+8. **Schema bug introduced by the operator's own fix.** The six checks were named in
+   `properties` with the constraints under `additionalProperties`, which JSON Schema
+   does not apply to a named property. Every check validated against a description
+   and nothing else, and setting one to `false` still passed. Caught by Bob's existing
+   `test_split_manifest_rejects_a_failed_leakage_check`, which is the second time this
+   session that an existing test caught a new mistake. Fixed with a `$defs` reference.
+
+9. **Dedup could break the tier guarantee on data that has a duplicate.** The
+   promote-to-earlier-partition rule would drag a doubly-cold test observation into
+   train because it shared a waterfall. The snapshot has 2,500 waterfalls with 2,500
+   distinct hashes, so the two rules are indistinguishable on this corpus and only a
+   synthetic test separates them. Cold-combined now excludes later duplicates instead.
+
+10. **Determinism test was weaker than the acceptance criterion.** It compared only
+    `m["splits"]`, so composition, the leakage measurements and the physics report
+    could drift between runs of the same seed. Now compares the whole manifest minus
+    `frozen_at`, and asserts that all three drawn splits respond to the seed while
+    chronological, being a time cut, does not.
+
+**Results.** chronological 2595/78/54, cold_station 2031/293/403, cold_transmitter
+2235/139/353, cold_combined 945/110/183 with 1489 excluded. 15 claimed guarantees
+hold with zero crossings. Three check/split pairs are out of scope by design and
+report measured counts rather than a bare exemption: 213 transmitters cross
+cold_station, 39 stations cross chronological, 82 stations cross cold_transmitter.
+
+**Zero-uncorrected partitions**, where the physics arm cannot be evaluated:
+chronological/test, cold_station/calibration, cold_transmitter/calibration,
+cold_transmitter/test, cold_combined/calibration, cold_combined/test.
+
+**Carried forward.** B3: cold_combined calibration holds 49 decisive labels, so
+temperature scaling is admissible and isotonic is not, and choosing between
+calibrators by reliability on 49 points would overfit the choice. B6: cold_combined
+trains on 945 against chronological's 2595, so a drop there confounds unseen entities
+with less data and needs a size-matched control.
+
+**Coins:** estimated 3 to 4, actual budget exceeded mid-unit.
+
+**Bob task ID:** `c3a0c9d2a43d8493ffcbe58ba4d78549` (workspace
+`tracetriage-august-2026`, account 3). Bob wrote the builder, the script and the
+first test suite, roughly 1,650 lines, and hit the account budget during the
+cold-combined repair. The ten items above were finished by the operator.
+
+**Commit:** recorded at commit time.
+
+**Outcome:** accepted with the repairs recorded. Bob's structure survived: the TLE
+revolution index, the NORAD cluster grouping, the A3 verdict join and the physics
+evaluability report are all his and all correct. What needed replacing was every
+place a guarantee was asserted rather than measured.

@@ -1,0 +1,365 @@
+[
+  {
+    "check": "no_transmitter_across_splits",
+    "split": "chronological",
+    "entity": "transmitter",
+    "guaranteed": true,
+    "n_examined": 2727,
+    "n_entities": 613,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Examined 2727 obs, 613 transmitters. Violators: 0.",
+    "examples": []
+  },
+  {
+    "check": "no_transmitter_across_splits",
+    "split": "cold_station",
+    "entity": "transmitter",
+    "guaranteed": false,
+    "n_examined": 2727,
+    "n_entities": 613,
+    "n_violators": 213,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "BY_DESIGN",
+    "detail": "213 of 613 transmitters cross a partition boundary here, over 2727 observations. Not a leak: the held-out entity is the ground station, and one transmitter is observed from many stations that land on both sides of the boundary.",
+    "examples": [
+      {
+        "key": "2ZjLbY4VkHtxZhHwDMWy9H",
+        "partitions": [
+          "calibration",
+          "train"
+        ]
+      },
+      {
+        "key": "2y8DRYd4fMKKHYrP67s6Fb",
+        "partitions": [
+          "calibration",
+          "train"
+        ]
+      },
+      {
+        "key": "32PEtq4PvydqcNv8xrmnZZ",
+        "partitions": [
+          "calibration",
+          "train"
+        ]
+      },
+      {
+        "key": "3BkihmRk2jysTetJAFhTKn",
+        "partitions": [
+          "test",
+          "train"
+        ]
+      },
+      {
+        "key": "3DpNASTddtcH9zHEmZpsFK",
+        "partitions": [
+          "calibration",
+          "test",
+          "train"
+        ]
+      }
+    ]
+  },
+  {
+    "check": "no_transmitter_across_splits",
+    "split": "cold_transmitter",
+    "entity": "transmitter",
+    "guaranteed": true,
+    "n_examined": 2727,
+    "n_entities": 613,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Examined 2727 obs, 613 transmitters. Violators: 0.",
+    "examples": []
+  },
+  {
+    "check": "no_transmitter_across_splits",
+    "split": "cold_combined",
+    "entity": "transmitter",
+    "guaranteed": true,
+    "n_examined": 1238,
+    "n_entities": 374,
+    "n_violators": 0,
+    "n_skipped_excluded": 1489,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Examined 1238 obs, 374 transmitters. Violators: 0. Skipped 1489 excluded.",
+    "examples": []
+  },
+  {
+    "check": "no_station_across_splits",
+    "split": "chronological",
+    "entity": "station",
+    "guaranteed": false,
+    "n_examined": 2727,
+    "n_entities": 271,
+    "n_violators": 39,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "BY_DESIGN",
+    "detail": "39 of 271 stations cross a partition boundary here, over 2727 observations. Not a leak: the held-out entity is the transmitter and the cut is by time, so a station keeps observing across the boundary.",
+    "examples": [
+      {
+        "key": "1466",
+        "partitions": [
+          "calibration",
+          "train"
+        ]
+      },
+      {
+        "key": "1685",
+        "partitions": [
+          "test",
+          "train"
+        ]
+      },
+      {
+        "key": "1860",
+        "partitions": [
+          "calibration",
+          "train"
+        ]
+      },
+      {
+        "key": "1861",
+        "partitions": [
+          "calibration",
+          "train"
+        ]
+      },
+      {
+        "key": "1864",
+        "partitions": [
+          "calibration",
+          "test",
+          "train"
+        ]
+      }
+    ]
+  },
+  {
+    "check": "no_station_across_splits",
+    "split": "cold_station",
+    "entity": "station",
+    "guaranteed": true,
+    "n_examined": 2727,
+    "n_entities": 271,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Examined 2727 obs, 271 stations. Violators: 0.",
+    "examples": []
+  },
+  {
+    "check": "no_station_across_splits",
+    "split": "cold_transmitter",
+    "entity": "station",
+    "guaranteed": false,
+    "n_examined": 2727,
+    "n_entities": 271,
+    "n_violators": 82,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "BY_DESIGN",
+    "detail": "82 of 271 stations cross a partition boundary here, over 2727 observations. Not a leak: the held-out entity is the transmitter, and one station observes many transmitters that land on both sides of the boundary.",
+    "examples": [
+      {
+        "key": "1466",
+        "partitions": [
+          "test",
+          "train"
+        ]
+      },
+      {
+        "key": "1672",
+        "partitions": [
+          "test",
+          "train"
+        ]
+      },
+      {
+        "key": "1696",
+        "partitions": [
+          "calibration",
+          "train"
+        ]
+      },
+      {
+        "key": "1710",
+        "partitions": [
+          "calibration",
+          "test",
+          "train"
+        ]
+      },
+      {
+        "key": "1860",
+        "partitions": [
+          "test",
+          "train"
+        ]
+      }
+    ]
+  },
+  {
+    "check": "no_station_across_splits",
+    "split": "cold_combined",
+    "entity": "station",
+    "guaranteed": true,
+    "n_examined": 1238,
+    "n_entities": 213,
+    "n_violators": 0,
+    "n_skipped_excluded": 1489,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Examined 1238 obs, 213 stations. Violators: 0. Skipped 1489 excluded.",
+    "examples": []
+  },
+  {
+    "check": "no_revolution_across_splits",
+    "split": "chronological",
+    "entity": "episode",
+    "guaranteed": true,
+    "n_examined": 2727,
+    "n_entities": 2716,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Examined 2727 obs, 2716 (station, norad, rev) episodes. Violators: 0.",
+    "examples": []
+  },
+  {
+    "check": "no_revolution_across_splits",
+    "split": "cold_station",
+    "entity": "episode",
+    "guaranteed": true,
+    "n_examined": 2727,
+    "n_entities": 2716,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Examined 2727 obs, 2716 (station, norad, rev) episodes. Violators: 0.",
+    "examples": []
+  },
+  {
+    "check": "no_revolution_across_splits",
+    "split": "cold_transmitter",
+    "entity": "episode",
+    "guaranteed": true,
+    "n_examined": 2727,
+    "n_entities": 2716,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Examined 2727 obs, 2716 (station, norad, rev) episodes. Violators: 0.",
+    "examples": []
+  },
+  {
+    "check": "no_revolution_across_splits",
+    "split": "cold_combined",
+    "entity": "episode",
+    "guaranteed": true,
+    "n_examined": 1238,
+    "n_entities": 1230,
+    "n_violators": 0,
+    "n_skipped_excluded": 1489,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Examined 1238 obs, 1230 (station, norad, rev) episodes. Violators: 0. Skipped 1489 excluded.",
+    "examples": []
+  },
+  {
+    "check": "no_duplicate_image_across_splits",
+    "split": "chronological",
+    "entity": "image",
+    "guaranteed": true,
+    "n_examined": 2500,
+    "n_entities": 2500,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 227,
+    "result": "PASS",
+    "detail": "Examined 2500 obs, 2500 waterfall SHA-256 values. Violators: 0. Skipped 227 with no key.",
+    "examples": []
+  },
+  {
+    "check": "no_duplicate_image_across_splits",
+    "split": "cold_station",
+    "entity": "image",
+    "guaranteed": true,
+    "n_examined": 2500,
+    "n_entities": 2500,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 227,
+    "result": "PASS",
+    "detail": "Examined 2500 obs, 2500 waterfall SHA-256 values. Violators: 0. Skipped 227 with no key.",
+    "examples": []
+  },
+  {
+    "check": "no_duplicate_image_across_splits",
+    "split": "cold_transmitter",
+    "entity": "image",
+    "guaranteed": true,
+    "n_examined": 2500,
+    "n_entities": 2500,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 227,
+    "result": "PASS",
+    "detail": "Examined 2500 obs, 2500 waterfall SHA-256 values. Violators: 0. Skipped 227 with no key.",
+    "examples": []
+  },
+  {
+    "check": "no_duplicate_image_across_splits",
+    "split": "cold_combined",
+    "entity": "image",
+    "guaranteed": true,
+    "n_examined": 1119,
+    "n_entities": 1119,
+    "n_violators": 0,
+    "n_skipped_excluded": 1489,
+    "n_skipped_no_key": 119,
+    "result": "PASS",
+    "detail": "Examined 1119 obs, 1119 waterfall SHA-256 values. Violators: 0. Skipped 1489 excluded. Skipped 119 with no key.",
+    "examples": []
+  },
+  {
+    "check": "no_future_feature_in_train",
+    "split": "all",
+    "entity": "record_field",
+    "guaranteed": true,
+    "n_examined": 50,
+    "n_entities": 50,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Classified all 50 fields on the raw record: {'identifier': 4, 'observation_time': 34, 'post_observation': 12}. Forbidden as features: archive_url, archived, demoddata, payload, status, transmitter_updated, vetted_datetime, vetted_status, vetted_user, waterfall_status, waterfall_status_datetime, waterfall_status_user. The manifest emits ids only, so it cannot leak by itself; this binds feature extraction. An unclassified field fails the freeze.",
+    "examples": []
+  },
+  {
+    "check": "test_set_untouched",
+    "split": "all",
+    "entity": "process",
+    "guaranteed": true,
+    "n_examined": 993,
+    "n_entities": 4,
+    "n_violators": 0,
+    "n_skipped_excluded": 0,
+    "n_skipped_no_key": 0,
+    "result": "PASS",
+    "detail": "Test ids are emitted, not loaded, scored, or inspected at build time. This is the one check that cannot be proved from inside the build, so the manifest records a digest per frozen test set and any reported number must quote the digest it scored.",
+    "examples": []
+  }
+]

@@ -3,8 +3,8 @@
   "$id": "tracetriage/split_manifest",
   "title": "Grouped split assignment",
   "status": "ratified",
-  "schema_version": "0.2.1",
-  "description": "Frozen split assignment. Random image-level splits leak station, satellite, rendering, and duplicate patterns, so every split here is grouped by a natural entity boundary. Ratified 2026-08-16 by Bob (task A0): added sampling_design field (required; a stratified sample described as random is a leakage claim that will fail review); added orbital_revolution note (derived field, not present on source_observation directly); added no_station_across_splits to leakage_checks. Revised 2026-08-16 in post-ratification review: every leakage_checks flag is now const true, so a manifest that records a failed check is invalid by construction.",
+  "schema_version": "0.3.0",
+  "description": "Frozen split assignment. Random image-level splits leak station, satellite, rendering, and duplicate patterns, so every split here is grouped by a natural entity boundary. Ratified 2026-08-16 by Bob (task A0): added sampling_design field (required; a stratified sample described as random is a leakage claim that will fail review); added orbital_revolution note (derived field, not present on source_observation directly); added no_station_across_splits to leakage_checks. Revised 2026-08-16 in post-ratification review: every leakage_checks flag is now const true, so a manifest that records a failed check is invalid by construction. Revised 2026-08-17 in B1 (breaking, hence the minor bump): a leakage_checks entry is no longer a bare boolean. A bare true could not say which splits it covered, so a manifest asserted 'no transmitter crosses' while its own audit exempted two split types from that check, and the exemption survived a builder change that made it false. Each entry is now an object carrying passed (still const true), the applies_to list of splits that claim the guarantee, a positive n_examined so a check that examined nothing cannot pass for free, and the measured crossing count on the splits where crossing is by design. An 'excluded' partition is also now permitted, for splits where an observation belongs to no partition.",
   "type": "object",
   "required": ["snapshot_id", "frozen_at", "splits", "grouping_keys", "leakage_checks", "sampling_design"],
   "properties": {
@@ -35,13 +35,14 @@
         "properties": {
           "train": { "type": "array", "items": { "type": "integer" }, "description": "Observation IDs in the training set." },
           "calibration": { "type": "array", "items": { "type": "integer" }, "description": "Observation IDs in the calibration/validation set. Used for post-hoc calibration only, never for model selection." },
-          "test": { "type": "array", "items": { "type": "integer" }, "description": "Observation IDs in the test set. Touched exactly once, at final evaluation." }
+          "test": { "type": "array", "items": { "type": "integer" }, "description": "Observation IDs in the test set. Touched exactly once, at final evaluation." },
+          "excluded": { "type": "array", "items": { "type": "integer" }, "description": "Observation IDs that belong to no partition of this split. Present only where the split's own criterion cannot place an observation: cold_combined keeps an observation only where its station tier and transmitter tier agree, and excluding the rest is what makes its entity guarantees hold. An excluded observation is not a negative and is not held out; it is unusable here and still used by the other splits. Emitted only when non-empty." }
         }
       }
     },
     "leakage_checks": {
       "type": "object",
-      "description": "Each flag must be asserted programmatically, not assumed. Every flag is const true, so a split manifest that records a failed check does not validate and cannot be frozen. That is deliberate: this file is the frozen artifact, produced only after the checks pass. A failing check must halt the freeze and be written up in docs/KILL_GATE.md with the measured value, never softened or dropped from this file to make it validate.",
+      "description": "Each check must be measured programmatically, not assumed, and each entry states which splits it covers. passed is const true, so a manifest that records a failed check does not validate and cannot be frozen. That is deliberate: this file is the frozen artifact, produced only after the checks pass. A failing check must halt the freeze and be written up in docs/KILL_GATE.md with the measured value, never softened or dropped from this file to make it validate. Two escape routes are closed here on purpose: a check cannot claim a scope it did not measure (applies_to is required), and it cannot pass on an empty examination (n_examined must be at least 1).",
       "required": [
         "no_transmitter_across_splits",
         "no_station_across_splits",
@@ -50,37 +51,65 @@
         "no_future_feature_in_train",
         "test_set_untouched"
       ],
+      "additionalProperties": { "$ref": "#/$defs/leakage_check" },
       "properties": {
         "no_transmitter_across_splits": {
-          "type": "boolean",
-          "const": true,
-          "description": "No transmitter_uuid appears in more than one of train, calibration, test within any split type."
+          "$ref": "#/$defs/leakage_check",
+          "description": "No transmitter_uuid appears in more than one of train, calibration, test, on the splits listed in applies_to. Cold_station is excluded and reports its measured crossing count: the held-out entity there is the station, and one transmitter is seen from stations on both sides of the boundary."
         },
         "no_station_across_splits": {
-          "type": "boolean",
-          "const": true,
-          "description": "For cold_station and cold_combined splits: no ground_station id appears in more than one of train, calibration, test."
+          "$ref": "#/$defs/leakage_check",
+          "description": "No ground_station id appears in more than one of train, calibration, test, on the splits listed in applies_to. Chronological and cold_transmitter are excluded and report measured counts."
         },
         "no_revolution_across_splits": {
-          "type": "boolean",
-          "const": true,
-          "description": "No orbital revolution index appears in more than one of train, calibration, test."
+          "$ref": "#/$defs/leakage_check",
+          "description": "No (station, satellite, orbital revolution) episode appears in more than one of train, calibration, test. Two observations of the same pass at the same station are one sample. Claimed on all four splits."
         },
         "no_duplicate_image_across_splits": {
-          "type": "boolean",
-          "const": true,
-          "description": "No waterfall SHA-256 appears in more than one split partition. Catches exact duplicates regardless of observation id."
+          "$ref": "#/$defs/leakage_check",
+          "description": "No waterfall SHA-256 appears in more than one partition. Catches exact duplicates regardless of observation id. Claimed on all four splits."
         },
         "no_future_feature_in_train": {
-          "type": "boolean",
-          "const": true,
-          "description": "No feature derived from post-observation fields, current station statistics, artifact-derived labels, or future outcomes is present in training features."
+          "$ref": "#/$defs/leakage_check",
+          "description": "Every field on the source record is classified as observation_time, identifier, or post_observation, and a field the classification does not cover fails the freeze. The manifest emits ids and no features, so it cannot leak alone; the classification binds whatever extracts features next. n_examined is the field count, not an observation count."
         },
         "test_set_untouched": {
-          "type": "boolean",
-          "const": true,
-          "description": "Test set has not been loaded, scored, or inspected outside of the single final evaluation run."
+          "$ref": "#/$defs/leakage_check",
+          "description": "Test ids are emitted and never loaded, scored, or inspected before final evaluation. This is the one entry that cannot be proved from inside the build, so it does not stand on its assertion alone: it carries a digest per frozen test set, and any reported result must quote the digest it scored. A test set redrawn after the freeze changes its digest."
         }
+      }
+    }
+  },
+  "$defs": {
+    "leakage_check": {
+      "type": "object",
+      "required": ["passed", "applies_to", "n_examined"],
+      "description": "One measured leakage check. Named entries reference this, and so does additionalProperties, so a check added later cannot be well-formed by omission. Referencing rather than repeating matters here: an earlier draft of this file described the six checks in properties and put the constraints in additionalProperties, which JSON Schema does not apply to a named property. Every check validated against a description and nothing else, and setting one to false still passed.",
+      "properties": {
+          "passed": {
+            "type": "boolean",
+            "const": true,
+            "description": "Const true. A manifest recording a failed check does not validate and cannot be frozen. Scoped by applies_to: passed means the guarantee held on every split that claims it, not that nothing crossed anywhere."
+          },
+          "applies_to": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "enum": ["chronological", "cold_station", "cold_transmitter", "cold_combined"] },
+            "description": "REQUIRED. The splits that claim this guarantee. A boolean alone cannot carry a scope, which is how a manifest came to assert 'no transmitter crosses' while two split types were exempt from the check and one of those exemptions had gone stale. Naming the scope in the artifact means a reader can see the claim's extent without reading the builder."
+          },
+          "n_examined": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "REQUIRED, and at least 1. The number of observations actually compared on the narrowest split that claims the guarantee. A check that examined nothing passes for free and is worth exactly as much as not having the check, so zero is invalid here rather than a pass."
+          },
+          "measured": {
+            "type": "object",
+            "description": "Per-split measurement, including the splits where crossing is by design: examined count, entity count, crossing count, and what was skipped. Present so a claim can be re-derived from the artifact."
+          },
+          "by_design_crossings": {
+            "type": "object",
+            "description": "For each split that does not claim the guarantee: the reason, and the measured number of entities that do cross. An exemption with a number attached can be judged; an exemption with only a sentence has to be taken on trust, and outlives the design it described."
+          }
       }
     }
   }

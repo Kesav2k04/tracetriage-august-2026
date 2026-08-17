@@ -146,26 +146,34 @@ def test_geometry_allows_null_centre_px_on_a_good_derivation() -> None:
 # --- split_manifest: a recorded leakage failure must not validate ------------
 
 
+_ALL_SPLITS = ["chronological", "cold_station", "cold_transmitter", "cold_combined"]
+
+
 def split_manifest(**overrides: Any) -> dict[str, Any]:
     partition = {"train": [1, 2], "calibration": [3], "test": [4]}
+
+    def check(applies_to: list[str] | None = None) -> dict[str, Any]:
+        return {
+            "passed": True,
+            "applies_to": applies_to or _ALL_SPLITS,
+            "n_examined": 4,
+        }
+
     doc: dict[str, Any] = {
         "snapshot_id": "snap-2026-08-17-stage1",
         "frozen_at": "2026-08-17T00:00:00Z",
         "sampling_design": "Chronological block, stations reserved for cold pools.",
         "grouping_keys": ["ground_station", "transmitter_uuid"],
-        "splits": {
-            "chronological": partition,
-            "cold_station": partition,
-            "cold_transmitter": partition,
-            "cold_combined": partition,
-        },
+        "splits": {name: partition for name in _ALL_SPLITS},
         "leakage_checks": {
-            "no_transmitter_across_splits": True,
-            "no_station_across_splits": True,
-            "no_revolution_across_splits": True,
-            "no_duplicate_image_across_splits": True,
-            "no_future_feature_in_train": True,
-            "test_set_untouched": True,
+            "no_transmitter_across_splits": check(
+                ["chronological", "cold_transmitter", "cold_combined"]
+            ),
+            "no_station_across_splits": check(["cold_station", "cold_combined"]),
+            "no_revolution_across_splits": check(),
+            "no_duplicate_image_across_splits": check(),
+            "no_future_feature_in_train": check(),
+            "test_set_untouched": check(),
         },
     }
     doc.update(overrides)
@@ -178,8 +186,46 @@ def test_split_manifest_accepts_a_clean_freeze() -> None:
 
 def test_split_manifest_rejects_a_failed_leakage_check() -> None:
     doc = split_manifest()
-    doc["leakage_checks"]["no_duplicate_image_across_splits"] = False
+    doc["leakage_checks"]["no_duplicate_image_across_splits"]["passed"] = False
     assert not is_valid("split_manifest", doc)
+
+
+def test_split_manifest_rejects_a_bare_boolean_leakage_check() -> None:
+    """A check must say which splits it covers, so a bare true is not enough.
+
+    Schema 0.2.1 accepted ``true`` here. That is how the artifact came to assert
+    "no transmitter crosses" while its own audit exempted two split types, and why
+    a stale exemption could hide 12 real crossings without invalidating the file.
+    """
+    doc = split_manifest()
+    doc["leakage_checks"]["no_transmitter_across_splits"] = True
+    assert not is_valid("split_manifest", doc)
+
+
+def test_split_manifest_rejects_a_check_that_examined_nothing() -> None:
+    """A check with nothing to examine passes for free, so zero is invalid."""
+    doc = split_manifest()
+    doc["leakage_checks"]["no_station_across_splits"]["n_examined"] = 0
+    assert not is_valid("split_manifest", doc)
+
+
+def test_split_manifest_rejects_a_check_with_no_scope() -> None:
+    doc = split_manifest()
+    del doc["leakage_checks"]["no_revolution_across_splits"]["applies_to"]
+    assert not is_valid("split_manifest", doc)
+
+    doc = split_manifest()
+    doc["leakage_checks"]["no_revolution_across_splits"]["applies_to"] = []
+    assert not is_valid("split_manifest", doc)
+
+
+def test_split_manifest_accepts_an_excluded_partition() -> None:
+    """cold_combined leaves observations in no partition; that has to be expressible."""
+    doc = split_manifest()
+    doc["splits"]["cold_combined"] = {
+        "train": [1], "calibration": [2], "test": [3], "excluded": [4, 5],
+    }
+    assert is_valid("split_manifest", doc)
 
 
 def test_split_manifest_requires_a_sampling_design() -> None:
