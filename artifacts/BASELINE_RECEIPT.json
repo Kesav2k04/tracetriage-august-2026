@@ -1,7 +1,7 @@
 {
   "schema": "BASELINE_RECEIPT",
   "schema_version": "0.1.0",
-  "generated_at": "2026-08-17T07:09:27.614560+00:00",
+  "generated_at": "2026-08-17T07:32:27.919375+00:00",
   "unit": "A6",
   "seed": 42,
   "snapshot_id": "snap-20260817-stage1",
@@ -173,8 +173,13 @@
     }
   ],
   "beats_floor": {
-    "centre_energy": true,
+    "centre_energy": false,
     "hog_logistic_regression": true,
+    "brier_lower_than_floor_raw": {
+      "centre_energy": true,
+      "hog_logistic_regression": true,
+      "note": "The unqualified float comparison, kept for transparency. A model can be lower here and still not beat the floor, which is the case for centre_energy on this corpus."
+    },
     "vs_floor": {
       "centre_energy": {
         "margin": 0.0007322563327663639,
@@ -199,5 +204,5 @@
     },
     "note": "True = Brier score is strictly lower than prior_only. False = model has learned nothing; use this fact in the gate-5 comparison. centre_energy=False on this corpus: the brightness-ratio heuristic is not discriminative at the dataset level (all 591 train obs scored; calibration converged to the prior). hog_logistic_regression=True: HOG+LR beats the prior-only floor."
   },
-  "floor_note": "The prior_only model predicts train_prior for every observation. A model whose Brier score does not beat the prior has learned nothing. Gate 5 requires physics to beat the CALIBRATED image-only baseline (hog_logistic_regression), not the uncalibrated raw score. centre_energy failed to beat the prior on this corpus and is therefore not a valid gate-5 comparison target."
+  "floor_note": "The prior_only model predicts train_prior for every observation. Beating it means the improvement is distinguishable from zero under the paired bootstrap in beats_floor.vs_floor, not merely that a Brier score came out lower: on 148 observations a lower score can be a rounding difference. centre_energy is 0.0007 below the floor with a 95% interval of about [-0.0003, +0.0027], which crosses zero, so it has not been shown to learn anything and is not a valid gate-5 comparison target. hog_logistic_regression is 0.0646 below the floor with the interval clear of zero. Gate 5 requires physics to beat that CALIBRATED image-only baseline, not the uncalibrated raw score."
 }
