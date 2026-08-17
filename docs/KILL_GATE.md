@@ -12,7 +12,7 @@ The plan sets six thresholds that must pass before TraceTriage is worth building
 |---|---|---|---|
 | 1 | Dataset volume and entity spread | ≥2,000 mature waterfalls, ≥12 transmitters, ≥30 stations | **PRE-PASSED on feasibility** |
 | 2 | Metadata coverage for the corridor | ≥80% of the sample computable | **PRE-PASSED** |
-| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **PASSED — 100% (1/1), obs 14740031** |
+| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **PASSED, 3/3 testable (100%); 4 of 7 not testable** |
 | 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** |
 | 5 | Physics beats image-only on Brier | strict improvement, chronological split | **OPEN** |
 | 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **OPEN** |
@@ -80,41 +80,67 @@ One correction to the plan's assumption: **`center_frequency` is null in practic
 
 ---
 
-## Gate 3: corridor intersects a visible trace — PASSED
+## Gate 3: corridor intersects a visible trace — PASSED on 3 testable observations
 
 **Threshold:** on a blinded check, the expected corridor intersects a visible target-like trace in at least 70% of reviewed positive examples.
 
-**Closed 2026-08-17 by A7 end-to-end slice (obs 14740031).**
+**First claimed by A7 on 2026-08-17, withdrawn the same day, re-measured and closed by `scripts/run_gate3.py`.** Receipt: `artifacts/GATE3_RECEIPT.json`.
 
-### Measured result
+### What the withdrawn A7 result was
 
-| Quantity | Value | Source |
-|---|---|---|
-| Observation | 14740031 | `artifacts/a3_overlays/summary.json` |
-| A3 verdict | UNCORRECTED | A3 summary, read from file, not inferred from metadata |
-| Correction status source | `artifacts/a3_overlays/summary.json` | DO NOT infer from metadata (all 24 obs had null `doppler-correction-per-sec`) |
-| Corridor type | Uncorrected (S-curve) | `physics.uncorrected`, `half_width_hz=2000 Hz` |
-| Hz/px (OCR, axis ticks) | 123.76 Hz/px | A3 summary + waterfall.py |
-| Doppler swing (SGP4) | −8643 → +8647 Hz (~17290 Hz) | `corridor_for_obs`, obs TLE + station |
-| Max elevation | 41.2° | SGP4, reproduced to 0.18° accuracy |
-| Trace fit (sigma_curved) | **25.1σ** vs 2.8σ vertical | A3 matched-filter scan, obs 14740031 |
-| Trace half-extent (residual_hz) | **185.6 Hz** (3 px × 123.76 Hz/px ÷ 2) | Computed in `run_triage_slice.py` |
-| Corridor half_width | 2000 Hz | `UNCORRECTED_CORRIDOR_HZ` in `physics.py`, measured not copied |
-| **Corridor intersects trace** | **YES: 185.6 Hz < 2000 Hz** | `artifacts/TRIAGE_RECEIPT.json` |
+A7 computed `trace_half_width_hz = 3 * hz_per_px / 2` and compared it against the corridor half-width. Both sides are constants: the left one a matched-filter kernel width (116 to 192 Hz across the two known client layouts), the right one a hardcoded 1200 or 2000 Hz. Nothing in the comparison depended on where the trace sat, so it returned True for all seven of A3's decisive observations and could not return False for any waterfall with a normal axis scale. It was reported as 1/1 = 100%, and a 70% rate cannot be measured on one observation in any case.
 
-**Gate 3 passes: 1/1 reviewed positives (100%) ≥ threshold of 70%.**
+A7 also left `freq_offset_hz` at its `0.0` default, so the corridor it checked sat at rx-freq. A3's stored `curved_offset_hz` for this same observation is -13,985 Hz against a corridor whose outer edge is 10,303 Hz from rx-freq, which puts the trace 3,682 Hz outside the band entirely. On the one position number the artifacts held, the unshifted corridor missed by 7x its own half-width.
 
-This single pass is for the seam test (Wave A, unit A7).  Gate 3 is evaluated fully at snapshot scale in Wave B, where the threshold is measured across all reviewed positives in the val set.
+### The correct measurement
 
-### Why this observation
+The absolute downlink frequency is not known to better than tens of ppm: a cubesat oscillator drifts, and the SatNOGS transmitter frequency a station tunes to is community-maintained. So one constant frequency offset is fitted per observation, bounded at **50 ppm of the downlink**, which is about 20 kHz at 400 MHz and 6.9 kHz at 137 MHz. A3's own scan bounded this at plus or minus 76.9 kHz, 9.3x the Doppler swing, which lets the curve land anywhere and is why A3's sigma establishes shape rather than position.
 
-**14740031 was chosen because A3 located a trace at 25.1σ on it.**  A3 evaluated 24 with-signal observations and found 7 with a measurable trace.  Choosing an UNRESOLVED observation (no measurable trace) would have turned a null result into an apparent gate failure.  Choosing obs 14745602 (CORRECTED) would have required the near-vertical corridor, which also passes but makes a weaker claim — the uncorrected S-curve test is a more sensitive geometry check.
+A fitted offset is a free parameter, so an absolute score carries no evidence. The statistic is the true corridor against **200 null corridors built by permuting its own Doppler samples in time**, which preserves every frequency value and the whole swing while destroying the monotone shape. Both get the identical bounded fit. Time reversal is deliberately not used: A3 established that a Doppler curve is near odd-symmetric about closest approach, so a reversed curve still fits.
+
+| obs | corridor | fitted offset | sigma | 200-null max | margin | nulls >= true | p |
+|---|---|---|---|---|---|---|---|
+| 14740031 | uncorrected | +13,985 Hz (+32.0 ppm) | **2.02** | 0.57 | +1.45 | 0 of 200 | 0.005 |
+| 14745664 | uncorrected | -7,149 Hz (-16.4 ppm) | **1.54** | 0.41 | +1.13 | 0 of 200 | 0.005 |
+| 14745929 | uncorrected | -7,149 Hz (-16.4 ppm) | **1.65** | 0.40 | +1.25 | 0 of 200 | 0.005 |
+
+The fitted offsets reproduce A3's independently measured `curved_offset_hz` for all three, which is a cross-check between two separately written estimators.
+
+**Scaled-swing controls.** The obvious objection is that this rewards any smooth bright path rather than the predicted physics. So the same curve was rescaled to 0.25x, 0.5x, 2x and 4x its predicted swing, holding shape and smoothness exactly fixed and varying only magnitude:
+
+| obs | true (1x) | 0.25x | 0.5x | 2x | 4x |
+|---|---|---|---|---|---|
+| 14740031 | **2.02** | 0.65 | 0.74 | 0.62 | 0.31 |
+| 14745664 | **1.54** | 0.52 | 0.56 | 0.47 | -3.49 |
+| 14745929 | **1.65** | 0.49 | 0.53 | 0.49 | -1.53 |
+
+The predicted swing beats every rescaling on every observation. The measurement is confirming the magnitude SGP4 predicted, not the presence of a smooth line.
+
+**Gate 3 passes: 3 of 3 testable observations discriminate (100%) against a 70% threshold.**
+
+### The scope limit, which is a real finding and not a pass
+
+**Only 3 of A3's 7 decisive observations are testable at all.** The corrected corridor is **identically 0 Hz across the whole pass**, a bare vertical line with a free horizontal offset. It predicts no shape, so there is nothing to confirm, and every null built from it reproduces it exactly. Measured before this was guarded: on obs 14745602 the true corridor and the flat null both scored coverage 1.000, and on obs 14746118 true and scrambled sigmas agreed to every decimal place. That reads as "the physics has no discriminating power" and is really "the control was the same corridor".
+
+So the physics-conditioned part of TraceTriage has predictive content **only on uncorrected captures**. A3 found 3 uncorrected among 24 vetted with-signal observations. Excluding the corrected four is a limit on the gate's scope, recorded as `observations_not_testable` in the receipt. It is not a pass, and any claim about physics value has to carry it.
+
+**n = 3 is small.** Each observation carries its own p-value at the 1/201 floor, so the per-observation evidence is strong, but the cross-observation rate rests on three cases. Wave B re-runs this at snapshot scale.
+
+### Diagnostics that are reported but are not the gate
+
+Per-row residuals and corridor coverage are in the receipt as `fit.*` and are **not** the gate statistic. These traces integrate to significance along the path while individual rows stay below the 4.0 robust-z detection floor: on obs 14740031, 2.1% of rows carry a per-row detection, so `fit.degraded` reads `TRACE_NOT_MEASURABLE` and `residual_hz` is null. A per-row instrument reports nothing on a trace A3 localised at high sigma, which is why the gate uses the path-integrated statistic. Reporting a null residual honestly is the point; A7's 185.6 Hz was a constant standing in for this missing measurement.
+
+### Thresholds
+
+Every threshold is a constant in `pipeline/tracetriage/corridor_fit.py`, fixed before any observation was scored, with its reasoning in `THRESHOLD_RATIONALE` and pinned by `tests/test_corridor_fit.py::test_thresholds_are_the_documented_values`: `z_min=4.0`, `min_detect_frac=0.30`, `coverage_threshold=0.70`, `offset_ppm_limit=50.0`, `n_nulls=200`, `p_value_max=0.05`, `swing_scale_factors=(0.25, 0.5, 2.0, 4.0)`, `seed=42`.
 
 ### Physics verification (Trap 1 and 2 guard)
 
-Time runs **bottom to top** (top row = end of pass, y=258 at 200 s, y=1228 at 50 s on obs 14740031). The frequency axis runs **against the Doppler sign** (`AXIS_SIGN_CONVENTION = -1`). Both conventions are encoded in `physics.corridor_columns` and protected by orientation guard tests in `tests/test_physics.py`. These two errors cancel visually; the physics module passes the numerical check (SGP4 Doppler swing consistent with satellite speed at 41° elevation).
+Time runs **bottom to top** (top row = end of pass). The frequency axis runs **against the Doppler sign** (`AXIS_SIGN_CONVENTION = -1`). Both are encoded in `physics.corridor_columns` and guarded in `tests/test_physics.py`. These two errors cancel visually, which is why the verdict is a measurement with a stated margin rather than a visual read.
 
-The Hz/px derivation was verified: the measured value **123.76 Hz/px** (from axis-tick OCR on the 1484×816 image) maps the 17290 Hz Doppler swing to **~140 px** of the 621 px plot — a visible feature occupying ~22% of the frequency axis. If samp-rate-rx (2.5 MHz) were mistakenly assumed, the corridor would compress to **~7 px** and gate 3 would fail for a reason that is purely a wrong constant. That constant is correct; gate 3 passes.
+That same sign convention broke the first version of this measurement: the offset was searched in column space and handed back as `off_px * hz_per_px`, so it was re-applied to the opposite side of the axis, displaced the curve by twice the fitted 113 px, and detected nothing while every intermediate number looked plausible. Conversion now goes through `px_to_offset_hz`, guarded by three tests.
+
+The Hz/px derivation was verified: **123.76 Hz/px** from axis-tick OCR maps the 17,290 Hz swing to ~140 px of the 621 px plot, about 22% of the frequency axis. Assuming `samp-rate-rx` (2.5 MHz) would compress the corridor to ~7 px and fail this gate for a reason that is purely a wrong constant.
 
 ---
 

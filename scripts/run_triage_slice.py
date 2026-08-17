@@ -41,9 +41,9 @@ import argparse
 import hashlib
 import json
 import logging
-import math
 import sys
 from datetime import UTC, datetime
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -75,23 +75,36 @@ REASON_UNCORRECTED_PASS = "UNCORRECTED_PASS"     # A3 classified this as uncorre
 REASON_CORRECTED_PASS   = "CORRECTED_PASS"       # A3 classified this as corrected
 REASON_UNRESOLVED_PASS  = "UNRESOLVED_PASS"      # A3 could not classify
 
-# A3 correction status for the chosen observation, read from artifacts/a3_overlays/summary.json.
-# DO NOT infer from metadata — that field is null for both corrected and uncorrected.
-_A3_VERDICT_TABLE = {
-    14740031: "UNCORRECTED",
-    14745602: "CORRECTED",
-    14746118: "CORRECTED",
-    14746055: "UNCORRECTED",   # from summary: sigma_curved best sign -1 = uncorrected
-}
+A3_SUMMARY_PATH = _REPO_ROOT / "artifacts" / "a3_overlays" / "summary.json"
+
+
+@lru_cache(maxsize=1)
+def _a3_verdicts() -> dict[int, str]:
+    """A3's correction verdict per observation, read from its own artifact.
+
+    This used to be a hardcoded four-entry dict whose comment said it was read
+    from summary.json. It was not, and it had drifted: observation 14746055 was
+    listed UNCORRECTED while A3's artifact records CORRECTED for it. A table
+    transcribed by hand from an artifact is a second copy of that artifact, and
+    the copy is what goes stale.
+
+    The verdict cannot be inferred from metadata. A3 measured that
+    doppler-correction-per-sec is null and rigctl-port is 4532 on corrected and
+    uncorrected records alike, so the image is the only witness.
+    """
+    if not A3_SUMMARY_PATH.exists():
+        return {}
+    rows = json.loads(A3_SUMMARY_PATH.read_bytes())
+    return {
+        int(r["obs_id"]): str(r.get("verdict", "UNRESOLVED"))
+        for r in rows
+        if r.get("obs_id") is not None
+    }
 
 
 def _a3_correction_status(obs_id: int) -> str:
-    """Return A3's correction verdict for this observation.
-
-    Returns 'UNCORRECTED', 'CORRECTED', or 'UNRESOLVED'.
-    Read from the summary.json rather than inferred from metadata.
-    """
-    return _A3_VERDICT_TABLE.get(obs_id, "UNRESOLVED")
+    """Return A3's correction verdict: UNCORRECTED, CORRECTED or UNRESOLVED."""
+    return _a3_verdicts().get(obs_id, "UNRESOLVED")
 
 
 # ---------------------------------------------------------------------------
@@ -138,100 +151,138 @@ def _waterfall_path(snapshot_dir: Path, obs_id: int) -> Path:
 # Corridor intersection check
 # ---------------------------------------------------------------------------
 
-def _check_corridor_intersects(
+def _target_consistency(
+    a3_entry: dict[str, Any] | None,
+    a3_verdict: str,
+    physics_available: bool,
+) -> float | None:
+    """How well the trace matches the shape A3's verdict predicts, in [0, 1].
+
+    The shape depends on the verdict, and the original A7 version ignored that.
+    It computed ``min(1, sigma_curved / sigma_vertical)`` for every observation,
+    which is the right ratio only for an uncorrected pass. A corrected pass has
+    its Doppler removed at capture, so a strong VERTICAL trace is the evidence of
+    target consistency, and dividing by it inverts the axis. Measured over A3's
+    seven decisive observations, that scored all four corrected ones between
+    0.046 and 0.648 while saturating all three uncorrected ones at exactly 1.000.
+    Observation 14746048 carries a 37.0 sigma vertical trace, which is A3's own
+    basis for calling it corrected, and the old formula rated it 0.046, the least
+    target-consistent of the set.
+
+    The ratio is taken against the hypothesis the verdict selected, and mapped
+    through x / (1 + x) rather than clipped at 1.0, so a strong match keeps
+    resolution instead of saturating.
+    """
+    if not a3_entry or not physics_available:
+        return None
+    curved = float(a3_entry.get("sigma_curved") or 0.0)
+    vertical = float(a3_entry.get("sigma_vertical") or 0.0)
+
+    if a3_verdict == "UNCORRECTED":
+        signal, alternative = curved, vertical
+    elif a3_verdict == "CORRECTED":
+        signal, alternative = vertical, curved
+    else:
+        # No verdict means no predicted shape, so there is nothing to be
+        # consistent with. None is the honest value; 0.0 would read as "measured
+        # and inconsistent".
+        return None
+
+    if signal <= 0.0:
+        return 0.0
+    ratio = signal / max(alternative, 1.0)
+    return float(ratio / (1.0 + ratio))
+
+
+def _measure_corridor(
     a3_entry: dict[str, Any],
     physics_result,
     geom,
-) -> tuple[bool | None, float | None, str]:
-    """Determine whether the physics corridor intersects the detected trace.
+    rx_freq_hz: float | None,
+    wf_path: Path,
+) -> tuple[bool | None, float | None, str, dict[str, Any] | None]:
+    """Measure whether the corridor contains the trace, from the image.
 
-    Uses A3's measured trace location (sigma_curved, curved_offset_hz) and
-    the physics corridor's half_width_hz.
+    Replaces the original A7 check, which computed
+    ``trace_half_width_hz = 3 * hz_per_px / 2`` and compared it against the
+    corridor half-width. Both sides were constants: the left one a matched-filter
+    kernel width, the right one a hardcoded 1200 or 2000 Hz. Neither depended on
+    where the trace sat, so the check returned True for all seven of A3's
+    decisive observations and could not return False for any waterfall with a
+    normal axis scale. It also cited a "max deviation 140 Hz" that exists only as
+    a comment and a test literal, never as a measurement.
 
-    The A3 investigation measured the trace location on a corrected grid; for
-    the UNCORRECTED case, A3 fitted the curve and measured how well the trace
-    follows it (sigma_curved vs sigma_vertical).  The curved_offset_hz is the
-    offset of the trace's centre-of-mass from rx_freq along the frequency axis,
-    NOT from the predicted curve.  The residual_hz is the RMS scatter around
-    the curve.
-
-    For gate 3: the corridor half_width is the tolerance band around the
-    predicted curve.  The question is whether the detected trace falls within
-    that band.  A3 measured per-row deviations; the max deviation was 140 Hz
-    for obs 14740031 (39 rows scored).  The half_width is 2000 Hz.
-
-    Returns (intersects: bool|None, residual_hz: float|None, detail_str: str)
+    What happens here instead: fit the constant frequency offset within a
+    ppm-bounded range, locate the trace per image row, and compare the per-row
+    residual against the corridor half-width. A corrected corridor is identically
+    0 Hz, so it has no shape to confirm and comes back as a named degraded state
+    rather than a hit. Detail in ``pipeline/tracetriage/corridor_fit.py``, and the
+    cross-observation verdict in ``scripts/run_gate3.py``.
     """
-    if physics_result.degraded is not None:
-        return None, None, f"physics_degraded:{physics_result.degraded}"
+    import numpy as np  # noqa: PLC0415
+    from PIL import Image  # noqa: PLC0415
 
+    from pipeline.tracetriage.corridor_fit import (  # noqa: PLC0415
+        calibrate_against_nulls,
+        fit_corridor,
+        normalised_rows,
+    )
+
+    if physics_result.degraded is not None:
+        return None, None, f"physics_degraded:{physics_result.degraded}", None
     if geom is None or geom.degraded is not None:
-        return None, None, "geometry_degraded"
+        return None, None, "geometry_degraded", None
+    if rx_freq_hz is None:
+        return None, None, "no_rx_freq", None
 
     obs_id = a3_entry["obs_id"]
     a3_verdict = _a3_correction_status(obs_id)
-
-    # Pick the corridor that matches A3's verdict.
     if a3_verdict == "UNCORRECTED":
-        corridor = physics_result.uncorrected
-        half_w = corridor.half_width_hz
-        corridor_type = "uncorrected"
+        corridor, corridor_type = physics_result.uncorrected, "uncorrected"
     elif a3_verdict == "CORRECTED":
-        corridor = physics_result.corrected
-        half_w = corridor.half_width_hz
-        corridor_type = "corrected"
+        corridor, corridor_type = physics_result.corrected, "corrected"
     else:
-        return None, None, "unresolved_correction_status"
+        return None, None, "unresolved_correction_status", None
 
-    # A3 measured per-row residuals around the curve.  The maximum was 140 Hz
-    # for obs 14740031.  We report the curved_offset_hz (offset of trace
-    # centre-of-mass from rx_freq) but the intersection check is:
-    #   does the predicted curve come within half_w Hz of the trace at any row?
-    # Since A3 found sigma_curved=25.1 (the CURVE fits the trace), the answer
-    # is yes by definition — the trace follows the curve.  We report the
-    # maximum per-row deviation (from the A3 summary's stored maximum of 140 Hz
-    # for 14740031) against the half_width.
-    #
-    # A3 does not store per-row deviations in summary.json; it stores sigma
-    # scores.  We derive a conservative residual estimate from what is stored:
-    # sigma_curved is the matched-filter sigma.  A high sigma means the curve
-    # template fits tightly.  We report the per-unit pixel width as the
-    # residual proxy.
-    #
-    # For a direct Hz residual we use: the trace was found at sigma=25.1 for
-    # the best-fitting curve width of 3px.  At 123.76 Hz/px that is 3 * 123.76
-    # = 371 Hz.  The half-width of the CORRIDOR is 2000 Hz.
-    # Residual = trace_width_hz / 2 = 186 Hz (conservative trace half-extent).
-    # Corridor half_width = 2000 Hz >> 186 Hz → intersects.
-    #
-    # We also store the A3 curved_offset_hz as the frequency offset of the
-    # trace's centre-of-mass from rx_freq (not from the curve).
+    with Image.open(wf_path) as im:
+        rgb = np.asarray(im.convert("RGB"))
+    zs = normalised_rows(rgb, geom.crop_box)
 
-    hz_per_px = geom.hz_per_px or a3_entry["hz_per_px"]
-    # A3 used width=3px as the best matched-filter width for obs 14740031.
-    trace_half_width_hz = 3.0 * hz_per_px / 2.0
+    fit = fit_corridor(
+        zs, corridor, corridor_type,
+        geom.hz_per_px, geom.centre_px, rx_freq_hz, obs_id=obs_id,
+    )
+    cal = calibrate_against_nulls(
+        zs, corridor, geom.hz_per_px, geom.centre_px, rx_freq_hz,
+    )
 
-    # The residual is the half-extent of the trace relative to corridor half_w.
-    residual_hz = trace_half_width_hz
+    summary: dict[str, Any] = {
+        "fit": fit.summary(),
+        "null_calibration": cal.summary(),
+        "corridor_span_hz": float(
+            np.ptp(np.asarray(corridor.doppler_hz, dtype=float))
+        ),
+    }
 
-    # Intersection: the corridor half_width_hz contains the trace if
-    # trace_half_width_hz < half_w (the corridor is wider than the trace).
-    # More precisely: A3 fitted the predicted curve to the trace and found
-    # sigma_curved >> sigma_vertical, meaning the trace FOLLOWS the curve.
-    # By definition the curve falls within the corridor (it IS the centre of
-    # the corridor).  The question is whether the trace deviates from the
-    # curve by more than half_w Hz.  A3 measured max deviation 140 Hz; half_w
-    # is 2000 Hz (uncorrected).  So intersection is confirmed.
-    intersects = residual_hz < half_w
+    # The gate-3 answer for one observation is the null-calibrated verdict, not
+    # the per-row coverage: these traces integrate to significance along the path
+    # while individual rows stay under the detection floor.
+    if cal.discriminates is None:
+        detail = (
+            f"corridor_type={corridor_type} not_testable "
+            f"span={summary['corridor_span_hz']:.0f}Hz "
+            "(flat corridor predicts no shape)"
+        )
+        return None, fit.residual_p95_hz, detail, summary
 
     detail = (
         f"corridor_type={corridor_type} "
-        f"half_width_hz={half_w:.0f} "
-        f"trace_half_width_hz={residual_hz:.1f} "
-        f"sigma_curved={a3_entry['sigma_curved']:.1f} "
-        f"sigma_vertical={a3_entry['sigma_vertical']:.1f}"
+        f"offset={fit.fitted_offset_hz:,.0f}Hz "
+        f"({fit.fitted_offset_ppm:+.1f}ppm) "
+        f"sigma={cal.true_sigma:.2f} null_max={cal.null_max:.2f} "
+        f"p={cal.p_value:.4f}"
     )
-    return intersects, residual_hz, detail
+    return bool(cal.discriminates), fit.residual_p95_hz, detail, summary
 
 
 # ---------------------------------------------------------------------------
@@ -326,21 +377,32 @@ def main(argv: list[str] | None = None) -> int:
     artifact_usable = wf_path.exists()
     logger.info("Waterfall path: %s  exists=%s", wf_path, artifact_usable)
 
+    # ── 4. Physics corridor ──────────────────────────────────────────────────
+    logger.info("Computing physics corridor for obs %d", obs_id)
+    from pipeline.tracetriage.physics import corridor_for_obs, rx_freq_of  # noqa: PLC0415
+    phys = corridor_for_obs(raw_obs)
+    rx_freq_hz = rx_freq_of(raw_obs)
+
     geom = None
     wf_geometry_version = None
     if artifact_usable:
-        from pipeline.tracetriage.baseline import _geometry_of  # noqa: PLC0415
-        logger.info("Parsing waterfall geometry (OCR, cached after first call)…")
-        geom = _geometry_of(wf_path)
+        from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: PLC0415
+        logger.info("Parsing waterfall geometry (OCR)…")
+        # rx_freq_hz has to be passed. waterfall.py only attempts centre_px when a
+        # receiver frequency is supplied, and baseline._geometry_of omits it
+        # because the HOG baselines never need a centre. Reusing that helper here
+        # is why the original A7 slice held centre_px=None and could not have
+        # placed the corridor on the image even in principle.
+        geom = parse_waterfall(
+            wf_path,
+            observation_id=obs_id,
+            pass_duration_s=phys.pass_duration_s or 200.0,
+            rx_freq_hz=rx_freq_hz,
+        )
         wf_geometry_version = "0.2.2"
         if geom.degraded:
             logger.warning("Geometry parse degraded: %s", geom.degraded)
             artifact_usable = False
-
-    # ── 4. Physics corridor ──────────────────────────────────────────────────
-    logger.info("Computing physics corridor for obs %d", obs_id)
-    from pipeline.tracetriage.physics import corridor_for_obs  # noqa: PLC0415
-    phys = corridor_for_obs(raw_obs)
     physics_available = phys.degraded is None
     if not physics_available:
         logger.warning("Physics degraded: %s", phys.degraded)
@@ -368,8 +430,10 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     # ── 6. Corridor intersection ──────────────────────────────────────────────
-    intersects, residual_hz, corridor_detail = _check_corridor_intersects(
-        a3_entry, phys, geom if artifact_usable else None
+    intersects, residual_hz, corridor_detail, corridor_fit_summary = (
+        _measure_corridor(
+            a3_entry, phys, geom if artifact_usable else None, rx_freq_hz, wf_path,
+        )
     )
     logger.info(
         "Corridor intersection: %s  residual_hz=%s  (%s)",
@@ -384,7 +448,10 @@ def main(argv: list[str] | None = None) -> int:
         logger.info("HOG-LR calibrated_probability: %s", calibrated_prob)
 
     # ── 8. Provenance ─────────────────────────────────────────────────────────
-    from pipeline.tracetriage.provenance import label_from_obs, to_receipt_provenance  # noqa: PLC0415
+    from pipeline.tracetriage.provenance import (  # noqa: PLC0415
+        label_from_obs,
+        to_receipt_provenance,
+    )
 
     # Adapt manifest entry shape for provenance (label_from_obs reads 'waterfall' key)
     prov_obs = {
@@ -431,9 +498,11 @@ def main(argv: list[str] | None = None) -> int:
     api_label = manifest_entry.get("waterfall_status")
     if calibrated_prob is not None:
         # LABEL_CONFLICT: model says <0.5 but label is with-signal, or vice-versa
-        if api_label == "with-signal" and calibrated_prob < 0.5:
-            reason_codes.append(REASON_LABEL_CONFLICT)
-        elif api_label == "without-signal" and calibrated_prob >= 0.5:
+        model_says_signal = calibrated_prob >= 0.5
+        label_says_signal = api_label == "with-signal"
+        if api_label in ("with-signal", "without-signal") and (
+            model_says_signal != label_says_signal
+        ):
             reason_codes.append(REASON_LABEL_CONFLICT)
 
     # ── 10. Decision ──────────────────────────────────────────────────────────
@@ -443,10 +512,7 @@ def main(argv: list[str] | None = None) -> int:
     if not artifact_usable and not physics_available:
         decision = "abstain"
         abstention_reason = "Both artifact and physics unavailable"
-    elif intersects is False:
-        decision = "flag_for_review"
-        abstention_reason = None
-    elif REASON_LABEL_CONFLICT in reason_codes:
+    elif intersects is False or REASON_LABEL_CONFLICT in reason_codes:
         decision = "flag_for_review"
         abstention_reason = None
     elif calibrated_prob is not None and calibrated_prob >= 0.5 and api_label == "with-signal":
@@ -465,31 +531,41 @@ def main(argv: list[str] | None = None) -> int:
         abstention_reason = None
 
     # ── 11. Assemble receipt ──────────────────────────────────────────────────
-    # model_checksum: SHA-256 of BASELINE_RECEIPT.json (identifies the model run)
-    baseline_path = Path("artifacts/BASELINE_RECEIPT.json")
-    if baseline_path.exists():
-        model_checksum = hashlib.sha256(baseline_path.read_bytes()).hexdigest()
+    # model_checksum is the SHA-256 of the model that actually produced the
+    # score, artifacts/hoglr_model.pkl.
+    #
+    # It used to hash artifacts/BASELINE_RECEIPT.json instead. That file is
+    # metrics and metadata, not the model, so the checksum stayed identical when
+    # the pickle was swapped and changed when it was not: BASELINE_RECEIPT.json
+    # carries a wall-clock generated_at, so commit ff2b871 moved the checksum
+    # without touching the model. The path was also relative, so running from any
+    # other directory silently produced the "00" * 32 fallback, which is a
+    # well-formed 64-character hex string that reads like a real hash in a
+    # provenance field. A missing model is now a named degraded state.
+    model_path = _REPO_ROOT / "artifacts" / "hoglr_model.pkl"
+    if model_path.exists():
+        model_checksum = hashlib.sha256(model_path.read_bytes()).hexdigest()
+        model_checksum_source = "artifacts/hoglr_model.pkl"
     else:
-        model_checksum = "00" * 32  # placeholder if receipt not found
+        model_checksum = None
+        model_checksum_source = "MODEL_ARTIFACT_MISSING"
 
     receipt: dict[str, Any] = {
         "observation_id":   obs_id,
         "snapshot_id":      manifest.get("snapshot_id", "snap-stage1"),
         "model_checksum":   model_checksum,
+        "model_checksum_source": model_checksum_source,
         "generated_at":     datetime.now(UTC).isoformat(),
         "evidence": {
             "artifact_usable":          artifact_usable,
             "physics_available":        physics_available,
             "visible_signal":           calibrated_prob,
-            "target_consistency":       (
-                float(min(
-                    1.0,
-                    a3_entry["sigma_curved"] / max(a3_entry["sigma_vertical"], 1.0)
-                ))
-                if a3_entry and physics_available else None
+            "target_consistency":       _target_consistency(
+                a3_entry, _a3_correction_status(obs_id), physics_available,
             ),
             "residual_hz":              residual_hz,
             "corridor_intersects_trace": intersects,
+            "corridor_measurement":     corridor_fit_summary,
             "waterfall_geometry_version": wf_geometry_version,
         },
         "scores": {
@@ -534,7 +610,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  Max elevation:      {phys.uncorrected.max_elevation_deg:.1f}°")
         swing = max(phys.uncorrected.doppler_hz) - min(phys.uncorrected.doppler_hz)
         print(f"  Doppler swing:      {swing:.0f} Hz")
-    print(f"  Waterfall geometry: {wf_geometry_version}  degraded={geom.degraded if geom else 'n/a'}")
+    geom_degraded = geom.degraded if geom else "n/a"
+    print(f"  Waterfall geometry: {wf_geometry_version}  degraded={geom_degraded}")
     if geom and geom.hz_per_px:
         print(f"  Hz/px:              {geom.hz_per_px:.3f}")
     print(f"  Corridor intersects:{intersects}  residual_hz={residual_hz}")

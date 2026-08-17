@@ -1,15 +1,56 @@
 {
   "observation_id": 14740031,
   "snapshot_id": "snap-20260817-stage1",
-  "model_checksum": "e0912b1454763c14b40b59e68f406cfd49fe051692dd4f2a044d6ad59f748df9",
-  "generated_at": "2026-08-17T11:44:51.593129+00:00",
+  "model_checksum": "e669ebca7ddaefd6461100d62b0a697dc4bb0ca5712abba4fc8f314a07681995",
+  "model_checksum_source": "artifacts/hoglr_model.pkl",
+  "generated_at": "2026-08-17T12:58:59.680027+00:00",
   "evidence": {
     "artifact_usable": true,
     "physics_available": true,
     "visible_signal": 0.7040618874062344,
-    "target_consistency": 1.0,
-    "residual_hz": 185.64356435643566,
+    "target_consistency": 0.8987577450041221,
+    "residual_hz": null,
     "corridor_intersects_trace": true,
+    "corridor_measurement": {
+      "fit": {
+        "obs_id": 14740031,
+        "corridor_type": "uncorrected",
+        "degraded": "TRACE_NOT_MEASURABLE",
+        "fitted_offset_hz": 13985.148514851486,
+        "fitted_offset_ppm": 32.04662812752402,
+        "offset_bound_hz": 21820.0,
+        "offset_at_bound": false,
+        "rows_total": 1532,
+        "rows_detected": 32,
+        "detect_frac": 0.020887728459530026,
+        "residual_p50_hz": null,
+        "residual_p95_hz": null,
+        "residual_max_hz": null,
+        "half_width_hz": 2000.0,
+        "coverage": null,
+        "corridor_hit": null,
+        "sigma_at_fit": 2.024118067271594
+      },
+      "null_calibration": {
+        "n_nulls": 200,
+        "true_sigma": 2.024118067271594,
+        "null_median": 0.5452081886057966,
+        "null_p95": 0.5572527889760011,
+        "null_max": 0.571026299657005,
+        "n_at_least": 0,
+        "p_value": 0.004975124378109453,
+        "margin_over_best_null": 1.4530917676145891,
+        "scaled_swing_sigmas": {
+          "0.25x": 0.6479826955784974,
+          "0.5x": 0.743859216204835,
+          "2x": 0.6237346305688996,
+          "4x": 0.3063157681414943
+        },
+        "beats_scaled_swing": true,
+        "discriminates": true
+      },
+      "corridor_span_hz": 17289.651679120747
+    },
     "waterfall_geometry_version": "0.2.2"
   },
   "scores": {

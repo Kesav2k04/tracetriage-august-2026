@@ -36,6 +36,7 @@ import json
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
 logging.basicConfig(
     level=logging.INFO,
@@ -80,7 +81,11 @@ def _render_corridor_overlay(
         logger.warning("matplotlib/PIL not available for overlay: %s", exc)
         return ""
 
-    from pipeline.tracetriage.physics import corridor_for_obs, corridor_columns, AXIS_SIGN_CONVENTION  # noqa: PLC0415
+    from pipeline.tracetriage.physics import (  # noqa: PLC0415
+        AXIS_SIGN_CONVENTION,
+        corridor_columns,
+        corridor_for_obs,
+    )
 
     phys = corridor_for_obs(raw_obs)
     if phys.degraded:
@@ -260,11 +265,41 @@ def render_card(
 
     intersects = ev.get("corridor_intersects_trace")
     intersects_str = "✓ YES" if intersects is True else ("✗ NO" if intersects is False else "—")
-    intersects_colour = "#1a9e5c" if intersects is True else ("#c0392b" if intersects is False else "#888")
+    intersects_colour = (
+        "#1a9e5c" if intersects is True
+        else "#c0392b" if intersects is False
+        else "#888"
+    )
 
     prob = sc.get("calibrated_probability")
     prob_str = f"{prob:.3f}" if prob is not None else "—"
     prob_bar = int((prob or 0) * 100)
+
+    # Formatted once here rather than inline in the template. These were written
+    # as `value and f"..." or "—"`, which renders a legitimate 0.0 as the absent
+    # placeholder, because 0.0 is falsy. An evidence axis reading exactly zero is
+    # a real measurement and has to be distinguishable from a missing one.
+    def _num(value: Any, fmt: str) -> str:
+        return format(value, fmt) if isinstance(value, (int, float)) else "—"
+
+    corridor_shape_label = (
+        "Uncorrected (S-curve)" if a3_verdict == "UNCORRECTED"
+        else "Corrected (near-vertical)" if a3_verdict == "CORRECTED"
+        else "Unresolved"
+    )
+    sigma_curved_txt = _num(sigma_curved, ".1f")
+    sigma_vertical_txt = _num(sigma_vertical, ".1f")
+    target_consistency_txt = _num(ev.get("target_consistency"), ".3f")
+    curved_offset_txt = (
+        f"{a3_entry['curved_offset_hz']:+.0f} Hz"
+        if isinstance(a3_entry.get("curved_offset_hz"), (int, float)) else "—"
+    )
+    predicted_swing_txt = (
+        f"{a3_entry['predicted_swing_hz']:.0f} Hz"
+        if isinstance(a3_entry.get("predicted_swing_hz"), (int, float)) else "—"
+    )
+    source_url = pr.get("source_url", "")
+    source_url_txt = source_url or "—"
 
     decision_colour = {
         "flag_for_review": "#c0392b",
@@ -281,7 +316,8 @@ def render_card(
         overlay_section = f'''
         <div class="section">
           <h2>Corridor overlay</h2>
-          <img src="{overlay_uri}" style="max-width:100%;border:1px solid #ddd;" alt="Corridor overlay">
+          <img src="{overlay_uri}" style="max-width:100%;border:1px solid #ddd;"
+               alt="Corridor overlay">
           <p class="caption">Orange fill: ±2000 Hz Doppler corridor. Orange line: predicted S-curve.
           Yellow dotted: A3 trace centre-of-mass. Time runs bottom→top (row 0 = pass end).</p>
         </div>'''
@@ -291,7 +327,8 @@ def render_card(
         wf_section = f'''
         <div class="section">
           <h2>Waterfall (raw)</h2>
-          <img src="{wf_data_uri}" style="max-width:100%;border:1px solid #ddd;" alt="Waterfall {obs_id}">
+          <img src="{wf_data_uri}" style="max-width:100%;border:1px solid #ddd;"
+               alt="Waterfall {obs_id}">
         </div>'''
 
     return f"""<!DOCTYPE html>
@@ -304,7 +341,8 @@ def render_card(
           font-size: 14px; line-height: 1.6; background: #f7f8fa;
           color: #1f2328; margin: 0; padding: 0; }}
   .container {{ max-width: 900px; margin: 0 auto; padding: 24px 20px; }}
-  h1 {{ font-size: 18px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px; }}
+  h1 {{ font-size: 18px; border-bottom: 2px solid #e5e7eb;
+       padding-bottom: 8px; margin-bottom: 16px; }}
   h2 {{ font-size: 13px; font-weight: 600; color: #57606a; text-transform: uppercase;
         letter-spacing: 0.04em; margin: 24px 0 8px; }}
   .section {{ background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
@@ -360,7 +398,7 @@ def render_card(
       <p class="gate3-result">{intersects_str}</p>
       <div class="row">
         <span class="label">Corridor type</span>
-        <span class="value">{"Uncorrected (S-curve)" if a3_verdict == "UNCORRECTED" else "Corrected (near-vertical)"}</span>
+        <span class="value">{corridor_shape_label}</span>
       </div>
       <div class="row">
         <span class="label">Half-width</span>
@@ -372,7 +410,7 @@ def render_card(
       </div>
       <div class="row">
         <span class="label">A3 sigma (curved vs vertical)</span>
-        <span class="value">{f"{sigma_curved:.1f}" if isinstance(sigma_curved,float) else sigma_curved} vs {f"{sigma_vertical:.1f}" if isinstance(sigma_vertical,float) else sigma_vertical}</span>
+        <span class="value">{sigma_curved_txt} vs {sigma_vertical_txt}</span>
       </div>
       <div class="row">
         <span class="label">A3 verdict</span>
@@ -389,7 +427,7 @@ def render_card(
       <div class="prob-bar-bg"><div class="prob-bar-fill"></div></div>
       <div class="row" style="margin-top:8px;">
         <span class="label">Target consistency</span>
-        <span class="value">{ev.get("target_consistency") and f"{ev['target_consistency']:.3f}" or "—"}</span>
+        <span class="value">{target_consistency_txt}</span>
       </div>
       <div class="row">
         <span class="label">Artifact usable</span>
@@ -415,11 +453,11 @@ def render_card(
     </div>
     <div class="row">
       <span class="label">Trace offset from rx_freq (curved_offset_hz)</span>
-      <span class="value">{a3_entry.get("curved_offset_hz", "—") and f"{a3_entry['curved_offset_hz']:+.0f} Hz"}</span>
+      <span class="value">{curved_offset_txt}</span>
     </div>
     <div class="row">
       <span class="label">Predicted Doppler swing</span>
-      <span class="value">{a3_entry.get("predicted_swing_hz","—") and f"{a3_entry['predicted_swing_hz']:.0f} Hz"}</span>
+      <span class="value">{predicted_swing_txt}</span>
     </div>
   </div>
 
@@ -427,7 +465,7 @@ def render_card(
     <h2>Provenance</h2>
     <div class="row">
       <span class="label">Source</span>
-      <span class="value"><a href="{pr.get("source_url","")}" class="mono">{pr.get("source_url","—")}</a></span>
+      <span class="value"><a href="{source_url}" class="mono">{source_url_txt}</a></span>
     </div>
     <div class="row">
       <span class="label">Retrieved at</span>
