@@ -341,6 +341,65 @@ with a displacement whenever it would have blocked an entry, even where another 
 would also have blocked it, so that result is a property of the data and not of the
 order the caps are checked in.
 
+### Active-selection replay against every baseline, measured 2026-08-18 in C4
+
+Gate 6 asks only whether the queue beats random. A queue that beats random and
+loses to FIFO has not earned a reviewer's attention, because FIFO is what a
+reviewer already does. Every ordering is replayed over the same resampled
+populations, paired within each draw: one draw produces one synthetic population
+and all four orderings are scored on it before the next draw. Each ordering is
+re-sorted by its own rank inside the draw, because an ordering's top 50 in a
+resampled population is not the same set as its top 50 in the original.
+
+Random is not carried as an ordering. FIFO here is observation-id order, so
+carrying random separately would report the same comparison twice under two names;
+random enters through its expectation.
+
+**Conflicts found at budget 50, with each ordering's lift over random:**
+
+| Split | Review-value queue | Image uncertainty | FIFO | Physics-only |
+|---|---|---|---|---|
+| chronological | 20 (1.582) | 15 (1.186) | 14 (1.107) | 13 (1.028) |
+| cold_station | 27 (2.253) | 16 (1.335) | 16 (1.335) | 19 (1.586) |
+| cold_transmitter | 34 (1.656) | 24 (1.169) | 21 (1.023) | 22 (1.072) |
+| cold_combined | 17 (1.292) | 10 (0.760) | 15 (1.140) | 9 (0.684) |
+
+The tested statistic is the difference in conflicts found at the same budget, not
+the ratio. A difference is defined in every draw, including draws where a baseline
+finds nothing, and its null is exactly zero. The ratio is reported beside it with
+a continuity correction of +0.5 on both terms applied in every draw rather than
+only where the denominator is zero, because a correction applied selectively
+changes the estimator between draws.
+
+**A baseline counts as beaten only when the Bonferroni-widened interval excludes
+zero under both the episode and the station resample, and both groupings agree.**
+Same principle as the governing interval: where two defensible groupings exist,
+the conservative reading governs, and a disagreement is reported as not
+established with both directions named rather than resolved in favour of the
+answer that helps.
+
+| Split | vs FIFO | vs image uncertainty | vs physics-only |
+|---|---|---|---|
+| chronological | +6, not established | +5, not established | +7, **beaten** |
+| cold_station | +11, **beaten** | +11, not established | +8, not established |
+| cold_transmitter | +13, **beaten** | +10, not established | +12, **beaten** |
+| cold_combined | +2, not established | +7, not established | +8, **beaten** |
+
+**The limitation this exposes, stated plainly.** The queue is never established as
+better than image-uncertainty ordering, on any split, under the both-groupings
+standard. It leads on the point estimate every time, by 5 to 11 conflicts, and on
+three of four splits the episode-grouped interval alone survives correction, but
+the station-clustered interval does not. Image uncertainty is the closest
+competitor and it is nearly free: it needs the shipped arm's probability and
+nothing else. So the defensible claim from C4 is that the queue beats a physics
+ordering and beats what a reviewer does today, and that its advantage over sorting
+by the model's own uncertainty is real in point estimate and not established at
+this sample size.
+
+The queue does not lose to any baseline on any split under either grouping. That
+matters because a loss was representable: `baseline_better` is a reachable state
+tested by a constructed case, and survival is tested in both directions.
+
 **Episode deduplication is nearly inert here, and the count is reported for the
 same reason.** It removed 3, 0, 1 and 5 observations across the four splits,
 because pass episodes hold 1.004 observations each on this corpus and only 8 of

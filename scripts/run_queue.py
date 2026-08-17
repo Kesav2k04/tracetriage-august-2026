@@ -49,6 +49,8 @@ from pipeline.tracetriage.queue import (  # noqa: E402
     baseline_image_uncertainty,
     baseline_physics_only,
     classify_reasons,
+    combine_replays,
+    compare_orderings,
     composite_score,
     compute_lift,
     deduplicate_by_episode,
@@ -567,6 +569,42 @@ def build_split_queue(
             seed=seed,
             threshold=GATE6_THRESHOLD,
         )
+        # C4: the four-baseline replay, paired within each draw, under both
+        # groupings. Gate 6 asks only about random; a queue that beats random and
+        # loses to FIFO has not earned a reviewer's attention, because FIFO is
+        # what a reviewer already does.
+        replay_orderings = {
+            "queue": queue_decisive,
+            "random": sorted(decisive_ranked),
+            "fifo": fifo_order,
+            "image_uncertainty": img_order,
+            "physics_only": phys_order,
+        }
+        # "random" as an ordering is obs-id order, which is FIFO by another name,
+        # so it is dropped from the ordering set and handled by its expectation.
+        # Keeping it would report the same comparison twice under two names.
+        del replay_orderings["random"]
+        gate6_result["replay_episode"] = compare_orderings(
+            replay_orderings,
+            decisive_conflict_flags,
+            decisive_episode_of,
+            decisive_budget,
+            n_boot=n_boot,
+            seed=seed,
+        )
+        gate6_result["replay_station"] = compare_orderings(
+            replay_orderings,
+            decisive_conflict_flags,
+            decisive_station_of,
+            decisive_budget,
+            n_boot=n_boot,
+            seed=seed,
+        )
+
+        gate6_result["replay_conclusion"] = combine_replays(
+            gate6_result["replay_episode"], gate6_result["replay_station"]
+        )
+
         gate6_result["uncapped_reference"] = {
             "lift_point": uncapped.lift_point,
             "lift_ci95_episode": uncapped.ci95,

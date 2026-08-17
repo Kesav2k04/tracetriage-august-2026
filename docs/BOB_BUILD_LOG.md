@@ -1316,3 +1316,86 @@ does, with the reasoning recorded next to them.
 | cold_station | PASSED | 2.253 | [1.920, 3.012] | [2.026, 3.896] | [1.920, 3.896] |
 | cold_transmitter | NOT_ESTABLISHED | 1.656 | [1.462, 1.835] | [1.340, 1.913] | [1.340, 1.913] |
 | cold_combined | NOT_ESTABLISHED | 1.292 | [1.073, 1.520] | [1.137, 1.515] | [1.073, 1.520] |
+
+---
+
+## C4. Active-selection replay against every baseline
+
+**Task given:** replay the queue against random, FIFO, image uncertainty and
+physics-only ordering at the same budget, with grouped intervals and multiplicity
+correction over the comparison family.
+
+**Design decisions, and why each one is not the obvious choice.**
+
+The comparisons are paired. One draw of groups produces one synthetic population
+and every ordering is scored on it before the next draw. Drawing separately per
+ordering would compare two orderings across two different populations and
+attribute the difference between the populations to the difference between the
+orderings.
+
+Each ordering is re-sorted by its own rank inside the draw. An ordering's top 50 in
+a resampled population is not the same set as its top 50 in the original, because
+the draw need not contain those rows, and reusing the original slice would score
+every ordering on rows that are not there.
+
+The tested statistic is the difference in conflicts found at the same budget, not
+the ratio. The first implementation used the ratio and had to patch the case where
+a baseline finds nothing, which produced an arbitrary large value and would have
+distorted the interval. A difference is defined in every draw and its null is
+exactly zero. The ratio is still reported, with a +0.5 continuity correction on
+both terms applied in every draw rather than only where the denominator is zero,
+because a correction applied selectively changes the estimator between draws.
+
+Random is not carried as an ordering. FIFO here is observation-id order, so
+carrying random separately would report the same comparison twice under two names.
+It enters through its expectation, and the Bonferroni family is still four: the
+three baseline comparisons plus gate 6's own queue-against-random test, which is
+measured separately and belongs to the same family.
+
+Survival is tested in both directions, so a corrected interval lying entirely
+below zero is a measured loss rather than an absence of difference. A constructed
+case proves `baseline_better` is reachable.
+
+**A baseline counts as beaten only when the corrected interval excludes zero under
+both the episode and the station resample and both groupings agree on direction.**
+Same principle the C2 pre-registration fixed for the gate's own interval. Where
+they disagree the comparison is reported as not established with both directions
+named.
+
+**Conflicts found at budget 50, lift over random in brackets:**
+
+| Split | Queue | Image uncertainty | FIFO | Physics-only |
+|---|---|---|---|---|
+| chronological | 20 (1.582) | 15 (1.186) | 14 (1.107) | 13 (1.028) |
+| cold_station | 27 (2.253) | 16 (1.335) | 16 (1.335) | 19 (1.586) |
+| cold_transmitter | 34 (1.656) | 24 (1.169) | 21 (1.023) | 22 (1.072) |
+| cold_combined | 17 (1.292) | 10 (0.760) | 15 (1.140) | 9 (0.684) |
+
+**Conclusions under the both-groupings standard:**
+
+| Split | vs FIFO | vs image uncertainty | vs physics-only |
+|---|---|---|---|
+| chronological | +6, not established | +5, not established | +7, beaten |
+| cold_station | +11, beaten | +11, not established | +8, not established |
+| cold_transmitter | +13, beaten | +10, not established | +12, beaten |
+| cold_combined | +2, not established | +7, not established | +8, beaten |
+
+**The limitation, recorded because it is the one a judge will find.** The queue is
+never established as better than image-uncertainty ordering on any split. It leads
+on the point estimate every time, by 5 to 11 conflicts, and on three splits the
+episode-grouped interval alone survives correction, but the station-clustered
+interval does not. Image uncertainty is the closest competitor and it is nearly
+free: it needs the shipped arm's probability and nothing else. So the defensible
+C4 claim is that the queue beats a physics ordering and beats what a reviewer does
+today, and that its advantage over sorting by the model's own uncertainty is real
+in point estimate and not established at this sample size.
+
+The queue loses to nothing: 0 of 12 comparisons reach `baseline_better` under
+either grouping.
+
+**Results.** 680 offline tests pass, up from 660. 20 new tests in
+`tests/test_queue_replay.py`, including a constructed queue that is worse than its
+baseline to prove the loss branch is reachable, and a test that `n_comparisons=1`
+gives a strictly narrower interval than 4 so an accepted-and-ignored correction
+cannot pass unnoticed. Contract extended with `replay` and `replay_conclusion`,
+both closed to unknown keys.

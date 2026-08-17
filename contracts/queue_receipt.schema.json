@@ -180,6 +180,109 @@
     }
   },
   "$defs": {
+    "replay": {
+      "type": "object",
+      "required": ["measurable", "orderings", "comparisons"],
+      "additionalProperties": false,
+      "description": "Active-selection replay of every ordering over the same resampled populations. The comparisons are paired: one draw produces one synthetic population and every ordering is scored on it before the next draw, because drawing separately per ordering would attribute the difference between two populations to the difference between two orderings.",
+      "properties": {
+        "measurable": { "type": "boolean" },
+        "reason": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+        "queue_name": { "type": "string" },
+        "budget": { "type": "integer", "minimum": 0 },
+        "n_population": { "type": "integer", "minimum": 0 },
+        "n_total_conflicts": { "type": "integer", "minimum": 0 },
+        "random_expected_conflicts": { "type": "number", "minimum": 0 },
+        "n_groups": { "type": "integer", "minimum": 0 },
+        "n_boot": { "type": "integer", "minimum": 0 },
+        "n_degenerate_resamples": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Draws containing no conflict, where every ordering finds zero and no comparison is defined. Counted rather than silently skipped, because dropping them conditions the interval."
+        },
+        "seed": { "type": "integer" },
+        "note": { "type": "string", "minLength": 40 },
+        "orderings": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["n_conflicts_at_budget", "lift_over_random", "measurable"],
+            "additionalProperties": false,
+            "properties": {
+              "n_conflicts_at_budget": { "type": "integer", "minimum": 0 },
+              "lift_over_random": { "type": "number" },
+              "lift_ci95": {
+                "oneOf": [
+                  { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                  { "type": "null" }
+                ]
+              },
+              "measurable": { "type": "boolean" },
+              "reason": { "oneOf": [{ "type": "string" }, { "type": "null" }] }
+            }
+          }
+        },
+        "comparisons": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["measurable", "direction", "n_comparisons"],
+            "additionalProperties": false,
+            "properties": {
+              "measurable": { "type": "boolean" },
+              "reason": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+              "diff_point": {
+                "oneOf": [{ "type": "number" }, { "type": "null" }],
+                "description": "Conflicts found by the queue minus conflicts found by the baseline at the same budget. The tested statistic: defined in every draw including those where a baseline finds nothing, with a null of exactly 0."
+              },
+              "diff_ci95": {
+                "oneOf": [
+                  { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                  { "type": "null" }
+                ]
+              },
+              "diff_ci_adjusted": {
+                "oneOf": [
+                  { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                  { "type": "null" }
+                ],
+                "description": "Bonferroni-widened over n_comparisons."
+              },
+              "diff_median": { "oneOf": [{ "type": "number" }, { "type": "null" }] },
+              "ratio_point": {
+                "oneOf": [{ "type": "number" }, { "type": "null" }],
+                "description": "The same comparison on a ratio scale, with a +0.5 continuity correction on both terms applied in every draw rather than only where the denominator is zero, so the estimator does not change between draws."
+              },
+              "ratio_ci95": {
+                "oneOf": [
+                  { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                  { "type": "null" }
+                ]
+              },
+              "ratio_ci_adjusted": {
+                "oneOf": [
+                  { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                  { "type": "null" }
+                ]
+              },
+              "direction": {
+                "type": "string",
+                "enum": ["queue_better", "baseline_better", "indistinguishable", "unmeasurable"],
+                "description": "Four states. baseline_better must be representable: a one-sided survival test is what left an ablation rule's DROP branch as dead code in Wave B."
+              },
+              "survives_correction": {
+                "oneOf": [{ "type": "boolean" }, { "type": "null" }],
+                "description": "Whether the Bonferroni-widened interval excludes the null in either direction. True for a corrected loss as well as a corrected win."
+              },
+              "n_comparisons": { "type": "integer", "minimum": 1 },
+              "adjusted_confidence": { "type": "number" },
+              "n_effective": { "type": "integer", "minimum": 0 },
+              "statistic": { "type": "string", "minLength": 40 }
+            }
+          }
+        }
+      }
+    },
     "clustering": {
       "type": "object",
       "required": ["measurable", "n_groups", "n_observations"],
@@ -448,6 +551,70 @@
         },
         "station_clustering": {
           "oneOf": [{ "$ref": "#/$defs/clustering" }, { "type": "null" }]
+        },
+        "replay_episode": {
+          "oneOf": [{ "$ref": "#/$defs/replay" }, { "type": "null" }],
+          "description": "Four-baseline replay with pass episodes as the resampling unit."
+        },
+        "replay_station": {
+          "oneOf": [{ "$ref": "#/$defs/replay" }, { "type": "null" }],
+          "description": "The same replay with ground stations as the resampling unit, which subsumes the episode grouping."
+        },
+        "replay_conclusion": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["measurable", "baselines"],
+              "additionalProperties": false,
+              "description": "One conclusion per baseline, requiring both groupings to survive correction and agree. Where they disagree the comparison is not_established with both directions named, because a disagreement between two defensible groupings is a real state rather than a reason to pick one.",
+              "properties": {
+                "measurable": { "type": "boolean" },
+                "reason": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+                "n_baselines": { "type": "integer", "minimum": 0 },
+                "n_beaten_under_both_groupings": { "type": "integer", "minimum": 0 },
+                "beaten": { "type": "array", "items": { "type": "string" } },
+                "lost_to": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Baselines that beat the queue under both groupings. Present so a loss is representable rather than absent by construction."
+                },
+                "rule": { "type": "string", "minLength": 40 },
+                "baselines": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "required": ["claim"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "claim": {
+                        "type": "string",
+                        "enum": ["queue_better", "baseline_better", "not_established", "not_measurable"]
+                      },
+                      "direction_episode": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+                      "direction_station": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+                      "survives_correction_episode": { "oneOf": [{ "type": "boolean" }, { "type": "null" }] },
+                      "survives_correction_station": { "oneOf": [{ "type": "boolean" }, { "type": "null" }] },
+                      "diff_point": { "oneOf": [{ "type": "number" }, { "type": "null" }] },
+                      "diff_ci_adjusted_episode": {
+                        "oneOf": [
+                          { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                          { "type": "null" }
+                        ]
+                      },
+                      "diff_ci_adjusted_station": {
+                        "oneOf": [
+                          { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                          { "type": "null" }
+                        ]
+                      },
+                      "reason": { "oneOf": [{ "type": "string" }, { "type": "null" }] }
+                    }
+                  }
+                }
+              }
+            },
+            { "type": "null" }
+          ]
         },
         "uncapped_reference": {
           "oneOf": [

@@ -35,6 +35,10 @@ updating the README without regenerating the receipt fails CI.
 | Conflicts cluster by ground station | ICC 0.0887 / 0.0784 / 0.1347 / 0.0909, design effects 1.132 to 1.552 | KILL_GATE.md, C2_PREREGISTRATION.md | `artifacts/QUEUE_RECEIPT.json` station_clustering | C2 | 2026-08-18 |
 | Cost of entity-concentration control | cold_station: 40 displaced, 36 conflicts to 27, lift 3.005 to 2.253, still PASSED | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` uncapped_reference | C2 | 2026-08-18 |
 | Transmitter cap is inert on this corpus | 0 displaced on all four splits, under non-exclusive attribution | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` concentration | C2 | 2026-08-18 |
+| Baselines beaten under both groupings | chronological: physics-only. cold_station: FIFO. cold_transmitter: FIFO and physics-only. cold_combined: physics-only | KILL_GATE.md C4 section | `artifacts/QUEUE_RECEIPT.json` replay_conclusion | C4 | 2026-08-18 |
+| Queue never beats image-uncertainty ordering under the both-groupings standard | leads by +5 to +11 conflicts on every split, not established on any | KILL_GATE.md C4 section | `artifacts/QUEUE_RECEIPT.json` replay_conclusion | C4 | 2026-08-18 |
+| Queue never loses to any baseline | 0 of 12 comparisons reach baseline_better under either grouping | KILL_GATE.md C4 section | `artifacts/QUEUE_RECEIPT.json` replay_conclusion | C4 | 2026-08-18 |
+| Conflicts found at budget 50 (chronological) | queue 20, image uncertainty 15, FIFO 14, physics-only 13 | KILL_GATE.md C4 section | `artifacts/QUEUE_RECEIPT.json` replay_episode | C4 | 2026-08-18 |
 | Superseded: gate 6 CI published in C1 | [1.00, 1.20] was a resample artefact, not a measurement | KILL_GATE.md failure log | reproduced at [1.0000, 1.2200] from the old loop | C2 | 2026-08-18 |
 
 ## Pre-registered limits

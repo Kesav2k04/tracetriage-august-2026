@@ -579,6 +579,105 @@ class LiftResult:
         }
 
 
+def combine_replays(
+    replay_episode: dict[str, Any],
+    replay_station: dict[str, Any],
+) -> dict[str, Any]:
+    """One conclusion per baseline, requiring both groupings to agree.
+
+    The same principle the C2 pre-registration fixed for the gate's own interval,
+    applied to the baseline comparisons: where two defensible groupings are
+    available, the conservative reading governs. A comparison is claimed only when
+    the Bonferroni-widened interval excludes the null under **both** the episode
+    and the station resample. Claiming a comparison that survives under whichever
+    grouping happens to support it is the same failure as quoting whichever
+    interval clears the threshold.
+
+    A disagreement between the two groupings is not discarded. It is reported as
+    ``not_established`` with both directions named, because "the finer grouping
+    said yes and the coarser said no" is a real state and folding it into either
+    answer hides it.
+    """
+    if not (replay_episode.get("measurable") and replay_station.get("measurable")):
+        return {
+            "measurable": False,
+            "reason": (
+                "A combined conclusion needs both groupings measured. Episode: "
+                f"{replay_episode.get('reason') or 'measured'}. Station: "
+                f"{replay_station.get('reason') or 'measured'}."
+            ),
+            "baselines": {},
+        }
+
+    ep = replay_episode["comparisons"]
+    st = replay_station["comparisons"]
+    baselines: dict[str, Any] = {}
+    for name in sorted(set(ep) | set(st)):
+        e, s = ep.get(name), st.get(name)
+        if e is None or s is None:
+            baselines[name] = {
+                "claim": "not_measurable",
+                "reason": (
+                    f"Baseline {name!r} was compared under only one grouping, so "
+                    f"the two cannot be required to agree."
+                ),
+                "direction_episode": e["direction"] if e else None,
+                "direction_station": s["direction"] if s else None,
+            }
+            continue
+
+        both_survive = bool(e["survives_correction"] and s["survives_correction"])
+        agree = e["direction"] == s["direction"]
+        if both_survive and agree and e["direction"] == "queue_better":
+            claim = "queue_better"
+        elif both_survive and agree and e["direction"] == "baseline_better":
+            claim = "baseline_better"
+        else:
+            claim = "not_established"
+
+        baselines[name] = {
+            "claim": claim,
+            "direction_episode": e["direction"],
+            "direction_station": s["direction"],
+            "survives_correction_episode": e["survives_correction"],
+            "survives_correction_station": s["survives_correction"],
+            "diff_point": e["diff_point"],
+            "diff_ci_adjusted_episode": e["diff_ci_adjusted"],
+            "diff_ci_adjusted_station": s["diff_ci_adjusted"],
+            "reason": (
+                None
+                if claim != "not_established"
+                else (
+                    f"Not claimed. Episode grouping says {e['direction']} "
+                    f"(survives correction: {e['survives_correction']}), station "
+                    f"grouping says {s['direction']} (survives correction: "
+                    f"{s['survives_correction']}). A comparison is claimed only "
+                    f"when both groupings survive correction and agree."
+                )
+            ),
+        }
+
+    claimed = [n for n, b in baselines.items() if b["claim"] == "queue_better"]
+    lost = [n for n, b in baselines.items() if b["claim"] == "baseline_better"]
+    return {
+        "measurable": True,
+        "reason": None,
+        "baselines": baselines,
+        "n_baselines": len(baselines),
+        "n_beaten_under_both_groupings": len(claimed),
+        "beaten": claimed,
+        "lost_to": lost,
+        "rule": (
+            "A baseline counts as beaten only when the Bonferroni-widened interval "
+            "excludes zero under both the episode and the station resample, and "
+            "both groupings agree on the direction. Where they disagree the "
+            "comparison is reported as not established with both directions named, "
+            "because a disagreement between two defensible groupings is a real "
+            "state rather than a reason to pick one."
+        ),
+    }
+
+
 def verdict_from_interval(
     lo: float,
     hi: float,
@@ -871,6 +970,296 @@ def baseline_physics_only(
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Active-selection replay against every baseline (unit C4)
+# ---------------------------------------------------------------------------
+
+
+#: The comparison family for one split: the queue against each of four baselines.
+#: Bonferroni widens over this, because a queue tested against four orderings and
+#: reported on whichever it beat would be held to no standard at all.
+_N_ORDERING_COMPARISONS = 4
+
+
+def compare_orderings(
+    orderings: dict[str, list[int]],
+    conflict_flags: dict[int, bool],
+    group_of: dict[int, str],
+    budget: int,
+    *,
+    queue_name: str = "queue",
+    n_boot: int = 4000,
+    seed: int = 42,
+    n_comparisons: int = _N_ORDERING_COMPARISONS,
+) -> dict[str, Any]:
+    """Replay every ordering over the same resampled populations, pairwise.
+
+    Gate 6 asks only whether the queue beats random. A queue that beats random and
+    loses to FIFO has not earned a reviewer's attention, because FIFO is what a
+    reviewer already does, so each baseline gets the same budget and the same
+    conflict definition.
+
+    The comparisons are **paired**. One draw of groups produces one synthetic
+    population, and every ordering is scored on that same population before the
+    next draw. Drawing separately per ordering would compare two orderings across
+    two different populations and attribute the difference between the populations
+    to the difference between the orderings.
+
+    Each ordering is re-sorted within the draw by its own rank, so an ordering's
+    top-k in a resampled population is what that ordering would actually have
+    surfaced there. Reusing the original top-k would score every ordering on rows
+    the draw may not contain.
+
+    Ratios are queue over baseline, so 1.0 is the null and above 1.0 favours the
+    queue. Intervals are reported nominally and Bonferroni-widened over
+    ``n_comparisons``, following the convention
+    :func:`fusion.grouped_bootstrap_statistic_difference` set in Wave B, and
+    survival is tested in both directions: a corrected interval lying entirely
+    below 1.0 is a measured loss and has to be representable, which is the defect
+    that left an ablation rule's DROP branch as dead code.
+    """
+    if queue_name not in orderings:
+        raise KeyError(
+            f"The queue ordering {queue_name!r} must be present among "
+            f"{sorted(orderings)}, because every ratio is taken over it."
+        )
+
+    population = list(orderings[queue_name])
+    n = len(population)
+    budget = min(budget, n)
+    if n == 0 or budget == 0:
+        return {
+            "measurable": False,
+            "reason": (
+                f"No population to replay: {n} ranked observations at budget "
+                f"{budget}."
+            ),
+            "orderings": {},
+            "comparisons": {},
+        }
+
+    for name, order in orderings.items():
+        if set(order) != set(population):
+            raise ValueError(
+                f"Ordering {name!r} covers a different set of observations than "
+                f"{queue_name!r}. Every ordering must rank the same population, "
+                f"or the budgets are not comparable: "
+                f"{len(set(order) ^ set(population))} differ."
+            )
+
+    rank_of = {
+        name: {oid: i for i, oid in enumerate(order)}
+        for name, order in orderings.items()
+    }
+    total_conflicts = sum(1 for oid in population if conflict_flags.get(oid, False))
+    if total_conflicts == 0:
+        return {
+            "measurable": False,
+            "reason": (
+                f"No actionable conflicts among {n} ranked observations, so every "
+                f"ordering finds zero and no ordering can be distinguished from "
+                f"another."
+            ),
+            "orderings": {},
+            "comparisons": {},
+        }
+
+    random_expect = total_conflicts / n * budget
+
+    def _found(order: list[int], k: int) -> int:
+        return sum(1 for oid in order[:k] if conflict_flags.get(oid, False))
+
+    point_counts = {name: _found(order, budget) for name, order in orderings.items()}
+    point_lift = {
+        name: found / random_expect for name, found in point_counts.items()
+    }
+
+    # Grouped, paired resampling.
+    group_to_obs: dict[str, list[int]] = {}
+    for oid in population:
+        group_to_obs.setdefault(group_of[oid], []).append(oid)
+    groups = sorted(group_to_obs)
+    budget_fraction = budget / n
+
+    rng = np.random.default_rng(seed)
+    drawn_lifts: dict[str, list[float]] = {name: [] for name in orderings}
+    #: Difference in conflicts found at the same budget, queue minus baseline.
+    #: This is the tested statistic: it is defined in every draw, including the
+    #: draws where a baseline finds nothing, and its null is exactly 0.
+    drawn_diffs: dict[str, list[float]] = {
+        name: [] for name in orderings if name != queue_name
+    }
+    #: The same comparison on a ratio scale, for readers who want "how many
+    #: times". Both terms carry a +0.5 continuity correction in every draw, not
+    #: only in the draws where the denominator is zero, because a correction
+    #: applied selectively changes the estimator between draws.
+    drawn_ratios: dict[str, list[float]] = {
+        name: [] for name in orderings if name != queue_name
+    }
+    n_degenerate = 0
+
+    for _ in range(n_boot):
+        drawn_groups = rng.choice(groups, size=len(groups), replace=True)
+        pool: list[int] = []
+        for g in drawn_groups:
+            pool.extend(group_to_obs[g])
+        drawn_n = len(pool)
+        if drawn_n == 0:
+            n_degenerate += 1
+            continue
+        drawn_conflicts = sum(1 for oid in pool if conflict_flags.get(oid, False))
+        if drawn_conflicts == 0:
+            # No conflicts drawn, so every ordering finds zero and the ratio has
+            # no denominator. Counted, not silently skipped.
+            n_degenerate += 1
+            continue
+        drawn_budget = max(1, min(drawn_n, round(budget_fraction * drawn_n)))
+        drawn_random = drawn_conflicts / drawn_n * drawn_budget
+
+        found: dict[str, int] = {}
+        for name in orderings:
+            # The rank map is bound as a default argument rather than captured, so
+            # the key function cannot read a later iteration's ordering.
+            ordered = sorted(pool, key=lambda oid, r=rank_of[name]: r[oid])
+            found[name] = _found(ordered, drawn_budget)
+            drawn_lifts[name].append(found[name] / drawn_random)
+
+        for name in drawn_diffs:
+            drawn_diffs[name].append(float(found[queue_name] - found[name]))
+            drawn_ratios[name].append(
+                (found[queue_name] + 0.5) / (found[name] + 0.5)
+            )
+
+    alpha = 0.05 / max(n_comparisons, 1)
+    min_effective = max(20, n_boot // 10)
+
+    def _interval(samples: list[float]) -> dict[str, Any]:
+        if len(samples) < min_effective:
+            return {
+                "measurable": False,
+                "reason": (
+                    f"Only {len(samples)} of {n_boot} resamples produced a finite "
+                    f"value, below the {min_effective} required."
+                ),
+                "ci95": None,
+                "ci_adjusted": None,
+            }
+        lo, hi = np.percentile(samples, [2.5, 97.5])
+        lo_a, hi_a = np.percentile(
+            samples, [100 * alpha / 2, 100 * (1 - alpha / 2)]
+        )
+        return {
+            "measurable": True,
+            "reason": None,
+            "ci95": [float(lo), float(hi)],
+            "ci_adjusted": [float(lo_a), float(hi_a)],
+            "median": float(np.median(samples)),
+            "n_effective": len(samples),
+        }
+
+    ordering_report = {}
+    for name in orderings:
+        iv = _interval(drawn_lifts[name])
+        ordering_report[name] = {
+            "n_conflicts_at_budget": point_counts[name],
+            "lift_over_random": point_lift[name],
+            "lift_ci95": iv["ci95"],
+            "measurable": iv["measurable"],
+            "reason": iv["reason"],
+        }
+
+    comparisons = {}
+    for name in drawn_diffs:
+        diff_iv = _interval(drawn_diffs[name])
+        ratio_iv = _interval(drawn_ratios[name])
+        diff_point = float(point_counts[queue_name] - point_counts[name])
+        ratio_point = (point_counts[queue_name] + 0.5) / (point_counts[name] + 0.5)
+
+        if not diff_iv["measurable"]:
+            comparisons[name] = {
+                "measurable": False,
+                "reason": diff_iv["reason"],
+                "diff_point": diff_point,
+                "diff_ci95": None,
+                "diff_ci_adjusted": None,
+                "ratio_point": ratio_point,
+                "ratio_ci95": None,
+                "direction": "unmeasurable",
+                "survives_correction": None,
+                "n_comparisons": n_comparisons,
+            }
+            continue
+
+        lo, hi = diff_iv["ci95"]
+        lo_a, hi_a = diff_iv["ci_adjusted"]
+        # Decided on the difference, whose null is 0 and which is defined in every
+        # draw. The ratio is reported alongside on its own scale.
+        if lo > 0.0:
+            direction = "queue_better"
+        elif hi < 0.0:
+            direction = "baseline_better"
+        else:
+            direction = "indistinguishable"
+        comparisons[name] = {
+            "measurable": True,
+            "reason": None,
+            "diff_point": diff_point,
+            "diff_ci95": [lo, hi],
+            "diff_ci_adjusted": [lo_a, hi_a],
+            "diff_median": diff_iv["median"],
+            "ratio_point": ratio_point,
+            "ratio_ci95": ratio_iv["ci95"],
+            "ratio_ci_adjusted": ratio_iv["ci_adjusted"],
+            "direction": direction,
+            # Tested in both directions. A corrected interval entirely below the
+            # null is a measured loss to the baseline and must be representable:
+            # a one-sided survival test is what left an ablation rule's DROP
+            # branch as dead code in Wave B.
+            "survives_correction": bool(lo_a > 0.0 or hi_a < 0.0),
+            "n_comparisons": n_comparisons,
+            "adjusted_confidence": float(1.0 - alpha),
+            "n_effective": diff_iv["n_effective"],
+            "statistic": (
+                "Conflicts found by the queue minus conflicts found by the "
+                "baseline, at the same budget, on the same resampled population. "
+                "Null 0. The ratio beside it carries a +0.5 continuity correction "
+                "on both terms in every draw, so a baseline that finds nothing "
+                "does not produce an unbounded value and the estimator does not "
+                "change between draws."
+            ),
+        }
+
+    return {
+        "measurable": True,
+        "reason": None,
+        "queue_name": queue_name,
+        "budget": budget,
+        "n_population": n,
+        "n_total_conflicts": total_conflicts,
+        "random_expected_conflicts": float(random_expect),
+        "n_groups": len(groups),
+        "n_boot": n_boot,
+        "n_degenerate_resamples": n_degenerate,
+        "seed": seed,
+        "orderings": ordering_report,
+        "comparisons": comparisons,
+        "note": (
+            "Every ordering is scored on the same resampled population within each "
+            "draw, so the comparisons are paired. Each ordering is re-sorted by its "
+            "own rank inside the draw, because an ordering's top-k in a resampled "
+            "population is not the same set as its top-k in the original. Ratios "
+            "are queue over baseline, corrected by Bonferroni over the four "
+            "comparisons reported for this split: the three baseline orderings here "
+            "plus gate 6's own queue-against-random test, which is measured "
+            "separately but belongs to the same family. Random is not carried as an "
+            "ordering because FIFO is observation-id order and would report the same "
+            "comparison twice under two names; random enters through its "
+            "expectation. Survival is tested in both directions, so a loss to a "
+            "baseline is representable."
+        ),
+    }
+
+
 #: Every key the schema's split_gate6_result allows, with the value that means
 #: "not computed". Built through one constructor so a per-split result cannot
 #: omit a key: with additionalProperties closed, a missing key and a null key
@@ -903,6 +1292,9 @@ _GATE6_RESULT_KEYS: dict[str, Any] = {
     "episode_clustering": None,
     "station_clustering": None,
     "uncapped_reference": None,
+    "replay_episode": None,
+    "replay_station": None,
+    "replay_conclusion": None,
 }
 
 
