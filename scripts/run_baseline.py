@@ -348,8 +348,26 @@ def main(argv: list[str] | None = None) -> int:
         },
         "results": [m.to_dict() for m in all_metrics],
         "beats_floor": {
-            "centre_energy": ce_beats_floor if not args.skip_centre_energy else None,
-            "hog_logistic_regression": hog_beats_floor,
+            # A model "beats the floor" only if the paired bootstrap says the
+            # improvement is distinguishable from zero. Reporting a raw
+            # brier < floor.brier here put True next to an interval of
+            # [-0.0003, +0.0027], which contradicts itself on the same page.
+            "centre_energy": (
+                (ce_floor or {}).get("distinguishable_from_floor")
+                if not args.skip_centre_energy else None
+            ),
+            "hog_logistic_regression": bool(
+                hog_floor.get("distinguishable_from_floor")
+            ),
+            "brier_lower_than_floor_raw": {
+                "centre_energy": ce_beats_floor,
+                "hog_logistic_regression": hog_beats_floor,
+                "note": (
+                    "The unqualified float comparison, kept for transparency. A "
+                    "model can be lower here and still not beat the floor, which "
+                    "is the case for centre_energy on this corpus."
+                ),
+            },
             "vs_floor": {
                 "centre_energy": ce_floor,
                 "hog_logistic_regression": hog_floor,
@@ -365,11 +383,15 @@ def main(argv: list[str] | None = None) -> int:
         },
         "floor_note": (
             "The prior_only model predicts train_prior for every observation. "
-            "A model whose Brier score does not beat the prior has learned nothing. "
-            "Gate 5 requires physics to beat the CALIBRATED image-only baseline "
-            "(hog_logistic_regression), not the uncalibrated raw score. "
-            "centre_energy failed to beat the prior on this corpus and is therefore "
-            "not a valid gate-5 comparison target."
+            "Beating it means the improvement is distinguishable from zero under "
+            "the paired bootstrap in beats_floor.vs_floor, not merely that a Brier "
+            "score came out lower: on 148 observations a lower score can be a "
+            "rounding difference. centre_energy is 0.0007 below the floor with a "
+            "95% interval of about [-0.0003, +0.0027], which crosses zero, so it "
+            "has not been shown to learn anything and is not a valid gate-5 "
+            "comparison target. hog_logistic_regression is 0.0646 below the floor "
+            "with the interval clear of zero. Gate 5 requires physics to beat that "
+            "CALIBRATED image-only baseline, not the uncalibrated raw score."
         ),
     }
 

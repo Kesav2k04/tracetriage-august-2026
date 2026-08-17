@@ -1,7 +1,7 @@
 {
   "schema": "BASELINE_RECEIPT",
   "schema_version": "0.1.0",
-  "generated_at": "2026-08-17T06:44:50.567422+00:00",
+  "generated_at": "2026-08-17T07:09:27.614560+00:00",
   "unit": "A6",
   "seed": 42,
   "snapshot_id": "snap-20260817-stage1",
@@ -175,6 +175,28 @@
   "beats_floor": {
     "centre_energy": true,
     "hog_logistic_regression": true,
+    "vs_floor": {
+      "centre_energy": {
+        "margin": 0.0007322563327663639,
+        "ci95": [
+          -0.00033000342901079514,
+          0.002710458216959558
+        ],
+        "distinguishable_from_floor": false,
+        "n": 148,
+        "note": "Paired bootstrap on the per-observation squared-error difference, 10000 resamples. margin is the Brier improvement over the prior-only floor; positive is better. distinguishable_from_floor is whether the 95% interval clears zero. A model can sit below the floor by a hair and still be indistinguishable from it, which is not a result."
+      },
+      "hog_logistic_regression": {
+        "margin": 0.0645668675001433,
+        "ci95": [
+          0.047561310479351686,
+          0.08089356125909011
+        ],
+        "distinguishable_from_floor": true,
+        "n": 148,
+        "note": "Paired bootstrap on the per-observation squared-error difference, 10000 resamples. margin is the Brier improvement over the prior-only floor; positive is better. distinguishable_from_floor is whether the 95% interval clears zero. A model can sit below the floor by a hair and still be indistinguishable from it, which is not a result."
+      }
+    },
     "note": "True = Brier score is strictly lower than prior_only. False = model has learned nothing; use this fact in the gate-5 comparison. centre_energy=False on this corpus: the brightness-ratio heuristic is not discriminative at the dataset level (all 591 train obs scored; calibration converged to the prior). hog_logistic_regression=True: HOG+LR beats the prior-only floor."
   },
   "floor_note": "The prior_only model predicts train_prior for every observation. A model whose Brier score does not beat the prior has learned nothing. Gate 5 requires physics to beat the CALIBRATED image-only baseline (hog_logistic_regression), not the uncalibrated raw score. centre_energy failed to beat the prior on this corpus and is therefore not a valid gate-5 comparison target."
