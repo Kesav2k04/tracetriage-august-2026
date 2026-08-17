@@ -233,15 +233,38 @@ test partitions and the chronological split is the one the gate names.
 
 **Threshold:** the top of the review queue surfaces at least 1.5x as many manually actionable conflicts as random ordering at the same budget.
 
-**Measured 2026-08-17 in C1.** Receipt: `artifacts/QUEUE_RECEIPT.json`. Run:
+**Measured 2026-08-17 in C1, remeasured 2026-08-18 in C2 after a defect in the
+interval.** Receipt: `artifacts/QUEUE_RECEIPT.json`. Run:
 `.venv/Scripts/python.exe scripts/run_queue.py --seed 42 --n-boot 4000`
 
 > The queue's point lift is 1.60 on the chronological split (20 conflicts in 50 examined,
-> expected 12.5 by random). The 95% interval lies entirely below 1.5 (1.00 to 1.20),
-> despite the point estimate exceeding 1.5 — a known behaviour of percentile bootstrap
-> CIs on ratio statistics with concentrated numerators. A point estimate above 1.5 whose
-> interval does not sit above 1.5 is not a pass, for the same reason gate 5 was recorded
-> as NOT_ESTABLISHED: the evidence does not exclude noise.
+> expected 12.5 by random). The 95% grouped interval is 1.354 to 1.760, which contains
+> the 1.5 threshold. A point estimate above the bar whose interval straddles it does not
+> establish the claim, for the same reason gate 5 was recorded as NOT_ESTABLISHED. The
+> bootstrap median is 1.592, so the point estimate is not the product of a skewed
+> resample; the interval is simply wide on 88 observations across 88 episodes.
+
+**The C1 interval was wrong, and this is what it was.** C1 published 1.00 to 1.20
+against a point estimate of 1.60, and every split showed the same shape: the
+interval lying entirely below its own point estimate. That is not a property any
+resample of a consistent statistic can have four times out of four, and it was
+recorded at the time as expected behaviour of percentile intervals on ratio
+statistics. It was not. The bootstrap deduplicated its own draw
+(`pool_set = set(pool)`), and a draw of 88 episodes with replacement covers only
+about 63% of them, so the drawn population fell to a mean of 55.8 rows while the
+budget stayed at 50. Selecting 50 of 55.8 is not selection, the drawn conflict
+rate converged on the population rate, and lift was driven towards 1.0 by
+construction: 65 of 2000 draws returned exactly 1.0, which is where the 1.00
+lower bound came from. Reproducing the old loop on synthetic data with the same
+proportions returns [1.0000, 1.2200], against the published [1.00, 1.20].
+
+The measurement now carries `point_in_ci`, and a point estimate outside its own
+interval is reported as NOT_MEASURABLE with both numbers and the gap, rather than
+as a verdict about the gate. `n_boot_effective` records surviving resamples
+(4000 of 4000 on all four splits) because dropping draws with no conflict
+conditions the interval, and a reader cannot see that from the interval alone.
+Tests: `tests/test_queue_lift_bootstrap.py`, 26 of them, and the regression case
+fails against the old loop rather than merely passing against the new one.
 
 **Conflict definition (fixed before measuring):**
 
@@ -249,23 +272,43 @@ test partitions and the chronological split is the one the gate names.
 2. `STALE_CATALOGUE_FREQ`: fitted offset ≥ 20 ppm and `offset_at_bound = false`.
 3. `DEAD_CAPTURE`: `flat_row_frac ≥ 0.15`.
 
-**Lift against four baselines (chronological split, budget = 50, n_decisive = 88):**
+**Every ordering's lift over random (chronological split, budget = 50, n_decisive = 88,
+random expects 12.5 conflicts):**
 
-| Baseline | Conflicts at budget | Lift |
+| Ordering | Conflicts at budget | Lift over random |
 |---|---|---|
-| Queue | 20 | 1.60× |
-| FIFO | — | reported in receipt |
-| Image uncertainty | — | reported in receipt |
-| Physics-only | — | reported in receipt |
+| Review-value queue | 20 | 1.600 |
+| FIFO | 14 | 1.120 |
+| Image uncertainty | 14 | 1.120 |
+| Physics-only | 13 | 1.040 |
+| Random | 12.5 expected | 1.000 by definition |
+
+All five orderings are on one scale, so they are comparable. These are point
+estimates. C4 adds the paired interval for each comparison, drawn from the same
+episode resample under both orderings, because a ratio between two orderings
+needs the same draw under both to mean anything.
 
 **Per-split results:**
 
-| Split | Verdict | Point lift | 95% CI | n_decisive |
-|---|---|---|---|---|
-| chronological | NOT_ESTABLISHED | 1.60 | [1.00, 1.20] | 88 |
-| cold_station | PASSED | 3.00 | [2.01, 2.51] | 217 |
-| cold_transmitter | NOT_ESTABLISHED | 1.62 | [1.10, 1.32] | 96 |
-| cold_combined | FAILED | 1.29 | [1.00, 1.06] | 76 |
+| Split | Verdict | Point lift | 95% CI | Bootstrap median | n_decisive | Episodes |
+|---|---|---|---|---|---|---|
+| chronological | NOT_ESTABLISHED | 1.600 | [1.354, 1.760] | 1.592 | 88 | 88 |
+| cold_station | PASSED | 3.005 | [2.493, 3.454] | 2.961 | 217 | 217 |
+| cold_transmitter | NOT_ESTABLISHED | 1.625 | [1.429, 1.829] | 1.638 | 96 | 96 |
+| cold_combined | NOT_ESTABLISHED | 1.292 | [1.073, 1.520] | 1.322 | 76 | 76 |
+
+cold_combined moved from FAILED to NOT_ESTABLISHED, and that is a rule change
+rather than a number change. C1 called any point estimate at or below 1.5 a
+failure. An interval of [1.073, 1.520] contains the threshold, so it does not
+refute the gate any more than it establishes it. FAILED is now reserved for an
+interval lying entirely below the bar, which is the same standard applied in the
+other direction.
+
+cold_station passes on 217 decisive observations, and it is the split where a
+reviewer meets stations the model has never seen. That is the operating condition
+the queue exists for, and it is the strongest result in the wave. It does not
+substitute for the chronological split, which is the primary and is not
+established.
 
 The cold_station PASSED result is notable: a strong signal that the queue selects observations that a reviewer with no station familiarity finds actionable. The chronological split's narrow CI reflects the small test set (88 decisive obs) and the ratio statistic's known skewness under small samples.
 
@@ -294,6 +337,21 @@ Recorded rather than retried, because the honest failure of a specific claim is 
 here than a restated claim that passes. Full detail in the gate 5 section above and in
 `artifacts/FUSION_RECEIPT.json`.
 
-**2026-08-17, gate 6: NOT ESTABLISHED.** The review-value queue's point lift is 1.60× over random at budget 50 on the chronological split (88 decisive test observations, 88 episodes), but the 95% grouped bootstrap interval [1.00, 1.20] lies entirely below the 1.5× threshold. The point estimate is in the right direction; the bootstrap does not support the claim. Cause: 88 decisive observations is a small test set for a ratio statistic, and the interval is known to be unreliable under this condition. The cold_station split PASSED at 3.00× [2.01, 2.51], confirming the queue has real signal; the chronological split's evidence is insufficient. Receipt: `artifacts/QUEUE_RECEIPT.json`.
+**2026-08-18, gate 6: NOT ESTABLISHED.** The review-value queue's point lift is 1.60x over random at budget 50 on the chronological split (20 conflicts against 12.5 expected, 88 decisive test observations across 88 episodes). The 95% grouped bootstrap interval is [1.354, 1.760], which contains the 1.5x threshold, so the claim is not established. Bootstrap median 1.592 over 4000 surviving resamples of 4000 drawn. cold_station PASSED at 3.005x [2.493, 3.454] on 217 decisive observations, which is the split where a reviewer meets unseen stations, and it does not substitute for the primary split. cold_transmitter 1.625x [1.429, 1.829] and cold_combined 1.292x [1.073, 1.520] are both NOT_ESTABLISHED on intervals containing the threshold. Receipt: `artifacts/QUEUE_RECEIPT.json`.
+
+**2026-08-18, correction to the gate 6 entry recorded on 17 Aug.** That entry
+published the interval [1.00, 1.20] beneath a point estimate of 1.60 and attributed
+the gap to small-sample behaviour of percentile intervals on ratio statistics. The
+attribution was wrong and the interval was an artefact. The grouped bootstrap
+deduplicated its own resample, so the drawn population fell from 88 rows to a mean
+of 55.8 while the budget stayed at 50, which removed the selectivity that lift
+measures and pushed the statistic towards 1.0. The tell was visible in the
+published numbers: the point estimate lay above the interval's upper bound on all
+four splits at once, which no resample of a consistent statistic does. Reproducing
+the old loop on synthetic data at the same proportions returns [1.0000, 1.2200].
+The verdict is unchanged at NOT_ESTABLISHED and the wording was not touched, but it
+now fails for the reason stated rather than for a defect. `point_in_ci` was added so
+this shape cannot be narrated again: a point estimate outside its own interval is
+reported as NOT_MEASURABLE with both numbers and the gap.
 
 *Gate 4 remains unmeasured, which is not the same as passing.*

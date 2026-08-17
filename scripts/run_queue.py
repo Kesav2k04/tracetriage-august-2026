@@ -53,6 +53,7 @@ from pipeline.tracetriage.queue import (  # noqa: E402
     is_conflict,
     measure_gate6_split,
     rank_normalise,
+    unmeasurable_gate6_result,
 )
 from pipeline.tracetriage.splits import (  # noqa: E402
     _A3_SUMMARY_PATH,
@@ -322,22 +323,10 @@ def build_split_queue(
         return {
             "split": split_name,
             "degraded": fit_result["degraded"],
-            "gate6_result": {
-                "measurable": False,
-                "not_measurable_reason": fit_result["degraded"],
-                "n_queue_examined": None,
-                "n_random_conflicts": None,
-                "n_queue_conflicts": None,
-                "lift_point": None,
-                "lift_ci95": None,
-                "lift_vs_fifo": None,
-                "lift_vs_image_uncertainty": None,
-                "lift_vs_physics_only": None,
-                "n_boot": None,
-                "n_groups": None,
-                "verdict": "NOT_MEASURABLE",
-                "direction": "unmeasurable",
-            },
+            "gate6_result": unmeasurable_gate6_result(
+                f"Arm would not fit for split {split_name}: {fit_result['degraded']}. "
+                "No ranking exists, so lift has nothing to measure."
+            ),
         }
 
     test_ids = fit_result["test_ids"]
@@ -353,22 +342,10 @@ def build_split_queue(
         return {
             "split": split_name,
             "degraded": "No test observations",
-            "gate6_result": {
-                "measurable": False,
-                "not_measurable_reason": "No test observations in this split.",
-                "n_queue_examined": None,
-                "n_random_conflicts": None,
-                "n_queue_conflicts": None,
-                "lift_point": None,
-                "lift_ci95": None,
-                "lift_vs_fifo": None,
-                "lift_vs_image_uncertainty": None,
-                "lift_vs_physics_only": None,
-                "n_boot": None,
-                "n_groups": None,
-                "verdict": "NOT_MEASURABLE",
-                "direction": "unmeasurable",
-            },
+            "gate6_result": unmeasurable_gate6_result(
+                f"Split {split_name} has an empty test partition, so there are 0 "
+                "candidate observations to rank and no budget to spend."
+            ),
         }
 
     # Compute per-observation signals
@@ -490,23 +467,11 @@ def build_split_queue(
     queue_decisive = [oid for oid in final_ranked_ids if oid in decisive_ids]
 
     if not decisive_ranked:
-        _no_decisive = "No decisively-labelled observations in this split's test partition."
-        gate6_result = {
-            "measurable": False,
-            "not_measurable_reason": _no_decisive,
-            "n_queue_examined": None,
-            "n_random_conflicts": None,
-            "n_queue_conflicts": None,
-            "lift_point": None,
-            "lift_ci95": None,
-            "lift_vs_fifo": None,
-            "lift_vs_image_uncertainty": None,
-            "lift_vs_physics_only": None,
-            "n_boot": None,
-            "n_groups": None,
-            "verdict": "NOT_MEASURABLE",
-            "direction": "unmeasurable",
-        }
+        gate6_result = unmeasurable_gate6_result(
+            f"Split {split_name} ranked {len(final_ranked_ids)} test observations "
+            "and 0 of them carry a decisive with-signal or without-signal label, "
+            "so no conflict can be confirmed and lift has no numerator."
+        )
     else:
         decisive_conflict_flags = {
             oid: is_conflict(reasons_map[oid]) for oid in decisive_ranked
@@ -724,9 +689,9 @@ def main() -> None:
 
     receipt: dict[str, Any] = {
         "schema": "QUEUE_RECEIPT",
-        "schema_version": "0.1.0",
+        "schema_version": "0.2.0",
         "contract": "contracts/queue_receipt.schema.json",
-        "unit": "C1",
+        "unit": "C2",
         "generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
         "seed": seed,
         "snapshot_id": snapshot_id,
@@ -790,6 +755,9 @@ def main() -> None:
             "n_sha256_duplicates_in_corpus": n_sha256_dupes,
         },
         "queue": primary_queue,
+        # Per-split corpus counts only. The gate 6 measurement lives once, in
+        # gate6.per_split: the same numbers in two places is a drift surface,
+        # and a reader has no way to tell which copy is authoritative.
         "per_split_summaries": [
             {
                 "split": r["split"],
@@ -798,7 +766,6 @@ def main() -> None:
                 "n_test_decisive": r.get("n_test_decisive"),
                 "n_queue_after_dedup": r.get("n_queue_after_dedup"),
                 "n_at_bound_obs": r.get("n_at_bound_obs"),
-                "gate6_result": r["gate6_result"],
             }
             for r in per_split_results
         ],

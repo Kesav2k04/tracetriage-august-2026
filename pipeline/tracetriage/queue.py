@@ -333,9 +333,24 @@ class LiftResult:
     n_groups: int
     n_boot: int
     seed: int
-    direction: str  # "above_threshold" | "below_threshold" | "spans_threshold"
-    verdict: str    # "PASSED" | "NOT_ESTABLISHED" | "FAILED"
+    direction: str  # above_threshold | below_threshold | spans_threshold
+                    # | inconsistent_interval | unmeasurable
+    verdict: str    # "PASSED" | "NOT_ESTABLISHED" | "FAILED" | "NOT_MEASURABLE"
     threshold: float = 1.5
+    #: Bootstrap median. Reported so the bias of the point estimate is auditable
+    #: rather than something a reader has to take on trust.
+    bootstrap_median: float = float("nan")
+    #: False when the point estimate falls outside its own interval by more than
+    #: percentile noise. That is a defect in the statistic, not a finding about
+    #: the queue, so it is surfaced instead of narrated. See consistency_note.
+    point_in_ci: bool = True
+    consistency_note: str | None = None
+    #: Effective resamples that produced a finite lift, out of n_boot.
+    n_boot_effective: int = 0
+    #: Why the measurement could not be made, with the count that made it so.
+    #: Travels with the result, so a caller cannot label one unmeasurable cause
+    #: with another's reason.
+    not_measurable_reason: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -347,10 +362,15 @@ class LiftResult:
             "n_total": self.n_total,
             "n_groups": self.n_groups,
             "n_boot": self.n_boot,
+            "n_boot_effective": self.n_boot_effective,
             "seed": self.seed,
             "threshold": self.threshold,
             "direction": self.direction,
             "verdict": self.verdict,
+            "bootstrap_median": self.bootstrap_median,
+            "point_in_ci": self.point_in_ci,
+            "consistency_note": self.consistency_note,
+            "not_measurable_reason": self.not_measurable_reason,
         }
 
 
@@ -377,21 +397,47 @@ def compute_lift(
     Lift = (conflicts found by queue at budget) / (expected conflicts by random
     at budget). Random expectation = budget × (total_conflicts / total_obs).
 
-    The bootstrap resamples episodes to get a distribution of lift values. Each
-    bootstrap draw produces a synthetic population, the top-budget entries of the
-    re-ranked queue are inspected, and the lift is computed on the draw.
+    The bootstrap resamples episodes with replacement to get a distribution of
+    lift values. Two properties of that resample are load-bearing.
 
-    Direction and verdict follow the same four-state rule as gate 5:
-    - "above_threshold" → lo > threshold → PASSED
-    - "spans_threshold" → point > threshold but lo <= threshold → NOT_ESTABLISHED
-    - "below_threshold" → point <= threshold → FAILED
+    First, an episode drawn twice contributes its observations twice. Collapsing
+    the draw to a set of distinct observations looks harmless and is not: a draw
+    of ``k`` episodes with replacement covers only about 63% of them, so the
+    deduplicated population shrinks by roughly a third while the budget stays
+    fixed. Selecting 50 of a 55-row population is not selection at all, the drawn
+    conflict rate converges on the population rate, and lift is driven to 1.0 by
+    construction. That produced intervals lying entirely below their own point
+    estimate on every split. Multiplicity is the fix, and ``point_in_ci`` is the
+    guard that makes a recurrence loud.
 
-    The NOT_ESTABLISHED state covers two shapes: the CI spans the threshold, and
-    the CI lies entirely below the threshold while the point estimate is above it.
-    Both say the same thing: the point went in the right direction but the
-    bootstrap does not support the claim. The "below_threshold" direction is
-    reserved for the case where even the point estimate fails the gate, because
-    that is a stronger finding and collapses the two-part standard into one.
+    Second, the budget scales with the drawn population, because lift is a
+    function of selectivity. Holding an absolute budget while the population
+    size moves changes the quantity being measured between draws.
+
+    The ranking itself is not re-fitted per draw. The queue order is held fixed
+    and only the population under it is resampled, because the question is what
+    this ranking is worth, not how stable the ranker would be under refitting.
+
+    A draw containing no conflict has no denominator, so its lift is undefined
+    and it is dropped. That conditions the interval on "the population contained
+    at least one conflict", which matters when conflicts are scarce: with a
+    single conflict episode about 37% of draws are dropped. The survivor count
+    is reported as ``n_boot_effective`` rather than left implicit, because an
+    interval drawn from a conditioned subsample is a different quantity from one
+    drawn from all draws, and a reader cannot see that from the interval alone.
+
+    Direction and verdict, four states plus a defect state:
+    - "above_threshold"       lo > threshold                      PASSED
+    - "spans_threshold"       lo <= threshold <= hi               NOT_ESTABLISHED
+    - "below_threshold"       hi < threshold                      FAILED
+    - "inconsistent_interval" point outside its own CI            NOT_MEASURABLE
+    - "unmeasurable"          no conflicts, or too few resamples  NOT_MEASURABLE
+
+    FAILED requires the whole interval to sit below the bar. An interval that
+    spans the bar is NOT_ESTABLISHED whichever side the point estimate falls on,
+    which is gate 5's precedent applied in both directions: an interval
+    containing the threshold does not establish a claim about it, and it does not
+    refute one either.
     """
     n = len(ranked_obs_ids)
     budget = min(budget, n)
@@ -402,7 +448,9 @@ def compute_lift(
     n_random = random_rate * budget
 
     if n_random == 0:
-        # No conflicts at all: lift is undefined (and cannot exceed 1.5)
+        # No conflicts in the population, so random expects zero and the ratio
+        # has no denominator. Not a failure of the queue: nothing was there to
+        # find. Report the counts that establish that.
         return LiftResult(
             n_queue_conflicts=n_q_conflicts,
             n_random_conflicts=0.0,
@@ -410,48 +458,70 @@ def compute_lift(
             ci95=[float("nan"), float("nan")],
             n_budget=budget,
             n_total=n,
-            n_groups=len(sorted(set(episode_of.values()))),
+            n_groups=len({episode_of[oid] for oid in ranked_obs_ids}),
             n_boot=n_boot,
             seed=seed,
             direction="unmeasurable",
             verdict="NOT_MEASURABLE",
             threshold=threshold,
+            not_measurable_reason=(
+                f"No actionable conflicts in the population, so random ordering "
+                f"expects zero and lift has no denominator. Examined {n} ranked "
+                f"observations, {total_conflicts} conflicts."
+            ),
         )
 
     lift_point = float(n_q_conflicts) / n_random if n_random > 0 else float("nan")
 
     # Grouped bootstrap: resample episodes, not observations.
-    # Sort for determinism: set iteration order is not guaranteed in Python.
-    episodes = sorted(set(episode_of.values()))
+    # Episodes come from the queue itself, not from episode_of, so an episode
+    # with no ranked observation cannot be drawn and index into nothing.
     episode_to_obs: dict[str, list[int]] = {}
     for oid in ranked_obs_ids:
         ep = episode_of[oid]
         episode_to_obs.setdefault(ep, []).append(oid)
+    # Sort for determinism: set and dict-key iteration order must not decide a
+    # published number. This is the C1 non-determinism defect, kept fixed.
+    episodes = sorted(episode_to_obs)
+
+    #: Selectivity of the real measurement: the fraction of the population a
+    #: reviewer actually gets to look at. Held constant across draws.
+    budget_fraction = budget / n
+
+    #: Rank position of each observation, so a resampled pool can be ordered by
+    #: the queue's own ranking without re-deriving it.
+    rank_of = {oid: i for i, oid in enumerate(ranked_obs_ids)}
 
     rng = np.random.default_rng(seed)
     bootstrap_lifts: list[float] = []
     for _ in range(n_boot):
         drawn_eps = rng.choice(episodes, size=len(episodes), replace=True)
-        # Rebuild the pool in the drawn sample, preserving within-episode order
+        # An episode drawn twice contributes its observations twice. Do not
+        # deduplicate: multiplicity is what keeps the drawn population the same
+        # size as the real one, and therefore keeps the budget selective.
         pool: list[int] = []
         for ep in drawn_eps:
             pool.extend(episode_to_obs[ep])
-        # The queue ranking within the drawn sample: keep the same relative order
-        # as the original ranked list (stable sort preserves order for same episode)
-        pool_set = set(pool)
-        drawn_ranked = [oid for oid in ranked_obs_ids if oid in pool_set]
-        drawn_budget = min(budget, len(drawn_ranked))
-        drawn_top = drawn_ranked[:drawn_budget]
-        drawn_n = len(pool_set)
-        drawn_conflicts = sum(1 for oid in pool_set if conflict_flags.get(oid, False))
-        drawn_rate = drawn_conflicts / drawn_n if drawn_n > 0 else 0.0
+        drawn_n = len(pool)
+        if drawn_n == 0:
+            continue
+        # Order the drawn pool by the queue's ranking. Duplicates of one
+        # observation land adjacent, which is correct: the draw says that row
+        # occurs twice in this synthetic population.
+        pool.sort(key=lambda oid: rank_of[oid])
+        # Budget scales with the drawn population so selectivity is fixed.
+        drawn_budget = max(1, min(drawn_n, round(budget_fraction * drawn_n)))
+        drawn_top = pool[:drawn_budget]
+        drawn_conflicts = sum(1 for oid in pool if conflict_flags.get(oid, False))
+        drawn_rate = drawn_conflicts / drawn_n
         drawn_random = drawn_rate * drawn_budget
-        if drawn_random == 0 or drawn_budget == 0:
+        if drawn_random == 0:
             continue
         drawn_q_conflicts = sum(1 for oid in drawn_top if conflict_flags.get(oid, False))
         bootstrap_lifts.append(float(drawn_q_conflicts) / drawn_random)
 
-    if len(bootstrap_lifts) < max(20, n_boot // 10):
+    min_effective = max(20, n_boot // 10)
+    if len(bootstrap_lifts) < min_effective:
         return LiftResult(
             n_queue_conflicts=n_q_conflicts,
             n_random_conflicts=n_random,
@@ -461,28 +531,58 @@ def compute_lift(
             n_total=n,
             n_groups=len(episodes),
             n_boot=n_boot,
+            n_boot_effective=len(bootstrap_lifts),
             seed=seed,
             direction="unmeasurable",
             verdict="NOT_MEASURABLE",
             threshold=threshold,
+            not_measurable_reason=(
+                f"Only {len(bootstrap_lifts)} of {n_boot} resamples produced a "
+                f"finite lift, below the {min_effective} required. Too few draws "
+                f"contained a conflict for a percentile interval to mean anything, "
+                f"over {len(episodes)} episodes and {n} observations."
+            ),
         )
 
-    lo, hi = np.percentile(bootstrap_lifts, [2.5, 97.5])
-    lo, hi = float(lo), float(hi)
+    lo, hi, median = np.percentile(bootstrap_lifts, [2.5, 97.5, 50])
+    lo, hi, median = float(lo), float(hi), float(median)
 
-    if lo > threshold:
+    # Consistency guard. The bootstrap distribution of a ratio on a small,
+    # discrete sample is skewed, so the point estimate need not sit at the
+    # centre of its interval. It does have to sit inside it. A tolerance of 5%
+    # of the interval width absorbs percentile noise on a discrete distribution
+    # while still catching a resample that measures a different quantity than
+    # the point estimate does.
+    tol = 1e-9 + 0.05 * (hi - lo)
+    point_in_ci = (lo - tol) <= lift_point <= (hi + tol)
+    consistency_note: str | None = None
+    if not point_in_ci:
+        gap = lift_point - hi if lift_point > hi else lo - lift_point
+        consistency_note = (
+            f"Point estimate {lift_point:.4f} lies outside its own 95% interval "
+            f"[{lo:.4f}, {hi:.4f}] by {gap:.4f}, beyond the {tol:.4f} percentile "
+            f"tolerance, over {len(bootstrap_lifts)} effective resamples. The "
+            f"resample and the point estimate are measuring different quantities, "
+            f"so no verdict is reported."
+        )
+
+    if not point_in_ci:
+        direction = "inconsistent_interval"
+        verdict = "NOT_MEASURABLE"
+    elif lo > threshold:
         direction = "above_threshold"
         verdict = "PASSED"
-    elif lift_point > threshold:
-        # Point estimate is in the right direction but the bootstrap interval
-        # does not clear the threshold (either it spans the threshold or lies
-        # entirely below it). Both shapes mean the evidence is insufficient.
-        direction = "spans_threshold"
-        verdict = "NOT_ESTABLISHED"
-    else:
-        # Even the point estimate fails the gate.
+    elif hi < threshold:
+        # The whole interval sits below the bar. This is the only shape that
+        # refutes the gate rather than failing to establish it.
         direction = "below_threshold"
         verdict = "FAILED"
+    else:
+        # The interval contains the threshold. Gate 5's precedent, applied in
+        # both directions: an interval spanning the bar neither establishes the
+        # claim nor refutes it, whichever side the point estimate falls on.
+        direction = "spans_threshold"
+        verdict = "NOT_ESTABLISHED"
 
     return LiftResult(
         n_queue_conflicts=n_q_conflicts,
@@ -493,10 +593,15 @@ def compute_lift(
         n_total=n,
         n_groups=len(episodes),
         n_boot=n_boot,
+        n_boot_effective=len(bootstrap_lifts),
         seed=seed,
         direction=direction,
         verdict=verdict,
         threshold=threshold,
+        bootstrap_median=median,
+        point_in_ci=point_in_ci,
+        consistency_note=consistency_note,
+        not_measurable_reason=consistency_note if not point_in_ci else None,
     )
 
 
@@ -550,6 +655,71 @@ def baseline_physics_only(
 # ---------------------------------------------------------------------------
 
 
+#: Every key the schema's split_gate6_result allows, with the value that means
+#: "not computed". Built through one constructor so a per-split result cannot
+#: omit a key: with additionalProperties closed, a missing key and a null key
+#: look identical to a reader, and a misspelled one silently reads as absent.
+_GATE6_RESULT_KEYS: dict[str, Any] = {
+    "measurable": None,
+    "not_measurable_reason": None,
+    "n_queue_examined": None,
+    "n_random_conflicts": None,
+    "n_queue_conflicts": None,
+    "lift_point": None,
+    "lift_ci95": None,
+    "fifo_lift_over_random": None,
+    "image_uncertainty_lift_over_random": None,
+    "physics_only_lift_over_random": None,
+    "n_boot": None,
+    "n_boot_effective": None,
+    "bootstrap_median": None,
+    "point_in_ci": None,
+    "consistency_note": None,
+    "verdict": None,
+    "direction": None,
+    "n_groups": None,
+}
+
+
+def _gate6_result(**fields: Any) -> dict[str, Any]:
+    """One split's gate 6 result, with every schema key present.
+
+    Raises on an unknown key rather than passing it through, so a typo fails at
+    the call site instead of at schema validation time with a confusing message,
+    or worse, reads as a measurement nobody took.
+    """
+    unknown = set(fields) - set(_GATE6_RESULT_KEYS)
+    if unknown:
+        raise KeyError(
+            f"Unknown gate 6 result field(s): {sorted(unknown)}. "
+            f"Allowed: {sorted(_GATE6_RESULT_KEYS)}"
+        )
+    out = dict(_GATE6_RESULT_KEYS)
+    out.update(fields)
+    return out
+
+
+def unmeasurable_gate6_result(reason: str) -> dict[str, Any]:
+    """A gate 6 result for a split that could not be measured at all.
+
+    For the cases that fail before any ranking exists: no test partition, or an
+    arm that would not fit. The reason is required and is not allowed to be a
+    placeholder, because "not measurable" with no cause attached is the shape
+    that let a scoped-out leakage check hide 12 real violations in Wave B.
+    """
+    if not reason or len(reason.strip()) < 20:
+        raise ValueError(
+            "An unmeasurable gate 6 result needs a reason of at least 20 "
+            f"characters stating the cause and its counts. Got: {reason!r}"
+        )
+    return _gate6_result(
+        measurable=False,
+        verdict="NOT_MEASURABLE",
+        direction="unmeasurable",
+        not_measurable_reason=reason,
+    )
+
+
 def measure_gate6_split(
     split_name: str,
     queue_obs_ids: list[int],          # full queue in rank order
@@ -574,23 +744,17 @@ def measure_gate6_split(
     n_decisive = len(conflict_flags)
 
     if n_decisive == 0:
-        _no_decisive = "No decisively-labelled observations in this split's test partition."
-        return {
-            "measurable": False,
-            "not_measurable_reason": _no_decisive,
-            "n_queue_examined": None,
-            "n_random_conflicts": None,
-            "n_queue_conflicts": None,
-            "lift_point": None,
-            "lift_ci95": None,
-            "lift_vs_fifo": None,
-            "lift_vs_image_uncertainty": None,
-            "lift_vs_physics_only": None,
-            "n_boot": None,
-            "n_groups": None,
-            "verdict": "NOT_MEASURABLE",
-            "direction": "unmeasurable",
-        }
+        return _gate6_result(
+            measurable=False,
+            verdict="NOT_MEASURABLE",
+            direction="unmeasurable",
+            not_measurable_reason=(
+                "No decisively-labelled observations in this split's test "
+                f"partition. The queue held {n} ranked observations and 0 of them "
+                "carry a with-signal or without-signal label, so a conflict "
+                "cannot be confirmed or denied for any of them."
+            ),
+        )
 
     eff_budget = min(budget, n)
     result = compute_lift(
@@ -598,48 +762,54 @@ def measure_gate6_split(
         eff_budget, n_boot=n_boot, seed=seed, threshold=threshold,
     )
     if result.verdict == "NOT_MEASURABLE":
-        return {
-            "measurable": False,
-            "not_measurable_reason": "Bootstrap could not produce enough finite resamples.",
-            "n_queue_examined": eff_budget,
-            "n_random_conflicts": result.n_random_conflicts,
-            "n_queue_conflicts": result.n_queue_conflicts,
-            "lift_point": result.lift_point if math.isfinite(result.lift_point) else None,
-            "lift_ci95": None,
-            "lift_vs_fifo": None,
-            "lift_vs_image_uncertainty": None,
-            "lift_vs_physics_only": None,
-            "n_boot": n_boot,
-            "n_groups": result.n_groups,
-            "verdict": "NOT_MEASURABLE",
-            "direction": "unmeasurable",
-        }
+        return _gate6_result(
+            measurable=False,
+            verdict="NOT_MEASURABLE",
+            direction=result.direction,
+            # The reason travels with the result. Naming one unmeasurable cause
+            # with another's reason is the failure this replaced: a split with
+            # zero conflicts was reported as a bootstrap that ran short.
+            not_measurable_reason=result.not_measurable_reason,
+            n_queue_examined=eff_budget,
+            n_random_conflicts=result.n_random_conflicts,
+            n_queue_conflicts=result.n_queue_conflicts,
+            lift_point=result.lift_point if math.isfinite(result.lift_point) else None,
+            n_boot=n_boot,
+            n_boot_effective=result.n_boot_effective,
+            n_groups=result.n_groups,
+            point_in_ci=result.point_in_ci if result.consistency_note else None,
+            consistency_note=result.consistency_note,
+        )
 
-    # Baseline lifts (point estimate only, no interval — they are reference points)
-    def _baseline_lift(baseline_order: list[int]) -> float | None:
-        b_top = baseline_order[:eff_budget]
-        b_q = sum(1 for oid in b_top if conflict_flags.get(oid, False))
+    # Each baseline's own lift over random at the same budget, on one scale so
+    # the five orderings are comparable. These are point estimates: C4 replaces
+    # them with paired intervals drawn from the same episode resample, because a
+    # ratio between two orderings needs the same draw under both to mean
+    # anything.
+    def _lift_over_random(ordering: list[int]) -> float | None:
+        top = ordering[:eff_budget]
+        found = sum(1 for oid in top if conflict_flags.get(oid, False))
         if result.n_random_conflicts == 0:
             return None
-        return float(b_q) / result.n_random_conflicts
+        return float(found) / result.n_random_conflicts
 
-    fifo_lift = _baseline_lift(fifo_order)
-    img_lift = _baseline_lift(image_uncertainty_order)
-    phys_lift = _baseline_lift(physics_only_order)
-
-    return {
-        "measurable": True,
-        "not_measurable_reason": None,
-        "n_queue_examined": eff_budget,
-        "n_random_conflicts": result.n_random_conflicts,
-        "n_queue_conflicts": result.n_queue_conflicts,
-        "lift_point": result.lift_point,
-        "lift_ci95": result.ci95,
-        "lift_vs_fifo": fifo_lift,
-        "lift_vs_image_uncertainty": img_lift,
-        "lift_vs_physics_only": phys_lift,
-        "n_boot": n_boot,
-        "n_groups": result.n_groups,
-        "verdict": result.verdict,
-        "direction": result.direction,
-    }
+    return _gate6_result(
+        measurable=True,
+        verdict=result.verdict,
+        direction=result.direction,
+        not_measurable_reason=None,
+        n_queue_examined=eff_budget,
+        n_random_conflicts=result.n_random_conflicts,
+        n_queue_conflicts=result.n_queue_conflicts,
+        lift_point=result.lift_point,
+        lift_ci95=result.ci95,
+        fifo_lift_over_random=_lift_over_random(fifo_order),
+        image_uncertainty_lift_over_random=_lift_over_random(image_uncertainty_order),
+        physics_only_lift_over_random=_lift_over_random(physics_only_order),
+        n_boot=n_boot,
+        n_boot_effective=result.n_boot_effective,
+        n_groups=result.n_groups,
+        bootstrap_median=result.bootstrap_median,
+        point_in_ci=result.point_in_ci,
+        consistency_note=result.consistency_note,
+    )

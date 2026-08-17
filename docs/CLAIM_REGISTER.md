@@ -25,10 +25,13 @@ updating the README without regenerating the receipt fails CI.
 | Strongest corrected match | 54.2 sigma vertical against 7.3 sigma curved, obs 14746118 | A3 finding | `artifacts/a3_overlays/summary.json` | `c7ca696` | 2026-08-16 |
 | Observations with no measurable narrowband trace | 17 of 24 vetted with-signal | A3 finding | `artifacts/a3_overlays/summary.json` | `c7ca696` | 2026-08-16 |
 | Pass geometry against reported max_altitude | median 0.21 deg, p99 0.61 deg, 99.5% within 1 deg, 199 of 200 | A4 finding, README, video | `artifacts/PHYSICS_VALIDATION.json` | `0f21ce7` | 2026-08-17 |
-| Gate 6 point lift (chronological) | 1.60× over random at budget 50 | KILL_GATE.md, gate 6 section | `artifacts/QUEUE_RECEIPT.json` | C1 | 2026-08-17 |
-| Gate 6 95% CI (chronological) | [1.00, 1.20] | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C1 | 2026-08-17 |
-| Gate 6 cold_station point lift | 3.00× (PASSED) | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C1 | 2026-08-17 |
-| n_queue_conflicts at budget 50 (chronological) | 20 of 50 | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C1 | 2026-08-17 |
+| Gate 6 point lift (chronological) | 1.600x over random at budget 50 | KILL_GATE.md, gate 6 section | `artifacts/QUEUE_RECEIPT.json` | C2 | 2026-08-18 |
+| Gate 6 95% CI (chronological) | [1.354, 1.760], contains 1.5 | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C2 | 2026-08-18 |
+| Gate 6 bootstrap median (chronological) | 1.592 over 4000 of 4000 surviving resamples | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C2 | 2026-08-18 |
+| Gate 6 cold_station point lift | 3.005x [2.493, 3.454] (PASSED), 217 decisive | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C2 | 2026-08-18 |
+| n_queue_conflicts at budget 50 (chronological) | 20 of 50, against 12.5 expected by random | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C2 | 2026-08-18 |
+| Every ordering's lift over random (chronological) | queue 1.600, FIFO 1.120, image uncertainty 1.120, physics-only 1.040 | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C2 | 2026-08-18 |
+| Superseded: gate 6 CI published in C1 | [1.00, 1.20] was a resample artefact, not a measurement | KILL_GATE.md failure log | reproduced at [1.0000, 1.2200] from the old loop | C2 | 2026-08-18 |
 
 ## Pre-registered limits
 

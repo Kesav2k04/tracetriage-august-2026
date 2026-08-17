@@ -3,8 +3,8 @@
   "$id": "tracetriage/queue_receipt",
   "title": "Review-value queue and kill gate 6",
   "status": "ratified",
-  "schema_version": "0.1.0",
-  "description": "The ranked review queue and kill gate 6 measurement. Ratified 2026-08-17 in C1. Four design constraints are enforced by construction. Every claim carries the count it was measured over, because a queue that surfaces four observations and gets three right is not 75% precision unless the denominator is stated. Every verdict is a four-valued enum with a not-measurable state, because a verdict that can only be good news is not a verdict. An absent measurement carries its reason, because a silent null is a suppressed finding. And the script validates its own output against this schema before writing, so a violating receipt never reaches disk.",
+  "schema_version": "0.2.0",
+  "description": "The ranked review queue and kill gate 6 measurement. Ratified 2026-08-17 in C1, revised 2026-08-18 in C2 after the C1 lift bootstrap was found to deduplicate its own resample. 0.2.0 adds the point_in_ci guard, the surviving-resample count and the bootstrap median, closes split results to unknown keys, and makes three contradictions unrepresentable: an unmeasurable split with no reason, a measurable split still carrying one, and a point estimate outside its own interval reported as a verdict about the gate. Four design constraints are enforced by construction. Every claim carries the count it was measured over, because a queue that surfaces four observations and gets three right is not 75% precision unless the denominator is stated. Every verdict is a four-valued enum with a not-measurable state, because a verdict that can only be good news is not a verdict. An absent measurement carries its reason, because a silent null is a suppressed finding. And the script validates its own output against this schema before writing, so a violating receipt never reaches disk.",
   "type": "object",
   "required": [
     "schema",
@@ -19,8 +19,10 @@
     "review_budget",
     "deduplication",
     "queue",
+    "per_split_summaries",
     "gate6"
   ],
+  "additionalProperties": false,
   "properties": {
     "schema": { "const": "QUEUE_RECEIPT" },
     "schema_version": { "type": "string" },
@@ -107,6 +109,32 @@
       "description": "The ranked queue. One entry per episode, sorted descending by score.",
       "items": { "$ref": "#/$defs/queue_entry" }
     },
+    "per_split_summaries": {
+      "type": "array",
+      "description": "Corpus counts per split. Deliberately holds no gate 6 measurement: the same number in two places is a drift surface, and a reader cannot tell which copy is authoritative. The measurement lives once, in gate6.per_split.",
+      "items": {
+        "type": "object",
+        "required": ["split", "n_test_total", "n_test_decisive"],
+        "additionalProperties": false,
+        "properties": {
+          "split": { "type": "string" },
+          "degraded": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+          "n_test_total": { "oneOf": [{ "type": "integer" }, { "type": "null" }] },
+          "n_test_decisive": {
+            "oneOf": [{ "type": "integer" }, { "type": "null" }],
+            "description": "Observations carrying a with-signal or without-signal label. The denominator for every conflict claim on this split."
+          },
+          "n_queue_after_dedup": {
+            "oneOf": [{ "type": "integer" }, { "type": "null" }],
+            "description": "Queue length after episode deduplication, so the cost of duplicate control is visible rather than inferred."
+          },
+          "n_at_bound_obs": {
+            "oneOf": [{ "type": "integer" }, { "type": "null" }],
+            "description": "Observations whose fitted offset sits at the search-window bound. A value at the edge of its own search window is a floor, not a measurement, so the count is reported wherever offsets are ranked."
+          }
+        }
+      }
+    },
     "gate6": {
       "type": "object",
       "required": [
@@ -124,7 +152,7 @@
         "verdict": {
           "type": "string",
           "enum": ["PASSED", "NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE"],
-          "description": "Four states. NOT_ESTABLISHED means the point estimate is in the right direction but the interval spans the threshold. NOT_MEASURABLE means a split lacked the data to measure at all."
+          "description": "Four states, decided by the interval rather than the point estimate. PASSED: the whole interval clears the threshold. FAILED: the whole interval sits below it. NOT_ESTABLISHED: the interval contains the threshold, whichever side the point estimate falls on. NOT_MEASURABLE: the split lacked the data, or the statistic failed its own consistency check."
         },
         "statement": { "type": "string" },
         "per_split": {
@@ -207,7 +235,58 @@
     },
     "split_gate6_result": {
       "type": "object",
-      "required": ["measurable", "verdict"],
+      "required": [
+        "measurable",
+        "verdict",
+        "direction",
+        "n_groups",
+        "point_in_ci"
+      ],
+      "additionalProperties": false,
+      "description": "One split's gate 6 measurement. additionalProperties is false so a misspelled key cannot silently read as an absent measurement, which is how a null becomes indistinguishable from a value nobody computed.",
+      "allOf": [
+        {
+          "description": "An unmeasurable split states why, in prose, with the counts that made it unmeasurable. A bare false is a suppressed finding.",
+          "if": { "properties": { "measurable": { "const": false } }, "required": ["measurable"] },
+          "then": {
+            "properties": {
+              "not_measurable_reason": { "type": "string", "minLength": 20 },
+              "verdict": { "const": "NOT_MEASURABLE" }
+            },
+            "required": ["not_measurable_reason"]
+          }
+        },
+        {
+          "description": "A measurable split carries its interval, its counts and no leftover reason. A verdict of NOT_MEASURABLE beside measurable true is a contradiction.",
+          "if": { "properties": { "measurable": { "const": true } }, "required": ["measurable"] },
+          "then": {
+            "properties": {
+              "not_measurable_reason": { "type": "null" },
+              "n_queue_examined": { "type": "integer", "minimum": 1 },
+              "n_queue_conflicts": { "type": "integer", "minimum": 0 },
+              "lift_point": { "type": "number" },
+              "lift_ci95": { "type": "array" },
+              "n_boot_effective": { "type": "integer", "minimum": 20 },
+              "point_in_ci": { "const": true },
+              "verdict": { "enum": ["PASSED", "NOT_ESTABLISHED", "FAILED"] }
+            },
+            "required": ["n_queue_examined", "lift_point", "lift_ci95", "n_boot_effective"]
+          }
+        },
+        {
+          "description": "A point estimate outside its own interval is a defect in the statistic, not a finding about the queue. It cannot be reported as a verdict about the gate.",
+          "if": { "properties": { "point_in_ci": { "const": false } }, "required": ["point_in_ci"] },
+          "then": {
+            "properties": {
+              "consistency_note": { "type": "string", "minLength": 20 },
+              "verdict": { "const": "NOT_MEASURABLE" },
+              "direction": { "const": "inconsistent_interval" },
+              "measurable": { "const": false }
+            },
+            "required": ["consistency_note"]
+          }
+        }
+      ],
       "properties": {
         "measurable": { "type": "boolean" },
         "not_measurable_reason": {
@@ -240,38 +319,60 @@
             { "type": "null" }
           ]
         },
-        "lift_vs_fifo": {
+        "fifo_lift_over_random": {
           "oneOf": [{ "type": "number" }, { "type": "null" }],
-          "description": "Point lift of queue over FIFO ordering."
+          "description": "FIFO ordering's own lift over random at the same budget, not the queue's ratio over FIFO. Named for what it holds: the 0.1.0 key was called lift_vs_fifo while computing this, which reads as the opposite quantity."
         },
-        "lift_vs_image_uncertainty": {
+        "image_uncertainty_lift_over_random": {
           "oneOf": [{ "type": "number" }, { "type": "null" }],
-          "description": "Point lift of queue over image-only uncertainty ordering."
+          "description": "Image-only uncertainty ordering's own lift over random at the same budget."
         },
-        "lift_vs_physics_only": {
+        "physics_only_lift_over_random": {
           "oneOf": [{ "type": "number" }, { "type": "null" }],
-          "description": "Point lift of queue over physics-only (AUC-ranked) ordering."
+          "description": "Physics-only ordering's own lift over random at the same budget. The physics arm is weak by measurement (marginal AUC 0.466 to 0.567), so a low value here is expected and is not evidence about the queue."
         },
         "n_boot": {
           "oneOf": [{ "type": "integer" }, { "type": "null" }]
         },
+        "n_boot_effective": {
+          "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }],
+          "description": "Resamples that produced a finite lift, out of n_boot. A percentile interval drawn from a handful of surviving draws is not an interval, so the survivor count is reported next to it."
+        },
+        "bootstrap_median": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }],
+          "description": "Median of the bootstrap distribution. Reported so the bias of the point estimate against its own resample is auditable rather than taken on trust."
+        },
+        "point_in_ci": {
+          "oneOf": [{ "type": "boolean" }, { "type": "null" }],
+          "description": "Whether the point estimate falls inside its own 95% interval, within percentile tolerance. Null means no interval existed to check, which is not the same as a check that passed. False means the resample and the point estimate are measuring different quantities. In C1 this was false on all four splits, because the resample deduplicated drawn episodes and so shrank the population by about a third while the budget stayed fixed, which drove lift to 1.0 by construction."
+        },
+        "consistency_note": {
+          "oneOf": [{ "type": "string" }, { "type": "null" }],
+          "description": "Present when point_in_ci is false. States both numbers and the gap between them."
+        },
         "verdict": {
           "type": "string",
           "enum": ["PASSED", "NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE"],
-          "description": "PASSED: interval lo > 1.5. NOT_ESTABLISHED: point > 1.5 but interval spans 1.5. FAILED: point <= 1.5. NOT_MEASURABLE: could not be measured."
+          "description": "PASSED: interval lo > 1.5. FAILED: interval hi < 1.5, the only shape that refutes the gate. NOT_ESTABLISHED: the interval contains 1.5, whichever side the point estimate falls on. NOT_MEASURABLE: no denominator, too few surviving resamples, or a point estimate outside its own interval."
         },
         "direction": {
           "oneOf": [
             {
               "type": "string",
-              "enum": ["above_threshold", "below_threshold", "spans_threshold", "unmeasurable"]
+              "enum": [
+                "above_threshold",
+                "below_threshold",
+                "spans_threshold",
+                "inconsistent_interval",
+                "unmeasurable"
+              ]
             },
             { "type": "null" }
           ]
         },
         "n_groups": {
           "oneOf": [{ "type": "integer" }, { "type": "null" }],
-          "description": "Number of pass episodes used for bootstrap resampling."
+          "description": "Number of pass episodes used for bootstrap resampling. Episodes, never observations: four captures of one pass share a receiver, a local-oscillator error and a sky geometry."
         }
       }
     }

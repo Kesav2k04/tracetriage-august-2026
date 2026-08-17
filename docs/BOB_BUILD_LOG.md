@@ -26,84 +26,6 @@ entry to a real task in the account rather than to a claim made about one
 
 ---
 
-### 2026-08-17 IST | Account 3 | C1: Review-value queue and kill gate 6
-
-**Task given:** Build the ranked review-value queue and measure kill gate 6 on
-all four splits. Gate 6 wording: "Require the top review queue to find at least
-1.5 times as many manually actionable conflicts as random ordering at the same
-budget." Conflict definition fixed before ranking. Four baselines: random, FIFO,
-image uncertainty, physics-only. Grouped bootstrap over pass episodes. Emit
-`artifacts/QUEUE_RECEIPT.json` validated against schema before writing.
-
-**Files created/changed:**
-- `pipeline/tracetriage/queue.py` (new — ranking engine: QUEUE_REASONS,
-  classify_reasons, composite_score, rank_normalise, deduplicate_by_episode,
-  compute_lift, measure_gate6_split)
-- `scripts/run_queue.py` (new — CLI runner, validates receipt against schema)
-- `contracts/queue_receipt.schema.json` (new, ratified)
-- `tests/test_queue.py` (new, 47 tests: dedup, lift-at-null, mutation×4, determinism)
-- `artifacts/QUEUE_RECEIPT.json` (new, generated receipt)
-- `scripts/gate.py` (gate 6 verdict check added → 8/8 gates now checked)
-- `docs/KILL_GATE.md` (gate 6 measured and recorded)
-- `docs/CLAIM_REGISTER.md` (gate 6 numbers registered)
-- `tests/test_contracts.py` (queue_receipt added to EXPECTED set)
-
-**Commands run:**
-```
-.venv/Scripts/python.exe scripts/run_queue.py --seed 42 --n-boot 4000
-.venv/Scripts/python.exe -m pytest -m "not network and not ocr" -q
-.venv/Scripts/python.exe -m ruff check .
-.venv/Scripts/python.exe scripts/gate.py
-```
-
-**Tests:** 610 offline tests pass (563 pre-C1 + 47 new). Lint clean. Gate 8/8.
-
-**Key results (seed=42, chronological split, budget=50, n_decisive=88):**
-
-| Split | Verdict | Point lift | 95% CI | n_queue_conflicts |
-|---|---|---|---|---|
-| chronological | NOT_ESTABLISHED | 1.60× | [1.00, 1.20] | 20 |
-| cold_station | PASSED | 3.00× | [2.01, 2.51] | 36 |
-| cold_transmitter | NOT_ESTABLISHED | 1.62× | [1.10, 1.32] | 33 |
-| cold_combined | FAILED | 1.29× | [1.00, 1.06] | 17 |
-
-Gate 6 primary verdict: NOT_ESTABLISHED. Point estimate above 1.5x; bootstrap
-CI [1.00, 1.20] lies below 1.5x due to known ratio-statistic skewness on a small
-sample (88 decisive test observations). Same standard as gate 5: a point estimate
-in the right direction with insufficient bootstrap support is not a pass.
-
-Conflict definition (fixed before measuring):
-1. MODEL_LABEL_DISAGREE: prob ≥ 0.75 against the current waterfall_status
-2. STALE_CATALOGUE_FREQ: |fitted_offset_ppm| ≥ 20 and offset_at_bound=false
-3. DEAD_CAPTURE: flat_row_frac ≥ 0.15
-
-**Failures and repairs:**
-
-1. `list(set(episode_of.values()))` was non-deterministic (Python set iteration
-   order is not guaranteed). Fixed to `sorted(set(...))`. Verified: two runs with
-   seed=42 and n_boot=4000 produce identical output.
-
-2. Verdict logic for `FAILED` vs `NOT_ESTABLISHED`: when the point estimate is above
-   1.5 but the CI lies entirely below 1.5 (a ratio-statistic artifact), the original
-   logic classified as `FAILED` (ci entirely below threshold). Changed to
-   `NOT_ESTABLISHED` when `point > threshold`, consistent with gate 5 precedent.
-
-3. Ruff: unused imports in run_queue.py and test_queue.py, SIM114/SIM102 violations,
-   E501 long lines. All fixed.
-
-**Coins:** estimated 5, actual ~6.
-
-**Bob task ID:** C1
-
-**Commit:** (see `git log -1`)
-
-**Outcome:** accepted. 610 tests pass. Lint clean. Gate 8/8. Schema validates.
-QUEUE_RECEIPT.json written. Gate 6 recorded as NOT_ESTABLISHED on the primary
-(chronological) split and PASSED on cold_station.
-
----
-
-
 ## Entries
 
 ### 2026-08-17 IST | Account 3 | A7: End-to-end triage slice
@@ -1103,3 +1025,192 @@ degrade to a named state on the rest rather than to a zero.
 **Coins:** 0. Built by the operator.
 
 **Commit:** `8955e0b`
+
+---
+
+### 2026-08-17 IST | Account 3 | C1: Review-value queue and kill gate 6
+
+**Task given:** Build the ranked review-value queue and measure kill gate 6 on
+all four splits. Gate 6 wording: "Require the top review queue to find at least
+1.5 times as many manually actionable conflicts as random ordering at the same
+budget." Conflict definition fixed before ranking. Four baselines: random, FIFO,
+image uncertainty, physics-only. Grouped bootstrap over pass episodes. Emit
+`artifacts/QUEUE_RECEIPT.json` validated against schema before writing.
+
+**Files created/changed:**
+- `pipeline/tracetriage/queue.py` (new — ranking engine: QUEUE_REASONS,
+  classify_reasons, composite_score, rank_normalise, deduplicate_by_episode,
+  compute_lift, measure_gate6_split)
+- `scripts/run_queue.py` (new — CLI runner, validates receipt against schema)
+- `contracts/queue_receipt.schema.json` (new, ratified)
+- `tests/test_queue.py` (new, 47 tests: dedup, lift-at-null, mutation×4, determinism)
+- `artifacts/QUEUE_RECEIPT.json` (new, generated receipt)
+- `scripts/gate.py` (gate 6 verdict check added → 8/8 gates now checked)
+- `docs/KILL_GATE.md` (gate 6 measured and recorded)
+- `docs/CLAIM_REGISTER.md` (gate 6 numbers registered)
+- `tests/test_contracts.py` (queue_receipt added to EXPECTED set)
+
+**Commands run:**
+```
+.venv/Scripts/python.exe scripts/run_queue.py --seed 42 --n-boot 4000
+.venv/Scripts/python.exe -m pytest -m "not network and not ocr" -q
+.venv/Scripts/python.exe -m ruff check .
+.venv/Scripts/python.exe scripts/gate.py
+```
+
+**Tests:** 610 offline tests pass (563 pre-C1 + 47 new). Lint clean. Gate 8/8.
+
+**Key results (seed=42, chronological split, budget=50, n_decisive=88):**
+
+| Split | Verdict | Point lift | 95% CI | n_queue_conflicts |
+|---|---|---|---|---|
+| chronological | NOT_ESTABLISHED | 1.60× | [1.00, 1.20] | 20 |
+| cold_station | PASSED | 3.00× | [2.01, 2.51] | 36 |
+| cold_transmitter | NOT_ESTABLISHED | 1.62× | [1.10, 1.32] | 33 |
+| cold_combined | FAILED | 1.29× | [1.00, 1.06] | 17 |
+
+Gate 6 primary verdict: NOT_ESTABLISHED. Point estimate above 1.5x; bootstrap
+CI [1.00, 1.20] lies below 1.5x due to known ratio-statistic skewness on a small
+sample (88 decisive test observations). Same standard as gate 5: a point estimate
+in the right direction with insufficient bootstrap support is not a pass.
+
+Conflict definition (fixed before measuring):
+1. MODEL_LABEL_DISAGREE: prob ≥ 0.75 against the current waterfall_status
+2. STALE_CATALOGUE_FREQ: |fitted_offset_ppm| ≥ 20 and offset_at_bound=false
+3. DEAD_CAPTURE: flat_row_frac ≥ 0.15
+
+**Failures and repairs:**
+
+1. `list(set(episode_of.values()))` was non-deterministic (Python set iteration
+   order is not guaranteed). Fixed to `sorted(set(...))`. Verified: two runs with
+   seed=42 and n_boot=4000 produce identical output.
+
+2. Verdict logic for `FAILED` vs `NOT_ESTABLISHED`: when the point estimate is above
+   1.5 but the CI lies entirely below 1.5 (a ratio-statistic artifact), the original
+   logic classified as `FAILED` (ci entirely below threshold). Changed to
+   `NOT_ESTABLISHED` when `point > threshold`, consistent with gate 5 precedent.
+
+3. Ruff: unused imports in run_queue.py and test_queue.py, SIM114/SIM102 violations,
+   E501 long lines. All fixed.
+
+**Coins:** estimated 5, actual ~6.
+
+**Bob task ID:** 132f11e96a87ebc5c7bd1a9196322bb1
+
+**Commit:** (see `git log -1`)
+
+**Outcome:** accepted. 610 tests pass. Lint clean. Gate 8/8. Schema validates.
+QUEUE_RECEIPT.json written. Gate 6 recorded as NOT_ESTABLISHED on the primary
+(chronological) split and PASSED on cold_station.
+
+**Superseded in part, 2026-08-18, by C2.** The interval published above,
+[1.00, 1.20] beneath a point estimate of 1.60, was an artefact of the resample and
+not a measurement. Its cause and the corrected numbers are in the C2 entry below.
+The text above is left as it was reported, because this log records what was
+claimed at the time rather than what turned out to be true. Repair item 2 above is
+the part worth reading twice: the anomaly was seen, named "a ratio-statistic
+artifact", and then handled by changing which label it received. Relabelling a
+number you have just called an artefact leaves the artefact in place and the
+verdict resting on it.
+
+---
+
+## C2. Lift bootstrap repair, duplicate control and entity-concentration limits
+
+**Task given:** Deliver C2 through C6 of Wave C. C2 as planned is duplicate
+control and entity-concentration limits so one noisy station cannot flood the
+review budget. Before any of that, the C1 gate 6 measurement had to be checked,
+because C4 measures the same quantity and would have inherited it.
+
+**What was found first.** C1's own published table showed the point estimate above
+the interval's upper bound on all four splits at once: 1.60 against [1.00, 1.20],
+3.0046 against [2.0064, 2.5103], 1.6246 against [1.10, 1.32], 1.292 against
+[1.00, 1.06]. A percentile interval can sit off-centre from its point estimate.
+It cannot sit entirely below it four times out of four, and two lower bounds
+landing on exactly 1.00 indicated a degenerate resample rather than noise.
+
+Cause, in `compute_lift`:
+
+```python
+pool_set = set(pool)
+drawn_ranked = [oid for oid in ranked_obs_ids if oid in pool_set]
+```
+
+The draw samples 88 episodes with replacement, so `pool` correctly holds
+duplicates, and `set(pool)` then discarded every one of them. A bootstrap draw of
+k groups with replacement covers about 63% of them, so the drawn population fell
+from 88 rows to a measured mean of 55.8 while the budget stayed at 50. Selecting
+50 of 55.8 is not selection: the drawn conflict rate converges on the population
+rate and lift is driven towards 1.0 by construction. 65 of 2000 draws returned
+exactly 1.0, which is where the 1.00 lower bound came from. Reimplementing the old
+loop on synthetic data at the same proportions returns [1.0000, 1.2200] against a
+point estimate of 1.7600, which reproduces the published interval closely enough
+to settle the diagnosis.
+
+**Repairs.**
+
+1. The resample preserves multiplicity. An episode drawn twice contributes its
+   observations twice, and the pool is ordered by the queue's own ranking through
+   a precomputed rank index rather than by filtering the original list.
+2. The budget scales with the drawn population, so selectivity is held fixed
+   across draws. Lift is a function of selectivity, and an absolute budget over a
+   varying population size measures a different quantity in each draw.
+3. `point_in_ci` guards the result. A point estimate outside its own interval,
+   beyond a tolerance of 5% of the interval width, is now reported as
+   NOT_MEASURABLE with both numbers and the gap, not as a verdict about the gate.
+   The tolerance exists because the bootstrap distribution of a ratio on a small
+   discrete sample is genuinely skewed; the guard catches a different quantity,
+   not an off-centre one.
+4. FAILED now requires the whole interval to sit below the threshold. C1 called
+   any point estimate at or below 1.5 a failure, which is the same conflation
+   gate 5 refused in the other direction: an interval containing the bar neither
+   establishes a claim about it nor refutes one. cold_combined moves from FAILED
+   to NOT_ESTABLISHED on that rule, at [1.073, 1.520].
+5. `n_boot_effective` is reported. A draw containing no conflict has no
+   denominator and is dropped, which conditions the interval on "the population
+   contained at least one conflict". With a single conflict episode about 37% of
+   draws are dropped, and a reader cannot see that from the interval. All four
+   splits report 4000 of 4000 surviving.
+6. Each unmeasurable cause carries its own reason with its own counts. C1 routed
+   two different causes through one hardcoded message, so a split with no
+   conflicts to find would have been published as a bootstrap that ran short.
+7. `_gate6_result` is the single constructor for a per-split result and raises on
+   an unknown key. With `additionalProperties` now false, a misspelled key and a
+   key nobody set are indistinguishable in the receipt.
+8. `lift_vs_fifo` and its two siblings were renamed to
+   `fifo_lift_over_random` and siblings, because they hold each baseline's own
+   lift over random, not the queue's ratio over that baseline. The name promised
+   the opposite of the computation.
+9. The receipt no longer stores the gate 6 measurement twice. It lived in both
+   `gate6.per_split` and `per_split_summaries[].gate6_result`, and the same number
+   in two places is a drift surface with no way to tell which copy is
+   authoritative.
+
+**Contract.** `contracts/queue_receipt.schema.json` 0.2.0, ratified. Split results
+are closed to unknown keys, and three contradictions are now unrepresentable: an
+unmeasurable split with no reason of substance, a measurable split still carrying
+one, and a point estimate outside its own interval reported as a verdict about the
+gate. `per_split_summaries` is specified rather than passing unvalidated, and the
+receipt root is closed too.
+
+**Corrected gate 6, seed 42, n_boot 4000, budget 50:**
+
+| Split | Verdict | Point lift | 95% CI | Bootstrap median | n_decisive |
+|---|---|---|---|---|---|
+| chronological | NOT_ESTABLISHED | 1.600 | [1.354, 1.760] | 1.592 | 88 |
+| cold_station | PASSED | 3.005 | [2.493, 3.454] | 2.961 | 217 |
+| cold_transmitter | NOT_ESTABLISHED | 1.625 | [1.429, 1.829] | 1.638 | 96 |
+| cold_combined | NOT_ESTABLISHED | 1.292 | [1.073, 1.520] | 1.322 | 76 |
+
+The primary verdict is unchanged at NOT_ESTABLISHED and the gate's wording was not
+touched. It now fails because [1.354, 1.760] contains 1.5, which is a real
+finding, rather than because of a defect in the statistic.
+
+**Commands run:**
+```
+.venv/Scripts/python.exe -m pytest tests/test_queue_lift_bootstrap.py -q
+.venv/Scripts/python.exe -m pytest -m "not network" -q
+.venv/Scripts/python.exe -m ruff check .
+.venv/Scripts/python.exe scripts/run_queue.py --n-boot 4000
+.venv/Scripts/python.exe scripts/gate.py
+```

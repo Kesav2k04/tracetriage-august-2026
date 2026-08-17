@@ -1,9 +1,9 @@
 {
  "schema": "QUEUE_RECEIPT",
- "schema_version": "0.1.0",
+ "schema_version": "0.2.0",
  "contract": "contracts/queue_receipt.schema.json",
- "unit": "C1",
- "generated_at": "2026-08-17T19:40:20.821330+00:00",
+ "unit": "C2",
+ "generated_at": "2026-08-17T20:32:06.549877+00:00",
  "seed": 42,
  "snapshot_id": "snap-20260817-stage1",
  "split_manifest_sha256": "2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199",
@@ -6612,26 +6612,7 @@
    "n_test_total": 410,
    "n_test_decisive": 88,
    "n_queue_after_dedup": 409,
-   "n_at_bound_obs": 0,
-   "gate6_result": {
-    "measurable": true,
-    "not_measurable_reason": null,
-    "n_queue_examined": 50,
-    "n_random_conflicts": 12.5,
-    "n_queue_conflicts": 20,
-    "lift_point": 1.6,
-    "lift_ci95": [
-     1.0,
-     1.2
-    ],
-    "lift_vs_fifo": 1.12,
-    "lift_vs_image_uncertainty": 1.12,
-    "lift_vs_physics_only": 1.04,
-    "n_boot": 4000,
-    "n_groups": 88,
-    "verdict": "NOT_ESTABLISHED",
-    "direction": "spans_threshold"
-   }
+   "n_at_bound_obs": 0
   },
   {
    "split": "cold_station",
@@ -6639,26 +6620,7 @@
    "n_test_total": 403,
    "n_test_decisive": 217,
    "n_queue_after_dedup": 403,
-   "n_at_bound_obs": 2,
-   "gate6_result": {
-    "measurable": true,
-    "not_measurable_reason": null,
-    "n_queue_examined": 50,
-    "n_random_conflicts": 11.981566820276496,
-    "n_queue_conflicts": 36,
-    "lift_point": 3.004615384615385,
-    "lift_ci95": [
-     2.0064,
-     2.5103604004449385
-    ],
-    "lift_vs_fifo": 1.3353846153846156,
-    "lift_vs_image_uncertainty": 1.418846153846154,
-    "lift_vs_physics_only": 1.6692307692307693,
-    "n_boot": 4000,
-    "n_groups": 217,
-    "verdict": "PASSED",
-    "direction": "above_threshold"
-   }
+   "n_at_bound_obs": 2
   },
   {
    "split": "cold_transmitter",
@@ -6666,26 +6628,7 @@
    "n_test_total": 353,
    "n_test_decisive": 96,
    "n_queue_after_dedup": 353,
-   "n_at_bound_obs": 1,
-   "gate6_result": {
-    "measurable": true,
-    "not_measurable_reason": null,
-    "n_queue_examined": 50,
-    "n_random_conflicts": 20.3125,
-    "n_queue_conflicts": 33,
-    "lift_point": 1.6246153846153846,
-    "lift_ci95": [
-     1.0999999999999999,
-     1.32
-    ],
-    "lift_vs_fifo": 1.0338461538461539,
-    "lift_vs_image_uncertainty": 1.1323076923076922,
-    "lift_vs_physics_only": 1.083076923076923,
-    "n_boot": 4000,
-    "n_groups": 96,
-    "verdict": "NOT_ESTABLISHED",
-    "direction": "spans_threshold"
-   }
+   "n_at_bound_obs": 1
   },
   {
    "split": "cold_combined",
@@ -6693,26 +6636,7 @@
    "n_test_total": 183,
    "n_test_decisive": 76,
    "n_queue_after_dedup": 179,
-   "n_at_bound_obs": 1,
-   "gate6_result": {
-    "measurable": true,
-    "not_measurable_reason": null,
-    "n_queue_examined": 50,
-    "n_random_conflicts": 13.157894736842104,
-    "n_queue_conflicts": 17,
-    "lift_point": 1.292,
-    "lift_ci95": [
-     0.9999999999999999,
-     1.06
-    ],
-    "lift_vs_fifo": 1.1400000000000001,
-    "lift_vs_image_uncertainty": 0.76,
-    "lift_vs_physics_only": 0.684,
-    "n_boot": 4000,
-    "n_groups": 76,
-    "verdict": "FAILED",
-    "direction": "below_threshold"
-   }
+   "n_at_bound_obs": 1
   }
  ],
  "gate6": {
@@ -6720,7 +6644,7 @@
   "wording": "Require the top review queue to find at least 1.5 times as many manually actionable conflicts as random ordering at the same budget.",
   "decided_on": "chronological",
   "verdict": "NOT_ESTABLISHED",
-  "statement": "The queue's point lift is 1.60 on the chronological split (20 conflicts in 50 examined, expected 12.5 by random). The 95% interval lies entirely below 1.5 (1.00 to 1.20), despite the point estimate exceeding 1.5 \u2014 a known behaviour of percentile bootstrap CIs on ratio statistics with concentrated numerators. A point estimate above 1.5 whose interval does not sit above 1.5 is not a pass, for the same reason gate 5 was recorded as NOT_ESTABLISHED: the evidence does not exclude noise.",
+  "statement": "The queue's point lift is 1.60 on the chronological split (20 conflicts in 50 examined, expected 12.5 by random). The 95% interval spans the 1.5 threshold (1.35 to 1.76). A point estimate above 1.5 whose interval does not sit above 1.5 is not a pass, for the same reason gate 5 was recorded as NOT_ESTABLISHED: the evidence does not exclude noise.",
   "per_split": {
    "chronological": {
     "measurable": true,
@@ -6730,16 +6654,20 @@
     "n_queue_conflicts": 20,
     "lift_point": 1.6,
     "lift_ci95": [
-     1.0,
-     1.2
+     1.3538461538461537,
+     1.76
     ],
-    "lift_vs_fifo": 1.12,
-    "lift_vs_image_uncertainty": 1.12,
-    "lift_vs_physics_only": 1.04,
+    "fifo_lift_over_random": 1.12,
+    "image_uncertainty_lift_over_random": 1.12,
+    "physics_only_lift_over_random": 1.04,
     "n_boot": 4000,
-    "n_groups": 88,
+    "n_boot_effective": 4000,
+    "bootstrap_median": 1.5923809523809525,
+    "point_in_ci": true,
+    "consistency_note": null,
     "verdict": "NOT_ESTABLISHED",
-    "direction": "spans_threshold"
+    "direction": "spans_threshold",
+    "n_groups": 88
    },
    "cold_station": {
     "measurable": true,
@@ -6749,16 +6677,20 @@
     "n_queue_conflicts": 36,
     "lift_point": 3.004615384615385,
     "lift_ci95": [
-     2.0064,
-     2.5103604004449385
+     2.493191489361702,
+     3.4542857142857146
     ],
-    "lift_vs_fifo": 1.3353846153846156,
-    "lift_vs_image_uncertainty": 1.418846153846154,
-    "lift_vs_physics_only": 1.6692307692307693,
+    "fifo_lift_over_random": 1.3353846153846156,
+    "image_uncertainty_lift_over_random": 1.418846153846154,
+    "physics_only_lift_over_random": 1.6692307692307693,
     "n_boot": 4000,
-    "n_groups": 217,
+    "n_boot_effective": 4000,
+    "bootstrap_median": 2.9606565656565653,
+    "point_in_ci": true,
+    "consistency_note": null,
     "verdict": "PASSED",
-    "direction": "above_threshold"
+    "direction": "above_threshold",
+    "n_groups": 217
    },
    "cold_transmitter": {
     "measurable": true,
@@ -6768,16 +6700,20 @@
     "n_queue_conflicts": 33,
     "lift_point": 1.6246153846153846,
     "lift_ci95": [
-     1.0999999999999999,
-     1.32
+     1.4288372093023254,
+     1.82872380952381
     ],
-    "lift_vs_fifo": 1.0338461538461539,
-    "lift_vs_image_uncertainty": 1.1323076923076922,
-    "lift_vs_physics_only": 1.083076923076923,
+    "fifo_lift_over_random": 1.0338461538461539,
+    "image_uncertainty_lift_over_random": 1.1323076923076922,
+    "physics_only_lift_over_random": 1.083076923076923,
     "n_boot": 4000,
-    "n_groups": 96,
+    "n_boot_effective": 4000,
+    "bootstrap_median": 1.6376470588235292,
+    "point_in_ci": true,
+    "consistency_note": null,
     "verdict": "NOT_ESTABLISHED",
-    "direction": "spans_threshold"
+    "direction": "spans_threshold",
+    "n_groups": 96
    },
    "cold_combined": {
     "measurable": true,
@@ -6787,16 +6723,20 @@
     "n_queue_conflicts": 17,
     "lift_point": 1.292,
     "lift_ci95": [
-     0.9999999999999999,
-     1.06
+     1.0729411764705883,
+     1.52
     ],
-    "lift_vs_fifo": 1.1400000000000001,
-    "lift_vs_image_uncertainty": 0.76,
-    "lift_vs_physics_only": 0.684,
+    "fifo_lift_over_random": 1.1400000000000001,
+    "image_uncertainty_lift_over_random": 0.76,
+    "physics_only_lift_over_random": 0.684,
     "n_boot": 4000,
-    "n_groups": 76,
-    "verdict": "FAILED",
-    "direction": "below_threshold"
+    "n_boot_effective": 4000,
+    "bootstrap_median": 1.3217391304347825,
+    "point_in_ci": true,
+    "consistency_note": null,
+    "verdict": "NOT_ESTABLISHED",
+    "direction": "spans_threshold",
+    "n_groups": 76
    }
   }
  }
