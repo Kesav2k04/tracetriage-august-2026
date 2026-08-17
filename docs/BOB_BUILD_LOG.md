@@ -1024,4 +1024,4 @@ degrade to a named state on the rest rather than to a zero.
 
 **Coins:** 0. Built by the operator.
 
-**Commit:** recorded at commit time.
+**Commit:** `8955e0b`
