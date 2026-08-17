@@ -469,12 +469,59 @@ def _load_grey_crop(
 # Centre-energy heuristic
 # ---------------------------------------------------------------------------
 
+def centre_strip_score(
+    crop_arr: np.ndarray,
+    strip_x0: int,
+    strip_x1: int,
+) -> float | None:
+    """Mean row-normalised intensity inside a column strip. Unbounded.
+
+    Split out from image loading so the measurement can be tested on arrays with
+    a known answer, without an OCR backend in the way. That separation is the
+    point: the version this replaced could only be exercised end to end, so a
+    fault in the arithmetic looked like a fact about the data.
+
+    Each row is z-scored against its own median and MAD before the strip is
+    measured. A pass brightens as the satellite closes range, so raw row means
+    carry a vertical gradient that has nothing to do with the tuned frequency,
+    and A3 measured that removing it is the difference between seeing a carrier
+    and seeing the gradient. Nothing is normalised along the time axis, because
+    that would delete a stationary carrier, which is exactly the shape a
+    Doppler-corrected capture leaves.
+
+    Higher means more energy at the tuned frequency. A signal on a SatNOGS
+    waterfall is BRIGHT, established in A3 by locating carriers at 32 to 54
+    sigma with an argmax over luminance.
+
+    Returned unbounded on purpose. An earlier version computed
+    ``1 - strip_mean / full_mean`` and clipped to [0, 1]. Measured on this
+    corpus every value of that expression is negative, about -0.11 for both
+    classes, so the clip pinned all 591 training observations to exactly 0.0.
+    The feature became a constant, the model had one input value for every
+    sample, and its Brier score landed exactly on the prior. That reads as "the
+    feature is not discriminative" when the real fault was that the feature was
+    never computed. Platt scaling wants an unbounded score and works out offset
+    and direction by itself, so no squashing belongs here.
+    """
+    if crop_arr.size == 0 or strip_x1 <= strip_x0:
+        return None
+    lum = crop_arr.astype(np.float32)
+    med = np.median(lum, axis=1, keepdims=True)
+    mad = np.median(np.abs(lum - med), axis=1, keepdims=True) * 1.4826
+    z = (lum - med) / np.maximum(mad, 1e-6)
+    score = float(z[:, strip_x0:strip_x1].mean())
+    return score if math.isfinite(score) else None
+
+
 @dataclass
 class CentreEnergyBaseline:
-    """Ratio of mean energy in the central frequency strip to the full crop.
+    """Mean row-normalised intensity in the central frequency strip.
 
-    A signal concentrates energy near the tuned frequency; a noise waterfall
-    is spatially flat.  The ratio is a calibrated probability after Platt scaling.
+    A signal concentrates energy near the tuned frequency; a noise waterfall is
+    spatially flat along the frequency axis. Each row is z-scored against its own
+    median and MAD first, so the brightness gradient that changing range puts
+    into every pass does not compete with the thing being measured. The raw score
+    is unbounded and becomes a probability through Platt scaling.
 
     Requires the waterfall parser (EasyOCR) to extract hz_per_px and centre_px.
     Observations where parsing fails are excluded from scoring (not scored zero).
@@ -506,7 +553,10 @@ class CentreEnergyBaseline:
         geom = parse_waterfall(
             image_path,
             observation_id=0,          # not needed for the crop; id is cosmetic here
-            pass_duration_s=200.0,     # arbitrary positive value; required for no fail
+            # Only feeds seconds_per_px, which this feature never reads. It is
+            # not "required to avoid a failure": hz_per_px and crop_box are
+            # derived from the frequency axis and do not depend on it.
+            pass_duration_s=200.0,
         )
 
         # If geometry failed, exclude this observation.
@@ -543,19 +593,7 @@ class CentreEnergyBaseline:
         if strip_x1 <= strip_x0:
             return None
 
-        strip = crop_arr[:, strip_x0:strip_x1]
-        full_mean = float(crop_arr.mean())
-        if full_mean == 0.0:
-            return None
-        strip_mean = float(strip.mean())
-
-        # Invert: a bright (high value = white/low-signal) strip gets low score.
-        # SatNOGS waterfalls are dark = signal, white = noise.
-        # So a lower pixel value means more energy at that frequency.
-        # We want: signal concentrates in the strip → strip darker → lower ratio.
-        # Score = 1 - (strip_mean / full_mean): high when strip is darker than background.
-        score = 1.0 - (strip_mean / (full_mean + 1e-6))
-        return float(np.clip(score, 0.0, 1.0))
+        return centre_strip_score(crop_arr, strip_x0, strip_x1)
 
     def fit(self, train_data: list[ObsRecord]) -> CentreEnergyBaseline:
         """Compute raw scores on training data and fit a Platt-scaling calibrator."""
