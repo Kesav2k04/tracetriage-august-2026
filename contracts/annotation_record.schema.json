@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tracetriage/annotation_record",
+  "title": "Local reviewer annotation",
+  "status": "ratified",
+  "schema_version": "0.1.0",
+  "description": "One reviewer decision about one observation, stored locally and never transmitted. Ratified 2026-08-18 in C3. Four shapes are impossible by construction. An annotation cannot exist without the digest of the receipt it was made against, because a judgement about the third row of a ranking says nothing about a different ranking. A decision is a fixed enum, so outcomes can be counted without parsing prose, and a free-text note sits beside it rather than in place of it. Every record carries the digest of the record before it, so an edited or removed record is detectable rather than invisible. And a record carries its own digest computed over its remaining fields, so an in-place edit cannot leave a consistent-looking log.",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_version",
+    "obs_id",
+    "decision",
+    "annotator",
+    "split",
+    "receipt_sha256",
+    "created_at",
+    "prev_sha256",
+    "record_sha256"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "ANNOTATION_RECORD" },
+    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "obs_id": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "description": "SatNOGS observation id. A boolean is rejected by the builder before it can arrive here as 1."
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "AGREES_WITH_LABEL",
+        "DISAGREES_WITH_LABEL",
+        "STALE_FREQUENCY_CONFIRMED",
+        "MISCONFIGURED_CLIENT_SUSPECTED",
+        "DEAD_CAPTURE_CONFIRMED",
+        "CANNOT_TELL"
+      ],
+      "description": "Fixed vocabulary, kept identical to ANNOTATION_DECISIONS in code by a test. CANNOT_TELL is a real outcome and is not a missing value: 17 of 24 vetted with-signal observations in A3 carried no measurable narrowband trace."
+    },
+    "note": {
+      "oneOf": [{ "type": "string" }, { "type": "null" }],
+      "description": "Optional free text, local only. It never substitutes for the decision, so a queue's outcomes remain countable."
+    },
+    "annotator": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A local label for who reviewed. Not an account, not transmitted."
+    },
+    "split": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Which split's queue was being reviewed. Required, because a lift measured on one split is not evidence about another."
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Digest of the queue receipt this annotation was made against. Required and not nullable: an annotation of a rank is meaningless once the ranking changes, and a null here would let it be silently reattributed."
+    },
+    "rank_at_annotation": {
+      "oneOf": [{ "type": "integer", "minimum": 1 }, { "type": "null" }],
+      "description": "Where the observation sat in the queue when it was reviewed. Null is permitted, for an observation reviewed outside the ranking."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "ISO 8601 with an offset."
+    },
+    "prev_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "record_sha256 of the previous record, or 64 zeroes for the first. A stated genesis constant rather than a null, because a null would also mean 'field missing'."
+    },
+    "record_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Digest over every other field, with sorted keys and compact separators, so it depends on content rather than on formatting."
+    }
+  }
+}

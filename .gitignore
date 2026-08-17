@@ -36,6 +36,13 @@ artifacts/**/*
 !artifacts/**/*.md
 !artifacts/a3_overlays/*.png
 
+# Reviewer annotations are private local notes and are never committed. They are
+# already excluded by the catch-all above, but only incidentally, and a future
+# re-include written for some other .jsonl would start committing them silently.
+# This says so on purpose, and it wins because it comes last.
+artifacts/annotations/
+*.jsonl
+
 # --- secrets ---
 .env
 .env.local

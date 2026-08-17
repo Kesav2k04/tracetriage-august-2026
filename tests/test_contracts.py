@@ -24,6 +24,7 @@ CONTRACTS = sorted(CONTRACT_DIR.glob("*.schema.json"))
 SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
 
 EXPECTED = {
+    "annotation_record",
     "dataset_manifest",
     "fusion_receipt",
     "queue_receipt",

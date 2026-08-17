@@ -1399,3 +1399,62 @@ baseline to prove the loss branch is reachable, and a test that `n_comparisons=1
 gives a strictly narrower interval than 4 so an accepted-and-ignored correction
 cannot pass unnoticed. Contract extended with `replay` and `replay_conclusion`,
 both closed to unknown keys.
+
+---
+
+## C3. Local annotation, with a provable no-outbound-write guarantee
+
+**Task given:** local annotation that writes to local storage only, with a test
+asserting no outbound write to SatNOGS is even possible.
+
+**"Possible" is a stronger word than "does not happen",** so the guarantee is
+built from three checks that each close a different route.
+
+The import closure. `tests/test_annotate.py` parses `annotate.py`, follows every
+first-party import transitively, and fails if `httpx`, `requests`,
+`urllib.request`, `socket`, `http.client` or nine other network modules appear
+anywhere in that closure. Walking it matters: a clean import list at the top of one
+file says nothing about what its imports import. The test also asserts it examined
+at least four imports, so a closure that resolved to nothing cannot pass vacuously.
+
+The sink. `resolve_store_path` refuses any path carrying a URL scheme, including
+`file:`, and refuses UNC network shares. A Windows drive letter is not a scheme and
+is accepted, which the tests pin in both directions so the guard is not simply
+refusing everything.
+
+The codebase. An AST scan asserts no HTTP write verb (`.post`, `.put`, `.patch`,
+`.delete`) exists anywhere in `pipeline/` or `scripts/`. It is currently clean: the
+snapshot fetcher uses httpx to read the SatNOGS API and never writes to it. This
+stops a future unit from adding a POST path that the annotation module could then
+reach.
+
+**The log is append-only and hash-chained.** Each record carries the digest of the
+record before it, and its own digest over its remaining fields with sorted keys, so
+an in-place edit or a removed line is detectable rather than invisible. A reviewer
+changing their mind appends a second record; both are kept, because a changed mind
+is information and not a correction to hide. `verify` reports the count examined
+next to the result, and an empty log reports zero examined rather than a pass.
+
+**Every annotation is bound to the receipt it was made against.** A judgement about
+the third row of a ranking says nothing about a different ranking, so a record
+without the receipt's digest is refused rather than stored with a null. Re-running
+the queue changes that digest and old annotations keep pointing at the ranking they
+were actually made against.
+
+**Contract `annotation_record.schema.json` 0.1.0, ratified.** Sixteen negative
+tests, and the schema was weakened four ways to confirm the negative tests notice:
+dropping the receipt requirement, opening `additionalProperties`, removing the
+decision enum, and removing the digest pattern. Each weakening makes at least one
+rejected record pass, which proves the constraint being tested is the one doing the
+work rather than something else in the schema catching the same input by accident.
+
+**Reviewer notes are never committed.** `.gitignore` now excludes
+`artifacts/annotations/` by name. They were already excluded by the catch-all, but
+only incidentally, and a future re-include written for some other `.jsonl` would
+have started committing private notes silently.
+
+**Verified end to end.** `scripts/annotate.py` records observation 14740031, the
+32 ppm offset case, at its shipped rank of 13, chains a second record to it, and
+`verify` reports both intact.
+
+**Results.** 721 offline tests pass, up from 680. Lint clean.
