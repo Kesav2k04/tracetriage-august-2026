@@ -65,6 +65,24 @@ def main() -> int:
     n_dirty = len(out.splitlines())
     results.append(check("working tree committed", out == "", f"{n_dirty} uncommitted"))
 
+    _queue = REPO / "artifacts" / "QUEUE_RECEIPT.json"
+    if _queue.exists():
+        try:
+            _qr = json.loads(_queue.read_text(encoding="utf-8"))
+            _g6_verdict = _qr.get("gate6", {}).get("verdict", "MISSING")
+            _g6_ok = _g6_verdict in ("PASSED", "NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE")
+        except Exception as _e:
+            _g6_verdict = f"parse error: {_e}"
+            _g6_ok = False
+    else:
+        _g6_verdict = "QUEUE_RECEIPT.json not found"
+        _g6_ok = False
+    results.append(check(
+        "gate 6 receipt present and verdict recorded",
+        _g6_ok,
+        _g6_verdict[:70],
+    ))
+
     rc, out = run([
         "git", "grep", "-lIE",
         r"ghp_[0-9A-Za-z]{36,}|github_pat_[0-9A-Za-z_]{36,}|-----BEGIN [A-Z ]*PRIVATE KEY",

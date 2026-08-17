@@ -1,0 +1,6803 @@
+{
+ "schema": "QUEUE_RECEIPT",
+ "schema_version": "0.1.0",
+ "contract": "contracts/queue_receipt.schema.json",
+ "unit": "C1",
+ "generated_at": "2026-08-17T19:30:30.757285+00:00",
+ "seed": 42,
+ "snapshot_id": "snap-20260817-stage1",
+ "split_manifest_sha256": "2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199",
+ "conflict_definition": {
+  "criteria": [
+   {
+    "reason_code": "MODEL_LABEL_DISAGREE",
+    "description": "Shipped arm (image_corridor) predicts with calibrated probability \u2265 0.75 that the observation is positive when the label is without-signal, or \u2264 0.25 (confident negative) when the label is with-signal.",
+    "threshold": {
+     "prob_positive_floor": 0.75,
+     "prob_negative_ceiling": 0.25
+    },
+    "measurable_from_snapshot": true
+   },
+   {
+    "reason_code": "STALE_CATALOGUE_FREQ",
+    "description": "Fitted frequency offset magnitude \u2265 20 ppm of the catalogue downlink frequency and offset_at_bound is false. Implies the SatNOGS transmitter catalogue frequency is at least 20 ppm stale.",
+    "threshold": {
+     "abs_offset_ppm_min": 20.0
+    },
+    "measurable_from_snapshot": true
+   },
+   {
+    "reason_code": "DEAD_CAPTURE",
+    "description": "flat_row_frac \u2265 0.15: at least 15% of waterfall rows carry no luminance variation, indicating substantial dead capture time.",
+    "threshold": {
+     "flat_row_frac_min": 0.15
+    },
+    "measurable_from_snapshot": true
+   }
+  ],
+  "fixed_before_measuring": true,
+  "caveats": [
+   "MODEL_LABEL_DISAGREE uses all decisively-labelled observations, not only single-vetted ones. The SatNOGS waterfall_status_user field is present in the snapshot but the single-vetter count per observation is not stored; restricting to single-vetted records would require a second API call not made at snapshot time.",
+   "DOPPLER_UNCORRECTED_OUTLIER is not included as a criterion. A3 identified only 3 UNCORRECTED observations (out of 24 vetted); applying the criterion to the remaining corpus would be a guess. It is named in QUEUE_REASONS and listed as NOT_APPLICABLE in the per-split state because the data do not support it.",
+   "Corridor features are unavailable for 18 observations (4 NO_IMAGE + 14 PHYSICS_STALE_TLE). Those observations score 0 on the offset and flat-row signals and rank on disagreement alone."
+  ]
+ },
+ "review_budget": {
+  "n_observations": 50,
+  "rationale": "Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test)."
+ },
+ "deduplication": {
+  "key": [
+   "ground_station",
+   "norad_cat_id",
+   "start_prefix_13chars"
+  ],
+  "rule": "One observation per (ground_station, norad_cat_id, start[:13]) episode. When an episode appears more than once, the observation with the highest composite score is kept; ties are broken by lower obs_id for determinism.",
+  "n_episodes_before": 409,
+  "n_episodes_after": 409,
+  "n_observations_after": 409,
+  "sha256_duplicate_policy": "Different episodes that share a waterfall SHA-256 are both kept; they represent physically different passes. The test suite covers this with a constructed case because the stage-1 corpus has 0 SHA-256 duplicates.",
+  "n_sha256_duplicates_in_corpus": 0
+ },
+ "queue": [
+  {
+   "obs_id": 14746092,
+   "episode_key": "(5078, 52899, '2026-08-09T23')",
+   "rank": 1,
+   "score": 0.8801219512195121,
+   "reasons": [
+    "MODEL_LABEL_DISAGREE"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 15.81643713097386,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.000781864671725092
+  },
+  {
+   "obs_id": 14735140,
+   "episode_key": "(5078, 68481, '2026-08-09T22')",
+   "rank": 2,
+   "score": 0.851341463414634,
+   "reasons": [
+    "MODEL_LABEL_DISAGREE"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "with-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": 4.968765475027567,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0013907888009345123
+  },
+  {
+   "obs_id": 14732518,
+   "episode_key": "(4806, 40025, '2026-08-09T23')",
+   "rank": 3,
+   "score": 0.6003658536585366,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 42.146972575163595,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.006459137626230317
+  },
+  {
+   "obs_id": 14745718,
+   "episode_key": "(4272, 5485, '2026-08-09T22')",
+   "rank": 4,
+   "score": 0.5967073170731707,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 31.150391425594748,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.010680423924770907
+  },
+  {
+   "obs_id": 14745990,
+   "episode_key": "(4272, 64535, '2026-08-09T23')",
+   "rank": 5,
+   "score": 0.595609756097561,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 31.72103614498779,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.019092951716911326
+  },
+  {
+   "obs_id": 14744250,
+   "episode_key": "(5068, 46487, '2026-08-09T23')",
+   "rank": 6,
+   "score": 0.5939024390243902,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 25.149575564743802,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.01531640875313523
+  },
+  {
+   "obs_id": 14746054,
+   "episode_key": "(4272, 1430, '2026-08-09T23')",
+   "rank": 7,
+   "score": 0.5853658536585366,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": -19.224820676709484,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.03314789192685671
+  },
+  {
+   "obs_id": 14733024,
+   "episode_key": "(91, 60556, '2026-08-09T22')",
+   "rank": 8,
+   "score": 0.5835365853658536,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 22.65686410505387,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.002657595784540537
+  },
+  {
+   "obs_id": 14744187,
+   "episode_key": "(4151, 98293, '2026-08-09T23')",
+   "rank": 9,
+   "score": 0.5826829268292683,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 26.242873167553913,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.004572756364573331
+  },
+  {
+   "obs_id": 14744248,
+   "episode_key": "(5068, 60520, '2026-08-09T22')",
+   "rank": 10,
+   "score": 0.5808536585365853,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.5,
+   "fitted_offset_ppm": -25.33919637553257,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.014582110959702325
+  },
+  {
+   "obs_id": 14742034,
+   "episode_key": "(5024, 67683, '2026-08-09T22')",
+   "rank": 11,
+   "score": 0.5784146341463414,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.5,
+   "fitted_offset_ppm": 24.890884735121112,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.011400739767820547
+  },
+  {
+   "obs_id": 14740027,
+   "episode_key": "(91, 63239, '2026-08-09T23')",
+   "rank": 12,
+   "score": 0.5756707317073171,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 32.04662812752402,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.02833649598330808
+  },
+  {
+   "obs_id": 14740031,
+   "episode_key": "(91, 63214, '2026-08-09T23')",
+   "rank": 13,
+   "score": 0.5751829268292683,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 32.04662812752402,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.024795665328227235
+  },
+  {
+   "obs_id": 14741735,
+   "episode_key": "(40, 98330, '2026-08-09T23')",
+   "rank": 14,
+   "score": 0.5720731707317073,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 18.86089168107372,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0034778461970724
+  },
+  {
+   "obs_id": 14744249,
+   "episode_key": "(5068, 46487, '2026-08-09T22')",
+   "rank": 15,
+   "score": 0.571219512195122,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 15.666948712463352,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.029636771065815994
+  },
+  {
+   "obs_id": 14742036,
+   "episode_key": "(5024, 60237, '2026-08-09T23')",
+   "rank": 16,
+   "score": 0.568170731707317,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 22.84126535421183,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.004175081883017929
+  },
+  {
+   "obs_id": 14745664,
+   "episode_key": "(1696, 63218, '2026-08-09T23')",
+   "rank": 17,
+   "score": 0.5657317073170732,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": -16.38161358893851,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.006333444359847473
+  },
+  {
+   "obs_id": 14745929,
+   "episode_key": "(1696, 63217, '2026-08-09T23')",
+   "rank": 18,
+   "score": 0.5632926829268293,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.5,
+   "fitted_offset_ppm": -16.38161358893851,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.012559155831578312
+  },
+  {
+   "obs_id": 14735884,
+   "episode_key": "(5078, 32785, '2026-08-09T22')",
+   "rank": 19,
+   "score": 0.5567073170731708,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.5,
+   "fitted_offset_ppm": -14.23699108694947,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.014172976846656131
+  },
+  {
+   "obs_id": 14736746,
+   "episode_key": "(342, 69015, '2026-08-09T23')",
+   "rank": 20,
+   "score": 0.5540243902439025,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 11.651731122537969,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.010690045194588648
+  },
+  {
+   "obs_id": 14735176,
+   "episode_key": "(5078, 98457, '2026-08-09T23')",
+   "rank": 21,
+   "score": 0.5504878048780487,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 22.66137965186009,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.004400401189229207
+  },
+  {
+   "obs_id": 14745985,
+   "episode_key": "(4349, 64550, '2026-08-09T23')",
+   "rank": 22,
+   "score": 0.5486585365853659,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.25,
+   "fitted_offset_ppm": 36.20501354113628,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0010922552967148396
+  },
+  {
+   "obs_id": 14735743,
+   "episode_key": "(858, 63217, '2026-08-09T23')",
+   "rank": 23,
+   "score": 0.5482926829268292,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": -39.19886108781715,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0014558924237816208
+  },
+  {
+   "obs_id": 14745984,
+   "episode_key": "(4349, 64549, '2026-08-09T23')",
+   "rank": 24,
+   "score": 0.5453658536585366,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": -12.972320046275032,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.041078442089405955
+  },
+  {
+   "obs_id": 14742229,
+   "episode_key": "(3677, 98293, '2026-08-09T23')",
+   "rank": 25,
+   "score": 0.5441463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 18.66405843461511,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0032644922138328884
+  },
+  {
+   "obs_id": 14744259,
+   "episode_key": "(5068, 64537, '2026-08-09T23')",
+   "rank": 26,
+   "score": 0.5414634146341464,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.2857142857142857,
+   "fitted_offset_ppm": -22.312534863335724,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0025700321418975648
+  },
+  {
+   "obs_id": 14745823,
+   "episode_key": "(4791, 39249, '2026-08-09T23')",
+   "rank": 27,
+   "score": 0.5404878048780488,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 9.070337463211027,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.004998613421173988
+  },
+  {
+   "obs_id": 14745341,
+   "episode_key": "(3918, 63235, '2026-08-09T22')",
+   "rank": 28,
+   "score": 0.5389024390243903,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": -16.939401517024,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.004167886192395222
+  },
+  {
+   "obs_id": 14740029,
+   "episode_key": "(91, 55051, '2026-08-09T23')",
+   "rank": 29,
+   "score": 0.5384146341463415,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 10.972137185194576,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.03204751534752067
+  },
+  {
+   "obs_id": 14745983,
+   "episode_key": "(4349, 40054, '2026-08-09T22')",
+   "rank": 30,
+   "score": 0.536829268292683,
+   "reasons": [
+    "MODEL_LABEL_DISAGREE"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": -7.9475543680072525,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007124691818475336
+  },
+  {
+   "obs_id": 14746148,
+   "episode_key": "(1672, 63217, '2026-08-09T23')",
+   "rank": 31,
+   "score": 0.535670731707317,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0003811799355216555
+  },
+  {
+   "obs_id": 14745342,
+   "episode_key": "(3953, 63235, '2026-08-09T22')",
+   "rank": 32,
+   "score": 0.5354878048780488,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 9.964353833543528,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.034164014335316795
+  },
+  {
+   "obs_id": 14745663,
+   "episode_key": "(1696, 63237, '2026-08-09T23')",
+   "rank": 33,
+   "score": 0.5354878048780488,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": -16.38161358893851,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.002505898035840536
+  },
+  {
+   "obs_id": 14745773,
+   "episode_key": "(4330, 29709, '2026-08-09T22')",
+   "rank": 34,
+   "score": 0.5329268292682927,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": -2.190053896811259,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.026805023494078574
+  },
+  {
+   "obs_id": 14740030,
+   "episode_key": "(91, 51827, '2026-08-09T23')",
+   "rank": 35,
+   "score": 0.5310975609756097,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": 18.660957911549218,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0018025799611439697
+  },
+  {
+   "obs_id": 14745601,
+   "episode_key": "(5078, 25544, '2026-08-09T22')",
+   "rank": 36,
+   "score": 0.5309756097560976,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 9.479395622679373,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0035769685574743347
+  },
+  {
+   "obs_id": 14737233,
+   "episode_key": "(3689, 69015, '2026-08-09T23')",
+   "rank": 37,
+   "score": 0.5287804878048781,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 8.704107064762804,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.004980874737367625
+  },
+  {
+   "obs_id": 14744188,
+   "episode_key": "(4151, 63237, '2026-08-09T23')",
+   "rank": 38,
+   "score": 0.5285365853658536,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": -18.5590594723167,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.001322257922774042
+  },
+  {
+   "obs_id": 14740028,
+   "episode_key": "(91, 40014, '2026-08-09T23')",
+   "rank": 39,
+   "score": 0.5257317073170732,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 7.667443795057191,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.007939261810768304
+  },
+  {
+   "obs_id": 14745911,
+   "episode_key": "(4451, 27844, '2026-08-09T22')",
+   "rank": 40,
+   "score": 0.5248780487804878,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": 17.17463327522006,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0012612703214017855
+  },
+  {
+   "obs_id": 14737313,
+   "episode_key": "(3918, 69015, '2026-08-09T23')",
+   "rank": 41,
+   "score": 0.5220731707317073,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 6.5953195033233785,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.03836939475491603
+  },
+  {
+   "obs_id": 14733022,
+   "episode_key": "(91, 63235, '2026-08-09T22')",
+   "rank": 42,
+   "score": 0.5208536585365854,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": -5.20924770993188,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.04199716569887455
+  },
+  {
+   "obs_id": 14745611,
+   "episode_key": "(2173, 67290, '2026-08-09T23')",
+   "rank": 43,
+   "score": 0.5204878048780488,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 30.9783630885428,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0010282511802638496
+  },
+  {
+   "obs_id": 14737501,
+   "episode_key": "(4702, 69015, '2026-08-09T23')",
+   "rank": 44,
+   "score": 0.5190243902439025,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": -9.892979254985068,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.005210122797515197
+  },
+  {
+   "obs_id": 14743373,
+   "episode_key": "(40, 63235, '2026-08-09T22')",
+   "rank": 45,
+   "score": 0.5186585365853659,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 1.395009536696094,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.003156390513608358
+  },
+  {
+   "obs_id": 14742035,
+   "episode_key": "(5024, 27848, '2026-08-09T23')",
+   "rank": 46,
+   "score": 0.5182926829268293,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": -3.6487131912462147,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.007942524616752454
+  },
+  {
+   "obs_id": 14744185,
+   "episode_key": "(4151, 63235, '2026-08-09T22')",
+   "rank": 47,
+   "score": 0.5168292682926829,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6532805209405047,
+   "fitted_offset_ppm": -8.505585652868874,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.008667631495519895
+  },
+  {
+   "obs_id": 14734009,
+   "episode_key": "(4394, 61781, '2026-08-09T23')",
+   "rank": 48,
+   "score": 0.5139024390243903,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -24.628856810563047,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007732029418385982
+  },
+  {
+   "obs_id": 14746049,
+   "episode_key": "(4349, 64562, '2026-08-09T23')",
+   "rank": 49,
+   "score": 0.5130487804878049,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": -13.292657443469851,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0011077068238840194
+  },
+  {
+   "obs_id": 14733025,
+   "episode_key": "(91, 63216, '2026-08-09T23')",
+   "rank": 50,
+   "score": 0.5125609756097561,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.7777777777777778,
+   "fitted_offset_ppm": -12.513878792823489,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0013407177953297543
+  },
+  {
+   "obs_id": 14745839,
+   "episode_key": "(4451, 24278, '2026-08-09T23')",
+   "rank": 51,
+   "score": 0.5125609756097561,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": -8.606739715475552,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.008064222758979805
+  },
+  {
+   "obs_id": 14744775,
+   "episode_key": "(4326, 46507, '2026-08-09T23')",
+   "rank": 52,
+   "score": 0.5113414634146342,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.4375,
+   "fitted_offset_ppm": 0.8886533945926722,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.010173680484415337
+  },
+  {
+   "obs_id": 14745821,
+   "episode_key": "(4791, 46487, '2026-08-09T22')",
+   "rank": 53,
+   "score": 0.5108536585365854,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 9.070338728268256,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.00189289093737797
+  },
+  {
+   "obs_id": 14738773,
+   "episode_key": "(5078, 46906, '2026-08-09T23')",
+   "rank": 54,
+   "score": 0.510609756097561,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 2.1513875658464983,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.029013840455438887
+  },
+  {
+   "obs_id": 14746117,
+   "episode_key": "(4791, 46486, '2026-08-09T23')",
+   "rank": 55,
+   "score": 0.5096341463414634,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 9.070337346076116,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.002448029964826324
+  },
+  {
+   "obs_id": 14745661,
+   "episode_key": "(1696, 58340, '2026-08-09T22')",
+   "rank": 56,
+   "score": 0.5085365853658537,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": 14.725054789184078,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0009225233906750473
+  },
+  {
+   "obs_id": 14733021,
+   "episode_key": "(91, 60527, '2026-08-09T22')",
+   "rank": 57,
+   "score": 0.5068292682926829,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.65,
+   "fitted_offset_ppm": 0.9643035013574356,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.016124631087758103
+  },
+  {
+   "obs_id": 14745612,
+   "episode_key": "(2173, 62616, '2026-08-09T23')",
+   "rank": 58,
+   "score": 0.5067073170731707,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "without-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": -28.67301296020186,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0010885517302464051
+  },
+  {
+   "obs_id": 14745607,
+   "episode_key": "(431, 63238, '2026-08-09T23')",
+   "rank": 59,
+   "score": 0.5040243902439024,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -18.43390113530143,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007480903108209748
+  },
+  {
+   "obs_id": 14733026,
+   "episode_key": "(91, 52422, '2026-08-09T23')",
+   "rank": 60,
+   "score": 0.4995121951219512,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": -11.529397658148747,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0008349861650412868
+  },
+  {
+   "obs_id": 14746047,
+   "episode_key": "(4349, 64534, '2026-08-09T23')",
+   "rank": 61,
+   "score": 0.49926829268292683,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.6875,
+   "fitted_offset_ppm": 5.003650327603948,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0015562832938363907
+  },
+  {
+   "obs_id": 14745822,
+   "episode_key": "(4791, 54150, '2026-08-09T23')",
+   "rank": 62,
+   "score": 0.4971951219512195,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": 10.47243354906905,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0008447936644562111
+  },
+  {
+   "obs_id": 14732116,
+   "episode_key": "(5096, 63235, '2026-08-09T22')",
+   "rank": 63,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14732117,
+   "episode_key": "(5096, 98395, '2026-08-09T22')",
+   "rank": 64,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14732160,
+   "episode_key": "(5061, 62391, '2026-08-09T22')",
+   "rank": 65,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14732276,
+   "episode_key": "(4649, 46505, '2026-08-09T23')",
+   "rank": 66,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14732277,
+   "episode_key": "(4649, 46504, '2026-08-09T23')",
+   "rank": 67,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14732332,
+   "episode_key": "(4649, 67683, '2026-08-09T22')",
+   "rank": 68,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14732362,
+   "episode_key": "(4649, 25544, '2026-08-09T23')",
+   "rank": 69,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14732373,
+   "episode_key": "(4649, 67685, '2026-08-09T22')",
+   "rank": 70,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14732547,
+   "episode_key": "(4856, 43679, '2026-08-09T22')",
+   "rank": 71,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14732601,
+   "episode_key": "(4856, 61781, '2026-08-09T23')",
+   "rank": 72,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14734173,
+   "episode_key": "(4609, 67291, '2026-08-09T22')",
+   "rank": 73,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14734701,
+   "episode_key": "(1710, 43880, '2026-08-09T23')",
+   "rank": 74,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14734719,
+   "episode_key": "(1710, 40012, '2026-08-09T23')",
+   "rank": 75,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14734902,
+   "episode_key": "(4451, 98254, '2026-08-09T22')",
+   "rank": 76,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14735096,
+   "episode_key": "(4910, 32785, '2026-08-09T22')",
+   "rank": 77,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14735284,
+   "episode_key": "(4910, 59778, '2026-08-09T22')",
+   "rank": 78,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14735285,
+   "episode_key": "(4910, 52899, '2026-08-09T23')",
+   "rank": 79,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14735286,
+   "episode_key": "(4910, 98329, '2026-08-09T23')",
+   "rank": 80,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14735287,
+   "episode_key": "(4910, 58555, '2026-08-09T23')",
+   "rank": 81,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14735429,
+   "episode_key": "(4702, 98293, '2026-08-09T23')",
+   "rank": 82,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14735770,
+   "episode_key": "(858, 63216, '2026-08-09T22')",
+   "rank": 83,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736012,
+   "episode_key": "(1860, 98395, '2026-08-09T22')",
+   "rank": 84,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736013,
+   "episode_key": "(1860, 98293, '2026-08-09T23')",
+   "rank": 85,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736723,
+   "episode_key": "(34, 69015, '2026-08-09T23')",
+   "rank": 86,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736728,
+   "episode_key": "(40, 69015, '2026-08-09T23')",
+   "rank": 87,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736742,
+   "episode_key": "(168, 69015, '2026-08-09T23')",
+   "rank": 88,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736753,
+   "episode_key": "(431, 69015, '2026-08-09T23')",
+   "rank": 89,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736758,
+   "episode_key": "(509, 69015, '2026-08-09T23')",
+   "rank": 90,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736766,
+   "episode_key": "(657, 69015, '2026-08-09T22')",
+   "rank": 91,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736781,
+   "episode_key": "(763, 69015, '2026-08-09T23')",
+   "rank": 92,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736786,
+   "episode_key": "(766, 69015, '2026-08-09T23')",
+   "rank": 93,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736794,
+   "episode_key": "(804, 69015, '2026-08-09T23')",
+   "rank": 94,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736800,
+   "episode_key": "(868, 69015, '2026-08-09T23')",
+   "rank": 95,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736806,
+   "episode_key": "(897, 69015, '2026-08-09T23')",
+   "rank": 96,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736818,
+   "episode_key": "(1058, 69015, '2026-08-09T23')",
+   "rank": 97,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736826,
+   "episode_key": "(1167, 69015, '2026-08-09T23')",
+   "rank": 98,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736835,
+   "episode_key": "(1298, 69015, '2026-08-09T23')",
+   "rank": 99,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736861,
+   "episode_key": "(1585, 69015, '2026-08-09T23')",
+   "rank": 100,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736864,
+   "episode_key": "(1592, 69015, '2026-08-09T23')",
+   "rank": 101,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736883,
+   "episode_key": "(1663, 69015, '2026-08-09T23')",
+   "rank": 102,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736890,
+   "episode_key": "(1685, 69015, '2026-08-09T23')",
+   "rank": 103,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736898,
+   "episode_key": "(1698, 69015, '2026-08-09T23')",
+   "rank": 104,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736906,
+   "episode_key": "(1710, 69015, '2026-08-09T23')",
+   "rank": 105,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736913,
+   "episode_key": "(1725, 69015, '2026-08-09T23')",
+   "rank": 106,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736921,
+   "episode_key": "(1768, 69015, '2026-08-09T23')",
+   "rank": 107,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736938,
+   "episode_key": "(1864, 69015, '2026-08-09T23')",
+   "rank": 108,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736946,
+   "episode_key": "(2029, 69015, '2026-08-09T23')",
+   "rank": 109,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736956,
+   "episode_key": "(2125, 69015, '2026-08-09T23')",
+   "rank": 110,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736971,
+   "episode_key": "(2173, 69015, '2026-08-09T23')",
+   "rank": 111,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736978,
+   "episode_key": "(2183, 69015, '2026-08-09T23')",
+   "rank": 112,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14736980,
+   "episode_key": "(2271, 69015, '2026-08-09T23')",
+   "rank": 113,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737003,
+   "episode_key": "(2545, 69015, '2026-08-09T23')",
+   "rank": 114,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737017,
+   "episode_key": "(2659, 69015, '2026-08-09T23')",
+   "rank": 115,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737024,
+   "episode_key": "(2694, 69015, '2026-08-09T23')",
+   "rank": 116,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737035,
+   "episode_key": "(2729, 69015, '2026-08-09T23')",
+   "rank": 117,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737059,
+   "episode_key": "(2914, 69015, '2026-08-09T23')",
+   "rank": 118,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737091,
+   "episode_key": "(3015, 69015, '2026-08-09T23')",
+   "rank": 119,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737127,
+   "episode_key": "(3168, 69015, '2026-08-09T23')",
+   "rank": 120,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737139,
+   "episode_key": "(3170, 69015, '2026-08-09T23')",
+   "rank": 121,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737160,
+   "episode_key": "(3315, 69015, '2026-08-09T23')",
+   "rank": 122,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737162,
+   "episode_key": "(3347, 69015, '2026-08-09T23')",
+   "rank": 123,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737171,
+   "episode_key": "(3348, 69015, '2026-08-09T23')",
+   "rank": 124,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737189,
+   "episode_key": "(3438, 69015, '2026-08-09T23')",
+   "rank": 125,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737198,
+   "episode_key": "(3584, 69015, '2026-08-09T23')",
+   "rank": 126,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737202,
+   "episode_key": "(3590, 69015, '2026-08-09T23')",
+   "rank": 127,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737238,
+   "episode_key": "(3704, 69015, '2026-08-09T23')",
+   "rank": 128,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737254,
+   "episode_key": "(3794, 69015, '2026-08-09T23')",
+   "rank": 129,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737263,
+   "episode_key": "(3804, 69015, '2026-08-09T22')",
+   "rank": 130,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737285,
+   "episode_key": "(3855, 69015, '2026-08-09T23')",
+   "rank": 131,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737293,
+   "episode_key": "(3856, 69015, '2026-08-09T23')",
+   "rank": 132,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737322,
+   "episode_key": "(3944, 69015, '2026-08-09T23')",
+   "rank": 133,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737345,
+   "episode_key": "(3991, 69015, '2026-08-09T23')",
+   "rank": 134,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737346,
+   "episode_key": "(4022, 69015, '2026-08-09T23')",
+   "rank": 135,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737358,
+   "episode_key": "(4035, 69015, '2026-08-09T23')",
+   "rank": 136,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737367,
+   "episode_key": "(4084, 69015, '2026-08-09T23')",
+   "rank": 137,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737397,
+   "episode_key": "(4222, 69015, '2026-08-09T23')",
+   "rank": 138,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737406,
+   "episode_key": "(4255, 69015, '2026-08-09T23')",
+   "rank": 139,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737421,
+   "episode_key": "(4317, 69015, '2026-08-09T23')",
+   "rank": 140,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737442,
+   "episode_key": "(4372, 69015, '2026-08-09T23')",
+   "rank": 141,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737477,
+   "episode_key": "(4595, 69015, '2026-08-09T23')",
+   "rank": 142,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737506,
+   "episode_key": "(4704, 69015, '2026-08-09T23')",
+   "rank": 143,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737513,
+   "episode_key": "(4761, 69015, '2026-08-09T23')",
+   "rank": 144,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737535,
+   "episode_key": "(4829, 69015, '2026-08-09T23')",
+   "rank": 145,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737548,
+   "episode_key": "(4857, 69015, '2026-08-09T23')",
+   "rank": 146,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737592,
+   "episode_key": "(5063, 69015, '2026-08-09T23')",
+   "rank": 147,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737600,
+   "episode_key": "(5075, 69015, '2026-08-09T23')",
+   "rank": 148,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14737605,
+   "episode_key": "(5087, 69015, '2026-08-09T23')",
+   "rank": 149,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14738066,
+   "episode_key": "(1685, 3669, '2026-08-09T22')",
+   "rank": 150,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14738300,
+   "episode_key": "(3590, 57175, '2026-08-09T22')",
+   "rank": 151,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14738306,
+   "episode_key": "(3590, 98293, '2026-08-09T23')",
+   "rank": 152,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14738356,
+   "episode_key": "(3590, 5680, '2026-08-09T22')",
+   "rank": 153,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14738540,
+   "episode_key": "(2729, 61784, '2026-08-09T22')",
+   "rank": 154,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739331,
+   "episode_key": "(4497, 46505, '2026-08-09T22')",
+   "rank": 155,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739332,
+   "episode_key": "(4497, 25397, '2026-08-09T22')",
+   "rank": 156,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739370,
+   "episode_key": "(4497, 44530, '2026-08-09T22')",
+   "rank": 157,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739374,
+   "episode_key": "(5042, 39430, '2026-08-09T22')",
+   "rank": 158,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739375,
+   "episode_key": "(5042, 24278, '2026-08-09T22')",
+   "rank": 159,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739382,
+   "episode_key": "(4497, 43236, '2026-08-09T22')",
+   "rank": 160,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739383,
+   "episode_key": "(4497, 59918, '2026-08-09T23')",
+   "rank": 161,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739425,
+   "episode_key": "(4497, 43440, '2026-08-09T23')",
+   "rank": 162,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739426,
+   "episode_key": "(4497, 61739, '2026-08-09T23')",
+   "rank": 163,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739450,
+   "episode_key": "(4497, 39086, '2026-08-09T23')",
+   "rank": 164,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739478,
+   "episode_key": "(4497, 20442, '2026-08-09T23')",
+   "rank": 165,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739488,
+   "episode_key": "(4497, 60079, '2026-08-09T23')",
+   "rank": 166,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739506,
+   "episode_key": "(4497, 61743, '2026-08-09T23')",
+   "rank": 167,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739514,
+   "episode_key": "(5042, 58818, '2026-08-09T23')",
+   "rank": 168,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14739515,
+   "episode_key": "(5042, 40042, '2026-08-09T23')",
+   "rank": 169,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14740801,
+   "episode_key": "(5061, 62394, '2026-08-09T23')",
+   "rank": 170,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14740842,
+   "episode_key": "(5061, 60246, '2026-08-09T22')",
+   "rank": 171,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741556,
+   "episode_key": "(37, 98332, '2026-08-09T22')",
+   "rank": 172,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741559,
+   "episode_key": "(40, 98332, '2026-08-09T22')",
+   "rank": 173,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741562,
+   "episode_key": "(106, 98332, '2026-08-09T22')",
+   "rank": 174,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741574,
+   "episode_key": "(509, 98332, '2026-08-09T22')",
+   "rank": 175,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741578,
+   "episode_key": "(657, 98332, '2026-08-09T23')",
+   "rank": 176,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741584,
+   "episode_key": "(897, 98332, '2026-08-09T22')",
+   "rank": 177,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741587,
+   "episode_key": "(1058, 98332, '2026-08-09T22')",
+   "rank": 178,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741690,
+   "episode_key": "(4545, 98332, '2026-08-09T22')",
+   "rank": 179,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741700,
+   "episode_key": "(4704, 98332, '2026-08-09T22')",
+   "rank": 180,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741733,
+   "episode_key": "(34, 98330, '2026-08-09T23')",
+   "rank": 181,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741738,
+   "episode_key": "(431, 98330, '2026-08-09T23')",
+   "rank": 182,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741742,
+   "episode_key": "(509, 98330, '2026-08-09T23')",
+   "rank": 183,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741748,
+   "episode_key": "(868, 98330, '2026-08-09T23')",
+   "rank": 184,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741750,
+   "episode_key": "(897, 98330, '2026-08-09T23')",
+   "rank": 185,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741752,
+   "episode_key": "(1058, 98330, '2026-08-09T23')",
+   "rank": 186,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741760,
+   "episode_key": "(1441, 98330, '2026-08-09T23')",
+   "rank": 187,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741764,
+   "episode_key": "(1592, 98330, '2026-08-09T23')",
+   "rank": 188,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741780,
+   "episode_key": "(3015, 98330, '2026-08-09T23')",
+   "rank": 189,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741793,
+   "episode_key": "(3313, 98330, '2026-08-09T23')",
+   "rank": 190,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741796,
+   "episode_key": "(3347, 98330, '2026-08-09T23')",
+   "rank": 191,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741802,
+   "episode_key": "(3438, 98330, '2026-08-09T23')",
+   "rank": 192,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741811,
+   "episode_key": "(3657, 98330, '2026-08-09T23')",
+   "rank": 193,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741826,
+   "episode_key": "(3944, 98330, '2026-08-09T23')",
+   "rank": 194,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741842,
+   "episode_key": "(4255, 98330, '2026-08-09T23')",
+   "rank": 195,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741844,
+   "episode_key": "(4293, 98330, '2026-08-09T23')",
+   "rank": 196,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741857,
+   "episode_key": "(4595, 98330, '2026-08-09T23')",
+   "rank": 197,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741868,
+   "episode_key": "(4761, 98330, '2026-08-09T23')",
+   "rank": 198,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741879,
+   "episode_key": "(4829, 98330, '2026-08-09T23')",
+   "rank": 199,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14741899,
+   "episode_key": "(5087, 98330, '2026-08-09T23')",
+   "rank": 200,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14742080,
+   "episode_key": "(3106, 98293, '2026-08-09T23')",
+   "rank": 201,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14743369,
+   "episode_key": "(1441, 63235, '2026-08-09T22')",
+   "rank": 202,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14743370,
+   "episode_key": "(3313, 63235, '2026-08-09T22')",
+   "rank": 203,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14743371,
+   "episode_key": "(897, 63235, '2026-08-09T22')",
+   "rank": 204,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14743372,
+   "episode_key": "(1592, 63235, '2026-08-09T22')",
+   "rank": 205,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14743375,
+   "episode_key": "(37, 63235, '2026-08-09T22')",
+   "rank": 206,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14743376,
+   "episode_key": "(3015, 63235, '2026-08-09T22')",
+   "rank": 207,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14743377,
+   "episode_key": "(3944, 63235, '2026-08-09T22')",
+   "rank": 208,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14743378,
+   "episode_key": "(452, 63235, '2026-08-09T22')",
+   "rank": 209,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14743379,
+   "episode_key": "(4293, 63235, '2026-08-09T22')",
+   "rank": 210,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744106,
+   "episode_key": "(4391, 41188, '2026-08-09T22')",
+   "rank": 211,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744107,
+   "episode_key": "(4391, 27607, '2026-08-09T23')",
+   "rank": 212,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744108,
+   "episode_key": "(4391, 64559, '2026-08-09T23')",
+   "rank": 213,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744258,
+   "episode_key": "(5068, 64553, '2026-08-09T23')",
+   "rank": 214,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744328,
+   "episode_key": "(4255, 63235, '2026-08-09T22')",
+   "rank": 215,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744329,
+   "episode_key": "(949, 63235, '2026-08-09T22')",
+   "rank": 216,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744330,
+   "episode_key": "(106, 63235, '2026-08-09T22')",
+   "rank": 217,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744331,
+   "episode_key": "(4545, 63235, '2026-08-09T22')",
+   "rank": 218,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744332,
+   "episode_key": "(3153, 63235, '2026-08-09T22')",
+   "rank": 219,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744333,
+   "episode_key": "(3093, 63235, '2026-08-09T23')",
+   "rank": 220,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744334,
+   "episode_key": "(3584, 63235, '2026-08-09T22')",
+   "rank": 221,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744335,
+   "episode_key": "(4372, 63235, '2026-08-09T22')",
+   "rank": 222,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744336,
+   "episode_key": "(3746, 63235, '2026-08-09T22')",
+   "rank": 223,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744337,
+   "episode_key": "(3168, 63235, '2026-08-09T22')",
+   "rank": 224,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744338,
+   "episode_key": "(1725, 63235, '2026-08-09T22')",
+   "rank": 225,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744655,
+   "episode_key": "(3855, 63238, '2026-08-09T23')",
+   "rank": 226,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744656,
+   "episode_key": "(3855, 98293, '2026-08-09T23')",
+   "rank": 227,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744657,
+   "episode_key": "(3855, 40014, '2026-08-09T23')",
+   "rank": 228,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744734,
+   "episode_key": "(4825, 64881, '2026-08-09T23')",
+   "rank": 229,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744937,
+   "episode_key": "(1861, 60237, '2026-08-09T22')",
+   "rank": 230,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744938,
+   "episode_key": "(1861, 20442, '2026-08-09T23')",
+   "rank": 231,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744939,
+   "episode_key": "(1861, 27844, '2026-08-09T23')",
+   "rank": 232,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744940,
+   "episode_key": "(1861, 40042, '2026-08-09T23')",
+   "rank": 233,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744941,
+   "episode_key": "(1861, 49402, '2026-08-09T23')",
+   "rank": 234,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14744967,
+   "episode_key": "(2107, 61781, '2026-08-09T23')",
+   "rank": 235,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745191,
+   "episode_key": "(1920, 39444, '2026-08-09T22')",
+   "rank": 236,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745196,
+   "episode_key": "(4206, 39444, '2026-08-09T23')",
+   "rank": 237,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745197,
+   "episode_key": "(4210, 39444, '2026-08-09T23')",
+   "rank": 238,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745200,
+   "episode_key": "(4410, 39444, '2026-08-09T22')",
+   "rank": 239,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745201,
+   "episode_key": "(4825, 39444, '2026-08-09T22')",
+   "rank": 240,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745203,
+   "episode_key": "(4963, 39444, '2026-08-09T22')",
+   "rank": 241,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745204,
+   "episode_key": "(5028, 39444, '2026-08-09T22')",
+   "rank": 242,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745319,
+   "episode_key": "(2416, 59112, '2026-08-09T22')",
+   "rank": 243,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745339,
+   "episode_key": "(3677, 63235, '2026-08-09T22')",
+   "rank": 244,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745340,
+   "episode_key": "(3336, 63235, '2026-08-09T22')",
+   "rank": 245,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745432,
+   "episode_key": "(754, 25544, '2026-08-09T22')",
+   "rank": 246,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745492,
+   "episode_key": "(4690, 31115, '2026-08-09T22')",
+   "rank": 247,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745493,
+   "episode_key": "(4690, 38758, '2026-08-09T22')",
+   "rank": 248,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745519,
+   "episode_key": "(4690, 31115, '2026-08-09T23')",
+   "rank": 249,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745520,
+   "episode_key": "(4690, 43440, '2026-08-09T23')",
+   "rank": 250,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745521,
+   "episode_key": "(71, 46504, '2026-08-09T22')",
+   "rank": 251,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745522,
+   "episode_key": "(71, 37841, '2026-08-09T23')",
+   "rank": 252,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745523,
+   "episode_key": "(3295, 43678, '2026-08-09T22')",
+   "rank": 253,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745604,
+   "episode_key": "(4690, 46469, '2026-08-09T23')",
+   "rank": 254,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745606,
+   "episode_key": "(431, 98395, '2026-08-09T22')",
+   "rank": 255,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745608,
+   "episode_key": "(431, 63237, '2026-08-09T23')",
+   "rank": 256,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745610,
+   "episode_key": "(2173, 98395, '2026-08-09T22')",
+   "rank": 257,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745613,
+   "episode_key": "(2173, 63237, '2026-08-09T23')",
+   "rank": 258,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745615,
+   "episode_key": "(1466, 63238, '2026-08-09T23')",
+   "rank": 259,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745616,
+   "episode_key": "(1466, 63213, '2026-08-09T23')",
+   "rank": 260,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745633,
+   "episode_key": "(1672, 63215, '2026-08-09T22')",
+   "rank": 261,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745640,
+   "episode_key": "(2968, 32953, '2026-08-09T22')",
+   "rank": 262,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745651,
+   "episode_key": "(431, 63218, '2026-08-09T23')",
+   "rank": 263,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745660,
+   "episode_key": "(1696, 98395, '2026-08-09T22')",
+   "rank": 264,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745662,
+   "episode_key": "(1696, 63213, '2026-08-09T23')",
+   "rank": 265,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745665,
+   "episode_key": "(2173, 63218, '2026-08-09T23')",
+   "rank": 266,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745670,
+   "episode_key": "(2410, 40054, '2026-08-09T22')",
+   "rank": 267,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745675,
+   "episode_key": "(1864, 98308, '2026-08-09T22')",
+   "rank": 268,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745676,
+   "episode_key": "(1864, 64557, '2026-08-09T22')",
+   "rank": 269,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745677,
+   "episode_key": "(1864, 98395, '2026-08-09T22')",
+   "rank": 270,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745678,
+   "episode_key": "(1864, 98255, '2026-08-09T22')",
+   "rank": 271,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745679,
+   "episode_key": "(71, 20442, '2026-08-09T23')",
+   "rank": 272,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745680,
+   "episode_key": "(71, 60246, '2026-08-09T23')",
+   "rank": 273,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745681,
+   "episode_key": "(71, 43679, '2026-08-09T23')",
+   "rank": 274,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745682,
+   "episode_key": "(4690, 49316, '2026-08-09T23')",
+   "rank": 275,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745683,
+   "episode_key": "(4690, 43441, '2026-08-09T23')",
+   "rank": 276,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745684,
+   "episode_key": "(3295, 49399, '2026-08-09T23')",
+   "rank": 277,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745695,
+   "episode_key": "(4690, 28054, '2026-08-09T23')",
+   "rank": 278,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745696,
+   "episode_key": "(4690, 62578, '2026-08-09T23')",
+   "rank": 279,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745697,
+   "episode_key": "(2968, 43880, '2026-08-09T23')",
+   "rank": 280,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745699,
+   "episode_key": "(4595, 63215, '2026-08-09T22')",
+   "rank": 281,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745700,
+   "episode_key": "(4595, 61756, '2026-08-09T22')",
+   "rank": 282,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745701,
+   "episode_key": "(4595, 60472, '2026-08-09T22')",
+   "rank": 283,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745702,
+   "episode_key": "(4595, 49773, '2026-08-09T22')",
+   "rank": 284,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745714,
+   "episode_key": "(4111, 63300, '2026-08-09T22')",
+   "rank": 285,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745715,
+   "episode_key": "(4111, 40054, '2026-08-09T22')",
+   "rank": 286,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745716,
+   "episode_key": "(4111, 64535, '2026-08-09T23')",
+   "rank": 287,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745721,
+   "episode_key": "(2125, 63215, '2026-08-09T22')",
+   "rank": 288,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745722,
+   "episode_key": "(2125, 98395, '2026-08-09T22')",
+   "rank": 289,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745723,
+   "episode_key": "(2125, 63238, '2026-08-09T23')",
+   "rank": 290,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745724,
+   "episode_key": "(2125, 63213, '2026-08-09T23')",
+   "rank": 291,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745725,
+   "episode_key": "(71, 60209, '2026-08-09T23')",
+   "rank": 292,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745731,
+   "episode_key": "(3295, 43792, '2026-08-09T23')",
+   "rank": 293,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745737,
+   "episode_key": "(4680, 41188, '2026-08-09T22')",
+   "rank": 294,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745738,
+   "episode_key": "(4680, 58023, '2026-08-09T22')",
+   "rank": 295,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745739,
+   "episode_key": "(4680, 98293, '2026-08-09T23')",
+   "rank": 296,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745744,
+   "episode_key": "(4186, 41339, '2026-08-09T22')",
+   "rank": 297,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745745,
+   "episode_key": "(4186, 46504, '2026-08-09T22')",
+   "rank": 298,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745746,
+   "episode_key": "(4186, 43440, '2026-08-09T22')",
+   "rank": 299,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745747,
+   "episode_key": "(4186, 60083, '2026-08-09T22')",
+   "rank": 300,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745748,
+   "episode_key": "(4186, 25544, '2026-08-09T23')",
+   "rank": 301,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745749,
+   "episode_key": "(4186, 20442, '2026-08-09T23')",
+   "rank": 302,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745757,
+   "episode_key": "(3538, 57795, '2026-08-09T22')",
+   "rank": 303,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745758,
+   "episode_key": "(3538, 44353, '2026-08-09T22')",
+   "rank": 304,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745759,
+   "episode_key": "(3538, 20439, '2026-08-09T22')",
+   "rank": 305,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745760,
+   "episode_key": "(3538, 44349, '2026-08-09T23')",
+   "rank": 306,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745761,
+   "episode_key": "(3538, 40908, '2026-08-09T23')",
+   "rank": 307,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745767,
+   "episode_key": "(2178, 38735, '2026-08-09T22')",
+   "rank": 308,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745768,
+   "episode_key": "(2178, 59917, '2026-08-09T22')",
+   "rank": 309,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745769,
+   "episode_key": "(2178, 24278, '2026-08-09T22')",
+   "rank": 310,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745770,
+   "episode_key": "(2178, 20442, '2026-08-09T23')",
+   "rank": 311,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745783,
+   "episode_key": "(754, 98292, '2026-08-09T22')",
+   "rank": 312,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745784,
+   "episode_key": "(754, 98878, '2026-08-09T23')",
+   "rank": 313,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745786,
+   "episode_key": "(4094, 40086, '2026-08-09T22')",
+   "rank": 314,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745787,
+   "episode_key": "(3794, 59774, '2026-08-09T23')",
+   "rank": 315,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745793,
+   "episode_key": "(4655, 41182, '2026-08-09T22')",
+   "rank": 316,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745794,
+   "episode_key": "(4655, 41179, '2026-08-09T23')",
+   "rank": 317,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745795,
+   "episode_key": "(4655, 49399, '2026-08-09T23')",
+   "rank": 318,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745802,
+   "episode_key": "(2968, 35935, '2026-08-09T23')",
+   "rank": 319,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745803,
+   "episode_key": "(2968, 33499, '2026-08-09T23')",
+   "rank": 320,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745832,
+   "episode_key": "(4460, 63300, '2026-08-09T22')",
+   "rank": 321,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745833,
+   "episode_key": "(4460, 40054, '2026-08-09T22')",
+   "rank": 322,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745834,
+   "episode_key": "(4460, 64549, '2026-08-09T23')",
+   "rank": 323,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745835,
+   "episode_key": "(4460, 64550, '2026-08-09T23')",
+   "rank": 324,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745836,
+   "episode_key": "(4460, 64534, '2026-08-09T23')",
+   "rank": 325,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745837,
+   "episode_key": "(4460, 33499, '2026-08-09T23')",
+   "rank": 326,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745864,
+   "episode_key": "(812, 98395, '2026-08-09T22')",
+   "rank": 327,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745865,
+   "episode_key": "(812, 35932, '2026-08-09T23')",
+   "rank": 328,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745866,
+   "episode_key": "(812, 54361, '2026-08-09T23')",
+   "rank": 329,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745867,
+   "episode_key": "(812, 35935, '2026-08-09T23')",
+   "rank": 330,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745871,
+   "episode_key": "(4451, 46906, '2026-08-09T23')",
+   "rank": 331,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745872,
+   "episode_key": "(4451, 61738, '2026-08-09T23')",
+   "rank": 332,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745873,
+   "episode_key": "(4451, 46912, '2026-08-09T23')",
+   "rank": 333,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745971,
+   "episode_key": "(1672, 66670, '2026-08-09T22')",
+   "rank": 334,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745972,
+   "episode_key": "(1672, 63238, '2026-08-09T23')",
+   "rank": 335,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745973,
+   "episode_key": "(1672, 40014, '2026-08-09T23')",
+   "rank": 336,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745974,
+   "episode_key": "(1672, 63218, '2026-08-09T23')",
+   "rank": 337,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745975,
+   "episode_key": "(4022, 57192, '2026-08-09T22')",
+   "rank": 338,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745976,
+   "episode_key": "(4022, 57194, '2026-08-09T23')",
+   "rank": 339,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745988,
+   "episode_key": "(2968, 40012, '2026-08-09T23')",
+   "rank": 340,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745991,
+   "episode_key": "(2410, 35932, '2026-08-09T23')",
+   "rank": 341,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745992,
+   "episode_key": "(2410, 33499, '2026-08-09T23')",
+   "rank": 342,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746025,
+   "episode_key": "(1864, 98267, '2026-08-09T22')",
+   "rank": 343,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746026,
+   "episode_key": "(1864, 64592, '2026-08-09T23')",
+   "rank": 344,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746027,
+   "episode_key": "(1864, 64549, '2026-08-09T23')",
+   "rank": 345,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746028,
+   "episode_key": "(1864, 64535, '2026-08-09T23')",
+   "rank": 346,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746029,
+   "episode_key": "(1864, 35935, '2026-08-09T23')",
+   "rank": 347,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746030,
+   "episode_key": "(1864, 40018, '2026-08-09T23')",
+   "rank": 348,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746031,
+   "episode_key": "(1864, 59108, '2026-08-09T23')",
+   "rank": 349,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746032,
+   "episode_key": "(1864, 59098, '2026-08-09T23')",
+   "rank": 350,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746033,
+   "episode_key": "(1864, 63304, '2026-08-09T23')",
+   "rank": 351,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746034,
+   "episode_key": "(1864, 59107, '2026-08-09T23')",
+   "rank": 352,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746035,
+   "episode_key": "(1864, 59809, '2026-08-09T23')",
+   "rank": 353,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746037,
+   "episode_key": "(4094, 64549, '2026-08-09T23')",
+   "rank": 354,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746040,
+   "episode_key": "(4595, 63242, '2026-08-09T23')",
+   "rank": 355,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746041,
+   "episode_key": "(4595, 98275, '2026-08-09T23')",
+   "rank": 356,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746042,
+   "episode_key": "(4595, 51827, '2026-08-09T23')",
+   "rank": 357,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746050,
+   "episode_key": "(4111, 64534, '2026-08-09T23')",
+   "rank": 358,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746051,
+   "episode_key": "(4111, 33499, '2026-08-09T23')",
+   "rank": 359,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746056,
+   "episode_key": "(2125, 40014, '2026-08-09T23')",
+   "rank": 360,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746057,
+   "episode_key": "(2125, 63218, '2026-08-09T23')",
+   "rank": 361,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746062,
+   "episode_key": "(4680, 25984, '2026-08-09T23')",
+   "rank": 362,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746063,
+   "episode_key": "(4680, 33591, '2026-08-09T23')",
+   "rank": 363,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746069,
+   "episode_key": "(4186, 60079, '2026-08-09T23')",
+   "rank": 364,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746070,
+   "episode_key": "(2987, 60243, '2026-08-09T23')",
+   "rank": 365,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746071,
+   "episode_key": "(2987, 27845, '2026-08-09T23')",
+   "rank": 366,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746072,
+   "episode_key": "(4186, 38761, '2026-08-09T23')",
+   "rank": 367,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746073,
+   "episode_key": "(4186, 52085, '2026-08-09T23')",
+   "rank": 368,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746074,
+   "episode_key": "(4186, 7530, '2026-08-09T23')",
+   "rank": 369,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746075,
+   "episode_key": "(3538, 58818, '2026-08-09T23')",
+   "rank": 370,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746076,
+   "episode_key": "(3538, 59067, '2026-08-09T23')",
+   "rank": 371,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746077,
+   "episode_key": "(3538, 57792, '2026-08-09T23')",
+   "rank": 372,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746078,
+   "episode_key": "(3538, 62934, '2026-08-09T23')",
+   "rank": 373,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746079,
+   "episode_key": "(3538, 61786, '2026-08-09T23')",
+   "rank": 374,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746085,
+   "episode_key": "(2178, 60079, '2026-08-09T23')",
+   "rank": 375,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746086,
+   "episode_key": "(2178, 52085, '2026-08-09T23')",
+   "rank": 376,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746100,
+   "episode_key": "(4655, 41183, '2026-08-09T23')",
+   "rank": 377,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746105,
+   "episode_key": "(4094, 1430, '2026-08-09T23')",
+   "rank": 378,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746106,
+   "episode_key": "(4094, 41187, '2026-08-09T23')",
+   "rank": 379,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14746116,
+   "episode_key": "(4791, 64559, '2026-08-09T23')",
+   "rank": 380,
+   "score": 0.4966463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.00038117993552165547
+  },
+  {
+   "obs_id": 14745817,
+   "episode_key": "(4451, 40931, '2026-08-09T23')",
+   "rank": 381,
+   "score": 0.4960975609756098,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 15.874260897449007,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007402435455796919
+  },
+  {
+   "obs_id": 14745159,
+   "episode_key": "(3020, 46912, '2026-08-09T22')",
+   "rank": 382,
+   "score": 0.49341463414634146,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9473684210526315,
+   "fitted_offset_ppm": 9.697251798840208,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0010097605912673814
+  },
+  {
+   "obs_id": 14745820,
+   "episode_key": "(4791, 59588, '2026-08-09T22')",
+   "rank": 383,
+   "score": 0.4929268292682927,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": -18.089797459213685,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0011874362264130964
+  },
+  {
+   "obs_id": 14745605,
+   "episode_key": "(431, 55056, '2026-08-09T22')",
+   "rank": 384,
+   "score": 0.4903658536585366,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.2857142857142857,
+   "fitted_offset_ppm": -2.894001214399685,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0022171890459373156
+  },
+  {
+   "obs_id": 14746038,
+   "episode_key": "(3742, 68795, '2026-08-09T22')",
+   "rank": 385,
+   "score": 0.49000000000000005,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 14.047064161660963,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0006453974524907247
+  },
+  {
+   "obs_id": 14745158,
+   "episode_key": "(3020, 46914, '2026-08-09T22')",
+   "rank": 386,
+   "score": 0.4886585365853659,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.9517814601158195,
+   "fitted_offset_ppm": 9.696524493010847,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0007725719598443098
+  },
+  {
+   "obs_id": 14736730,
+   "episode_key": "(91, 69015, '2026-08-09T23')",
+   "rank": 387,
+   "score": 0.48853658536585365,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -16.02119691257405,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.1370757180156658,
+   "ensemble_uncertainty": 5.965234964803711e-05
+  },
+  {
+   "obs_id": 14737408,
+   "episode_key": "(4293, 69015, '2026-08-09T23')",
+   "rank": 388,
+   "score": 0.48512195121951224,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 11.748877735887636,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0006546753164385909
+  },
+  {
+   "obs_id": 14733023,
+   "episode_key": "(91, 61222, '2026-08-09T22')",
+   "rank": 389,
+   "score": 0.4837804878048781,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -12.14989053801386,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0003912665076651863
+  },
+  {
+   "obs_id": 14744257,
+   "episode_key": "(5068, 35932, '2026-08-09T23')",
+   "rank": 390,
+   "score": 0.48365853658536584,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 0.17572323438839757,
+   "fitted_offset_ppm": 4.925619370867743,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0015213660299168564
+  },
+  {
+   "obs_id": 14737118,
+   "episode_key": "(3153, 69015, '2026-08-09T23')",
+   "rank": 391,
+   "score": 0.48024390243902443,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 10.827060007387878,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0005548695311583351
+  },
+  {
+   "obs_id": 14736812,
+   "episode_key": "(949, 69015, '2026-08-09T23')",
+   "rank": 392,
+   "score": 0.476219512195122,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -9.765583536075338,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.000561029805139062
+  },
+  {
+   "obs_id": 14736773,
+   "episode_key": "(733, 69015, '2026-08-09T23')",
+   "rank": 393,
+   "score": 0.4679268292682927,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 8.331022394538506,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0005870009208773386
+  },
+  {
+   "obs_id": 14734014,
+   "episode_key": "(5049, 61781, '2026-08-09T23')",
+   "rank": 394,
+   "score": 0.46658536585365856,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 7.3300169079056685,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0006584943303541803
+  },
+  {
+   "obs_id": 14736842,
+   "episode_key": "(1416, 69015, '2026-08-09T23')",
+   "rank": 395,
+   "score": 0.4598780487804878,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 4.699551094355055,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0005911946028892403
+  },
+  {
+   "obs_id": 14746123,
+   "episode_key": "(4460, 59809, '2026-08-09T23')",
+   "rank": 396,
+   "score": 0.45749999999999996,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0003811799355216554
+  },
+  {
+   "obs_id": 14746129,
+   "episode_key": "(812, 98602, '2026-08-09T23')",
+   "rank": 397,
+   "score": 0.45749999999999996,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "unknown",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": null,
+   "offset_at_bound": null,
+   "flat_row_frac": null,
+   "ensemble_uncertainty": 0.0003811799355216554
+  },
+  {
+   "obs_id": 14742033,
+   "episode_key": "(5024, 28895, '2026-08-09T22')",
+   "rank": 398,
+   "score": 0.455609756097561,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": -6.568048560764767,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0012087291880185983
+  },
+  {
+   "obs_id": 14744577,
+   "episode_key": "(4151, 69015, '2026-08-09T23')",
+   "rank": 399,
+   "score": 0.4526829268292683,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 1.4953117118402448,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0005267862419930517
+  },
+  {
+   "obs_id": 14737186,
+   "episode_key": "(3433, 69015, '2026-08-09T23')",
+   "rank": 400,
+   "score": 0.4502439024390244,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -0.6368858827875221,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0005898967645940209
+  },
+  {
+   "obs_id": 14745667,
+   "episode_key": "(1466, 43188, '2026-08-09T23')",
+   "rank": 401,
+   "score": 0.44890243902439025,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "without-signal",
+   "model_prob": 1e-06,
+   "fitted_offset_ppm": -2.4814259753242394,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0013413020117198319
+  },
+  {
+   "obs_id": 14745602,
+   "episode_key": "(5078, 62081, '2026-08-09T23')",
+   "rank": 402,
+   "score": 0.42621951219512194,
+   "reasons": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "is_conflict": true,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -21.913836024567527,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0002602972948665435
+  },
+  {
+   "obs_id": 14745417,
+   "episode_key": "(3020, 39086, '2026-08-09T23')",
+   "rank": 403,
+   "score": 0.4191463414634147,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 17.77703451558786,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.00020106388685899637
+  },
+  {
+   "obs_id": 14746118,
+   "episode_key": "(4791, 63303, '2026-08-09T23')",
+   "rank": 404,
+   "score": 0.4103658536585366,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -15.339191354335334,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.00018808770481386488
+  },
+  {
+   "obs_id": 14746048,
+   "episode_key": "(4349, 33499, '2026-08-09T23')",
+   "rank": 405,
+   "score": 0.405609756097561,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -12.366367243912167,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0003214632548059606
+  },
+  {
+   "obs_id": 14745711,
+   "episode_key": "(4349, 63300, '2026-08-09T22')",
+   "rank": 406,
+   "score": 0.3985365853658537,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 10.414478542489261,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.000320393232279823
+  },
+  {
+   "obs_id": 14745989,
+   "episode_key": "(4272, 41188, '2026-08-09T22')",
+   "rank": 407,
+   "score": 0.37682926829268293,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": 2.810899615029576,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0003475016714589273
+  },
+  {
+   "obs_id": 14744530,
+   "episode_key": "(3106, 69015, '2026-08-09T23')",
+   "rank": 408,
+   "score": 0.3103048780487805,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -0.0,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.0005133350825875037
+  },
+  {
+   "obs_id": 14746055,
+   "episode_key": "(4272, 41187, '2026-08-09T23')",
+   "rank": 409,
+   "score": 0.23054878048780486,
+   "reasons": [
+    "NO_REASON"
+   ],
+   "is_conflict": false,
+   "waterfall_status": "with-signal",
+   "model_prob": 0.999999,
+   "fitted_offset_ppm": -0.0,
+   "offset_at_bound": false,
+   "flat_row_frac": 0.0,
+   "ensemble_uncertainty": 0.00031978201351283
+  }
+ ],
+ "per_split_summaries": [
+  {
+   "split": "chronological",
+   "degraded": null,
+   "n_test_total": 410,
+   "n_test_decisive": 88,
+   "n_queue_after_dedup": 409,
+   "n_at_bound_obs": 0,
+   "gate6_result": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_queue_examined": 50,
+    "n_random_conflicts": 12.5,
+    "n_queue_conflicts": 20,
+    "lift_point": 1.6,
+    "lift_ci95": [
+     1.0,
+     1.2
+    ],
+    "lift_vs_fifo": 1.12,
+    "lift_vs_image_uncertainty": 1.12,
+    "lift_vs_physics_only": 1.04,
+    "n_boot": 4000,
+    "n_groups": 88,
+    "verdict": "NOT_ESTABLISHED",
+    "direction": "spans_threshold"
+   }
+  },
+  {
+   "split": "cold_station",
+   "degraded": null,
+   "n_test_total": 403,
+   "n_test_decisive": 217,
+   "n_queue_after_dedup": 403,
+   "n_at_bound_obs": 2,
+   "gate6_result": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_queue_examined": 50,
+    "n_random_conflicts": 11.981566820276496,
+    "n_queue_conflicts": 36,
+    "lift_point": 3.004615384615385,
+    "lift_ci95": [
+     2.0100000000000002,
+     2.516470588235294
+    ],
+    "lift_vs_fifo": 1.3353846153846156,
+    "lift_vs_image_uncertainty": 1.418846153846154,
+    "lift_vs_physics_only": 1.6692307692307693,
+    "n_boot": 4000,
+    "n_groups": 217,
+    "verdict": "PASSED",
+    "direction": "above_threshold"
+   }
+  },
+  {
+   "split": "cold_transmitter",
+   "degraded": null,
+   "n_test_total": 353,
+   "n_test_decisive": 96,
+   "n_queue_after_dedup": 353,
+   "n_at_bound_obs": 1,
+   "gate6_result": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_queue_examined": 50,
+    "n_random_conflicts": 20.3125,
+    "n_queue_conflicts": 33,
+    "lift_point": 1.6246153846153846,
+    "lift_ci95": [
+     1.1,
+     1.32
+    ],
+    "lift_vs_fifo": 1.0338461538461539,
+    "lift_vs_image_uncertainty": 1.1323076923076922,
+    "lift_vs_physics_only": 1.083076923076923,
+    "n_boot": 4000,
+    "n_groups": 96,
+    "verdict": "NOT_ESTABLISHED",
+    "direction": "spans_threshold"
+   }
+  },
+  {
+   "split": "cold_combined",
+   "degraded": null,
+   "n_test_total": 183,
+   "n_test_decisive": 76,
+   "n_queue_after_dedup": 179,
+   "n_at_bound_obs": 1,
+   "gate6_result": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_queue_examined": 50,
+    "n_random_conflicts": 13.157894736842104,
+    "n_queue_conflicts": 17,
+    "lift_point": 1.292,
+    "lift_ci95": [
+     0.9999999999999999,
+     1.06
+    ],
+    "lift_vs_fifo": 1.1400000000000001,
+    "lift_vs_image_uncertainty": 0.76,
+    "lift_vs_physics_only": 0.684,
+    "n_boot": 4000,
+    "n_groups": 76,
+    "verdict": "FAILED",
+    "direction": "below_threshold"
+   }
+  }
+ ],
+ "gate6": {
+  "gate": 6,
+  "wording": "Require the top review queue to find at least 1.5 times as many manually actionable conflicts as random ordering at the same budget.",
+  "decided_on": "chronological",
+  "verdict": "NOT_ESTABLISHED",
+  "statement": "The queue's point lift is 1.60 on the chronological split (20 conflicts in 50 examined, expected 12.5 by random). The 95% interval lies entirely below 1.5 (1.00 to 1.20), despite the point estimate exceeding 1.5 \u2014 a known behaviour of percentile bootstrap CIs on ratio statistics with concentrated numerators. A point estimate above 1.5 whose interval does not sit above 1.5 is not a pass, for the same reason gate 5 was recorded as NOT_ESTABLISHED: the evidence does not exclude noise.",
+  "per_split": {
+   "chronological": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_queue_examined": 50,
+    "n_random_conflicts": 12.5,
+    "n_queue_conflicts": 20,
+    "lift_point": 1.6,
+    "lift_ci95": [
+     1.0,
+     1.2
+    ],
+    "lift_vs_fifo": 1.12,
+    "lift_vs_image_uncertainty": 1.12,
+    "lift_vs_physics_only": 1.04,
+    "n_boot": 4000,
+    "n_groups": 88,
+    "verdict": "NOT_ESTABLISHED",
+    "direction": "spans_threshold"
+   },
+   "cold_station": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_queue_examined": 50,
+    "n_random_conflicts": 11.981566820276496,
+    "n_queue_conflicts": 36,
+    "lift_point": 3.004615384615385,
+    "lift_ci95": [
+     2.0100000000000002,
+     2.516470588235294
+    ],
+    "lift_vs_fifo": 1.3353846153846156,
+    "lift_vs_image_uncertainty": 1.418846153846154,
+    "lift_vs_physics_only": 1.6692307692307693,
+    "n_boot": 4000,
+    "n_groups": 217,
+    "verdict": "PASSED",
+    "direction": "above_threshold"
+   },
+   "cold_transmitter": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_queue_examined": 50,
+    "n_random_conflicts": 20.3125,
+    "n_queue_conflicts": 33,
+    "lift_point": 1.6246153846153846,
+    "lift_ci95": [
+     1.1,
+     1.32
+    ],
+    "lift_vs_fifo": 1.0338461538461539,
+    "lift_vs_image_uncertainty": 1.1323076923076922,
+    "lift_vs_physics_only": 1.083076923076923,
+    "n_boot": 4000,
+    "n_groups": 96,
+    "verdict": "NOT_ESTABLISHED",
+    "direction": "spans_threshold"
+   },
+   "cold_combined": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_queue_examined": 50,
+    "n_random_conflicts": 13.157894736842104,
+    "n_queue_conflicts": 17,
+    "lift_point": 1.292,
+    "lift_ci95": [
+     0.9999999999999999,
+     1.06
+    ],
+    "lift_vs_fifo": 1.1400000000000001,
+    "lift_vs_image_uncertainty": 0.76,
+    "lift_vs_physics_only": 0.684,
+    "n_boot": 4000,
+    "n_groups": 76,
+    "verdict": "FAILED",
+    "direction": "below_threshold"
+   }
+  }
+ }
+}

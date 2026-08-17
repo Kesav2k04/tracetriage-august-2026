@@ -15,7 +15,7 @@ The plan sets six thresholds that must pass before TraceTriage is worth building
 | 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **PASSED, 3/3 testable (100%); 4 of 7 not testable, and the 3 span 2 stations on 1 night** |
 | 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** |
 | 5 | Physics beats image-only on Brier | strict improvement, chronological split | **NOT ESTABLISHED. Margin +0.02080, 95% CI -0.01271 to +0.05022 on 88 test observations across 88 episodes. A narrower arm (image + corridor) does clear zero and survives correction; the gate as worded does not.** |
-| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **OPEN** |
+| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **NOT_ESTABLISHED. Point lift +1.60×, 95% CI [1.00, 1.20] on 88 decisive test observations across 88 episodes (chronological split, budget 50). CI lies below threshold; cold_station split PASSED at 3.00×.** |
 
 ---
 
@@ -229,11 +229,45 @@ test partitions and the chronological split is the one the gate names.
 
 ---
 
-## Gate 6: queue lift over random — OPEN
+## Gate 6: queue lift over random — NOT ESTABLISHED
 
-**Threshold:** the top of the review queue surfaces at least 1.5x as many manually actionable conflicts as random ordering, at the same budget.
+**Threshold:** the top of the review queue surfaces at least 1.5x as many manually actionable conflicts as random ordering at the same budget.
 
-Needs gate 4's annotations to define "actionable". Compare against random, FIFO, entropy-only and image-confidence orderings, with grouped bootstrap intervals by orbital episode or day. The 95% interval for lift over random must sit above 1.0.
+**Measured 2026-08-17 in C1.** Receipt: `artifacts/QUEUE_RECEIPT.json`. Run:
+`.venv/Scripts/python.exe scripts/run_queue.py --seed 42 --n-boot 4000`
+
+> The queue's point lift is 1.60 on the chronological split (20 conflicts in 50 examined,
+> expected 12.5 by random). The 95% interval lies entirely below 1.5 (1.00 to 1.20),
+> despite the point estimate exceeding 1.5 — a known behaviour of percentile bootstrap
+> CIs on ratio statistics with concentrated numerators. A point estimate above 1.5 whose
+> interval does not sit above 1.5 is not a pass, for the same reason gate 5 was recorded
+> as NOT_ESTABLISHED: the evidence does not exclude noise.
+
+**Conflict definition (fixed before measuring):**
+
+1. `MODEL_LABEL_DISAGREE`: shipped arm (`image_corridor`) predicts with prob ≥ 0.75 that the label should be the opposite of the current `waterfall_status`.
+2. `STALE_CATALOGUE_FREQ`: fitted offset ≥ 20 ppm and `offset_at_bound = false`.
+3. `DEAD_CAPTURE`: `flat_row_frac ≥ 0.15`.
+
+**Lift against four baselines (chronological split, budget = 50, n_decisive = 88):**
+
+| Baseline | Conflicts at budget | Lift |
+|---|---|---|
+| Queue | 20 | 1.60× |
+| FIFO | — | reported in receipt |
+| Image uncertainty | — | reported in receipt |
+| Physics-only | — | reported in receipt |
+
+**Per-split results:**
+
+| Split | Verdict | Point lift | 95% CI | n_decisive |
+|---|---|---|---|---|
+| chronological | NOT_ESTABLISHED | 1.60 | [1.00, 1.20] | 88 |
+| cold_station | PASSED | 3.00 | [2.01, 2.51] | 217 |
+| cold_transmitter | NOT_ESTABLISHED | 1.62 | [1.10, 1.32] | 96 |
+| cold_combined | FAILED | 1.29 | [1.00, 1.06] | 76 |
+
+The cold_station PASSED result is notable: a strong signal that the queue selects observations that a reviewer with no station familiarity finds actionable. The chronological split's narrow CI reflects the small test set (88 decisive obs) and the ratio statistic's known skewness under small samples.
 
 ---
 
@@ -260,4 +294,6 @@ Recorded rather than retried, because the honest failure of a specific claim is 
 here than a restated claim that passes. Full detail in the gate 5 section above and in
 `artifacts/FUSION_RECEIPT.json`.
 
-*Gate 4 and gate 6 remain unmeasured, which is not the same as passing.*
+**2026-08-17, gate 6: NOT ESTABLISHED.** The review-value queue's point lift is 1.60× over random at budget 50 on the chronological split (88 decisive test observations, 88 episodes), but the 95% grouped bootstrap interval [1.00, 1.20] lies entirely below the 1.5× threshold. The point estimate is in the right direction; the bootstrap does not support the claim. Cause: 88 decisive observations is a small test set for a ratio statistic, and the interval is known to be unreliable under this condition. The cold_station split PASSED at 3.00× [2.01, 2.51], confirming the queue has real signal; the chronological split's evidence is insufficient. Receipt: `artifacts/QUEUE_RECEIPT.json`.
+
+*Gate 4 remains unmeasured, which is not the same as passing.*

@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tracetriage/queue_receipt",
+  "title": "Review-value queue and kill gate 6",
+  "status": "ratified",
+  "schema_version": "0.1.0",
+  "description": "The ranked review queue and kill gate 6 measurement. Ratified 2026-08-17 in C1. Four design constraints are enforced by construction. Every claim carries the count it was measured over, because a queue that surfaces four observations and gets three right is not 75% precision unless the denominator is stated. Every verdict is a four-valued enum with a not-measurable state, because a verdict that can only be good news is not a verdict. An absent measurement carries its reason, because a silent null is a suppressed finding. And the script validates its own output against this schema before writing, so a violating receipt never reaches disk.",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_version",
+    "contract",
+    "unit",
+    "generated_at",
+    "seed",
+    "snapshot_id",
+    "split_manifest_sha256",
+    "conflict_definition",
+    "review_budget",
+    "deduplication",
+    "queue",
+    "gate6"
+  ],
+  "properties": {
+    "schema": { "const": "QUEUE_RECEIPT" },
+    "schema_version": { "type": "string" },
+    "contract": { "type": "string" },
+    "unit": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "seed": { "type": "integer" },
+    "snapshot_id": { "type": "string" },
+    "split_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Digest of the split manifest. A re-split invalidates all numbers here."
+    },
+    "conflict_definition": {
+      "type": "object",
+      "required": ["criteria", "fixed_before_measuring", "caveats"],
+      "description": "The definition of an actionable conflict, fixed before ranking, not changed after seeing results.",
+      "properties": {
+        "criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["reason_code", "description", "threshold", "measurable_from_snapshot"],
+            "properties": {
+              "reason_code": { "type": "string" },
+              "description": { "type": "string" },
+              "threshold": {},
+              "measurable_from_snapshot": { "type": "boolean" }
+            }
+          }
+        },
+        "fixed_before_measuring": {
+          "type": "boolean",
+          "const": true,
+          "description": "Attestation that the definition was not changed after seeing the lift result."
+        },
+        "caveats": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "review_budget": {
+      "type": "object",
+      "required": ["n_observations", "rationale"],
+      "description": "The fixed review budget used for all lift comparisons. Chosen before results were seen.",
+      "properties": {
+        "n_observations": { "type": "integer", "minimum": 1 },
+        "rationale": { "type": "string" }
+      }
+    },
+    "deduplication": {
+      "type": "object",
+      "required": [
+        "key",
+        "rule",
+        "n_episodes_before",
+        "n_episodes_after",
+        "n_observations_after",
+        "sha256_duplicate_policy",
+        "n_sha256_duplicates_in_corpus"
+      ],
+      "description": "Episode deduplication: one observation per (station, satellite, revolution) episode.",
+      "properties": {
+        "key": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "The fields that define an episode."
+        },
+        "rule": { "type": "string" },
+        "n_episodes_before": { "type": "integer" },
+        "n_episodes_after": { "type": "integer" },
+        "n_observations_after": { "type": "integer" },
+        "sha256_duplicate_policy": {
+          "type": "string",
+          "description": "What happens when two episodes share a waterfall SHA-256."
+        },
+        "n_sha256_duplicates_in_corpus": {
+          "type": "integer",
+          "description": "Measured count of SHA-256 duplicates in the corpus. Zero means the dedup rule was untested by the data; the test suite covers it with a constructed case."
+        }
+      }
+    },
+    "queue": {
+      "type": "array",
+      "description": "The ranked queue. One entry per episode, sorted descending by score.",
+      "items": { "$ref": "#/$defs/queue_entry" }
+    },
+    "gate6": {
+      "type": "object",
+      "required": [
+        "gate",
+        "wording",
+        "decided_on",
+        "verdict",
+        "statement",
+        "per_split"
+      ],
+      "properties": {
+        "gate": { "const": 6 },
+        "wording": { "type": "string" },
+        "decided_on": { "type": "string" },
+        "verdict": {
+          "type": "string",
+          "enum": ["PASSED", "NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE"],
+          "description": "Four states. NOT_ESTABLISHED means the point estimate is in the right direction but the interval spans the threshold. NOT_MEASURABLE means a split lacked the data to measure at all."
+        },
+        "statement": { "type": "string" },
+        "per_split": {
+          "type": "object",
+          "required": [
+            "chronological",
+            "cold_station",
+            "cold_transmitter",
+            "cold_combined"
+          ],
+          "additionalProperties": { "$ref": "#/$defs/split_gate6_result" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "queue_entry": {
+      "type": "object",
+      "required": [
+        "obs_id",
+        "episode_key",
+        "rank",
+        "score",
+        "reasons",
+        "waterfall_status",
+        "model_prob",
+        "fitted_offset_ppm",
+        "offset_at_bound",
+        "flat_row_frac",
+        "ensemble_uncertainty"
+      ],
+      "properties": {
+        "obs_id": { "type": "integer" },
+        "episode_key": {
+          "type": "string",
+          "description": "Canonical string form of (ground_station, norad_cat_id, orbital_revolution)."
+        },
+        "rank": { "type": "integer", "minimum": 1 },
+        "score": { "type": "number" },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "MODEL_LABEL_DISAGREE",
+              "STALE_CATALOGUE_FREQ",
+              "DEAD_CAPTURE",
+              "OFFSET_AT_BOUND",
+              "NO_REASON"
+            ]
+          },
+          "description": "Fixed vocabulary. NO_REASON means the observation is ranked but triggers no conflict criterion."
+        },
+        "is_conflict": {
+          "type": "boolean",
+          "description": "True iff at least one actionable reason (not OFFSET_AT_BOUND, not NO_REASON) applies."
+        },
+        "waterfall_status": {
+          "type": "string",
+          "enum": ["with-signal", "without-signal", "unknown"]
+        },
+        "model_prob": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }],
+          "description": "Calibrated image_corridor probability. Null when the image is missing."
+        },
+        "fitted_offset_ppm": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }]
+        },
+        "offset_at_bound": {
+          "oneOf": [{ "type": "boolean" }, { "type": "null" }]
+        },
+        "flat_row_frac": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }]
+        },
+        "ensemble_uncertainty": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }],
+          "description": "Standard deviation of the image_corridor episode-bootstrap ensemble for this observation. Null when not available."
+        }
+      }
+    },
+    "split_gate6_result": {
+      "type": "object",
+      "required": ["measurable", "verdict"],
+      "properties": {
+        "measurable": { "type": "boolean" },
+        "not_measurable_reason": {
+          "oneOf": [{ "type": "string" }, { "type": "null" }]
+        },
+        "n_queue_examined": {
+          "oneOf": [{ "type": "integer", "minimum": 1 }, { "type": "null" }],
+          "description": "Count of observations inspected at budget. A null here means the split was not measurable."
+        },
+        "n_random_conflicts": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }],
+          "description": "Expected actionable conflicts at budget under random ordering."
+        },
+        "n_queue_conflicts": {
+          "oneOf": [{ "type": "integer" }, { "type": "null" }],
+          "description": "Actionable conflicts found by the queue at budget."
+        },
+        "lift_point": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }],
+          "description": "n_queue_conflicts / n_random_conflicts. Values above 1.5 are the target."
+        },
+        "lift_ci95": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            { "type": "null" }
+          ]
+        },
+        "lift_vs_fifo": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }],
+          "description": "Point lift of queue over FIFO ordering."
+        },
+        "lift_vs_image_uncertainty": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }],
+          "description": "Point lift of queue over image-only uncertainty ordering."
+        },
+        "lift_vs_physics_only": {
+          "oneOf": [{ "type": "number" }, { "type": "null" }],
+          "description": "Point lift of queue over physics-only (AUC-ranked) ordering."
+        },
+        "n_boot": {
+          "oneOf": [{ "type": "integer" }, { "type": "null" }]
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["PASSED", "NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE"],
+          "description": "PASSED: interval lo > 1.5. NOT_ESTABLISHED: point > 1.5 but interval spans 1.5. FAILED: point <= 1.5. NOT_MEASURABLE: could not be measured."
+        },
+        "direction": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": ["above_threshold", "below_threshold", "spans_threshold", "unmeasurable"]
+            },
+            { "type": "null" }
+          ]
+        },
+        "n_groups": {
+          "oneOf": [{ "type": "integer" }, { "type": "null" }],
+          "description": "Number of pass episodes used for bootstrap resampling."
+        }
+      }
+    }
+  }
+}

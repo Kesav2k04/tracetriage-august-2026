@@ -26,6 +26,7 @@ SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
 EXPECTED = {
     "dataset_manifest",
     "fusion_receipt",
+    "queue_receipt",
     "source_observation",
     "split_manifest",
     "triage_receipt",
