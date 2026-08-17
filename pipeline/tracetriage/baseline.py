@@ -84,6 +84,7 @@ import logging
 import math
 import re
 from dataclasses import dataclass, field
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -670,16 +671,7 @@ class CentreEnergyBaseline:
         Returns None only when the parser reports a hard degraded state (no
         crop_box / no hz_per_px).
         """
-        from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: PLC0415
-
-        geom = parse_waterfall(
-            image_path,
-            observation_id=0,          # not needed for the crop; id is cosmetic here
-            # Only feeds seconds_per_px, which this feature never reads. It is
-            # not "required to avoid a failure": hz_per_px and crop_box are
-            # derived from the frequency axis and do not depend on it.
-            pass_duration_s=200.0,
-        )
+        geom = _geometry_of(image_path)
 
         # If geometry failed, exclude this observation.
         if geom.degraded is not None or geom.crop_box is None or geom.hz_per_px is None:
@@ -794,6 +786,32 @@ class CentreEnergyBaseline:
 # HOG feature extractor
 # ---------------------------------------------------------------------------
 
+def _geometry_of(image_path: Path):
+    """Parse one waterfall's geometry, once per path per process.
+
+    Both baselines need the same crop box for the same image, so without a cache
+    every observation is OCR'd twice and a stage-1 run spends about 42 minutes
+    where 21 will do. At stage 2's 30,000 images that difference stops being a
+    convenience. Keyed on the path string because Path hashes fine but the cache
+    is clearer read as a string key.
+
+    pass_duration_s only feeds seconds_per_px, which neither baseline reads, so a
+    fixed positive value is correct here rather than merely tolerated.
+    """
+    return _parse_cached(str(image_path))
+
+
+@cache
+def _parse_cached(image_path_str: str):
+    from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: PLC0415
+
+    return parse_waterfall(
+        Path(image_path_str),
+        observation_id=0,
+        pass_duration_s=200.0,
+    )
+
+
 def _hog_features(image_path: Path) -> np.ndarray | None:
     """Extract HOG features from the spectrogram region of a waterfall PNG.
 
@@ -820,14 +838,7 @@ def _hog_features(image_path: Path) -> np.ndarray | None:
         logger.error("scikit-image not installed; HOG features unavailable")
         return None
 
-    from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: PLC0415
-
-    geom = parse_waterfall(
-        image_path,
-        observation_id=0,
-        # Only feeds seconds_per_px, which HOG never reads.
-        pass_duration_s=200.0,
-    )
+    geom = _geometry_of(image_path)
     if geom.degraded is not None or geom.crop_box is None:
         return None
 
