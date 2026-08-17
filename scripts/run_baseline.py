@@ -247,12 +247,20 @@ def main(argv: list[str] | None = None) -> int:
         "snapshot_id": corpus.snapshot_id,
         "manifest_sha256": corpus.manifest_sha256,
         "split": {
-            "method": "chronological_ascending_id",
+            "method": "chronological_by_observation_time",
             "train_fraction": 0.80,
+            "audit": corpus.split_audit,
             "note": (
-                "A random split would leak because station identity carries signal. "
+                "Ordered by each observation's own start time, taken from its "
+                "waterfall URL. An earlier version ordered by observation id and "
+                "called that chronological; id order disagrees with time order on "
+                "27% of adjacent pairs here, and the halves it produced overlapped "
+                "in time by more than five hours. A random split would leak because "
+                "station identity carries signal, and see split.audit: this corpus "
+                "covers one evening and most of the validation split sits on "
+                "stations seen in training, so these numbers are in-distribution. "
                 "Real grouped (cold-station, cold-transmitter, combined) splits are "
-                "built in B1.  This is a temporary split for gate-5 baseline only."
+                "built in B1. This is a temporary split for the gate-5 baseline only."
             ),
             "n_train_total": len(corpus.train),
             "n_train_positive": corpus.n_train_positive,

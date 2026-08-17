@@ -73,6 +73,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -288,9 +289,9 @@ class CorpusData:
     Attributes
     ----------
     train:
-        Observations in the training split (sorted by id, oldest 80%).
+        Observations in the training split, the oldest 80% by observation time.
     val:
-        Observations in the validation split (sorted by id, newest 20%).
+        Observations in the validation split, the newest 20% by observation time.
     n_train_positive, n_train_negative:
         Label counts in the training split.
     n_val_positive, n_val_negative:
@@ -304,6 +305,13 @@ class CorpusData:
         SHA-256 of the manifest file itself, for receipt traceability.
     exclusion:
         Full exclusion table.
+    split_audit:
+        What this split does and does not demonstrate: the time span each half
+        covers, whether they overlap, and how much of the validation split sits
+        on a station or transmitter the model already saw. Reported rather than
+        left implicit, because a validation number is only as strong as the
+        separation behind it, and on a corpus spanning a single evening that
+        separation is thin.
     """
     train: list[ObsRecord]
     val: list[ObsRecord]
@@ -315,6 +323,30 @@ class CorpusData:
     snapshot_id: str
     manifest_sha256: str
     exclusion: ExclusionTable
+    split_audit: dict[str, Any] = field(default_factory=dict)
+
+
+_WATERFALL_TS = re.compile(r"_(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})")
+
+
+def _observation_time(waterfall_url: str | None) -> str | None:
+    """The observation's UTC start as a sortable string, from its source URL.
+
+    SatNOGS serves a waterfall as ``waterfall_<id>_<ISO8601 with dashes>.png``,
+    and the manifest records no timestamp of its own, so the URL is the only per
+    observation time available without going back to the API. Note that the
+    LOCAL filename is ``waterfall_<id>.png`` and carries no time at all, so
+    reading the stored path instead silently yields nothing.
+
+    Returns None when the URL carries no timestamp, so the caller can count that
+    rather than quietly assume an ordering it does not have.
+    """
+    if not waterfall_url:
+        return None
+    m = _WATERFALL_TS.search(waterfall_url)
+    if m is None:
+        return None
+    return f"{m.group(1)}T{m.group(2)}:{m.group(3)}:{m.group(4)}"
 
 
 def load_labelled(
@@ -362,6 +394,13 @@ def load_labelled(
     exclusion = build_exclusion_table(manifest)
     waterfalls_dir = snapshot_dir / "waterfalls"
 
+    # Indexed once. The previous version scanned all manifest entries per record
+    # to find a URL, which is about 2 million comparisons for 739 records.
+    by_id: dict[int, dict[str, Any]] = {o["id"]: o for o in obs_list}
+
+    def _time_of(obs_id: int) -> str | None:
+        return _observation_time(by_id.get(obs_id, {}).get("waterfall_url"))
+
     # Collect decisive observations with a stored waterfall image.
     decisive: list[tuple[int, int, Path]] = []  # (id, label, image_path)
     for obs in obs_list:
@@ -384,8 +423,28 @@ def load_labelled(
             continue
         decisive.append((obs_id, label, img_path))
 
-    # Sort chronologically (ascending id = oldest first).
-    decisive.sort(key=lambda t: t[0])
+    # Sort by the observation's own timestamp, not by id.
+    #
+    # Ascending id was used for this and described in the receipt as a
+    # chronological split. It is not one. Measured on this corpus, id order
+    # disagrees with time order on 27% of adjacent pairs, and the resulting
+    # halves overlap in time by more than five hours: the "later" split ran
+    # 18:16 to 23:53 while the "earlier" one ran 14:34 to 23:51. A split that
+    # interleaves is a quasi-random split wearing a temporal label, which
+    # overstates what the validation number demonstrates.
+    #
+    # The manifest carries no observation timestamp, so it comes from the
+    # waterfall filename, which SatNOGS builds as
+    # waterfall_<id>_<ISO8601 with dashes>.png. Anything unparseable sorts last
+    # under its id rather than being silently dropped, and the count is logged.
+    n_no_timestamp = sum(1 for t in decisive if _time_of(t[0]) is None)
+    if n_no_timestamp:
+        logger.warning(
+            "%d of %d decisive observations have no parseable timestamp; "
+            "they sort last and the split is that much less temporal",
+            n_no_timestamp, len(decisive),
+        )
+    decisive.sort(key=lambda t: (_time_of(t[0]) or "9999", t[0]))
 
     n_total = len(decisive)
     split_idx = math.floor(TRAIN_FRACTION * n_total)
@@ -393,17 +452,13 @@ def load_labelled(
     def _to_records(rows: list[tuple[int, int, Path]]) -> list[ObsRecord]:
         records = []
         for obs_id, label, img_path in rows:
-            # Retrieve the waterfall_url from the manifest for the record.
-            wf_url = next(
-                (o.get("waterfall_url", "") for o in obs_list if o["id"] == obs_id),
-                "",
-            )
+            entry = by_id.get(obs_id, {})
             records.append(
                 ObsRecord(
                     obs_id=obs_id,
                     label=label,
                     image_path=img_path,
-                    waterfall_url=wf_url or "",
+                    waterfall_url=entry.get("waterfall_url") or "",
                 )
             )
         return records
@@ -421,7 +476,46 @@ def load_labelled(
 
     train_prior = n_train_pos / max(len(train_records), 1)
 
+    def _span(rows: list[tuple[int, int, Path]]) -> tuple[str | None, str | None]:
+        ts = sorted(t for t in (_time_of(r[0]) for r in rows) if t)
+        return (ts[0], ts[-1]) if ts else (None, None)
+
+    tr_lo, tr_hi = _span(train_rows)
+    va_lo, va_hi = _span(val_rows)
+
+    def _field(rows, key):
+        return {by_id.get(r[0], {}).get(key) for r in rows}
+
+    stations_tr = _field(train_rows, "ground_station")
+    tx_tr = _field(train_rows, "transmitter_uuid")
+    val_seen_station = sum(
+        1 for r in val_rows if by_id.get(r[0], {}).get("ground_station") in stations_tr
+    )
+    val_seen_tx = sum(
+        1 for r in val_rows if by_id.get(r[0], {}).get("transmitter_uuid") in tx_tr
+    )
+
+    split_audit: dict[str, Any] = {
+        "ordered_by": "observation start time parsed from the waterfall filename",
+        "n_without_timestamp": n_no_timestamp,
+        "train_time_range": [tr_lo, tr_hi],
+        "val_time_range": [va_lo, va_hi],
+        "time_ranges_overlap": bool(tr_hi and va_lo and tr_hi > va_lo),
+        "n_val_on_a_station_seen_in_train": val_seen_station,
+        "n_val_on_a_transmitter_seen_in_train": val_seen_tx,
+        "n_val": len(val_rows),
+        "caveat": (
+            "This corpus covers a single evening, so a temporal split cannot "
+            "demonstrate temporal generalisation however it is ordered. Most of "
+            "the validation split also sits on ground stations the model trained "
+            "on. Treat the validation numbers as in-distribution. Cold-station, "
+            "cold-transmitter and combined splits are B1's job and are what any "
+            "generalisation claim has to rest on."
+        ),
+    }
+
     return CorpusData(
+        split_audit=split_audit,
         train=train_records,
         val=val_records,
         n_train_positive=n_train_pos,

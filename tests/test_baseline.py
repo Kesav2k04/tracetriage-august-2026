@@ -627,13 +627,47 @@ class TestLoadLabelledOnRealCorpus:
         assert len(corpus.train) == expected_train
 
     def test_train_before_val_chronologically(self):
-        """All train observation ids must be smaller than all val observation ids."""
-        from pipeline.tracetriage.baseline import load_labelled
+        """Every train observation must precede every val observation in TIME.
+
+        This test previously asserted that train ids were all below val ids,
+        which quietly assumed id order is time order. It is not: measured on
+        this corpus, id order disagrees with time order on 27% of adjacent
+        pairs, and sorting by id produced halves whose time ranges overlapped by
+        more than five hours while the receipt called the split chronological.
+        The assertion now names the property the split is supposed to have.
+        """
+        from pipeline.tracetriage.baseline import _observation_time, load_labelled
         mpath, sdir = _snap_manifest()
         corpus = load_labelled(mpath, sdir)
-        max_train = max(r.obs_id for r in corpus.train)
-        min_val = min(r.obs_id for r in corpus.val)
-        assert max_train < min_val
+
+        train_t = [t for t in (_observation_time(r.waterfall_url) for r in corpus.train) if t]
+        val_t = [t for t in (_observation_time(r.waterfall_url) for r in corpus.val) if t]
+        assert len(train_t) == len(corpus.train), "some train timestamps did not parse"
+        assert len(val_t) == len(corpus.val), "some val timestamps did not parse"
+        assert max(train_t) < min(val_t), (
+            f"train runs to {max(train_t)} but val starts at {min(val_t)}; "
+            "the halves overlap in time, so this is not a temporal split"
+        )
+        assert corpus.split_audit["time_ranges_overlap"] is False
+
+    def test_split_audit_states_what_the_split_cannot_show(self):
+        """The caveat is part of the deliverable, not a nicety.
+
+        This corpus spans a single evening and most of the validation split sits
+        on stations the model trained on, so the validation numbers are
+        in-distribution. A receipt that omits that invites the reader to take
+        them for generalisation.
+        """
+        from pipeline.tracetriage.baseline import load_labelled
+        mpath, sdir = _snap_manifest()
+        audit = load_labelled(mpath, sdir).split_audit
+        assert audit["n_val"] > 0
+        assert audit["n_val_on_a_station_seen_in_train"] <= audit["n_val"]
+        assert audit["caveat"].strip(), "the split caveat must not be empty"
+        assert audit["n_without_timestamp"] == 0, (
+            f"{audit['n_without_timestamp']} observations have no parseable time, "
+            "so the ordering is partly arbitrary"
+        )
 
     def test_base_rates_read_from_manifest_not_constants(self):
         """The baseline must derive rates from the snapshot, not from provenance.py."""
