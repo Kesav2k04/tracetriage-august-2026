@@ -32,6 +32,7 @@ import logging
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -54,6 +55,56 @@ if str(_REPO_ROOT) not in sys.path:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
+def floor_comparison(
+    y: Any,
+    model_proba: Any,
+    prior: float,
+    *,
+    seed: int = 42,
+    n_boot: int = 10000,
+) -> dict:
+    """Is this model's Brier score distinguishable from the prior-only floor?
+
+    A bare ``model.brier < floor.brier`` answers a different question from the
+    one that matters. On the first corrected run the centre-energy heuristic came
+    in 0.0007 below the floor on 148 observations and the boolean said it beat it,
+    which reads as a result and is noise. The plan asks the receipt to say plainly
+    when a baseline has learned nothing, and a float comparison cannot.
+
+    Paired bootstrap over observations: both models score the same 148 examples,
+    so resampling the per-observation squared-error DIFFERENCE keeps the pairing
+    and removes the variance the two share. Reported as a 95% interval on the
+    improvement, positive meaning better than the floor.
+    """
+    import numpy as np  # noqa: PLC0415
+
+    y = np.asarray(y, dtype=np.float64)
+    m = np.asarray(model_proba, dtype=np.float64)
+    d = (prior - y) ** 2 - (m - y) ** 2          # positive = model better
+    rng = np.random.default_rng(seed)
+    n = len(d)
+    if n == 0:
+        return {"margin": float("nan"), "ci95": [None, None],
+                "distinguishable_from_floor": False, "n": 0}
+    idx = rng.integers(0, n, size=(n_boot, n))
+    boots = d[idx].mean(axis=1)
+    lo, hi = (float(x) for x in np.percentile(boots, [2.5, 97.5]))
+    return {
+        "margin": float(d.mean()),
+        "ci95": [lo, hi],
+        "distinguishable_from_floor": bool(lo > 0.0),
+        "n": int(n),
+        "note": (
+            "Paired bootstrap on the per-observation squared-error difference, "
+            "10000 resamples. margin is the Brier improvement over the "
+            "prior-only floor; positive is better. distinguishable_from_floor is "
+            "whether the 95% interval clears zero. A model can sit below the "
+            "floor by a hair and still be indistinguishable from it, which is "
+            "not a result."
+        ),
+    }
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
@@ -145,6 +196,7 @@ def main(argv: list[str] | None = None) -> int:
     ce_n_geometry_fail_train = 0
     ce_n_geometry_fail_val = 0
     ce_beats_floor: bool | None = None
+    ce_floor: dict | None = None
 
     if not args.skip_centre_energy:
         logger.info("Fitting CentreEnergy baseline...")
@@ -179,6 +231,13 @@ def main(argv: list[str] | None = None) -> int:
         all_metrics.append(ce_metrics)
 
         # Beat-the-floor check.
+        ce_floor = floor_comparison(ce_y, ce_proba, corpus.train_prior, seed=args.seed)
+        logger.info(
+            "CentreEnergy vs floor: margin %+.4f  95%% CI [%+.4f, %+.4f]  %s",
+            ce_floor["margin"], ce_floor["ci95"][0], ce_floor["ci95"][1],
+            "distinguishable" if ce_floor["distinguishable_from_floor"]
+            else "NOT distinguishable from the floor",
+        )
         if ce_metrics.brier_score < prior_metrics.brier_score:
             logger.info("✓ CentreEnergy beats prior-only floor on Brier score")
             ce_beats_floor = True
@@ -218,6 +277,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     all_metrics.append(hog_metrics)
 
+    hog_floor = floor_comparison(hog_y, hog_proba, corpus.train_prior, seed=args.seed)
+    logger.info(
+        "HogLR vs floor: margin %+.4f  95%% CI [%+.4f, %+.4f]  %s",
+        hog_floor["margin"], hog_floor["ci95"][0], hog_floor["ci95"][1],
+        "distinguishable" if hog_floor["distinguishable_from_floor"]
+        else "NOT distinguishable from the floor",
+    )
     hog_beats_floor = hog_metrics.brier_score < prior_metrics.brier_score
     if hog_beats_floor:
         logger.info("✓ HogLR beats prior-only floor on Brier score")
@@ -284,6 +350,10 @@ def main(argv: list[str] | None = None) -> int:
         "beats_floor": {
             "centre_energy": ce_beats_floor if not args.skip_centre_energy else None,
             "hog_logistic_regression": hog_beats_floor,
+            "vs_floor": {
+                "centre_energy": ce_floor,
+                "hog_logistic_regression": hog_floor,
+            },
             "note": (
                 "True = Brier score is strictly lower than prior_only. "
                 "False = model has learned nothing; use this fact in the gate-5 comparison. "
