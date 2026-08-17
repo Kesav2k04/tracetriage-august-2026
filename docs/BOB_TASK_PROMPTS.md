@@ -62,7 +62,8 @@ Already done before your first task (do not redo):
 - Repository at github.com/Kesav2k04/tracetriage-august-2026 (private until the
   code freeze), venv on Python 3.12, full stack installed and import-verified.
 - Live API reconnaissance with measured numbers: docs/SATNOGS_API_RECON.md
-- Kill-gate status board, 3 of 6 gates pre-measured: docs/KILL_GATE.md
+- Kill-gate status board: docs/KILL_GATE.md. Gates 1 and 2 pre-measured, gate 3
+  measured and PASSED, gates 4, 5 and 6 open. Gate 4 is an operator task.
 - Hardware profile. There is an RTX 3070 Ti and CUDA torch is installed and
   verified at 14.9x over CPU. USE IT, and guard against a silent CPU fallback.
   16 GB RAM is the binding constraint, so stream every stage: docs/HARDWARE_PROFILE.md
