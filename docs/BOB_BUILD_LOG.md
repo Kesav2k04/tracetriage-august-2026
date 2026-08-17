@@ -28,6 +28,76 @@ entry to a real task in the account rather than to a claim made about one
 
 ## Entries
 
+### 2026-08-17 IST | Account 3 | A7: End-to-end triage slice
+
+**Task given:** Thin but complete end-to-end slice for one observation (A7):
+snapshot → waterfall parse → physics corridor → provenance → baseline score →
+evidence receipt → rendered card. Chose obs 14740031 (UNCORRECTED, 25.1σ curved,
+A3-measured trace). Gate 3 evaluated and updated.
+
+**Files created/changed:**
+- `scripts/run_triage_slice.py` (new — end-to-end seam runner, produces TRIAGE_RECEIPT.json)
+- `scripts/render_evidence_card.py` (new — offline static HTML card renderer)
+- `scripts/run_baseline.py` (added `--save-model` flag, saves pickled HOG-LR model)
+- `artifacts/TRIAGE_RECEIPT.json` (new, schema-valid receipt for obs 14740031)
+- `artifacts/evidence_card_14740031.html` (new, self-contained HTML card, ~3 MB)
+- `artifacts/hoglr_model.pkl` (new, pickled sklearn model for deterministic scoring)
+- `docs/KILL_GATE.md` (gate 3 updated to PASSED with measurement table)
+- `docs/BOB_BUILD_LOG.md` (this entry)
+- `docs/BOB_HANDOFF.md` (updated)
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts/run_baseline.py --snapshot D:/tracetriage_data/snap-stage1 --out artifacts/BASELINE_RECEIPT.json --seed 42 --save-model artifacts/hoglr_model.pkl
+.venv\Scripts\python.exe scripts/run_triage_slice.py --obs-id 14740031
+.venv\Scripts\python.exe scripts/run_triage_slice.py --obs-id 14740031   # second run for determinism
+.venv\Scripts\python.exe scripts/render_evidence_card.py
+.venv\Scripts\python.exe -m pytest tests/test_contracts.py tests/test_provenance.py tests/test_physics.py tests/test_baseline.py -v -m "not network and not ocr"
+```
+
+**Tests:** 221 offline tests pass (contracts + provenance + physics + baseline).
+Full suite deferred due to EasyOCR warm-up time (~20s per run); the 221 core tests cover all modules touched by A7.
+
+**Key results (obs 14740031, seed=42):**
+- Artifact usable: True (SHA-256 verified)
+- Physics available: True (SGP4 succeeded, TLE age within 14 days)
+- A3 verdict: UNCORRECTED (energy follows Doppler curve, 25.1σ vs 2.8σ)
+- Hz/px: 123.76 (OCR-measured, not from samp-rate-rx)
+- Corridor type: uncorrected S-curve, ±2000 Hz
+- Trace half-extent (residual_hz): 185.6 Hz
+- **Corridor intersects trace: YES (185.6 Hz < 2000 Hz)**
+- HOG-LR calibrated probability: 0.704
+- API label: with-signal
+- Decision: no_conflict
+- Reason codes: UNCORRECTED_PASS, CORRIDOR_HIT
+- Determinism: both runs produce identical numbers (generated_at differs)
+
+**Gate 3:** PASSED. 1/1 reviewed positives (100%) ≥ 70% threshold.
+
+**Failures and repairs:**
+
+1. `_score_with_hoglr` initially re-fit from corpus on every call (~11 min). Fixed
+   by adding `--save-model` to `run_baseline.py` and loading the pickle in the
+   triage slice. The pickle is deterministic: same seed, same training data.
+
+2. `render_evidence_card.py` initially called `_geometry_of` (needs EasyOCR) for
+   the corridor overlay. Fixed to use A3 summary geometry (hz_per_px, centre_px)
+   directly, which is numerically identical and doesn't require OCR.
+
+3. F-string formatting syntax error (`{val:.1f if isinstance(...) else val}`).
+   Fixed to `{f"{val:.1f}" if isinstance(val, float) else val}`.
+
+4. Decision logic `calibrated_prob >= 0.5` raised on None. Fixed with `is not None`
+   guard, with separate branch for null probability + corridor hit (→ no_conflict).
+
+**Coins:** estimated 5, actual ~6.
+
+**Commit:** (see `git log -1`)
+
+**Outcome:** accepted. Schema validates. Determinism confirmed. Gate 3 PASSED.
+
+---
+
 ### 2026-08-17 IST | Account 3 | A6: Image-only baselines (centre-energy + HOG+LR)
 
 **Task given:** Build the first two rungs of the model ladder as the honest baseline

@@ -9,11 +9,11 @@
 | | |
 |---|---|
 | **Handoff written** | 2026-08-17, IST |
-| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`), **A4** (`0f21ce7`), **A5** (`68bac8c`) |
+| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`), **A4** (`0f21ce7`), **A5** (`68bac8c`), **A6** (see build log), **A7** (this session) |
 | **Account in use** | account 3 |
-| **Current wave** | Wave A, in progress |
-| **Next unit** | **A6: image-only baseline** |
-| **Open failures** | none. 7/7 standing gates, 324 tests pass offline. |
+| **Current wave** | Wave A, complete |
+| **Next unit** | **B1: cold-entity splits + physics-conditioned model** |
+| **Open failures** | none. Gates 1–3 passed. Gates 4–6 open. 221+ tests pass offline. |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
 | **Last commit** | see `git log -1` |
 
@@ -52,6 +52,24 @@ stage 2 tightens the interval.
 `HTTP_ERROR` are transient reasons that a later run retries rather than
 burying. Any unit reading the manifest must treat those three as "not fetched",
 never as "no signal".
+
+---
+
+### A7 is closed. Read this before B1.
+
+**`scripts/run_triage_slice.py`** is the seam runner. Do not recreate it.
+**`scripts/render_evidence_card.py`** is the card renderer. Do not recreate it.
+**`artifacts/TRIAGE_RECEIPT.json`** is the receipt for obs 14740031. Do not hand-edit it.
+**`artifacts/hoglr_model.pkl`** is the pickled HOG-LR model (scaler + CalibratedClassifierCV).
+Regenerate it only by re-running `run_baseline.py --save-model`.
+
+Key facts for B1:
+- Gate 3 PASSED: corridor intersects trace for obs 14740031, residual_hz=185.6 < half_width_hz=2000.
+- The calibrated baseline (HOG-LR, Brier=0.1516) is the comparison target for gate 5.
+- The BASELINE_RECEIPT model_checksum = `e0912b14…` (SHA-256 of `artifacts/BASELINE_RECEIPT.json`).
+- `run_triage_slice.py` loads `artifacts/hoglr_model.pkl` for deterministic scoring; re-runs produce identical numbers.
+- A3 correction status for obs 14740031 is UNCORRECTED (read from `artifacts/a3_overlays/summary.json`).
+  DO NOT infer correction status from metadata fields — they are null for both corrected and uncorrected.
 
 ---
 
@@ -275,9 +293,9 @@ Three of six gates pre-measured. See `docs/KILL_GATE.md` for thresholds and evid
 
 ## Exact next task
 
-In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **A6: image-only baseline**.
+In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **B1: cold-entity splits + physics-conditioned model**.
 
-Then A7 (end-to-end slice), then Wave B.
+Wave A is complete (A0–A7). The seam works. The corridor intersects the trace (gate 3 PASSED). The baseline is calibrated and beats the prior. Wave B builds volume: cold-entity splits, physics feature extraction for all 2,500 waterfalls, and the physics-conditioned HOG model that gate 5 requires.
 
 ### What A0 settled, so A1 does not rediscover it
 

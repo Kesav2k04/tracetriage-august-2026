@@ -1,0 +1,37 @@
+{
+  "observation_id": 14740031,
+  "snapshot_id": "snap-20260817-stage1",
+  "model_checksum": "e0912b1454763c14b40b59e68f406cfd49fe051692dd4f2a044d6ad59f748df9",
+  "generated_at": "2026-08-17T11:44:51.593129+00:00",
+  "evidence": {
+    "artifact_usable": true,
+    "physics_available": true,
+    "visible_signal": 0.7040618874062344,
+    "target_consistency": 1.0,
+    "residual_hz": 185.64356435643566,
+    "corridor_intersects_trace": true,
+    "waterfall_geometry_version": "0.2.2"
+  },
+  "scores": {
+    "calibrated_probability": 0.7040618874062344,
+    "uncertainty": null,
+    "ood_score": null,
+    "review_value": null
+  },
+  "decision": "no_conflict",
+  "reason_codes": [
+    "UNCORRECTED_PASS",
+    "CORRIDOR_HIT"
+  ],
+  "provenance": {
+    "source_url": "https://network.satnogs.org/api/observations/14740031/",
+    "retrieved_at": "2026-08-16T20:14:03.180818+00:00",
+    "license": "CC BY-SA 4.0",
+    "api_label": "with-signal",
+    "label_origin": "satnogs_vet",
+    "artifact_sha256": "e496d34e0021e6d7306ffc9602f062a56a8403feed58b0ae866be7c5825ae0cd",
+    "split": null,
+    "station_id": 91,
+    "transmitter_uuid": "7pFtLcWxboQo7HYhaPz3iS"
+  }
+}

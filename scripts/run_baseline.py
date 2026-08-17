@@ -133,6 +133,12 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Skip the centre-energy model (e.g. when OCR backend is unavailable)",
     )
+    parser.add_argument(
+        "--save-model",
+        type=Path,
+        default=Path("artifacts/hoglr_model.pkl"),
+        help="Save the fitted HOG-LR model to this path for use by the triage slice",
+    )
     args = parser.parse_args(argv)
 
     snapshot_dir = args.snapshot.resolve()
@@ -293,6 +299,16 @@ def main(argv: list[str] | None = None) -> int:
             "(Brier %.4f vs floor %.4f); model has learned nothing",
             hog_metrics.brier_score, prior_metrics.brier_score,
         )
+
+    # -----------------------------------------------------------------------
+    # 5b. Save HOG-LR model for triage slice
+    # -----------------------------------------------------------------------
+    if args.save_model and hog_lr._model is not None:
+        import pickle  # noqa: PLC0415
+        args.save_model.parent.mkdir(parents=True, exist_ok=True)
+        with open(args.save_model, "wb") as fh:
+            pickle.dump(hog_lr._model, fh, protocol=5)
+        logger.info("HOG-LR model saved to %s", args.save_model)
 
     # -----------------------------------------------------------------------
     # 6. Write receipt

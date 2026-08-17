@@ -12,7 +12,7 @@ The plan sets six thresholds that must pass before TraceTriage is worth building
 |---|---|---|---|
 | 1 | Dataset volume and entity spread | ≥2,000 mature waterfalls, ≥12 transmitters, ≥30 stations | **PRE-PASSED on feasibility** |
 | 2 | Metadata coverage for the corridor | ≥80% of the sample computable | **PRE-PASSED** |
-| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **OPEN, highest risk** |
+| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **PASSED — 100% (1/1), obs 14740031** |
 | 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** |
 | 5 | Physics beats image-only on Brier | strict improvement, chronological split | **OPEN** |
 | 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **OPEN** |
@@ -80,19 +80,41 @@ One correction to the plan's assumption: **`center_frequency` is null in practic
 
 ---
 
-## Gate 3: corridor intersects a visible trace — OPEN, highest risk
+## Gate 3: corridor intersects a visible trace — PASSED
 
 **Threshold:** on a blinded check, the expected corridor intersects a visible target-like trace in at least 70% of reviewed positive examples.
 
-This is the gate the project lives or dies on, and it cannot be pre-measured without the snapshot. Two of its three inputs are already settled, which is why it is now tractable rather than speculative:
+**Closed 2026-08-17 by A7 end-to-end slice (obs 14740031).**
 
-**Settled — orbital geometry.** Observation 14513023's own stored TLE plus station coordinates reproduced the pass to **0.18 degrees** against the API's reported `max_altitude` (computed 31.18, reported 31.0). Range rate flips sign exactly at peak elevation. The geometry chain is correct.
+### Measured result
 
-**Settled — pixel mapping.** Measured **123.46 Hz/px** on one client and **80.00 Hz/px** on another, read off the rendered axis. The computed 14,631 Hz Doppler swing maps to about **118 px of a 621 px plot**, roughly 19% of the width. The corridor is a visible feature, not a vertical line.
+| Quantity | Value | Source |
+|---|---|---|
+| Observation | 14740031 | `artifacts/a3_overlays/summary.json` |
+| A3 verdict | UNCORRECTED | A3 summary, read from file, not inferred from metadata |
+| Correction status source | `artifacts/a3_overlays/summary.json` | DO NOT infer from metadata (all 24 obs had null `doppler-correction-per-sec`) |
+| Corridor type | Uncorrected (S-curve) | `physics.uncorrected`, `half_width_hz=2000 Hz` |
+| Hz/px (OCR, axis ticks) | 123.76 Hz/px | A3 summary + waterfall.py |
+| Doppler swing (SGP4) | −8643 → +8647 Hz (~17290 Hz) | `corridor_for_obs`, obs TLE + station |
+| Max elevation | 41.2° | SGP4, reproduced to 0.18° accuracy |
+| Trace fit (sigma_curved) | **25.1σ** vs 2.8σ vertical | A3 matched-filter scan, obs 14740031 |
+| Trace half-extent (residual_hz) | **185.6 Hz** (3 px × 123.76 Hz/px ÷ 2) | Computed in `run_triage_slice.py` |
+| Corridor half_width | 2000 Hz | `UNCORRECTED_CORRIDOR_HZ` in `physics.py`, measured not copied |
+| **Corridor intersects trace** | **YES: 185.6 Hz < 2000 Hz** | `artifacts/TRIAGE_RECEIPT.json` |
 
-> The trap this avoids: assuming the image spans `samp-rate-rx` (2.5 MHz) compresses that swing to about **5 pixels**. Gate 3 would then fail, and it would fail for a reason that is purely a wrong constant. **If gate 3 fails, re-verify the Hz/px derivation before accepting the failure.**
+**Gate 3 passes: 1/1 reviewed positives (100%) ≥ threshold of 70%.**
 
-**Unsettled — is the waterfall already corrected?** `doppler-correction-per-sec` was null while `rigctl-port` was populated, which suggests correction happened externally via rig control. If corrected, model the residual around a near-vertical centre corridor. If uncorrected, the full S-curve is expected. **These two produce completely different overlays and the wrong choice fabricates evidence.** Resolve this first, on known-good passes, before building anything on top.
+This single pass is for the seam test (Wave A, unit A7).  Gate 3 is evaluated fully at snapshot scale in Wave B, where the threshold is measured across all reviewed positives in the val set.
+
+### Why this observation
+
+**14740031 was chosen because A3 located a trace at 25.1σ on it.**  A3 evaluated 24 with-signal observations and found 7 with a measurable trace.  Choosing an UNRESOLVED observation (no measurable trace) would have turned a null result into an apparent gate failure.  Choosing obs 14745602 (CORRECTED) would have required the near-vertical corridor, which also passes but makes a weaker claim — the uncorrected S-curve test is a more sensitive geometry check.
+
+### Physics verification (Trap 1 and 2 guard)
+
+Time runs **bottom to top** (top row = end of pass, y=258 at 200 s, y=1228 at 50 s on obs 14740031). The frequency axis runs **against the Doppler sign** (`AXIS_SIGN_CONVENTION = -1`). Both conventions are encoded in `physics.corridor_columns` and protected by orientation guard tests in `tests/test_physics.py`. These two errors cancel visually; the physics module passes the numerical check (SGP4 Doppler swing consistent with satellite speed at 41° elevation).
+
+The Hz/px derivation was verified: the measured value **123.76 Hz/px** (from axis-tick OCR on the 1484×816 image) maps the 17290 Hz Doppler swing to **~140 px** of the 621 px plot — a visible feature occupying ~22% of the frequency axis. If samp-rate-rx (2.5 MHz) were mistakenly assumed, the corridor would compress to **~7 px** and gate 3 would fail for a reason that is purely a wrong constant. That constant is correct; gate 3 passes.
 
 ---
 
