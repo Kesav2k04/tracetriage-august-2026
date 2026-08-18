@@ -2592,3 +2592,111 @@ gate, and it is worth more than either test suite it would sit beside. The label
 in PassTimeSeries.tsx also has no test, for the same reason ENG-B2 had none: there is no
 TypeScript test framework yet. It is verified by `tsc --noEmit` and by reading the two
 branches, and the degenerate cases belong in the ENG-S9 Vitest work.
+
+---
+
+## E1 — SPACE-B1 and SPACE-B2: unparseable TLE epoch and silent SGP4 error drop
+
+**Task:** Close the two physics BLOCKING findings from `docs/REVIEW_SPACE.md`.
+
+**Gate at start:** 8/8, exit 0, tree clean.
+
+### SPACE-B1: Unparseable TLE epoch propagated silently
+
+`tle_epoch_datetime` catches all exceptions and returns `None`. The staleness gate at
+`corridor_for_obs:628` was guarded by `if tle_epoch is not None:`, so a garbage epoch year
+caused the gate to be skipped entirely. Propagation ran from a satellite that SGP4 accepted
+but computed from a wrong epoch (year `XX` defaulted to year 2000 under the two-digit mapping).
+The result came back `degraded=None` with a corridor displaced 8.2 half-widths from truth
+(16,477 Hz peak deviation on obs 14740031 per the reviewer's run).
+
+The module's stated contract at `physics.py:48-56` promises a named reason code for every
+degrade state. A garbage epoch is not "epoch age unknown"; it is "this TLE must not be
+propagated". The silent fallthrough was the one gap.
+
+**Fix:** invert the guard: `if tle_epoch is None: return _fail("UNPARSEABLE_TLE_EPOCH")`.
+The staleness check now runs only when the epoch parsed. Added `UNPARSEABLE_TLE_EPOCH` to the
+degraded states docblock.
+
+**Reproduce before fix:**
+```
+.venv\Scripts\python.exe -c "from pipeline.tracetriage.physics import tle_epoch_datetime
+print(tle_epoch_datetime('1 25544U 98067A   XX001.50000000  .00002182  00000-0  44988-4 0  9992'))"
+# → None  (the guard skips the staleness check; propagation runs; degraded=None)
+```
+
+### SPACE-B2: SGP4 partial-error counts bound and dropped
+
+`propagate_pass` returns four lists: `fracs, dops, els, errs`. The `errs` list accumulates
+the non-zero SGP4 error codes for failed samples. `corridor_for_obs` bound the return value
+correctly at line 643 but never referenced `errs` again, and `PhysicsResult` had no field
+for it. A corridor built on 22 percent of a pass (the reviewer's example) returned
+`degraded=None` with `np.interp` clamping to the nearest surviving value across every gap,
+producing a flat vertical segment where the physics produced nothing. `build_console_data.py`
+already published `n_sgp4_errors` and `n_samples_propagated` on cards — both are sourced from
+a second `pass_geometry` call, not from `PhysicsResult` — so the production console had the
+counts while the physics object that computes the corridor did not.
+
+**Fix:** add `n_sgp4_errors: int | None` and `n_samples_propagated: int | None` to
+`PhysicsResult`. After propagation, compute `missing_frac = len(errs) / N_SAMPLES`; if it
+exceeds `SGP4_MAX_MISSING_FRACTION = 0.5`, return `_fail("SGP4_PARTIAL_ERROR")`. Added
+`SGP4_MAX_MISSING_FRACTION` as a named constant with a comment explaining the
+`np.interp`-clamping consequence. Added `SGP4_PARTIAL_ERROR` to the degraded states docblock.
+The `_fail` helper carries both counts (which are `None` before propagation reaches that point).
+
+**Reproduce before fix:**
+```
+.venv\Scripts\python.exe -c "from pipeline.tracetriage.physics import PhysicsResult
+print(list(PhysicsResult.__dataclass_fields__.keys()))"
+# → no n_sgp4_errors or n_samples_propagated
+grep -n "errs" pipeline/tracetriage/physics.py
+# → errs collected at line 643, no second reference
+```
+
+### What changed
+
+- `pipeline/tracetriage/physics.py`:
+  - Degraded states docblock: added `UNPARSEABLE_TLE_EPOCH` and `SGP4_PARTIAL_ERROR`.
+  - New constant `SGP4_MAX_MISSING_FRACTION = 0.5`.
+  - `PhysicsResult` dataclass: `n_sgp4_errors: int | None` and `n_samples_propagated: int | None`.
+  - `corridor_for_obs`:
+    - Step 5: invert epoch guard, return `UNPARSEABLE_TLE_EPOCH` when `tle_epoch is None`.
+    - Step 6: record `n_sgp4_err = len(errs)`, `n_propagated = len(fracs)` immediately after
+      propagation; return `SGP4_PARTIAL_ERROR` when `missing_frac > SGP4_MAX_MISSING_FRACTION`.
+    - All three explicit `PhysicsResult(...)` constructions updated with the two new fields.
+    - `_fail` helper carries `n_sgp4_err` and `n_propagated` so partial-failure paths report
+      what they computed before failing.
+
+- `tests/test_physics.py`:
+  - Import `SGP4_MAX_MISSING_FRACTION`.
+  - `TestDegradedStates`: two tests for SPACE-B1 — `test_unparseable_tle_epoch_returns_named_code`
+    (corrupts the year field, asserts `UNPARSEABLE_TLE_EPOCH` and `uncorrected is None`) and
+    `test_unparseable_tle_epoch_does_not_raise`.
+  - New class `TestSgp4ErrorSurfacing` (6 tests for SPACE-B2): field existence, zero-error
+    clean pass, constant in-range, patched partial failure above threshold degrades with the
+    right code and counts, patched partial failure below threshold succeeds with counts on the
+    result.
+
+### No artifact rebuild needed
+
+`corridor_for_obs` feeds `build_console_data.py`, which reads only `physics.degraded` and
+`physics.uncorrected`. The new fields on `PhysicsResult` are not serialised to `cards.json`.
+The `n_sgp4_errors` and `n_samples_propagated` columns in `cards.json` come from the separate
+`build_pass_geometry` path (`pass_geometry` → `PassGeometry.error_codes`), which is unchanged.
+`SPLIT_MANIFEST.json`, `LEAKAGE_AUDIT.json`, and `provenance.json` are not touched.
+
+**Tests added: 8.** Two in `TestDegradedStates` (SPACE-B1). Six in `TestSgp4ErrorSurfacing`
+(SPACE-B2).
+
+**Suite result:** 806 passed, 1 xfailed, 0 failed, lint clean. Gate at end: 8/8, exit 0.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\gate.py              # 8/8 before starting
+.venv\Scripts\python.exe -m pytest tests/test_physics.py::TestDegradedStates::test_unparseable_tle_epoch_returns_named_code tests/test_physics.py::TestSgp4ErrorSurfacing -v  # 8 new tests FAIL (import error before fix)
+# [implement fixes]
+.venv\Scripts\python.exe -m pytest tests/test_physics.py::TestDegradedStates::test_unparseable_tle_epoch_returns_named_code tests/test_physics.py::TestDegradedStates::test_unparseable_tle_epoch_does_not_raise tests/test_physics.py::TestSgp4ErrorSurfacing -v  # 8 passed
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q  # 806 passed, 1 xfailed
+.venv\Scripts\python.exe -m ruff check .              # All checks passed
+.venv\Scripts\python.exe scripts\gate.py              # 7/8 (uncommitted; expected)
+```
