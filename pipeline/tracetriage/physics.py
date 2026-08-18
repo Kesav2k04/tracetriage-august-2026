@@ -228,9 +228,28 @@ def geodetic_normal(lat_deg: float, lon_deg: float) -> np.ndarray:
 
     Using the position vector instead adds a signed error to every elevation, of
     one sign looking north of the station and the other looking south, so it
-    averages away over many passes while inflating the spread. That is what it
-    did here: it is invisible in the mean error against the reported elevation
-    and visible in the variance.
+    averages away over many passes.
+
+    What it does not do is show up in the validation, and the earlier version of this
+    docstring claimed the second half of that wrongly. Re-running the whole A4 check
+    with the position vector substituted, over the same 200 cached records:
+
+        up reference              mean      sd      mean abs   within 1 deg
+        geodetic normal           +0.0035   0.3632  0.2437     99.50%
+        position vector           -0.0329   0.3696  0.2495     99.50%
+
+    The mean moves 0.0364 degrees against a standard error of 0.0257, which is 1.4
+    sigma, and the variance ratio is 1.036 against an F critical value near 1.28 at
+    199 and 199 degrees of freedom. So it is invisible in the mean *and* invisible in
+    the variance: the elevation comparison could not have found this defect either
+    way, because the reference is integer-quantised and one degree of rounding is
+    larger than the whole effect. The per-observation difference is signed as
+    described, from -0.1915 to +0.1691 degrees, which is the cancellation mechanism
+    and is real.
+
+    The check that could have found it is the azimuth comparison against the API's
+    unrounded rise_azimuth and set_azimuth, which is why
+    ``scripts/validate_physics.py`` now runs it.
     """
     lat = math.radians(lat_deg)
     lon = math.radians(lon_deg)

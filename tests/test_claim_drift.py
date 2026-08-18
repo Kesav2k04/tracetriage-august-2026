@@ -62,11 +62,24 @@ def _numbers_in(text: str) -> list[str]:
 
 
 def _numeric_leaves(node: object, acc: list[float]) -> None:
-    """Every number reachable in an artifact, including inside its strings.
+    """Every number in an artifact's summary, excluding its per-record rows.
 
-    Strings are read too because several receipts carry a formatted interval or a
-    sentence quoting its own numbers, and a claim that cites one of those is still
+    Strings are read because several receipts carry a formatted interval or a
+    sentence quoting their own numbers, and a claim citing one of those is still
     citing the artifact.
+
+    Per-record rows are read as well, and that is this check's weakness rather than an
+    oversight. PHYSICS_VALIDATION.json carries 200 per-observation records of four
+    numbers each, so almost any three-decimal value can be found somewhere in it: the
+    README quoted a median of 0.21 and a p99 of 0.61 against an artifact whose
+    distribution says 0.2249 and 0.5276, and both stale figures matched some row.
+    Excluding record arrays was tried and it produces false alarms instead, because
+    FUSION_RECEIPT.json keeps its per-split summaries in an array of objects too and
+    the selective-risk claim really does cite one point of a curve. So this stays the
+    broad net, and the exact checks are elsewhere:
+    sync_readme_results.py --check for the generated table, and
+    test_established_claims_are_derived_from_their_artifacts below for the
+    hand-written one.
     """
     if isinstance(node, bool):
         return
@@ -269,3 +282,137 @@ def test_the_comparison_catches_an_edited_number():
     # that also covers the hand-written table above the generated one.
     assert result["misses"], "an edited number was not caught at all"
     assert any("0.999" in m for m in result["misses"])  # type: ignore[union-attr]
+
+
+# ---------------------------------------------------------------------------
+# The exact check for the hand-written table: recompute, do not search.
+#
+# The number search above is a broad net over a large receipt, and the generated
+# table has sync_readme_results.py --check. The "Established, with receipts" table
+# had neither, and it drifted: commit 0f21ce7 measured a median of 0.2082 and a p99
+# of 0.6060, the README quoted 0.21 and 0.61, then commit 7fbb980 (the C7 geodetic
+# normal fix) regenerated the artifact to 0.2249 and 0.5276 and neither the README nor
+# the register moved. Both stale figures passed the search, because a 200-row receipt
+# contains almost any three-decimal number somewhere. These recompute the claim.
+# ---------------------------------------------------------------------------
+
+_A3_SUMMARY = REPO / "artifacts" / "a3_overlays" / "summary.json"
+_PHYSICS = REPO / "artifacts" / "PHYSICS_VALIDATION.json"
+
+
+def _established_row(metric: str) -> str:
+    readme = (REPO / "README.md").read_text(encoding="utf-8")
+    for name, value, _ in _rows(readme):
+        if name == metric:
+            return value
+    raise AssertionError(f"README has no row named {metric!r}")
+
+
+def test_established_claims_are_derived_from_their_artifacts():
+    """Recompute all six checkable established claims and compare to the README."""
+    a3 = json.loads(_A3_SUMMARY.read_text(encoding="utf-8"))
+    verdicts = [r["verdict"] for r in a3]
+    n_corrected = verdicts.count("CORRECTED")
+    n_uncorrected = verdicts.count("UNCORRECTED")
+    n_unresolved = verdicts.count("UNRESOLVED")
+
+    row = _established_row("Corrected and uncorrected captures both occur")
+    assert f"{n_corrected} corrected" in row
+    assert f"{n_uncorrected} uncorrected" in row
+    assert f"{n_unresolved} undecidable" in row
+    assert f"of {len(a3)} vetted" in row
+    assert n_corrected + n_uncorrected + n_unresolved == len(a3), (
+        "the three verdicts no longer partition the pool, so the row's arithmetic is "
+        "no longer the artifact's"
+    )
+
+    # Metadata cannot reveal correction status.
+    ports = {str(r.get("rigctl-port")) for r in a3}
+    dopplers = {r.get("doppler-correction-per-sec") for r in a3}
+    row = _established_row("Metadata cannot reveal correction status")
+    assert ports == {"4532"}, f"rigctl-port is no longer constant: {sorted(ports)}"
+    assert dopplers == {None}, "doppler-correction-per-sec is no longer always null"
+    assert "4532" in row and f"on {len(a3)} of {len(a3)}" in row
+
+    # The two strongest matches. The README cites the overlay PNG, and the numbers
+    # come from the summary beside it, which is what makes them checkable at all.
+    strongest_corrected = max(a3, key=lambda r: r["sigma_vertical"])
+    row = _established_row("Strongest corrected match")
+    assert f"{strongest_corrected['sigma_vertical']:.1f} sigma" in row
+    assert f"{strongest_corrected['sigma_curved']:.1f}" in row
+    assert strongest_corrected["verdict"] == "CORRECTED"
+
+    strongest_uncorrected = max(a3, key=lambda r: r["sigma_curved"])
+    row = _established_row("Strongest uncorrected match")
+    assert f"{strongest_uncorrected['sigma_curved']:.1f} sigma" in row
+    assert f"{strongest_uncorrected['sigma_vertical']:.1f}" in row
+    assert strongest_uncorrected["verdict"] == "UNCORRECTED"
+
+    # The unresolved pool and its score range. The range is over every score the 17
+    # observations produced, both orientations, which is the reading the row states:
+    # the best-per-observation range starts at 0.98 rather than 0.7.
+    unresolved = [r for r in a3 if r["verdict"] == "UNRESOLVED"]
+    scores = [v for r in unresolved for v in (r["sigma_vertical"], r["sigma_curved"])]
+    row = _established_row("Observations with no measurable narrowband trace")
+    assert f"{len(unresolved)} of {len(a3)}" in row
+    assert f"{min(scores):.1f} to {max(scores):.1f} sigma" in row, (
+        f"the row quotes a range the artifact no longer holds: measured "
+        f"{min(scores):.1f} to {max(scores):.1f}"
+    )
+
+    # The physics validation, which is the row that drifted.
+    dist = json.loads(_PHYSICS.read_text(encoding="utf-8"))["distribution"]
+    row = _established_row("Pass geometry against reported max_altitude")
+    assert f"median {dist['median_abs_error_deg']:.2f} deg" in row, (
+        f"README quotes a median the artifact does not: artifact says "
+        f"{dist['median_abs_error_deg']:.4f}"
+    )
+    assert f"p99 {dist['p99_abs_error_deg']:.2f} deg" in row, (
+        f"README quotes a p99 the artifact does not: artifact says "
+        f"{dist['p99_abs_error_deg']:.4f}"
+    )
+    assert f"{dist['pct_within_1deg']:.1f}% within 1 deg" in row
+    assert f"{dist['n_success']} of {dist['n_total']}" in row
+
+
+def test_the_elevation_reference_is_declared_as_quantised():
+    """The artifact must say what its reference can resolve.
+
+    Every max_altitude in the corpus is an integer, so a mean absolute error of 0.243
+    degrees is close to the 0.250 that pure rounding would produce on its own. Read as
+    agreement to a quarter of a degree it claims a resolution the reference does not
+    have, and it is the reason the elevation check could not see the geocentric
+    up-vector defect at all: 1.4 sigma in the mean and a variance ratio of 1.035.
+    """
+    dist = json.loads(_PHYSICS.read_text(encoding="utf-8"))["distribution"]
+    quant = dist.get("reference_quantisation")
+    assert quant, "PHYSICS_VALIDATION.json does not state its reference quantisation"
+    assert quant["n_reported"] > 0
+    assert quant["n_integer_valued"] == quant["n_reported"]
+    assert quant["all_integer"] is True
+    assert "cannot resolve anything finer" in quant["implication"]
+
+
+def test_the_azimuth_agreement_is_measured_and_scaled():
+    """The unrounded check the recon required, with the counterfactuals that scale it.
+
+    rise_azimuth and set_azimuth are present on every record and were never validated
+    against, although docs/SATNOGS_API_RECON.md required it. They are the only
+    independent check on the azimuth convention and the local East/North/Up basis.
+    """
+    az = json.loads(_PHYSICS.read_text(encoding="utf-8"))["azimuth_agreement"]
+    for key in ("rise", "set"):
+        d = az[key]
+        assert d["n"] >= 200, f"{key}: only {d['n']} records compared"
+        assert d["median_abs_deg"] < 0.5, f"{key}: median {d['median_abs_deg']}"
+        assert d["pct_within_3deg"] == 100.0, (
+            f"{key}: {d['pct_within_3deg']}% within 3 deg"
+        )
+
+    # Without these the agreement has no scale. Both are convention errors a reader
+    # might suspect, and both are two orders of magnitude worse than the shipped one.
+    swapped = az["counterfactuals"]["atan2_arguments_swapped"]
+    mirrored = az["counterfactuals"]["azimuth_mirrored_about_north"]
+    assert swapped["median_abs_deg"] > 50.0, swapped["median_abs_deg"]
+    assert mirrored["median_abs_deg"] > 10.0, mirrored["median_abs_deg"]
+    assert swapped["median_abs_deg"] > 100 * az["rise"]["median_abs_deg"]

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T07:31:48.830489+00:00",
+  "generated_at": "2026-08-18T21:42:04.379032+00:00",
   "end_date_filter": "2026-08-10T00:00:00Z",
   "n_observations_fetched": 200,
   "distribution": {
@@ -17,7 +17,67 @@
     "max_abs_error_deg": 3.440796173445662,
     "pct_within_1deg": 99.49748743718592,
     "pct_within_2deg": 99.49748743718592,
-    "pct_within_5deg": 100.0
+    "pct_within_5deg": 100.0,
+    "reference_quantisation": {
+      "field": "max_altitude",
+      "n_reported": 200,
+      "n_integer_valued": 200,
+      "all_integer": true,
+      "uniform_rounding_mean_abs_deg": 0.25,
+      "uniform_rounding_sd_deg": 0.2887,
+      "implication": "The reference is quantised to one degree, so this comparison bounds the elevation error at roughly half a degree and cannot resolve anything finer. The measured mean absolute error is close to the 0.250 a pure rounding error would give on its own, so agreement here is evidence against a gross error and not evidence of tenth-of-a-degree accuracy. The azimuth comparison beside it is the unrounded one."
+    }
+  },
+  "azimuth_agreement": {
+    "reference": "SatNOGS rise_azimuth and set_azimuth, which are unrounded, unlike max_altitude. This is the only independent check on the azimuth convention and the local East/North/Up basis, and it is the check that could have caught the geocentric up-vector defect the elevation comparison could not resolve.",
+    "n_missing_field_or_geometry": 0,
+    "rise": {
+      "comparison": "pass_geometry azimuth[0] vs rise_azimuth",
+      "n": 200,
+      "mean_signed_deg": -0.007384422073605492,
+      "sd_signed_deg": 0.32067548890324404,
+      "median_abs_deg": 0.2676868140726043,
+      "p95_abs_deg": 0.47931047377146996,
+      "max_abs_deg": 1.9615559677646388,
+      "pct_within_1deg": 99.5,
+      "pct_within_3deg": 100.0
+    },
+    "set": {
+      "comparison": "pass_geometry azimuth[-1] vs set_azimuth",
+      "n": 200,
+      "mean_signed_deg": -0.0301967950220228,
+      "sd_signed_deg": 0.3058237412502266,
+      "median_abs_deg": 0.2653081597854907,
+      "p95_abs_deg": 0.48671684990721215,
+      "max_abs_deg": 1.1417508602771704,
+      "pct_within_1deg": 99.5,
+      "pct_within_3deg": 100.0
+    },
+    "counterfactuals": {
+      "why": "An agreement reported without the size of a wrong answer has no scale. Both of these are convention errors a reader might suspect, measured on the same records.",
+      "atan2_arguments_swapped": {
+        "comparison": "90 - azimuth[0] vs rise_azimuth",
+        "n": 200,
+        "mean_signed_deg": 64.17738442207362,
+        "sd_signed_deg": 78.49648074607845,
+        "median_abs_deg": 93.90744822401939,
+        "p95_abs_deg": 160.33739680869186,
+        "max_abs_deg": 175.9305535457006,
+        "pct_within_1deg": 0.0,
+        "pct_within_3deg": 0.0
+      },
+      "azimuth_mirrored_about_north": {
+        "comparison": "-azimuth[0] vs rise_azimuth",
+        "n": 200,
+        "mean_signed_deg": 4.777384422073604,
+        "sd_signed_deg": 53.904780851462675,
+        "median_abs_deg": 26.977644770097584,
+        "p95_abs_deg": 119.86540391178676,
+        "max_abs_deg": 167.60773499690185,
+        "pct_within_1deg": 1.5,
+        "pct_within_3deg": 5.0
+      }
+    }
   },
   "observations": [
     {

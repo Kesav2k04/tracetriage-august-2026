@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -293,6 +294,39 @@ def main(argv: list[str] | None = None) -> int:
                 )
 
         if args.deep:
+            # PHYSICS_VALIDATION.json is here rather than in the default set because
+            # rebuilding it propagates 200 passes three times over (the corridor, the
+            # azimuth check and its two counterfactuals) and takes minutes, and because
+            # it reads the A4 page cache rather than the snapshot. It is still a
+            # generated artifact and it did drift once: the README quoted a median from
+            # the run before the geodetic-normal fix for two waves.
+            physics_path = ARTIFACTS / "PHYSICS_VALIDATION.json"
+            if physics_path.exists():
+                rebuilt_physics = pathlib.Path(tmp) / "PHYSICS_VALIDATION.json"
+                proc = subprocess.run(
+                    [str(PY), str(REPO / "scripts" / "validate_physics.py")],
+                    cwd=REPO, capture_output=True, text=True,
+                    encoding="utf-8", errors="replace",
+                    env={**os.environ, "A4_OUT_PATH": str(rebuilt_physics)},
+                )
+                if proc.returncode != 0:
+                    print("[FAIL] the physics validation does not run")
+                    return 1
+                if rebuilt_physics.exists():
+                    diff = _first_difference(
+                        _strip(_load(physics_path)), _strip(_load(rebuilt_physics))
+                    )
+                    if diff:
+                        print("[FAIL] PHYSICS_VALIDATION.json is stale. First difference:")
+                        print(f"        {diff}")
+                        return 1
+                    print("[PASS] PHYSICS_VALIDATION.json matches what the validator produces")
+                else:
+                    print(
+                        "[NOTE] the validator ignored A4_OUT_PATH, so this comparison "
+                        "was skipped rather than run against the committed file"
+                    )
+
             rebuilt_g3 = pathlib.Path(tmp) / "GATE3_RECEIPT.json"
             proc = subprocess.run(
                 [

@@ -29,7 +29,10 @@ receipt now fails in three places.
 | Strongest uncorrected match | 25.1 sigma curved against 2.8 sigma vertical, obs 14740031 | A3 finding | `artifacts/a3_overlays/summary.json` | `c7ca696` | 2026-08-16 |
 | Strongest corrected match | 54.2 sigma vertical against 7.3 sigma curved, obs 14746118 | A3 finding | `artifacts/a3_overlays/summary.json` | `c7ca696` | 2026-08-16 |
 | Observations with no measurable narrowband trace | 17 of 24 vetted with-signal | A3 finding | `artifacts/a3_overlays/summary.json` | `c7ca696` | 2026-08-16 |
-| Pass geometry against reported max_altitude | median 0.21 deg, p99 0.61 deg, 99.5% within 1 deg, 199 of 200 | A4 finding, README, video | `artifacts/PHYSICS_VALIDATION.json` | `0f21ce7` | 2026-08-17 |
+| Pass geometry against reported max_altitude | median 0.22 deg, p99 0.53 deg, 99.5% within 1 deg, 199 of 200 | A4 finding, README, video | `artifacts/PHYSICS_VALIDATION.json` | `7fbb980` | 2026-08-19 |
+| Reference quantisation on max_altitude | integer-valued on 200 of 200 records, so the comparison bounds the error near half a degree and cannot resolve anything finer | README, D5 build log | `artifacts/PHYSICS_VALIDATION.json` distribution.reference_quantisation | D5 | 2026-08-19 |
+| Pass azimuth against reported rise and set azimuth | median absolute 0.268 deg at rise and 0.265 deg at set, max 1.962 deg, 100% within 3 deg, n=200 | README, D5 build log | `artifacts/PHYSICS_VALIDATION.json` azimuth_agreement | D5 | 2026-08-19 |
+| Azimuth convention counterfactuals | swapped atan2 arguments 93.9 deg median absolute, mirrored azimuth 27.0 deg, against 0.268 for the shipped convention | README, D5 build log | `artifacts/PHYSICS_VALIDATION.json` azimuth_agreement.counterfactuals | D5 | 2026-08-19 |
 | Gate 6 point lift (chronological, shipped capped queue) | 1.582x over random at budget 50 | KILL_GATE.md, gate 6 section | `artifacts/QUEUE_RECEIPT.json` | C2 | 2026-08-18 |
 | Gate 6 governing 95% CI (chronological) | [1.353, 1.755], union of episode and station, contains 1.5 | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C2 | 2026-08-18 |
 | Gate 6 bootstrap median (chronological) | 1.589 over 4000 of 4000 surviving resamples | KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` | C2 | 2026-08-18 |

@@ -3235,3 +3235,127 @@ cd apps\web && npm run build
 an `.eslintrc` file and exits telling you to migrate to the flat config. It is not one
 of the standing gates, so nothing depended on it, and the migration is a config change
 with its own review rather than a line in this unit.
+
+---
+
+## 2026-08-19 IST | Wave D | D5: the elevation reference was rounding, the unrounded one was never used, and a published median was two waves stale
+
+SPACE-S1 and SPACE-S2, plus a live claim-drift defect the work surfaced.
+
+**SPACE-S1. The physics validation's reference is quantised to one degree.** All 200
+`max_altitude` values in the corpus are integers. A uniform rounding error on
+[-0.5, 0.5] has mean absolute value 0.250 and standard deviation 0.289; the artifact
+reports mean absolute 0.243 and a signed standard deviation of 0.363. So the published
+0.243 degrees is mostly the API's rounding, and reading it as agreement to a quarter of
+a degree claims a resolution the reference does not have. The artifact now carries
+`distribution.reference_quantisation`, which counts the integer-valued records and says
+in words that the comparison bounds the error near half a degree and resolves nothing
+finer.
+
+**And the docstring claim was half wrong, which matters more.** `geodetic_normal` said
+the geocentric-reference defect was "invisible in the mean error against the reported
+elevation and visible in the variance". I re-ran the whole A4 validation with the
+station position vector substituted for the geodetic normal, over the same 200 records:
+
+| up reference | mean signed | sd | mean abs | median abs | p95 abs | within 1 deg |
+| --- | --- | --- | --- | --- | --- | --- |
+| geodetic normal (shipped) | +0.0035 | 0.3632 | 0.2437 | 0.2258 | 0.4685 | 99.50% |
+| position vector (the defect) | -0.0329 | 0.3696 | 0.2495 | 0.2100 | 0.5220 | 99.50% |
+
+The mean moves 0.0364 degrees against a standard error of 0.0257, which is 1.4 sigma.
+The variance ratio is 1.036 against an F critical value near 1.28 at 199 and 199 degrees
+of freedom. So it is invisible in the variance as well, and the docstring now says that:
+this check could not have found the defect either way, because one degree of reference
+rounding is larger than the whole effect. The per-observation difference is signed from
+-0.1915 to +0.1691 degrees, which is the cancellation mechanism and is correct. Every
+number here reproduces the reviewer's independently.
+
+**SPACE-S2. The unrounded fields were never used.** `docs/SATNOGS_API_RECON.md:272` and
+the task prompt both required validating against `max_altitude`, `rise_azimuth` and
+`set_azimuth`. Only `max_altitude` was validated, and it is the one of the three that
+rounding destroys. `rise_azimuth` and `set_azimuth` are present on 200 of 200 records
+and are the only independent check on the azimuth convention and the local
+East/North/Up basis, which the project asserted without evidence until now.
+
+`scripts/validate_physics.py` runs it, and it passes:
+
+| | n | mean signed | sd | median abs | p95 abs | max abs | within 1 deg | within 3 deg |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| rise azimuth | 200 | -0.007 | 0.321 | 0.268 | 0.479 | 1.962 | 99.5% | 100% |
+| set azimuth | 200 | -0.030 | 0.306 | 0.265 | 0.487 | 1.142 | 99.5% | 100% |
+
+**With the counterfactuals in the artifact rather than in a sentence**, because an
+agreement reported without the size of a wrong answer has no scale: swapping the `atan2`
+arguments gives a median absolute error of 93.9 degrees, and mirroring the azimuth about
+north gives 27.0 degrees, against 0.268 for the shipped convention. Both are computed on
+the same records by the same code, so they cannot drift away from the number they exist
+to scale.
+
+This is also the check that could have caught the up-vector defect, which is why it sits
+beside the elevation comparison in the same artifact and the same run.
+
+**The drift the work exposed.** The README and the claim register both said "median 0.21
+deg, p99 0.61 deg" for the elevation comparison. The artifact they cite says 0.2249 and
+0.5276. Git shows exactly what happened:
+
+| commit | artifact median | artifact p99 |
+| --- | --- | --- |
+| `0f21ce7` (the commit the register pins) | 0.2082 | 0.6060 |
+| `7fbb980` (the C7 geodetic normal fix) | 0.2249 | 0.5276 |
+
+The artifact was regenerated and the prose was not, for two waves. Corrected to 0.22 and
+0.53, with the register's commit and verification date updated, and three new register
+rows for the quantisation statement, the azimuth agreement and its counterfactuals.
+
+**Why the new drift test did not catch it, and what does now.** The number search added
+in D3 looks for each quoted value anywhere in the cited artifact, and
+`PHYSICS_VALIDATION.json` carries 200 per-observation records of four numbers each, so
+both stale figures matched some row by coincidence. Excluding record arrays was tried and
+produces false alarms instead, because `FUSION_RECEIPT.json` keeps its per-split
+summaries in an array of objects and the selective-risk claim genuinely cites one point
+of a curve. So the broad net stays as the broad net, and the hand-written table gets an
+exact check of its own: `test_established_claims_are_derived_from_their_artifacts`
+recomputes all six checkable established claims from their artifacts rather than
+searching for them. Recomputing means counting the verdicts (4 corrected, 3 uncorrected,
+17 undecidable, 24 total), checking that the three partition the pool, confirming
+`rigctl-port` is 4532 on all 24 and `doppler-correction-per-sec` null on all 24, finding
+the strongest corrected and uncorrected matches by argmax rather than by memory, and
+reading the median and p99 out of the distribution block.
+
+One reading was ambiguous and is now pinned. "17 of 24, scoring 0.7 to 3.5 sigma" is the
+range over every score the 17 unresolved observations produced in both orientations
+(0.727 to 3.536). The best-score-per-observation range starts at 0.983, so the row is
+correct under the reading it states and would be wrong under the other one. The test
+states which.
+
+**What changed:**
+- `scripts/validate_physics.py`: the azimuth comparison with both counterfactuals, the
+  reference-quantisation block, an `A4_OUT_PATH` override so the freshness check can
+  rebuild into a scratch directory, and a corrected module docstring.
+- `pipeline/tracetriage/physics.py`: the `geodetic_normal` docstring, with the A/B table.
+- `artifacts/PHYSICS_VALIDATION.json`: regenerated. The elevation distribution is
+  unchanged to every published digit; the file gains the two new blocks.
+- `README.md`: the corrected median and p99, the quantisation caveat, and a new row for
+  the azimuth agreement.
+- `docs/CLAIM_REGISTER.md`: the corrected row with its real commit, and three new rows.
+- `scripts/check_artifact_freshness.py`: `PHYSICS_VALIDATION.json` under `--deep`,
+  because a rebuild propagates 200 passes several times over and takes minutes.
+- `tests/test_claim_drift.py`: the derivation test, the quantisation test and the
+  azimuth test, and the search's own limit written into its docstring.
+
+**Tests added: 3.** All six established claims recomputed, the quantisation declared, and
+the azimuth agreement measured against its counterfactuals.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\validate_physics.py
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+.venv\Scripts\python.exe scripts\sync_readme_results.py --check
+.venv\Scripts\python.exe scripts\check_artifact_freshness.py --deep
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+854 passed, ruff clean, and the deep freshness check confirms all six artifacts match
+their builders, including the regenerated physics validation and an unchanged gate 3.
