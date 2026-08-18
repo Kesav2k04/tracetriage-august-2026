@@ -538,7 +538,28 @@ export default function EvaluationPage() {
         </Note>
       </Section>
 
-      {chrono.selective?.curve && (
+      {/*
+        A missing curve used to remove this whole section: no heading, no note, no
+        warning tone, nothing in the DOM. A reader could not tell "the model was never
+        allowed to refuse" from "we did not measure it", and the export published null
+        here for a block that was renamed rather than absent. The section now states
+        the absence and names what it depends on.
+      */}
+      {!chrono.selective?.curve ? (
+        <Section
+          title="What it looks like when the model is allowed to refuse"
+          description="Not published for this split."
+        >
+          <Note tone="limit">
+            No selective-rejection curve was published for the{" "}
+            {SPLIT_LABELS[chrono.split]} split, so there is no risk against coverage
+            panel here.{" "}
+            {chrono.degraded
+              ? `The split itself is degraded: ${chrono.degraded}`
+              : "The split ran, which means the curve is missing from the receipt rather than impossible to compute, and that is a build problem rather than a result."}
+          </Note>
+        </Section>
+      ) : (
         <Section
           title="What it looks like when the model is allowed to refuse"
           description="A triage model that answers on everything is not the only option. This is what the error rate does as it is allowed to abstain."

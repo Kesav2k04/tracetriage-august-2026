@@ -88,6 +88,21 @@ def _load(name: str) -> dict[str, Any]:
     return json.loads((_ARTIFACTS / name).read_text(encoding="utf-8"))
 
 
+def _require_present(doc: dict[str, Any], key: str) -> Any:
+    """Fetch a field that must exist but whose measured value may be null.
+
+    ``degraded`` is the case this exists for: null means the split ran, and a string
+    names why it did not. Both are measurements, so ``_require`` would reject the good
+    one, and ``.get()`` cannot tell "ran cleanly" from "the key was renamed".
+    """
+    if key not in doc:
+        raise KeyError(
+            f"receipt has no {key!r}; present keys are {sorted(doc)}. "
+            "The export must not read an absent field as a null measurement."
+        )
+    return doc[key]
+
+
 def _digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -541,15 +556,81 @@ def trim_queue_entry(entry: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _split_for_console(split: dict[str, Any]) -> dict[str, Any]:
+    """Project one fusion split for the console, mirroring the contract's conditional.
+
+    ``contracts/fusion_receipt.schema.json`` requires ``split``, ``degraded`` and
+    ``counts`` outright, and adds ``arms`` and ``comparisons`` when ``degraded`` is
+    null. The four remaining measured blocks are optional in the contract because a
+    degraded split cannot have them, not because a clean split may drop them: all
+    five shipped splits carry every one. So a clean split is required to carry them
+    here, and a rename in the receipt becomes a failed build rather than a page
+    section that quietly disappears.
+    """
+    degraded = _require_present(split, "degraded")
+    clean = degraded is None
+
+    def strict(key: str) -> Any:
+        """Present and non-empty on a clean split."""
+        return _require(split, key) if clean else split.get(key)
+
+    def present(key: str) -> Any:
+        """Present on a clean split, where empty is itself the measurement.
+
+        multiplicity_adjusted is measured-and-empty in two of the five splits, and
+        the empty map is the result: run_fusion.py adds an entry only for a
+        comparison whose nominal interval cleared zero in either direction, so {}
+        means no comparison in that split needed correcting. _require would read
+        that as an absence and fail the build over a real measurement, which is the
+        same error pointing the other way.
+        """
+        return _require_present(split, key) if clean else split.get(key)
+
+    # Key order matches what this export has always written, so the diff on
+    # evaluation.json shows the change in policy and not a reshuffle.
+    return {
+        "split": _require(split, "split"),
+        "degraded": degraded,
+        "counts": _require(split, "counts"),
+        "test_positive_rate": strict("test_positive_rate"),
+        "arms": strict("arms"),
+        "comparisons": strict("comparisons"),
+        "multiplicity_adjusted": present("multiplicity_adjusted"),
+        # Optional in the contract and present in every split we ship. Read with
+        # .get() because a future arm could legitimately have no ensemble to report,
+        # and because neither is load-bearing for a section of the page.
+        "ensemble": split.get("ensemble"),
+        "selective": strict("selective"),
+        "ood": split.get("ood"),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--showcase", type=int, default=DEFAULT_SHOWCASE)
     parser.add_argument(
         "--skip-images",
         action="store_true",
-        help="rebuild the JSON only, leaving existing imagery in place",
+        help=(
+            "rebuild every JSON except cards.json, leaving existing imagery in "
+            "place. cards.json is not JSON-only: export_observation parses each "
+            "waterfall PNG for its geometry, so it needs the snapshot images."
+        ),
+    )
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=None,
+        help="write the JSON somewhere other than apps/web/public/data",
     )
     args = parser.parse_args(argv)
+
+    # Where the JSON lands. It is an argument so the freshness check can rebuild the
+    # published data into a scratch directory and diff it, which is how a stale
+    # published copy is caught: apps/web/public/data/hero_nulls.json stayed three
+    # times too heavy for a commit after artifacts/HERO_NULLS.json was corrected,
+    # because nothing compared the copy against its source.
+    data_dir = args.data_dir or _DATA_DIR
 
     queue = _load("QUEUE_RECEIPT.json")
     fusion = _load("FUSION_RECEIPT.json")
@@ -557,11 +638,11 @@ def main(argv: list[str] | None = None) -> int:
     corridor = _load("corridor_features.json")
     corridor_by_obs = {r["obs_id"]: r for r in corridor["rows"]}
 
-    _DATA_DIR.mkdir(parents=True, exist_ok=True)
+    data_dir.mkdir(parents=True, exist_ok=True)
 
     # ---- queue -----------------------------------------------------------
     entries = [trim_queue_entry(e) for e in queue["queue"]]
-    (_DATA_DIR / "queue.json").write_text(
+    (data_dir / "queue.json").write_text(
         json.dumps(
             {
                 "generated_at": queue["generated_at"],
@@ -579,7 +660,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     # ---- evaluation ------------------------------------------------------
-    (_DATA_DIR / "evaluation.json").write_text(
+    (data_dir / "evaluation.json").write_text(
         json.dumps(
             {
                 "gate6": queue["gate6"],
@@ -589,21 +670,16 @@ def main(argv: list[str] | None = None) -> int:
                 "size_matched_control": _require(fusion, "size_matched_control"),
                 # Per-split arm metrics, comparisons and the selective-rejection
                 # curve all live inside the split records rather than at the root.
-                "fusion_splits": [
-                    {
-                        "split": s["split"],
-                        "degraded": s.get("degraded"),
-                        "counts": s.get("counts"),
-                        "test_positive_rate": s.get("test_positive_rate"),
-                        "arms": s.get("arms"),
-                        "comparisons": s.get("comparisons"),
-                        "multiplicity_adjusted": s.get("multiplicity_adjusted"),
-                        "ensemble": s.get("ensemble"),
-                        "selective": s.get("selective"),
-                        "ood": s.get("ood"),
-                    }
-                    for s in _require(fusion, "splits")
-                ],
+                # Every field here was read with .get(), so the contract's own
+                # conditional was not mirrored: five measured blocks could be
+                # renamed in the receipt, validate, and be published as null. The
+                # page then differed by field. A missing selective curve removed
+                # the whole risk and coverage section with no note and no warning
+                # tone, while a missing arms block threw during the export, which
+                # is at least loud. The rule below is the contract's rule: a split
+                # that is not degraded must carry its results, and only ensemble
+                # and ood are genuinely optional.
+                "fusion_splits": [_split_for_console(s) for s in _require(fusion, "splits")],
                 "receipt_sha256": {
                     "queue": _digest(_ARTIFACTS / "QUEUE_RECEIPT.json"),
                     "fusion": _digest(_ARTIFACTS / "FUSION_RECEIPT.json"),
@@ -635,7 +711,7 @@ def main(argv: list[str] | None = None) -> int:
             )
 
     receipts = sorted(p for p in _ARTIFACTS.glob("*.json"))
-    (_DATA_DIR / "provenance.json").write_text(
+    (data_dir / "provenance.json").write_text(
         json.dumps(
             {
                 "snapshot_id": queue["snapshot_id"],
@@ -673,7 +749,7 @@ def main(argv: list[str] | None = None) -> int:
     for name in ("KILL_GATE.md", "CLAIM_REGISTER.md", "C2_PREREGISTRATION.md"):
         source = _REPO / "docs" / name
         if source.exists():
-            shutil.copyfile(source, _DATA_DIR / name)
+            shutil.copyfile(source, data_dir / name)
 
     # ---- the opening frame's null corridors -------------------------------
     # Copied rather than recomputed. scripts/export_hero_nulls.py re-runs gate 3's
@@ -688,11 +764,11 @@ def main(argv: list[str] | None = None) -> int:
             f"frame draws measured null corridors and there is no fallback that "
             f"would still be a measurement."
         )
-    shutil.copyfile(hero_nulls, _DATA_DIR / "hero_nulls.json")
+    shutil.copyfile(hero_nulls, data_dir / "hero_nulls.json")
 
     # ---- observation cards ----------------------------------------------
     if args.skip_images:
-        print("skipping imagery, JSON only")
+        print("skipping imagery and cards.json (it needs the waterfall PNGs)")
         return 0
 
     raw = _load_raw_pages(_PAGES_DIR)
@@ -719,7 +795,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  [{index}/{len(wanted)}] {obs_id}: {state}")
 
     built = [c for c in cards if not c.get("degraded")]
-    (_DATA_DIR / "cards.json").write_text(
+    (data_dir / "cards.json").write_text(
         json.dumps(
             {
                 "n_requested": len(wanted),
@@ -747,7 +823,7 @@ def main(argv: list[str] | None = None) -> int:
     total_kb = sum(c.get("bytes", 0) for c in built) // 1024
     print(f"\n{len(built)} cards built, {len(cards) - len(built)} degraded")
     print(f"imagery total {total_kb} KB")
-    print(f"data written to {_DATA_DIR}")
+    print(f"data written to {data_dir}")
     return 0
 
 

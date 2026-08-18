@@ -320,3 +320,123 @@ def test_export_observation_returns_named_absence_for_obs_outside_decisive_pool(
     # corridor with fitted_offset_hz=0.0. We cannot run the old code here, but we
     # can assert the positive property that the fixed code satisfies.
     assert result.get("corridor_note") != "", "corridor_note must not be empty"
+
+
+# ---------------------------------------------------------------------------
+# ENG-S6: assert on the exported artifact, not on the guard
+#
+# _require had five tests, all correct, all against the helper with a present value,
+# a missing key, a null, three empty containers and a legitimate zero. None of them
+# touched export_observation, build_pass_geometry, build_gate_summary,
+# trim_queue_entry or the fusion split projection, which is where the same defect
+# class lived, so two live instances of it passed the suite. These assert on the
+# published files a judge opens.
+# ---------------------------------------------------------------------------
+
+_DATA = _REPO / "apps" / "web" / "public" / "data"
+
+
+def _published(name: str) -> dict:
+    return json.loads((_DATA / name).read_text(encoding="utf-8"))
+
+
+def test_no_published_card_carries_a_corridor_without_a_fit() -> None:
+    """The blocking defect, asserted on the artifact rather than on the helper.
+
+    A corridor block whose fitted offset is absent used to be published as 0.0 Hz,
+    which reads as a measured perfect match. Either the block is there with a
+    number, or it is absent with a note saying why.
+    """
+    cards = _published("cards.json")["cards"]
+    assert cards, "cards.json publishes no cards, so this test proves nothing"
+    for card in cards:
+        if card.get("degraded"):
+            continue
+        corridor = card.get("corridor")
+        if corridor is None:
+            assert card.get("corridor_note"), (
+                f"obs {card['obs_id']}: no corridor and no note saying why"
+            )
+            continue
+        assert corridor.get("fitted_offset_hz") is not None, (
+            f"obs {card['obs_id']}: a corridor block with no fitted offset. This is "
+            "the shape that published a zero as a measurement."
+        )
+
+
+def test_every_clean_fusion_split_publishes_every_measured_block() -> None:
+    """The second live instance: five blocks that could be renamed and published null.
+
+    A split that is not degraded ran, so its results exist. Any null here means the
+    export read a field it could not find, which is what removed the risk and
+    coverage section from the page with no note.
+    """
+    splits = _published("evaluation.json")["fusion_splits"]
+    assert splits, "evaluation.json publishes no splits"
+    clean = [s for s in splits if s.get("degraded") is None]
+    assert clean, "no clean split in evaluation.json, so this test proves nothing"
+    for split in clean:
+        for key in ("counts", "arms", "comparisons", "selective", "test_positive_rate"):
+            assert split.get(key) is not None, (
+                f"{split['split']}: {key} is null on a split that is not degraded"
+            )
+        assert split["counts"], f"{split['split']}: counts is present but empty"
+        assert split["arms"], f"{split['split']}: arms is present but empty"
+        # multiplicity_adjusted is deliberately allowed to be empty: run_fusion.py
+        # records an entry only for a comparison whose nominal interval cleared zero,
+        # so {} means nothing needed correcting. It must still be present.
+        assert "multiplicity_adjusted" in split, (
+            f"{split['split']}: multiplicity_adjusted is missing entirely, which is "
+            "different from measured and empty"
+        )
+
+
+def test_a_renamed_split_block_fails_the_export() -> None:
+    """The mutation the reviewer ran, as a test.
+
+    Renaming ``selective`` in the receipt validated against the contract and
+    published null. It now raises during the export, before anything is written.
+    """
+    mod = _load_export_module()
+    receipt = json.loads(
+        (_REPO / "artifacts" / "FUSION_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    clean = next(s for s in receipt["splits"] if s.get("degraded") is None)
+
+    assert mod._split_for_console(clean)["selective"] is not None
+
+    for key in ("counts", "arms", "comparisons", "selective", "test_positive_rate"):
+        mutated = dict(clean)
+        mutated[f"{key}_X"] = mutated.pop(key)
+        with pytest.raises(KeyError):
+            mod._split_for_console(mutated)
+
+
+def test_a_degraded_split_is_allowed_to_have_no_results() -> None:
+    """The other side of the contract's conditional.
+
+    A degraded split has a stated reason and no results. Requiring results there
+    would fail the build over a correctly reported failure.
+    """
+    mod = _load_export_module()
+    degraded = {
+        "split": "cold_combined",
+        "degraded": "fewer than the 200-row training floor",
+        "counts": {"train": 12, "calibration": 4, "test": 4},
+    }
+    out = mod._split_for_console(degraded)
+    assert out["degraded"].startswith("fewer than")
+    assert out["arms"] is None
+    assert out["selective"] is None
+
+
+def test_a_split_missing_degraded_entirely_is_a_failure() -> None:
+    """Absence of the flag is not the same as a null flag.
+
+    ``degraded: null`` means the split ran. A missing ``degraded`` key means the
+    export cannot tell, and reading it as null would publish a degraded split as a
+    clean one with every result null.
+    """
+    mod = _load_export_module()
+    with pytest.raises(KeyError):
+        mod._split_for_console({"split": "chronological", "counts": {"train": 1}})

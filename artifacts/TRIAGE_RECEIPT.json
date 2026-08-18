@@ -1,9 +1,10 @@
 {
+  "schema_version": "0.3.0",
   "observation_id": 14740031,
   "snapshot_id": "snap-20260817-stage1",
   "model_checksum": "e669ebca7ddaefd6461100d62b0a697dc4bb0ca5712abba4fc8f314a07681995",
   "model_checksum_source": "artifacts/hoglr_model.pkl",
-  "generated_at": "2026-08-17T12:58:59.680027+00:00",
+  "generated_at": "2026-08-18T20:46:33.028084+00:00",
   "evidence": {
     "artifact_usable": true,
     "physics_available": true,
@@ -47,6 +48,13 @@
           "4x": 0.3063157681414943
         },
         "beats_scaled_swing": true,
+        "offset_at_bound": false,
+        "corridor_span_hz": 17289.651679120747,
+        "null_sigma_sd": 0.007697156768326338,
+        "margin_in_null_sd": 188.7829248319374,
+        "reversed_sigma": 0.5848309150237391,
+        "beats_reversed": true,
+        "odd_symmetry_residual_frac": 0.001107471044099025,
         "discriminates": true
       },
       "corridor_span_hz": 17289.651679120747

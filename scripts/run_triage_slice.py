@@ -551,6 +551,10 @@ def main(argv: list[str] | None = None) -> int:
         model_checksum_source = "MODEL_ARTIFACT_MISSING"
 
     receipt: dict[str, Any] = {
+        # Pinned to the contract this writer was built against. The contract requires
+        # it as of 0.3.0, so a receipt from an older writer no longer validates and
+        # cannot be read as current.
+        "schema_version":   "0.3.0",
         "observation_id":   obs_id,
         "snapshot_id":      manifest.get("snapshot_id", "snap-stage1"),
         "model_checksum":   model_checksum,
@@ -582,16 +586,23 @@ def main(argv: list[str] | None = None) -> int:
         receipt["abstention_reason"] = abstention_reason
 
     # ── 12. Validate against schema ───────────────────────────────────────────
-    schema_path = Path("contracts/triage_receipt.schema.json")
-    if schema_path.exists():
-        try:
-            import jsonschema  # noqa: PLC0415
-            schema = json.loads(schema_path.read_bytes())
-            jsonschema.validate(receipt, schema)
-            logger.info("Receipt validates against triage_receipt.schema.json ✓")
-        except Exception as exc:
-            logger.error("Schema validation failed: %s", exc)
-            return 1
+    # Anchored to the repository rather than the working directory. It was relative,
+    # so running this from anywhere else made schema_path.exists() false and skipped
+    # validation without saying so: the same shape as the hardcoded audit path in
+    # ENG-B3, where a missing input read as a pass. A missing contract is now a
+    # failure, because a receipt nothing validated is not a validated receipt.
+    schema_path = _REPO_ROOT / "contracts" / "triage_receipt.schema.json"
+    if not schema_path.exists():
+        logger.error("Contract missing: %s", schema_path)
+        return 1
+    try:
+        import jsonschema  # noqa: PLC0415
+        schema = json.loads(schema_path.read_bytes())
+        jsonschema.validate(receipt, schema)
+        logger.info("Receipt validates against triage_receipt.schema.json ✓")
+    except Exception as exc:
+        logger.error("Schema validation failed: %s", exc)
+        return 1
 
     # ── 13. Write ─────────────────────────────────────────────────────────────
     args.out.parent.mkdir(parents=True, exist_ok=True)

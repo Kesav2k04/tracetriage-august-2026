@@ -109,6 +109,20 @@ def main() -> int:
             )
         )
 
+    # The README results table is generated from the receipts by
+    # scripts/sync_readme_results.py, and until D3 that script was referenced by
+    # nothing: not here, not in CI, not by a test. The table stayed correct only while
+    # someone remembered to run it, and the drift test beside it compared metric names
+    # rather than values, so an edited number passed the whole suite.
+    rc, out = run([str(PY), str(REPO / "scripts" / "sync_readme_results.py"), "--check"])
+    results.append(
+        check(
+            "README results match the receipts",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
     # Artifact freshness. Every other check here can pass while a committed artifact
     # disagrees with the code that produced it, which is exactly what happened in D0:
     # LEAKAGE_AUDIT.json kept a PASS the builder could no longer emit, and a test was

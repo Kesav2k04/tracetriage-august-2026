@@ -12,7 +12,7 @@
 | **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h) |
 | **Current wave** | Wave C, closed |
 | **Next unit** | **D0: act on the two expert reviews**, per `docs/WAVE_D_PROMPT.md` |
-| **Open failures** | none in the suite. 779 offline tests collected, 778 pass, 1 declared expected failure that D2 implements. Lint clean. `scripts/gate.py` green on all standing gates. |
+| **Open failures** | none in the suite. 818 offline tests collected, 817 pass, 1 declared expected failure. Lint clean. 53 console tests pass under vitest. `scripts/gate.py` green on every standing gate. |
 | **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 OPEN. |
 | **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |

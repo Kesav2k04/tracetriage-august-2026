@@ -107,8 +107,8 @@
   },
   {
    "name": "HERO_NULLS.json",
-   "sha256": "34372a975482b1958cd8707b810be019574362137985c6aae0b51e10b8300280",
-   "bytes": 109916
+   "sha256": "66657305d0bc3960d1173eb4bcebdc092bc9b9592aff8b57704e63ce3fee06f1",
+   "bytes": 26692
   },
   {
    "name": "LEAKAGE_AUDIT.json",
@@ -127,13 +127,13 @@
   },
   {
    "name": "SPLIT_MANIFEST.json",
-   "sha256": "2ba59e0ebd89ed3f737b19187a05a6cfd7baf147d137d390175cc41e87442255",
-   "bytes": 234941
+   "sha256": "bdb159ca13ece61c923992976589fade050976e69e2b1a0564acb334b4574808",
+   "bytes": 234971
   },
   {
    "name": "TRIAGE_RECEIPT.json",
-   "sha256": "ed791cb103a8cf5a496e4e175ec9851c9c8a66497e590a60d0559213035dd375",
-   "bytes": 2612
+   "sha256": "31efe21c8958aee6d98c70ff456e0031facca1c57fc2a5db31f419a4f995ee99",
+   "bytes": 2964
   }
  ],
  "contracts": [
@@ -141,19 +141,19 @@
    "name": "annotation_record.schema.json",
    "version": "0.1.0",
    "status": "ratified",
-   "sha256": "f5c185668d7f735bc7d86f83e9be93854afc2de2cdb2144ee8e7a37a76e59044"
+   "sha256": "c39ed0b1bb592fc5e4dd86c79085eb62075597a754cc12904b253bc4d8109ea9"
   },
   {
    "name": "dataset_manifest.schema.json",
    "version": "0.2.1",
    "status": "ratified",
-   "sha256": "ce451046f7482445e8829d8215c54a496972f4338797b9ed8e60748203e56ae8"
+   "sha256": "57b4bffbffabee52ed82a170e280556fa161b2d2e5a8d5467b00cbcdaf6087f7"
   },
   {
    "name": "fusion_receipt.schema.json",
    "version": "0.1.0",
    "status": "ratified",
-   "sha256": "80063005d6967df96a166400f669351acad4a47c6f0974e2ca08715bcd682ad7"
+   "sha256": "564024a631e1a03200d08464f98ff52c564f3ab94e6c7e760ca7d35d81c93daf"
   },
   {
    "name": "queue_receipt.schema.json",
@@ -165,25 +165,25 @@
    "name": "source_observation.schema.json",
    "version": "0.2.1",
    "status": "ratified",
-   "sha256": "a48fe82d59b9d367d4d1544e1ddae5ef5d112ab8b18c4505b5e09df4104c39ec"
+   "sha256": "67b8bc75524458d1614e6a3ac679112ad12b6ebf9dd622b576acf2852fc52aa5"
   },
   {
    "name": "split_manifest.schema.json",
-   "version": "0.4.0",
+   "version": "0.5.0",
    "status": "ratified",
-   "sha256": "63573058fdc884d94d405fca471f58289010a36281636efe06a142151a3a0a37"
+   "sha256": "b90aba6e1f2facb95ba0d3a63785b94cf937e7ab2c7a7da1eab4f1c2a285594a"
   },
   {
    "name": "triage_receipt.schema.json",
-   "version": "0.2.1",
+   "version": "0.3.0",
    "status": "ratified",
-   "sha256": "92bacf4c8b51ba5fed1dcf70c0e61509c9019cf15042335dba0c81a9ddcda400"
+   "sha256": "9187084b7e6dfe63c656c55fab630583923e4607c2639cd041e07ed631759899"
   },
   {
    "name": "waterfall_geometry.schema.json",
    "version": "0.2.2",
    "status": "ratified",
-   "sha256": "fb9f1ae33935c48cc57a9796d997c87ddd1441c971aff8f32430c15d10e6937b"
+   "sha256": "a0ac96bd12d31039ae9ef659a6da884b560af9310c5a22ce24f81d6b52b3098c"
   }
  ]
 }

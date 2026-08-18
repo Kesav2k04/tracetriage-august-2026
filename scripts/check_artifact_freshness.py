@@ -14,7 +14,10 @@ every rebuild by design, and comparing it would report drift on every run.
 Exit 0 means the committed artifacts are what the current code produces from the current
 snapshot. Exit 1 names the first field that differs.
 
-Covered by default: SPLIT_MANIFEST.json, LEAKAGE_AUDIT.json and HERO_NULLS.json. The
+Covered by default: SPLIT_MANIFEST.json, LEAKAGE_AUDIT.json, HERO_NULLS.json,
+TRIAGE_RECEIPT.json and every file a JSON-only console rebuild emits under
+apps/web/public/data. cards.json is the one published file this cannot check, because
+it needs the waterfall PNGs, and the check says so rather than passing over it. The
 hero artifact earned its place the hard way. Its generator defaulted to 32 drawn paths
 and one decimal while the shipped file carried 6 and zero, so a bare rebuild tripled the
 ink on the home page and rewrote every coordinate, and nothing in the repository recorded
@@ -189,6 +192,105 @@ def main(argv: list[str] | None = None) -> int:
                 print("          python scripts/build_console_data.py --skip-images")
                 return 1
             print("[PASS] HERO_NULLS.json matches what the exporter produces")
+
+        # TRIAGE_RECEIPT.json earned its place the same way HERO_NULLS did. It was
+        # written on 2026-08-17 and D1 added five fields to the corridor summary it
+        # embeds, so the committed receipt was two units behind the code that writes
+        # it while every gate passed. The observation id comes from the receipt rather
+        # than from this script's idea of which one it should be, so the rebuild
+        # compares like with like.
+        triage_path = ARTIFACTS / "TRIAGE_RECEIPT.json"
+        if triage_path.exists():
+            committed_triage = _load(triage_path)
+            rebuilt_triage = pathlib.Path(tmp) / "TRIAGE_RECEIPT.json"
+            proc = subprocess.run(
+                [
+                    str(PY),
+                    str(REPO / "scripts" / "run_triage_slice.py"),
+                    "--obs-id",
+                    str(committed_triage.get("observation_id")),
+                    "--out",
+                    str(rebuilt_triage),
+                ],
+                cwd=REPO, capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
+            )
+            if proc.returncode != 0:
+                tail = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()
+                print("[FAIL] the triage slice does not run:")
+                for line in tail[-6:]:
+                    print(f"        {line}")
+                return 1
+            diff = _first_difference(
+                _strip(committed_triage), _strip(_load(rebuilt_triage))
+            )
+            if diff:
+                print("[FAIL] TRIAGE_RECEIPT.json is stale. First difference:")
+                print(f"        {diff}")
+                print("        Rebuild it, then regenerate the card:")
+                print("          python scripts/run_triage_slice.py")
+                print("          python scripts/render_evidence_card.py")
+                return 1
+            print("[PASS] TRIAGE_RECEIPT.json matches what the slice produces")
+
+        # The published copies under apps/web/public/data are derived artifacts too,
+        # and nothing compared them against their sources until now. That gap shipped:
+        # artifacts/HERO_NULLS.json was corrected in D2 and the published copy stayed
+        # three times too heavy for a whole commit, because the artifact and the copy
+        # are written by different scripts and only one of them was re-run.
+        published = REPO / "apps" / "web" / "public" / "data"
+        if published.is_dir():
+            rebuilt_data = pathlib.Path(tmp) / "data"
+            proc = subprocess.run(
+                [
+                    str(PY),
+                    str(REPO / "scripts" / "build_console_data.py"),
+                    "--skip-images",
+                    "--data-dir",
+                    str(rebuilt_data),
+                ],
+                cwd=REPO, capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
+            )
+            if proc.returncode != 0:
+                tail = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()
+                print("[FAIL] the console data builder does not run:")
+                for line in tail[-6:]:
+                    print(f"        {line}")
+                return 1
+            rebuilt_names = {p.name for p in rebuilt_data.iterdir() if p.is_file()}
+            for name in sorted(rebuilt_names):
+                a, b = published / name, rebuilt_data / name
+                if not a.exists():
+                    print(f"[FAIL] {name} is built but not published")
+                    return 1
+                if name.endswith(".json"):
+                    diff = _first_difference(_strip(_load(a)), _strip(_load(b)))
+                else:
+                    diff = None if a.read_bytes() == b.read_bytes() else "file contents differ"
+                if diff:
+                    print(f"[FAIL] apps/web/public/data/{name} is stale. First difference:")
+                    print(f"        {diff}")
+                    print("        Rebuild it:")
+                    print("          python scripts/build_console_data.py --skip-images")
+                    return 1
+            print(
+                f"[PASS] {len(rebuilt_names)} published files match what the console "
+                "builder produces"
+            )
+            # Named rather than skipped. cards.json needs the waterfall PNGs, so a
+            # JSON-only rebuild cannot produce it, and a check that quietly ignored it
+            # would read as covering the directory.
+            uncovered = sorted(
+                p.name
+                for p in published.iterdir()
+                if p.is_file() and p.name not in rebuilt_names
+            )
+            if uncovered:
+                print(
+                    "[NOTE] not checked here (needs the waterfall images): "
+                    + ", ".join(uncovered)
+                )
 
         if args.deep:
             rebuilt_g3 = pathlib.Path(tmp) / "GATE3_RECEIPT.json"

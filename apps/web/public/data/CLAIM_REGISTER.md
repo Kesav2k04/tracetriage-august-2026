@@ -3,9 +3,14 @@
 Every number that appears in the README, in the video, on a chart, or in the
 submission text maps to a row here, and every row points at a generated artifact.
 
-A number with no row is a defect. `tests/test_claim_drift.py` enforces this, and
-task D2 extends it to compare each quoted value against its artifact so that
-updating the README without regenerating the receipt fails CI.
+A number with no row is a defect. `tests/test_claim_drift.py` enforces this, and as of
+D3 it also compares values, not just names: every number quoted in a results row must
+appear in the artifact that row cites, at the precision it is quoted to. The exact check
+sits beside it, because a large receipt holds enough numbers that "appears somewhere"
+can be satisfied by coincidence: `scripts/sync_readme_results.py --check` regenerates
+the generated table from the receipts and compares the rendered rows, and both the
+standing gate and CI run it. Updating the README by hand without regenerating the
+receipt now fails in three places.
 
 ## Rules
 

@@ -3,11 +3,40 @@
   "$id": "tracetriage/split_manifest",
   "title": "Grouped split assignment",
   "status": "ratified",
-  "schema_version": "0.4.0",
-  "description": "Frozen split assignment. Random image-level splits leak station, satellite, rendering, and duplicate patterns, so every split here is grouped by a natural entity boundary. Ratified 2026-08-16 by Bob (task A0): added sampling_design field (required; a stratified sample described as random is a leakage claim that will fail review); added orbital_revolution note (derived field, not present on source_observation directly); added no_station_across_splits to leakage_checks. Revised 2026-08-16 in post-ratification review: every leakage_checks flag is now const true, so a manifest that records a failed check is invalid by construction. Revised 2026-08-17 in B1 (breaking, hence the minor bump): a leakage_checks entry is no longer a bare boolean. A bare true could not say which splits it covered, so a manifest asserted 'no transmitter crosses' while its own audit exempted two split types from that check, and the exemption survived a builder change that made it false. Each entry is now an object carrying passed (still const true), the applies_to list of splits that claim the guarantee, a positive n_examined so a check that examined nothing cannot pass for free, and the measured crossing count on the splits where crossing is by design. An 'excluded' partition is also now permitted, for splits where an observation belongs to no partition. Revised 2026-08-18 in D0b (breaking, hence the minor bump): test_set_untouched is no longer a leakage_check. It reported passed true with n_examined 1349, the number of emitted test ids, which is a count of a different property than the claim it sat under, and const true made a false unrepresentable while the count made the row look measured. It now references leakage_assertion, which requires the result ASSERTED_NOT_MEASURABLE_HERE, forbids passed, requires n_examined null, and requires the per-split test id digests that are the mechanism actually binding a later evaluation. The audit list carries the same third outcome for the same row, so the two artifacts cannot disagree about what was measured. rebuilt_at is also added, so an artifact rebuilt to correct a reported field does not have to re-date frozen_at to say when it was written.",
+  "schema_version": "0.5.0",
+  "description": "Frozen split assignment. Random image-level splits leak station, satellite, rendering, and duplicate patterns, so every split here is grouped by a natural entity boundary. Ratified 2026-08-16 by Bob (task A0): added sampling_design field (required; a stratified sample described as random is a leakage claim that will fail review); added orbital_revolution note (derived field, not present on source_observation directly); added no_station_across_splits to leakage_checks. Revised 2026-08-16 in post-ratification review: every leakage_checks flag is now const true, so a manifest that records a failed check is invalid by construction. Revised 2026-08-17 in B1 (breaking, hence the minor bump): a leakage_checks entry is no longer a bare boolean. A bare true could not say which splits it covered, so a manifest asserted 'no transmitter crosses' while its own audit exempted two split types from that check, and the exemption survived a builder change that made it false. Each entry is now an object carrying passed (still const true), the applies_to list of splits that claim the guarantee, a positive n_examined so a check that examined nothing cannot pass for free, and the measured crossing count on the splits where crossing is by design. An 'excluded' partition is also now permitted, for splits where an observation belongs to no partition. Revised 2026-08-18 in D0b (breaking, hence the minor bump): test_set_untouched is no longer a leakage_check. It reported passed true with n_examined 1349, the number of emitted test ids, which is a count of a different property than the claim it sat under, and const true made a false unrepresentable while the count made the row look measured. It now references leakage_assertion, which requires the result ASSERTED_NOT_MEASURABLE_HERE, forbids passed, requires n_examined null, and requires the per-split test id digests that are the mechanism actually binding a later evaluation. The audit list carries the same third outcome for the same row, so the two artifacts cannot disagree about what was measured. rebuilt_at is also added, so an artifact rebuilt to correct a reported field does not have to re-date frozen_at to say when it was written. Revised 2026-08-19 in D3 (ENG-S1): the root is closed and the document version is pinned with a const. Before this, a receipt written by an older script validated against the current schema and was read as current, and a root key nothing declares could be added without any reader noticing. Six fields the builder emits were undeclared, and there was no version property at all, so schema_version is newly required: hence 0.5.0.",
   "type": "object",
-  "required": ["snapshot_id", "frozen_at", "splits", "grouping_keys", "leakage_checks", "sampling_design"],
+  "additionalProperties": false,
+  "required": ["schema_version", "snapshot_id", "frozen_at", "splits", "grouping_keys", "leakage_checks", "sampling_design"],
   "properties": {
+    "schema_version": {
+      "const": "0.5.0",
+      "description": "Pinned so a manifest written by an older builder cannot validate against this schema and be read as current. Its absence was the sharpest case in the review: the manifest carried no version at all while the provenance page printed the contract file's own version for it, so a reader saw a version the document never claimed."
+    },
+    "build_seed": {
+      "type": "integer",
+      "description": "Seed the split assignment was drawn with. Emitted by the builder and previously undeclared."
+    },
+    "n_observations": {
+      "type": "integer",
+      "description": "Observations in the snapshot the splits were drawn over. Emitted by the builder and previously undeclared."
+    },
+    "norad_cluster_gap_threshold": {
+      "type": "integer",
+      "description": "Days of silence that separate two NORAD clusters. Emitted by the builder and previously undeclared."
+    },
+    "composition": {
+      "type": "object",
+      "description": "Per-split, per-partition counts of observations and of the signal-present class. Emitted by the builder and previously undeclared."
+    },
+    "physics_arm_report": {
+      "type": "array",
+      "description": "Per-partition physics availability, so a physics arm cannot be reported over a partition where the corridor was never evaluated. Emitted by the builder and previously undeclared."
+    },
+    "chronological_meta": {
+      "type": "object",
+      "description": "Raw and post-filter counts and the time boundaries of the chronological split. Emitted by the builder and previously undeclared."
+    },
     "snapshot_id": { "type": "string", "description": "Must match the snapshot_id in the corresponding dataset manifest." },
     "frozen_at": {
       "type": "string",

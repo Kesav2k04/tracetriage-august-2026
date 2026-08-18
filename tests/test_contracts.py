@@ -65,6 +65,123 @@ def test_schema_is_ratified_and_versioned(path: Path) -> None:
     assert SEMVER.match(str(schema.get("schema_version", "")))
 
 
+# --- ENG-S1: closed roots and pinned document versions -----------------------
+#
+# Six of the eight contracts had an open root and only two pinned the version a
+# document claims, so a receipt written by an older script validated against the
+# current schema and was read as current. The two tests below are the structural
+# form of that finding: an open root is now a decision that has to be written down,
+# and a version property that is not a const fails.
+
+# Documents that carry the version under an underscored name because the record is
+# an upstream shape and the underscore marks the fields we add to it.
+VERSION_PROPERTY = {"source_observation": "_schema_version"}
+
+# Contracts with a committed artifact, so the document can be checked against the
+# schema rather than against a fixture written to agree with it.
+COMMITTED_DOCUMENTS = {
+    "fusion_receipt": "artifacts/FUSION_RECEIPT.json",
+    "queue_receipt": "artifacts/QUEUE_RECEIPT.json",
+    "triage_receipt": "artifacts/TRIAGE_RECEIPT.json",
+    "dataset_manifest": "artifacts/DATASET_MANIFEST.json",
+    "split_manifest": "artifacts/SPLIT_MANIFEST.json",
+}
+
+
+@pytest.mark.parametrize("path", CONTRACTS, ids=lambda p: p.name)
+def test_schema_root_is_closed_or_says_why_it_is_not(path: Path) -> None:
+    """An open root is allowed, but only as a stated decision.
+
+    ``additionalProperties: false`` at the root is what stops a key nothing declares
+    from travelling in a receipt unnoticed. One contract legitimately cannot close:
+    ``source_observation`` describes a SatNOGS API record that upstream extends
+    without telling us, so closing it would turn a new upstream field into a failed
+    build. That case declares ``open_root_reason`` instead, which is a sentence a
+    reader can disagree with rather than an omission nobody sees.
+    """
+    schema = json.loads(path.read_text(encoding="utf-8"))
+    name = path.name.removesuffix(".schema.json")
+    if schema.get("additionalProperties") is False:
+        assert "open_root_reason" not in schema, (
+            f"{name}: closed root and an open-root reason are contradictory"
+        )
+        return
+    reason = schema.get("open_root_reason")
+    assert isinstance(reason, str) and len(reason) > 80, (
+        f"{name}: the root is open with no stated reason. Either close it with "
+        '"additionalProperties": false, or declare open_root_reason saying which '
+        "documents would break if it were closed."
+    )
+
+
+@pytest.mark.parametrize("path", CONTRACTS, ids=lambda p: p.name)
+def test_document_version_is_pinned_to_the_contract_version(path: Path) -> None:
+    """The version a document claims must be a const, and must be this contract's.
+
+    A ``{"type": "string"}`` version accepts any version, and a semver ``pattern``
+    proves only that the string is shaped like a version. Both were present before
+    this test: they check the format of the claim and never the claim.
+    """
+    schema = json.loads(path.read_text(encoding="utf-8"))
+    name = path.name.removesuffix(".schema.json")
+    prop = VERSION_PROPERTY.get(name, "schema_version")
+    declared = schema.get("properties", {}).get(prop)
+    assert declared is not None, f"{name}: no {prop} property, so a document cannot claim a version"
+    assert "const" in declared, (
+        f"{name}: {prop} is not pinned with a const, so a document written against "
+        "any earlier version of this contract still validates"
+    )
+    assert declared["const"] == schema["schema_version"], (
+        f"{name}: {prop} pins {declared['const']!r} while the contract is at "
+        f"{schema['schema_version']!r}. Bumping one without the other is how a "
+        "document comes to claim a version that never existed."
+    )
+
+
+@pytest.mark.parametrize("name,rel", sorted(COMMITTED_DOCUMENTS.items()))
+def test_committed_document_validates_and_claims_the_pinned_version(
+    name: str, rel: str
+) -> None:
+    """The committed artifact, not a fixture, against the current contract.
+
+    A fixture written beside a schema tends to agree with it. These are the files a
+    judge opens.
+    """
+    doc = json.loads((REPO / rel).read_text(encoding="utf-8"))
+    schema = load(name)
+    errors = sorted(validator(name).iter_errors(doc), key=lambda e: list(e.absolute_path))
+    if errors:
+        where = "/".join(str(x) for x in errors[0].absolute_path)
+        raise AssertionError(f"{rel}: {errors[0].message} at /{where}")
+    prop = VERSION_PROPERTY.get(name, "schema_version")
+    assert doc.get(prop) == schema["schema_version"], (
+        f"{rel} claims {doc.get(prop)!r} against contract {schema['schema_version']!r}"
+    )
+
+
+@pytest.mark.parametrize("name,rel", sorted(COMMITTED_DOCUMENTS.items()))
+def test_an_older_version_or_an_undeclared_root_key_is_rejected(
+    name: str, rel: str
+) -> None:
+    """The reviewer's two mutations, as a test.
+
+    Both of these validated before ENG-S1: a receipt claiming a prehistoric version,
+    and a receipt carrying a root key the contract never heard of. The second is the
+    one that matters in practice, because that is how a second copy of a field
+    (``gate5_FINAL_v2``) gets published beside the real one.
+    """
+    doc = json.loads((REPO / rel).read_text(encoding="utf-8"))
+    prop = VERSION_PROPERTY.get(name, "schema_version")
+
+    stale = dict(doc)
+    stale[prop] = "0.0.1-prehistoric"
+    assert not is_valid(name, stale), f"{rel}: an older version still validates"
+
+    junked = dict(doc)
+    junked["gate5_FINAL_v2"] = {"verdict": "PASSED"}
+    assert not is_valid(name, junked), f"{rel}: an undeclared root key still validates"
+
+
 # --- waterfall_geometry: null exactly when derivation failed -----------------
 
 PLOT_BOX = {"x0": 66, "y0": 60, "x1": 686, "y1": 1560}
@@ -173,6 +290,9 @@ def split_manifest(**overrides: Any) -> dict[str, Any]:
         }
 
     doc: dict[str, Any] = {
+        # Required as of split_manifest 0.5.0. A fixture that omits it would
+        # pass a test the artifact cannot pass.
+        "schema_version": "0.5.0",
         "snapshot_id": "snap-2026-08-17-stage1",
         "frozen_at": "2026-08-17T00:00:00Z",
         "sampling_design": "Chronological block, stations reserved for cold pools.",
@@ -307,6 +427,8 @@ def test_split_manifest_requires_a_sampling_design() -> None:
 def receipt(**overrides: Any) -> dict[str, Any]:
     doc: dict[str, Any] = {
         "observation_id": 14513023,
+        # Required as of triage_receipt 0.3.0.
+        "schema_version": "0.3.0",
         "snapshot_id": "snap-2026-08-17-stage1",
         "model_checksum": "a" * 64,
         "generated_at": "2026-08-17T00:00:00Z",

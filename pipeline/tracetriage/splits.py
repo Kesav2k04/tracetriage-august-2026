@@ -884,6 +884,14 @@ CHECK_SCOPES: dict[str, dict[str, Any]] = {
 #: something else. test_set_untouched is the only entry that uses it, in both the
 #: manifest and the audit, so the two artifacts cannot disagree about what was
 #: measured.
+SPLIT_MANIFEST_SCHEMA_VERSION = "0.5.0"
+"""Contract version this builder emits.
+
+Kept beside the builder rather than read from the contract file, because reading
+the version out of the schema would make every document agree with every schema by
+construction, which is the opposite of a pin.
+"""
+
 ASSERTED_NOT_MEASURABLE_HERE = "ASSERTED_NOT_MEASURABLE_HERE"
 
 
@@ -1250,6 +1258,11 @@ def build_splits(
     # Assemble the split manifest
     # -----------------------------------------------------------------------
     split_manifest: dict[str, Any] = {
+        # Pinned to the contract this builder was written against. The manifest
+        # carried no version at all until 0.5.0, while the provenance page printed
+        # the contract file's own version for it, so a reader saw a version the
+        # document never claimed.
+        "schema_version": SPLIT_MANIFEST_SCHEMA_VERSION,
         "snapshot_id": snapshot_id,
         # frozen_at is pinned when the caller supplies it, because rebuilding this
         # file to correct a reporting field must not re-date the freeze: a reader

@@ -4,8 +4,9 @@
   "title": "Fusion ladder, calibration and kill gate 5",
   "status": "ratified",
   "schema_version": "0.1.0",
-  "description": "The measured result of the fusion ladder, including kill gate 5's verdict. Ratified 2026-08-17 in B2-B6. This contract exists because the receipt is the artifact a judge reads to decide whether the physics claim is real, and every way that claim could be overstated was available while it was being written. Four shapes are therefore invalid by construction rather than by review. A comparison cannot report a margin without the interval, the observation count and the episode count that produced it, because a margin alone is a number with no support. A comparison's direction is a four-valued enum rather than a boolean, because a two-valued verdict reports an interval lying entirely below zero as an absence of difference, which hides a measured harm behind a null; the operator's own first version of this code did exactly that. A gate verdict must carry a statement, so a bare 'PASSED' cannot travel without the sentence that qualifies it. And an infeasible risk ceiling must carry a reason, so 'no threshold was found' cannot be mistaken for 'no threshold was needed'. The ablation block must carry both the nominal and the multiplicity-corrected rule with the deciding rule named, because reporting only the rule that was applied would conceal that they disagree.",
+  "description": "The measured result of the fusion ladder, including kill gate 5's verdict. Ratified 2026-08-17 in B2-B6. This contract exists because the receipt is the artifact a judge reads to decide whether the physics claim is real, and every way that claim could be overstated was available while it was being written. Four shapes are therefore invalid by construction rather than by review. A comparison cannot report a margin without the interval, the observation count and the episode count that produced it, because a margin alone is a number with no support. A comparison's direction is a four-valued enum rather than a boolean, because a two-valued verdict reports an interval lying entirely below zero as an absence of difference, which hides a measured harm behind a null; the operator's own first version of this code did exactly that. A gate verdict must carry a statement, so a bare 'PASSED' cannot travel without the sentence that qualifies it. And an infeasible risk ceiling must carry a reason, so 'no threshold was found' cannot be mistaken for 'no threshold was needed'. The ablation block must carry both the nominal and the multiplicity-corrected rule with the deciding rule named, because reporting only the rule that was applied would conceal that they disagree. Revised 2026-08-19 in D3 (ENG-S1): the root is closed and the document version is pinned with a const. Before this, a receipt written by an older script validated against the current schema and was read as current, and a root key nothing declares could be added without any reader noticing. The receipt already carried schema_version 0.1.0 and the contract path, so no document had to be rewritten and the version stays at 0.1.0: this tightening rejects only shapes no writer in this repository produces.",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "schema",
     "schema_version",
@@ -19,8 +20,15 @@
     "splits"
   ],
   "properties": {
+    "contract": {
+      "type": "string",
+      "description": "Path to this contract, written by the generator so a reader of the receipt alone can find the schema it was validated against. Declared here because the root is closed."
+    },
     "schema": { "const": "FUSION_RECEIPT" },
-    "schema_version": { "type": "string" },
+    "schema_version": {
+      "const": "0.1.0",
+      "description": "Pinned so a receipt written by an older script cannot validate against this schema and be read as current. Bumping the contract version above means bumping this const."
+    },
     "generated_at": { "type": "string" },
     "snapshot_id": { "type": "string", "description": "Must match the dataset manifest." },
     "seed": { "type": "integer" },
@@ -294,8 +302,18 @@
     },
     "split_result": {
       "type": "object",
+      "additionalProperties": false,
+      "_closed_because": "Renaming an optional block used to validate. Five measured sections (selective, ood, multiplicity_adjusted, ensemble, test_positive_rate) could be renamed here and the receipt still passed, after which the console published null for every one of them and the risk and coverage section vanished from the page with no note. A closed object turns that rename into a validation failure at the writer.",
       "required": ["split", "degraded", "counts"],
       "properties": {
+        "test_positive_rate": {
+          "type": ["number", "null"],
+          "description": "Fraction of the test partition in the signal-present class. Emitted by run_fusion.py and previously undeclared, which the open object allowed."
+        },
+        "train_positive_rate": {
+          "type": ["number", "null"],
+          "description": "Fraction of the training partition in the signal-present class. Emitted beside test_positive_rate so a reader can see whether the class balance shifts between partitions, and previously undeclared."
+        },
         "split": { "type": "string" },
         "degraded": { "type": ["string", "null"] },
         "counts": {

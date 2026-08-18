@@ -4,7 +4,7 @@
   "title": "Local reviewer annotation",
   "status": "ratified",
   "schema_version": "0.1.0",
-  "description": "One reviewer decision about one observation, stored locally and never transmitted. Ratified 2026-08-18 in C3. Four shapes are impossible by construction. An annotation cannot exist without the digest of the receipt it was made against, because a judgement about the third row of a ranking says nothing about a different ranking. A decision is a fixed enum, so outcomes can be counted without parsing prose, and a free-text note sits beside it rather than in place of it. Every record carries the digest of the record before it, so an edited or removed record is detectable rather than invisible. And a record carries its own digest computed over its remaining fields, so an in-place edit cannot leave a consistent-looking log.",
+  "description": "One reviewer decision about one observation, stored locally and never transmitted. Ratified 2026-08-18 in C3. Four shapes are impossible by construction. An annotation cannot exist without the digest of the receipt it was made against, because a judgement about the third row of a ranking says nothing about a different ranking. A decision is a fixed enum, so outcomes can be counted without parsing prose, and a free-text note sits beside it rather than in place of it. Every record carries the digest of the record before it, so an edited or removed record is detectable rather than invisible. And a record carries its own digest computed over its remaining fields, so an in-place edit cannot leave a consistent-looking log. Revised 2026-08-19 in D3 (ENG-S1): schema_version is now a const rather than a semver pattern. The pattern proved the string was shaped like a version and said nothing about which version, so a record from an older annotator validated. pipeline/tracetriage/annotate.py emits 0.1.0, so no record changes.",
   "type": "object",
   "required": [
     "schema",
@@ -21,7 +21,10 @@
   "additionalProperties": false,
   "properties": {
     "schema": { "const": "ANNOTATION_RECORD" },
-    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema_version": {
+      "const": "0.1.0",
+      "description": "Pinned so a record written by an older annotator cannot validate against this schema and be read as current. A semver pattern accepted any version, which is a format check rather than a version check."
+    },
     "obs_id": {
       "type": "integer",
       "exclusiveMinimum": 0,

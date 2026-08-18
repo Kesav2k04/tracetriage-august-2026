@@ -16,6 +16,7 @@ row in `docs/CLAIM_REGISTER.md`, so adding a row here means adding one there too
 
 from __future__ import annotations
 
+import argparse
 import json
 import pathlib
 
@@ -159,7 +160,18 @@ presented as if it did.
 """
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help=(
+            "regenerate into memory and compare against README.md, exiting non-zero "
+            "on any difference. Writes nothing."
+        ),
+    )
+    args = parser.parse_args(argv)
+
     readme = REPO / "README.md"
     text = readme.read_text(encoding="utf-8")
 
@@ -178,7 +190,40 @@ def main() -> int:
         )
 
     end = text.index(end_marker)
-    readme.write_text(text[:start] + SECTION + text[end + 1 :], encoding="utf-8")
+    rendered = text[:start] + SECTION + text[end + 1 :]
+
+    # --check exists because this script was referenced by nothing: not by the gate,
+    # not by CI, and not by any test. The table it generates stayed correct only for
+    # as long as someone remembered to run it, and the drift test beside it compared
+    # metric names rather than values, so an edited number passed the whole suite.
+    if args.check:
+        if rendered == text:
+            print(f"README results are current: {len(ROWS)} measured rows")
+            return 0
+        current = text[start:end].splitlines()
+        expected = SECTION.splitlines()
+        first = next(
+            (
+                (i, c, e)
+                for i, (c, e) in enumerate(zip(current, expected, strict=False))
+                if c != e
+            ),
+            None,
+        )
+        print("README results are stale. Run scripts/sync_readme_results.py.")
+        if first is not None:
+            i, c, e = first
+            print(f"  first difference, line {i + 1} of the section:")
+            print(f"    README:   {c.strip()[:120]}")
+            print(f"    receipts: {e.strip()[:120]}")
+        elif len(current) != len(expected):
+            print(
+                f"  the section has {len(current)} lines and the receipts "
+                f"produce {len(expected)}"
+            )
+        return 1
+
+    readme.write_text(rendered, encoding="utf-8")
 
     print(f"README results synced: {len(ROWS)} measured rows, 2 marked unmeasured")
     print(f"  shipped arm brier {shipped['brier']:.4f}, auc {shipped['auc']:.3f}")

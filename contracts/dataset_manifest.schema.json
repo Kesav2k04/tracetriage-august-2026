@@ -4,8 +4,9 @@
   "title": "Immutable snapshot manifest",
   "status": "ratified",
   "schema_version": "0.2.1",
-  "description": "The receipt for one immutable snapshot of public SatNOGS observations, written to artifacts/DATASET_MANIFEST.json by the snapshot builder (unit A1). It is the provenance record for every downstream number: what was asked for, what came back, when, and the hash of every byte stored. A re-run reads this file to decide what it already has, so it is also the resume state. Created 2026-08-16 during A0 review: unit A1 acceptance requires the manifest to validate against a contract and none existed.",
+  "description": "The receipt for one immutable snapshot of public SatNOGS observations, written to artifacts/DATASET_MANIFEST.json by the snapshot builder (unit A1). It is the provenance record for every downstream number: what was asked for, what came back, when, and the hash of every byte stored. A re-run reads this file to decide what it already has, so it is also the resume state. Created 2026-08-16 during A0 review: unit A1 acceptance requires the manifest to validate against a contract and none existed. Revised 2026-08-19 in D3 (ENG-S1): the root is closed. Every key in the committed manifest is declared, which was checked before the change, so no document had to be rewritten and the version stays at 0.2.1.",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "snapshot_id",
     "schema_version",

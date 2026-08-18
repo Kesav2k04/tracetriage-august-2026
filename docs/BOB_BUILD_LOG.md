@@ -2900,3 +2900,182 @@ cd apps\web && npm run test
 ```
 
 817 passed, 1 xfailed, ruff clean, 53 console tests, 12/12 standing gates.
+
+---
+
+## 2026-08-19 IST | Wave D | D3: four contracts that validated a document from any version, and a drift test that read the label
+
+ENG-S1, ENG-S2, ENG-S4 and ENG-S6. Four findings, one shape: a check that ran and
+reported on something adjacent to the thing it was supposed to check.
+
+**ENG-S1. Six of eight contracts had an open root, and only two pinned the version.**
+Closed now, with one deliberate exception. The rule applied, stated here because the
+next person will need it: bump the contract version when a correct writer has to emit
+something new, and do not bump when the change only rejects documents no writer in this
+repository produces. Under that rule `fusion_receipt`, `dataset_manifest`,
+`annotation_record` and `waterfall_geometry` keep their versions and no artifact had to
+be rewritten, while `triage_receipt` goes to 0.3.0 and `split_manifest` to 0.5.0,
+because `schema_version` is newly required in both and neither document carried one.
+
+Per contract, measured before the change so a tightening could not reject a real
+document:
+
+| Contract | Root | Version pin | Undeclared root keys found |
+| --- | --- | --- | --- |
+| `fusion_receipt` | closed | 0.1.0, was a bare string type | `contract` |
+| `triage_receipt` | closed | 0.3.0, newly required | `model_checksum_source` |
+| `split_manifest` | closed | 0.5.0, newly required | six the builder emits |
+| `waterfall_geometry` | closed | 0.2.2, declared not required | none |
+| `dataset_manifest` | closed | 0.2.1, already pinned | none |
+| `annotation_record` | already closed | 0.1.0, was a semver pattern | none |
+| `queue_receipt` | already closed | 0.3.0, already pinned | none |
+| `source_observation` | open, with a reason | 0.2.1, already pinned | 24, all upstream |
+
+`source_observation` is the exception and the reason is measured: it describes a SatNOGS
+API observation record, and 24 fields the API sends today are undeclared here
+(`archive_url`, `archived`, `demoddata`, `observer`, `payload`, `station_name`, and
+eighteen transmitter, vetted and waterfall-status keys). Closing that root would reject
+every record in the snapshot and turn an upstream field addition into a failed build. It
+now declares `open_root_reason`, which is a sentence a reviewer can disagree with rather
+than an omission nobody sees, and the new test accepts an open root only when that
+sentence is there.
+
+A semver `pattern` is worth naming separately, because it looks like a version check and
+is not: it proves the string is shaped like a version and says nothing about which one.
+`annotation_record` had that. `fusion_receipt` declared only that the version was a
+string, which does not even do that much.
+
+**26 tests added for it**, all parametrised so a ninth contract is covered the day it is
+written: the root is closed or explains itself; the version property exists, is a
+const, and equals the contract version; every committed artifact validates and claims
+the pinned version; and the reviewer's two mutations (a prehistoric version, an extra
+root key) are rejected on all five committed documents.
+
+**ENG-S2. Nested receipt reads bypassed the guard.** `_require` covered the `splits`
+list and nothing inside it, so five measured blocks could be renamed in the receipt,
+validate cleanly, and be published as null. The export now mirrors the contract's own
+conditional in `_split_for_console`: a split that is not degraded must carry `counts`,
+`arms`, `comparisons`, `selective` and `test_positive_rate`, and only `ensemble` and
+`ood` stay optional. The `split_result` definition is closed as well, and the two fields
+the receipt carried undeclared (`test_positive_rate`, `train_positive_rate`) are now
+declared, so the rename fails at the writer rather than at the reader.
+
+**The measurement that changed the design.** `multiplicity_adjusted` is an empty map in
+two of the five splits, and `_require` correctly refused to publish it, which failed the
+build. Reading `run_fusion.py` says why: an entry is added only for a comparison whose
+nominal interval cleared zero in either direction, so an empty map means no comparison in
+that split needed correcting. That is a measurement, not an absence. It gets
+`_require_present`, a second guard that demands the key and accepts an empty value, with
+the reason beside it. Requiring non-emptiness there would have been the same error as
+`.get()`, pointing the other way.
+
+`degraded` needed the same treatment for the opposite reason: null means the split ran,
+so `_require` would reject the good case, and `.get()` cannot tell a clean run from a
+renamed key.
+
+Nothing published moved. `evaluation.json` is byte-identical after the change, which is
+the outcome that says the receipt was right and only the guard was missing.
+
+**And the page states the absence.** A missing selective curve used to remove the whole
+risk and coverage section: no heading, no note, no warning tone, nothing in the DOM. It
+now renders the section with a limit note naming which split has no curve, and
+distinguishing a degraded split from a build problem.
+
+**ENG-S4. The drift test asserted the metric name, not its value.** The test ended at
+`assert cells[0] in registered`. The value was parsed on the line above and never
+compared, while the file docstring claimed that the value quoted in README.md must equal
+the value in the artifact the row points at. The reviewer changed the AUC row to 0.999
+against 0.111 and the whole suite stayed green.
+
+Two checks now, deliberately different in strength:
+
+- `scripts/sync_readme_results.py --check` regenerates the table from the receipts into
+  memory, compares it against the file, and names the first differing line. It is exact,
+  because the generator knows where each number comes from. It is wired into
+  `scripts/gate.py` and into CI beside the lint step, which is what the script needed
+  most: it was referenced by nothing at all, not by the gate, not by CI, not by a test,
+  so its table stayed correct only while someone remembered to run it.
+- `test_every_registered_claim_matches_its_artifact`, which was an xfail pointing at a
+  task that had already passed, now compares every number in the results tables against
+  the artifact its row cites, at the precision it is quoted to. Measured coverage: 15
+  rows, 49 numbers, all found. Four rows cannot be compared, are listed by name with a
+  reason, and the test fails if that set changes.
+
+**A limit found by testing the test, and kept rather than hidden.** Of the reviewer's two
+fabricated numbers the number search catches 0.999 and misses 0.111, because some value
+in FUSION_RECEIPT.json rounds to 0.111 at three decimals. Appearing somewhere in a large
+receipt is a weak net, which is exactly why the exact check sits beside it. The test
+asserts the catch it really achieves, and the docstring says which one it cannot.
+
+**ENG-S6. The guard was tested five times and never at a call site.** Five new tests
+assert on the published files instead: no card carries a corridor block without a fitted
+offset, every clean split in `evaluation.json` publishes every measured block, a renamed
+block raises during the export, a degraded split is allowed to have no results, and a
+split with no `degraded` key at all is a failure rather than a clean split with null
+everywhere.
+
+**What the freshness check caught while this was being built**, which is the second time
+it has paid for itself:
+
+1. `artifacts/TRIAGE_RECEIPT.json` was two units stale. It was written on 2026-08-17 and
+   D1 added five fields to the corridor summary it embeds, so the committed receipt
+   disagreed with the code that writes it while every gate passed. Regenerated in 14
+   seconds, and no existing value moved: the diff is the five D1 fields,
+   `offset_at_bound`, `corridor_span_hz`, the version and the timestamp. It is now
+   covered by the check.
+2. `apps/web/public/data/hero_nulls.json` was still the 32-draw file. D2 corrected
+   `artifacts/HERO_NULLS.json` and the published copy stayed three times too heavy for a
+   whole commit, because the artifact and the copy are written by different scripts and
+   only one was re-run. The check now rebuilds the console data into a scratch directory
+   and diffs every published file, which needed a `--data-dir` argument on
+   `build_console_data.py`.
+3. `--skip-images` was documented as rebuilding the JSON only, and it skips
+   `cards.json`, which is JSON. That file genuinely needs the waterfall PNGs, because
+   `export_observation` parses each one for its geometry, so the help text now says so
+   and the freshness check prints `cards.json` as not checked rather than passing over
+   the directory as if it were covered.
+
+**One more of the same shape, fixed in passing.** `scripts/run_triage_slice.py` validated
+its receipt against a relative `contracts/triage_receipt.schema.json` inside an
+`if schema_path.exists()`. Run from any other directory the contract was not found and
+validation was skipped silently, which is the ENG-B3 defect in a second place. It is now
+anchored to the repository, and a missing contract is a failure.
+
+**What changed:**
+- `contracts/`: all eight touched. Six roots closed, one root documented as open, four
+  version pins added or corrected, nine root properties declared, `split_result` closed.
+- `pipeline/tracetriage/splits.py`: `SPLIT_MANIFEST_SCHEMA_VERSION`, emitted.
+- `scripts/run_triage_slice.py`: emits `schema_version`, and the contract path is
+  anchored.
+- `scripts/build_console_data.py`: `_require_present`, `_split_for_console`,
+  `--data-dir`, corrected `--skip-images` help.
+- `scripts/sync_readme_results.py`: `--check`.
+- `scripts/check_artifact_freshness.py`: covers `TRIAGE_RECEIPT.json` and every published
+  console file, and names what it cannot check.
+- `scripts/gate.py`: the README check. 13 standing gates.
+- `apps/web/app/evaluation/page.tsx`: the stated absence.
+- `.github/workflows/ci.yml`: the README check.
+- `artifacts/SPLIT_MANIFEST.json`, `artifacts/TRIAGE_RECEIPT.json` and the published
+  console data, all regenerated.
+- `docs/WAVE_D_PROMPT.md`, `docs/BOB_HANDOFF.md`, `BOB_START_HERE.md`: the gate count was
+  written in three places as 8 or 7. They now name the checks and say to read the count
+  the script prints.
+
+**Tests added: 35.** 26 contract, 5 export, 4 claim drift, and the xfail is gone rather
+than deferred again.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\build_splits.py --frozen-at "2026-08-17T16:11:19.249864+00:00"
+.venv\Scripts\python.exe scripts\run_triage_slice.py
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+.venv\Scripts\python.exe scripts\check_artifact_freshness.py
+.venv\Scripts\python.exe scripts\sync_readme_results.py --check
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+cd apps\web && npm run typecheck && npm run test && npm run build
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+851 passed, 0 failed, no expected failures left, ruff clean, 53 console tests, 13 of 13
+standing gates.

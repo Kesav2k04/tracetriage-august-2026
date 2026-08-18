@@ -3,14 +3,24 @@
   "$id": "tracetriage/triage_receipt",
   "title": "Per-observation evidence receipt",
   "status": "ratified",
-  "schema_version": "0.2.1",
-  "description": "Everything shown on one evidence card, and everything needed to reproduce it. Every public number on the card must come from this receipt. If a value is on the card it must be in this receipt. Ratified 2026-08-16 by Bob (task A0): no structural changes needed; clarified that reason_codes come from a fixed rule table only, never from model attribution; added waterfall_geometry_version to evidence for traceability. Revised 2026-08-16 in post-ratification review: evidence and scores now carry required fields (an empty object used to validate against a contract whose title promises everything on the card), and abstention_reason is conditionally required when decision is abstain.",
+  "schema_version": "0.3.0",
+  "description": "Everything shown on one evidence card, and everything needed to reproduce it. Every public number on the card must come from this receipt. If a value is on the card it must be in this receipt. Ratified 2026-08-16 by Bob (task A0): no structural changes needed; clarified that reason_codes come from a fixed rule table only, never from model attribution; added waterfall_geometry_version to evidence for traceability. Revised 2026-08-16 in post-ratification review: evidence and scores now carry required fields (an empty object used to validate against a contract whose title promises everything on the card), and abstention_reason is conditionally required when decision is abstain. Revised 2026-08-19 in D3 (ENG-S1): the root is closed and the document version is pinned with a const. Before this, a receipt written by an older script validated against the current schema and was read as current, and a root key nothing declares could be added without any reader noticing. schema_version is newly required here, hence the bump to 0.3.0, and model_checksum_source is now declared rather than tolerated.",
   "type": "object",
+  "additionalProperties": false,
   "required": [
+    "schema_version",
     "observation_id", "snapshot_id", "model_checksum", "generated_at",
     "evidence", "scores", "decision", "reason_codes", "provenance"
   ],
   "properties": {
+    "schema_version": {
+      "const": "0.3.0",
+      "description": "Pinned so a receipt written by an older script cannot validate against this schema and be read as current. Newly required at 0.3.0, which is why this is a minor bump: a receipt that omits it is now invalid."
+    },
+    "model_checksum_source": {
+      "type": "string",
+      "description": "Path the model checksum was taken from. Emitted by run_triage_slice.py and previously undeclared, which an open root allowed."
+    },
     "observation_id": { "type": "integer" },
     "snapshot_id": { "type": "string", "description": "ID of the immutable snapshot this receipt was generated from." },
     "model_checksum": { "type": "string", "description": "SHA-256 of the model weights used. Required for reproducibility." },

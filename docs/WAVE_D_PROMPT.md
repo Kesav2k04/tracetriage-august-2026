@@ -6,8 +6,11 @@ or C.
 
 Units are named A, B, C and D. Nothing else is named.
 
-Current as of 2026-08-18, after the C7h caption fix. Wave C is closed: working tree
-clean, 8 of 8 standing gates green, 779 offline tests collected with 778 passing.
+Current as of 2026-08-19, after D2. Wave C is closed and Wave D is in progress:
+working tree clean, every standing gate green (12 of 12 as of D2, which added the
+console checks and artifact freshness), 818 offline tests collected with 817 passing
+and one declared expected failure. The gate prints its own count, so read that
+rather than this sentence.
 
 ---
 
@@ -163,7 +166,7 @@ FILES THAT ALREADY EXIST. DO NOT RECREATE THEM.
 HOW TO RUN THINGS
 
   .venv\Scripts\python.exe -m pytest -q            the offline suite, about 160 s
-  .venv\Scripts\python.exe scripts\gate.py         the 8 standing gates
+  .venv\Scripts\python.exe scripts\gate.py         every standing gate
   .venv\Scripts\python.exe scripts\check_contrast.py -v
   .venv\Scripts\python.exe scripts\sync_kill_gate.py --check
   cd apps\web && npx tsc --noEmit -p tsconfig.json
@@ -334,7 +337,7 @@ Inspect the release commit. Run every acceptance check in the repository. Repair
 fails. Generate the sign-off receipt. This unit must be yours, on the release commit,
 and it is the evidence that you owned the judged path.
 
-Acceptance: scripts/gate.py green on all 8 standing gates, the full offline suite
+Acceptance: scripts/gate.py green on every standing gate, the full offline suite
 green, scripts/check_contrast.py at 26 of 26, scripts/sync_kill_gate.py --check clean,
 npx tsc --noEmit clean, npx next build producing 33 pages, the console deploying from
 the release commit, and a sign-off receipt that names each check and its result.
