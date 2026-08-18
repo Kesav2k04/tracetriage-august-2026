@@ -2342,3 +2342,64 @@ destination.
 | Contrast ratios changed by the palette | none by more than 0.03 |
 | Tests added | 21 |
 | Statistics reproduced against the gate receipt | 7 of 7, to 1e-9 |
+
+---
+
+## C7h. The plate's caption was typed prose, and a review that undercounts itself
+
+Two defects found while reading a triage of the two expert reviews against the code.
+Neither is in either review.
+
+### The caption asserted a measurement it did not read
+
+The plate added in C7g closed with this sentence:
+
+> Gate 3 asked for the corridor to intersect a visible trace in 70% of reviewed
+> positives, and all three testable observations discriminate, which still does not
+> establish a 70% rate: the exact one-sided 95% lower bound on three of three is
+> 0.368.
+
+Four figures, all correct, none of them read from anything. That is the defect this
+console exists to argue against, published on its own front page, five hours after the
+C7f entry describing the same class of error in gate 3 itself.
+
+It was not hypothetical. Space review finding B4 proposes adding
+`margin_over_best_null` to the `discriminates` criterion in `corridor_fit.py`. If that
+change drops one observation, the receipt reads 2 of 3 and the front page still reads
+"all three testable observations discriminate" with every test green, because no test
+looked at that sentence.
+
+`artifacts/HERO_NULLS.json` now carries gate 3's verdict fields, the exporter already
+reads that receipt so it costs nothing, and the sentence is generated from them.
+`tests/test_hero_nulls.py` gained three tests: the fields match the receipt, the
+discriminating count cannot exceed the scored count which cannot exceed the testable
+count, and a PASSED verdict requires the lower bound to clear the bar rather than the
+point estimate.
+
+The regeneration order is now load-bearing and is recorded in the handoff and the Wave
+D prompt: `run_gate3.py`, then `export_hero_nulls.py`, then `build_console_data.py`.
+Skipping the middle step fails the suite rather than shipping a stale claim.
+
+### The engineering review undercounts its own findings
+
+Its summary line reads "Three BLOCKING, ten SERIOUS, thirteen MINOR". The file carries
+three, **eleven** and thirteen headings. The space review's line is correct at 5, 9 and
+11.
+
+This matters because D0's acceptance is "every SERIOUS finding has a fix or a recorded
+rebuttal". A wave planned from the summary line finishes eleven of eleven while
+believing it finished ten of ten, and the one it never saw is not visible in the
+completion report either. The Wave D prompt now tells the next builder to count the
+headings rather than trust the line, and to record the corrected counts.
+
+Seven BLOCKING and twenty SERIOUS remain across both reviews.
+
+### Cost
+
+| Quantity | Value |
+|---|---|
+| Client JavaScript added | 0 bytes |
+| Bytes added to the home document | the gate block, about 300 bytes before compression |
+| Tests added | 3 |
+| Front-page numbers that were prose and are now generated | 4 |
+| Findings the two reviews between them did not contain | 2 |

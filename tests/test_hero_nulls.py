@@ -135,3 +135,43 @@ def test_the_drawn_nulls_span_the_distribution(hero):
     # The lowest drawn null should sit below the median of all 200, which is what
     # an even spread guarantees and a top-slice selection would not.
     assert sigmas[0] < hero["distribution"]["median"]
+
+
+def test_the_caption_numbers_come_from_the_gate_receipt(hero):
+    """The plate's limitation sentence is generated, and this is what makes it so.
+
+    It read "all three testable observations discriminate ... the exact one-sided 95%
+    lower bound on three of three is 0.368" as literal prose, with nothing reading
+    either number. SPACE-B4 proposes adding `margin_over_best_null` to the
+    `discriminates` criterion, which can drop an observation from that count. The
+    sentence would have become false with every test still green.
+    """
+    receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
+    g = hero["gate"]
+    assert g["verdict"] == receipt["verdict"]
+    assert g["threshold"] == receipt["threshold"]
+    assert g["observations_scored"] == receipt["observations_scored"]
+    assert g["observations_testable"] == receipt["observations_testable"]
+    assert g["observations_decisive"] == receipt["observations_decisive"]
+    assert g["discriminating_rate"] == pytest.approx(receipt["discriminating_rate"])
+    assert g["rate_lower_bound_95"] == pytest.approx(receipt["rate_lower_bound_95"])
+    assert g["observations_discriminating"] == sum(
+        1 for o in receipt["observations"] if o["null_calibration"]["discriminates"]
+    )
+
+
+def test_the_discriminating_count_cannot_exceed_the_scored_count(hero):
+    """A caption reading "4 of 3" is the shape a wrong denominator takes."""
+    g = hero["gate"]
+    assert 0 <= g["observations_discriminating"] <= g["observations_scored"]
+    assert g["observations_scored"] <= g["observations_testable"]
+    assert g["observations_testable"] <= g["observations_decisive"]
+
+
+def test_the_published_verdict_follows_from_the_bound(hero):
+    """PASSED requires the lower bound to clear the bar, not the point estimate."""
+    g = hero["gate"]
+    if g["verdict"] == "PASSED":
+        assert g["rate_lower_bound_95"] >= g["threshold"]
+    else:
+        assert g["rate_lower_bound_95"] < g["threshold"]

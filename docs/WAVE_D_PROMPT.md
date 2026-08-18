@@ -6,8 +6,8 @@ or C.
 
 Units are named A, B, C and D. Nothing else is named.
 
-Current as of commit `372028a`, 2026-08-18. Wave C is closed: working tree clean,
-8 of 8 standing gates green, 776 offline tests collected with 775 passing.
+Current as of 2026-08-18, after the C7h caption fix. Wave C is closed: working tree
+clean, 8 of 8 standing gates green, 779 offline tests collected with 778 passing.
 
 ---
 
@@ -81,7 +81,7 @@ another origin.
 
 Four instruments on one clock sit on each observation page: the waterfall with the
 fitted corridor, a polar sky track, a ground track with the horizon circle, and
-elevation and Doppler against time. 776 offline tests are collected: 775 pass, and 1
+elevation and Doppler against time. 779 offline tests are collected: 778 pass, and 1
 is a declared expected failure that task D2 below implements. Lint is clean,
 typecheck is clean, next build produces 33 pages.
 
@@ -188,14 +188,32 @@ D0. ACT ON THE TWO EXPERT REVIEWS
 Two independent reviews of A, B and C were commissioned before Wave D opened: one from
 a flight-dynamics and observational-science standpoint, one from a staff engineering
 standpoint. They are committed as docs/REVIEW_SPACE.md (5 BLOCKING, 9 SERIOUS, 11
-MINOR) and docs/REVIEW_ENGINEERING.md (3 BLOCKING, 10 SERIOUS, 13 MINOR). Read both in
-full.
+MINOR) and docs/REVIEW_ENGINEERING.md. Read both in full.
+
+Count the engineering review's findings yourself rather than trusting its summary
+line. That line says "Three BLOCKING, ten SERIOUS, thirteen MINOR" and the file
+carries three, ELEVEN and thirteen headings. The extra SERIOUS is real and is not
+covered by the stated count, so a wave that works to the summary line finishes one
+finding short and reports itself complete. The space review's own count is correct at
+5, 9 and 11. Verify both with a grep before you plan, and record the corrected counts
+in the build log.
 
 One BLOCKING finding is already closed and it is the pattern for the rest. Gate 3 was
 marked PASSED by a comparison that could not return False, and the C7f build log entry
 records the reproduction, the fix, the test that fails without it, the claim-register
-retraction, and a second defect found while closing it. Seven BLOCKING and eighteen
-SERIOUS remain.
+retraction, and a second defect found while closing it. Seven BLOCKING and twenty
+SERIOUS remain, on the corrected counts.
+
+One more thing was fixed ahead of you, and it changes how you handle SPACE-B4. The
+plate on the home page carried its limitation sentence as typed prose: it asserted
+that all three testable observations discriminate at a lower bound of 0.368, and read
+neither number from anywhere. Adding margin_over_best_null to the discriminates
+criterion can drop an observation from that count, and the sentence would have become
+false with every test still green. Those figures now come from artifacts/HERO_NULLS.json,
+which carries gate 3's verdict fields, and tests/test_hero_nulls.py asserts them
+against the receipt. So after any change to run_gate3.py you must re-run
+scripts/export_hero_nulls.py and then scripts/build_console_data.py, in that order, or
+the suite will tell you.
 
 For every BLOCKING finding: reproduce it first, then fix it, then add a test that
 fails without the fix. For every SERIOUS finding: either fix it, or record in the

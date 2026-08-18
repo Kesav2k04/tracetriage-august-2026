@@ -471,6 +471,17 @@ export interface HeroNulls {
   };
   drawn: HeroNullPath[];
   transform_residual_px: number;
+  /** Gate 3's own verdict fields, so the plate's caption is generated, not typed. */
+  gate: {
+    verdict: string;
+    threshold: number;
+    observations_decisive: number;
+    observations_testable: number;
+    observations_scored: number;
+    observations_discriminating: number;
+    discriminating_rate: number;
+    rate_lower_bound_95: number;
+  };
 }
 
 const heroNullsData = heroNullsJson as unknown as HeroNulls;

@@ -25,6 +25,15 @@
  * rate over observations, three of three is not enough to establish 70 per cent, and
  * the frame says so under the numbers rather than letting a strong per-observation
  * result imply a passed gate.
+ *
+ * Every figure in the limitation sentence is read from the gate's receipt, including
+ * the words "3 of 3". They were typed prose until they were not: the sentence
+ * asserted that all three testable observations discriminate, at a lower bound of
+ * 0.368, with nothing reading either number. A review of this project proposes adding
+ * `margin_over_best_null` to the `discriminates` criterion, which can drop an
+ * observation from that count, and the sentence would have quietly become false while
+ * every test stayed green. A number in a document that is not read from a receipt is
+ * the defect this console exists to argue against, and it had one.
  */
 import Link from "next/link";
 
@@ -44,6 +53,7 @@ function polyline(rows: number[], px: number[]): string {
 export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls }) {
   const { width, height } = data.image;
   const d = data.distribution;
+  const g = data.gate;
 
   // Stagger the nulls across 600 ms. The order is the file's order, which is by
   // ascending sigma, so the closest null arrives last and is on screen longest.
@@ -171,10 +181,12 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
         </dl>
         <p className="hero-plate-limit">
           This is one observation. Gate 3 asked for the corridor to intersect a
-          visible trace in 70% of reviewed positives, and all three testable
-          observations discriminate, which still does not establish a 70% rate: the
-          exact one-sided 95% lower bound on three of three is 0.368. The gate is
-          published as NOT_ESTABLISHED.{" "}
+          visible trace in {fmt(g.threshold * 100, 0)}% of reviewed positives, and{" "}
+          {g.observations_discriminating} of {g.observations_scored} testable
+          observations discriminate, which still does not establish a{" "}
+          {fmt(g.threshold * 100, 0)}% rate: the exact one-sided 95% lower bound on{" "}
+          {g.observations_discriminating} of {g.observations_scored} is{" "}
+          {fmt(g.rate_lower_bound_95, 3)}. The gate is published as {g.verdict}.{" "}
           <Link href={`/observation/${data.obs_id}`}>
             Open this observation
           </Link>

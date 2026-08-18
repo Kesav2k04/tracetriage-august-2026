@@ -345,6 +345,27 @@ def main() -> int:
             "offset_px": int(true_off),
             "px": _path(corridor, int(true_off)),
         },
+        # The gate's own verdict fields, so the caption under the plate is generated
+        # rather than typed. It said "all three testable observations discriminate"
+        # and "the lower bound on three of three is 0.368" as literal prose, which
+        # is the defect this project audits other people's documents for: a number
+        # in a document that is not read from a receipt. SPACE-B4 proposes adding
+        # margin_over_best_null to the `discriminates` criterion, which can drop an
+        # observation, and that sentence would have quietly become false.
+        "gate": {
+            "verdict": receipt["verdict"],
+            "threshold": receipt["threshold"],
+            "observations_decisive": receipt["observations_decisive"],
+            "observations_testable": receipt["observations_testable"],
+            "observations_scored": receipt["observations_scored"],
+            "observations_discriminating": sum(
+                1
+                for o in receipt["observations"]
+                if o["null_calibration"]["discriminates"]
+            ),
+            "discriminating_rate": receipt["discriminating_rate"],
+            "rate_lower_bound_95": receipt["rate_lower_bound_95"],
+        },
         "transform_residual_px": round(residual, 6),
         "transform_note": (
             "Paths are the scorer's own columns translated by EDGE_MARGIN_PX on both "
