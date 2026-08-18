@@ -156,7 +156,7 @@ Regenerate the fusion receipt with:
 UNIT C1: review-value queue and kill gate 6
 ================================================================================
 
-Estimated 5 to 7 coins. Do not start C2.
+Estimated 5 to 7 credits. Do not start C2.
 
 Gate 6, in the plan's words: "Require the top review queue to find at least 1.5
 times as many manually actionable conflicts as random ordering at the same budget."
@@ -238,5 +238,5 @@ Do not:
   it. Gate 5 went this way and was recorded as failed; that is the standard.
 
 Before editing, state the files you will create, your conflict definition, the
-review budget, the commands you will run, and your estimated Bobcoin risk. Collect
+review budget, the commands you will run, and your estimated build credit risk. Collect
 your Bob task ID before the session closes.

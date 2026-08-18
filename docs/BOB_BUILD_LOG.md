@@ -5,7 +5,7 @@ task, as it happens. Reconstructing this at the end produces something that read
 like a reconstruction, and it would be one.
 
 Every entry needs: the task, the files it touched, the commit SHA, the tests run
-and their result, what failed, what was repaired, and the **actual** Bobcoins spent.
+and their result, what failed, what was repaired, and the **actual** build credits spent.
 
 ---
 
@@ -18,7 +18,7 @@ and their result, what failed, what was repaired, and the **actual** Bobcoins sp
 **Commands run:** exact commands
 **Tests:** which suite, what result, which specific tests failed
 **Failures and repairs:** what broke, why, what fixed it
-**Coins:** estimated N, actual M
+**Credits:** estimated N, actual M
 **Bob task ID:** the task identifier from the Bob session, which is what ties this
 entry to a real task in the account rather than to a claim made about one
 **Commit:** SHA
@@ -90,7 +90,7 @@ Full suite deferred due to EasyOCR warm-up time (~20s per run); the 221 core tes
 4. Decision logic `calibrated_prob >= 0.5` raised on None. Fixed with `is not None`
    guard, with separate branch for null probability + corridor hit (→ no_conflict).
 
-**Coins:** estimated 5, actual ~6.
+**Credits:** estimated 5, actual ~6.
 
 **Commit:** (see `git log -1`)
 
@@ -159,7 +159,7 @@ the real grouped splits.
 **Runtime:** ~21 min on CPU (EasyOCR on 739 decisive waterfalls for CentreEnergy).
 HOG+LR extraction and training: ~4 min.
 
-**Coins:** estimated 3, actual ~3.
+**Credits:** estimated 3, actual ~3.
 
 **Commit:** (see `git log -1`)
 
@@ -216,7 +216,7 @@ future observations excluded explicitly. Preserve distinct `labelled_positive` a
 - Base-rate constants (29.0% decisive, 1.85:1 imbalance) as named module constants,
   tested against their documented values, not rebalanced.
 
-**Coins:** estimated 2, actual ~2.
+**Credits:** estimated 2, actual ~2.
 
 **Bob task ID:** (workspace `tracetriage-august-2026`, account 3)
 
@@ -256,7 +256,7 @@ future observations excluded explicitly. Preserve distinct `labelled_positive` a
 
 `split_manifest`: added `sampling_design` field to `required` (a stratified sample described as random is a leakage claim that fails review; the snapshot builder must document its stratification here). Added `no_station_across_splits` to `leakage_checks` (the draft had transmitter, revolution, duplicate, and future-feature checks, but cold-station splits need the equivalent station check). Added `required` to the `leakage_checks` object so validators enforce all flags. Added `required: [train, calibration, test]` to each split entry schema.
 
-**Coins:** estimated 1, actual 1.
+**Credits:** estimated 1, actual 1.
 
 **Bob task ID:** `a309025a1c82bfb4e34d882d02fa4066` (workspace `tracetriage-august-2026`, account 1)
 
@@ -268,7 +268,7 @@ future observations excluded explicitly. Preserve distinct `labelled_positive` a
 
 ### 2026-08-16 IST | Operator side, no Bob account | A0b: Contract gaps closed before A1
 
-**Origin:** hardening done outside a Bob task after A0 was committed. No Bobcoins
+**Origin:** hardening done outside a Bob task after A0 was committed. No build credits
 spent. Reviewed, corrected and accepted by Bob at A0b-INT below.
 
 **Why it exists.** A review of A0 against the A1 and A2 acceptance criteria found
@@ -338,7 +338,7 @@ that sentence is Bob's acceptance statement and belongs to Bob to correct.
 **Gate before commit:** 6/7, with only `working tree committed` red. Lint clean,
 34 tests pass offline.
 
-**Coins:** 0.
+**Credits:** 0.
 
 ---
 
@@ -370,7 +370,7 @@ anything wrong.
 `client_version` added to `required` on the observations entry in
 `dataset_manifest.schema.json`.
 
-**Coins:** 0. No new code was generated in this step. It is a review and an
+**Credits:** 0. No new code was generated in this step. It is a review and an
 acceptance decision.
 
 **Bob task ID:** `a309025a1c82bfb4e34d882d02fa4066` (workspace `tracetriage-august-2026`, account 1). Same ID as A0: this review ran inside the A0 session rather than a fresh one, so the two units share a task.
@@ -410,7 +410,7 @@ waterfalls). Resumable. Manifest validates against
   unused variable removed, import block sorted. All auto-fixable issues were applied
   with `ruff --fix`; remainder fixed manually. Zero errors on second pass.
 
-**Coins:** estimated 4 to 6, actual ~4.
+**Credits:** estimated 4 to 6, actual ~4.
 
 **Bob task ID:** `0a6a254d9495683ad0ae23538da646b0` (workspace `tracetriage-august-2026`, account 1)
 
@@ -474,7 +474,7 @@ restructured so all network work completes before any measurement, paging stops
 at ten with-signal observations across three client families, and a throttle
 costs the remaining images rather than the analysis.
 
-**Coins:** estimated 2, actual ~2.
+**Credits:** estimated 2, actual ~2.
 
 **Bob task ID:** `1c7c56d4cfab40a7ca8f2b68cf6f8951` (workspace `tracetriage-august-2026`, account 2)
 
@@ -539,7 +539,7 @@ complete and nothing later overwrites it by accident.
 4. `test_failed_record_validates_against_schema` failed because schema required `plot_box` to be non-null but our failed records have `plot_box=None`. Fixed by making `plot_box` nullable in the schema (version bump to 0.2.2).
 5. Lint: 35 errors on first pass (UP045 Optional usage, B904 exception chaining, SIM108, F401, I001). Fixed with `ruff --fix` plus manual edits.
 
-**Coins:** estimated 4 to 6, actual ~5.
+**Credits:** estimated 4 to 6, actual ~5.
 
 **Bob task ID:** `db67de0f0709c58bbc4155fdf78181c4` (workspace `tracetriage-august-2026`, account 2)
 
@@ -619,7 +619,7 @@ error distribution.
    TCA is firmly in the interior.
 4. Four ruff lint errors (I001, F401 ×2, SIM300) fixed with `ruff --fix`.
 
-**Coins:** estimated 3–4, actual ~3.
+**Credits:** estimated 3–4, actual ~3.
 
 **Bob task ID:** (workspace `tracetriage-august-2026`, account 3)
 
@@ -751,7 +751,7 @@ calibrators by reliability on 49 points would overfit the choice. B6: cold_combi
 trains on 945 against chronological's 2595, so a drop there confounds unseen entities
 with less data and needs a size-matched control.
 
-**Coins:** estimated 3 to 4, actual budget exceeded mid-unit.
+**Credits:** estimated 3 to 4, actual budget exceeded mid-unit.
 
 **Bob task ID:** `c3a0c9d2a43d8493ffcbe58ba4d78549` (workspace
 `tracetriage-august-2026`, account 3). Bob wrote the builder, the script and the
@@ -1022,7 +1022,7 @@ can fix, and it is invisible in metadata. Six of the twelve split partitions con
 Doppler-uncorrected observations, so any queue reason depending on corridor *shape* must
 degrade to a named state on the rest rather than to a zero.
 
-**Coins:** 0. Built by the operator.
+**Credits:** 0. Built by the operator.
 
 **Commit:** `8955e0b`
 
@@ -1093,7 +1093,7 @@ Conflict definition (fixed before measuring):
 3. Ruff: unused imports in run_queue.py and test_queue.py, SIM114/SIM102 violations,
    E501 long lines. All fixed.
 
-**Coins:** estimated 5, actual ~6.
+**Credits:** estimated 5, actual ~6.
 
 **Bob task ID:** 132f11e96a87ebc5c7bd1a9196322bb1
 
@@ -1826,8 +1826,58 @@ Pango fell back to a serif because IBM Plex is not installed system-wide, so the
 now converts the same woff2 files the site serves into outline fonts and registers
 them.
 
+### Page weight after the instruments
+
+The C5 entry recorded 8 to 18 kB compressed per page. That range no longer holds and the
+new one is worth stating rather than leaving a reader to find: measured on the deployed
+site with compression negotiated, the replay page is 8.4 kB, provenance 11.6 kB,
+evaluation 17.0 kB, the queue 19.0 kB, and an observation page 26.9 kB.
+
+The observation page carries the growth. It now ships seven sampled series of 104 points
+each so the four instruments and the shared clock can be drawn without a request, which
+is the trade: 9 kB of geometry against a round trip per plot. The sample count is printed
+on the page beside the interpolation note, so a reader can see what the number is bought
+with.
+
 ### Results
 
-745 offline tests pass, up from 732. Lint clean. Typecheck clean. Every colour
+744 offline tests pass and 1 is a declared expected failure, 745 collected, up from
+732 collected. The distinction matters and it was published wrongly until now: earlier
+entries in this log say "732 offline tests pass" and "721", and each of those was the
+COLLECTED count, which has always included the one `xfail` in
+`tests/test_claim_drift.py`. That marker has been in the suite since the scaffold
+commit, so every figure in the series overstated the passing count by exactly one. The
+measurement, from a run with warnings and tracebacks suppressed so the progress
+characters could be counted directly: 744 `.` and 1 `x`. The expected failure is the
+receipt-mutation test, and it is expected to fail because it is not implemented yet.
+Task D2 implements it and removes the marker; until then it is a promise recorded in
+the suite rather than a check the suite performs.
+
+Lint clean. Typecheck clean. Every colour
 tokenised. The build is 33 pages with 102 kB of shared client JavaScript and between
 131 B and 6.95 kB per route.
+
+### C7c: the vendor's currency name was in eight tracked documents
+
+The submission names its own build allowance in the vendor's branded currency, 79 times
+across eight tracked files including the README. A judge reading this repository does
+not need to know what the build was billed in, and the name is the kind of detail that
+tells a reader about the tooling rather than about the work.
+
+Removed, as an ordered substitution rather than a blind one, because the substring also
+occurs inside ordinary English words. The census first: 37 `coins`, 17 `Coins`, 10
+`coin`, 6 `Bobcoins`, 6 `Bobcoin`, 3 `BOBCOIN`, and zero hits on `coincide` or
+`coincidence`, which is what made a substring pass safe here and would not have been
+safe by default. The compound forms were replaced before the bare forms so a bare
+pattern could not eat half of a compound. `docs/BOBCOIN_BUDGET.md` was renamed to
+`docs/BUILD_BUDGET.md` with `git mv` so its history follows it, and the three filename
+references in `.bob/rules.md`, `docs/BOB_HANDOFF.md` and `docs/PRE_BUILD_BASELINE.md`
+were repointed in the same pass. Two headings needed their capital restored by hand,
+because the generic term is lowercase where the brand name was not.
+
+The term is now `build credit`, and the Wave D standing rules say so, so the next unit
+does not reintroduce it. Verification: zero occurrences of the substring remain in any
+tracked file outside the frozen API cache, which is third-party JSON and is not edited.
+
+The wave labels stay A, B, C and D throughout, which was already the rule. This entry
+extends the same reasoning from tool names to the tool's billing unit.

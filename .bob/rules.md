@@ -54,10 +54,10 @@ Two calibration facts from A3 that cost a rebuild if forgotten. **Time runs bott
 
 1. Inspect the repository and `docs/BOB_HANDOFF.md`. **Do not recreate finished files.**
 2. Work on **one acceptance-defined unit at a time**. The units are pre-written in `docs/BOB_TASK_PROMPTS.md` with their acceptance checks.
-3. Before editing, state: the exact files you will create, the commands you will run, the acceptance checks, and your estimated Bobcoin risk.
+3. Before editing, state: the exact files you will create, the commands you will run, the acceptance checks, and your estimated build credit risk.
 4. Run the unit's tests before reporting completion.
 5. **Do not claim completion when an artifact, metric, or external validation is missing.** Say what is missing.
-6. Append to `docs/BOB_BUILD_LOG.md`: task, files, commit SHA, tests run, failures, repairs, coins spent.
+6. Append to `docs/BOB_BUILD_LOG.md`: task, files, commit SHA, tests run, failures, repairs, credits spent.
 
 ## 7. Evidence discipline
 
@@ -71,9 +71,9 @@ The frozen test set is touched once, at the end. Not for tuning, not for a sanit
 
 Stop and document the failure in `docs/KILL_GATE.md`. Do not hide it, do not compensate with UI features, and do not soften the threshold after seeing the result. A documented honest failure is a better submission than a concealed one, and the plan says so explicitly.
 
-## 9. Before you run out of coins
+## 9. Before you run out of credits
 
-Stop starting features at **3 coins remaining**. Then: run the full test and acceptance suite, update `docs/BOB_HANDOFF.md` with exact next steps, update `docs/BOB_BUILD_LOG.md`, and export task history to `bob_sessions/` with secrets removed. Procedure in `docs/BOBCOIN_BUDGET.md`.
+Stop starting features at **3 credits remaining**. Then: run the full test and acceptance suite, update `docs/BOB_HANDOFF.md` with exact next steps, update `docs/BOB_BUILD_LOG.md`, and export task history to `bob_sessions/` with secrets removed. Procedure in `docs/BUILD_BUDGET.md`.
 
 ## 10. Git
 

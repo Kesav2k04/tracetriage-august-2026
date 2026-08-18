@@ -128,7 +128,7 @@ IBM Bob is the primary development tool for this project and builds every load-b
 
 Bob's work is recorded, not asserted:
 
-- `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures and repairs, with actual Bobcoin consumption
+- `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures and repairs, with actual build credit consumption
 - `docs/BOB_HANDOFF.md` carries exact state across trial-account rotations
 - `bob_sessions/` holds exported task histories and screenshots with secrets removed
 - a final Bob task inspects the release commit, runs the acceptance suite, repairs failures and generates a sign-off receipt

@@ -1,19 +1,19 @@
-# Bobcoin budget and account rotation
+# Build credit budget and account rotation
 
-Each IBM Bob trial account carries **40 Bobcoins**. The July 28 FAQ removed the single-account ceiling: when a trial expires or its coins are consumed, participants create another trial account with a different email and switch, following the published procedure. Use only accounts you own and preserve each account's genuine task history.
+Each IBM Bob trial account carries **40 build credits**. The July 28 FAQ removed the single-account ceiling: when a trial expires or its credits are consumed, participants create another trial account with a different email and switch, following the published procedure. Use only accounts you own and preserve each account's genuine task history.
 
 ---
 
 ## Per-account allocation
 
-The plan's split, applied to every 40-coin account:
+The plan's split, applied to every 40-credit account:
 
-| Purpose | Coins | Notes |
+| Purpose | Credits | Notes |
 |---|---|---|
 | Focused context and contracts | 4 | reading the handoff, ratifying schemas, stating the plan for a unit |
 | Implementation | 27 | the actual build |
 | Tests and repairs | 6 | writing tests, fixing what they catch |
-| Handoff reserve | 3 | **untouchable.** Rotation costs coins too. |
+| Handoff reserve | 3 | **untouchable.** Rotation costs credits too. |
 | **Total** | **40** | |
 
 **Actual consumption controls the cutoff, not this table.** Log the real cost of each unit in `docs/BOB_BUILD_LOG.md` and correct the wave estimates for the next account.
@@ -29,24 +29,24 @@ The plan's split, applied to every 40-coin account:
 
 Wave A's estimate deliberately leaves headroom inside the first 40. A3 may expand: it is a research unit, and if the Doppler-correction answer splits by client family, resolving it properly is worth more than the estimate.
 
-The mapping is a plan, not a constraint. If Wave A finishes at 24 coins, start B1 on the same account.
+The mapping is a plan, not a constraint. If Wave A finishes at 24 credits, start B1 on the same account.
 
 ---
 
-## The 3-coin rule
+## The 3-credit rule
 
-**Stop starting new features when 3 coins remain.** Not "finish what you are doing and then stop", stop starting.
+**Stop starting new features when 3 credits remain.** Not "finish what you are doing and then stop", stop starting.
 
-An account that dies mid-unit with no handoff costs far more than 3 coins, because the next account cannot tell what is finished, what is half-written, and what is broken. It re-reads everything, and often rebuilds something that already worked.
+An account that dies mid-unit with no handoff costs far more than 3 credits, because the next account cannot tell what is finished, what is half-written, and what is broken. It re-reads everything, and often rebuilds something that already worked.
 
 ## Rotation procedure
 
 Run in order. Do not skip step 2 because the code "obviously works".
 
-1. **Stop starting features.** Finish only what can complete inside the remaining coins.
+1. **Stop starting features.** Finish only what can complete inside the remaining credits.
 2. **Run the full test and acceptance suite.** Record exactly what passes and what does not. A known failure written down is useful; a hidden one poisons the next account.
 3. **Update `docs/BOB_HANDOFF.md`:** completed work, open failures, the *exact* next unit, changed files, test commands, dataset and model hashes, architectural decisions and why.
-4. **Update `docs/BOB_BUILD_LOG.md`:** genuine task history, commit SHAs, failures, repairs, actual coins spent per unit.
+4. **Update `docs/BOB_BUILD_LOG.md`:** genuine task history, commit SHAs, failures, repairs, actual credits spent per unit.
 5. **Export task history and screenshots to `bob_sessions/`,** secrets removed before writing.
 6. **Commit** as `Kesav2k04 <kesavk659@gmail.com>`, no trailers.
 
@@ -57,7 +57,7 @@ Run in order. Do not skip step 2 because the code "obviously works".
 3. Have the account read `.bob/rules.md` and `docs/BOB_HANDOFF.md`, rerun the tests, and inspect the current code **before** touching anything.
 4. Continue at the next unfinished unit.
 
-**It must not regenerate completed modules.** A rebuild wastes coins and, worse, breaks the continuity of the build record that proves Bob owned the judged path.
+**It must not regenerate completed modules.** A rebuild wastes credits and, worse, breaks the continuity of the build record that proves Bob owned the judged path.
 
 ---
 
@@ -65,16 +65,16 @@ Run in order. Do not skip step 2 because the code "obviously works".
 
 Fill this in as accounts are used. Estimates without actuals are worthless for planning account 3.
 
-| Account | Email | Started | Ended | Wave | Units done | Coins used | Notes |
+| Account | Email | Started | Ended | Wave | Units done | Credits used | Notes |
 |---|---|---|---|---|---|---|---|
-| 1 | kesavk659@gmail.com | 2026-08-16 18:21 IST | | A | A0, A1 | see note | In progress, next unit A2. **Reconcile this.** The A0 entry in `BOB_BUILD_LOG.md` records "estimated 1, actual 1", but the account counter moved 5.42 over the first two tasks. Either the per-task figures are understated, or per-chat overhead is billed on top of task work. Read the account's own per-task numbers and correct this row, because the Wave A estimate of ~20 coins depends on which it is. |
+| 1 | kesavk659@gmail.com | 2026-08-16 18:21 IST | | A | A0, A1 | see note | In progress, next unit A2. **Reconcile this.** The A0 entry in `BOB_BUILD_LOG.md` records "estimated 1, actual 1", but the account counter moved 5.42 over the first two tasks. Either the per-task figures are understated, or per-chat overhead is billed on top of task work. Read the account's own per-task numbers and correct this row, because the Wave A estimate of ~20 credits depends on which it is. |
 
-## What burns coins fastest
+## What burns credits fastest
 
 Observed patterns worth avoiding, from the plan and from how these accounts fail:
 
 - **Rediscovery.** Re-probing an API whose behaviour is already in `docs/SATNOGS_API_RECON.md`. This is why that file carries numbers instead of prose.
 - **Rebuilding on a wrong constant.** The `samp-rate-rx` trap costs a whole physics unit plus the debugging that follows.
-- **Unbounded units.** A task without acceptance criteria expands until the coins run out. Every unit in the prompt file has them.
+- **Unbounded units.** A task without acceptance criteria expands until the credits run out. Every unit in the prompt file has them.
 - **Regeneration after rotation.** Prevented by an honest handoff, not by hope.
 - **Concept re-litigation.** Bob does not need to re-select the concept, re-research competitors, or reconsider the rejected PassCast design. That decision is made.

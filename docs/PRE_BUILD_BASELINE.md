@@ -22,7 +22,7 @@ ingestion, waterfall parsing, physics, the model ladder, calibration, abstention
 
 ### Why prepare anything at all
 
-Each Bob trial account carries 40 Bobcoins. Coins spent rediscovering that `db.satnogs.org/api/observations/` returns 404, or that `end__lte=` is silently ignored, or that the waterfall does not span `samp-rate-rx`, are coins not spent on the model, the calibration, or the queue. The reconnaissance below cost zero Bobcoins and removes roughly a day of dead ends.
+Each Bob trial account carries 40 build credits. Credits spent rediscovering that `db.satnogs.org/api/observations/` returns 404, or that `end__lte=` is silently ignored, or that the waterfall does not span `samp-rate-rx`, are credits not spent on the model, the calibration, or the queue. The reconnaissance below cost zero build credits and removes roughly a day of dead ends.
 
 That is the whole rationale. It buys Bob more room on the judged path, not less.
 
@@ -85,7 +85,7 @@ All four carry `"status": "DRAFT - not authoritative until Bob ratifies it"` and
 
 ## 6. Documents
 
-`docs/SATNOGS_API_RECON.md` (findings), `docs/KILL_GATE.md` (status board, 3 of 6 gates pre-measured), `docs/BOB_TASK_PROMPTS.md` (master prompt plus 7 acceptance-defined Wave A units and outlines for B, C, D), `docs/BOB_HANDOFF.md`, `docs/BOB_BUILD_LOG.md` (empty), `docs/BOBCOIN_BUDGET.md`, `docs/ACTOR_AND_PERMISSION_CONTRACT.md`, `docs/CLAIM_REGISTER.md` (empty), `.bob/rules.md`.
+`docs/SATNOGS_API_RECON.md` (findings), `docs/KILL_GATE.md` (status board, 3 of 6 gates pre-measured), `docs/BOB_TASK_PROMPTS.md` (master prompt plus 7 acceptance-defined Wave A units and outlines for B, C, D), `docs/BOB_HANDOFF.md`, `docs/BOB_BUILD_LOG.md` (empty), `docs/BUILD_BUDGET.md`, `docs/ACTOR_AND_PERMISSION_CONTRACT.md`, `docs/CLAIM_REGISTER.md` (empty), `.bob/rules.md`.
 
 ---
 

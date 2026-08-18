@@ -224,7 +224,7 @@ Additional hardening in `038ed1a`. **Do not overwrite it.** EasyOCR's weights ar
 
 ### Budget
 
-40 Bobcoins is per trial account, not a project ceiling. The July 28 FAQ removed the single-account limit (`BOBCOIN_BUDGET.md` line 3, `MASTER_PLAN_TRACE_TRIAGE.md` line 154): when coins run out, create another trial with a different email you own and follow the published switch procedure. A rotation is a planned event, not a failure. What costs you is a bad handoff, so the stop-at-3-coins rule and the rotation checklist below are the parts that matter.
+40 build credits is per trial account, not a project ceiling. The July 28 FAQ removed the single-account limit (`BUILD_BUDGET.md` line 3, `MASTER_PLAN_TRACE_TRIAGE.md` line 154): when credits run out, create another trial with a different email you own and follow the published switch procedure. A rotation is a planned event, not a failure. What costs you is a bad handoff, so the stop-at-3-credits rule and the rotation checklist below are the parts that matter.
 
 ---
 
@@ -244,7 +244,7 @@ Exhaustive inventory with the boundary: **`docs/PRE_BUILD_BASELINE.md`**.
 
 ---
 
-## Facts already verified. Do not spend coins rediscovering these.
+## Facts already verified. Do not spend credits rediscovering these.
 
 Full method and numbers: `docs/SATNOGS_API_RECON.md`. The short version:
 
@@ -308,12 +308,12 @@ Wave A is complete (A0–A7). The seam works. The corridor intersects the trace 
 
 ## Rotation checklist
 
-Before the account runs dry, at **3 coins remaining**:
+Before the account runs dry, at **3 credits remaining**:
 
 1. Stop starting new features.
 2. Run the full test and acceptance suite. Record what passes and what does not.
 3. Update this file: completed work, open failures, **exact** next task, changed files, test commands, dataset and model hashes, architectural decisions taken.
-4. Update `docs/BOB_BUILD_LOG.md` with the genuine task history, commit SHAs, failures, repairs and actual coin use.
+4. Update `docs/BOB_BUILD_LOG.md` with the genuine task history, commit SHAs, failures, repairs and actual credit use.
 5. Export task history and screenshots to `bob_sessions/`, secrets removed.
 6. Commit.
 

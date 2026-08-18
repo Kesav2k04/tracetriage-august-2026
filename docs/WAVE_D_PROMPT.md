@@ -51,8 +51,9 @@ are met, two came back inconclusive, one was never run:
 The static console is deployed and live. It is a Next.js 15 static export: no server,
 no database, no runtime fetch, no credentials. Four instruments on one clock sit on each
 observation page (waterfall with the fitted corridor, polar sky track, ground track with
-the horizon circle, and elevation and Doppler against time). 745 offline tests pass,
-lint is clean, typecheck is clean.
+the horizon circle, and elevation and Doppler against time). 745 offline tests are
+collected: 744 pass, and 1 is a declared expected failure that task D2 below implements.
+Lint is clean, typecheck is clean.
 
 Three documentation defects were found in C7 by reading the docs against the receipts,
 and all three are fixed. Know about them, because the fix changes how you must work:
@@ -198,6 +199,9 @@ STANDING RULES, ALL WAVES
   end of the day". Never claim writing is original, human or undetectable.
 - Naming: work units are A, B, C and D. Do not name any tool, model or assistant
   anywhere in a commit message, document, comment, receipt or report.
+- The build allowance is called a build credit, and the budget document is
+  docs/BUILD_BUDGET.md. Do not reintroduce the vendor's currency name; it was removed
+  from every tracked document in C7 and a judge does not need it.
 - Do not weaken a gate to pass it. A gate that would have killed the project is worth
   more than one that could not.
 

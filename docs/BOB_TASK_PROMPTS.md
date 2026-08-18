@@ -1,20 +1,20 @@
 # Bob task prompts
 
-Paste-ready units. Each one is scoped to a single acceptance-defined deliverable so Bob spends coins building rather than planning, and so a session that dies mid-wave loses at most one unit.
+Paste-ready units. Each one is scoped to a single acceptance-defined deliverable so Bob spends credits building rather than planning, and so a session that dies mid-wave loses at most one unit.
 
 **How to use:** paste the master prompt once per new trial account. Then paste one unit at a time, in order. Do not paste a whole wave.
 
-**Estimates are risk budgets, not promises.** Actual Bobcoin consumption controls the cutoff. Log the real number in `docs/BOB_BUILD_LOG.md` after each unit and correct the estimate for the next account.
+**Estimates are risk budgets, not promises.** Actual build credit consumption controls the cutoff. Log the real number in `docs/BOB_BUILD_LOG.md` after each unit and correct the estimate for the next account.
 
 ---
 
 ## The bar every unit prompt must clear
 
-A vague prompt does not fail cheaply. It burns coins producing something plausible that has to be thrown away, and on a 40-coin account that is the difference between shipping Wave B and not. The Wave A units below were written against these six tests, and **any prompt added for Waves B, C or D must pass all six before it is pasted.**
+A vague prompt does not fail cheaply. It burns credits producing something plausible that has to be thrown away, and on a 40-credit account that is the difference between shipping Wave B and not. The Wave A units below were written against these six tests, and **any prompt added for Waves B, C or D must pass all six before it is pasted.**
 
 **1. Falsifiable acceptance.** Every unit ends in checks that can only come back pass or fail. "Tests pass" is not one. "Hz/px within 1% of 123.46 and 80.00 on the two committed fixtures" is. If a reviewer cannot run the check and get a verdict without judgement, rewrite it.
 
-**2. Carries the verified facts inline.** Each unit repeats the specific measurements it depends on, with numbers, rather than pointing at a document and hoping. A0 restates that `client_metadata` is a JSON string. A2 restates both Hz/px values. Redundancy is cheap; a coin spent rediscovering a known fact is not.
+**2. Carries the verified facts inline.** Each unit repeats the specific measurements it depends on, with numbers, rather than pointing at a document and hoping. A0 restates that `client_metadata` is a JSON string. A2 restates both Hz/px values. Redundancy is cheap; a credit spent rediscovering a known fact is not.
 
 **3. Names the trap.** Every unit that has a known failure mode states it and what it costs. A2 says assuming `samp-rate-rx` compresses the corridor from 118 px to 5 px. A6 says beating an uncalibrated baseline proves nothing. A prompt that only describes the happy path invites the exact failure it was meant to avoid.
 
@@ -34,7 +34,7 @@ Score it honestly, and rewrite anything scoring below 4:
 | **Impact** | it closes a gate, unblocks a dependency, or removes a load-bearing unknown |
 | **Outcome** | the artifact it produces is one a judge could open and verify |
 
-A unit that cannot state which kill gate it advances, or which unknown it removes, is not ready to be pasted. Fix the prompt before spending the coin.
+A unit that cannot state which kill gate it advances, or which unknown it removes, is not ready to be pasted. Fix the prompt before spending the credit.
 
 ---
 
@@ -80,7 +80,7 @@ Execution rule for every task:
 Inspect the repo and handoff first. Do not recreate finished files. Work on one
 acceptance-defined unit at a time. Before editing, state the exact files you will
 create, the commands you will run, the acceptance checks, and your estimated
-Bobcoin risk. Run the tests before reporting completion. Never claim completion
+build credit risk. Run the tests before reporting completion. Never claim completion
 when an artifact, metric or external validation is missing.
 
 Acknowledge by listing what already exists and which unit you are starting.
@@ -90,11 +90,11 @@ Acknowledge by listing what already exists and which unit you are starting.
 
 # Wave A: snapshot, physics, baseline, first evidence slice
 
-Target: **~14 coins.** Owns the kill gate, data contracts, immutable snapshot, label provenance, first physics overlay, image baseline, and one end-to-end evidence card.
+Target: **~14 credits.** Owns the kill gate, data contracts, immutable snapshot, label provenance, first physics overlay, image baseline, and one end-to-end evidence card.
 
 ---
 
-### A0. Ratify the data contracts *(~1 coin)*
+### A0. Ratify the data contracts *(~1 credit)*
 
 ```text
 Read contracts/*.schema.json. They are DRAFTS written before your first task and
@@ -118,7 +118,7 @@ ACCEPTANCE:
 
 ---
 
-### A1. Immutable snapshot builder *(~4 coins)*
+### A1. Immutable snapshot builder *(~4 credits)*
 
 ```text
 Build pipeline/tracetriage/snapshot.py: fetch a bounded, reproducible snapshot of
@@ -196,7 +196,7 @@ ACCEPTANCE:
 
 ---
 
-### A2. Waterfall artifact parser *(~3 coins)*
+### A2. Waterfall artifact parser *(~3 credits)*
 
 ```text
 Build pipeline/tracetriage/waterfall.py: turn a SatNOGS waterfall PNG into a
@@ -233,7 +233,7 @@ ACCEPTANCE:
 
 ---
 
-### A3. Resolve the Doppler-correction question *(~2 coins)*
+### A3. Resolve the Doppler-correction question *(~2 credits)*
 
 ```text
 BLOCKING RESEARCH UNIT. Do not build the corridor overlay until this is answered.
@@ -270,7 +270,7 @@ ACCEPTANCE:
 
 ---
 
-### A4. Physics corridor module *(~3 coins)*
+### A4. Physics corridor module *(~3 credits)*
 
 ```text
 Build pipeline/tracetriage/physics.py: the expected-frequency corridor for an
@@ -326,7 +326,7 @@ Requirements:
   at least 200 observations and report the error DISTRIBUTION, not one example
 
 RATE LIMIT WARNING. The public API throttled this project twice, at 1551 s and
-3419 s, and each block costs an hour of waiting rather than a coin. For 200
+3419 s, and each block costs an hour of waiting rather than a credit. For 200
 observations you need about 8 listing pages and ZERO waterfall downloads, since
 geometry validation needs only the record. Page with the Link: rel="next" cursor
 (id__lt and end__lte are accepted with HTTP 200 and silently ignored), space
@@ -347,7 +347,7 @@ ACCEPTANCE:
 
 ---
 
-### A5. Label provenance builder *(~2 coins)*
+### A5. Label provenance builder *(~2 credits)*
 
 ```text
 Build pipeline/tracetriage/provenance.py and docs/LABEL_PROVENANCE.md.
@@ -380,13 +380,13 @@ MEASURED IN A3, AND EACH ONE IS A LABEL TRAP:
    later stage tell "labelled positive" apart from "measurable", because A6's
    baseline will otherwise train against a target it cannot see.
 
-Also verified and not worth a coin to rediscover: `client_metadata` is a
+Also verified and not worth a credit to rediscover: `client_metadata` is a
 JSON-encoded STRING, not an object. `end__lte=` and `id__lt=` are accepted with
 HTTP 200 and silently ignored; page with the Link: rel="next" cursor.
 `waterfall_status=` as a query filter returns HTTP 400; filter it client-side.
 
 RATE LIMIT WARNING. The public API throttled this project twice, at 1551 s and
-3419 s, and a block costs an hour of waiting rather than a coin. If this unit
+3419 s, and a block costs an hour of waiting rather than a credit. If this unit
 needs live records, cache every page to disk on the way in and reuse the cache;
 scripts/a3_doppler_investigation.py already does this. Prefer working from
 artifacts already on disk.
@@ -404,7 +404,7 @@ ACCEPTANCE:
 
 ---
 
-### A6. Image-only baseline *(~2 coins)*
+### A6. Image-only baseline *(~2 credits)*
 
 ```text
 Build the first two rungs of the model ladder as the honest baseline everything
@@ -493,7 +493,7 @@ ACCEPTANCE:
 
 ---
 
-### A7. End-to-end evidence card slice *(~3 coins)*
+### A7. End-to-end evidence card slice *(~3 credits)*
 
 ```text
 One observation, all the way through: snapshot -> waterfall parse -> physics
@@ -582,7 +582,7 @@ ACCEPTANCE:
 ## A7b-INT: integration review of the gate-3 measurement (NOT RUN, superseded)
 
 > **Decision, 17 August 2026: this unit was skipped.** The operator chose to move
-> Bob straight to Wave B rather than spend 2 coins on an acceptance review of the
+> Bob straight to Wave B rather than spend 2 credits on an acceptance review of the
 > gate-3 repair. The three findings that constrain Wave B were folded into the B1
 > prompt instead (`BOB_PASTE_2_B1.txt`), so Bob is told the corrected-corridor
 > result rather than asked to ratify it.
@@ -594,7 +594,7 @@ ACCEPTANCE:
 > Everything else in Wave A is Bob's.
 >
 > The unit below is kept unrun so the decision is inspectable and so it can still
-> be handed to Bob later if coins allow.
+> be handed to Bob later if credits allow.
 
 ### Original unit text
 
@@ -602,7 +602,7 @@ ACCEPTANCE:
 An operator-side review found the gate-3 check could not fail and replaced it.
 Commit `c22433f`. Your job is to review that change, run it, and either accept it
 or reject it with a reason. Do not rebuild it, and do not accept it on the
-strength of this description. Estimated **2 coins.**
+strength of this description. Estimated **2 credits.**
 
 ### What was wrong with your A7
 
@@ -703,7 +703,7 @@ one, and rejecting any of them is a legitimate outcome if you can say why.
 ### Then
 
 - Append your task to `docs/BOB_BUILD_LOG.md` in the existing format: task,
-  files, commands, tests, failures, repairs, coins, commit SHA, Bob task ID.
+  files, commands, tests, failures, repairs, credits, commit SHA, Bob task ID.
 - If you accept, say so and record which of the five judgement calls you
   independently agree with, and any you would change later.
 - If you reject any part, say exactly what and why, and fix it yourself.
@@ -720,7 +720,7 @@ one, and rejecting any of them is a legitimate outcome if you can say why.
 
 # Wave B: splits, fusion, calibration, abstention
 
-Target: **~14 coins.** Do not start until gates 3, 4 and 5 have recorded results.
+Target: **~14 credits.** Do not start until gates 3, 4 and 5 have recorded results.
 
 - **B1** Grouped split builder and leakage audit. Chronological, cold-station, cold-transmitter, combined. Each transmitter and orbital revolution in exactly one split. Emit `artifacts/SPLIT_MANIFEST.json` and `artifacts/LEAKAGE_AUDIT.json`. Test that a duplicate image cannot cross a split. *(~3)*
 - **B2** Fusion head over image, metadata and physics features. Compare against every earlier rung. *(~3)*
@@ -735,7 +735,7 @@ Gate 5 closes here. Gate 6 needs B1 plus Wave C.
 
 # Wave C: queue, annotation, console
 
-Target: **~14 coins.**
+Target: **~14 credits.**
 
 - **C1** Review-value ranking: disagreement, physics conflict, uncertainty, novelty, coverage gaps. *(~3)*
 - **C2** Duplicate control and entity-concentration limits, so one noisy station cannot flood the budget. *(~2)*
@@ -759,7 +759,7 @@ Target: **~14 coins.**
 
 # Wave D: release hardening
 
-Target: **~12 coins.**
+Target: **~12 credits.**
 
 - **D1** Failure injection across the full list: malformed image, blank image, missing TLE, stale TLE, absent frequency bins, wrong start offset, multiple traces, network outage, missing model, unsupported client format, empty queue, Granite timeout. Each returns a named degraded state. *(~3)*
 - **D2** Claim register and drift tests. Every README and video number maps to a generated receipt, and a mutation test fails when they diverge. *(~2)*
