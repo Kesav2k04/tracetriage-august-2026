@@ -4,7 +4,7 @@
 
 Submitted to the AI Builders Challenge with IBM Bob, August 2026 theme: **Advance Space Exploration with AI**.
 
-> **Status: pre-kill-gate scaffold.** No measured result exists yet. Every number in this README is a placeholder marked `[UNMEASURED]` and must be replaced by a value generated from a frozen artifact in `artifacts/`, never typed by hand. `tests/test_claim_drift.py` is designed to fail if a README number stops matching its receipt. Do not remove a marker without adding the receipt that replaces it.
+> **Status: six kill gates asked, three met, two inconclusive, one not run.** Every number in this README is generated from a frozen artifact under `artifacts/` and carries a row in `docs/CLAIM_REGISTER.md`; `tests/test_claim_drift.py` fails if a README number stops matching its receipt or loses its register row. The two inconclusive gates are reported as NOT_ESTABLISHED rather than rounded into a pass, and the gate that was never run is reported as OPEN rather than omitted.
 
 ---
 
@@ -64,13 +64,59 @@ provenance  image   SGP4 residual  artifact
       per-item evidence receipt -> static console
 ```
 
+**Step by step, in the order it runs.** The diagram above is the shape; this is the
+sequence, and every step writes a file that the next one reads.
+
+1. **Snapshot.** `scripts/recon` pulls SatNOGS observation metadata and waterfall
+   images through the public API and freezes them, recording a SHA-256 per file, the
+   retrieval time, and the CC BY-SA 4.0 terms. Nothing downstream reaches the network.
+   The snapshot id is printed on every page of the console.
+2. **Contracts.** Each stage's output schema is written and ratified in `contracts/`
+   before the script that writes against it runs. A receipt that violates its contract
+   never reaches disk, so a malformed measurement cannot be published and noticed
+   later. `schema_version` is pinned by `const`, so a receipt from an older script
+   cannot validate as current.
+3. **Physics.** `pipeline/tracetriage/physics.py` propagates each pass with SGP4 from
+   the TLE that was current at the observation start, computes the Doppler curve from
+   range rate, and maps it to pixel columns through the image's own frequency axis.
+   Elevation is measured from the WGS-84 geodetic normal.
+4. **Splits.** `pipeline/tracetriage/splits.py` builds four holdouts: chronological,
+   cold-station, cold-transmitter, and cold on both at once. Each transmitter and each
+   orbital revolution is confined to one partition. The combined split excludes rather
+   than assigns the rows that would break its own guarantee, and states the count.
+   Leakage checks fail the build if any check examined zero records.
+5. **Features and the model ladder.** Centre-energy heuristic, then HOG with
+   regularised logistic regression, then a corridor matched filter, then a fusion head
+   over image plus metadata plus physics. Each rung is compared against the one below
+   it with a grouped bootstrap, and a rung that does not improve on the last is
+   dropped by the ablation rather than kept.
+6. **Calibration and abstention.** Temperature or isotonic fitting on a later time
+   period than training, then a selective-prediction curve so a risk ceiling can be
+   traded against coverage.
+7. **Queue.** `scripts/run_queue.py` ranks the test partition, deduplicates repeated
+   observations of one pass episode, and measures lift against random, against
+   first-in-first-out, and against an image-only uncertainty ordering at the same
+   review budget. Intervals are bootstrapped over pass episodes and over ground
+   stations, and the reported interval is the union of the two.
+8. **Export and console.** `scripts/build_console_data.py` projects the receipts into
+   the four JSON files the site reads, refusing to substitute a null for a field it
+   could not find. `apps/web` is a Next.js static export: no server, no database, no
+   runtime fetch, no credentials.
+
 **Model ladder**, each rung compared against the last: centre-energy heuristic, HOG plus regularised logistic regression, a frozen MobileNetV3-Small or ResNet18 encoder, a physics-only residual model, then a fusion head over image plus metadata plus physics. Calibration by temperature or isotonic fitting on a later time period. Selective or conformal abstention on top.
 
 **Evaluation is grouped, never random.** Random image splits leak station, satellite and rendering patterns. Holdouts are chronological, cold-station, cold-transmitter, and combined cold-station-and-transmitter, with each transmitter and orbital revolution confined to a single split. Bootstrap intervals are computed over orbital episodes or days, not image rows.
 
 **Labels are silver, not truth.** `waterfall_status` supplies weak supervision. Unknowns stay unlabelled rather than being coerced into a negative class. A blinded local audit with separate artifact, visible-signal and target-consistency axes decides the evaluation target.
 
-**IBM Granite is conditional and optional.** A local open Granite model may translate a bounded natural-language request into typed queue filters. A plain form remains the primary control. Granite is removed if it alters a single number, accepts an unsupported field, or fails an exact semantic test.
+**IBM Granite was scoped and not built, and the reason is on the record.** The plan was
+a local open Granite model translating a bounded natural-language request into typed
+queue filters, with a plain form as the primary control and three conditions for
+removal: if it altered a single number, accepted an unsupported field, or failed an
+exact semantic test. None of that shipped. The queue's filters are a plain form, which
+is what the plan called the primary control. Stating this as delivered would be the
+easiest claim in this document to make and the easiest to check, so it is stated as
+not delivered instead.
 
 ### Selected challenge theme
 
@@ -112,20 +158,40 @@ supports is what TraceTriage ranks on.
 
 Full method, margins and open questions: **`docs/DOPPLER_CORRECTION_FINDING.md`**.
 
-### Not yet measured
+### Measured, with receipts
+
+Every cell below is read from a receipt under `artifacts/` and registered in
+`docs/CLAIM_REGISTER.md`. Two of the six kill gates came back inconclusive and one was
+never run; those rows say so rather than being left out.
 
 | Metric | Value | Receipt |
 |---|---|---|
-| Brier score, chronological holdout | `[UNMEASURED]` | pending |
-| Calibration slope / intercept | `[UNMEASURED]` | pending |
-| Queue lift over random, at fixed budget | `[UNMEASURED]` | pending |
-| Queue lift over image-only uncertainty | `[UNMEASURED]` | pending |
-| Selective risk at 80% coverage | `[UNMEASURED]` | pending |
-| Cold-station holdout result | `[UNMEASURED]` | pending |
-| Cold-transmitter holdout result | `[UNMEASURED]` | pending |
-| Human minutes per confirmed finding | `[UNMEASURED]` | pending |
+| Brier score, chronological holdout | 0.1292 for the shipped arm, against 0.1495 image-only and 0.2085 for a prior-only floor | `FUSION_RECEIPT.json` |
+| AUC, chronological holdout | 0.875, against 0.842 image-only | `FUSION_RECEIPT.json` |
+| Calibration slope and intercept | 1.483 and -0.246, ECE 0.0713 | `FUSION_RECEIPT.json` |
+| Selective risk near 80% coverage | 0.0857 at 79.5% coverage | `FUSION_RECEIPT.json` |
+| Queue lift over random, chronological | 1.582x, 95% CI [1.353, 1.755], **NOT_ESTABLISHED** against a 1.5x threshold | `QUEUE_RECEIPT.json` |
+| Queue lift over image-only uncertainty | 1.582x against 1.186x at the same budget | `QUEUE_RECEIPT.json` |
+| Queue lift over first-in-first-out | 1.582x against 1.107x | `QUEUE_RECEIPT.json` |
+| Cold-station holdout | **PASSED**, 2.253x, 95% CI [1.920, 3.896] | `QUEUE_RECEIPT.json` |
+| Cold-transmitter holdout | 1.656x, 95% CI [1.340, 1.913], NOT_ESTABLISHED | `QUEUE_RECEIPT.json` |
+| Cold station and transmitter together | 1.292x, 95% CI [1.073, 1.520], NOT_ESTABLISHED | `QUEUE_RECEIPT.json` |
+| Physics beats image-only on Brier | **NOT ESTABLISHED**. Margin +0.02079, interval spans zero | `FUSION_RECEIPT.json` gate5 |
 
-Nothing above may be filled in from a training run alone. Each cell needs a generated artifact under `artifacts/` and a row in `docs/CLAIM_REGISTER.md`.
+### Still unmeasured, and named as such
+
+| Metric | Value | Why |
+|---|---|---|
+| Human minutes per confirmed finding | `[UNMEASURED]` | Kill gate 4, the blinded human decidability study, was never run. Any number here would be an estimate wearing a measurement's clothes. |
+| Blinded human decidability rate | `[UNMEASURED]` | Same gate. The console reports it as OPEN rather than as a value, and the gate tally counts it as not met. |
+
+The queue's headline result is inconclusive, and that is the honest reading:
+1.582x is above the 1.5x threshold as a point estimate,
+but its interval contains 1.5, so the evidence does not exclude a queue that clears the
+bar by nothing. It also sits entirely above 1.0, so the ranking is not nothing either.
+The cold-station split, the one where a reviewer meets stations the model never trained
+on, does clear the threshold. It does not substitute for the primary split and is not
+presented as if it did.
 
 ## Setup
 

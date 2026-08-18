@@ -82,3 +82,14 @@ numbers arrive:
 | The gate tally on every page is computed from the receipts | 3 of 6 met; gates 5 and 6 read from their receipts, an unknown verdict raises | console side rail, `provenance.json` | `build_gate_summary` in `scripts/build_console_data.py` | C7 | 2026-08-18 |
 | Every colour in the console is a token | 11 inlined hex values removed, 0 remaining in `app/` and `components/` | C7 build log entry | repository grep for hex literals in TSX | C7 | 2026-08-18 |
 | The corridor explainer uses only values from the card it names | 61 px, 5,648 Hz, 13.0 ppm at 92.6 Hz per pixel, observation 14745984 | `media/explainer` video, `scripts/explainer_corridor.py` | the exported card for that observation | C7 | 2026-08-18 |
+| Brier score, chronological holdout | 0.1292 shipped arm, 0.1495 image-only, 0.2085 prior-only floor | README, evaluation page | `artifacts/FUSION_RECEIPT.json` splits.chronological.arms | C7 | 2026-08-18 |
+| AUC, chronological holdout | 0.875 shipped arm, 0.842 image-only | README, evaluation page | `artifacts/FUSION_RECEIPT.json` splits.chronological.arms | C7 | 2026-08-18 |
+| Calibration slope and intercept | slope 1.483, intercept -0.246, ECE 0.0713 | README, evaluation page | `artifacts/FUSION_RECEIPT.json` splits.chronological.arms.image_corridor | C7 | 2026-08-18 |
+| Selective risk near 80% coverage | risk 0.0857 at 79.5% coverage | README, evaluation page | `artifacts/FUSION_RECEIPT.json` splits.chronological.selective.curve | C7 | 2026-08-18 |
+| Queue lift over random, chronological | 1.582x, 95% CI [1.353, 1.755], NOT_ESTABLISHED | README, queue page, KILL_GATE.md | `artifacts/QUEUE_RECEIPT.json` gate6.per_split.chronological | C7 | 2026-08-18 |
+| Queue lift over image-only uncertainty | 1.582x against 1.186x at the same budget | README, replay page | `artifacts/QUEUE_RECEIPT.json` gate6.per_split.chronological | C7 | 2026-08-18 |
+| Queue lift over first-in-first-out | 1.582x against 1.107x | README, replay page | `artifacts/QUEUE_RECEIPT.json` gate6.per_split.chronological | C7 | 2026-08-18 |
+| Cold-station holdout | PASSED, 2.253x, 95% CI [1.920, 3.896] | README, queue page | `artifacts/QUEUE_RECEIPT.json` gate6.per_split.cold_station | C7 | 2026-08-18 |
+| Cold-transmitter holdout | 1.656x, 95% CI [1.340, 1.913], NOT_ESTABLISHED | README, queue page | `artifacts/QUEUE_RECEIPT.json` gate6.per_split.cold_transmitter | C7 | 2026-08-18 |
+| Cold station and transmitter together | 1.292x, 95% CI [1.073, 1.520], NOT_ESTABLISHED | README, queue page | `artifacts/QUEUE_RECEIPT.json` gate6.per_split.cold_combined | C7 | 2026-08-18 |
+| Physics beats image-only on Brier | NOT ESTABLISHED. Margin +0.02079, 95% CI [-0.01268, 0.05029], spans zero | README, evaluation page, KILL_GATE.md | `artifacts/FUSION_RECEIPT.json` gate5 | C7 | 2026-08-18 |
