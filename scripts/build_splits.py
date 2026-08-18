@@ -89,6 +89,7 @@ def main(argv: list[str] | None = None) -> int:
         partition_maps["cold_station"],
         partition_maps["cold_transmitter"],
         partition_maps["cold_combined"],
+        pages_dir=args.pages_dir,
     )
 
     # Emit artifacts

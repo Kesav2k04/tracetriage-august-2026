@@ -231,7 +231,22 @@ def export_observation(
         out["corridor_note"] = f"Physics corridor degraded: {physics.degraded}."
         return out
 
-    offset_hz = (corridor_row or {}).get("fitted_offset_hz") or 0.0
+    # A missing corridor fit must not be published as a measured zero offset.
+    # corridor_features.json is built over decisive observations only (743 of
+    # 2,500), so any queue entry ranked below the decisive pool has no corridor
+    # row.  Showing fitted_px == predicted_px with a zero offset and the caption
+    # "the gap between them is the measurement" fabricates a zero measurement.
+    # Return a named absence instead so the console can render a stated reason.
+    if corridor_row is None or corridor_row.get("fitted_offset_hz") is None:
+        out["corridor_note"] = (
+            "No corridor fit exists for this observation: it is outside the "
+            "decisive pool corridor_features.json was built over, so there is "
+            "no fitted offset to draw. The predicted curve is not shown alone, "
+            "because one curve under this caption reads as a measured zero."
+        )
+        return out
+
+    offset_hz = float(corridor_row["fitted_offset_hz"])
     fitted = corridor_columns(
         physics.uncorrected,
         hz_per_px=geometry.hz_per_px,
@@ -257,8 +272,8 @@ def export_observation(
 
     out["corridor"] = {
         "fitted_offset_hz": offset_hz,
-        "fitted_offset_ppm": (corridor_row or {}).get("fitted_offset_ppm"),
-        "offset_at_bound": (corridor_row or {}).get("offset_at_bound"),
+        "fitted_offset_ppm": corridor_row.get("fitted_offset_ppm"),
+        "offset_at_bound": corridor_row.get("offset_at_bound"),
         "half_width_px": half_width_px,
         "half_width_hz": physics.uncorrected.half_width_hz,
         "max_elevation_deg": physics.uncorrected.max_elevation_deg,
@@ -267,8 +282,8 @@ def export_observation(
         "fitted_px": [round(float(fitted[r]), 2) for r in rows],
         "predicted_px": [round(float(unshifted[r]), 2) for r in rows],
         "vertical_px": geometry.centre_px,
-        "sigma_curved": (corridor_row or {}).get("sigma_curved"),
-        "sigma_vertical": (corridor_row or {}).get("sigma_vertical"),
+        "sigma_curved": corridor_row.get("sigma_curved"),
+        "sigma_vertical": corridor_row.get("sigma_vertical"),
         "note": (
             "fitted_px is the predicted Doppler curve shifted by the fitted "
             "frequency offset, which is the path the matched filter scored. "

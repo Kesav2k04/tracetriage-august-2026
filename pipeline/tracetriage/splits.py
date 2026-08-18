@@ -776,8 +776,18 @@ def check_field_classification(pages_dir: Path) -> dict[str, Any]:
     asserted true. The record actually carries 50 fields, of which 12 are unsafe.
     The list had missed ``status``, ``demoddata``, ``payload``, ``archived``,
     ``archive_url`` and ``transmitter_updated``.
+
+    Raises ``RuntimeError`` when no records were loaded.  A classification over zero
+    records is never a pass: it means the caller supplied the wrong directory or the
+    snapshot is empty, and a silent pass would let a vacuous audit reach the artifact.
     """
     raw = _load_raw_pages(pages_dir)
+    if not raw:
+        raise RuntimeError(
+            f"check_field_classification loaded 0 records from {pages_dir!r}. "
+            "Supply the correct snapshot pages directory; an empty input is never "
+            "a clean classification."
+        )
     present = sorted({k for rec in raw.values() for k in rec})
     unclassified = [f for f in present if f not in FIELD_CLASSIFICATION]
     by_class: dict[str, list[str]] = collections.defaultdict(list)
@@ -883,6 +893,27 @@ def reject_vacuous_checks(leakage_results: dict[str, dict[str, Any]]) -> None:
             "examine passes trivially and is not evidence. Do not freeze this manifest."
         )
         raise RuntimeError(msg)
+
+
+def reject_vacuous_checks_in_audit(audit: list[dict[str, Any]]) -> None:
+    """Raise if any PASS row in the audit list examined zero records.
+
+    Counterpart to :func:`reject_vacuous_checks` for the ``list[dict]`` format
+    that :func:`build_leakage_audit` produces.  A PASS over zero records is a
+    silent pass: it carries no evidence, but it increments whatever tally a reader
+    uses to judge completeness.  This is the gate that should have been applied to
+    the audit list all along.
+    """
+    vacuous = [
+        r["check"]
+        for r in audit
+        if r.get("result") == "PASS" and r.get("n_examined") == 0
+    ]
+    if vacuous:
+        raise RuntimeError(
+            f"Leakage audit contains vacuous PASS rows (n_examined=0): {vacuous}. "
+            "A check with zero examinations proves nothing."
+        )
 
 
 def _check(rows: list[dict[str, Any]], pm: dict[int, str], entity: str) -> tuple[bool, str]:
@@ -1232,6 +1263,8 @@ def build_leakage_audit(
     station_map: dict[int, str],
     transmitter_map: dict[int, str],
     combined_map: dict[int, str],
+    *,
+    pages_dir: Path = _PAGES_DIR,
 ) -> list[dict[str, Any]]:
     """Build the leakage audit: every check measured on every split.
 
@@ -1292,7 +1325,9 @@ def build_leakage_audit(
                 }
             )
 
-    field_check = check_field_classification(_PAGES_DIR)
+    # check_field_classification raises RuntimeError when pages_dir loads no records,
+    # so a missing snapshot path produces a loud failure rather than a silent pass.
+    field_check = check_field_classification(pages_dir)
     audit.append(
         {
             "check": "no_future_feature_in_train",
@@ -1321,14 +1356,18 @@ def build_leakage_audit(
             "split": "all",
             "entity": "process",
             "guaranteed": True,
-            "n_examined": sum(
-                sum(1 for p in pm.values() if p == "test") for pm in all_maps.values()
-            ),
+            # n_examined is null here by design: test ids are emitted, not loaded or
+            # inspected, so this build cannot measure test-set integrity from inside
+            # itself. The digests below are the mechanism that actually binds it.
+            # Reporting the emitted test-id count (as the earlier version did) said
+            # nothing about whether the test set was touched; it measured a different
+            # property under the name of this check.
+            "n_examined": None,
             "n_entities": len(all_maps),
-            "n_violators": 0,
+            "n_violators": None,
             "n_skipped_excluded": 0,
             "n_skipped_no_key": 0,
-            "result": "PASS",
+            "result": "ASSERTED_NOT_MEASURABLE_HERE",
             "detail": (
                 "Test ids are emitted, not loaded, scored, or inspected at build time. "
                 "This is the one check that cannot be proved from inside the build, so "
@@ -1338,6 +1377,20 @@ def build_leakage_audit(
             "examples": [],
         }
     )
+
+    # Vacuity gate: any row that claims PASS with n_examined == 0 is a silent pass
+    # over nothing, which is the same defect as a check that cannot fail.
+    vacuous = [
+        r["check"]
+        for r in audit
+        if r.get("result") == "PASS" and r.get("n_examined") == 0
+    ]
+    if vacuous:
+        raise RuntimeError(
+            f"Leakage audit contains vacuous PASS rows (n_examined=0): {vacuous}. "
+            "A check with zero examinations proves nothing; supply the correct "
+            "snapshot pages directory or fix the check."
+        )
 
     return audit
 

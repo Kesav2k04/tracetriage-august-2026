@@ -131,13 +131,25 @@ export default function PassTimeSeries({
 
   const timeTicks = [0, 0.25, 0.5, 0.75, 1];
 
+  // Whether the Doppler series changes sign within the recorded window.
+  // Checking only sign changes, not whether the series crosses zero exactly,
+  // because the samples are discrete and the crossing may land between them.
+  const crossesZero = dops
+    ? dops.some((v, i) => i > 0 && ((v >= 0) !== ((dops[i - 1] ?? v) >= 0)))
+    : false;
+
   const label =
     `Elevation and Doppler shift against pass time over ${durationS.toFixed(0)} seconds.`
     + ` Elevation rises to ${(els[iTca] ?? 0).toFixed(1)} degrees and falls back.`
     + (dops
-      ? ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz down through`
-        + ` zero to ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero at the`
-        + ` same instant elevation peaks.`
+      ? crossesZero
+        ? ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
+          + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero at the`
+          + ` same instant elevation peaks.`
+        : ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
+          + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz. The recording window`
+          + ` lies entirely on one side of closest approach, so the Doppler shift`
+          + ` does not cross zero within it.`
       : " The Doppler shift is not measurable for this record.");
 
   const axis = (

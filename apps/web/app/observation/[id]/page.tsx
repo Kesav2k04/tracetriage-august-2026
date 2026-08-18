@@ -188,9 +188,9 @@ export default async function ObservationPage({
               <p className="instrument-note">
                 The same pass on a time axis. Two stacked panels rather than one
                 panel with two vertical scales, because a twin-axis chart lets the
-                author choose where two curves appear to cross. Here the Doppler
-                curve crosses zero at the instant elevation peaks because that is
-                when it happens.
+                author choose where two curves appear to cross. When the recording
+                window spans closest approach, the Doppler zero crossing and the
+                elevation peak align because they happen at the same instant.
               </p>
             </figcaption>
             <PassTimeSeries

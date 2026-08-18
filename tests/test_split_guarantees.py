@@ -38,6 +38,7 @@ from pipeline.tracetriage.splits import (
     check_field_classification,
     entity_spread,
     reject_vacuous_checks,
+    reject_vacuous_checks_in_audit,
 )
 
 
@@ -361,3 +362,142 @@ class TestCheckScopesAreCoherent:
         """
         assert "cold_combined" in CHECK_SCOPES["no_transmitter_across_splits"]["applies_to"]
         assert "cold_combined" in CHECK_SCOPES["no_station_across_splits"]["applies_to"]
+
+
+# ---------------------------------------------------------------------------
+# ENG-B3: leakage audit absolute path and vacuity gate
+# ---------------------------------------------------------------------------
+
+
+class TestLeakageAuditPathHandling:
+    """The leakage audit must not silently pass on a missing or wrong snapshot path.
+
+    The defect: build_leakage_audit called check_field_classification(_PAGES_DIR),
+    ignoring the pages_dir the caller named.  If that path was absent, _load_raw_pages
+    yielded nothing, and the check returned a PASS over zero records.  The vacuity gate
+    reject_vacuous_checks only applied to the manifest's leakage_checks dict and never
+    to the audit list.
+    """
+
+    @staticmethod
+    def _minimal_audit_args(tmp_path):
+        """Return rows and partition maps sufficient to run build_leakage_audit.
+
+        entity_spread reads row["id"], not row["obs_id"], so the synthetic rows
+        must use the same key the production builder emits.
+        """
+        rows = [
+            {"id": 1, "ground_station": 10, "transmitter_uuid": "A",
+             "norad_cat_id": 1, "orbital_revolution": 0,
+             "waterfall_sha256": "aa", "a3_verdict": "unresolved"},
+            {"id": 2, "ground_station": 20, "transmitter_uuid": "B",
+             "norad_cat_id": 2, "orbital_revolution": 0,
+             "waterfall_sha256": "bb", "a3_verdict": "unresolved"},
+        ]
+        pm = {1: "train", 2: "test"}
+        return rows, pm, pm, pm, pm
+
+    def test_missing_pages_dir_raises_not_silently_passes(self, tmp_path) -> None:
+        """A path that does not exist must raise, not return PASS n_examined=0."""
+        from pipeline.tracetriage.splits import build_leakage_audit
+
+        rows, chron, station, tx, combined = self._minimal_audit_args(tmp_path)
+        missing = tmp_path / "nonexistent_snapshot" / "pages"
+        with pytest.raises(RuntimeError, match="0 records"):
+            build_leakage_audit(
+                rows, chron, station, tx, combined, pages_dir=missing
+            )
+
+    def test_empty_pages_dir_raises_not_silently_passes(self, tmp_path) -> None:
+        """An existing but empty directory must also raise."""
+        from pipeline.tracetriage.splits import build_leakage_audit
+
+        empty_dir = tmp_path / "empty_pages"
+        empty_dir.mkdir()
+        rows, chron, station, tx, combined = self._minimal_audit_args(tmp_path)
+        with pytest.raises(RuntimeError, match="0 records"):
+            build_leakage_audit(
+                rows, chron, station, tx, combined, pages_dir=empty_dir
+            )
+
+    def test_correct_pages_dir_succeeds(self, tmp_path) -> None:
+        """A pages dir with at least one known-classified record completes normally."""
+        from pipeline.tracetriage.splits import build_leakage_audit
+
+        pages_dir = tmp_path / "pages"
+        pages_dir.mkdir()
+        # Write one record using only classified fields so the check passes.
+        record = {
+            "id": 1,
+            "start": "2026-08-09T00:00:00Z",
+            "end": "2026-08-09T00:05:00Z",
+            "ground_station": 42,
+            "transmitter_uuid": "T1",
+            "norad_cat_id": 12345,
+            "status": "good",
+        }
+        (pages_dir / "page1.json").write_text(
+            json.dumps([record]), encoding="utf-8"
+        )
+        rows, chron, station, tx, combined = self._minimal_audit_args(tmp_path)
+        audit = build_leakage_audit(
+            rows, chron, station, tx, combined, pages_dir=pages_dir
+        )
+        field_row = next((r for r in audit if r["check"] == "no_future_feature_in_train"), None)
+        assert field_row is not None
+        assert field_row["n_examined"] > 0, (
+            "n_examined must be the count of fields on the real records, not zero"
+        )
+
+    def test_vacuous_pass_rows_in_audit_are_refused(self, tmp_path) -> None:
+        """The vacuity gate must refuse any PASS row with n_examined == 0.
+
+        This tests the gate directly so that it cannot be bypassed by the silent-pass
+        path that was the original defect.
+        """
+
+        pages_dir = tmp_path / "pages"
+        pages_dir.mkdir()
+        # Write a record with only classified fields.
+        record = {"id": 1, "start": "2026-08-09T00:00:00Z"}
+        (pages_dir / "page1.json").write_text(json.dumps([record]), encoding="utf-8")
+
+        # Test the gate directly by constructing an audit list that would trip it.
+        # The rows are synthetic; entity_spread always returns positive counts for
+        # them so the gate cannot be exercised through a real build call here.
+        real_vacuous = [
+            {"check": "no_station_across_splits", "split": "chronological",
+             "result": "PASS", "n_examined": 0, "n_violators": 0,
+             "guaranteed": True, "entity": "station", "n_entities": 0,
+             "n_skipped_excluded": 0, "n_skipped_no_key": 0,
+             "detail": "synthetic", "examples": []},
+        ]
+        with pytest.raises(RuntimeError, match="vacuous PASS"):
+            reject_vacuous_checks_in_audit(real_vacuous)
+
+    def test_test_set_untouched_row_has_asserted_not_measurable_result(self, tmp_path) -> None:
+        """The test_set_untouched row must use the ASSERTED_NOT_MEASURABLE_HERE result.
+
+        The previous version reported PASS with n_examined=1349, measuring a different
+        property (emitted test-id count) under the name of this check.
+        """
+        from pipeline.tracetriage.splits import build_leakage_audit
+
+        pages_dir = tmp_path / "pages"
+        pages_dir.mkdir()
+        record = {"id": 1, "start": "2026-08-09T00:00:00Z"}
+        (pages_dir / "page1.json").write_text(json.dumps([record]), encoding="utf-8")
+        rows, chron, station, tx, combined = self._minimal_audit_args(tmp_path)
+        audit = build_leakage_audit(
+            rows, chron, station, tx, combined, pages_dir=pages_dir
+        )
+        row = next((r for r in audit if r["check"] == "test_set_untouched"), None)
+        assert row is not None
+        assert row["result"] == "ASSERTED_NOT_MEASURABLE_HERE", (
+            "test_set_untouched must not claim PASS: the build cannot measure "
+            "whether the test set was touched from inside the build itself."
+        )
+        assert row["n_examined"] is None, (
+            "n_examined must be None: the emitted test-id count measures a "
+            "different property and must not stand in for this one."
+        )
