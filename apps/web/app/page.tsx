@@ -17,6 +17,7 @@ import {
   requireQueueSplit,
   showcaseIds,
 } from "@/lib/data";
+import CorridorHero from "@/components/CorridorHero";
 import QueueTable from "@/components/QueueTable";
 import { Cell, IntervalBar, Note, Section, Stat, Table, VerdictBadge } from "@/components/ui";
 
@@ -87,6 +88,15 @@ export default function QueuePage() {
           </div>
         </div>
       </header>
+
+      {/* The instrument, immediately after the verdict.
+          A reader who leaves after one screen should have seen the measurement
+          rather than a description of it, and the measurement is a fitted corridor
+          standing among the corridors that could not fit. It sits below the lede
+          rather than above it because the lede carries the honest headline, and a
+          console that opened on the strongest single frame would be arranging the
+          evidence to flatter itself. */}
+      <CorridorHero />
 
       <div
         style={{

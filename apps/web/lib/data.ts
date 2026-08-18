@@ -9,6 +9,7 @@
  * claim is a second implementation nobody tested.
  */
 import cardsJson from "@/public/data/cards.json";
+import heroNullsJson from "@/public/data/hero_nulls.json";
 import evaluationJson from "@/public/data/evaluation.json";
 import provenanceJson from "@/public/data/provenance.json";
 import queueJson from "@/public/data/queue.json";
@@ -433,6 +434,56 @@ const provenanceData = provenanceJson as unknown as {
     sha256: string;
   }>;
 };
+
+/**
+ * The opening frame's corridors: the fitted one and the nulls it was scored against.
+ *
+ * Written by `scripts/export_hero_nulls.py`, which re-runs gate 3's own fit outside
+ * the scoring path and refuses to write unless `n_nulls`, `true_sigma`,
+ * `null_median`, `null_p95`, `null_max`, `n_at_least` and `p_value` all reproduce
+ * `artifacts/GATE3_RECEIPT.json` to 1e-9. That is why the console can call these the
+ * measured nulls rather than an illustration of them.
+ *
+ * Coordinates are the cropped plot region, 620 by 1540 on this observation, which is
+ * the space the shipped waterfall and every other overlay already use.
+ */
+export interface HeroNullPath {
+  seed: number;
+  sigma: number;
+  offset_px: number;
+  is_best_null: boolean;
+  px: number[];
+}
+
+export interface HeroNulls {
+  obs_id: number;
+  image: { width: number; height: number };
+  rows: number[];
+  true: { sigma: number; offset_px: number; px: number[] };
+  distribution: {
+    n_nulls: number;
+    median: number;
+    p95: number;
+    max: number;
+    n_at_least: number;
+    p_value: number;
+    margin_over_best_null: number;
+  };
+  drawn: HeroNullPath[];
+  transform_residual_px: number;
+}
+
+const heroNullsData = heroNullsJson as unknown as HeroNulls;
+
+// An absence must never be published as a measurement, and a frame that argued
+// against two hundred nulls while drawing none would be exactly that.
+if (heroNullsData.drawn.length === 0) {
+  throw new Error(
+    "hero_nulls.json contains no drawn paths. Run scripts/export_hero_nulls.py.",
+  );
+}
+
+export const heroNulls = heroNullsData;
 
 export const queue = queueData;
 export const cards = cardsData;

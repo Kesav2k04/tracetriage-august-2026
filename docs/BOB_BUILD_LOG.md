@@ -2206,3 +2206,139 @@ drift check can fail.
 The project is one gate weaker on paper than it was this morning and the evidence
 behind it is unchanged. That trade is the point of publishing a bound next to a point
 estimate.
+
+---
+
+## C7g. The opening frame, and a palette that cost no contrast
+
+Two changes, one measurement discipline. The console had a strong argument and no
+picture of it, and a Carbon Gray 100 palette that is achromatic, which for a project
+about deep space reads as an admin panel.
+
+### The opening frame draws the nulls that were scored
+
+The first screen now carries the measurement rather than a description of it: one
+real waterfall, the Doppler corridor fitted to it, and six of the two hundred null
+corridors it was scored against.
+
+The rule that made this worth building: **the nulls on screen are the nulls that were
+scored.** `scripts/export_hero_nulls.py` re-runs gate 3's own fit outside the scoring
+path, using the same `scramble_corridor` seed sequence, the same bounded offset
+search and the same thresholds, and refuses to write anything unless seven statistics
+reproduce `artifacts/GATE3_RECEIPT.json` to 1e-9:
+
+| Statistic | Receipt | Reproduced |
+|---|---|---|
+| n_nulls | 200 | 200 |
+| true_sigma | 2.024118 | 2.024118 |
+| null_median | 0.545208 | 0.545208 |
+| null_p95 | 0.557253 | 0.557253 |
+| null_max | 0.571026 | 0.571026 |
+| n_at_least | 0 | 0 |
+| p_value | 0.004975124 | 0.004975124 |
+
+An illustration that looked like this would have cost an afternoon and proved
+nothing. `tests/test_hero_nulls.py` checks the artifact against the receipt
+independently of the generator, checks the drawn observation is one gate 3 could
+test, checks the closest null of the two hundred is on screen rather than filtered
+out, and checks the six drawn paths are six different paths.
+
+**Three coordinate spaces, and the one that was nearly wrong.** The source PNG is 836
+by 1603. `parse_waterfall` crops the plot region to 620 by 1540, which is the shipped
+image and the viewBox every overlay shares. `normalised_rows` then trims
+`EDGE_MARGIN_PX` from each side, leaving the 1532 by 612 array the matched filter
+walked. The first version passed the source PNG's height where the card uses the
+crop, and the curves disagreed by **235.7 px, which is 29 kHz against a 17.3 kHz
+Doppler swing**: larger than the entire quantity being drawn, and it would not have
+looked obviously wrong on screen. The transform is a translation by `EDGE_MARGIN_PX`
+on both axes, nothing else, and the exporter re-measures the residual every run and
+refuses to write above half a pixel. It measures 0.176 px.
+
+**Cost.** Zero client JavaScript. The reveal is CSS `stroke-dashoffset` against
+`pathLength="1"`, so no path length is measured in the browser and the frame animates
+on a static document before hydration. The route's JavaScript is unchanged at 3.03 kB
+and shared at 102 kB. The home document went from 20.1 kB to 40.2 kB gzipped, and
+that is the honest price of shipping seven measured polylines of 257 points each.
+Sixteen nulls cost 63.3 kB, which is where the count of six came from.
+
+**Reduced motion.** The whole animation lives inside `prefers-reduced-motion:
+no-preference` rather than relying on the global duration clamp. The clamp shortens a
+duration and keeps the delay, so a staggered reveal would have appeared as six paths
+flicking on over a second and a half with no motion to explain them.
+
+### The waterfall is mapped, not stretched
+
+The stored waterfall is greyscale, and greyscale costs detection: the eye resolves
+far fewer steps of lightness than of hue, so a trace a few levels above the noise
+floor is nearly invisible in grey. The plate applies viridis, the map the observation
+page already defaults to, as an SVG filter: luminance first, then a 17-stop table per
+channel. It is a colour map and not a contrast stretch, so the ordering of the
+measured intensities is preserved exactly and no pixel is brightened relative to
+another. No JavaScript and no second copy of the image.
+
+The corridor is white rather than the interface blue, because viridis runs from deep
+indigo through teal to yellow and a blue line lands inside the map's own low end.
+
+### The palette moved, and the contrast did not
+
+Carbon Gray 100 is achromatic. Every neutral is now re-expressed in OKLCH at the
+**same lightness** as its Carbon original with a small chroma at hue 264:
+
+| Token | Carbon | Space | Ratio before | after |
+|---|---|---|---|---|
+| `--ui-background` | `#161616` | `#0d1627` | | |
+| `--ui-01` | `#262626` | `#1c263a` | | |
+| `--text-01` on the ground | `#f4f4f4` | `#f2f4f8` | 16.45 | 16.42 |
+| `--text-02` on the ground | `#c6c6c6` | `#c3c6cd` | 10.59 | 10.58 |
+| `--text-03` on the ground | `#8d8d8d` | `#898d96` | 5.45 | 5.44 |
+| `--text-03` on a tile | | | 4.56 | 4.55 |
+
+Because OKLCH lightness is perceptually uniform and the chroma is small, nothing
+moved by more than 0.03 of a ratio. Every accessibility result C6 measured on the
+built site still holds. That is the reason the tint was done this way rather than by
+picking colours that looked right.
+
+Two accents moved **for contrast, not for taste**. `--interactive-01` was Carbon Blue
+60 (`#0f62fe`), which measures **3.62:1** on this ground and cannot carry text; it is
+now Blue 50 (`#4589ff`) at **5.41:1**, still a Carbon ramp value. `--verdict-passed`
+moved to `#2fc48a`, which is in the viridis family, so the interface and the
+instrument share a palette instead of arguing. NOT_ESTABLISHED stays grey: the Carbon
+and Appendix F reasoning recorded in C7 was not weakened to make the page more
+colourful, and `tests/test_contrast.py::test_not_established_is_not_amber` fails if
+someone tries.
+
+`scripts/check_contrast.py` recomputes all 26 pairs from `globals.css` and reports 26
+of 26 above their floors. Two pairs sit below 4.5 deliberately, and both are declared
+with the reason and the measured value rather than excluded: `--text-03` on `--ui-02`
+at 3.48 is rules and plot furniture, and `--ui-04` on the ground at 3.58 is a
+component boundary.
+
+**The page gradient darkens downward and that is not a style choice.** Its lightest
+stop is `--ui-background` itself, so every ratio the checker computes against
+`--ui-background` is a lower bound on what a reader gets. A gradient that lightened
+anywhere would have made the check meaningless. It is also not
+`background-attachment: fixed`, which repaints a full viewport per scroll frame for a
+decoration, and which hung headless capture twice here before it was removed.
+
+### Icons, drawn rather than installed
+
+Five glyphs, inline SVG, a few hundred bytes against tens of kilobytes for a package.
+Each is a small diagram of what its section shows rather than a metaphor for it: the
+queue is a ranked list with the budget marked at the top, evaluation is a reliability
+diagram with the perfect-calibration diagonal behind the curve, replay is a play mark
+on a time axis, provenance is a receipt with a hash rule, and the corridor glyph is
+the S curve crossing its centre line. All 16 px on `currentColor`, so they need no
+per-state variants, and `aria-hidden` because the adjacent label already names the
+destination.
+
+### Cost
+
+| Quantity | Value |
+|---|---|
+| Client JavaScript added | 0 bytes |
+| Home document, gzipped | 20.1 kB to 40.2 kB |
+| Route JavaScript | 3.03 kB, unchanged |
+| Contrast pairs checked | 26, all above their floor |
+| Contrast ratios changed by the palette | none by more than 0.03 |
+| Tests added | 21 |
+| Statistics reproduced against the gate receipt | 7 of 7, to 1e-9 |

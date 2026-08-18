@@ -60,8 +60,8 @@ byte count on the provenance page and in the colophon, and the content security
 policy names both hosts. Do not restate the old absolute claim that the site requests
 nothing from another origin: it was true until C7d and is not true now. Four instruments on one clock sit on each
 observation page (waterfall with the fitted corridor, polar sky track, ground track with
-the horizon circle, and elevation and Doppler against time). 760 offline tests are
-collected: 759 pass, and 1 is a declared expected failure that task D2 below implements.
+the horizon circle, and elevation and Doppler against time). 776 offline tests are
+collected: 775 pass, and 1 is a declared expected failure that task D2 below implements.
 Lint is clean, typecheck is clean.
 
 Three documentation defects were found in C7 by reading the docs against the receipts,

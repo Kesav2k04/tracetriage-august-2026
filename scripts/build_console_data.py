@@ -660,6 +660,21 @@ def main(argv: list[str] | None = None) -> int:
         if source.exists():
             shutil.copyfile(source, _DATA_DIR / name)
 
+    # ---- the opening frame's null corridors -------------------------------
+    # Copied rather than recomputed. scripts/export_hero_nulls.py re-runs gate 3's
+    # own fit and refuses to write unless seven statistics of the null distribution
+    # reproduce GATE3_RECEIPT.json exactly, so the paths in this file are the paths
+    # that were scored. Recomputing them here would be a second implementation of a
+    # measurement, which is the thing this console exists to argue against.
+    hero_nulls = _REPO / "artifacts/HERO_NULLS.json"
+    if not hero_nulls.exists():
+        raise FileNotFoundError(
+            f"{hero_nulls} is missing. Run scripts/export_hero_nulls.py. The opening "
+            f"frame draws measured null corridors and there is no fallback that "
+            f"would still be a measurement."
+        )
+    shutil.copyfile(hero_nulls, _DATA_DIR / "hero_nulls.json")
+
     # ---- observation cards ----------------------------------------------
     if args.skip_images:
         print("skipping imagery, JSON only")

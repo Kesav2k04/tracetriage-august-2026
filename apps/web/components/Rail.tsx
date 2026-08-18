@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import Icon, { type IconName } from "./Icon";
+
 /**
  * The side rail.
  *
@@ -13,11 +15,11 @@ import { usePathname } from "next/navigation";
  * Everything here is a string or a number the server already had.
  */
 
-const LINKS = [
-  { href: "/", label: "Queue" },
-  { href: "/evaluation/", label: "Evaluation" },
-  { href: "/replay/", label: "Replay" },
-  { href: "/provenance/", label: "Provenance" },
+const LINKS: { href: string; label: string; icon: IconName }[] = [
+  { href: "/", label: "Queue", icon: "queue" },
+  { href: "/evaluation/", label: "Evaluation", icon: "evaluation" },
+  { href: "/replay/", label: "Replay", icon: "replay" },
+  { href: "/provenance/", label: "Provenance", icon: "provenance" },
 ];
 
 export type RailStatus = {
@@ -52,6 +54,7 @@ export default function Rail({ status }: { status: RailStatus }) {
                     className="rail-link"
                     aria-current={active ? "page" : undefined}
                   >
+                    <Icon name={link.icon} />
                     {link.label}
                   </Link>
                 </li>

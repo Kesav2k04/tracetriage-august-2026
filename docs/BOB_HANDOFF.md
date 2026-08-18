@@ -12,7 +12,7 @@
 | **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7f) |
 | **Current wave** | Wave C, closed |
 | **Next unit** | **D0: act on the two expert reviews**, per `docs/WAVE_D_PROMPT.md` |
-| **Open failures** | none in the suite. 760 offline tests collected, 759 pass, 1 declared expected failure that D2 implements. Lint clean. `scripts/gate.py` green on all standing gates. |
+| **Open failures** | none in the suite. 776 offline tests collected, 775 pass, 1 declared expected failure that D2 implements. Lint clean. `scripts/gate.py` green on all standing gates. |
 | **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 OPEN. |
 | **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
@@ -38,6 +38,16 @@ fails against it.
 (results tables) by `scripts/sync_readme_results.py`. Run the first with `--check` to
 detect drift without writing. It is idempotent as of C7f; the earlier version could
 only run once, which is recorded in the KILL_GATE failure log.
+
+**The opening frame and the palette are both checked, not styled.** The plate on the
+home page draws gate 3's real null corridors; `scripts/export_hero_nulls.py` writes
+nothing unless seven statistics reproduce `artifacts/GATE3_RECEIPT.json` to 1e-9, and
+`scripts/build_console_data.py` raises if `artifacts/HERO_NULLS.json` is absent rather
+than shipping a frame with no nulls in it. The neutral palette carries an indigo cast
+expressed in OKLCH at Carbon's own lightness values, so no contrast ratio moved by
+more than 0.03; `scripts/check_contrast.py` recomputes all 26 pairs and
+`tests/test_contrast.py` fails the suite if one drops below its floor. Do not pick a
+colour by eye here.
 
 **Three gate verdicts on the console come from their receipts** (3, 5 and 6) and three
 are literals in `scripts/build_console_data.py` (1, 2 and 4) because they have no
