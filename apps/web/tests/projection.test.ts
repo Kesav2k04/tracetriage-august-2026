@@ -20,6 +20,8 @@ import {
   niceStep,
   projectGround,
   projectSky,
+  skyChromePoint,
+  skyRadius,
   stationLonInFrame,
   unwrapLongitudes,
   wrapLabel,
@@ -32,29 +34,59 @@ describe("projectSky", () => {
   });
 
   it("puts the horizon on the ring, north up and east right", () => {
-    const [nx, ny] = projectSky(0, 0);
-    expect(nx).toBeCloseTo(SKY.cx, 6);
-    expect(ny).toBeCloseTo(SKY.cy - SKY.r, 6);
+    const north = projectSky(0, 0) as [number, number];
+    expect(north[0]).toBeCloseTo(SKY.cx, 6);
+    expect(north[1]).toBeCloseTo(SKY.cy - SKY.r, 6);
 
-    const [ex, ey] = projectSky(90, 0);
-    expect(ex).toBeCloseTo(SKY.cx + SKY.r, 6);
-    expect(ey).toBeCloseTo(SKY.cy, 6);
+    const east = projectSky(90, 0) as [number, number];
+    expect(east[0]).toBeCloseTo(SKY.cx + SKY.r, 6);
+    expect(east[1]).toBeCloseTo(SKY.cy, 6);
   });
 
-  it("clamps a below-horizon sample to the horizon instead of drawing outside it", () => {
-    // A negative elevation is a real value in the propagated series: the satellite
-    // is below the local horizon at both ends of a pass. Unclamped, the radius grows
-    // past SKY.r and the point lands outside the plot with nothing to explain it.
-    const [x, y] = projectSky(45, -30);
-    const [x0, y0] = projectSky(45, 0);
-    expect(x).toBeCloseTo(x0, 9);
-    expect(y).toBeCloseTo(y0, 9);
-    const radius = Math.hypot(x - SKY.cx, y - SKY.cy);
-    expect(radius).toBeLessThanOrEqual(SKY.r + 1e-9);
+  it("returns null below the horizon, so every consumer has to say so", () => {
+    // This used to clamp. A negative elevation is a real value in the propagated
+    // series (the satellite is below the local horizon at both ends of a pass), and
+    // clamping gave it a position on the rim where the satellite was not. Three
+    // consumers then disagreed: the sky plot broke its polyline, the elevation panel
+    // drew a flat segment along zero, and the replay cursor sat on the ring while
+    // the track under it had a gap. Null is what makes the disagreement impossible.
+    expect(projectSky(45, -30)).toBeNull();
+    expect(projectSky(45, -0.017)).toBeNull(); // the smallest one in the corpus
+    expect(projectSky(45, Number.NaN)).toBeNull();
   });
 
-  it("clamps above the zenith too, which an elevation over 90 would otherwise invert", () => {
+  it("clamps above the zenith, which an elevation over 90 would otherwise invert", () => {
     expect(projectSky(45, 91)).toEqual(projectSky(45, 90));
+  });
+
+  it("keeps zero itself, which is on the horizon rather than below it", () => {
+    expect(projectSky(45, 0)).not.toBeNull();
+  });
+});
+
+describe("skyRadius and skyChromePoint", () => {
+  it("maps the horizon to the ring and the zenith to the centre", () => {
+    expect(skyRadius(0)).toBeCloseTo(SKY.r, 9);
+    expect(skyRadius(90)).toBeCloseTo(0, 9);
+  });
+
+  it("places a cardinal label outside the ring, which the clamp used to prevent", () => {
+    // The cardinal labels ask for -7.5 degrees, meaning just outside the horizon
+    // ring. While projectSky clamped, that returned exactly the point at 0 degrees,
+    // so N, E, S and W sat on the ring on top of their own spokes: the intent was in
+    // the number and never on the screen.
+    const label = skyChromePoint(0, -7.5);
+    const onRing = skyChromePoint(0, 0);
+    expect(Math.hypot(label[0] - SKY.cx, label[1] - SKY.cy)).toBeGreaterThan(
+      Math.hypot(onRing[0] - SKY.cx, onRing[1] - SKY.cy),
+    );
+    expect(skyRadius(-7.5)).toBeGreaterThan(SKY.r);
+  });
+
+  it("agrees with projectSky wherever a sample is legal", () => {
+    for (const el of [0, 12.5, 45, 90]) {
+      expect(projectSky(30, el)).toEqual(skyChromePoint(30, el));
+    }
   });
 });
 

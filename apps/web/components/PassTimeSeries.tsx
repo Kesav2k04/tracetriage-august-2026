@@ -18,6 +18,7 @@
  * Server-rendered. The only client-side part is the cursor, which the replay moves.
  */
 import type { ReactNode } from "react";
+import { svgPolyline } from "@/lib/plot-path";
 
 export type SeriesGeometry = {
   fracs: number[];
@@ -93,7 +94,12 @@ export default function PassTimeSeries({
   // Elevation: always 0 to 90, not scaled to the data. A pass that only reached 15
   // degrees should look like a low pass, and auto-scaling it to fill the panel would
   // make every pass look the same height.
-  const elY = (deg: number) => TOP_Y + PANEL_H - (Math.max(0, deg) / 90) * PANEL_H;
+  // No clamp. A sample below the horizon is not drawn at zero: it is not drawn.
+  // This panel used to clamp with Math.max(0, deg), which put a flat segment along
+  // the zero line for exactly the samples where the sky plot beside it breaks its
+  // track, so the two instruments disagreed about the same series. Three of the
+  // shipped observations have below-horizon samples.
+  const elY = (deg: number) => TOP_Y + PANEL_H - (deg / 90) * PANEL_H;
 
   // Doppler: symmetric about zero and rounded outward, so the zero line sits exactly
   // in the middle of the panel and a reader can see the sign change rather than infer
@@ -101,13 +107,15 @@ export default function PassTimeSeries({
   const dopMax = dops ? niceCeil(Math.max(...dops.map(Math.abs))) : 1;
   const dopY = (hz: number) => BOTTOM_Y + PANEL_H / 2 - (hz / dopMax) * (PANEL_H / 2);
 
-  const elPath = fracs
-    .map((f, i) => {
-      const v = els[i];
-      if (f === undefined || v === undefined) return null;
-      return `${x(f).toFixed(2)},${elY(v).toFixed(2)}`;
-    })
-    .filter((p): p is string => p !== null);
+  // NaN for a below-horizon sample, so svgPolyline breaks the subpath there rather
+  // than joining across it. The projection makes the same statement for the sky
+  // plot and the replay cursor; this is the third consumer of that policy.
+  const elPath = svgPolyline(
+    els.map((v) => (v === undefined || v < 0 ? Number.NaN : elY(v))),
+    fracs.map((f) => (f === undefined ? Number.NaN : x(f))),
+    2,
+    true,
+  );
 
   const dopPath = dops
     ? fracs
@@ -202,7 +210,7 @@ export default function PassTimeSeries({
           {axis(String(deg), elY(deg))}
         </g>
       ))}
-      <polyline points={elPath.join(" ")} className="plot-track" />
+      <path d={elPath} className="plot-track" />
       <text x={PAD_L} y={TOP_Y - TITLE_LIFT} className="plot-label">
         ELEVATION, DEG
       </text>

@@ -256,7 +256,27 @@ function armRow(name: string, arm: ArmMetrics, worst: number, best: number) {
 }
 
 export default function EvaluationPage() {
-  const arms = Object.entries(chrono.arms);
+  // arms is nullable, because a degraded split has no results and the export writes
+  // null for it. Before D4 the type said otherwise and this line read straight
+  // through: Object.entries(null) throws, which at least fails the export loudly
+  // rather than publishing a page with an empty ladder. Held in a local const so the
+  // narrowing survives into the callbacks below.
+  const armsRecord = chrono.arms;
+  if (chrono.degraded !== null || armsRecord === null) {
+    return (
+      <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
+        <h1 style={{ fontSize: "var(--type-heading-05)" }}>Evaluation</h1>
+        <Note tone="warn">
+          Every number on this page is measured on the chronological split, and that
+          split published no arm results.{" "}
+          {chrono.degraded ??
+            "The split is not marked degraded, so this is a build problem rather than a result: the export should have failed before writing it."}
+        </Note>
+      </div>
+    );
+  }
+
+  const arms = Object.entries(armsRecord);
   const briers = arms.map(([, a]) => a.brier);
   const worst = Math.max(...briers);
   const best = Math.min(...briers);
@@ -553,10 +573,10 @@ export default function EvaluationPage() {
           <Note tone="limit">
             No selective-rejection curve was published for the{" "}
             {SPLIT_LABELS[chrono.split]} split, so there is no risk against coverage
-            panel here.{" "}
-            {chrono.degraded
-              ? `The split itself is degraded: ${chrono.degraded}`
-              : "The split ran, which means the curve is missing from the receipt rather than impossible to compute, and that is a build problem rather than a result."}
+            panel here. A degraded split is handled at the top of this page, so
+            reaching here means the split ran and the curve is missing from the
+            receipt rather than impossible to compute: a build problem rather than a
+            result.
           </Note>
         </Section>
       ) : (

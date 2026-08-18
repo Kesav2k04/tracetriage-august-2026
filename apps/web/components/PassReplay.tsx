@@ -110,6 +110,15 @@ export default function PassReplay({
   const [playing, setPlaying] = useState(false);
   const [canPlay, setCanPlay] = useState(false);
   const [ready, setReady] = useState(false);
+  /* True while the slider is being dragged, which is the other way the readout
+     changes continuously. It is state rather than a ref because it decides
+     aria-live, so it has to reach the DOM: two renders per drag, not one per
+     input event. */
+  const [scrubbing, setScrubbing] = useState(false);
+  /* Set when a run or a drag has just ended, so the effect below repaints once with
+     the region back in polite and the reader hears the value it settled on. */
+  const announceRef = useRef(false);
+  const settleRef = useRef<number | null>(null);
 
   const rafRef = useRef<number | null>(null);
   const startedRef = useRef<{ wall: number; from: number } | null>(null);
@@ -197,9 +206,24 @@ export default function PassReplay({
         : Number.NaN;
 
       const { sky, ground, row, time } = nodesRef.current;
-      if (sky && Number.isFinite(az) && Number.isFinite(el)) {
-        const [x, y] = projectSky(az, el);
-        sky.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+      if (sky) {
+        // Below the horizon the satellite has no place on this plot, and the sky
+        // track it is tracing has a gap there. Moving the cursor to the rim would
+        // put it on a line that is not drawn, which is precisely what projectSky
+        // used to do: it clamped, so during playback the cursor sat pinned to the
+        // horizon ring while the track underneath it was absent. Hiding it for
+        // those instants is the same statement the plot already makes.
+        const point =
+          Number.isFinite(az) && Number.isFinite(el) ? projectSky(az, el) : null;
+        if (point === null) {
+          sky.setAttribute("visibility", "hidden");
+        } else {
+          sky.removeAttribute("visibility");
+          sky.setAttribute(
+            "transform",
+            `translate(${point[0].toFixed(2)} ${point[1].toFixed(2)})`,
+          );
+        }
       }
       if (ground && Number.isFinite(lat) && Number.isFinite(lon)) {
         const [x, y] = projectGround(bounds, lon, lat);
@@ -269,6 +293,24 @@ export default function PassReplay({
     if (ready) paint(tRef.current);
   }, [ready, paint]);
 
+  // One announcement per stop. The readout is silent while values are moving, so
+  // without this a completed replay says nothing at all: the numbers would change
+  // 700 times inside a region that was off and then never change again.
+  useEffect(() => {
+    if (playing || scrubbing || !announceRef.current) return;
+    announceRef.current = false;
+    paint(tRef.current);
+  }, [playing, scrubbing, paint]);
+
+  // A drag that ends while the component unmounts must not leave a timer holding a
+  // reference to it.
+  useEffect(
+    () => () => {
+      if (settleRef.current !== null) window.clearTimeout(settleRef.current);
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!playing) {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
@@ -292,6 +334,11 @@ export default function PassReplay({
       if (rangeRef.current) rangeRef.current.value = String(value);
       if (value >= 1) {
         setPlaying(false);
+        // The region was off for the whole run, so without this the reader hears
+        // nothing at all from a completed replay. Painting the end state after the
+        // flag flips means the announcement carries the values at set, which is the
+        // one frame of a replay that is worth reading aloud.
+        announceRef.current = true;
         return;
       }
       rafRef.current = requestAnimationFrame(step);
@@ -316,7 +363,12 @@ export default function PassReplay({
           <button
             type="button"
             className="replay-play"
-            onClick={() => setPlaying((p) => !p)}
+            onClick={() => {
+              // Pausing is a deliberate read: the reader wants to know where the
+              // pass got to, so the stop announces once through the effect above.
+              announceRef.current = true;
+              setPlaying((p) => !p);
+            }}
             aria-pressed={playing}
           >
             {playing ? "Pause" : "Replay the pass"}
@@ -335,16 +387,40 @@ export default function PassReplay({
             onInput={(event) => {
               const value = Number(event.currentTarget.value);
               if (playing) setPlaying(false);
+              // A keyboard step is one event and announces once, which is correct.
+              // A mouse drag fires continuously, so the plot follows every event and
+              // the readout text is only updated on a 200 ms trailing edge: a
+              // dragged slider that announces forty intermediate positions is the
+              // same defect as the animation loop, at a different rate.
+              if (!scrubbing) setScrubbing(true);
               paint(value);
+              if (settleRef.current !== null) window.clearTimeout(settleRef.current);
+              settleRef.current = window.setTimeout(() => {
+                settleRef.current = null;
+                announceRef.current = true;
+                setScrubbing(false);
+              }, 200);
             }}
           />
         </label>
       </div>
 
       {/* A description list, so a screen reader gets each label with its value
-          rather than a row of loose numbers. Live but polite: an assertive region
-          would interrupt on every frame of playback. */}
-      <dl className="replay-readout" aria-live="polite">
+          rather than a row of loose numbers.
+          Announced when the reader asked for a value and silent while the animation
+          runs. Polite was chosen originally because assertive "would interrupt on
+          every frame of playback", which answers the wrong question: polite does not
+          interrupt, and it still queues. REPLAY_MS is 12,000, so one press of Replay
+          writes on the order of 700 batches across seven nodes, five of which change
+          every frame. Off during playback means a press of Replay announces nothing
+          until it stops, which is when there is a value worth hearing; a scrub or a
+          keyboard step announces once, because it is one event.
+          aria-atomic keeps a batch from being read as seven unrelated fragments. */}
+      <dl
+        className="replay-readout"
+        aria-live={playing || scrubbing ? "off" : "polite"}
+        aria-atomic="true"
+      >
         {READOUT.map((item) => (
           <div key={item.key}>
             <dt>{item.label}</dt>

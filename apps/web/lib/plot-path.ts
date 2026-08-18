@@ -25,23 +25,34 @@
  * @param decimals fixed precision for both coordinates. Omit for the raw value,
  *   which is what a series already rounded at export time wants: rounding twice
  *   is how a coordinate picks up a second error.
+ * @param breakOnGap start a new subpath after a skipped point instead of joining
+ *   across it. Off by default, which is what the two overlay callers want: their
+ *   series are dense and filtered upstream, and a single dropped column there is a
+ *   rendering detail. On for a series where a gap is a measurement, such as the
+ *   elevation panel, where the samples below the horizon are the pass being
+ *   somewhere this plot cannot show. Joining across those would draw a segment
+ *   along the zero line that never happened, which is the defect this argument
+ *   exists to make impossible to reintroduce by accident.
  */
 export function svgPolyline(
   rows: number[],
   columns: number[],
   decimals?: number,
+  breakOnGap = false,
 ): string {
   let out = "";
-  let started = false;
+  let open = false;
   for (let i = 0; i < rows.length; i += 1) {
     const x = columns[i];
     const y = rows[i];
-    if (x === undefined || y === undefined) continue;
-    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+    if (x === undefined || y === undefined || !Number.isFinite(x) || !Number.isFinite(y)) {
+      if (breakOnGap) open = false;
+      continue;
+    }
     const xs = decimals === undefined ? `${x}` : x.toFixed(decimals);
     const ys = decimals === undefined ? `${y}` : y.toFixed(decimals);
-    out += `${started ? "L" : "M"}${xs} ${ys}`;
-    started = true;
+    out += `${open ? "L" : "M"}${xs} ${ys}`;
+    open = true;
   }
   return out;
 }

@@ -26,14 +26,51 @@ export const SKY = {
 } as const;
 
 /**
- * Azimuth and elevation to sky-plot coordinates. North is up, east is right, and
- * elevation maps to radius linearly with the zenith at the centre.
+ * Radius for an elevation, unclamped. Above 90 is inside the zenith and below 0 is
+ * outside the horizon ring, both of which are legal positions for a label and
+ * neither of which is a legal position for a measured sample.
  */
-export function projectSky(azDeg: number, elDeg: number): [number, number] {
-  const clamped = Math.max(0, Math.min(90, elDeg));
-  const radius = (SKY.r * (90 - clamped)) / 90;
+export function skyRadius(elDeg: number): number {
+  return (SKY.r * (90 - elDeg)) / 90;
+}
+
+/**
+ * A point at any elevation, for chrome rather than for data: the cardinal labels sit
+ * at -7.5 degrees, meaning just outside the ring.
+ *
+ * Kept separate from projectSky so that the below-horizon policy can live in one
+ * place without breaking the one caller that wants to draw outside the ring on
+ * purpose. Before this split, projectSky clamped, so `projectSky(az, -7.5)` returned
+ * exactly the same point as `projectSky(az, 0)` and the N/E/S/W labels sat on the
+ * ring rather than outside it: the intent was in the number and never on the screen.
+ */
+export function skyChromePoint(azDeg: number, elDeg: number): [number, number] {
+  const radius = skyRadius(elDeg);
   const angle = ((azDeg - 90) * Math.PI) / 180; // 0 degrees azimuth points up
   return [SKY.cx + radius * Math.cos(angle), SKY.cy + radius * Math.sin(angle)];
+}
+
+/**
+ * Azimuth and elevation to sky-plot coordinates, or null below the horizon.
+ *
+ * North is up, east is right, and elevation maps to radius linearly with the zenith
+ * at the centre. Above 90 degrees is clamped, because a sample cannot be past the
+ * zenith and the arithmetic there is a rounding artefact.
+ *
+ * Below 0 returns null, and that is the point of this function. Three consumers of
+ * the same elevation series used to disagree about it: the sky plot broke its
+ * polyline at a negative sample, the time series clamped with `Math.max(0, deg)` and
+ * drew a flat segment along the zero line that never happened, and the replay cursor
+ * came through here and was pinned to the horizon ring while the track it was tracing
+ * had a gap in the same place. Three observations in the shipped set have below-
+ * horizon samples (14742034 and 14742036 with five each, 14736746 with one), so this
+ * was visible. The policy is now in the projection and every caller inherits it: a
+ * sample below the horizon has no position, and each consumer says so in its own
+ * idiom rather than inventing one.
+ */
+export function projectSky(azDeg: number, elDeg: number): [number, number] | null {
+  if (!(elDeg >= 0)) return null; // also excludes NaN
+  return skyChromePoint(azDeg, Math.min(90, elDeg));
 }
 
 // ---------------------------------------------------------------------------

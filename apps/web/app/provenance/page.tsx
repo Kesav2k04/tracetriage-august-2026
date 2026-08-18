@@ -6,7 +6,7 @@
  * not that a judge will hash them; it is that they could, and that the numbers on
  * the other pages are the ones inside these files rather than a retelling.
  */
-import { cards, evaluation, provenance, queue } from "@/lib/data";
+import { cards, evaluation, isBuilt, provenance, queue } from "@/lib/data";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export const metadata = { title: "Provenance" };
@@ -45,21 +45,21 @@ const DEGRADED_STATES: Array<{
     when: "No frequency information, so no centre pixel",
     shows:
       "The waterfall renders and the corridor overlay is withheld, with the reason and the share of records it affects.",
-    count: cards.cards.filter(
-      (c) => !c.degraded && (c.centre_px === null || c.centre_px === undefined),
-    ).length,
+    count: cards.cards.filter((c) => isBuilt(c) && c.centre_px === null).length,
   },
   {
     when: "The TLE will not propagate, so there is no pass geometry",
     shows:
       "The same withheld overlay, carrying the physics module's own degraded reason rather than a generic one.",
-    count: cards.cards.filter((c) => !c.degraded && !c.corridor).length,
+    count: cards.cards.filter((c) => isBuilt(c) && c.corridor === null).length,
   },
   {
     when: "The corridor fit ran into the edge of its search range",
     shows:
       "The offset is shown with a greater-or-equal marker and a note that it is a lower bound. The observation is excluded from the stale-catalogue conflict criterion.",
-    count: cards.cards.filter((c) => c.corridor?.offset_at_bound === true).length,
+    count: cards.cards.filter(
+      (c) => isBuilt(c) && c.corridor?.offset_at_bound === true,
+    ).length,
   },
   {
     when: "The browser has no WebGL2, or loses the context",

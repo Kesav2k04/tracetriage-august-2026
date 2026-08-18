@@ -18,7 +18,7 @@
  * same one. Two copies of it would be two chances to end up with a cursor that does
  * not sit on the line it is tracing.
  */
-import { SKY, projectSky } from "@/lib/projection";
+import { SKY, projectSky, skyChromePoint, skyRadius } from "@/lib/projection";
 
 export type SkyGeometry = {
   azimuth_deg: number[];
@@ -37,12 +37,15 @@ function polyline(az: number[], el: number[]): string {
     if (azi === undefined || eli === undefined) continue;
     // Below the horizon is off the plot. A sample at -2 degrees is a real
     // propagation result, not an error, so it is dropped rather than clamped:
-    // clamping would draw a segment along the rim that never happened.
-    if (eli < 0) {
+    // clamping would draw a segment along the rim that never happened. The test
+    // for it now lives in projectSky, so the replay cursor and the elevation
+    // panel cannot disagree with this plot about where the pass was.
+    const point = projectSky(azi, eli);
+    if (point === null) {
       parts.push("BREAK");
       continue;
     }
-    const [x, y] = projectSky(azi, eli);
+    const [x, y] = point;
     parts.push(`${x.toFixed(2)},${y.toFixed(2)}`);
   }
   const runs: string[] = [];
@@ -94,6 +97,20 @@ export default function SkyPlot({
   const tcaAz = az[iTca];
   const tcaEl = el[iTca];
 
+  // Each marker is a point or it is nothing. projectSky returns null below the
+  // horizon, so a pass whose first sample is already below it draws no rise marker
+  // rather than a marker sitting on the rim where the satellite was not. Computed
+  // once here rather than twice inside each attribute, which is also how the old
+  // code called the projection six times for three markers.
+  const risePoint =
+    firstAz === undefined || firstEl === undefined
+      ? null
+      : projectSky(firstAz, firstEl);
+  const setPoint =
+    lastAz === undefined || lastEl === undefined ? null : projectSky(lastAz, lastEl);
+  const tcaPoint =
+    tcaAz === undefined || tcaEl === undefined ? null : projectSky(tcaAz, tcaEl);
+
   const label = `Sky track for ${stationName}: the pass rises`
     + `${firstAz === undefined ? "" : ` at azimuth ${Math.round(firstAz)} degrees`}`
     + `, reaches ${geometry.max_elevation_deg.toFixed(1)} degrees elevation at`
@@ -114,7 +131,7 @@ export default function SkyPlot({
           key={elDeg}
           cx={SKY.cx}
           cy={SKY.cy}
-          r={(SKY.r * (90 - elDeg)) / 90}
+          r={skyRadius(elDeg)}
           className={elDeg === 0 ? "plot-grid-strong" : "plot-grid"}
         />
       ))}
@@ -123,8 +140,8 @@ export default function SkyPlot({
       {/* Cardinal spokes. Only four: a 30-degree rose would be eight more lines
           for information the labels already carry. */}
       {CARDINALS.map(([name, azDeg]) => {
-        const [x2, y2] = projectSky(azDeg, 0);
-        const [lx, ly] = projectSky(azDeg, -7.5);
+        const [x2, y2] = skyChromePoint(azDeg, 0);
+        const [lx, ly] = skyChromePoint(azDeg, -7.5);
         return (
           <g key={name}>
             <line x1={SKY.cx} y1={SKY.cy} x2={x2} y2={y2} className="plot-grid" />
@@ -186,27 +203,22 @@ export default function SkyPlot({
       {/* Rise and set, drawn as an open ring and a square so the direction of
           travel is readable without an arrowhead, which at this scale would be
           three pixels of ambiguity. */}
-      {firstAz !== undefined && firstEl !== undefined && firstEl >= 0 && (
-        <circle
-          cx={projectSky(firstAz, firstEl)[0]}
-          cy={projectSky(firstAz, firstEl)[1]}
-          r={3.5}
-          className="plot-station"
-        />
+      {risePoint && (
+        <circle cx={risePoint[0]} cy={risePoint[1]} r={3.5} className="plot-station" />
       )}
-      {lastAz !== undefined && lastEl !== undefined && lastEl >= 0 && (
+      {setPoint && (
         <rect
-          x={projectSky(lastAz, lastEl)[0] - 3}
-          y={projectSky(lastAz, lastEl)[1] - 3}
+          x={setPoint[0] - 3}
+          y={setPoint[1] - 3}
           width={6}
           height={6}
           className="plot-station"
         />
       )}
-      {tcaAz !== undefined && tcaEl !== undefined && (
+      {tcaPoint && (
         <circle
-          cx={projectSky(tcaAz, tcaEl)[0]}
-          cy={projectSky(tcaAz, tcaEl)[1]}
+          cx={tcaPoint[0]}
+          cy={tcaPoint[1]}
           r={4}
           className="plot-marker"
         />

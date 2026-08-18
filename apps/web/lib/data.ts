@@ -101,33 +101,66 @@ export type PassGeometry =
   | { degraded: string }
   | ({ degraded: null } & PassTrack);
 
-export interface Card {
-  obs_id: number;
-  degraded: string | null;
-  image?: string;
-  thumb?: string;
-  width?: number;
-  height?: number;
-  bytes?: number;
-  source_sha256?: string;
-  intensity?: string;
-  hz_per_px?: number;
-  seconds_per_px?: number;
-  centre_px?: number | null;
-  derivation?: string;
-  derivation_confidence?: number | null;
-  rx_freq_hz?: number | null;
-  start?: string;
-  end?: string;
-  ground_station?: number;
-  station_name?: string;
-  norad_cat_id?: number;
-  transmitter_uuid?: string;
-  transmitter_mode?: string;
-  waterfall_status?: string;
-  corridor?: CorridorGeometry | null;
-  corridor_note?: string | null;
-  geometry?: PassGeometry | null;
+/**
+ * Everything a card carries once its image and geometry were derived.
+ *
+ * Split into its own type so `Card` can be a discriminated union, which is the same
+ * treatment `PassGeometry` above already has and for the same reason. These were
+ * optional fields on one interface, and the observation page reached past them with
+ * `card.image!`, `card.width!` and `card.height!` after checking `degraded`. The
+ * invariant held in the exporter, so it was not a live defect, but the assertion is
+ * the reader promising what the type refused to: if it ever became wrong, `width!`
+ * and `height!` produce `aspectRatio: "undefined / undefined"` and
+ * `viewBox="0 0 undefined undefined"`, which renders as a collapsed box rather than
+ * an error.
+ *
+ * The nullable fields are nullable because the exporter reads them from the API
+ * record with `.get()`, so the record can simply not have them. The rest are
+ * computed by the exporter, which returns a degraded card before it reaches them.
+ */
+export interface CardMeasurements {
+  image: string;
+  thumb: string;
+  width: number;
+  height: number;
+  bytes: number;
+  source_sha256: string;
+  intensity: string;
+  hz_per_px: number;
+  seconds_per_px: number;
+  centre_px: number | null;
+  derivation: string;
+  derivation_confidence: number | null;
+  rx_freq_hz: number | null;
+  start: string | null;
+  end: string | null;
+  ground_station: number | null;
+  station_name: string | null;
+  norad_cat_id: number | null;
+  transmitter_uuid: string | null;
+  transmitter_mode: string | null;
+  waterfall_status: string | null;
+  corridor: CorridorGeometry | null;
+  corridor_note: string | null;
+  geometry: PassGeometry;
+}
+
+export type Card =
+  | { obs_id: number; degraded: string }
+  | ({ obs_id: number; degraded: null } & CardMeasurements);
+
+/** A card whose image and geometry were derived, narrowed for the compiler.
+ *
+ * This exists because truthiness does not narrow the union: the degraded member types
+ * `degraded` as `string`, an empty string is falsy, so `!card.degraded` leaves that
+ * member in and every measured field stays unreachable. Comparing against null is
+ * what selects a member, and a named predicate says which question is being asked at
+ * each call site rather than repeating the comparison.
+ */
+export function isBuilt(
+  card: Card,
+): card is { obs_id: number; degraded: null } & CardMeasurements {
+  return card.degraded === null;
 }
 
 export { fmt, fmtInterval, verdictColour, type Verdict } from "./format";
@@ -255,7 +288,14 @@ const queueData = queueJson as unknown as {
     criteria: Array<{
       reason_code: string;
       description: string;
-      threshold: string | number;
+      // Every criterion in the receipt carries an object here (a floor, a ceiling,
+      // or a minimum fraction), and this said string or number. The home page then
+      // rendered it correctly only by casting inside a branch the compiler believed
+      // unreachable: with `string | number`, `typeof x === "object"` narrows to
+      // never, a cast on never is allowed, and the only branch that ever ran was the
+      // one an editor would offer to delete as dead. Acting on that hint would have
+      // rendered all three thresholds as [object Object].
+      threshold: string | number | Record<string, number>;
       measurable_from_snapshot: boolean;
     }>;
     fixed_before_measuring: boolean;
@@ -327,12 +367,20 @@ export interface SelectivePoint {
   n_errors: number;
 }
 
+/**
+ * One split of the fusion ladder.
+ *
+ * `arms` and `comparisons` are nullable because a degraded split has no results: the
+ * export writes null for both, and the contract requires them only when `degraded` is
+ * null. They were typed as always present, which is the same overstatement `Card` had
+ * before D4, except here the export really can write the null.
+ */
 export interface FusionSplit {
   split: string;
   degraded: string | null;
   counts: Record<string, number>;
   test_positive_rate: number | null;
-  arms: Record<string, ArmMetrics>;
+  arms: Record<string, ArmMetrics> | null;
   comparisons: Record<
     string,
     {
@@ -345,7 +393,7 @@ export interface FusionSplit {
       n_observations?: number;
       n_groups?: number;
     }
-  >;
+  > | null;
   multiplicity_adjusted: Record<string, unknown> | null;
   ensemble: Record<string, unknown> | null;
   selective: { curve: SelectivePoint[]; [k: string]: unknown } | null;
@@ -511,7 +559,7 @@ export const entryById = new Map<number, QueueEntry>(
 
 /** Observations with imagery, in queue order. These are the routable cards. */
 export const showcaseIds: number[] = cardsData.cards
-  .filter((card) => !card.degraded)
+  .filter(isBuilt)
   .map((card) => card.obs_id)
   .sort((a, b) => {
     const ra = entryById.get(a)?.rank ?? Number.MAX_SAFE_INTEGER;

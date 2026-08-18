@@ -3079,3 +3079,159 @@ cd apps\web && npm run typecheck && npm run test && npm run build
 
 851 passed, 0 failed, no expected failures left, ruff clean, 53 console tests, 13 of 13
 standing gates.
+
+---
+
+## 2026-08-19 IST | Wave D | D4: three instruments disagreed about the horizon, and two types promised more than the data
+
+ENG-S3, ENG-S5, ENG-S7 and the two declarations in ENG-S8 at REVIEW_ENGINEERING.md:462.
+All four are console defects, and three of them were invisible in production for the
+same reason: the code that would have shown them is a code path nobody was measuring.
+
+**ENG-S3. Below-horizon elevation was rendered three different ways on one page.**
+Three consumers of the same `elevation_deg` series:
+
+| Consumer | Was | Now |
+| --- | --- | --- |
+| `SkyPlot` | broke the polyline at a negative sample, with the reason in a comment | unchanged, but the test moved into the projection |
+| `PassTimeSeries` | clamped with `Math.max(0, deg)`, drawing a flat segment along zero | breaks the subpath, so the panel has a gap where the sky plot has one |
+| `PassReplay` | called `projectSky` behind a finiteness guard, so the cursor sat pinned to the horizon ring while the track it traced had a gap | hides the cursor for those instants |
+
+`projectSky` now returns `null` below the horizon and the policy lives there, so a
+fourth consumer inherits it rather than choosing again. Three shipped observations have
+below-horizon samples (14742034 and 14742036 with five each, 14736746 with one), so all
+three renderings were on the site.
+
+**Two things fell out of moving it.** `SkyPlot` asked for a cardinal label at -7.5
+degrees elevation, meaning just outside the horizon ring, and the clamp inside
+`projectSky` turned that into exactly the point at 0: N, E, S and W were sitting on the
+ring on top of their own spokes, and the intent was in the number and never on the
+screen. Chrome now has its own function, `skyChromePoint`, which does not clamp, and
+`skyRadius` is the one definition of the elevation-to-radius map that the graticule
+also uses. Second, the rise, set and closest-approach markers each called the
+projection twice per attribute, six calls for three markers; they are three consts now,
+and a marker whose sample is below the horizon is not drawn at all rather than drawn on
+the rim where the satellite was not.
+
+`svgPolyline` gained a `breakOnGap` argument for the elevation panel. It is off by
+default because the two overlay callers have dense series filtered upstream, where one
+dropped column is a rendering detail; it is on where a gap is a measurement. The D2
+test named "skips a gap rather than interpolating across it" overstated what the
+default does, which is joining across the gap without inventing a point inside it, and
+is renamed to say that.
+
+**ENG-S5. The replay readout was a live region mutated up to sixty times a second.**
+`aria-live="polite"` was chosen because assertive "would interrupt on every frame of
+playback", which answers interruption and not volume: polite does not interrupt, and it
+still queues. `REPLAY_MS` is 12,000, so one press of Replay wrote on the order of 700
+batches across seven nodes, five of which change every frame.
+
+The region is now `off` while values are moving and `polite` when they stop, with
+`aria-atomic` so a batch is not read as seven fragments. Moving covers both cases: the
+animation loop, and a mouse drag on the scrubber, which fires continuously too. A drag
+sets a `scrubbing` flag with a 200 ms trailing edge, so the plot follows every event
+while the announcement happens once, at the position the reader settled on. Stopping is
+what announces, through one effect: the end of a run, a press of Pause, and the end of
+a drag all route through it. Without that a completed replay would say nothing at all,
+because every change happened inside a region that was off.
+
+A keyboard step on the slider is one event and is left alone. It announces once, which
+is correct, and throttling it would delay the only feedback a keyboard user gets.
+
+**ENG-S7. A released WebGL context cannot be re-acquired.** The per-image cleanup
+called `WEBGL_lose_context.loseContext()`. A force-lost context stays lost until
+something calls `restoreContext`, and `getContext` on the same canvas returns that same
+lost context, so any second run of the init effect compiled nothing and landed in the
+shader-failure branch for good: the plain image, no controls. `next.config.mjs` sets
+`reactStrictMode`, so in the dev server every effect mounts, cleans up and mounts again,
+which means the shader path was dead in development and a developer reading that file
+would have concluded the opposite. The production build was unaffected, which is why
+`next build` and the deployed site both looked right.
+
+The context is now acquired once per canvas, cached on a ref, reused across runs of the
+effect, and released in an unmount-only effect. The per-image cleanup deletes the
+texture, buffer, vertex array and program, which is what it owns. The live-context cap
+of about 16 is still respected: the release moved, it did not disappear.
+
+`preventDefault()` on `webglcontextlost` is gone, and that is the honest direction.
+Calling it asks the browser for a `webglcontextrestored` event that nothing here
+listens for, so it requested a context that could never come back and left a blank
+canvas behind live controls. Falling back to the plain image is what this component was
+designed to do. Supporting a real restore would need a generation counter in the
+effect deps plus a timeout that falls back when the restore never arrives, and that is
+written down in the comment rather than half-built.
+
+**ENG-S8 at :462. Two type declarations a cast and three assertions papered over.**
+
+`Card` typed `image`, `width` and `height` as optional and the observation page reached
+past them with `card.image!`, `card.width!` and `card.height!`. The invariant does hold
+in the exporter, so this was not live, but the same file already had the right answer
+in `PassGeometry`, a union written specifically so that reading a field without
+checking `degraded` is a type error. `Card` is now that union too:
+`{obs_id, degraded: string}` or `{obs_id, degraded: null} & CardMeasurements`, measured
+against the shipped file first (all 25 clean cards carry all 26 keys, and the degraded
+branch of the exporter writes exactly two).
+
+**And the narrowing that does not work.** `if (!card.degraded)` does not select a union
+member here, because the degraded member types `degraded` as `string` and an empty
+string is falsy, so a truthiness guard leaves that member in and every measured field
+stays unreachable. That is why the three assertions existed: the guard the author wrote
+looked like it narrowed and did not. There is now an `isBuilt` predicate comparing
+against null, used by the observation page, the provenance page and `showcaseIds`, and
+the three non-null assertions are gone.
+
+`threshold` was declared `string | number` and is an object in all three criteria. The
+home page rendered it correctly only by casting inside a branch the compiler believed
+unreachable: with `string | number`, `typeof x === "object"` narrows to `never`, a cast
+on `never` is permitted, and the only branch that ever executed was the one an editor
+would offer to delete as dead code. Acting on that hint would have rendered all three
+thresholds as `[object Object]`. The type includes `Record<string, number>` now, the
+guard narrows for real, and the cast is gone.
+
+**One more of the same shape, found while doing it.** `FusionSplit` typed `arms` and
+`comparisons` as always present, and the export writes null for both when a split is
+degraded. Unlike `Card` this one could really happen, and `Object.entries(null)` throws
+during the export, which is at least loud. Both are nullable now, and the evaluation
+page has a stated absence at the top: every number on it is measured on the
+chronological split, so a degraded chronological split means the page has nothing to
+show and says so.
+
+**What changed:**
+- `apps/web/lib/projection.ts`: `projectSky` returns null below the horizon;
+  `skyChromePoint` and `skyRadius` added.
+- `apps/web/components/SkyPlot.tsx`: polyline asks the projection, cardinals and
+  graticule use the chrome helpers, three markers are three consts.
+- `apps/web/components/PassTimeSeries.tsx`: no clamp, and the elevation series is a
+  path with breaks.
+- `apps/web/components/PassReplay.tsx`: cursor hidden below the horizon; the live
+  region is off while values move, with one announcement per stop.
+- `apps/web/components/WaterfallCanvas.tsx`: context cached and released only on
+  unmount, no `preventDefault` on loss.
+- `apps/web/lib/plot-path.ts`: `breakOnGap`.
+- `apps/web/lib/data.ts`: `Card` union, `CardMeasurements`, `isBuilt`, nullable
+  `FusionSplit` results, corrected `threshold`.
+- `apps/web/app/observation/[id]/page.tsx`, `app/provenance/page.tsx`, `app/page.tsx`,
+  `app/evaluation/page.tsx`: narrowing instead of assertions and casts.
+
+**Tests added: 6**, for 59 console tests in total: null below the horizon including the
+smallest sample in the corpus and NaN, zero kept as on the horizon rather than below
+it, the chrome point outside the ring that the clamp used to prevent, agreement between
+the two projections where a sample is legal, subpaths on `breakOnGap`, and the
+one-negative-sample series that is the mechanism all three consumers now share.
+
+**Commands run:**
+```
+cd apps\web && npx tsc --noEmit
+cd apps\web && npm run test
+cd apps\web && npm run build
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+851 passed, ruff clean, 59 console tests, 13 of 13 standing gates.
+
+**Noted rather than fixed:** `npm run lint` does not run. ESLint 9 is installed against
+an `.eslintrc` file and exits telling you to migrate to the flat config. It is not one
+of the standing gates, so nothing depended on it, and the migration is a config change
+with its own review rather than a line in this unit.

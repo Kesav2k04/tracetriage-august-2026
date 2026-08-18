@@ -26,9 +26,13 @@
  *   - Device pixel ratio is capped at 2. A promoted layer rasterises its whole
  *     box, so an uncapped ratio on a 3x display quadruples the raster for no
  *     visible gain on a spectrogram.
- *   - The context is created when the canvas first becomes visible and released
- *     with WEBGL_lose_context on unmount. Browsers cap live contexts at around
- *     16, and a queue of cards would exhaust that.
+ *   - The context is created when the canvas first becomes visible, cached on a ref
+ *     for the life of the canvas, and released with WEBGL_lose_context on unmount
+ *     and only on unmount. Browsers cap live contexts at around 16, and a queue of
+ *     cards would exhaust that, so it cannot be left to garbage collection. It was
+ *     released in the per-image cleanup instead, which meant any second run of that
+ *     effect got the same still-lost context back from getContext and fell through
+ *     to the shader-failure branch for good.
  *   - alpha, depth, stencil and antialias are all off, and the drawing buffer is
  *     not preserved. Each of those is a buffer the compositor would otherwise
  *     allocate and blend for a page that needs none of them.
@@ -270,15 +274,28 @@ export default function WaterfallCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const gl = canvas.getContext("webgl2", {
-      alpha: false,
-      antialias: false,
-      depth: false,
-      stencil: false,
-      desynchronized: true,
-      powerPreference: "low-power",
-      preserveDrawingBuffer: false,
-    });
+    // Acquired once per canvas and kept across runs of this effect. Releasing it in
+    // the cleanup was the defect: a force-lost context stays lost until something
+    // calls restoreContext, and getContext on the same canvas returns that same lost
+    // context, so the next run compiled nothing and landed in the shader-failure
+    // branch permanently. next.config.mjs sets reactStrictMode, so in the dev server
+    // every effect mounts, cleans up and mounts again: the shader path was dead in
+    // development and a developer reading this file would have concluded the
+    // opposite. Production was unaffected, which is why the build and the deployed
+    // site both looked right.
+    const cached = glRef.current;
+    const gl =
+      cached && !cached.isContextLost()
+        ? cached
+        : canvas.getContext("webgl2", {
+            alpha: false,
+            antialias: false,
+            depth: false,
+            stencil: false,
+            desynchronized: true,
+            powerPreference: "low-power",
+            preserveDrawingBuffer: false,
+          });
     if (!gl) {
       failTo("This browser did not provide a WebGL2 context.");
       return;
@@ -379,7 +396,15 @@ export default function WaterfallCanvas({
       });
 
     const onContextLost = (event: Event) => {
-      event.preventDefault();
+      // No preventDefault. Calling it is a request for a webglcontextrestored event,
+      // and nothing here listens for one, so it asked the browser to keep a context
+      // that could never come back and left the canvas blank behind live controls.
+      // Falling back to the plain image is the honest response and the one this
+      // component was designed around. Supporting a real restore would mean a
+      // generation counter in the deps below plus a timeout that falls back when the
+      // restore never arrives, which is more machinery than a lost context on a
+      // static page justifies.
+      void event;
       textureReadyRef.current = false;
       failTo("The browser released the WebGL context for this page.");
     };
@@ -391,17 +416,30 @@ export default function WaterfallCanvas({
       cancelAnimationFrame(frameRef.current);
       frameRef.current = 0;
       textureReadyRef.current = false;
+      // The resources this run created, and nothing else. The context stays: it
+      // belongs to the canvas, not to this run, and losing it here is what made a
+      // second run permanent fallback.
       gl.deleteTexture(texture);
       gl.deleteBuffer(buffer);
       gl.deleteVertexArray(vao);
       gl.deleteProgram(program);
-      // Hand the context back rather than waiting for garbage collection.
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
-      glRef.current = null;
       programRef.current = null;
       uniformsRef.current = {};
     };
   }, [visible, src, fallback, failTo, scheduleRender]);
+
+  /* The context is handed back on unmount and only on unmount. Browsers cap live
+     contexts at around 16 and a queue of cards would exhaust that, so this cannot
+     simply be left to garbage collection. Empty deps on purpose: this runs when the
+     component goes away, never when its props change. */
+  useEffect(
+    () => () => {
+      const gl = glRef.current;
+      glRef.current = null;
+      gl?.getExtension("WEBGL_lose_context")?.loseContext();
+    },
+    [],
+  );
 
   /* Control changes: update the values the draw reads, then ask for one frame. */
   useEffect(() => {

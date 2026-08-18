@@ -31,9 +31,35 @@ describe("svgPolyline", () => {
     expect(out).toBe("M20 2L30 3");
   });
 
-  it("skips a gap rather than interpolating across it", () => {
+  it("joins across a gap by default, without inventing a point inside it", () => {
+    // Two overlay callers want this: their series are dense and filtered upstream, so
+    // one dropped column is a rendering detail rather than a measurement. The name of
+    // this test used to say "skips a gap rather than interpolating across it", which
+    // overstated it. No point is invented, and the path does connect the two sides.
     const out = svgPolyline([1, 2, 3], [10, Number.NaN, 30]);
     expect(out).toBe("M10 1L30 3");
+  });
+
+  it("breaks into subpaths when the gap is itself a measurement", () => {
+    // The elevation panel passes breakOnGap, because a below-horizon sample is the
+    // pass being somewhere the panel cannot show. Joining across those drew a flat
+    // segment along the zero line that never happened, while the sky plot beside it
+    // broke its track for the same samples.
+    const out = svgPolyline([1, 2, 3], [10, Number.NaN, 30], undefined, true);
+    expect(out).toBe("M10 1M30 3");
+    const three = svgPolyline([1, 2, 3, 4], [10, 20, Number.NaN, 40], undefined, true);
+    expect(three).toBe("M10 1L20 2M40 4");
+  });
+
+  it("one below-horizon sample breaks the series, which is the shared policy", () => {
+    // The mechanism all three consumers of elevation_deg inherit: the projection
+    // returns null below the horizon, the caller maps that to a non-finite
+    // coordinate, and the path breaks. 14736746 has exactly one such sample.
+    const elevations = [5, 20, -0.017, 18, 4];
+    const rows = elevations.map((e) => (e < 0 ? Number.NaN : e));
+    const out = svgPolyline(rows, [0, 1, 2, 3, 4], 0, true);
+    // Two subpaths: the samples before the gap, then the samples after it.
+    expect(out).toBe("M0 5L1 20M3 18L4 4");
   });
 
   it("skips a point whose column is missing from a shorter series", () => {

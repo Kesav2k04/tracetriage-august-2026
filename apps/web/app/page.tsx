@@ -263,8 +263,15 @@ export default function QueuePage() {
               </Cell>
               <Cell align="left">{criterion.description}</Cell>
               <Cell mono>
+                {/* The object branch is the one that runs for all three criteria.
+                    It needed a cast while `threshold` was typed `string | number`,
+                    because that made `typeof x === "object"` narrow to never and a
+                    cast on never is allowed: the executing branch was the one the
+                    compiler believed was dead, and deleting it on that advice would
+                    have rendered every threshold as [object Object]. The type now
+                    includes the object, so the guard narrows for real. */}
                 {typeof criterion.threshold === "object"
-                  ? Object.entries(criterion.threshold as Record<string, unknown>)
+                  ? Object.entries(criterion.threshold)
                       .map(([k, v]) => `${k}=${v}`)
                       .join(", ")
                   : String(criterion.threshold)}

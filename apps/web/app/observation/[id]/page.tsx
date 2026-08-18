@@ -12,6 +12,7 @@ import {
   cardById,
   entryById,
   fmt,
+  isBuilt,
   showcaseIds,
 } from "@/lib/data";
 import WaterfallViewer from "@/components/WaterfallViewer";
@@ -46,9 +47,12 @@ export default async function ObservationPage({
   const obsId = Number(id);
   const card = cardById.get(obsId);
   const entry = entryById.get(obsId);
-  const geometry = card?.geometry ?? null;
 
-  if (!card || card.degraded) {
+  // isBuilt rather than `card.degraded`, because truthiness cannot narrow this union:
+  // the degraded member types degraded as string and an empty string is falsy, so a
+  // truthiness guard left every measured field unreachable and the page reached past
+  // the type with card.image!, card.width! and card.height!.
+  if (!card || !isBuilt(card)) {
     return (
       <div className="shell" style={{ paddingTop: "var(--sp-09)" }}>
         <h1 style={{ fontSize: "var(--type-heading-04)" }}>Observation {id}</h1>
@@ -69,6 +73,9 @@ export default async function ObservationPage({
     position >= 0 && position < showcaseIds.length - 1
       ? showcaseIds[position + 1]
       : null;
+
+  // Read after the guard, so the type carries it rather than an optional chain.
+  const geometry = card.geometry;
 
   return (
     <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
@@ -115,9 +122,9 @@ export default async function ObservationPage({
 
       <div style={{ marginTop: "var(--sp-07)" }}>
         <WaterfallViewer
-          src={card.image!}
-          width={card.width!}
-          height={card.height!}
+          src={card.image}
+          width={card.width}
+          height={card.height}
           obsId={obsId}
           corridor={card.corridor}
           corridorNote={card.corridor_note}
