@@ -79,7 +79,7 @@ const READOUT: Array<{ key: string; label: string }> = [
 ];
 
 /** Linear interpolation between the two propagated samples that bracket t. */
-function sampleAt(series: number[], t: number): number {
+export function sampleAt(series: number[], t: number): number {
   if (series.length === 0) return Number.NaN;
   const x = t * (series.length - 1);
   const i = Math.floor(x);

@@ -172,17 +172,29 @@ def main() -> int:
     ap.add_argument(
         "--draw",
         type=int,
-        default=32,
+        # Six, not thirty-two. This is a measured page-weight decision, not a taste
+        # one: seven polylines of 257 points took the home document from 20.1 kB to
+        # 40.2 kB gzipped, and sixteen nulls cost 63.3 kB. The default used to be 32
+        # while the shipped artifact carried 6, so a bare rebuild silently tripled the
+        # ink and the document weight, and nothing recorded which command had produced
+        # the file on disk. The default is now the shipped decision.
+        default=6,
         help="how many null paths to write; all 200 are scored either way",
     )
     ap.add_argument(
         "--decimals",
         type=int,
-        default=1,
+        # Zero, which is what the shipped artifact carries. The frame is 620 units
+        # wide and renders near 700 CSS pixels, so one unit is 1.13 px and rounding
+        # to whole units moves a point by at most 0.56 px, below anything a reader
+        # can see. Integers also compress better, which is the whole reason the
+        # precision is a parameter. The default was 1 while the artifact on disk was
+        # written with 0, so a bare rebuild rewrote every coordinate in the file.
+        default=0,
         help=(
             "column precision. The frame is 620 units wide and renders near 700 CSS "
-            "pixels, so a tenth of a unit is below anything a reader can see, and "
-            "the paths compress better for it."
+            "pixels, so one whole unit is already below anything a reader can see, "
+            "and the paths compress better for it."
         ),
     )
     ap.add_argument("-v", "--verbose", action="store_true")

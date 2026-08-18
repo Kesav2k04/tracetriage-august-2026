@@ -28,6 +28,7 @@
 import { useId, useState } from "react";
 
 import type { CorridorGeometry } from "@/lib/data";
+import { svgPolyline } from "@/lib/plot-path";
 import WaterfallCanvas, { type Palette } from "./WaterfallCanvas";
 
 export interface WaterfallViewerProps {
@@ -43,15 +44,11 @@ export interface WaterfallViewerProps {
 
 type OverlayMode = "all" | "fitted" | "none";
 
+// Two decimal places on a curve drawn over a raster: the overlay is placed in
+// image pixels, so a hundredth of a pixel is far below anything visible and
+// keeps the markup small.
 function pathFrom(rows: number[], columns: number[]): string {
-  let out = "";
-  for (let i = 0; i < rows.length; i += 1) {
-    const x = columns[i];
-    const y = rows[i];
-    if (x === undefined || y === undefined) continue;
-    out += `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
-  }
-  return out;
+  return svgPolyline(rows, columns, 2);
 }
 
 export default function WaterfallViewer({

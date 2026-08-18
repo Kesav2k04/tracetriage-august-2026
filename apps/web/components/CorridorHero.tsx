@@ -38,16 +38,13 @@
 import Link from "next/link";
 
 import { fmt, heroNulls, type HeroNulls } from "@/lib/data";
+import { svgPolyline } from "@/lib/plot-path";
 
+// No rounding here: export_hero_nulls.py already writes these columns at the
+// precision the frame needs, and rounding a rounded number twice is how a
+// coordinate picks up a second error.
 function polyline(rows: number[], px: number[]): string {
-  let out = "";
-  for (let i = 0; i < rows.length; i += 1) {
-    const x = px[i];
-    const y = rows[i];
-    if (x === undefined || y === undefined) continue;
-    out += `${i === 0 ? "M" : "L"}${x} ${y}`;
-  }
-  return out;
+  return svgPolyline(rows, px);
 }
 
 export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls }) {

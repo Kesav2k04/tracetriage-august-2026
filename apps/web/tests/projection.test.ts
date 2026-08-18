@@ -1,0 +1,304 @@
+/**
+ * The pure functions behind every plot on this console, and the degenerate inputs
+ * that produce a wrong picture rather than an error.
+ *
+ * Until 2026-08-19 nothing exercised any of them. They are pure and import nothing,
+ * so the only reason they were untested is that there was no runner. The cases here
+ * are the ones an independent review named: a single-sample series, an all-equal
+ * series, a pass crossing the antimeridian, a station at a pole, a zero-length pass,
+ * a horizon circle that encloses a pole, and a negative-elevation sample carried
+ * through every consumer.
+ */
+import { describe, expect, it } from "vitest";
+
+import {
+  EARTH_R_KM,
+  GROUND,
+  SKY,
+  groundBounds,
+  horizonCircle,
+  niceStep,
+  projectGround,
+  projectSky,
+  stationLonInFrame,
+  unwrapLongitudes,
+  wrapLabel,
+} from "../lib/projection";
+
+describe("projectSky", () => {
+  it("puts the zenith at the centre", () => {
+    expect(projectSky(0, 90)).toEqual([SKY.cx, SKY.cy]);
+    expect(projectSky(137, 90)).toEqual([SKY.cx, SKY.cy]);
+  });
+
+  it("puts the horizon on the ring, north up and east right", () => {
+    const [nx, ny] = projectSky(0, 0);
+    expect(nx).toBeCloseTo(SKY.cx, 6);
+    expect(ny).toBeCloseTo(SKY.cy - SKY.r, 6);
+
+    const [ex, ey] = projectSky(90, 0);
+    expect(ex).toBeCloseTo(SKY.cx + SKY.r, 6);
+    expect(ey).toBeCloseTo(SKY.cy, 6);
+  });
+
+  it("clamps a below-horizon sample to the horizon instead of drawing outside it", () => {
+    // A negative elevation is a real value in the propagated series: the satellite
+    // is below the local horizon at both ends of a pass. Unclamped, the radius grows
+    // past SKY.r and the point lands outside the plot with nothing to explain it.
+    const [x, y] = projectSky(45, -30);
+    const [x0, y0] = projectSky(45, 0);
+    expect(x).toBeCloseTo(x0, 9);
+    expect(y).toBeCloseTo(y0, 9);
+    const radius = Math.hypot(x - SKY.cx, y - SKY.cy);
+    expect(radius).toBeLessThanOrEqual(SKY.r + 1e-9);
+  });
+
+  it("clamps above the zenith too, which an elevation over 90 would otherwise invert", () => {
+    expect(projectSky(45, 91)).toEqual(projectSky(45, 90));
+  });
+});
+
+describe("unwrapLongitudes", () => {
+  it("returns an empty series for an empty input rather than throwing", () => {
+    expect(unwrapLongitudes([])).toEqual([]);
+  });
+
+  it("passes a single sample through untouched", () => {
+    expect(unwrapLongitudes([137.5])).toEqual([137.5]);
+  });
+
+  it("leaves a series that never crosses the seam alone", () => {
+    expect(unwrapLongitudes([10, 20, 30])).toEqual([10, 20, 30]);
+  });
+
+  it("removes the 360 degree jump at the antimeridian going east", () => {
+    // 178, 179, -179, -178 is a pass crossing the seam. Drawn raw it jumps the whole
+    // width of the plot and back.
+    const out = unwrapLongitudes([178, 179, -179, -178]);
+    expect(out).toEqual([178, 179, 181, 182]);
+    for (let i = 1; i < out.length; i += 1) {
+      expect(Math.abs((out[i] as number) - (out[i - 1] as number))).toBeLessThan(180);
+    }
+  });
+
+  it("removes the jump going west as well", () => {
+    const out = unwrapLongitudes([-178, -179, 179, 178]);
+    expect(out).toEqual([-178, -179, -181, -182]);
+  });
+
+  it("takes the shorter step at every sample, not the eastward one", () => {
+    // 170, -170, 170, -170 is not a satellite going east twice. Each step is 20
+    // degrees the short way and 340 the long way, and a propagated pass cannot move
+    // 340 degrees between samples, so the short reading is the physical one. The
+    // series therefore oscillates rather than accumulating: the invariant to hold is
+    // that no drawn segment jumps more than half the world, not that the values only
+    // increase.
+    const out = unwrapLongitudes([170, -170, 170, -170]);
+    expect(out).toEqual([170, 190, 170, 190]);
+    for (let i = 1; i < out.length; i += 1) {
+      expect(Math.abs((out[i] as number) - (out[i - 1] as number))).toBeLessThan(180);
+    }
+  });
+
+  it("accumulates when the motion really is one-way", () => {
+    // Eastward at 30 degrees a step, twice around the seam. Here the values do grow
+    // without bound, which is what the plot frame is built from.
+    const out = unwrapLongitudes([150, 180, -150, -120, -90]);
+    expect(out).toEqual([150, 180, 210, 240, 270]);
+  });
+});
+
+describe("wrapLabel", () => {
+  it("brings a longitude back into the labelled range", () => {
+    expect(wrapLabel(181)).toBeCloseTo(-179, 9);
+    expect(wrapLabel(-181)).toBeCloseTo(179, 9);
+    // 540 wraps to the antimeridian, which this returns as -180. Both spellings name
+    // the same meridian, and the function is only used for a tick label, so the sign
+    // is a presentation choice rather than a correctness one. Asserted as it behaves
+    // so a future change to the wrap arithmetic has to be deliberate.
+    expect(wrapLabel(540)).toBeCloseTo(-180, 9);
+  });
+
+  it("never returns negative zero, which renders as -0", () => {
+    expect(Object.is(wrapLabel(360), -0)).toBe(false);
+    expect(wrapLabel(360)).toBe(0);
+  });
+});
+
+describe("horizonCircle", () => {
+  it("closes the ring", () => {
+    const c = horizonCircle(12, 34, 500);
+    expect(c.lat.length).toBe(c.lon.length);
+    expect(c.lat[0]).toBeCloseTo(c.lat[c.lat.length - 1] as number, 9);
+  });
+
+  it("grows the half angle with altitude", () => {
+    const low = horizonCircle(0, 0, 300).halfAngleDeg;
+    const high = horizonCircle(0, 0, 1200).halfAngleDeg;
+    expect(high).toBeGreaterThan(low);
+    // acos(R / (R + h)) at 300 km is about 17.7 degrees for R = 6371.0088 km.
+    const expected =
+      (Math.acos(EARTH_R_KM / (EARTH_R_KM + 300)) * 180) / Math.PI;
+    expect(low).toBeCloseTo(expected, 9);
+  });
+
+  it("treats a zero or negative altitude as a floor rather than a zero circle", () => {
+    // altKm is clamped to at least 1, so a record with a missing or absurd altitude
+    // still yields a ring with a positive radius instead of a degenerate point.
+    expect(horizonCircle(0, 0, 0).halfAngleDeg).toBeGreaterThan(0);
+    expect(horizonCircle(0, 0, -50).halfAngleDeg).toBeGreaterThan(0);
+  });
+
+  it("stays inside the latitude range when the circle encloses the pole", () => {
+    // A satellite over 88 N with a 20 degree half angle has a horizon circle that
+    // contains the pole. Every latitude must still be a latitude.
+    const c = horizonCircle(88, 0, 1200);
+    for (const lat of c.lat) {
+      expect(lat).toBeGreaterThanOrEqual(-90);
+      expect(lat).toBeLessThanOrEqual(90);
+      expect(Number.isFinite(lat)).toBe(true);
+    }
+    for (const lon of c.lon) {
+      expect(Number.isFinite(lon)).toBe(true);
+    }
+  });
+
+  it("spans the full longitude range when the circle encloses the pole", () => {
+    // This is the property the plot depends on: a pole-enclosing circle wraps all the
+    // way round, so its longitudes cover a wide span rather than a narrow arc. A frame
+    // computed as lon +/- halfAngle would clip it at both edges.
+    const c = horizonCircle(89, 0, 1200);
+    const span = Math.max(...c.lon) - Math.min(...c.lon);
+    expect(span).toBeGreaterThan(180);
+  });
+});
+
+describe("projectGround", () => {
+  const bounds = { lonMin: -10, lonMax: 10, latMin: -5, latMax: 5 };
+
+  it("maps the frame corners to the plot corners", () => {
+    const [x0, y0] = projectGround(bounds, -10, 5);
+    expect(x0).toBeCloseTo(GROUND.padL, 9);
+    expect(y0).toBeCloseTo(GROUND.padT, 9);
+
+    const [x1, y1] = projectGround(bounds, 10, -5);
+    expect(x1).toBeCloseTo(GROUND.w - GROUND.padR, 9);
+    expect(y1).toBeCloseTo(GROUND.h - GROUND.padB, 9);
+  });
+
+  it("increases y downward, because latitude increases upward", () => {
+    const [, yNorth] = projectGround(bounds, 0, 4);
+    const [, ySouth] = projectGround(bounds, 0, -4);
+    expect(yNorth).toBeLessThan(ySouth);
+  });
+});
+
+describe("niceStep", () => {
+  it("keeps a graticule to at most seven lines over any span a pass can produce", () => {
+    // 630 is the largest span the ladder covers, and it is far beyond anything one
+    // pass draws: a frame is a single pass plus its horizon circle, so a few tens of
+    // degrees, and the widest case in the corpus is under 180.
+    for (const span of [0.5, 3, 8, 25, 100, 175, 360, 630]) {
+      const step = niceStep(span);
+      expect(span / step).toBeLessThanOrEqual(7.0000001);
+      expect(step).toBeGreaterThan(0);
+    }
+  });
+
+  it("falls back to 90 above that, and the fallback is what caps the line count", () => {
+    // Above 630 degrees the ladder runs out and 90 is returned, which draws more than
+    // seven lines. That is a multi-revolution frame, which this console never draws.
+    // Asserted rather than left implicit, so the limit is visible to whoever first
+    // needs a wider frame.
+    expect(niceStep(1e6)).toBe(90);
+    expect(1000 / niceStep(1000)).toBeGreaterThan(7);
+  });
+});
+
+describe("groundBounds", () => {
+  const base = {
+    lats: [10, 20, 30],
+    unwrappedLons: [100, 110, 120],
+    stationLat: 15,
+    stationLonUnwrapped: 105,
+    circleLat: [5, 35],
+    circleLon: [90, 130],
+  };
+
+  it("contains the track, the station and the whole horizon circle", () => {
+    const b = groundBounds(base);
+    expect(b.latMin).toBeLessThanOrEqual(5);
+    expect(b.latMax).toBeGreaterThanOrEqual(35);
+    expect(b.lonMin).toBeLessThanOrEqual(90);
+    expect(b.lonMax).toBeGreaterThanOrEqual(130);
+  });
+
+  it("never returns a latitude outside the sphere", () => {
+    const b = groundBounds({
+      ...base,
+      lats: [89.9, 90],
+      circleLat: [-90, 90],
+      stationLat: 89,
+    });
+    expect(b.latMin).toBeGreaterThanOrEqual(-90);
+    expect(b.latMax).toBeLessThanOrEqual(90);
+  });
+
+  it("gives an all-equal series a frame with width, not a zero-size one", () => {
+    // A zero-span frame divides by zero in projectGround and every point becomes
+    // Infinity or NaN, which draws nothing. The padding floor of 1 degree is what
+    // stops that, so it is asserted here rather than assumed.
+    const b = groundBounds({
+      lats: [12, 12, 12],
+      unwrappedLons: [34, 34, 34],
+      stationLat: 12,
+      stationLonUnwrapped: 34,
+      circleLat: [12],
+      circleLon: [34],
+    });
+    expect(b.latMax - b.latMin).toBeGreaterThan(0);
+    expect(b.lonMax - b.lonMin).toBeGreaterThan(0);
+    const [x, y] = projectGround(b, 34, 12);
+    expect(Number.isFinite(x)).toBe(true);
+    expect(Number.isFinite(y)).toBe(true);
+  });
+
+  it("gives a single sample a frame with width", () => {
+    const b = groundBounds({
+      lats: [45],
+      unwrappedLons: [7],
+      stationLat: 45,
+      stationLonUnwrapped: 7,
+      circleLat: [45],
+      circleLon: [7],
+    });
+    expect(b.latMax).toBeGreaterThan(b.latMin);
+    expect(b.lonMax).toBeGreaterThan(b.lonMin);
+  });
+});
+
+describe("stationLonInFrame", () => {
+  it("leaves a station already inside the frame alone", () => {
+    expect(stationLonInFrame([100, 110, 120], 105)).toBeCloseTo(105, 9);
+  });
+
+  it("brings a station into an unwrapped frame that has crossed the seam", () => {
+    // The pass runs 178 -> 182 in unwrapped coordinates. A station at -179 is at the
+    // same place as 181, and without this it would be plotted 360 degrees away.
+    const frame = unwrapLongitudes([178, 179, -179, -178]);
+    expect(stationLonInFrame(frame, -179)).toBeCloseTo(181, 9);
+  });
+
+  it("works for a single-sample frame", () => {
+    expect(stationLonInFrame([181], -179)).toBeCloseTo(181, 9);
+  });
+
+  it("puts a polar station in the frame the pass is drawn in", () => {
+    // Longitude is meaningless at a pole but the marker still has to land inside the
+    // frame rather than off the edge, so the same shift applies.
+    const frame = unwrapLongitudes([170, -170, -160]);
+    const shifted = stationLonInFrame(frame, 0);
+    expect(shifted).toBeGreaterThanOrEqual(Math.min(...frame) - 360);
+    expect(shifted).toBeLessThanOrEqual(Math.max(...frame) + 360);
+  });
+});

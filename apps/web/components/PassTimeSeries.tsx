@@ -67,7 +67,7 @@ const AXIS_TITLE_LIFT = 6;
 const TOP_Y = PAD_T;
 const BOTTOM_Y = PAD_T + PANEL_H + GAP;
 
-function niceCeil(value: number): number {
+export function niceCeil(value: number): number {
   if (value <= 0) return 1;
   const magnitude = 10 ** Math.floor(Math.log10(value));
   for (const step of [1, 2, 2.5, 5, 10]) {

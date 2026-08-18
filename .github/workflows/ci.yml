@@ -61,3 +61,38 @@ jobs:
         # Informational: an upstream API change should surface here, not silently
         # in a training run. It must never block the offline gate.
         run: .venv/bin/python -m pytest -m network -q
+
+  console:
+    name: Static console, typecheck build and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install pinned dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Type check
+        working-directory: apps/web
+        run: npm run typecheck
+
+      - name: Unit tests
+        # Vitest over the pure functions in apps/web/lib. Every coordinate defect this
+        # console has had was arithmetic (the pole seam, the antimeridian unwrap, a
+        # negative-elevation sample), and neither tsc nor next build can see a wrong
+        # number. This is the check that can.
+        working-directory: apps/web
+        run: npm run test
+
+      - name: Build
+        # The export reads apps/web/public/data at module scope, so a broken page fails
+        # here rather than degrading in the browser. Those files are committed, which is
+        # why this job needs no snapshot and no Python.
+        working-directory: apps/web
+        run: npm run build

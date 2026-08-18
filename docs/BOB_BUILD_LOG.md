@@ -2793,3 +2793,110 @@ above 0.9 for a ramp, and None with no swing; reversal preserves the value distr
 .venv\Scripts\python.exe -m ruff check .
 .venv\Scripts\python.exe scripts\gate.py
 ```
+
+---
+
+## 2026-08-19 IST | Wave D | D2: the console had no gate, and a generator that did not reproduce its own artifact
+
+ENG-S8 and ENG-S9, closed together because they are the same defect at two levels: a
+standing gate that reported 8/8 while two whole classes of regression were outside it.
+
+**ENG-S9. `apps/web` had no test runner.** `tsc --noEmit` and `next build` were the
+entire net, and neither can see a wrong number. Every defect this console has actually
+shipped was arithmetic: the pole seam, the antimeridian unwrap, a negative-elevation
+sample drawn as if it were above the horizon. Vitest now runs over the pure functions,
+node environment, no jsdom and no setup file, because those functions import nothing by
+design. Components stay out of scope: `next build` already fails on one that cannot
+render and `tsc` already fails on a wrong prop. The gap being closed is the arithmetic.
+
+**53 tests in two files.** `tests/projection.test.ts` (30) covers `projectSky` clamping,
+`unwrapLongitudes` at the seam, `wrapLabel`, `horizonCircle` at the poles, `projectGround`
+corners, the `niceStep` ladder, degenerate `groundBounds` spans and `stationLonInFrame`.
+`tests/plot-helpers.test.ts` (23) covers the path builder, `sampleAt`, `niceCeil`,
+`timeSeriesCursorX` and `boundsForPass`.
+
+**The defect the tests forced out.** `WaterfallViewer.pathFrom` and
+`CorridorHero.polyline` were near-identical copies, both untestable because importing
+either component drags in the whole data module, and both chose the SVG command with
+`i === 0 ? "M" : "L"`. A series whose first sample is missing, which is what a failed
+SGP4 step or a NaN row produces, yielded a path beginning with `L`. A path with no moveto
+draws nothing at all: no error, no warning, an empty overlay over a real waterfall, which
+reads as "the physics found nothing" rather than as a bug. There is now one
+`svgPolyline` in `apps/web/lib/plot-path.ts` that picks the command by whether a point
+has been emitted, skips a gap instead of interpolating across it, refuses a non-finite
+coordinate, and takes the precision as an argument so a series already rounded at export
+time is not rounded twice.
+
+**Three of my own expectations were wrong rather than the code**, which is worth
+recording because each one nearly became a "fix":
+`unwrapLongitudes([170, -170, 170, -170])` is `[170, 190, 170, 190]`, not an accumulating
+ramp, because each step is 20 degrees the short way and a propagated pass cannot move 340
+degrees between samples; `wrapLabel(540)` returns `-180`, which names the same meridian as
+`180`; and `niceStep` holds a graticule to seven lines only up to a span of 630 degrees,
+above which it returns 90 and draws more. All three are now asserted as the code behaves,
+with the reason in a comment, so a later change has to be deliberate.
+
+**And one fixture lied.** The first `boundsForPass` fixture invented `alt_km`,
+`station_lat_deg` and `station_lon_deg`; an `as never` cast let it compile, and four tests
+then failed at run time inside the function under test, reading index 1 of undefined. The
+real type is `TrackGeometry` with `altitude_km`, `station_lat` and `station_lon`. The cast
+silenced the one check that would have named the wrong field. It is now typed as
+`Partial<TrackGeometry>` and imported from the component, so a renamed field breaks the
+test at compile time.
+
+**ENG-S8. Nothing rebuilt an artifact and diffed it.** In D0 that let
+`LEAKAGE_AUDIT.json` keep a `PASS` the builder could no longer emit, with every gate
+green, and it let a test pass because its fixture read that stale file.
+`scripts/check_artifact_freshness.py` rebuilds `SPLIT_MANIFEST.json`,
+`LEAKAGE_AUDIT.json` and `HERO_NULLS.json` into a scratch directory with `--frozen-at`
+pinned, strips the write-time fields, and names the first field that differs.
+
+**What it caught on its first run, before any of it was committed.**
+`scripts/export_hero_nulls.py` defaulted to `--draw 32 --decimals 1`, while the shipped
+`artifacts/HERO_NULLS.json` holds 6 drawn paths at zero decimals. The documented command,
+run as documented, rewrote every coordinate in the file: a 10,132-line diff over an
+artifact whose numbers were never in question. The 6-and-zero decision was measured (16
+nulls at full precision is 63.3 kB against a 40.2 kB gzipped home document) and it lived
+nowhere except the shell history of whoever ran it. The defaults are now the shipped
+decision, with the measurement in the comment, and the rebuilt file is byte-identical to
+the committed one.
+
+The check cannot run in CI and says so: CI has no observation snapshot. `--deep` also
+rescores gate 3, which needs the waterfall PNGs and a few minutes, and belongs before a
+submission rather than in a per-unit loop.
+
+**The gate grew from 8 checks to 12.** Console typecheck, console build and console tests
+are three lines rather than one, because a type error and a wrong projection are different
+failures. A missing `apps/web/node_modules` is reported as a FAIL rather than skipped: a
+skipped check that reads as a pass is the same defect one level up. `artifacts match their
+builders` is the fourth. CI gained a `console` job (`npm ci`, typecheck, test, build) on
+Node 20, which needs no snapshot and no Python because everything the export reads from
+`apps/web/public/data` is committed.
+
+**What changed:**
+- `apps/web/lib/plot-path.ts`: new, one `svgPolyline`.
+- `apps/web/components/WaterfallViewer.tsx`, `CorridorHero.tsx`: both copies delegate to
+  it, at 2 decimals and raw respectively, which is what each was already doing.
+- `apps/web/components/PassReplay.tsx`, `PassTimeSeries.tsx`: `sampleAt`, `niceCeil` and
+  `timeSeriesCursorX` exported so the cursor and the series cannot disagree untested.
+- `apps/web/vitest.config.ts`, `apps/web/tests/`: new.
+- `apps/web/package.json`: `test` and `test:watch` scripts, vitest 3 as a dev dependency.
+- `scripts/check_artifact_freshness.py`: new.
+- `scripts/export_hero_nulls.py`: `--draw` 32 to 6, `--decimals` 1 to 0.
+- `scripts/gate.py`: four new checks.
+- `.github/workflows/ci.yml`: the `console` job.
+
+**Tests added: 53.**
+
+**Commands run:**
+```
+cd apps\web && npm run typecheck
+cd apps\web && npm run build
+cd apps\web && npm run test
+.venv\Scripts\python.exe scripts\check_artifact_freshness.py
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+817 passed, 1 xfailed, ruff clean, 53 console tests, 12/12 standing gates.
