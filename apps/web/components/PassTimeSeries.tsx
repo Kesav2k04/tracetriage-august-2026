@@ -1,0 +1,239 @@
+/**
+ * Elevation and Doppler shift against pass time.
+ *
+ * The polar sky plot shows where the satellite was but throws time away: two passes
+ * with the same track can take different lengths of time to fly it. Satellite
+ * tracking software has carried both views side by side for decades (Gpredict shows a
+ * polar plot and an azimuth/elevation-against-time chart together) and this is the
+ * second one, with the Doppler curve added underneath because the Doppler curve is
+ * what the corridor actually is.
+ *
+ * Two stacked panels on one shared time axis rather than one panel with two y axes.
+ * A twin-axis chart lets the author decide where two unrelated curves appear to
+ * cross, and the crossing is then an artefact of the scaling rather than a fact. Here
+ * the zero crossing of the Doppler curve and the peak of the elevation curve line up
+ * because they happen at the same instant, not because the axes were arranged to make
+ * them.
+ *
+ * Server-rendered. The only client-side part is the cursor, which the replay moves.
+ */
+import type { ReactNode } from "react";
+
+export type SeriesGeometry = {
+  fracs: number[];
+  elevation_deg: number[];
+  doppler_hz: number[] | null;
+};
+
+const W = 420;
+const PANEL_H = 92;
+const GAP = 26;
+const PAD_L = 42;
+const PAD_R = 10;
+const PAD_T = 8;
+const PAD_B = 20;
+const H = PAD_T + PANEL_H * 2 + GAP + PAD_B;
+const PLOT_W = W - PAD_L - PAD_R;
+
+const TOP_Y = PAD_T;
+const BOTTOM_Y = PAD_T + PANEL_H + GAP;
+
+function niceCeil(value: number): number {
+  if (value <= 0) return 1;
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  for (const step of [1, 2, 2.5, 5, 10]) {
+    if (value <= step * magnitude) return step * magnitude;
+  }
+  return 10 * magnitude;
+}
+
+export default function PassTimeSeries({
+  geometry,
+  durationS,
+}: {
+  geometry: SeriesGeometry;
+  durationS: number;
+}) {
+  const fracs = geometry.fracs;
+  const els = geometry.elevation_deg;
+  const dops = geometry.doppler_hz;
+  if (fracs.length < 2) return null;
+
+  const x = (frac: number) => PAD_L + frac * PLOT_W;
+
+  // Elevation: always 0 to 90, not scaled to the data. A pass that only reached 15
+  // degrees should look like a low pass, and auto-scaling it to fill the panel would
+  // make every pass look the same height.
+  const elY = (deg: number) => TOP_Y + PANEL_H - (Math.max(0, deg) / 90) * PANEL_H;
+
+  // Doppler: symmetric about zero and rounded outward, so the zero line sits exactly
+  // in the middle of the panel and a reader can see the sign change rather than infer
+  // it. Asymmetric scaling would put zero somewhere arbitrary.
+  const dopMax = dops ? niceCeil(Math.max(...dops.map(Math.abs))) : 1;
+  const dopY = (hz: number) => BOTTOM_Y + PANEL_H / 2 - (hz / dopMax) * (PANEL_H / 2);
+
+  const elPath = fracs
+    .map((f, i) => {
+      const v = els[i];
+      if (f === undefined || v === undefined) return null;
+      return `${x(f).toFixed(2)},${elY(v).toFixed(2)}`;
+    })
+    .filter((p): p is string => p !== null);
+
+  const dopPath = dops
+    ? fracs
+        .map((f, i) => {
+          const v = dops[i];
+          if (f === undefined || v === undefined) return null;
+          return `${x(f).toFixed(2)},${dopY(v).toFixed(2)}`;
+        })
+        .filter((p): p is string => p !== null)
+    : [];
+
+  // Closest approach, from the elevation series, drawn on both panels so the
+  // alignment is explicit rather than left for the reader to eyeball.
+  let iTca = 0;
+  for (let i = 1; i < els.length; i += 1) {
+    const v = els[i];
+    const best = els[iTca];
+    if (v !== undefined && best !== undefined && v > best) iTca = i;
+  }
+  const tcaX = x(fracs[iTca] ?? 0);
+
+  const timeTicks = [0, 0.25, 0.5, 0.75, 1];
+
+  const label =
+    `Elevation and Doppler shift against pass time over ${durationS.toFixed(0)} seconds.`
+    + ` Elevation rises to ${(els[iTca] ?? 0).toFixed(1)} degrees and falls back.`
+    + (dops
+      ? ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz down through`
+        + ` zero to ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero at the`
+        + ` same instant elevation peaks.`
+      : " The Doppler shift is not measurable for this record.");
+
+  const axis = (
+    text: string,
+    yPos: number,
+  ): ReactNode => (
+    <text
+      x={PAD_L - 6}
+      y={yPos}
+      className="plot-label"
+      textAnchor="end"
+      dominantBaseline="middle"
+    >
+      {text}
+    </text>
+  );
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
+      {/* Elevation panel */}
+      <rect
+        x={PAD_L}
+        y={TOP_Y}
+        width={PLOT_W}
+        height={PANEL_H}
+        className="plot-grid-strong"
+      />
+      {[0, 30, 60, 90].map((deg) => (
+        <g key={`el-${deg}`}>
+          <line
+            x1={PAD_L}
+            x2={PAD_L + PLOT_W}
+            y1={elY(deg)}
+            y2={elY(deg)}
+            className="plot-grid"
+          />
+          {axis(String(deg), elY(deg))}
+        </g>
+      ))}
+      <polyline points={elPath.join(" ")} className="plot-track" />
+      <text x={PAD_L} y={TOP_Y - 1} className="plot-label">
+        ELEVATION, DEG
+      </text>
+
+      {/* Doppler panel */}
+      <rect
+        x={PAD_L}
+        y={BOTTOM_Y}
+        width={PLOT_W}
+        height={PANEL_H}
+        className="plot-grid-strong"
+      />
+      {dops ? (
+        <>
+          {[dopMax, 0, -dopMax].map((hz) => (
+            <g key={`dop-${hz}`}>
+              <line
+                x1={PAD_L}
+                x2={PAD_L + PLOT_W}
+                y1={dopY(hz)}
+                y2={dopY(hz)}
+                className={hz === 0 ? "plot-grid-strong" : "plot-grid"}
+              />
+              {axis(
+                hz === 0 ? "0" : `${hz > 0 ? "+" : "−"}${Math.abs(hz) / 1000}k`,
+                dopY(hz),
+              )}
+            </g>
+          ))}
+          <polyline points={dopPath.join(" ")} className="plot-track" />
+        </>
+      ) : (
+        <text
+          x={PAD_L + PLOT_W / 2}
+          y={BOTTOM_Y + PANEL_H / 2}
+          className="plot-label"
+          textAnchor="middle"
+          dominantBaseline="middle"
+        >
+          no receive frequency on this record, so no Doppler curve
+        </text>
+      )}
+      <text x={PAD_L} y={BOTTOM_Y - 1} className="plot-label">
+        DOPPLER, HZ
+      </text>
+
+      {/* Closest approach, marked on both panels. */}
+      <line
+        x1={tcaX}
+        x2={tcaX}
+        y1={TOP_Y}
+        y2={BOTTOM_Y + PANEL_H}
+        className="plot-track-faint"
+      />
+
+      {/* Shared time axis. */}
+      {timeTicks.map((frac) => (
+        <text
+          key={`t-${frac}`}
+          x={x(frac)}
+          y={H - PAD_B + 12}
+          className="plot-label"
+          textAnchor={frac === 0 ? "start" : frac === 1 ? "end" : "middle"}
+        >
+          {(frac * durationS).toFixed(0)}
+        </text>
+      ))}
+      <text
+        x={PAD_L + PLOT_W / 2}
+        y={H - 1}
+        className="plot-label"
+        textAnchor="middle"
+      >
+        SECONDS FROM THE START OF THE RECORDING
+      </text>
+
+      {/* The replay cursor: one vertical line across both panels. */}
+      <g id="timeseries-cursor" className="replay-cursor-time" aria-hidden="true">
+        <line x1={0} x2={0} y1={TOP_Y} y2={BOTTOM_Y + PANEL_H} />
+      </g>
+    </svg>
+  );
+}
+
+/** The x coordinate the replay cursor should sit at, for a given pass fraction. */
+export function timeSeriesCursorX(frac: number): number {
+  return PAD_L + frac * PLOT_W;
+}

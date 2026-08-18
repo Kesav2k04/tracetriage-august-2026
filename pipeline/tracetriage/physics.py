@@ -92,6 +92,8 @@ C_M_PER_S: float = 299_792_458.0        # speed of light, m/s
 
 WGS84_A: float = 6_378.137              # km, semi-major axis
 WGS84_F: float = 1.0 / 298.257_223_563  # flattening
+WGS84_E2: float = WGS84_F * (2.0 - WGS84_F)   # first eccentricity squared
+WGS84_B: float = WGS84_A * (1.0 - WGS84_F)    # km, semi-minor axis
 OMEGA_EARTH: float = 7.292_115_9e-5     # rad/s, Earth sidereal rotation rate
 
 # ---------------------------------------------------------------------------
@@ -190,13 +192,37 @@ def station_ecef(lat_deg: float, lon_deg: float, alt_m: float) -> np.ndarray:
     """Convert geodetic coordinates to WGS-84 ECEF (kilometres)."""
     lat = math.radians(lat_deg)
     lon = math.radians(lon_deg)
-    e2 = WGS84_F * (2.0 - WGS84_F)
+    e2 = WGS84_E2
     n = WGS84_A / math.sqrt(1.0 - e2 * math.sin(lat) ** 2)
     alt_km = alt_m / 1000.0
     return np.array([
         (n + alt_km) * math.cos(lat) * math.cos(lon),
         (n + alt_km) * math.cos(lat) * math.sin(lon),
         (n * (1.0 - e2) + alt_km) * math.sin(lat),
+    ])
+
+
+def geodetic_normal(lat_deg: float, lon_deg: float) -> np.ndarray:
+    """Unit vector along the local vertical at a geodetic latitude and longitude.
+
+    This is the direction a spirit level at the station points, and it is the
+    reference an elevation angle is measured from. It is not the direction of the
+    station's own position vector: on an ellipsoid the geocentric radius and the
+    surface normal differ by up to 0.1924 degrees, peaking near 45 degrees
+    latitude and vanishing at the equator and the poles.
+
+    Using the position vector instead adds a signed error to every elevation, of
+    one sign looking north of the station and the other looking south, so it
+    averages away over many passes while inflating the spread. That is what it
+    did here: it is invisible in the mean error against the reported elevation
+    and visible in the variance.
+    """
+    lat = math.radians(lat_deg)
+    lon = math.radians(lon_deg)
+    return np.array([
+        math.cos(lat) * math.cos(lon),
+        math.cos(lat) * math.sin(lon),
+        math.sin(lat),
     ])
 
 
@@ -300,6 +326,7 @@ def propagate_pass(
     end_dt: datetime,
     site_ecef: np.ndarray,
     freq_hz: float,
+    site_up: np.ndarray,
     n_samples: int = N_SAMPLES,
 ) -> tuple[list[float], list[float], list[float], list[int]]:
     """Propagate a satellite pass and compute the Doppler curve.
@@ -315,7 +342,11 @@ def propagate_pass(
         (AXIS_SIGN_CONVENTION = -1).  This function returns raw physics values;
         the sign convention is the caller's responsibility.
     elevations_deg : list[float]
-        Elevation above the station horizon at each sample (degrees).
+        Elevation above the station's local horizontal plane at each sample
+        (degrees), measured from ``site_up``. The caller passes the geodetic
+        normal from :func:`geodetic_normal`; passing the station position vector
+        instead measures from the geocentric horizon, which is a different angle
+        by up to 0.1924 degrees.
     error_codes : list[int]
         SGP4 error codes for samples where err != 0 (should be empty on success).
     """
@@ -324,7 +355,12 @@ def propagate_pass(
     sat = Satrec.twoline2rv(tle1, tle2)
     duration_s = (end_dt - start_dt).total_seconds()
 
-    site_hat = site_ecef / np.linalg.norm(site_ecef)
+    # The local vertical, normalised defensively: an un-normalised argument would
+    # silently scale every sine and produce elevations that look plausible.
+    up_norm = float(np.linalg.norm(site_up))
+    if up_norm < 1e-12:
+        raise ValueError("site_up must be a non-zero vector")
+    site_hat = np.asarray(site_up, dtype=float) / up_norm
 
     fracs: list[float] = []
     doppler_hz: list[float] = []
@@ -365,6 +401,157 @@ def propagate_pass(
         elevations_deg.append(el_deg)
 
     return fracs, doppler_hz, elevations_deg, error_codes
+
+
+@dataclass(frozen=True)
+class PassGeometry:
+    """Where the satellite was in the sky, and where it was over the ground.
+
+    Every field is a sample series over the same pass-time fractions the Doppler
+    curve uses, so a reader can line the sky plot up against the corridor without
+    interpolating between two different clocks.
+    """
+
+    fracs: list[float]
+    azimuth_deg: list[float]        # from true north, clockwise, 0-360
+    elevation_deg: list[float]      # from the geodetic horizontal, as propagate_pass
+    sub_lat_deg: list[float]        # geodetic latitude of the subsatellite point
+    sub_lon_deg: list[float]        # east-positive longitude, -180 to 180
+    altitude_km: list[float]        # height above the WGS-84 ellipsoid
+    range_km: list[float]           # station to satellite slant range
+    range_rate_km_s: list[float]    # positive receding; Doppler is its negation
+    error_codes: list[int]
+
+
+def ecef_to_geodetic(r_ecef: np.ndarray) -> tuple[float, float, float]:
+    """WGS-84 ECEF to geodetic latitude, longitude and height.
+
+    Longitude is exact from the horizontal components. Latitude is not: the
+    closed form has no elementary solution, so this iterates Bowring's method.
+    Five iterations is measured, not assumed: over eight cases from the equator to
+    89.9 degrees and from sea level to 400 km, three iterations leaves 1.3 mm of
+    height error, four leaves 0.007 mm, and five closes to below the printable
+    precision at 8e-13 degrees of latitude. The round trip against station_ecef is
+    asserted at 1e-6, which four would also pass and three would not.
+
+    Geocentric latitude is not used here for the same reason it is not used as
+    the elevation reference: it differs from geodetic latitude by up to 0.1924
+    degrees, which is 21 km on the ground at mid latitudes. On a whole-Earth
+    ground track that is under a pixel, but a track that is drawn from one
+    latitude definition and read against a coastline drawn from another is
+    wrong in a way nobody would see, and this project has already been bitten
+    once by exactly that substitution.
+    """
+    x, y, z = (float(v) for v in r_ecef)
+    lon = math.atan2(y, x)
+    p_xy = math.hypot(x, y)
+    if p_xy < 1e-9:                       # over a pole: latitude is degenerate
+        lat = math.copysign(math.pi / 2.0, z)
+        return math.degrees(lat), math.degrees(lon), abs(z) - WGS84_B
+    lat = math.atan2(z, p_xy)             # geocentric, as the starting guess
+    for _ in range(5):
+        sin_lat = math.sin(lat)
+        n = WGS84_A / math.sqrt(1.0 - WGS84_E2 * sin_lat * sin_lat)
+        lat = math.atan2(z + n * WGS84_E2 * sin_lat, p_xy)
+    sin_lat = math.sin(lat)
+    n = WGS84_A / math.sqrt(1.0 - WGS84_E2 * sin_lat * sin_lat)
+    height = p_xy / math.cos(lat) - n
+    return math.degrees(lat), math.degrees(lon), height
+
+
+def pass_geometry(
+    tle1: str,
+    tle2: str,
+    start_dt: datetime,
+    end_dt: datetime,
+    site_ecef: np.ndarray,
+    site_up: np.ndarray,
+    n_samples: int = N_SAMPLES,
+) -> PassGeometry:
+    """Sample the pass as a sky track and a ground track.
+
+    This walks the same propagation as :func:`propagate_pass` at the same sample
+    fractions and reports elevation from the same reference, so the two agree
+    sample for sample. ``test_pass_geometry_elevation_matches_propagate_pass``
+    asserts that agreement exactly rather than trusting it, because two copies of
+    a loop are two chances to compute a slightly different angle.
+    """
+    from sgp4.api import Satrec, jday
+
+    sat = Satrec.twoline2rv(tle1, tle2)
+    duration_s = (end_dt - start_dt).total_seconds()
+
+    up_norm = float(np.linalg.norm(site_up))
+    if up_norm < 1e-12:
+        raise ValueError("site_up must be a non-zero vector")
+    site_hat = np.asarray(site_up, dtype=float) / up_norm
+
+    # The local horizontal basis. East comes from the spin axis rather than from
+    # the geodetic normal, because east is the same vector under either latitude
+    # definition; north is then fixed by the normal, which is where the geodetic
+    # choice enters.
+    east = np.cross(np.array([0.0, 0.0, 1.0]), site_hat)
+    east_norm = float(np.linalg.norm(east))
+    # A station exactly at a pole has no east: the cross product collapses, and any
+    # direction in the horizontal plane is as good as any other, so one is chosen.
+    east = np.array([1.0, 0.0, 0.0]) if east_norm < 1e-12 else east / east_norm
+    north = np.cross(site_hat, east)
+
+    fracs: list[float] = []
+    az: list[float] = []
+    el: list[float] = []
+    sub_lat: list[float] = []
+    sub_lon: list[float] = []
+    alt: list[float] = []
+    rng_km: list[float] = []
+    rate: list[float] = []
+    errs: list[int] = []
+
+    for i in range(n_samples):
+        frac = i / (n_samples - 1)
+        t = start_dt + timedelta(seconds=duration_s * frac)
+        jd_w, jd_f = jday(
+            t.year, t.month, t.day,
+            t.hour, t.minute, t.second + t.microsecond / 1_000_000.0,
+        )
+        err, r_eci, v_eci = sat.sgp4(jd_w, jd_f)
+        if err != 0:
+            errs.append(err)
+            continue
+
+        r_ecef = eci_to_ecef(np.array(r_eci), t)
+        v_ecef_sat = ecef_velocity(np.array(v_eci), r_ecef, t)
+        los = r_ecef - site_ecef
+        rng = float(np.linalg.norm(los))
+        if rng < 1e-9:
+            continue
+        los_hat = los / rng
+
+        el_deg = math.degrees(
+            math.asin(max(-1.0, min(1.0, float(np.dot(los_hat, site_hat)))))
+        )
+        az_deg = math.degrees(
+            math.atan2(float(np.dot(los_hat, east)), float(np.dot(los_hat, north)))
+        ) % 360.0
+
+        lat_d, lon_d, h_km = ecef_to_geodetic(r_ecef)
+
+        # The same range rate propagate_pass negates into a Doppler shift. It is
+        # returned unscaled because the shift needs a receive frequency and this
+        # function is deliberately not given one: the caller that knows the
+        # frequency does the multiplication, and the geometry stays the geometry.
+        range_rate = float(np.dot(los_hat, v_ecef_sat))
+
+        fracs.append(frac)
+        az.append(az_deg)
+        el.append(el_deg)
+        sub_lat.append(lat_d)
+        sub_lon.append(lon_d)
+        alt.append(h_km)
+        rng_km.append(rng)
+        rate.append(range_rate)
+
+    return PassGeometry(fracs, az, el, sub_lat, sub_lon, alt, rng_km, rate, errs)
 
 
 # ---------------------------------------------------------------------------
@@ -453,7 +640,9 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
 
     # ── 6. Propagate ─────────────────────────────────────────────────────────
     site = station_ecef(lat, lon, alt)
-    fracs, dops, els, errs = propagate_pass(tle1, tle2, start_dt, end_dt, site, rx_freq)
+    fracs, dops, els, errs = propagate_pass(
+        tle1, tle2, start_dt, end_dt, site, rx_freq, geodetic_normal(lat, lon)
+    )
 
     if not fracs:
         # Every sample failed — could be a decayed object, bad TLE line, etc.

@@ -1,6 +1,49 @@
 {
  "snapshot_id": "snap-20260817-stage1",
  "split_manifest_sha256": "2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199",
+ "gate_summary": {
+  "gates": [
+   {
+    "gate": 1,
+    "title": "Dataset volume and entity spread",
+    "verdict": "PRE_PASSED",
+    "decided_in": "docs/KILL_GATE.md"
+   },
+   {
+    "gate": 2,
+    "title": "Metadata coverage for the corridor",
+    "verdict": "PRE_PASSED",
+    "decided_in": "docs/KILL_GATE.md"
+   },
+   {
+    "gate": 3,
+    "title": "Corridor intersects a visible trace",
+    "verdict": "PASSED",
+    "decided_in": "docs/KILL_GATE.md"
+   },
+   {
+    "gate": 4,
+    "title": "Blinded human decidability",
+    "verdict": "OPEN",
+    "decided_in": "docs/KILL_GATE.md"
+   },
+   {
+    "gate": 5,
+    "title": "Physics beats image-only on Brier",
+    "verdict": "NOT_ESTABLISHED",
+    "decided_in": "artifacts/FUSION_RECEIPT.json"
+   },
+   {
+    "gate": 6,
+    "title": "Queue lift over random",
+    "verdict": "NOT_ESTABLISHED",
+    "decided_in": "artifacts/QUEUE_RECEIPT.json"
+   }
+  ],
+  "n_gates": 6,
+  "n_met": 3,
+  "note": "Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run."
+ },
  "splits": [
   {
    "name": "chronological",
@@ -54,8 +97,8 @@
   },
   {
    "name": "FUSION_RECEIPT.json",
-   "sha256": "cae4250b19d63688d447605d315d64c213f2a2aabb1d007175dd529e626162cd",
-   "bytes": 155495
+   "sha256": "2bd6244264825c68f1dbfe6ff8c58d4129c19ff7c4c72a068abcbbac4f3f0acb",
+   "bytes": 154738
   },
   {
    "name": "GATE3_RECEIPT.json",
@@ -69,13 +112,13 @@
   },
   {
    "name": "PHYSICS_VALIDATION.json",
-   "sha256": "84b100c5cb69a9f7b1fd14bde9253fae58f9630a894425a55efa64b8854d6d35",
-   "bytes": 52982
+   "sha256": "d36d8b5df652eab243060f7c7ffacb957b80bf3578b7e3f7ad15ef055bc8ee83",
+   "bytes": 52981
   },
   {
    "name": "QUEUE_RECEIPT.json",
-   "sha256": "d518df80595152311c225757b8b8080338fb9ea5ed1077c5e2e5a13475773382",
-   "bytes": 253910
+   "sha256": "94dca2ed61434bd7b2222ca0fa0839e903657e55c1dee55c81fe77e32a564047",
+   "bytes": 253883
   },
   {
    "name": "SPLIT_MANIFEST.json",

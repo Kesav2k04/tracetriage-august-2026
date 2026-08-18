@@ -46,8 +46,13 @@ _REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO))
 
 from pipeline.tracetriage.physics import (  # noqa: E402
+    C_M_PER_S,
     corridor_columns,
     corridor_for_obs,
+    geodetic_normal,
+    pass_geometry,
+    rx_freq_of,
+    station_ecef,
 )
 from pipeline.tracetriage.splits import (  # noqa: E402
     _PAGES_DIR,
@@ -208,6 +213,8 @@ def export_observation(
         "corridor_note": None,
     }
 
+    out["geometry"] = build_pass_geometry(record)
+
     # The overlay: the predicted Doppler curve at the fitted offset, mapped to
     # columns by the pipeline's own function so the console draws what the
     # matched filter scored rather than its own idea of the same curve.
@@ -271,6 +278,194 @@ def export_observation(
         ),
     }
     return out
+
+
+
+def build_pass_geometry(record: dict[str, Any]) -> dict[str, Any] | None:
+    """The pass as a sky track and a ground track, or a named reason it is absent.
+
+    Returned separately from the corridor because the two need different things.
+    The corridor needs a frequency axis, which about 6% of records cannot supply;
+    the sky track needs only a station and a TLE. Withholding the sky plot for a
+    missing centre pixel would hide geometry that was computed successfully.
+
+    The series are subsampled to roughly 90 points. A polyline drawn at 512
+    samples and a polyline drawn at 90 are the same curve on a 400 px plot, and
+    the difference is 8 kB per card over the wire.
+    """
+    tle1, tle2 = record.get("tle1"), record.get("tle2")
+    lat, lon = record.get("station_lat"), record.get("station_lng")
+    if not tle1 or not tle2:
+        return {"degraded": "no TLE on the record, so the pass cannot be propagated"}
+    if lat is None or lon is None:
+        return {"degraded": "no station coordinates, so there is no local horizon"}
+
+    try:
+        start_dt = datetime.datetime.fromisoformat(str(record["start"]).replace("Z", "+00:00"))
+        end_dt = datetime.datetime.fromisoformat(str(record["end"]).replace("Z", "+00:00"))
+    except (KeyError, TypeError, ValueError):
+        return {"degraded": "the pass window could not be parsed"}
+    if end_dt <= start_dt:
+        return {"degraded": "the pass window is not ordered"}
+
+    alt_m = float(record.get("station_alt") or 0.0)
+    try:
+        geom = pass_geometry(
+            tle1, tle2, start_dt, end_dt,
+            station_ecef(float(lat), float(lon), alt_m),
+            geodetic_normal(float(lat), float(lon)),
+        )
+    except Exception as exc:                      # noqa: BLE001 - reported, not raised
+        return {"degraded": f"propagation failed: {type(exc).__name__}"}
+
+    if len(geom.fracs) < 8:
+        return {
+            "degraded": (
+                f"only {len(geom.fracs)} of the samples propagated, which is too "
+                "few to draw a track"
+            )
+        }
+
+    step = max(1, len(geom.fracs) // 90)
+    keep = list(range(0, len(geom.fracs), step))
+    if keep[-1] != len(geom.fracs) - 1:
+        keep.append(len(geom.fracs) - 1)
+
+    def take(series: list[float], nd: int) -> list[float]:
+        return [round(float(series[i]), nd) for i in keep]
+
+    # The Doppler shift at each sample, from the same range rate the pipeline
+    # negates. Withheld rather than zeroed when the record has no receive
+    # frequency: a Doppler curve of zeros is a measurement that says the satellite
+    # never moved, and about 6% of records genuinely cannot supply the frequency.
+    rx_freq = rx_freq_of(record)
+    if rx_freq is None or rx_freq <= 0.0:
+        doppler = None
+    else:
+        doppler = [
+            round(-geom.range_rate_km_s[i] * 1_000.0 / C_M_PER_S * rx_freq, 1)
+            for i in keep
+        ]
+
+    i_tca = int(max(range(len(geom.elevation_deg)), key=lambda i: geom.elevation_deg[i]))
+    return {
+        "degraded": None,
+        "station_lat": round(float(lat), 4),
+        "station_lon": round(float(lon), 4),
+        "station_alt_m": alt_m,
+        "fracs": take(geom.fracs, 4),
+        "azimuth_deg": take(geom.azimuth_deg, 2),
+        "elevation_deg": take(geom.elevation_deg, 3),
+        "sub_lat_deg": take(geom.sub_lat_deg, 4),
+        "sub_lon_deg": take(geom.sub_lon_deg, 4),
+        "altitude_km": take(geom.altitude_km, 1),
+        "range_km": take(geom.range_km, 1),
+        "doppler_hz": doppler,
+        "max_elevation_deg": round(float(geom.elevation_deg[i_tca]), 3),
+        "tca_frac": round(float(geom.fracs[i_tca]), 4),
+        "tca_azimuth_deg": round(float(geom.azimuth_deg[i_tca]), 2),
+        "min_range_km": round(float(min(geom.range_km)), 1),
+        "n_samples_propagated": len(geom.fracs),
+        "n_sgp4_errors": len(geom.error_codes),
+        "doppler_note": (
+            "doppler_hz is null when the record carries no receive frequency, which "
+            "is the same reason the corridor overlay is withheld on those records. "
+            "It is not zero, because zero would be a claim."
+        ),
+        "note": (
+            "Elevation is measured from the WGS-84 geodetic normal at the station, "
+            "which is the same reference the corridor was scored against. Azimuth "
+            "runs clockwise from true north. The subsatellite point is a geodetic "
+            "latitude, not a geocentric one."
+        ),
+    }
+
+
+# Gates 1 to 4 were decided in documents rather than in a machine-readable
+# receipt: gate 1 and gate 2 on feasibility counts, gate 3 on a hand-reviewed
+# sample of three testable observations, and gate 4 is open because the blinded
+# human study was never run. Their statuses are therefore declared here, with the
+# document that decided each one named beside it.
+#
+# Gates 5 and 6 are not declared. They are read from the receipts, and
+# ``build_gate_summary`` refuses to run if a receipt's verdict is not one of the
+# four the rest of the console knows how to render. That keeps the tally the rail
+# shows from drifting away from the receipts the way a hand-typed count would: the
+# only way to change "3 of 6" is to change a gate.
+_DECIDED_IN_DOCS: list[dict[str, Any]] = [
+    {
+        "gate": 1,
+        "title": "Dataset volume and entity spread",
+        "verdict": "PRE_PASSED",
+        "decided_in": "docs/KILL_GATE.md",
+    },
+    {
+        "gate": 2,
+        "title": "Metadata coverage for the corridor",
+        "verdict": "PRE_PASSED",
+        "decided_in": "docs/KILL_GATE.md",
+    },
+    {
+        "gate": 3,
+        "title": "Corridor intersects a visible trace",
+        "verdict": "PASSED",
+        "decided_in": "docs/KILL_GATE.md",
+    },
+    {
+        "gate": 4,
+        "title": "Blinded human decidability",
+        "verdict": "OPEN",
+        "decided_in": "docs/KILL_GATE.md",
+    },
+]
+
+_MET = frozenset({"PASSED", "PRE_PASSED"})
+_KNOWN_VERDICTS = _MET | {"NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE", "OPEN"}
+
+
+def build_gate_summary(queue: dict[str, Any], fusion: dict[str, Any]) -> dict[str, Any]:
+    """The gate tally, with gates 5 and 6 taken from their receipts.
+
+    A count of gates met is the single most quotable number on this console, which
+    is exactly why it is not typed anywhere. Two of the six come straight from the
+    receipts; an unrecognised verdict raises rather than being quietly counted as
+    not met, because silently reading a new verdict as a failure would let the
+    console understate its own result without anyone noticing.
+    """
+    gates = list(_DECIDED_IN_DOCS)
+    for number, receipt, key, title in (
+        (5, fusion, "gate5", "Physics beats image-only on Brier"),
+        (6, queue, "gate6", "Queue lift over random"),
+    ):
+        block = _require(receipt, key)
+        verdict = block.get("verdict")
+        if verdict not in _KNOWN_VERDICTS:
+            raise ValueError(
+                f"gate {number} carries verdict {verdict!r}, which the console does "
+                f"not know how to count. Known verdicts: {sorted(_KNOWN_VERDICTS)}."
+            )
+        gates.append({
+            "gate": number,
+            "title": title,
+            "verdict": verdict,
+            "decided_in": f"artifacts/{'FUSION' if number == 5 else 'QUEUE'}_RECEIPT.json",
+        })
+
+    for gate in gates:
+        if gate["verdict"] not in _KNOWN_VERDICTS:
+            raise ValueError(f"gate {gate['gate']} has an unknown verdict")
+
+    return {
+        "gates": gates,
+        "n_gates": len(gates),
+        "n_met": sum(1 for g in gates if g["verdict"] in _MET),
+        "note": (
+            "Met counts a gate that was passed or pre-passed. It deliberately does "
+            "not count NOT_ESTABLISHED, which is a measurement that came back "
+            "inconclusive rather than a threshold that was cleared, and it does not "
+            "count OPEN, which is a study that was never run."
+        ),
+    }
 
 
 def trim_queue_entry(entry: dict[str, Any]) -> dict[str, Any]:
@@ -391,6 +586,7 @@ def main(argv: list[str] | None = None) -> int:
             {
                 "snapshot_id": queue["snapshot_id"],
                 "split_manifest_sha256": queue["split_manifest_sha256"],
+                "gate_summary": build_gate_summary(queue, fusion),
                 "splits": split_counts,
                 "receipts": [
                     {

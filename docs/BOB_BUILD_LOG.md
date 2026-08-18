@@ -1606,3 +1606,228 @@ on the deployed site with zero console warnings under the policy.
 
 **Results.** 732 offline tests pass. Lint clean. 8/8 standing gates. Wave C
 complete.
+
+## C7. The elevation reference, the instruments, and three documentation defects
+
+**Task given:** finish the console to a standard that survives expert review, and fix
+whatever the work turns up on the way.
+
+### The elevation reference was geocentric and should have been geodetic
+
+`physics.py` measured elevation from the station's position vector, normalised. That
+is the geocentric vertical: the direction from the centre of the Earth through the
+station. The horizon a ground station actually sees is perpendicular to the WGS-84
+geodetic normal, and the two differ by up to 0.1924 degrees at mid latitudes. Every
+elevation the pipeline has ever computed was measured from the wrong reference.
+
+The fix is `geodetic_normal(lat, lon)`, and `propagate_pass` now requires the up
+vector rather than deriving one, so a caller cannot silently get the old behaviour
+back.
+
+**The A4 validation could not have caught this.** Corrected elevations were compared
+against SatNOGS' own reported `max_altitude` before and after. Agreement did not
+improve: the median absolute difference went from 0.2082 to 0.2249 degrees, and the
+p90 from 0.4653 to 0.4277. A 0.19 degree systematic error is smaller than the scatter
+of the reference it would have been validated against, so the validation was never
+capable of detecting it. That is worth more than the fix: it says which of this
+project's checks have the resolution to find the errors they are aimed at.
+
+**What it changed downstream, measured rather than assumed.** Both receipts were
+re-run at the same seed and the same bootstrap count that produced the published
+numbers. Gate 5 and gate 6 verdicts are unchanged, and no headline moved:
+
+| | before | after |
+|---|---|---|
+| Gate 5 margin | +0.02080 | +0.02079 |
+| Gate 5 interval | -0.01271 to +0.05022 | -0.01268 to +0.05029 |
+| Gate 6 lift, chronological | 1.582 | 1.582 |
+| Gate 6 interval | [1.353, 1.755] | [1.353, 1.755] |
+
+The arms that consume elevation moved in the fifth decimal: `physics_only` 0.21364 to
+0.21362, `image_physics` 0.15204 to 0.15202, `physics_conditioned` 0.12870 to 0.12871,
+`full_fusion` 0.15034 to 0.15036. The six arms that do not consume elevation are
+bit-identical, including every corridor arm, which is the right answer: a Doppler
+shift comes from range rate, not from elevation. A fix that had leaked into
+`image_only` would have meant something was wrong with the fix.
+
+**One result did move, and it moves against this project.** On the cold-station split,
+a physics-only ranking went from 19 conflicts at budget to 27, which is exactly what
+the full queue finds. The queue is unchanged at 27. The comparison that previously
+read `queue_better` by 8 conflicts now reads `indistinguishable` at a difference of
+0.0, and it no longer survives multiplicity correction. The published conclusion was
+`not_claimed` before and after, because the episode grouping never survived
+correction, so nothing has to be retracted. But the direction was flattering the queue
+for a reason that turns out to have been a bug: the wrong horizon was handicapping the
+physics baseline in a comparison this project runs against itself. Gate 6 is decided on
+the chronological split, where the physics-only ordering is unchanged at 13.
+
+`ecef_to_geodetic` was added for the ground tracks, and the WGS-84 eccentricity is now
+one module constant instead of two local copies, because the forward and inverse
+conversions have to share it or a round trip drifts. Five Bowring iterations, chosen
+from a measurement: three leaves 1.3 mm of height error, four leaves 0.007 mm, five
+closes to 8e-13 degrees.
+
+### Three documentation defects, found by reading the docs against the receipts
+
+None of these changed a verdict. All three were published.
+
+1. **`KILL_GATE.md` stated two different intervals for gate 6.** The status summary at
+   the top said the 95% interval was [1.00, 1.20] and cold_station passed at 3.00x.
+   The per-split table further down the same file said [1.353, 1.755] and 2.253x, which
+   is what the receipt says. The summary was left behind by a re-run. It is now
+   generated from the receipt by `scripts/sync_kill_gate.py`, so it cannot fall behind
+   again.
+
+2. **Gate 6's sample size was reported as 88 and is 87.** Gate 5 scores the whole
+   chronological test partition: 410 observations, 88 decisive. Gate 6 scores the
+   queue, which deduplicates repeated observations of one pass episode before ranking:
+   410 becomes 407, and one of the three rows removed was decisive, so 88 becomes 87.
+   The documents had given gate 6 gate 5's number. One row does not move the verdict,
+   which is precisely why it survived: a wrong number that changes nothing is the kind
+   nobody re-derives.
+
+3. **The pre-registration contained an arithmetic impossibility.** It stated that 88
+   decisive observations fall into 87 pass episodes at a mean group size of 1.000.
+   Eighty-eight over eighty-seven is 1.011. The receipt says 87 over 87 at 1.000. The
+   inconsistency was catchable with division and had been sitting in a document written
+   to be checked.
+
+### The console became a set of instruments
+
+`pass_geometry` exports what the propagation already knew and was throwing away:
+azimuth, subsatellite latitude and longitude, altitude, slant range and range rate,
+sampled on the same fractions as the Doppler curve. Two tests pin it to the existing
+code path rather than trusting it: elevation must equal `propagate_pass`'s output
+exactly, and the Doppler derived from the exported range rate must equal
+`propagate_pass`'s Doppler exactly. Both assert equality, not tolerance. A tolerance
+would let the drawn instruments disagree with the corridor the pipeline scored, by
+however much the tolerance allowed.
+
+Four views of one pass now sit on the observation page: the waterfall with the
+corridor drawn on it, a polar sky track, a ground track with the satellite's horizon
+circle at closest approach, and elevation and Doppler against time. The last one is
+two stacked panels sharing one time axis rather than one panel with two vertical
+scales, because a twin-axis chart lets the author decide where two curves appear to
+cross, and the crossing then says more about the scaling than about the pass.
+
+**There is no basemap on the ground track, deliberately.** This console ships no
+coastline data. Drawing an approximate one would put an unmeasured object on a page
+whose entire argument is that everything on it came from a receipt. The graticule is
+labelled instead.
+
+**The horizon circle is walked on the sphere, not drawn as an ellipse.** The first
+version framed the plot with `lon +/- halfAngle` and clipped the circle at both the
+east and the west edge, because a small circle of half-angle t centred at latitude phi
+reaches roughly t / cos(phi) in longitude: at latitude 34 and t of 25.4 degrees that is
+30.6, not 25.4. The frame is now computed from the circle's own points, and
+containment on all four sides is asserted from the browser's bounding boxes rather
+than judged from a screenshot.
+
+### One clock, four instruments
+
+A single time cursor drives all four. Scrubbing it moves the sky-track marker, the
+ground-track marker, the row cursor on the waterfall, and a line across both
+time-series panels, and writes seven numbers. Measured on the built site at closest
+approach: elevation 62.40 degrees, slant range 758 km, Doppler -197 Hz. At the start
+of the pass, +9,693 Hz at 2,054 km; at the end, -9,682 Hz at 2,032 km. The Doppler
+crosses zero at the instant the range is shortest and the elevation is highest, which
+is the physical relationship the corridor is built on, and no arrangement of static
+plots states it as directly.
+
+**Every animated quantity is a value the pipeline exported.** Nothing eases into
+place and no number counts up from zero. A count-up on a Brier score would be
+displaying intermediate measurements that were never taken. The only interpolation is
+linear, between two propagated samples, which is what the drawn polylines already do
+between the same two points, and the page says so.
+
+**The cost was measured, not assumed.** The plots are server-rendered and never
+re-render; a frame writes one transform attribute per cursor and touches seven text
+nodes. Over 662 consecutive frames of playback the median frame interval was 6.1 ms
+and the longest was 6.3 ms, with no frame over 32 ms. That is an uncapped headless
+run, so the frame rate is not a display figure, but the absence of any long frame
+bounds the per-frame work well inside a 60 Hz budget. Adding the replay and the fourth
+instrument moved the observation route's client JavaScript from 5.22 kB to 6.95 kB,
+because the drawing stayed on the server and only the clock shipped.
+
+A per-frame CSS custom property was the obvious alternative and was rejected: a custom
+property read by descendants invalidates the whole subtree's style computation, which
+on a plot of several hundred nodes costs more than writing two attributes.
+
+**There is no scroll-driven storytelling, and that is a decision.** Nielsen Norman
+Group's usability work found scroll hijacking reduces the cognitive resources
+available for the content and drove task-oriented users off pages; the same criticism
+has been made specifically of scrollytelling with charts, where a continuous scroll
+maps badly onto a discrete data story. A reviewer triaging observations is
+task-oriented. Motion here is attached to a cursor the reader controls.
+
+### Amber was the wrong colour for an inconclusive verdict
+
+`NOT_ESTABLISHED` was amber. Two independent standards say that is wrong. Carbon's own
+data-visualisation guidance assigns grey to unknown or pending states and keeps them
+out of the yellow warning tier. NASA's Appendix F display standard mandates that
+yellow means CAUTION, which is a statement about the subject being measured.
+`NOT_ESTABLISHED` is a statement about the measurement: the interval contained the
+threshold. Amber told a reader something was wrong with the data when what was true is
+that the evidence did not separate.
+
+That left two neutral verdicts and one grey between them, so the distinction moved off
+hue and onto form. A decided verdict carries a filled dot, a measured but inconclusive
+one carries a hollow ring, and one that could not be measured carries a dash. Encoding
+state in the marker's shape and reserving colour is what real status displays do, and
+it also survives a reader who cannot separate two greys. Amber now has one job on this
+site, and it is a caution: an offset that ran into the edge of its search range is a
+lower bound rather than a value.
+
+`NOT_ESTABLISHED` is not an invented category, and that is worth stating plainly.
+SatNOGS' own vetting workflow has three manual states, and one of them is Unknown; its
+automated rating carries a separate four-state axis including Unknown and Failed. A
+console for satellite observations that refuses to collapse "we could not tell" into
+pass or fail is matching the field's own review vocabulary rather than hedging.
+
+### The layout
+
+A side rail replaced the top bar. Four sections and a persistent status block do not
+fit in a 3 rem strip, and the pages that matter here are a 620 pixel image beside a
+table, so the horizontal space a rail costs was not being used by content. The rail
+gives the snapshot id and the gate tally a permanent home on every page, which is what
+a reader checks a claim against. Below 60 rem it becomes a top bar, because a rail on a
+phone is a drawer and a drawer needs JavaScript, and this console works without it.
+
+**The gate tally is computed, not typed.** Three of six gates met, where gates 5 and 6
+are read from their receipts and an unrecognised verdict raises rather than being
+counted as unmet. A hand-typed count is the most quotable number on the site and would
+be the first thing to go stale.
+
+The page opens on the measurement rather than on the queue: 1.582 set at display size
+with its 95% interval beside it at a weight a reader cannot skip. A hero showing 1.582
+alone would be making exactly the claim the gate declined to make.
+
+Every colour in the application is now a token. Eleven literal hex values were inlined
+in components, including three in the waterfall legend, and a true black for the
+imagery ground now has a name and a reason: the image is a measured intensity map, and
+letting the theme's near-black show through the darkest rows renders a measured zero as
+brighter than zero.
+
+### The explainer
+
+A 24 second 1080p animation, rendered offline with Manim, served from this site's own
+origin so the content security policy stays closed. It uses observation 14745984,
+which has the strongest corridor curvature in the shipped set, and every number in it
+is read from that card: 61 pixels, 5,648 Hz, 13.0 ppm, at 92.6 Hz per pixel.
+
+Two liberties are taken and both are stated on screen. The frequency axis is cropped,
+and within the crop it is exaggerated against the time axis by a factor the code
+computes, because a 61 pixel shift on a 620 pixel axis is otherwise invisible. The
+first render had three faults worth recording: the crop window was chosen by hand and
+did not contain the fitted corridor, so the curve left the frame on three sides; a
+smoothed spline overshot at the ends of a steep S-curve and drew corridor where there
+is none, so the curve is now drawn as corners through propagated samples only; and
+Pango fell back to a serif because IBM Plex is not installed system-wide, so the build
+now converts the same woff2 files the site serves into outline fonts and registers
+them.
+
+### Results
+
+745 offline tests pass, up from 732. Lint clean. Typecheck clean. Every colour
+tokenised. The build is 33 pages with 102 kB of shared client JavaScript and between
+131 B and 6.95 kB per route.

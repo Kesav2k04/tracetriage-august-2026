@@ -32,6 +32,7 @@ import pytest
 
 from pipeline.tracetriage.physics import (
     AXIS_SIGN_CONVENTION,
+    C_M_PER_S,
     CORRECTED_CORRIDOR_HZ,
     FREQ_OFFSET_SEARCH_HZ,
     N_SAMPLES,
@@ -40,8 +41,11 @@ from pipeline.tracetriage.physics import (
     Corridor,
     corridor_columns,
     corridor_for_obs,
+    ecef_to_geodetic,
     eci_to_ecef,
+    geodetic_normal,
     gmst,
+    pass_geometry,
     propagate_pass,
     rx_freq_of,
     station_ecef,
@@ -702,7 +706,10 @@ class TestElevationProfile:
         start_dt = datetime(2024, 1, 1, 3, 0, 0, tzinfo=UTC)
         end_dt = datetime(2024, 1, 1, 3, 9, 35, tzinfo=UTC)
         site = station_ecef(_LAT, _LNG, _ALT)
-        fracs, _, els, _ = propagate_pass(_TLE1, _TLE2, start_dt, end_dt, site, _RX_FREQ)
+        fracs, _, els, _ = propagate_pass(
+            _TLE1, _TLE2, start_dt, end_dt, site, _RX_FREQ,
+            geodetic_normal(_LAT, _LNG),
+        )
 
         assert len(els) > 10, "expected many samples"
         peak_idx = int(np.argmax(np.asarray(els)))
@@ -784,3 +791,164 @@ class TestCorridorWidthsAreMeasured:
             "the corridor is not centred on rx-freq; the search range has to "
             "reach the largest offset A3 actually saw"
         )
+
+
+class TestPassGeometry:
+    """The sky track and the ground track, and the properties that pin them.
+
+    ``pass_geometry`` walks its own propagation loop rather than borrowing
+    ``propagate_pass``'s, which buys a clean return type at the cost of a second
+    place elevation can be computed. The first test here closes that cost: the two
+    loops must agree exactly, not approximately, so a future edit to one of them
+    cannot silently move the other.
+    """
+
+    _START_DT = datetime(2024, 1, 1, 3, 0, 0, tzinfo=UTC)
+    _END_DT = datetime(2024, 1, 1, 3, 9, 35, tzinfo=UTC)
+
+    def _geom(self):
+        site = station_ecef(_LAT, _LNG, _ALT)
+        return pass_geometry(
+            _TLE1, _TLE2, self._START_DT, self._END_DT, site,
+            geodetic_normal(_LAT, _LNG),
+        )
+
+    def test_pass_geometry_elevation_matches_propagate_pass(self):
+        """Two loops, one angle. Exact equality, not a tolerance.
+
+        A tolerance here would let the two drift apart by whatever the tolerance
+        is, and the sky plot would then be drawn from a different elevation than
+        the corridor was scored against.
+        """
+        site = station_ecef(_LAT, _LNG, _ALT)
+        up = geodetic_normal(_LAT, _LNG)
+        fracs, _dop, els, errs = propagate_pass(
+            _TLE1, _TLE2, self._START_DT, self._END_DT, site, _RX_FREQ, up,
+        )
+        geom = pass_geometry(
+            _TLE1, _TLE2, self._START_DT, self._END_DT, site, up,
+        )
+        assert geom.fracs == fracs
+        assert geom.elevation_deg == els
+        assert geom.error_codes == errs
+
+    def test_range_rate_reproduces_the_doppler_curve_exactly(self):
+        """The Doppler shift derived from the geometry must equal the pipeline's.
+
+        pass_geometry returns an unscaled range rate rather than a Doppler shift, so
+        the console can show the shift at any instant of the pass without a second
+        propagation. That only holds if the two agree exactly, which is what this
+        asserts: same samples, same sign, same value once the receive frequency is
+        applied. A near-equality here would let the scrubbed readout disagree with
+        the corridor drawn on the same page.
+        """
+        site = station_ecef(_LAT, _LNG, _ALT)
+        up = geodetic_normal(_LAT, _LNG)
+        _fracs, dops, _els, _errs = propagate_pass(
+            _TLE1, _TLE2, self._START_DT, self._END_DT, site, _RX_FREQ, up,
+        )
+        geom = pass_geometry(
+            _TLE1, _TLE2, self._START_DT, self._END_DT, site, up,
+        )
+        derived = [
+            -rate * 1_000.0 / C_M_PER_S * _RX_FREQ for rate in geom.range_rate_km_s
+        ]
+        assert derived == dops
+
+    def test_range_rate_changes_sign_at_closest_approach(self):
+        """Approaching then receding: the sign flip is the physical content.
+
+        If the sign convention were inverted the Doppler curve would run backwards
+        and the corridor would be fitted against a mirror image of the trace, which
+        is a failure mode this project has already been bitten by on the frequency
+        axis.
+        """
+        geom = self._geom()
+        i_near = int(np.argmin(np.asarray(geom.range_km)))
+        assert geom.range_rate_km_s[0] < 0.0, "should be approaching at the start"
+        assert geom.range_rate_km_s[-1] > 0.0, "should be receding at the end"
+        assert abs(geom.range_rate_km_s[i_near]) < abs(geom.range_rate_km_s[0]), (
+            "range rate should be near zero at closest approach"
+        )
+
+    def test_azimuth_covers_a_range_and_stays_in_bounds(self):
+        geom = self._geom()
+        assert len(geom.azimuth_deg) > 10
+        assert all(0.0 <= a < 360.0 for a in geom.azimuth_deg)
+        # A real overhead pass sweeps the sky; a constant azimuth would mean the
+        # local basis collapsed and every sample projected onto the same vector.
+        assert max(geom.azimuth_deg) - min(geom.azimuth_deg) > 20.0
+
+    def test_subsatellite_track_is_on_the_globe_and_moves(self):
+        geom = self._geom()
+        assert all(-90.0 <= la <= 90.0 for la in geom.sub_lat_deg)
+        assert all(-180.0 <= lo <= 180.0 for lo in geom.sub_lon_deg)
+        # ISS altitude, generously bounded: anything outside this is a unit error
+        # rather than an orbit.
+        assert all(300.0 < h < 500.0 for h in geom.altitude_km), (
+            f"altitude range {min(geom.altitude_km):.1f}-{max(geom.altitude_km):.1f} km"
+        )
+        assert abs(geom.sub_lat_deg[-1] - geom.sub_lat_deg[0]) > 1.0
+
+    def test_range_is_never_shorter_than_the_altitude(self):
+        """Slant range to a satellite cannot beat the straight-up distance.
+
+        This is the cheapest available check that the range and the altitude were
+        computed in the same units, which is the error that would otherwise pass
+        every other test in this class.
+        """
+        geom = self._geom()
+        for rng, alt in zip(geom.range_km, geom.altitude_km, strict=True):
+            assert rng >= alt - 1.0, f"range {rng:.1f} km under altitude {alt:.1f} km"
+
+    def test_highest_elevation_is_the_shortest_range(self):
+        geom = self._geom()
+        i_high = int(np.argmax(np.asarray(geom.elevation_deg)))
+        i_near = int(np.argmin(np.asarray(geom.range_km)))
+        assert abs(i_high - i_near) <= 1, (
+            "the closest approach and the highest elevation should be the same "
+            f"sample, got {i_high} and {i_near}"
+        )
+
+    def test_geodetic_round_trip_closes(self):
+        """station_ecef and ecef_to_geodetic must invert each other.
+
+        Both now read one WGS-84 eccentricity constant. When each computed its
+        own, a round trip could close on one and drift on the other with nothing
+        to show it.
+        """
+        for lat, lon, alt_m in [
+            (0.0, 0.0, 0.0),
+            (_LAT, _LNG, _ALT),
+            (-33.9, 151.2, 20.0),
+            (89.9, 10.0, 0.0),
+            (-70.0, -120.0, 3_000.0),
+        ]:
+            r = station_ecef(lat, lon, alt_m)
+            got_lat, got_lon, got_h = ecef_to_geodetic(r)
+            assert abs(got_lat - lat) < 1e-6, f"lat {lat} -> {got_lat}"
+            assert abs(got_lon - lon) < 1e-9, f"lon {lon} -> {got_lon}"
+            assert abs(got_h - alt_m / 1000.0) < 1e-6, f"h {alt_m} -> {got_h}"
+
+    def test_geodetic_latitude_is_not_geocentric_latitude(self):
+        """The distinction the elevation-reference fix was about, asserted here.
+
+        If ecef_to_geodetic ever returned the geocentric latitude it starts from,
+        every test above would still pass. This one would not.
+        """
+        r = station_ecef(45.0, 0.0, 0.0)
+        geocentric = math.degrees(math.atan2(float(r[2]), math.hypot(float(r[0]), float(r[1]))))
+        geodetic, _, _ = ecef_to_geodetic(r)
+        assert abs(geodetic - 45.0) < 1e-6
+        assert abs(geodetic - geocentric) > 0.15, (
+            "at 45 degrees the two latitudes differ by about 0.19 degrees; "
+            f"got {abs(geodetic - geocentric):.4f}"
+        )
+
+    def test_site_up_must_be_non_zero(self):
+        site = station_ecef(_LAT, _LNG, _ALT)
+        with pytest.raises(ValueError, match="non-zero"):
+            pass_geometry(
+                _TLE1, _TLE2, self._START_DT, self._END_DT, site,
+                np.zeros(3),
+            )

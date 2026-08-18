@@ -15,6 +15,10 @@ import {
   showcaseIds,
 } from "@/lib/data";
 import WaterfallViewer from "@/components/WaterfallViewer";
+import SkyPlot from "@/components/SkyPlot";
+import GroundTrack, { boundsForPass } from "@/components/GroundTrack";
+import PassReplay from "@/components/PassReplay";
+import PassTimeSeries from "@/components/PassTimeSeries";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export function generateStaticParams() {
@@ -42,6 +46,7 @@ export default async function ObservationPage({
   const obsId = Number(id);
   const card = cardById.get(obsId);
   const entry = entryById.get(obsId);
+  const geometry = card?.geometry ?? null;
 
   if (!card || card.degraded) {
     return (
@@ -120,6 +125,172 @@ export default async function ObservationPage({
           secondsPerPx={card.seconds_per_px}
         />
       </div>
+
+      {/* The geometry behind the trace.
+          Two plots of the same propagation the corridor was scored against, laid
+          out beside each other because their job is to explain the shape on the
+          image above. A steep Doppler S-curve is a high, close pass; a nearly
+          vertical trace is a low one at long range. Both are server-rendered SVG
+          computed at build time, so they cost no JavaScript and render with
+          scripting off. */}
+      {geometry && geometry.degraded === null && (
+        <Section
+          title="The pass"
+          description="The same propagation that produced the corridor above, drawn from the station's point of view and from orbit. Elevation is measured from the WGS-84 geodetic normal, which is the reference the corridor was scored against."
+        >
+          <div className="instruments">
+            <figure className="instrument">
+              <figcaption>
+                <h3 className="instrument-title">Sky track</h3>
+                <p className="instrument-note">
+                  Azimuth clockwise from true north, elevation from the horizon at
+                  the rim to the zenith at the centre. The open circle is the rise,
+                  the square is the set, and the filled mark is closest approach at{" "}
+                  <span className="num">
+                    {geometry.max_elevation_deg.toFixed(1)}&deg;
+                  </span>
+                  .
+                </p>
+              </figcaption>
+              <SkyPlot
+                geometry={geometry}
+                stationName={card.station_name ?? `station ${card.ground_station}`}
+              />
+            </figure>
+
+            <figure className="instrument">
+              <figcaption>
+                <h3 className="instrument-title">Ground track</h3>
+                <p className="instrument-note">
+                  The subsatellite point, the station as a cross, and the
+                  satellite&rsquo;s horizon circle at closest approach from{" "}
+                  <span className="num">
+                    {geometry.altitude_km[
+                      geometry.elevation_deg.indexOf(
+                        Math.max(...geometry.elevation_deg),
+                      )
+                    ]?.toFixed(0) ?? "—"}
+                  </span>{" "}
+                  km. There is no basemap: this console ships no coastline data and
+                  will not draw one it cannot cite.
+                </p>
+              </figcaption>
+              <GroundTrack
+                geometry={geometry}
+                stationName={card.station_name ?? `station ${card.ground_station}`}
+              />
+            </figure>
+          </div>
+
+          <figure className="instrument instrument-wide">
+            <figcaption>
+              <h3 className="instrument-title">Elevation and Doppler against time</h3>
+              <p className="instrument-note">
+                The same pass on a time axis. Two stacked panels rather than one
+                panel with two vertical scales, because a twin-axis chart lets the
+                author choose where two curves appear to cross. Here the Doppler
+                curve crosses zero at the instant elevation peaks because that is
+                when it happens.
+              </p>
+            </figcaption>
+            <PassTimeSeries
+              geometry={geometry}
+              durationS={
+                card.start && card.end
+                  ? (Date.parse(card.end) - Date.parse(card.start)) / 1000
+                  : 0
+              }
+            />
+          </figure>
+
+          {/* One clock over all four instruments. Mounted after the plots so the
+              cursors it drives already exist in the document. */}
+          {(() => {
+            const framed = boundsForPass(geometry);
+            if (!framed || !card.height) return null;
+            const seconds =
+              card.start && card.end
+                ? (Date.parse(card.end) - Date.parse(card.start)) / 1000
+                : 0;
+            if (!Number.isFinite(seconds) || seconds <= 0) return null;
+            return (
+              <PassReplay
+                geometry={geometry}
+                durationS={seconds}
+                groundLons={framed.lons}
+                bounds={framed.bounds}
+                imageHeight={card.height}
+              />
+            );
+          })()}
+
+          <Table
+            head={["Quantity", "Value", "Where it comes from"]}
+            headAlign={["left", "right", "left"]}
+            caption="Every row is a field of the exported geometry, not a figure read off the plots."
+          >
+            <tr>
+              <Cell align="left" header>
+                Maximum elevation
+              </Cell>
+              <Cell mono>{geometry.max_elevation_deg.toFixed(3)}&deg;</Cell>
+              <Cell align="left">
+                Highest sample of the propagated pass, from the geodetic normal
+              </Cell>
+            </tr>
+            <tr>
+              <Cell align="left" header>
+                Azimuth at closest approach
+              </Cell>
+              <Cell mono>{geometry.tca_azimuth_deg.toFixed(2)}&deg;</Cell>
+              <Cell align="left">Clockwise from true north</Cell>
+            </tr>
+            <tr>
+              <Cell align="left" header>
+                Slant range at closest approach
+              </Cell>
+              <Cell mono>{geometry.min_range_km.toFixed(1)} km</Cell>
+              <Cell align="left">
+                Station to satellite, the minimum over the pass
+              </Cell>
+            </tr>
+            <tr>
+              <Cell align="left" header>
+                Closest approach, as a fraction of the pass
+              </Cell>
+              <Cell mono>{geometry.tca_frac.toFixed(4)}</Cell>
+              <Cell align="left">
+                0 is the start of the recording window, 1 the end
+              </Cell>
+            </tr>
+            <tr>
+              <Cell align="left" header>
+                Samples propagated
+              </Cell>
+              <Cell mono>
+                {geometry.n_samples_propagated}
+                {geometry.n_sgp4_errors > 0
+                  ? ` (${geometry.n_sgp4_errors} SGP4 errors)`
+                  : ""}
+              </Cell>
+              <Cell align="left">
+                An error count above zero means the orbit model refused part of the
+                window, and the track is drawn only where it did not
+              </Cell>
+            </tr>
+          </Table>
+        </Section>
+      )}
+
+      {geometry && geometry.degraded !== null && (
+        <Section title="The pass">
+          <Note tone="warn">
+            The sky and ground tracks are withheld for this observation:{" "}
+            {geometry.degraded}. The waterfall above is unaffected, because it is an
+            image rather than a propagation.
+          </Note>
+        </Section>
+      )}
 
       {card.corridor && (
         <Section title="The fit">

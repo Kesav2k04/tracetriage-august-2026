@@ -458,7 +458,7 @@ export default function WaterfallCanvas({
         width: "100%",
         aspectRatio: `${width} / ${height}`,
         display: "block",
-        background: "#000",
+        background: "var(--waterfall-ground)",
       }}
     />
   );

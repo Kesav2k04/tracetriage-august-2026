@@ -56,6 +56,50 @@ export interface CorridorGeometry {
   note: string;
 }
 
+/**
+ * The pass as geometry: where the satellite was in the sky and over the ground.
+ *
+ * Exported per card by `build_pass_geometry`, from the same propagation the
+ * corridor was scored against. When `degraded` is a string the series are absent
+ * and the reason is the string, which is why every consumer checks it first
+ * instead of checking whether an array is empty.
+ */
+export interface PassTrack {
+  station_lat: number;
+  station_lon: number;
+  station_alt_m: number;
+  fracs: number[];
+  azimuth_deg: number[];
+  elevation_deg: number[];
+  sub_lat_deg: number[];
+  sub_lon_deg: number[];
+  altitude_km: number[];
+  range_km: number[];
+  /** Null when the record carries no receive frequency. Not zero: zero is a claim. */
+  doppler_hz: number[] | null;
+  doppler_note: string;
+  max_elevation_deg: number;
+  tca_frac: number;
+  tca_azimuth_deg: number;
+  min_range_km: number;
+  n_samples_propagated: number;
+  n_sgp4_errors: number;
+  note: string;
+}
+
+/**
+ * A discriminated union rather than one interface with optional fields.
+ *
+ * When the propagation fails the export writes `{degraded: "..."}` and nothing
+ * else, so an interface that typed the series as always present would be a lie the
+ * compiler enforced. As a union, reading `max_elevation_deg` without first checking
+ * `degraded` is a type error, which is the guard this console keeps getting wrong
+ * by hand: two absences have already been published here as measurements.
+ */
+export type PassGeometry =
+  | { degraded: string }
+  | ({ degraded: null } & PassTrack);
+
 export interface Card {
   obs_id: number;
   degraded: string | null;
@@ -82,6 +126,7 @@ export interface Card {
   waterfall_status?: string;
   corridor?: CorridorGeometry | null;
   corridor_note?: string | null;
+  geometry?: PassGeometry | null;
 }
 
 export { fmt, fmtInterval, verdictColour, type Verdict } from "./format";
@@ -368,6 +413,17 @@ const evaluationData = evaluationJson as unknown as {
 const provenanceData = provenanceJson as unknown as {
   snapshot_id: string;
   split_manifest_sha256: string;
+  gate_summary: {
+    gates: Array<{
+      gate: number;
+      title: string;
+      verdict: string;
+      decided_in: string;
+    }>;
+    n_gates: number;
+    n_met: number;
+    note: string;
+  };
   splits: Array<{ name: string; counts: Record<string, number> }>;
   receipts: Array<{ name: string; sha256: string; bytes: number }>;
   contracts: Array<{

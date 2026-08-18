@@ -1,0 +1,331 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { timeSeriesCursorX } from "@/components/PassTimeSeries";
+import { type GroundBounds, projectGround, projectSky } from "@/lib/projection";
+
+/**
+ * One clock, four instruments.
+ *
+ * This is the piece that turns four plots into a single reading. A time cursor runs
+ * over the pass and every instrument follows it: the marker on the sky track, the
+ * marker on the ground track, the Doppler shift, the elevation, the slant range, and
+ * the row of the waterfall that was being recorded at that instant. A reader can
+ * watch the Doppler cross zero and see, in the same frame, that the satellite is at
+ * its highest elevation and its shortest range. That relationship is the entire
+ * physical basis of the corridor, and no arrangement of static plots states it as
+ * directly as a shared cursor does.
+ *
+ * ## Why the motion is honest
+ *
+ * Every animated quantity is a value the pipeline exported. Nothing eases into
+ * place, nothing counts up from zero, and no number is interpolated beyond the
+ * linear interpolation between two propagated samples, which is stated on the page
+ * and is the same interpolation the drawn polylines already perform between the same
+ * two points. A count-up on a Brier score would be showing intermediate
+ * measurements that were never taken. A cursor moving along a propagated track is
+ * showing samples that were.
+ *
+ * ## Why it does not cost frames
+ *
+ * The expensive mistake would be re-rendering React every animation frame, which at
+ * a hundred samples and four instruments means rebuilding several hundred SVG nodes
+ * sixty times a second. Instead:
+ *
+ *   - The plots are drawn once, by the server, and never re-rendered. The cursors
+ *     are server-rendered too; this component only writes their transforms.
+ *   - A frame writes one `transform` attribute per cursor. A transform on an
+ *     element that is already its own layer moves without layout and without paint.
+ *   - The numeric readout is written with `textContent` on seven nodes, not through
+ *     state, and only when the text actually changed.
+ *   - React state changes twice per interaction: play, and pause.
+ *
+ * A per-frame CSS custom property was the obvious alternative and is a trap: a
+ * custom property read by descendants invalidates the whole subtree's style
+ * computation, which on a plot of several hundred nodes costs far more than writing
+ * two attributes.
+ *
+ * ## Reduced motion
+ *
+ * `prefers-reduced-motion` is honoured by not offering playback at all, leaving the
+ * scrubber. The information is in the cursor's position rather than in its travel,
+ * so a reader who cannot tolerate motion loses nothing by moving it themselves. The
+ * query is read at run time rather than only in CSS, because CSS can hide a control
+ * but cannot stop a requestAnimationFrame loop.
+ */
+
+export type ReplayGeometry = {
+  fracs: number[];
+  azimuth_deg: number[];
+  elevation_deg: number[];
+  sub_lat_deg: number[];
+  sub_lon_deg: number[];
+  range_km: number[];
+  altitude_km: number[];
+  doppler_hz: number[] | null;
+};
+
+const FMT = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
+
+const READOUT: Array<{ key: string; label: string }> = [
+  { key: "elapsed", label: "Elapsed" },
+  { key: "elevation", label: "Elevation" },
+  { key: "azimuth", label: "Azimuth" },
+  { key: "doppler", label: "Doppler" },
+  { key: "range", label: "Slant range" },
+  { key: "altitude", label: "Altitude" },
+  { key: "subpoint", label: "Subpoint" },
+];
+
+/** Linear interpolation between the two propagated samples that bracket t. */
+function sampleAt(series: number[], t: number): number {
+  if (series.length === 0) return Number.NaN;
+  const x = t * (series.length - 1);
+  const i = Math.floor(x);
+  const j = Math.min(series.length - 1, i + 1);
+  const a = series[i];
+  const b = series[j];
+  if (a === undefined || b === undefined) return Number.NaN;
+  return a + (b - a) * (x - i);
+}
+
+/** The pass is replayed in a fixed wall-clock time so two passes are comparable. */
+const REPLAY_MS = 12_000;
+
+export default function PassReplay({
+  geometry,
+  durationS,
+  groundLons,
+  bounds,
+  imageHeight,
+}: {
+  geometry: ReplayGeometry;
+  durationS: number;
+  /** Longitudes already unwrapped by the plot, so the cursor cannot re-wrap them. */
+  groundLons: number[];
+  bounds: GroundBounds;
+  imageHeight: number;
+}) {
+  const [playing, setPlaying] = useState(false);
+  const [canPlay, setCanPlay] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  const rafRef = useRef<number | null>(null);
+  const startedRef = useRef<{ wall: number; from: number } | null>(null);
+  const tRef = useRef(0);
+  const rangeRef = useRef<HTMLInputElement | null>(null);
+  const readoutRefs = useRef<Record<string, HTMLElement | null>>({});
+  const nodesRef = useRef<{
+    sky: SVGGElement | null;
+    ground: SVGGElement | null;
+    row: SVGGElement | null;
+    time: SVGGElement | null;
+  }>({ sky: null, ground: null, row: null, time: null });
+
+  // The cursors and the waterfall row marker are rendered by the server, so they
+  // are looked up once rather than owned by React. That keeps the plots out of the
+  // client bundle: this component ships the clock, not the drawing.
+  useEffect(() => {
+    nodesRef.current = {
+      sky: document.getElementById("sky-cursor") as SVGGElement | null,
+      ground: document.getElementById("ground-cursor") as SVGGElement | null,
+      row: document.getElementById("waterfall-row-cursor") as SVGGElement | null,
+      time: document.getElementById("timeseries-cursor") as SVGGElement | null,
+    };
+    setReady(true);
+    document.documentElement.dataset.replay = "ready";
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setCanPlay(!query.matches);
+    const onChange = (event: MediaQueryListEvent) => {
+      setCanPlay(!event.matches);
+      if (event.matches) setPlaying(false);
+    };
+    query.addEventListener("change", onChange);
+    return () => {
+      query.removeEventListener("change", onChange);
+      // Unmounting hides the cursors again, so a client-side navigation to a page
+      // without a replay cannot leave three orphan markers frozen on its plots.
+      delete document.documentElement.dataset.replay;
+    };
+  }, []);
+
+  const paint = useCallback(
+    (value: number) => {
+      tRef.current = value;
+      const az = sampleAt(geometry.azimuth_deg, value);
+      const el = sampleAt(geometry.elevation_deg, value);
+      const lat = sampleAt(geometry.sub_lat_deg, value);
+      const lon = sampleAt(groundLons, value);
+      const rng = sampleAt(geometry.range_km, value);
+      const alt = sampleAt(geometry.altitude_km, value);
+      const dop = geometry.doppler_hz
+        ? sampleAt(geometry.doppler_hz, value)
+        : Number.NaN;
+
+      const { sky, ground, row, time } = nodesRef.current;
+      if (sky && Number.isFinite(az) && Number.isFinite(el)) {
+        const [x, y] = projectSky(az, el);
+        sky.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+      }
+      if (ground && Number.isFinite(lat) && Number.isFinite(lon)) {
+        const [x, y] = projectGround(bounds, lon, lat);
+        ground.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+      }
+      if (row) {
+        // Time runs bottom to top on a SatNOGS waterfall: row 0 is the END of the
+        // pass. The cursor therefore travels upward as the clock runs forward.
+        // Getting this backwards would put the marker on the wrong end of the trace
+        // while still looking like it worked, which is the kind of error that
+        // survives a screenshot review.
+        //
+        // The units are image rows, not CSS pixels, because the marker lives in an
+        // SVG whose viewBox is the image's own pixel grid.
+        row.setAttribute(
+          "transform",
+          `translate(0 ${((1 - value) * imageHeight).toFixed(2)})`,
+        );
+      }
+
+      if (time) {
+        // The time-series cursor moves only in x, because its line already spans
+        // both panels vertically. One attribute, one axis.
+        time.setAttribute(
+          "transform",
+          `translate(${timeSeriesCursorX(value).toFixed(2)} 0)`,
+        );
+      }
+
+      const write = (key: string, text: string) => {
+        const node = readoutRefs.current[key];
+        if (node && node.textContent !== text) node.textContent = text;
+      };
+      write("elapsed", `${(value * durationS).toFixed(0)} s`);
+      write("elevation", Number.isFinite(el) ? `${el.toFixed(2)}°` : "—");
+      write("azimuth", Number.isFinite(az) ? `${az.toFixed(1)}°` : "—");
+      write(
+        "doppler",
+        Number.isFinite(dop)
+          ? `${dop > 0 ? "+" : ""}${FMT.format(dop)} Hz`
+          : "not measurable",
+      );
+      write("range", Number.isFinite(rng) ? `${FMT.format(rng)} km` : "—");
+      write("altitude", Number.isFinite(alt) ? `${FMT.format(alt)} km` : "—");
+      write(
+        "subpoint",
+        Number.isFinite(lat) && Number.isFinite(lon)
+          ? `${lat.toFixed(2)}, ${lon.toFixed(2)}`
+          : "—",
+      );
+    },
+    [geometry, groundLons, bounds, imageHeight, durationS],
+  );
+
+  // Paint once the server-rendered nodes have been found, so the readout carries
+  // real values before any interaction rather than a row of dashes.
+  useEffect(() => {
+    if (ready) paint(tRef.current);
+  }, [ready, paint]);
+
+  useEffect(() => {
+    if (!playing) {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      startedRef.current = null;
+      return;
+    }
+
+    startedRef.current = {
+      wall: performance.now(),
+      from: tRef.current >= 1 ? 0 : tRef.current,
+    };
+
+    const step = (now: number) => {
+      const started = startedRef.current;
+      if (!started) return;
+      const value = Math.min(1, started.from + (now - started.wall) / REPLAY_MS);
+      paint(value);
+      // The scrubber is written directly rather than through state: a controlled
+      // input on every frame is the re-render this component exists to avoid.
+      if (rangeRef.current) rangeRef.current.value = String(value);
+      if (value >= 1) {
+        setPlaying(false);
+        return;
+      }
+      rafRef.current = requestAnimationFrame(step);
+    };
+    rafRef.current = requestAnimationFrame(step);
+
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [playing, paint]);
+
+  // Nothing renders until the cursors have been located. With scripting off this
+  // component never mounts, the cursors stay hidden by CSS, and the page is the
+  // static plots it always was.
+  if (!ready) return null;
+
+  return (
+    <div className="replay">
+      <div className="replay-controls">
+        {canPlay && (
+          <button
+            type="button"
+            className="replay-play"
+            onClick={() => setPlaying((p) => !p)}
+            aria-pressed={playing}
+          >
+            {playing ? "Pause" : "Replay the pass"}
+          </button>
+        )}
+        <label className="replay-scrub">
+          <span>Pass time</span>
+          <input
+            ref={rangeRef}
+            type="range"
+            min={0}
+            max={1}
+            step={0.001}
+            defaultValue={0}
+            aria-label="Scrub through the pass"
+            onInput={(event) => {
+              const value = Number(event.currentTarget.value);
+              if (playing) setPlaying(false);
+              paint(value);
+            }}
+          />
+        </label>
+      </div>
+
+      {/* A description list, so a screen reader gets each label with its value
+          rather than a row of loose numbers. Live but polite: an assertive region
+          would interrupt on every frame of playback. */}
+      <dl className="replay-readout" aria-live="polite">
+        {READOUT.map((item) => (
+          <div key={item.key}>
+            <dt>{item.label}</dt>
+            <dd
+              className="num"
+              ref={(node) => {
+                readoutRefs.current[item.key] = node;
+              }}
+            >
+              &mdash;
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <p className="replay-note">
+        One clock drives all four instruments above. Values between two propagated
+        samples are linearly interpolated, the same interpolation the drawn tracks
+        already perform between the same two points; there are{" "}
+        {geometry.fracs.length} samples over {FMT.format(durationS)} seconds of
+        recording. Playback runs for a fixed 12 seconds so two passes can be
+        compared, and the elapsed figure is real seconds rather than replay seconds.
+      </p>
+    </div>
+  );
+}

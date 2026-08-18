@@ -73,3 +73,10 @@ BOB_START_HERE.md
 apps/web/out/
 apps/web/tsconfig.tsbuildinfo
 .playwright-mcp/
+
+# Manim render scratch. The scene source is committed and the finished video is
+# committed to apps/web/public/media, which is what the site serves. The render tree
+# holds partial movie files, per-text SVG caches and converted font binaries, all of
+# which are reproducible from scripts/explainer_corridor.py and none of which a
+# reviewer needs.
+/media/

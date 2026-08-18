@@ -14,8 +14,8 @@ The plan sets six thresholds that must pass before TraceTriage is worth building
 | 2 | Metadata coverage for the corridor | ≥80% of the sample computable | **PRE-PASSED** |
 | 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **PASSED, 3/3 testable (100%); 4 of 7 not testable, and the 3 span 2 stations on 1 night** |
 | 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** |
-| 5 | Physics beats image-only on Brier | strict improvement, chronological split | **NOT ESTABLISHED. Margin +0.02080, 95% CI -0.01271 to +0.05022 on 88 test observations across 88 episodes. A narrower arm (image + corridor) does clear zero and survives correction; the gate as worded does not.** |
-| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **NOT_ESTABLISHED. Point lift +1.60×, 95% CI [1.00, 1.20] on 88 decisive test observations across 88 episodes (chronological split, budget 50). CI lies below threshold; cold_station split PASSED at 3.00×.** |
+| 5 | Physics beats image-only on Brier | strict improvement, chronological split | **NOT ESTABLISHED. Margin +0.02079, 95% CI -0.01268 to +0.05029 on 88 test observations across 88 episodes. A narrower arm (image + corridor) does clear zero and survives correction; the gate as worded does not.** |
+| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **NOT_ESTABLISHED. Point lift 1.582×, 95% CI [1.353, 1.755] on 87 decisive test observations across 87 episodes (chronological split, budget 50). The interval contains the 1.5× threshold; cold_station PASSED at 2.253×.** |
 
 ---
 
@@ -242,7 +242,7 @@ interval.** Receipt: `artifacts/QUEUE_RECEIPT.json`. Run:
 > which contains the 1.5 threshold. A point estimate above the bar whose interval
 > straddles it does not establish the claim, for the same reason gate 5 was recorded as
 > NOT_ESTABLISHED. The bootstrap median is 1.589, so the point estimate is not the
-> product of a skewed resample; the interval is simply wide on 88 decisive observations.
+> product of a skewed resample; the interval is simply wide on 87 decisive observations.
 
 **The C1 interval was wrong, and this is what it was.** C1 published 1.00 to 1.20
 against a point estimate of 1.60, and every split showed the same shape: the
@@ -450,7 +450,7 @@ Recorded rather than retried, because the honest failure of a specific claim is 
 here than a restated claim that passes. Full detail in the gate 5 section above and in
 `artifacts/FUSION_RECEIPT.json`.
 
-**2026-08-18, gate 6: NOT ESTABLISHED.** The review-value queue's point lift is 1.60x over random at budget 50 on the chronological split (20 conflicts against 12.5 expected, 88 decisive test observations across 88 episodes). The 95% grouped bootstrap interval is [1.354, 1.760], which contains the 1.5x threshold, so the claim is not established. Bootstrap median 1.592 over 4000 surviving resamples of 4000 drawn. cold_station PASSED at 3.005x [2.493, 3.454] on 217 decisive observations, which is the split where a reviewer meets unseen stations, and it does not substitute for the primary split. cold_transmitter 1.625x [1.429, 1.829] and cold_combined 1.292x [1.073, 1.520] are both NOT_ESTABLISHED on intervals containing the threshold. Receipt: `artifacts/QUEUE_RECEIPT.json`.
+**2026-08-18, gate 6: NOT ESTABLISHED.** The review-value queue's point lift is 1.582x over random at budget 50 on the chronological split (20 conflicts against 12.6 expected, 87 decisive test observations across 87 episodes). The 95% grouped bootstrap interval is [1.353, 1.755], which contains the 1.5x threshold, so the claim is not established. Bootstrap median 1.589. cold_station PASSED at 2.253x [1.920, 3.896] on 217 decisive observations, which is the split where a reviewer meets unseen stations, and it does not substitute for the primary split. cold_transmitter 1.656x and cold_combined 1.292x are both NOT_ESTABLISHED on intervals containing the threshold. Receipt: `artifacts/QUEUE_RECEIPT.json`.
 
 **2026-08-18, correction to the gate 6 entry recorded on 17 Aug.** That entry
 published the interval [1.00, 1.20] beneath a point estimate of 1.60 and attributed
@@ -468,3 +468,22 @@ this shape cannot be narrated again: a point estimate outside its own interval i
 reported as NOT_MEASURABLE with both numbers and the gap.
 
 *Gate 4 remains unmeasured, which is not the same as passing.*
+
+**2026-08-18, correction to this document.** The status summary at the top of this
+file and the failure-log entry above both carried gate numbers from an earlier run,
+while the per-split table further down carried the current ones. The summary claimed a
+95% interval of [1.00, 1.20] for gate 6 and a cold_station lift of 3.00x; the receipt
+says [1.353, 1.755] and 2.253x. Two different intervals for one gate in one document
+is exactly the drift this project checks for elsewhere, and it was found by reading the
+file against `artifacts/QUEUE_RECEIPT.json` rather than by any gate. The summary and
+the log entry are now generated from the receipt by
+`scripts/sync_kill_gate.py`, so the next re-run cannot leave them behind. The verdict
+was NOT_ESTABLISHED before the correction and is NOT_ESTABLISHED after it: no
+conclusion changes, only the numbers supporting it.
+
+A second error came out of the same reading. Gate 6 was described as running on "88
+decisive test observations across 88 episodes". It runs on 87 in 87: `n_test_decisive`
+and `n_groups` in the queue receipt are both 87, and 88 is gate 5's sample size, which
+had been copied across. One observation is not a material difference to the verdict,
+and that is the reason it survived: a wrong number that changes nothing is the kind
+nobody checks. It is now read from the receipt like the rest of the row.

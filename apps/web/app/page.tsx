@@ -35,33 +35,57 @@ export default function QueuePage() {
 
   return (
     <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
-      <header style={{ maxWidth: "62rem" }}>
-        <p
-          style={{
-            fontSize: "var(--type-label)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--text-03)",
-            margin: 0,
-          }}
-        >
-          SatNOGS waterfall triage
+      {/* Stat-led opening.
+          The figure is the queue's measured lift, and the interval is set at the
+          same weight as the figure rather than under it. A hero that showed 1.58
+          alone would be making the claim the gate declined to make, and this page
+          would be the first place a reader met that claim. */}
+      <header className="lede">
+        <p className="lede-kicker">
+          SatNOGS waterfall triage · chronological split ·{" "}
+          {primary.n_queue_examined} observations examined
         </p>
-        <h1
-          style={{
-            fontSize: "var(--type-heading-06)",
-            lineHeight: 1.15,
-            margin: "var(--sp-03) 0 var(--sp-05)",
-          }}
-        >
-          A review queue, and the measurement that says how much it is worth.
-        </h1>
-        <p style={{ color: "var(--text-02)", lineHeight: 1.7, fontSize: "var(--type-body-long)" }}>
-          Volunteer ground stations record far more passes than anyone reviews. This
-          ranks them by how likely a human is to find something wrong, and then
-          measures whether that ranking beats picking at random. The measurement is
-          the point. A queue nobody tested is a preference.
-        </p>
+        <div className="lede-figure">
+          <p style={{ margin: 0 }}>
+            <span className="lede-number">
+              {fmt(primary.lift_point, 2)}
+              <sup>&times;</sup>
+            </span>
+            <span
+              style={{
+                display: "block",
+                marginTop: "var(--sp-05)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--type-body)",
+                color: "var(--text-02)",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              95% CI {fmtInterval(primary.lift_ci95, 3)}
+            </span>
+            <span
+              style={{
+                display: "block",
+                marginTop: "var(--sp-02)",
+                fontSize: "var(--type-caption)",
+                color: "var(--text-03)",
+              }}
+            >
+              against a 1.5&times; threshold, so the gate is not met
+            </span>
+          </p>
+          <div>
+            <h1 className="lede-headline">
+              A review queue, and the measurement that says how much it is worth.
+            </h1>
+            <p className="lede-body" style={{ marginTop: "var(--sp-05)" }}>
+              Volunteer ground stations record far more passes than anyone reviews.
+              This ranks them by how likely a human is to find something wrong, then
+              measures whether that ranking beats picking at random. The measurement
+              is the point. A queue nobody tested is a preference.
+            </p>
+          </div>
+        </div>
       </header>
 
       <div
@@ -131,6 +155,44 @@ export default function QueuePage() {
           </p>
         </div>
       </div>
+
+      <Section
+        title="What the measurement actually is"
+        description="Twenty-four seconds, rendered offline from one observation's own exported corridor. Served from this origin: there is no embed, no player script and no third-party request."
+      >
+        <figure className="explainer">
+          {/* preload="none" so the 1.6 MB costs nothing until a reader asks for it,
+              and a poster frame drawn from the video itself rather than a title card,
+              so the still already shows the measurement. No autoplay: a page that
+              starts moving on load takes the decision away from the reader, and this
+              one is 24 seconds of someone else talking. */}
+          <video
+            controls
+            preload="none"
+            playsInline
+            poster="/media/corridor-explainer-poster.jpg"
+            width={1920}
+            height={1080}
+          >
+            <source src="/media/corridor-explainer.mp4" type="video/mp4" />
+            <p>
+              Your browser cannot play this video. It shows the predicted Doppler
+              corridor for observation 14745984 being slid across the waterfall to its
+              best match, a shift of 61 pixels, which at 92.6 Hz per pixel is 5,648 Hz,
+              which is 13.0 ppm of the receive frequency.
+            </p>
+          </video>
+          <figcaption>
+            A detector that assumes the trace is vertical looks in one column. The
+            satellite is moving, so the received frequency sweeps, and the corridor is
+            curved with its shape fixed by the pass geometry. Sliding that curve to its
+            best match gives one number: how far off the capture was. For observation
+            14745984 that is 61 pixels, 5,648 Hz, 13.0 ppm. The frequency axis is
+            cropped and exaggerated against the time axis so a 61 pixel shift on a 620
+            pixel image is visible at all, and the video says so on screen.
+          </figcaption>
+        </figure>
+      </Section>
 
       <Section
         title="What the queue found"

@@ -140,7 +140,7 @@ export default function QueueTable({
               style={{
                 padding: "var(--sp-02) var(--sp-04)",
                 background: active ? "var(--interactive-01)" : "transparent",
-                color: active ? "#fff" : "var(--text-02)",
+                color: active ? "var(--text-04)" : "var(--text-02)",
                 border: `1px solid ${
                   active ? "var(--interactive-01)" : "var(--border-strong)"
                 }`,

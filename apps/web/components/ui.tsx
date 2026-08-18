@@ -55,6 +55,22 @@ export function VerdictBadge({
   size?: "normal" | "large";
 }) {
   const colour = verdictColour(verdict);
+  const normalised = verdict.toUpperCase();
+  const dot = size === "large" ? 10 : 7;
+
+  // The marker's form carries the state, not just its colour. Two of the four
+  // verdicts are neutral greys, so a filled circle in two similar greys would be
+  // two states a reader cannot tell apart. A decided verdict is filled, a measured
+  // but inconclusive one is a hollow ring, and one that could not be measured at
+  // all is a dash: the shape says which kind of answer this is before the colour
+  // says anything, which is the convention real status displays use.
+  const marker =
+    normalised === "NOT_ESTABLISHED"
+      ? "ring"
+      : normalised === "NOT_MEASURABLE"
+        ? "dash"
+        : "filled";
+
   return (
     <span
       style={{
@@ -74,12 +90,21 @@ export function VerdictBadge({
     >
       <span
         aria-hidden="true"
-        style={{
-          width: size === "large" ? 10 : 7,
-          height: size === "large" ? 10 : 7,
-          background: colour,
-          borderRadius: "50%",
-        }}
+        style={
+          marker === "dash"
+            ? {
+                width: dot,
+                height: 2,
+                background: colour,
+              }
+            : {
+                width: dot,
+                height: dot,
+                background: marker === "filled" ? colour : "transparent",
+                border: marker === "ring" ? `2px solid ${colour}` : undefined,
+                borderRadius: "50%",
+              }
+        }
       />
       {verdict.replace(/_/g, " ")}
     </span>
@@ -97,7 +122,7 @@ export function Tag({
 }) {
   const palette = {
     neutral: { fg: "var(--text-02)", bd: "var(--border-strong)" },
-    action: { fg: "#4589ff", bd: "#4589ff" },
+    action: { fg: "var(--interactive-04)", bd: "var(--interactive-04)" },
     muted: { fg: "var(--text-03)", bd: "var(--border-subtle)" },
   }[tone];
 
@@ -315,10 +340,18 @@ export function Table({
   head,
   children,
   caption,
+  headAlign,
 }: {
   head: ReactNode[];
   children: ReactNode;
   caption?: string;
+  /**
+   * Per-column header alignment. Defaults to the old behaviour, first column
+   * left and the rest right, which is correct for a table of figures and wrong
+   * for a table whose last column is a sentence: the header sat on one edge and
+   * its cells on the other.
+   */
+  headAlign?: Array<"left" | "right">;
 }) {
   return (
     <div style={{ overflowX: "auto" }}>
@@ -349,7 +382,8 @@ export function Table({
                 key={index}
                 scope="col"
                 style={{
-                  textAlign: index === 0 ? "left" : "right",
+                  textAlign:
+                    headAlign?.[index] ?? (index === 0 ? "left" : "right"),
                   padding: "var(--sp-03) var(--sp-04)",
                   borderBottom: "1px solid var(--border-strong)",
                   color: "var(--text-03)",

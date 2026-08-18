@@ -1,3 +1,10 @@
+/* Hallmark · macrostructure: Stat-Led (/) + Map-Diagram (/observation)
+ * tone: technical, austere · genre: modern-minimal · nav: N3 side-rail · footer: Ft4 dense colophon
+ * theme: IBM Carbon Gray 100, preserved · paper dark oklch(17% 0 0) · accent cool oklch(64% 0.16 258)
+ * axes: paper-band dark / display grotesk-sans / accent cool
+ * enrichment: E-data (sky plot, ground track, Manim explainer) — every mark carries a receipt value
+ * pre-emit critique: P5 H5 E4 S5 R5 V4
+ */
 /*
  * Design foundation.
  *
@@ -37,6 +44,11 @@
   --text-05: #8d8d8d;
   --text-placeholder: #6f6f6f;
 
+  /* The ground behind a waterfall. True black rather than the theme's near-black:
+     the image is a measured intensity map, and letting #161616 show through the
+     darkest rows would render a measured zero as brighter than zero. */
+  --waterfall-ground: #000000;
+
   /* Carbon interactive and status */
   --interactive-01: #0f62fe;
   --interactive-02: #6f6f6f;
@@ -48,11 +60,35 @@
   --support-04: #4589ff; /* information blue */
   --support-05: #ff832b; /* caution orange */
 
-  /* Verdict colours. Deliberately not a red/green pair: three of the four gate
-     states are neither pass nor fail, and colouring them as failures would say
-     something the measurements do not. */
+  /* Verdict colours.
+     Deliberately not a red/green pair: two of the four gate states are neither
+     pass nor fail, and colouring them as failures would say something the
+     measurements do not.
+
+     NOT_ESTABLISHED was amber, and that was wrong. Two independent real-world
+     standards say so. Carbon's own data-visualisation guidance assigns grey to
+     "unknown or pending" and keeps it out of the yellow warning tier. NASA's
+     Appendix F display standard mandates that yellow means CAUTION, which is a
+     statement about the subject of the measurement. NOT_ESTABLISHED is a statement
+     about the measurement itself: the interval contained the threshold. Painting it
+     amber told a reader something was wrong with the satellite data when what was
+     actually true is that the evidence did not separate.
+
+     That leaves two neutral states to tell apart, and one grey between them, so the
+     distinction moved off hue and onto form: NOT_ESTABLISHED carries a hollow ring
+     (measured, inconclusive), NOT_MEASURABLE carries a dash (no measurement
+     exists). Reserving colour and encoding state in the marker's shape is what the
+     Appendix F standard does, and it is also what makes the two readable to a
+     reader who cannot separate two greys.
+
+     Amber keeps one job on this site, and it is a caution: an offset that ran into
+     the edge of its search range is a lower bound rather than a value. It is also
+     used as a categorical series colour in the waterfall overlay, which is a
+     different axis: Appendix F reserves yellow in status indication, not in plotted
+     series, and the overlay's three curves are three things rather than three
+     severities. */
   --verdict-passed: #42be65;
-  --verdict-not-established: #f1c21b;
+  --verdict-not-established: #c6c6c6;
   --verdict-failed: #fa4d56;
   --verdict-not-measurable: #8d8d8d;
 
@@ -101,10 +137,28 @@
 
   --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
+  /* Display face. "Neue Haas Grotesk Display Pro" is the Adobe Fonts cut of the
+     Helvetica that NASA's own identity ran on for two decades, and it is the one
+     departure from Plex worth making: Plex Sans is a fine UI face and a weak
+     display face at 6rem. The kit link drops into app/layout.tsx and this stack
+     picks it up with no other change. Numbers never use it: figures stay in Plex
+     Mono, which is IBM's, is genuinely the better technical mono, and keeps the
+     host system's signal on the part of the page that carries the measurements. */
+  --font-display: "Neue Haas Grotesk Display Pro", "IBM Plex Sans", system-ui,
+    sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     monospace;
 
   --max-width: 76rem;
+  --rail-width: 13rem;
+
+  /* Display scale. Steps are ratio 1.5 from the body scale rather than Carbon's
+     productive scale, because a stat-led hero needs a figure that dominates and
+     Carbon tops out at 2.625rem. Clamped in vw so the figure is zoom-stable. */
+  --type-display-02: clamp(2.75rem, 5vw, 4.25rem);
+  --type-display-03: clamp(4rem, 9vw, 8.5rem);
+  --tracking-display: -0.022em;
+  --tracking-label: 0.08em;
 }
 
 *,
@@ -169,7 +223,7 @@ code,
   z-index: 100;
   padding: var(--sp-03) var(--sp-05);
   background: var(--interactive-01);
-  color: #fff;
+  color: var(--text-04);
   transition: top var(--dur-fast-02) var(--ease-productive-standard);
 }
 
@@ -226,4 +280,642 @@ code,
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ===========================================================================
+ * Side rail, N3.
+ *
+ * A top bar was the wrong nav for this console. Four sections and a persistent
+ * status block do not fit in a 3rem strip, and the pages that matter most here
+ * are tall and narrow-column: an observation page is a 620 px image and a table
+ * of numbers, so the horizontal space a rail costs was never being used by the
+ * content. The rail also gives the snapshot id and the gate tally a permanent
+ * home, which is the thing a judge checks against on every page.
+ *
+ * Below 60rem it becomes a top bar, because a rail on a phone is a drawer and a
+ * drawer needs JavaScript to open. This console works with scripting off.
+ * =========================================================================== */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rail {
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--ui-background);
+  padding: var(--sp-04) var(--sp-05);
+}
+
+.rail-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-05) var(--sp-07);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.rail-mark {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-01);
+}
+
+.rail-mark:hover {
+  text-decoration: none;
+}
+
+/* The wordmark carries a hairline rule under the first half. It is drawn from
+   the same token as every other rule on the site rather than being a graphic, so
+   there is no asset to load and it follows the accent if the accent changes. */
+.rail-mark span {
+  border-bottom: 2px solid var(--interactive-04);
+  padding-bottom: 1px;
+}
+
+.rail-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-05);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rail-link {
+  display: block;
+  color: var(--text-02);
+  font-size: var(--type-body);
+  /* Never two lines: a wrapped nav label is a click target with a dead gap in it. */
+  white-space: nowrap;
+}
+
+.rail-link:hover {
+  color: var(--text-01);
+  text-decoration: none;
+}
+
+.rail-link[aria-current="page"] {
+  color: var(--text-01);
+}
+
+.rail-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-02) var(--sp-05);
+  margin: 0;
+  font-size: var(--type-caption);
+  color: var(--text-03);
+}
+
+.rail-status div {
+  display: flex;
+  gap: var(--sp-02);
+  align-items: baseline;
+}
+
+.rail-status dt {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  font-size: 0.6875rem;
+}
+
+.rail-status dd {
+  margin: 0;
+  color: var(--text-02);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: var(--rail-width) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .rail {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    border-bottom: 0;
+    border-right: 1px solid var(--border-subtle);
+    padding: var(--sp-07) var(--sp-06);
+    overflow-y: auto;
+  }
+
+  .rail-inner {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: var(--sp-08);
+    height: 100%;
+    max-width: none;
+  }
+
+  .rail-nav ul {
+    display: grid;
+    gap: 0;
+  }
+
+  /* The active section is marked with a rule on the inside edge, aligned to the
+     rail's own border. A pill or a filled background would be a third surface on
+     a page that already has two. */
+  .rail-link {
+    padding: var(--sp-03) 0 var(--sp-03) var(--sp-04);
+    margin-left: calc(-1 * var(--sp-04));
+    border-left: 2px solid transparent;
+  }
+
+  .rail-link[aria-current="page"] {
+    border-left-color: var(--interactive-04);
+  }
+
+  .rail-status {
+    display: grid;
+    gap: var(--sp-04);
+    align-content: end;
+  }
+
+  .rail-status div {
+    display: grid;
+    gap: 0;
+  }
+
+  .layout > main {
+    min-width: 0;
+  }
+}
+
+/* ===========================================================================
+ * Stat-led opening.
+ *
+ * The figure that leads this site is 1.58, and the honest thing about 1.58 is
+ * its interval, so the interval is set beside it at a size a reader cannot skip
+ * rather than in a caption underneath. A hero that showed 1.58 alone would be
+ * making exactly the claim the gate refused to make.
+ * =========================================================================== */
+
+.lede {
+  padding: var(--sp-09) 0 var(--sp-08);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.lede-kicker {
+  margin: 0;
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+
+/* Top-aligned, not bottom-aligned. Bottom alignment sank the figure to the
+   baseline of a three-line headline and left a hole above it; aligning the tops
+   sets the figure and the first line of the headline on the same optical line,
+   which is the pairing a reader is meant to make. */
+.lede-figure {
+  display: grid;
+  gap: var(--sp-05) var(--sp-08);
+  align-items: start;
+  margin: var(--sp-07) 0 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lede-number {
+  display: block;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: var(--type-display-03);
+  line-height: 0.82;
+  letter-spacing: var(--tracking-display);
+  color: var(--text-01);
+  margin-left: -0.04em;
+}
+
+.lede-number sup {
+  /* Aligned to the cap height of the digits rather than to the middle of the
+     x-height, where a default superscript lands and reads as a detached mark
+     instead of a unit.
+     The 1.95em is not arbitrary and it is not a parent-relative figure: a length
+     in vertical-align resolves against the element's OWN font-size, so 0.62em on
+     a 0.26em glyph raised it by a tenth of the intended distance and the mark sat
+     at mid height. Measured against the rendered box, 1.95em puts the mark's top
+     within a pixel of the digits' cap top, and both sides scale together because
+     the sup's size is itself relative. */
+  font-size: 0.26em;
+  vertical-align: 1.95em;
+  letter-spacing: 0;
+  color: var(--text-03);
+  margin-left: 0.15em;
+}
+
+.lede-headline {
+  font-family: var(--font-display);
+  font-size: var(--type-display-02);
+  line-height: 1.04;
+  letter-spacing: var(--tracking-display);
+  /* A display size can push a long token past the viewport on a 320px screen. */
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 30ch;
+}
+
+.lede-body {
+  color: var(--text-02);
+  line-height: 1.7;
+  font-size: var(--type-body-long);
+  max-width: 46ch;
+  margin: 0;
+}
+
+@media (min-width: 52rem) {
+  .lede-figure {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  }
+}
+
+/* ===========================================================================
+ * Instrument grid, the Map and Diagram layout for one observation.
+ *
+ * The observation page holds four views of one pass: the waterfall with the
+ * corridor drawn on it, the sky track, the ground track, and the numbers. They
+ * are laid out as a field of instruments rather than a stack of cards, because
+ * the reader's job is to check them against each other.
+ * =========================================================================== */
+
+.instruments {
+  display: grid;
+  gap: var(--sp-06);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 52rem) {
+  .instruments {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.instrument {
+  border: 1px solid var(--border-subtle);
+  background: var(--ui-01);
+  padding: var(--sp-05);
+  min-width: 0;
+  margin: 0;
+}
+
+.instrument > figcaption {
+  margin: 0 0 var(--sp-05);
+}
+
+.instrument-title {
+  margin: 0;
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+
+.instrument-note {
+  margin: var(--sp-03) 0 0;
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  line-height: 1.6;
+}
+
+.instrument svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The time series is wide rather than square, so it takes the full row under the
+   two plots instead of being squeezed into one column of the pair. */
+.instrument-wide {
+  grid-column: 1 / -1;
+}
+
+.replay-cursor-time {
+  visibility: hidden;
+}
+
+[data-replay="ready"] .replay-cursor-time {
+  visibility: visible;
+}
+
+.replay-cursor-time line {
+  stroke: var(--text-04);
+  stroke-width: 1;
+  stroke-opacity: 0.8;
+  will-change: transform;
+}
+
+/* The sky plot is square, so left to fill its column it would stand twice as tall
+   as the ground track beside it and break the row. Capped and centred instead, at
+   a size that matches the ground track's drawn height rather than its box. */
+.sky-plot {
+  max-width: 23.5rem;
+  margin: 0 auto;
+}
+
+/* SVG text takes fill, not color, so the plots set it explicitly rather than
+   inheriting and silently painting black on a dark ground. */
+.plot-label {
+  fill: var(--text-03);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.plot-label-strong {
+  fill: var(--text-02);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.plot-grid {
+  stroke: var(--ui-02);
+  fill: none;
+  stroke-width: 1;
+}
+
+.plot-grid-strong {
+  stroke: var(--border-strong);
+  fill: none;
+  stroke-width: 1;
+}
+
+.plot-track {
+  stroke: var(--interactive-04);
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.plot-track-faint {
+  stroke: var(--interactive-04);
+  stroke-opacity: 0.35;
+  fill: none;
+  stroke-width: 1.25;
+  stroke-dasharray: 2 3;
+}
+
+.plot-footprint {
+  stroke: var(--interactive-04);
+  fill: var(--interactive-04);
+  fill-opacity: 0.05;
+  stroke-opacity: 0.45;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.plot-marker {
+  fill: var(--support-03);
+  stroke: var(--ui-background);
+  stroke-width: 1.5;
+}
+
+.plot-station {
+  fill: none;
+  stroke: var(--text-01);
+  stroke-width: 1.5;
+}
+
+/* ===========================================================================
+ * Colophon, Ft4.
+ *
+ * Dense and typographic: four columns covering what this is, what it is made of,
+ * what it refuses to do, and who the data belongs to. A three-link footer would
+ * have left the attribution as small print, and the attribution is a licence
+ * term rather than a courtesy.
+ * =========================================================================== */
+
+.colophon {
+  margin-top: var(--sp-12);
+  border-top: 1px solid var(--border-subtle);
+  padding: var(--sp-08) 0 var(--sp-09);
+}
+
+.colophon-grid {
+  display: grid;
+  gap: var(--sp-07) var(--sp-06);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (min-width: 40rem) {
+  .colophon-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 68rem) {
+  .colophon-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.colophon h2 {
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+  margin: 0 0 var(--sp-04);
+}
+
+.colophon p,
+.colophon li {
+  font-size: var(--type-caption);
+  line-height: 1.75;
+  color: var(--text-02);
+  margin: 0 0 var(--sp-03);
+}
+
+.colophon ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.colophon-rule {
+  margin: var(--sp-08) 0 0;
+  padding-top: var(--sp-05);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-03) var(--sp-06);
+  font-size: var(--type-caption);
+  color: var(--text-03);
+}
+
+.colophon-rule p {
+  margin: 0;
+}
+
+/* ===========================================================================
+ * Pass replay.
+ *
+ * The cursors are server-rendered inside the plots so they exist in the HTML, and
+ * they are invisible until the replay component sets data-replay on the document
+ * root. A reader with scripting off therefore never sees a cursor that cannot move,
+ * and the plots are exactly the static plots they were before.
+ *
+ * Every cursor is its own compositing layer, declared rather than inferred: will-change
+ * on three small nodes is cheap and it means the per-frame transform writes never ask
+ * the browser to repaint the plot underneath them.
+ * =========================================================================== */
+
+.replay-cursor,
+.replay-cursor-row {
+  visibility: hidden;
+}
+
+[data-replay="ready"] .replay-cursor,
+[data-replay="ready"] .replay-cursor-row {
+  visibility: visible;
+}
+
+.replay-cursor circle {
+  fill: none;
+  stroke: var(--text-04);
+  stroke-width: 1.5;
+  will-change: transform;
+}
+
+.replay-cursor .replay-cursor-core {
+  fill: var(--text-04);
+  stroke: none;
+}
+
+.replay-cursor-row line {
+  stroke: var(--text-04);
+  stroke-width: 1;
+  /* The frame is stretched to fit, so a 1-unit stroke in image rows would thin out
+     to nothing on a downscaled display. vector-effect keeps it one device-ish pixel
+     wherever the frame lands. */
+  vector-effect: non-scaling-stroke;
+  stroke-opacity: 0.85;
+  will-change: transform;
+}
+
+.replay {
+  margin-top: var(--sp-06);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--sp-05);
+}
+
+.replay-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-05);
+}
+
+.replay-play {
+  font: inherit;
+  font-size: var(--type-body);
+  color: var(--text-01);
+  background: var(--ui-01);
+  border: 1px solid var(--border-strong);
+  padding: var(--sp-03) var(--sp-05);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast-02) var(--ease-productive-standard);
+}
+
+.replay-play:hover {
+  background: var(--hover-ui);
+}
+
+.replay-play[aria-pressed="true"] {
+  border-color: var(--interactive-04);
+}
+
+.replay-scrub {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-04);
+  flex: 1 1 14rem;
+  min-width: 0;
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.replay-scrub input {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--interactive-04);
+}
+
+/* The readout. Fixed-width columns so a value changing from 3 digits to 4 does not
+   shift the labels beside it: a reflowing readout during playback is unreadable, and
+   it is also a layout on every frame. */
+.replay-readout {
+  display: grid;
+  gap: var(--sp-04) var(--sp-05);
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  margin: var(--sp-05) 0 0;
+}
+
+.replay-readout div {
+  display: grid;
+  gap: var(--sp-01);
+  min-width: 0;
+}
+
+.replay-readout dt {
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+
+.replay-readout dd {
+  margin: 0;
+  font-size: var(--type-heading-02);
+  color: var(--text-01);
+  font-variant-numeric: tabular-nums;
+  /* One line, always. A value that wraps moves every row below it. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.replay-note {
+  margin: var(--sp-05) 0 0;
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  line-height: 1.7;
+  max-width: 68ch;
+}
+
+/* The explainer video.
+   Sized by aspect-ratio rather than by a fixed height, so it cannot letterbox and
+   cannot cause a layout shift while the poster loads: the box is the right shape
+   before any bytes arrive. */
+.explainer {
+  margin: 0;
+  max-width: 60rem;
+}
+
+.explainer video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: var(--waterfall-ground);
+  border: 1px solid var(--border-subtle);
+}
+
+.explainer figcaption {
+  margin-top: var(--sp-05);
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  line-height: 1.75;
+  max-width: 72ch;
 }

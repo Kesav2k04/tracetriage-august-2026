@@ -80,7 +80,7 @@ export default function WaterfallViewer({
       <div
         style={{
           position: "relative",
-          background: "#000",
+          background: "var(--waterfall-ground)",
           border: "1px solid var(--border-subtle)",
           // Never wider than the measurement. One screen pixel is one measured
           // pixel on any display wide enough to hold it.
@@ -126,6 +126,34 @@ export default function WaterfallViewer({
           />
         </noscript>
 
+        {/* The replay cursor's row marker.
+            Inside its own SVG rather than a positioned div, and for a specific
+            reason: this overlay carries preserveAspectRatio="none" and a viewBox of
+            the image's own pixels, so one user unit is one image row at any display
+            size. A div translated by a pixel count would be correct only while the
+            frame happens to be displayed at exactly 1:1, and would drift off the row
+            it names on every narrower viewport.
+
+            It is a separate overlay from the corridor's because the corridor is
+            withheld on records with no frequency axis, and the pass clock still runs
+            on those. */}
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+          }}
+        >
+          <g id="waterfall-row-cursor" className="replay-cursor-row">
+            <line x1={0} x2={width} y1={0} y2={0} />
+          </g>
+        </svg>
+
         {corridor && showFitted && (
           <svg
             viewBox={`0 0 ${width} ${height}`}
@@ -147,7 +175,7 @@ export default function WaterfallViewer({
                   y1={0}
                   x2={corridor.vertical_px}
                   y2={height}
-                  stroke="#8d8d8d"
+                  stroke="var(--text-03)"
                   strokeWidth={1.5}
                   strokeDasharray="6 6"
                   vectorEffect="non-scaling-stroke"
@@ -156,7 +184,7 @@ export default function WaterfallViewer({
                 <path
                   d={pathFrom(corridor.rows, corridor.predicted_px)}
                   fill="none"
-                  stroke="#f1c21b"
+                  stroke="var(--support-03)"
                   strokeWidth={1.5}
                   strokeDasharray="4 5"
                   vectorEffect="non-scaling-stroke"
@@ -185,7 +213,7 @@ export default function WaterfallViewer({
             <path
               d={pathFrom(corridor.rows, corridor.fitted_px)}
               fill="none"
-              stroke="#4589ff"
+              stroke="var(--interactive-04)"
               strokeWidth={2}
               vectorEffect="non-scaling-stroke"
             />
@@ -204,11 +232,11 @@ export default function WaterfallViewer({
       >
         {corridor ? (
           <>
-            <span style={{ color: "#4589ff" }}>Solid blue</span> is the fitted
+            <span style={{ color: "var(--interactive-04)" }}>Solid blue</span> is the fitted
             corridor, the path the matched filter scored.{" "}
-            <span style={{ color: "#f1c21b" }}>Dashed yellow</span> is the same
+            <span style={{ color: "var(--support-03)" }}>Dashed yellow</span> is the same
             pass geometry at zero frequency offset.{" "}
-            <span style={{ color: "#8d8d8d" }}>Dashed grey</span> is the commanded
+            <span style={{ color: "var(--text-03)" }}>Dashed grey</span> is the commanded
             receive frequency, where a Doppler-corrected capture would sit. The
             gap between yellow and blue is the measurement.
           </>
