@@ -100,6 +100,37 @@ def _fit_row(fit: CorridorFit) -> dict[str, Any]:
     return fit.summary()
 
 
+def rate_lower_bound(successes: int, trials: int, alpha: float = 0.05) -> float | None:
+    """Exact one-sided Clopper-Pearson lower bound on a binomial rate.
+
+    A rate is not a measurement until it has an interval, and this gate was
+    comparing a point estimate against its threshold: 3 successes in 3 trials gives
+    a rate of 1.0, and 1.0 >= 0.70 is True, so the gate read PASSED. The same
+    comparison would have passed 1 of 1. This document already made that argument
+    once, when the earlier one-observation version of this gate was withdrawn with
+    the note that "a 70% rate cannot be measured on one observation in any case",
+    and then the three-observation version was accepted on the identical logic.
+
+    For k = n the bound has the closed form alpha ** (1 / n), which is 0.368 for
+    3 of 3 at 95 percent and 0.224 for 2 of 2. Both sit far below a 0.70 bar, so
+    the data are consistent with a true rate around half the threshold. The general
+    case uses the Beta quantile the closed form is a special case of, and the two
+    are cross-checked in tests/test_gate3_bound.py.
+
+    Gates 5 and 6 already publish NOT_ESTABLISHED when an interval fails to exclude
+    a threshold. This makes gate 3 read from the same register.
+    """
+    if trials <= 0 or successes < 0 or successes > trials:
+        return None
+    if successes == 0:
+        return 0.0
+    if successes == trials:
+        return float(alpha ** (1.0 / trials))
+    from scipy.stats import beta
+
+    return float(beta.ppf(alpha, successes, trials - successes + 1))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--snapshot", type=Path, default=Path("D:/tracetriage_data/snap-stage1"))
@@ -265,7 +296,11 @@ def main() -> int:
     scored = [r for r in testable if r["null_calibration"]["p_value"] is not None]
     discriminating = [r for r in scored if r["null_calibration"]["discriminates"]]
     hit_rate = len(discriminating) / len(scored) if scored else None
-    clears_threshold = hit_rate is not None and hit_rate >= args.gate_threshold
+    # The point estimate is reported, but the threshold is read off the lower bound.
+    # A rate of 1.0 on three trials does not establish a rate of 0.70.
+    rate_bound = rate_lower_bound(len(discriminating), len(scored))
+    clears_point = hit_rate is not None and hit_rate >= args.gate_threshold
+    clears_threshold = rate_bound is not None and rate_bound >= args.gate_threshold
 
     # Entity grouping. A rate over observations overstates the evidence when the
     # observations are not independent, and the plan requires bootstrapping "by
@@ -309,10 +344,16 @@ def main() -> int:
     # collapsing can never manufacture a pass.
     group_flags = [all(v) for v in by_group.values()]
     grouped_rate = sum(group_flags) / len(group_flags) if group_flags else None
-    grouped_clears = grouped_rate is not None and grouped_rate >= args.gate_threshold
+    grouped_bound = rate_lower_bound(sum(group_flags), len(group_flags))
+    grouped_clears_point = (
+        grouped_rate is not None and grouped_rate >= args.gate_threshold
+    )
+    grouped_clears = grouped_bound is not None and grouped_bound >= args.gate_threshold
 
     grouping["groups_scored"] = len(group_flags)
     grouping["grouped_discriminating_rate"] = grouped_rate
+    grouping["grouped_rate_lower_bound_95"] = grouped_bound
+    grouping["grouped_clears_point_estimate"] = grouped_clears_point
     grouping["grouped_clears_threshold"] = grouped_clears
     grouping["group_key"] = "(ground_station, UTC date)"
 
@@ -322,6 +363,12 @@ def main() -> int:
         verdict = "PASSED"
     elif clears_threshold and not grouped_clears:
         verdict = "PASSED_UNGROUPED_ONLY"
+    elif clears_point or grouped_clears_point:
+        # Every observation discriminated and the point estimate is above the bar,
+        # but the sample cannot resolve the bar. That is a different finding from a
+        # gate whose observations missed, and it is the finding gates 5 and 6 also
+        # report, so it gets their word rather than FAILED.
+        verdict = "NOT_ESTABLISHED"
     else:
         verdict = "FAILED"
 
@@ -336,6 +383,8 @@ def main() -> int:
         "observations_not_testable": len(not_testable),
         "observations_scored": len(scored),
         "discriminating_rate": hit_rate,
+        "rate_lower_bound_95": rate_bound,
+        "clears_point_estimate": clears_point,
         "clears_threshold": clears_threshold,
         "entity_grouping": grouping,
         "not_testable_note": (

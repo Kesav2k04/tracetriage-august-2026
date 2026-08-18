@@ -2090,3 +2090,119 @@ the pass running from set to rise while looking entirely normal.
 `prefers-reduced-motion: reduce` already suppressed playback. The overlay is suppressed
 too, rather than left as a line that grows with no way to stop it. Position is still
 available to those readers from the four cursors and the readout, which are static.
+
+---
+
+## C7f. A gate that could not fail, and a generator that could not run twice
+
+Two independent reviews of A, B and C were commissioned at the end of the wave, one
+from a flight-dynamics and observational-science standpoint and one from a staff
+engineering standpoint. They are committed as `docs/REVIEW_SPACE.md` (5 BLOCKING, 9
+SERIOUS, 11 MINOR) and `docs/REVIEW_ENGINEERING.md` (3 BLOCKING, 10 SERIOUS, 13 MINOR).
+This entry closes the third blocking finding of the space review and one defect found
+while closing it. The rest are the next wave's opening unit.
+
+### Gate 3 read PASSED because the comparison could not return False
+
+The gate asks whether the expected corridor intersects a visible target-like trace in
+at least 70 per cent of reviewed positives. It was answered with 3 successes in 3
+trials:
+
+```python
+clears_threshold = hit_rate >= args.gate_threshold   # 1.0 >= 0.70
+```
+
+That is a point estimate against a bar. The identical line passes 1 of 1. It is worth
+being precise about what was wrong, because the measurement underneath was not: each of
+the three observations beats 200 corridors built by permuting its own Doppler samples
+in time, none of the 200 reaches it, `p = 0.005`, and each beats all four scaled-swing
+controls that hold shape and smoothness fixed while varying only magnitude. The
+per-observation evidence is strong. The claim that failed was the cross-observation
+rate.
+
+`docs/KILL_GATE.md` had already made this argument against itself. Twenty-eight lines
+above the passing verdict, an earlier one-observation version of the gate was withdrawn
+with the note that a 70 per cent rate cannot be measured on one observation in any
+case. The three-observation version was then accepted on the same logic.
+
+The exact one-sided Clopper-Pearson lower bound for k = n has the closed form
+`alpha ** (1/n)`:
+
+| Successes of trials | 95% lower bound on the rate | Clears 0.70 |
+|---|---|---|
+| 1 of 1 | 0.0500 | no |
+| 2 of 2 | 0.2236 | no |
+| 3 of 3 | 0.3684 | no |
+| 9 of 9 | 0.7169 | yes |
+
+So the sample this gate needs at a perfect rate is 9 of 9, and it has 3. Over the two
+independent (ground station, UTC date) groups the bound is 0.2236, which is the
+grouping the plan requires and it is weaker still. The verdict is now
+NOT_ESTABLISHED, the same word gates 5 and 6 already use when an interval fails to
+exclude a threshold.
+
+`rate_lower_bound_95`, `clears_point_estimate` and their grouped counterparts are new
+fields in `artifacts/GATE3_RECEIPT.json`, so both numbers are on the record rather than
+only the one that reads better. Re-running `scripts/run_gate3.py` after the change
+reproduced every sigma to six decimal places: only the verdict and the new fields
+moved. `tests/test_gate3_bound.py` fails against the old comparison.
+
+### The console was publishing gate 3 from a literal
+
+`build_gate_summary` in `scripts/build_console_data.py` read gates 5 and 6 from their
+receipts and carried gate 3 as a typed dictionary entry with `"verdict": "PASSED"`. The
+receipt changed and the console did not, and the side-rail tally would have kept
+counting a met gate that no longer existed. Gate 3 now reads from
+`artifacts/GATE3_RECEIPT.json` like the other two, and an unknown verdict raises rather
+than being counted as unmet. The tally on every page is 2 of 6 met, down from 3.
+
+Gates 1, 2 and 4 are still literals, because none of them has a receipt: 1 and 2 were
+pre-measured with live probes before the snapshot existed, and 4 was never run. That is
+now stated in the code rather than left to look generated.
+
+### `scripts/sync_kill_gate.py` could not be run a second time
+
+Found by running it. C7 introduced it to stop `docs/KILL_GATE.md` drifting from the
+receipts, and the document says in its own text that the summary and the log entry
+"are now generated from the receipt by `scripts/sync_kill_gate.py`, so the next re-run
+cannot leave them behind". The Wave D prompt repeats that instruction to the next
+builder. The second run does this:
+
+```
+AssertionError: gate 5 summary row not found
+```
+
+It replaced one exact hardcoded old string per row and asserted the old string was
+present, so the first successful run destroyed its own anchors. It also appended its
+correction paragraph unconditionally, so a run that got past the assertion would have
+duplicated it. A one-shot fixup had been documented as a generator.
+
+The rewrite anchors on structure: the summary table is whatever sits between the
+`## Status summary` heading and the next horizontal rule, and each generated log entry
+runs from its own opening sentence to its closing receipt reference. It now also
+generates gate 3's row and gate 3's failure-log entry from `GATE3_RECEIPT.json`.
+`--check` writes nothing and exits 1 on drift, which is the form a gate can call.
+
+The strongest evidence that the generator is faithful: the first regenerated table was
+byte-identical to the hand-written table it replaced. The hand edit and the generator
+independently produced the same row.
+
+`tests/test_kill_gate_sync.py` asserts the document equals the render, asserts the
+render is idempotent, asserts each generated row against its receipt, asserts gate 6's
+87 has not been replaced by gate 5's 88 again, and mutates a published lift to prove the
+drift check can fail.
+
+### Cost
+
+| Quantity | Value |
+|---|---|
+| Findings closed | 1 BLOCKING from the space review, plus 1 found while closing it |
+| Files changed | 4 scripts and documents, 2 new test files |
+| Tests added | 15 |
+| Gate verdicts moved | 1 (gate 3, PASSED to NOT_ESTABLISHED) |
+| Gates met, before and after | 3 of 6, then 2 of 6 |
+| Measurements changed | none |
+
+The project is one gate weaker on paper than it was this morning and the evidence
+behind it is unchanged. That trade is the point of publishing a bound next to a point
+estimate.

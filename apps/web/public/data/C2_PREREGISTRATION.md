@@ -94,7 +94,7 @@ is reported as such rather than resolved by picking whichever queue scores bette
 
 The 0.1409 quoted in section 2 was measured over all 409 ranked observations of
 the chronological test partition, which is what motivated adopting the station
-grouping. The receipt reports the ICC over the 88 decisively-labelled observations
+grouping. The receipt reports the ICC over the 87 decisively-labelled observations
 instead, because those are the rows the conflict indicator exists for and the
 population the interval is drawn from. On that subset it is 0.0887 with a design
 effect of 1.132. Both are real; they are different populations, and the receipt's
@@ -106,8 +106,16 @@ chronological 0.0887, cold_station 0.0784, cold_transmitter 0.1347, cold_combine
 0.0909, with design effects from 1.132 to 1.552.
 
 The episode ICC on the same subsets is not measurable at all, and that is the
-finding that reshaped this unit: the 88 decisive observations of the chronological
-test partition fall into 87 pass episodes, mean size 1.000. There is no
+finding that reshaped this unit: the 87 decisive observations of the chronological
+test partition fall into 87 pass episodes, mean size 1.000.
+
+The count is 87 here and 88 in gate 5, and the difference is not a typo in either
+place. Gate 5 scores the whole test partition, which holds 410 observations of which
+88 are decisive. Gate 6 scores the queue, which deduplicates repeated observations of
+one pass episode before ranking: 410 becomes 407, and one of the three rows removed was
+a decisive one, so 88 becomes 87. The earlier wording gave gate 6 gate 5's count, which
+made this document state that 88 observations fall into 87 episodes at a mean group
+size of 1.000. That is arithmetically impossible, and it is the check that found it. There is no
 within-episode variance to partition, so the episode-grouped bootstrap published
 throughout Waves B and C was resampling singleton groups.
 

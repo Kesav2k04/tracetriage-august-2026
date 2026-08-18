@@ -35,9 +35,9 @@ export default function Colophon({
             <h2>What this is</h2>
             <p>
               A review-value queue for SatNOGS waterfalls, and the measurements
-              that decide whether it is worth a reviewer&rsquo;s time. Three of the
-              six gates it set itself were met; two came back inconclusive and one
-              was never run. All six are on the record.
+              that decide whether it is worth a reviewer&rsquo;s time. Two of the
+              six gates it set itself were met; three came back inconclusive and
+              one was never run. All six are on the record.
             </p>
           </section>
 

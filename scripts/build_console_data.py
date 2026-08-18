@@ -406,12 +406,6 @@ _DECIDED_IN_DOCS: list[dict[str, Any]] = [
         "decided_in": "docs/KILL_GATE.md",
     },
     {
-        "gate": 3,
-        "title": "Corridor intersects a visible trace",
-        "verdict": "PASSED",
-        "decided_in": "docs/KILL_GATE.md",
-    },
-    {
         "gate": 4,
         "title": "Blinded human decidability",
         "verdict": "OPEN",
@@ -421,6 +415,36 @@ _DECIDED_IN_DOCS: list[dict[str, Any]] = [
 
 _MET = frozenset({"PASSED", "PRE_PASSED"})
 _KNOWN_VERDICTS = _MET | {"NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE", "OPEN"}
+
+
+def _load_receipt_verdict(path: Path, *, gate: int, title: str) -> dict[str, Any]:
+    """One gate's verdict, read from its own receipt rather than typed here.
+
+    Gate 3's receipt carries a verdict of NOT_ESTABLISHED: every one of its three
+    testable observations discriminates, and three successes in three trials cannot
+    establish the 70 percent rate the gate asked for, because the exact one-sided
+    95 percent lower bound is 0.368. The point estimate and the bound are both
+    published so a reader can see that the per-observation evidence is strong and
+    the rate claim is what failed.
+    """
+    if not path.exists():
+        raise FileNotFoundError(
+            f"gate {gate} receipt missing at {path}. A gate with a receipt must not "
+            f"be published from a literal in this file."
+        )
+    receipt = json.loads(path.read_text(encoding="utf-8"))
+    verdict = _require(receipt, "verdict")
+    if verdict not in _KNOWN_VERDICTS:
+        raise ValueError(
+            f"gate {gate} carries verdict {verdict!r}, which the console does not "
+            f"know how to count. Known verdicts: {sorted(_KNOWN_VERDICTS)}."
+        )
+    return {
+        "gate": gate,
+        "title": title,
+        "verdict": verdict,
+        "decided_in": str(path.relative_to(_REPO)).replace("\\", "/"),
+    }
 
 
 def build_gate_summary(queue: dict[str, Any], fusion: dict[str, Any]) -> dict[str, Any]:
@@ -433,6 +457,21 @@ def build_gate_summary(queue: dict[str, Any], fusion: dict[str, Any]) -> dict[st
     console understate its own result without anyone noticing.
     """
     gates = list(_DECIDED_IN_DOCS)
+
+    # Gate 3 has a receipt and was still being published from a string typed into
+    # this file. That is the failure mode the whole project is built against: the
+    # console said PASSED because a literal here said PASSED, not because anything
+    # read the measurement. When gate 3's verdict changed to NOT_ESTABLISHED in the
+    # receipt, this file kept publishing PASSED and the gate tally kept counting it
+    # as met. Read from the receipt like gates 5 and 6, and insert it in order.
+    gate3 = _load_receipt_verdict(
+        _REPO / "artifacts/GATE3_RECEIPT.json",
+        gate=3,
+        title="Corridor intersects a visible trace",
+    )
+    gates.append(gate3)
+    gates.sort(key=lambda g: g["gate"])
+
     for number, receipt, key, title in (
         (5, fusion, "gate5", "Physics beats image-only on Brier"),
         (6, queue, "gate6", "Queue lift over random"),

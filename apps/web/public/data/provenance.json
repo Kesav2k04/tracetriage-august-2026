@@ -18,8 +18,8 @@
    {
     "gate": 3,
     "title": "Corridor intersects a visible trace",
-    "verdict": "PASSED",
-    "decided_in": "docs/KILL_GATE.md"
+    "verdict": "NOT_ESTABLISHED",
+    "decided_in": "artifacts/GATE3_RECEIPT.json"
    },
    {
     "gate": 4,
@@ -41,7 +41,7 @@
    }
   ],
   "n_gates": 6,
-  "n_met": 3,
+  "n_met": 2,
   "note": "Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run."
  },
  "splits": [
@@ -102,8 +102,8 @@
   },
   {
    "name": "GATE3_RECEIPT.json",
-   "sha256": "d628e199a4509deb48460b3f0d5270039b73386e2c6763b16a0f0917660ca2f2",
-   "bytes": 37318
+   "sha256": "77d65ed19d05740d31fe496e91ab849fdefe661f28a1555c9baa1c07713eda72",
+   "bytes": 37510
   },
   {
    "name": "LEAKAGE_AUDIT.json",

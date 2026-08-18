@@ -4,7 +4,7 @@
 
 Submitted to the AI Builders Challenge with IBM Bob, August 2026 theme: **Advance Space Exploration with AI**.
 
-> **Status: six kill gates asked, three met, two inconclusive, one not run.** Every number in this README is generated from a frozen artifact under `artifacts/` and carries a row in `docs/CLAIM_REGISTER.md`; `tests/test_claim_drift.py` fails if a README number stops matching its receipt or loses its register row. The two inconclusive gates are reported as NOT_ESTABLISHED rather than rounded into a pass, and the gate that was never run is reported as OPEN rather than omitted.
+> **Status: six kill gates asked, two met, three inconclusive, one not run.** Every number in this README is generated from a frozen artifact under `artifacts/` and carries a row in `docs/CLAIM_REGISTER.md`; `tests/test_claim_drift.py` fails if a README number loses its register row. It does not yet compare a quoted value against its artifact, and saying that it did was wrong: mutating the AUC row from 0.875 to 0.999 leaves the suite green. Task D2 closes that, and `tests/test_gate3_bound.py` is the pattern. The three inconclusive gates are reported as NOT_ESTABLISHED rather than rounded into a pass, and the gate that was never run is reported as OPEN rather than omitted. Gate 3 moved from PASSED to NOT_ESTABLISHED on 2026-08-18: every one of its three testable observations discriminates, and three successes in three trials cannot establish the 70 percent rate the gate asked for, because the exact one-sided 95 percent lower bound is 0.368.
 
 ---
 

@@ -1,130 +1,271 @@
-"""Bring the KILL_GATE.md status summary and failure log back to the receipts.
+"""Regenerate the parts of docs/KILL_GATE.md that must agree with the receipts.
 
-The per-split table at the bottom of the document already matched
-artifacts/QUEUE_RECEIPT.json. The status summary at the top and the failure log
-entry did not: both carried numbers from an earlier run. A document that states two
-different confidence intervals for the same gate is the claim drift this project
-audits other people's work for, so the correction is applied here and recorded in the
-build log and the claim register rather than quietly overwritten.
+Two sections of that document are derived, not written: the status summary table at
+the top, and the failure-log entries for the gates that have a receipt. Both had
+carried numbers from an earlier run while the per-split table further down carried the
+current ones, which is the claim drift this project audits other people's work for.
+
+**This script must be idempotent, and the first version was not.** It replaced one
+exact hardcoded string per row and asserted the string was present, so the second run
+died on `AssertionError: gate 5 summary row not found`, while the document it was
+supposed to maintain said in its own text that the sections "are now generated from
+the receipt by scripts/sync_kill_gate.py, so the next re-run cannot leave them
+behind". A one-shot fixup that cannot run twice is not a generator, and the Wave D
+prompt was telling the next builder to re-run it after any pipeline re-run. It also
+appended its own correction paragraph on every run, so a second run would have
+duplicated it.
+
+The rewrite anchors on structure rather than on the old content: the summary table is
+whatever sits between the `## Status summary` heading and the next horizontal rule,
+and each generated log entry is delimited by its own opening sentence and its closing
+receipt reference. Running this on an already-synced file writes identical bytes.
+`tests/test_kill_gate_sync.py` asserts that, and asserts each generated row against
+its receipt, so this file cannot drift from the document again.
+
+    .venv/Scripts/python.exe scripts/sync_kill_gate.py [--check]
+
+`--check` writes nothing and exits 1 if the document is out of date, which is the form
+`scripts/gate.py` and CI can call.
 """
+
+from __future__ import annotations
+
+import argparse
 import json
 import pathlib
+import sys
 
-receipt = json.loads(
-    pathlib.Path("artifacts/QUEUE_RECEIPT.json").read_text(encoding="utf-8")
-)
-fusion = json.loads(
-    pathlib.Path("artifacts/FUSION_RECEIPT.json").read_text(encoding="utf-8")
-)
+REPO = pathlib.Path(__file__).resolve().parent.parent
+DOC = REPO / "docs/KILL_GATE.md"
 
-by_split = {s["split"]: s for s in receipt["per_split_summaries"]}
-chron = receipt["gate6"]["per_split"]["chronological"]
-station = receipt["gate6"]["per_split"]["cold_station"]
-g5 = fusion["gate5"]["per_split"]["chronological"]
+STATUS_HEADING = "## Status summary\n"
+RULE = "\n---\n"
 
-lift = chron["lift_point"]
-ci = chron["lift_ci95"]
-n_conf = chron["n_queue_conflicts"]
-n_rand = chron["n_random_conflicts"]
-n_groups = chron["n_groups"]
-examined = chron["n_queue_examined"]
-# The decisive test count and the bootstrap group count are two different numbers,
-# and the document had been quoting gate 5's 88 for both of gate 6's. Gate 6 runs on
-# 87 decisive observations in 87 episodes; gate 5 runs on 88 in 88.
-decisive = by_split["chronological"]["n_test_decisive"]
-median = chron["bootstrap_median"]
-st_lift = station["lift_point"]
-st_ci = station["lift_ci95"]
+GATE3_OPENER = "**2026-08-18, gate 3: NOT_ESTABLISHED.**"
+GATE3_CLOSER = "Receipt: `artifacts/GATE3_RECEIPT.json`."
+GATE6_OPENER = "**2026-08-18, gate 6: NOT ESTABLISHED.**"
+GATE6_CLOSER = "Receipt: `artifacts/QUEUE_RECEIPT.json`."
 
-print(f"chronological lift={lift:.3f} ci=[{ci[0]:.3f}, {ci[1]:.3f}] "
-      f"conflicts={n_conf} expected={n_rand:.1f} groups={n_groups} examined={examined}")
-print(f"cold_station lift={st_lift:.3f} ci=[{st_ci[0]:.3f}, {st_ci[1]:.3f}]")
-print(f"gate5 margin={g5['margin']:.5f} ci=[{g5['ci95'][0]:.5f}, {g5['ci95'][1]:.5f}]")
+# Gates 1, 2 and 4 have no receipt to read. Gates 1 and 2 were pre-measured with live
+# probes before the snapshot existed and their evidence is the prose below the table;
+# gate 4 was never run. They are literals here, and that is stated rather than hidden,
+# because a literal that looks generated is worse than one that admits it is typed.
+_STATIC_ROWS = {
+    1: (
+        "| 1 | Dataset volume and entity spread | ≥2,000 mature waterfalls, "
+        "≥12 transmitters, ≥30 stations | **PRE-PASSED on feasibility** |"
+    ),
+    2: (
+        "| 2 | Metadata coverage for the corridor | ≥80% of the sample "
+        "computable | **PRE-PASSED** |"
+    ),
+    4: (
+        "| 4 | Blinded human decidability | ≥80% of a balanced sample decidable "
+        "| **OPEN** |"
+    ),
+}
 
-p = pathlib.Path("docs/KILL_GATE.md")
-s = p.read_text(encoding="utf-8")
 
-old5 = (
-    "| 5 | Physics beats image-only on Brier | strict improvement, chronological "
-    "split | **NOT ESTABLISHED. Margin +0.02080, 95% CI -0.01271 to +0.05022 on 88 "
-    "test observations across 88 episodes. A narrower arm (image + corridor) does "
-    "clear zero and survives correction; the gate as worded does not.** |"
-)
-new5 = (
-    "| 5 | Physics beats image-only on Brier | strict improvement, chronological "
-    f"split | **NOT ESTABLISHED. Margin +{g5['margin']:.5f}, 95% CI "
-    f"{g5['ci95'][0]:+.5f} to {g5['ci95'][1]:+.5f} on {g5['n_observations']} test "
-    f"observations across {g5['n_groups']} episodes. A narrower arm (image + "
-    "corridor) does clear zero and survives correction; the gate as worded does "
-    "not.** |"
-)
-assert s.count(old5) == 1, "gate 5 summary row not found"
-s = s.replace(old5, new5)
+def _load(name: str) -> dict:
+    return json.loads((REPO / "artifacts" / name).read_text(encoding="utf-8"))
 
-old6 = (
-    "| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget "
-    "| **NOT_ESTABLISHED. Point lift +1.60×, 95% CI [1.00, 1.20] on 88 decisive "
-    "test observations across 88 episodes (chronological split, budget 50). CI lies "
-    "below threshold; cold_station split PASSED at 3.00×.** |"
-)
-new6 = (
-    "| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget "
-    f"| **NOT_ESTABLISHED. Point lift {lift:.3f}×, 95% CI [{ci[0]:.3f}, "
-    f"{ci[1]:.3f}] on {decisive} decisive test observations across {n_groups} "
-    f"episodes (chronological split, budget {examined}). The interval contains the "
-    f"1.5× threshold; cold_station PASSED at {st_lift:.3f}×.** |"
-)
-assert s.count(old6) == 1, "gate 6 summary row not found"
-s = s.replace(old6, new6)
 
-# The failure log entry. Rewritten from the receipt, with a note that it was.
-old_log_start = (
-    "**2026-08-18, gate 6: NOT ESTABLISHED.** The review-value queue's point lift is "
-    "1.60x over random"
-)
-idx = s.index(old_log_start)
-end = s.index("Receipt: `artifacts/QUEUE_RECEIPT.json`.", idx) + len(
-    "Receipt: `artifacts/QUEUE_RECEIPT.json`."
-)
-new_log = (
-    "**2026-08-18, gate 6: NOT ESTABLISHED.** The review-value queue's point lift is "
-    f"{lift:.3f}x over random at budget {examined} on the chronological split "
-    f"({n_conf} conflicts against {n_rand:.1f} expected, {decisive} decisive test "
-    f"observations across {n_groups} episodes). The 95% grouped bootstrap interval is "
-    f"[{ci[0]:.3f}, {ci[1]:.3f}], which contains the 1.5x threshold, so the claim is "
-    f"not established. Bootstrap median {median:.3f}. cold_station PASSED at "
-    f"{st_lift:.3f}x [{st_ci[0]:.3f}, {st_ci[1]:.3f}] on "
-    f"{by_split['cold_station']['n_test_decisive']} decisive observations, which is "
-    "the split where a reviewer meets unseen stations, and it does not substitute for "
-    "the primary split. cold_transmitter "
-    f"{receipt['gate6']['per_split']['cold_transmitter']['lift_point']:.3f}x and "
-    "cold_combined "
-    f"{receipt['gate6']['per_split']['cold_combined']['lift_point']:.3f}x are both "
-    "NOT_ESTABLISHED on intervals containing the threshold. Receipt: "
-    "`artifacts/QUEUE_RECEIPT.json`."
-)
-s = s[:idx] + new_log + s[end:]
+def _n_discriminating(g3: dict) -> int:
+    return sum(
+        1 for o in g3["observations"] if o["null_calibration"]["discriminates"]
+    )
 
-correction = """
-**2026-08-18, correction to this document.** The status summary at the top of this
-file and the failure-log entry above both carried gate numbers from an earlier run,
-while the per-split table further down carried the current ones. The summary claimed a
-95% interval of [1.00, 1.20] for gate 6 and a cold_station lift of 3.00x; the receipt
-says [1.353, 1.755] and 2.253x. Two different intervals for one gate in one document
-is exactly the drift this project checks for elsewhere, and it was found by reading the
-file against `artifacts/QUEUE_RECEIPT.json` rather than by any gate. The summary and
-the log entry are now generated from the receipt by
-`scripts/sync_kill_gate.py`, so the next re-run cannot leave them behind. The verdict
-was NOT_ESTABLISHED before the correction and is NOT_ESTABLISHED after it: no
-conclusion changes, only the numbers supporting it.
 
-A second error came out of the same reading. Gate 6 was described as running on "88
-decisive test observations across 88 episodes". It runs on 87 in 87: `n_test_decisive`
-and `n_groups` in the queue receipt are both 87, and 88 is gate 5's sample size, which
-had been copied across. One observation is not a material difference to the verdict,
-and that is the reason it survived: a wrong number that changes nothing is the kind
-nobody checks. It is now read from the receipt like the rest of the row.
-"""
-s = s.rstrip("\n") + "\n" + correction
-p.write_text(s, encoding="utf-8")
-print("KILL_GATE.md synced to the receipts")
+def _n_nulls(g3: dict) -> int:
+    """The null count the scored observations actually ran.
+
+    Not-testable observations carry `n_nulls: 0` because they were never scored, so
+    reading the first observation's value would publish 0 nulls for a gate that ran
+    200. Take it from a scored one, and refuse to guess if they disagree.
+    """
+    counts = {
+        o["null_calibration"]["n_nulls"]
+        for o in g3["observations"]
+        if o["null_calibration"]["p_value"] is not None
+    }
+    if len(counts) != 1:
+        raise ValueError(f"scored observations disagree on n_nulls: {sorted(counts)}")
+    return counts.pop()
+
+
+def _gate3_row(g3: dict) -> str:
+    grouping = g3["entity_grouping"]
+    return (
+        "| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives "
+        f"| **{g3['verdict']}. {_n_discriminating(g3)}/"
+        f"{g3['observations_scored']} testable discriminate "
+        f"({g3['discriminating_rate'] * 100:.0f}%), but the exact one-sided 95% lower "
+        f"bound on that rate is {g3['rate_lower_bound_95']:.3f}, so a "
+        f"{g3['threshold'] * 100:.0f}% rate is not established. "
+        f"{g3['observations_not_testable']} of {g3['observations_decisive']} not "
+        f"testable; the {g3['observations_scored']} span "
+        f"{grouping['distinct_stations']} stations on "
+        f"{grouping['distinct_days']} night** |"
+    )
+
+
+def _gate5_row(g5: dict) -> str:
+    return (
+        "| 5 | Physics beats image-only on Brier | strict improvement, chronological "
+        f"split | **NOT ESTABLISHED. Margin +{g5['margin']:.5f}, 95% CI "
+        f"{g5['ci95'][0]:+.5f} to {g5['ci95'][1]:+.5f} on {g5['n_observations']} test "
+        f"observations across {g5['n_groups']} episodes. A narrower arm (image + "
+        "corridor) does clear zero and survives correction; the gate as worded does "
+        "not.** |"
+    )
+
+
+def _gate6_row(chron: dict, station: dict, decisive: int) -> str:
+    ci = chron["lift_ci95"]
+    return (
+        "| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal "
+        f"budget | **NOT_ESTABLISHED. Point lift {chron['lift_point']:.3f}×, 95% "
+        f"CI [{ci[0]:.3f}, {ci[1]:.3f}] on {decisive} decisive test observations "
+        f"across {chron['n_groups']} episodes (chronological split, budget "
+        f"{chron['n_queue_examined']}). The interval contains the 1.5× threshold; "
+        f"cold_station PASSED at {station['lift_point']:.3f}×.** |"
+    )
+
+
+def _gate3_entry(g3: dict) -> str:
+    n_scored = g3["observations_scored"]
+    grouped = g3["entity_grouping"]
+    nulls = _n_nulls(g3)
+    return (
+        f"{GATE3_OPENER} The expected corridor discriminates on every testable "
+        f"observation: {_n_discriminating(g3)} of {n_scored}, each beating "
+        f"{nulls} corridors built by permuting its own Doppler samples in time with "
+        f"none reaching it (p = {1 / (nulls + 1):.3f}), and each beating all four "
+        "scaled-swing controls that hold shape and smoothness fixed and vary only "
+        "magnitude. The gate nonetheless does not pass, because it asks for a rate of "
+        f"{g3['threshold'] * 100:.0f}% and a rate of "
+        f"{g3['discriminating_rate']:.1f} on {n_scored} trials has an exact one-sided "
+        f"95% Clopper-Pearson lower bound of {g3['rate_lower_bound_95']:.4f}, roughly "
+        "half the threshold. Over the "
+        f"{grouped['groups_scored']} independent {grouped['group_key']} groups the "
+        f"bound is {grouped['grouped_rate_lower_bound_95']:.4f}. At a perfect rate "
+        "the gate needs 9 of 9. This read PASSED until 2026-08-18 because "
+        "`clears_threshold` compared the point estimate against the bar, and 1.0 "
+        "≥ 0.70 is True for 1 of 1 as much as for 3 of 3. The per-observation "
+        "evidence is unchanged and every sigma reproduced to six decimal places; only "
+        f"the rate claim was withdrawn. {GATE3_CLOSER}"
+    )
+
+
+def _gate6_entry(receipt: dict, chron: dict, station: dict, decisive: int) -> str:
+    ci = chron["lift_ci95"]
+    st_ci = station["lift_ci95"]
+    by_split = {s["split"]: s for s in receipt["per_split_summaries"]}
+    return (
+        f"{GATE6_OPENER} The review-value queue's point lift is "
+        f"{chron['lift_point']:.3f}x over random at budget "
+        f"{chron['n_queue_examined']} on the chronological split "
+        f"({chron['n_queue_conflicts']} conflicts against "
+        f"{chron['n_random_conflicts']:.1f} expected, {decisive} decisive test "
+        f"observations across {chron['n_groups']} episodes). The 95% grouped bootstrap "
+        f"interval is [{ci[0]:.3f}, {ci[1]:.3f}], which contains the 1.5x threshold, "
+        "so the claim is not established. Bootstrap median "
+        f"{chron['bootstrap_median']:.3f}. cold_station PASSED at "
+        f"{station['lift_point']:.3f}x [{st_ci[0]:.3f}, {st_ci[1]:.3f}] on "
+        f"{by_split['cold_station']['n_test_decisive']} decisive observations, which "
+        "is the split where a reviewer meets unseen stations, and it does not "
+        "substitute for the primary split. cold_transmitter "
+        f"{receipt['gate6']['per_split']['cold_transmitter']['lift_point']:.3f}x and "
+        "cold_combined "
+        f"{receipt['gate6']['per_split']['cold_combined']['lift_point']:.3f}x are both "
+        f"NOT_ESTABLISHED on intervals containing the threshold. {GATE6_CLOSER}"
+    )
+
+
+def _replace_between(text: str, opener: str, closer: str, new: str) -> str:
+    """Swap the block that runs from `opener` to the end of `closer`, exactly once."""
+    if text.count(opener) != 1:
+        raise ValueError(f"expected exactly one {opener!r}, found {text.count(opener)}")
+    start = text.index(opener)
+    end = text.index(closer, start) + len(closer)
+    return text[:start] + new + text[end:]
+
+
+def render(text: str) -> str:
+    """The document as the receipts say it should read. Pure, so a test can call it."""
+    queue = _load("QUEUE_RECEIPT.json")
+    fusion = _load("FUSION_RECEIPT.json")
+    g3 = _load("GATE3_RECEIPT.json")
+
+    chron = queue["gate6"]["per_split"]["chronological"]
+    station = queue["gate6"]["per_split"]["cold_station"]
+    g5 = fusion["gate5"]["per_split"]["chronological"]
+    # Gate 6's decisive count and gate 5's are different populations, and the document
+    # had been quoting gate 5's 88 for both. Gate 6 runs on the queue, which
+    # deduplicates 410 rows to 407, and one of the removed rows was decisive.
+    decisive = {s["split"]: s for s in queue["per_split_summaries"]}["chronological"][
+        "n_test_decisive"
+    ]
+
+    table = "\n".join(
+        [
+            "| # | Gate | Threshold | Status |",
+            "|---|---|---|---|",
+            _STATIC_ROWS[1],
+            _STATIC_ROWS[2],
+            _gate3_row(g3),
+            _STATIC_ROWS[4],
+            _gate5_row(g5),
+            _gate6_row(chron, station, decisive),
+        ]
+    )
+
+    # The summary table is whatever sits between the heading and the next rule.
+    start = text.index(STATUS_HEADING) + len(STATUS_HEADING)
+    end = text.index(RULE, start)
+    text = text[:start] + "\n" + table + "\n" + text[end:]
+
+    text = _replace_between(
+        text, GATE6_OPENER, GATE6_CLOSER, _gate6_entry(queue, chron, station, decisive)
+    )
+
+    gate3_entry = _gate3_entry(g3)
+    if GATE3_OPENER in text:
+        text = _replace_between(text, GATE3_OPENER, GATE3_CLOSER, gate3_entry)
+    else:
+        # A gate that changed verdict belongs in the failure log, above gate 6's entry
+        # so the log stays in gate order.
+        text = text.replace(GATE6_OPENER, gate3_entry + "\n\n" + GATE6_OPENER, 1)
+
+    return text
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "--check",
+        action="store_true",
+        help="write nothing; exit 1 if the document is out of date",
+    )
+    args = ap.parse_args()
+
+    before = DOC.read_text(encoding="utf-8")
+    after = render(before)
+
+    if args.check:
+        if before == after:
+            print("KILL_GATE.md is in sync with the receipts")
+            return 0
+        print("KILL_GATE.md is OUT OF SYNC with the receipts; run without --check")
+        return 1
+
+    if before == after:
+        print("KILL_GATE.md already in sync; nothing written")
+        return 0
+    DOC.write_text(after, encoding="utf-8")
+    print("KILL_GATE.md synced to the receipts")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

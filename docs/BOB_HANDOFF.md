@@ -8,14 +8,42 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-17, IST |
-| **Units completed** | **A0** (`8ef8d1f`), **A1** (`be915b5`), **A2** (`f64deec`), **A3** (`c7ca696`), **A4** (`0f21ce7`), **A5** (`68bac8c`), **A6** (see build log), **A7** (this session) |
-| **Account in use** | account 3 |
-| **Current wave** | Wave A, complete |
-| **Next unit** | **B1: cold-entity splits + physics-conditioned model** |
-| **Open failures** | none. Gates 1–3 passed. Gates 4–6 open. 221+ tests pass offline. |
+| **Handoff written** | 2026-08-18, IST |
+| **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7f) |
+| **Current wave** | Wave C, closed |
+| **Next unit** | **D0: act on the two expert reviews**, per `docs/WAVE_D_PROMPT.md` |
+| **Open failures** | none in the suite. 760 offline tests collected, 759 pass, 1 declared expected failure that D2 implements. Lint clean. `scripts/gate.py` green on all standing gates. |
+| **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 OPEN. |
+| **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
 | **Last commit** | see `git log -1` |
+
+### Read this before D0
+
+Two independent reviews of A, B and C are committed as `docs/REVIEW_SPACE.md`
+(5 BLOCKING, 9 SERIOUS, 11 MINOR) and `docs/REVIEW_ENGINEERING.md` (3 BLOCKING, 10
+SERIOUS, 13 MINOR). One blocking finding is closed, and it is the pattern for the rest:
+reproduce it, fix it, add a test that fails without the fix, record it in the build log
+and the claim register. See the C7f entry.
+
+**Gate 3 moved from PASSED to NOT_ESTABLISHED on 2026-08-18.** Its three testable
+observations all discriminate, and 3 of 3 cannot establish a 70% rate: the exact
+one-sided 95% Clopper-Pearson lower bound is 0.3684, and 9 of 9 would be needed. The
+per-observation measurements did not change and every sigma reproduced to six decimal
+places. Do not reinstate the point-estimate comparison; `tests/test_gate3_bound.py`
+fails against it.
+
+**Two documents are generated and must not be hand-edited.** `docs/KILL_GATE.md`
+(status summary and failure log) by `scripts/sync_kill_gate.py`, and `README.md`
+(results tables) by `scripts/sync_readme_results.py`. Run the first with `--check` to
+detect drift without writing. It is idempotent as of C7f; the earlier version could
+only run once, which is recorded in the KILL_GATE failure log.
+
+**Three gate verdicts on the console come from their receipts** (3, 5 and 6) and three
+are literals in `scripts/build_console_data.py` (1, 2 and 4) because they have no
+receipt. An unknown verdict raises rather than being silently counted as unmet.
+
+---
 
 ### The stage-1 dataset exists. Read this before A6.
 
