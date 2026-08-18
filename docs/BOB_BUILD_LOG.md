@@ -2700,3 +2700,96 @@ The `n_sgp4_errors` and `n_samples_propagated` columns in `cards.json` come from
 .venv\Scripts\python.exe -m ruff check .              # All checks passed
 .venv\Scripts\python.exe scripts\gate.py              # 7/8 (uncommitted; expected)
 ```
+
+---
+
+## 2026-08-19 IST | Wave D | D1: the gate-3 criterion left out the number that separates the physics from its own sign error
+
+**Task given:** close SPACE-B4 and SPACE-B5, the two remaining BLOCKING findings that touch
+gate 3.
+
+**Verification of E1 first.** `scripts/gate.py` returns 8/8 exit 0 on `c7e4ebc`. The E1 report
+claimed no artifact rebuild was required; that claim is correct, and now it is measured rather
+than argued. Over all 2,750 snapshot records: **0 records have an unparseable TLE epoch as
+stored, and 0 records produce any non-zero SGP4 error code.** The degrade census is 2,713
+clean and 37 `STALE_TLE`, unchanged from before E1. Both new codes are guards against faults
+this corpus does not contain, which is worth writing down: `SGP4_MAX_MISSING_FRACTION = 0.5`
+is exercised only by the tests that patch it, the same shape as the SERIOUS finding about
+`TLE_MAX_EPOCH_AGE_DAYS` never being exercised. The tests do patch both branches, so the
+constant is not unexercised in the way that finding describes.
+
+**SPACE-B4. The criterion was the p-value; the p-value cannot tell truth from an inversion.**
+`discriminates` was `p_value <= 0.05` and `beats_scaled is not False` and not at bound.
+`margin_over_best_null` was computed, published in the KILL_GATE table, and never consulted.
+Fix: the margin is now expressed in standard deviations of the observation's own null sigma
+distribution and is part of the criterion, with a floor of **5.0 null standard deviations**
+fixed before rescoring and recorded in `THRESHOLD_RATIONALE`. Null standard deviations rather
+than raw sigma for two reasons: the bar cannot then be cleared by rescaling, and the scale
+comes from the wrong corridors rather than from the right ones. Five is the conventional
+discovery floor, not a number chosen to fit these three observations.
+
+**SPACE-B5. The reversal control was dropped on an argument that inverted its own premise.**
+The premise is right: a Doppler curve is near odd-symmetric about closest approach. That is
+exactly why `D(1-f) = -D(f)`, so time reversal **is** the sign flip. The pair cancels, which is
+why no visual check finds them, and each one alone is maximally wrong. Fix: `reverse_corridor`
+is restored as a scored control, `beats_reversed` is required to be True in the criterion, and
+`odd_symmetry_residual_frac` is measured per observation and carried in the receipt so the
+premise is data rather than a comment. The paragraph is corrected in both
+`corridor_fit.py` and `docs/KILL_GATE.md`.
+
+**Measured, on the real waterfalls, under identical rules:**
+
+| obs | variant | sigma | margin (null sd) | p | beats reversal | discriminates |
+|---|---|---|---|---|---|---|
+| 14740031 | true | 2.024 | +188.8 | 0.005 | yes | yes |
+| 14740031 | inverted | 0.590 | +2.9 | 0.005 | no | no |
+| 14740031 | reversed | 0.585 | +3.1 | 0.005 | no | no |
+| 14745664 | true | 1.539 | +148.6 | 0.005 | yes | yes |
+| 14745664 | inverted | 0.398 | -1.4 | 0.050 | no | no |
+| 14745664 | reversed | 0.397 | -2.0 | 0.070 | no | no |
+| 14745929 | true | 1.652 | +161.8 | 0.005 | yes | yes |
+| 14745929 | inverted | 0.411 | +1.3 | 0.005 | no | no |
+| 14745929 | reversed | 0.413 | +0.9 | 0.005 | no | no |
+
+Two of the six wrong-sign variants clear the p-value at exactly the published 0.005, which is
+the finding restated as a measurement. The 5.0 floor sits 48 times above the worst wrong
+variant and 30 times below the weakest true one, so it is not a knife edge. Odd-symmetry
+residuals are 0.11, 1.35 and 1.59 percent of swing, reproducing the reviewer's numbers
+independently.
+
+**The verdict does not move.** Gate 3 stays NOT_ESTABLISHED with a per-observation rate of
+1.000 and a Clopper-Pearson lower bound of 0.3684 against a 0.70 threshold. The stricter
+criterion strengthens the per-observation evidence without touching the rate claim, which is
+the outcome the finding predicted.
+
+**What changed:**
+- `pipeline/tracetriage/corridor_fit.py`: corrected module docstring paragraph;
+  `margin_null_sd_min = 5.0` with its rationale; `reverse_corridor`;
+  `odd_symmetry_residual_frac`; five new `NullCalibration` fields, all reported in
+  `summary()`; the reversal scored inside `calibrate_against_nulls`; `discriminates` extended.
+  The two new criteria are required to be measured and clear rather than "not False", because
+  a criterion that cannot be evaluated cannot contribute evidence.
+- `artifacts/GATE3_RECEIPT.json` and `artifacts/HERO_NULLS.json` rescored.
+- `docs/KILL_GATE.md`: the false paragraph replaced, the table now leads with the margin in
+  null standard deviations, the wrong-sign variants published as their own table, and the
+  p-value described as a necessary and very weak condition.
+- `apps/web/public/data/`: KILL_GATE.md copy, hero_nulls.json and the provenance digests.
+
+**Tests added: 11**, in `tests/test_corridor_fit.py`. Two classes. The true corridor clears the
+floor; an inverted corridor does not discriminate and fails `beats_reversed`; a reversed
+corridor does not discriminate; the true corridor beats its own reversal; raising only the
+margin floor turns the gate to False while the p-value stays at its floor, which isolates the
+new criterion; one null gives no spread, so the margin is None and that is not a pass;
+reversal of an odd curve equals the sign flip; the residual is near zero for an odd curve,
+above 0.9 for a ramp, and None with no swing; reversal preserves the value distribution.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\run_gate3.py
+.venv\Scripts\python.exe scripts\export_hero_nulls.py
+.venv\Scripts\python.exe scripts\sync_kill_gate.py --check
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```

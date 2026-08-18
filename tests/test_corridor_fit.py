@@ -12,6 +12,7 @@ needed.
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -25,7 +26,9 @@ from pipeline.tracetriage.corridor_fit import (
     fit_offset,
     flatten_corridor,
     measure_residuals,
+    odd_symmetry_residual_frac,
     px_to_offset_hz,
+    reverse_corridor,
     scale_corridor,
     scramble_corridor,
 )
@@ -437,6 +440,7 @@ def test_thresholds_are_the_documented_values():
     assert t.offset_ppm_limit == 50.0
     assert t.n_nulls == 200
     assert t.p_value_max == 0.05
+    assert t.margin_null_sd_min == 5.0
     assert t.seed == 42
     assert t.swing_scale_factors == (0.25, 0.5, 2.0, 4.0)
     assert t.min_swing_hz == 3_000.0
@@ -514,3 +518,128 @@ class TestMadFloor:
         assert stats["n_rows"] == h - 8
         assert stats["flat_row_frac"] == pytest.approx(3 / (h - 8))
         assert stats["min_row_mad"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# SPACE-B4 and SPACE-B5: the criteria that separate the physics from its own
+# sign errors, and which were computed and then left out of the decision.
+# ---------------------------------------------------------------------------
+
+
+class TestWrongSignCorridorsDoNotDiscriminate:
+    """A corridor with the frequency axis inverted must not pass gate 3.
+
+    It used to clear the published criterion. The permutation null is weak, so
+    scrambled paths collapse into noise around sigma 0.4 to 0.6 and anything smooth
+    beats them: measured on the real waterfalls, the inverted corridor reached
+    0 of 200 and p = 0.005 on two of the three shipped observations. What separates
+    truth from the inversion is the margin over the best null, which was reported and
+    not used, and the reversal control, which had been dropped on a false premise.
+    """
+
+    def _cal(self, corridor, painted, thresholds=DEFAULT_THRESHOLDS):
+        return calibrate_against_nulls(
+            painted, corridor, HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ, thresholds
+        )
+
+    def test_the_true_corridor_clears_the_margin_floor_by_a_wide_margin(self):
+        c = s_curve()
+        cal = self._cal(c, paint(c))
+        assert cal.discriminates is True
+        assert cal.null_sigma_sd is not None and cal.null_sigma_sd > 0.0
+        assert cal.margin_in_null_sd is not None
+        assert cal.margin_in_null_sd >= DEFAULT_THRESHOLDS.margin_null_sd_min, (
+            f"true corridor margin is {cal.margin_in_null_sd:.1f} null sd, under the "
+            f"{DEFAULT_THRESHOLDS.margin_null_sd_min} floor"
+        )
+
+    def test_an_inverted_corridor_does_not_discriminate(self):
+        """On the real data this variant reached p = 0.005 and 0 of 200 nulls."""
+        c = s_curve()
+        painted = paint(c)
+        d = [-v for v in c.doppler_hz]
+        cal = self._cal(replace(c, doppler_hz=d), painted)
+        assert cal.discriminates is False
+        assert cal.beats_reversed is False, (
+            "the reversal of an inverted corridor is the truth, which outscores it"
+        )
+
+    def test_a_time_reversed_corridor_does_not_discriminate(self):
+        c = s_curve()
+        cal = self._cal(reverse_corridor(c), paint(c))
+        assert cal.discriminates is False
+        assert cal.beats_reversed is False
+
+    def test_the_true_corridor_beats_its_own_reversal(self):
+        c = s_curve()
+        cal = self._cal(c, paint(c))
+        assert cal.beats_reversed is True
+        assert cal.reversed_sigma is not None
+        assert cal.true_sigma > cal.reversed_sigma
+
+    def test_a_significant_p_value_alone_no_longer_passes_the_gate(self):
+        """Isolate the margin criterion: raise the floor and nothing else.
+
+        The p-value stays at its 1/201 floor while the gate goes to False, which is
+        the whole point of the finding. A criterion that never changes the outcome is
+        not a criterion.
+        """
+        c = s_curve()
+        painted = paint(c)
+        strict = replace(DEFAULT_THRESHOLDS, margin_null_sd_min=1e9)
+        cal = self._cal(c, painted, strict)
+        assert cal.p_value <= DEFAULT_THRESHOLDS.p_value_max
+        assert cal.discriminates is False
+
+    def test_an_unmeasurable_margin_is_not_a_pass(self):
+        """One null gives no spread, so the margin has no scale to be measured in.
+
+        Unmeasurable is not a pass. The field reports None rather than a number that
+        would read as a measurement.
+        """
+        c = s_curve()
+        thin = replace(DEFAULT_THRESHOLDS, n_nulls=1)
+        cal = self._cal(c, paint(c), thin)
+        assert cal.null_sigma_sd is None
+        assert cal.margin_in_null_sd is None
+        assert cal.discriminates is False
+
+
+class TestOddSymmetryPremise:
+    """The reversal control is the sign flip only to the extent the curve is odd.
+
+    That premise was stated in a comment and used to justify dropping the control.
+    It is now measured per observation and published in the receipt. On the three
+    shipped observations the residual is 0.11, 1.35 and 1.59 percent of swing.
+    """
+
+    def test_reversal_of_an_odd_symmetric_curve_equals_the_sign_flip(self):
+        c = s_curve()
+        rev = reverse_corridor(c)
+        flipped = [-v for v in c.doppler_hz]
+        assert np.allclose(rev.doppler_hz, flipped, atol=1e-9), (
+            "for a curve odd about closest approach, D(1-f) = -D(f), so reversing "
+            "time and flipping the sign are the same operation"
+        )
+
+    def test_residual_is_near_zero_for_an_odd_curve(self):
+        assert odd_symmetry_residual_frac(s_curve()) < 1e-9
+
+    def test_residual_is_large_for_a_curve_that_is_not_odd(self):
+        c = s_curve()
+        # A monotone ramp is even less odd-symmetric than a real pass: D(f) + D(1-f)
+        # is constant and equal to the swing itself.
+        ramp = [8_000.0 * f for f in c.fracs]
+        resid = odd_symmetry_residual_frac(replace(c, doppler_hz=ramp))
+        assert resid is not None and resid > 0.9
+
+    def test_residual_is_none_when_there_is_no_swing(self):
+        """Undefined rather than zero: a flat corridor has no swing to divide by."""
+        assert odd_symmetry_residual_frac(flatten_corridor(s_curve())) is None
+
+    def test_reversal_preserves_the_value_distribution_exactly(self):
+        c = s_curve()
+        rev = reverse_corridor(c)
+        assert sorted(rev.doppler_hz) == sorted(c.doppler_hz)
+        assert rev.fracs == c.fracs
+        assert rev.half_width_hz == c.half_width_hz

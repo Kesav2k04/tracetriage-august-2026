@@ -102,13 +102,13 @@
   },
   {
    "name": "GATE3_RECEIPT.json",
-   "sha256": "77d65ed19d05740d31fe496e91ab849fdefe661f28a1555c9baa1c07713eda72",
-   "bytes": 37510
+   "sha256": "0d2fb18ff87417b69df9c5e92c85c2a4c8187e80eb1a7eaa920b7603e3620528",
+   "bytes": 39618
   },
   {
    "name": "HERO_NULLS.json",
-   "sha256": "66657305d0bc3960d1173eb4bcebdc092bc9b9592aff8b57704e63ce3fee06f1",
-   "bytes": 26692
+   "sha256": "34372a975482b1958cd8707b810be019574362137985c6aae0b51e10b8300280",
+   "bytes": 109916
   },
   {
    "name": "LEAKAGE_AUDIT.json",

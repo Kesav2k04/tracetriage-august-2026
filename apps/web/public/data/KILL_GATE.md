@@ -96,13 +96,30 @@ A7 also left `freq_offset_hz` at its `0.0` default, so the corridor it checked s
 
 The absolute downlink frequency is not known to better than tens of ppm: a cubesat oscillator drifts, and the SatNOGS transmitter frequency a station tunes to is community-maintained. So one constant frequency offset is fitted per observation, bounded at **50 ppm of the downlink**, which is about 20 kHz at 400 MHz and 6.9 kHz at 137 MHz. A3's own scan bounded this at plus or minus 76.9 kHz, 9.3x the Doppler swing, which lets the curve land anywhere and is why A3's sigma establishes shape rather than position.
 
-A fitted offset is a free parameter, so an absolute score carries no evidence. The statistic is the true corridor against **200 null corridors built by permuting its own Doppler samples in time**, which preserves every frequency value and the whole swing while destroying the monotone shape. Both get the identical bounded fit. Time reversal is deliberately not used: A3 established that a Doppler curve is near odd-symmetric about closest approach, so a reversed curve still fits.
+A fitted offset is a free parameter, so an absolute score carries no evidence. The statistic is the true corridor against **200 null corridors built by permuting its own Doppler samples in time**, which preserves every frequency value and the whole swing while destroying the monotone shape. Both get the identical bounded fit.
 
-| obs | corridor | fitted offset | sigma | 200-null max | margin | nulls >= true | p |
+**Read the margin column, not the p-value.** The permutation p-value is a necessary condition and a very weak one. Scrambled paths collapse into noise around sigma 0.40 to 0.57, so anything smooth beats them: a corridor with the frequency axis inverted also reaches `0 of 200` and `p = 0.005` on two of these three observations. What separates the physics from its own sign error is the margin over the best null, stated below in standard deviations of that observation's own null distribution, and the reversal control. Both are now part of the `discriminates` criterion at a floor of **5.0 null standard deviations**, fixed before this run and recorded in `THRESHOLD_RATIONALE`. Until 2026-08-19 the criterion was the p-value, the scaled-swing controls and the at-bound check, and the margin was computed, published in this table, and not consulted.
+
+**Time reversal is a control, and dropping it was an error.** This document and `corridor_fit.py` both said reversal was excluded because a Doppler curve is near odd-symmetric about closest approach, so a reversed curve still fits. The premise is right and the conclusion inverts it. If `D` is odd about closest approach then `D(1-f) = -D(f)`, so time reversal **is** the sign flip. The two errors cancel when applied together, which is why no visual check finds them, and that is exactly why each one alone is maximally wrong. Measured here, the reversal lands at or below the maximum of 200 scrambled corridors on all three observations, which makes it the strongest null available and the one that tests `AXIS_SIGN_CONVENTION` directly. The odd-symmetry residual, `max |D(f) + D(1-f)|` as a fraction of swing, is now measured per observation and carried in the receipt rather than asserted once in a comment.
+
+| obs | corridor | fitted offset | sigma | 200-null max | null sd | **margin (null sd)** | margin | nulls >= true | p |
+|---|---|---|---|---|---|---|---|---|---|
+| 14740031 | uncorrected | +13,985 Hz (+32.0 ppm) | 2.02 | 0.57 | 0.0077 | **+188.8** | +1.45 | 0 of 200 | 0.005 |
+| 14745664 | uncorrected | -7,149 Hz (-16.4 ppm) | 1.54 | 0.41 | 0.0076 | **+148.6** | +1.13 | 0 of 200 | 0.005 |
+| 14745929 | uncorrected | -7,149 Hz (-16.4 ppm) | 1.65 | 0.40 | 0.0077 | **+161.8** | +1.25 | 0 of 200 | 0.005 |
+
+**The two wrong-sign variants, scored under identical rules.** Each was built by negating the corridor (`AXIS_SIGN_CONVENTION` inverted) or reversing it in time, then refitting the offset and rescoring against fresh nulls:
+
+| obs | variant | sigma | margin (null sd) | p | beats reversal | beats scaled | discriminates |
 |---|---|---|---|---|---|---|---|
-| 14740031 | uncorrected | +13,985 Hz (+32.0 ppm) | **2.02** | 0.57 | +1.45 | 0 of 200 | 0.005 |
-| 14745664 | uncorrected | -7,149 Hz (-16.4 ppm) | **1.54** | 0.41 | +1.13 | 0 of 200 | 0.005 |
-| 14745929 | uncorrected | -7,149 Hz (-16.4 ppm) | **1.65** | 0.40 | +1.25 | 0 of 200 | 0.005 |
+| 14740031 | inverted | 0.590 | +2.9 | 0.005 | no | no | **no** |
+| 14740031 | reversed | 0.585 | +3.1 | 0.005 | no | no | **no** |
+| 14745664 | inverted | 0.398 | -1.4 | 0.050 | no | no | **no** |
+| 14745664 | reversed | 0.397 | -2.0 | 0.070 | no | no | **no** |
+| 14745929 | inverted | 0.411 | +1.3 | 0.005 | no | no | **no** |
+| 14745929 | reversed | 0.413 | +0.9 | 0.005 | no | no | **no** |
+
+Two of the six clear the p-value at exactly the published `0.005`, which is the finding: the p-value cannot tell these apart from the truth. The margin can, by a factor of about 50, and the reversal criterion rejects all six outright, because the reversal of a wrong-sign corridor is the true curve and it outscores them. Odd-symmetry residuals for the three observations are 0.11%, 1.35% and 1.59% of swing, so reversal is the sign flip to within about one part in sixty at worst.
 
 The fitted offsets reproduce A3's independently measured `curved_offset_hz` for all three, which is a cross-check between two separately written estimators.
 

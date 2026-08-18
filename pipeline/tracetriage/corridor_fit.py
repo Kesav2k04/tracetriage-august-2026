@@ -38,12 +38,20 @@ corridor's hit rate beside theirs. If the controls hit as often, the physics has
 no discriminating power on this data and the gate has failed regardless of the
 absolute number.
 
-Time reversal is deliberately **not** used as a control. A3 established that a
-Doppler curve is near odd-symmetric about closest approach, so reversing time
-and flipping the frequency sign are errors that cancel and score well. A
-reversed curve is a weak null for exactly the reason A3 documented. The
-controls used instead break the monotone S shape while preserving the value
-distribution, or borrow a genuinely different pass geometry.
+Time reversal **is** used as a control, and an earlier version of this module
+dropped it on an argument that inverted its own premise. The premise is right:
+A3 established that a Doppler curve is near odd-symmetric about closest
+approach. If D is odd about closest approach then D(1-f) = -D(f), so time
+reversal is the sign flip. That is why the two errors cancel when applied
+together and why no visual check can find them, and it is exactly why each one
+applied alone produces a maximally wrong curve. The old paragraph read "the
+pair cancels" as "each one alone still fits", which is the opposite conclusion.
+Measured on the three shipped observations, the reversal lands at or below the
+maximum of 200 scrambled corridors, so it is the strongest null available and
+the one that most directly tests AXIS_SIGN_CONVENTION. The scrambled controls
+break the monotone S shape while preserving the value distribution, the scaled
+controls hold the shape and vary only magnitude, and the reversal holds both
+and flips only the sign.
 
 All thresholds are module constants, fixed before any observation was scored,
 and stated in ``THRESHOLD_RATIONALE`` so a reader can see they were not tuned to
@@ -141,8 +149,17 @@ class GateThresholds:
     n_nulls: int = 200
 
     # One-sided empirical p-value at or below which the true corridor is called
-    # discriminating against its nulls.
+    # discriminating against its nulls. Necessary and very weak: a physically
+    # inverted corridor reaches the same 0 of 200 on two of the three shipped
+    # observations, because scrambled paths collapse into noise and anything
+    # smooth beats them. It is retained as a floor, not as the evidence.
     p_value_max: float = 0.05
+
+    # Minimum separation between the true sigma and the best null, expressed in
+    # standard deviations of that observation's own null sigma distribution.
+    # Scale-free by construction, so it cannot be tuned by rescaling sigma, and
+    # it is calibrated on the nulls rather than on the true values.
+    margin_null_sd_min: float = 5.0
 
     # Swing multipliers for the scaled-swing controls. 1.0 is excluded because
     # that is the truth. These hold smoothness fixed and vary only magnitude.
@@ -165,6 +182,17 @@ class GateThresholds:
 DEFAULT_THRESHOLDS = GateThresholds()
 
 THRESHOLD_RATIONALE: dict[str, str] = {
+    "margin_null_sd_min": (
+        "5.0 standard deviations of the observation's own null sigma distribution, "
+        "above the best of those nulls. Five sigma is the conventional discovery "
+        "floor in physics and is fixed here before rescoring. It is stated in null "
+        "standard deviations rather than in raw sigma so the bar cannot be cleared "
+        "by rescaling, and so it is calibrated on the wrong corridors rather than "
+        "on the right ones. Why it was added: p_value_max alone is cleared by a "
+        "corridor with the frequency axis inverted, which reaches 0 of 200 and "
+        "p = 0.005 while beating its best null by about 3 null standard deviations. "
+        "The three shipped observations clear the same bar by 120 to 200."
+    ),
     "z_min": (
         "4.0 robust z, the same detection floor scripts/a3_doppler_investigation.py "
         "uses in visible_track, so a pixel called a detection here would have been "
@@ -533,6 +561,19 @@ class NullCalibration:
     # bound on the achievable fit rather than the best one.
     offset_at_bound: bool | None = None
     corridor_span_hz: float | None = None
+    # Standard deviation of the null sigma distribution, and the margin measured
+    # in those units. The raw margin cannot be compared across observations,
+    # because each one has its own noise scale; this can.
+    null_sigma_sd: float | None = None
+    margin_in_null_sd: float | None = None
+    # The same curve reversed in time, which for an odd-symmetric Doppler curve is
+    # the sign flip. The one control that directly tests AXIS_SIGN_CONVENTION.
+    reversed_sigma: float | None = None
+    beats_reversed: bool | None = None
+    # max |D(f) + D(1-f)| over the pass, as a fraction of the swing. Zero for a
+    # perfectly odd-symmetric curve. Published so the premise the reversal control
+    # rests on is measured per observation rather than asserted once in a comment.
+    odd_symmetry_residual_frac: float | None = None
     discriminates: bool | None = None
 
     def summary(self) -> dict[str, Any]:
@@ -549,6 +590,11 @@ class NullCalibration:
             "beats_scaled_swing": self.beats_scaled_swing,
             "offset_at_bound": self.offset_at_bound,
             "corridor_span_hz": self.corridor_span_hz,
+            "null_sigma_sd": self.null_sigma_sd,
+            "margin_in_null_sd": self.margin_in_null_sd,
+            "reversed_sigma": self.reversed_sigma,
+            "beats_reversed": self.beats_reversed,
+            "odd_symmetry_residual_frac": self.odd_symmetry_residual_frac,
             "discriminates": self.discriminates,
         }
 
@@ -630,6 +676,14 @@ def calibrate_against_nulls(
         if off is not None and math.isfinite(s):
             scaled[f"{factor:g}x"] = float(s)
 
+    # SPACE-B5: the reversal control, restored. One extra scored fit.
+    rev_sigma: float | None = None
+    s_rev, off_rev = _best_over_offsets(
+        smoothed, zs, reverse_corridor(corridor), hz_per_px, origin, bound_px
+    )
+    if off_rev is not None and math.isfinite(s_rev):
+        rev_sigma = float(s_rev)
+
     arr = np.asarray(sigmas)
     at_least = int((arr >= true_sigma).sum())
     p_value = (at_least + 1) / (len(arr) + 1)
@@ -644,6 +698,21 @@ def calibrate_against_nulls(
     # Now it is an explicit one.
     at_bound = abs(true_off) >= bound_px
 
+    # SPACE-B4: the margin is what separates truth from an inverted corridor, and
+    # it was computed, published and left out of the decision. In null standard
+    # deviations so it is comparable across observations. A null distribution with
+    # no spread leaves the margin unmeasurable, and unmeasurable is not a pass.
+    null_sd = float(arr.std(ddof=1)) if arr.size > 1 else None
+    margin_raw = float(true_sigma) - float(null_max)
+    margin_sd = (
+        margin_raw / null_sd if null_sd is not None and null_sd > 0.0 else None
+    )
+
+    # The true corridor must beat its own reversal. For an odd-symmetric curve the
+    # reversal is the sign flip, so an inverted corridor fails here: its reversal
+    # is the truth, which outscores it.
+    beats_rev = None if rev_sigma is None else bool(float(true_sigma) > rev_sigma)
+
     return NullCalibration(
         n_nulls=len(arr),
         true_sigma=float(true_sigma),
@@ -653,13 +722,24 @@ def calibrate_against_nulls(
         null_max=null_max,
         n_at_least=at_least,
         p_value=float(p_value),
-        margin_over_best_null=float(true_sigma - null_max),
+        margin_over_best_null=margin_raw,
         scaled_swing_sigmas=scaled,
         beats_scaled_swing=beats_scaled,
         offset_at_bound=at_bound,
         corridor_span_hz=span,
+        null_sigma_sd=null_sd,
+        margin_in_null_sd=margin_sd,
+        reversed_sigma=rev_sigma,
+        beats_reversed=beats_rev,
+        odd_symmetry_residual_frac=odd_symmetry_residual_frac(corridor),
         discriminates=bool(
             p_value <= thresholds.p_value_max
+            # The two criteria the inversion fails. Both are required to be
+            # measured and clear, not merely "not False": a criterion that cannot
+            # be evaluated cannot contribute evidence.
+            and margin_sd is not None
+            and margin_sd >= thresholds.margin_null_sd_min
+            and beats_rev is True
             and (beats_scaled is not False)
             and not (at_bound and thresholds.exclude_at_bound)
         ),
@@ -862,6 +942,41 @@ def scale_corridor(corridor: Corridor, factor: float) -> Corridor:
         max_elevation_deg=corridor.max_elevation_deg,
         tca_frac=corridor.tca_frac,
     )
+
+
+def reverse_corridor(corridor: Corridor) -> Corridor:
+    """Reverse the Doppler samples in time, holding the fracs grid fixed.
+
+    For a curve that is odd-symmetric about closest approach this is the sign
+    flip, which makes it the strongest available null and the only control that
+    tests the frequency axis sign directly. Shape, smoothness, swing and value
+    distribution are all preserved exactly; only the direction changes.
+    """
+    return Corridor(
+        fracs=list(corridor.fracs),
+        doppler_hz=[float(v) for v in reversed(list(corridor.doppler_hz))],
+        half_width_hz=corridor.half_width_hz,
+        max_elevation_deg=corridor.max_elevation_deg,
+        tca_frac=corridor.tca_frac,
+    )
+
+
+def odd_symmetry_residual_frac(corridor: Corridor) -> float | None:
+    """max |D(f) + D(1-f)| over the pass, as a fraction of the swing.
+
+    The reversal control is only the sign flip to the extent that the curve is
+    odd-symmetric about closest approach, so the degree of that symmetry is a
+    measured quantity, not a standing assumption. Returns None for a corridor
+    with no swing, where the ratio is undefined rather than zero.
+    """
+    d = np.asarray(corridor.doppler_hz, dtype=float)
+    if d.size < 2:
+        return None
+    swing = float(np.ptp(d))
+    if swing <= 0.0:
+        return None
+    resid = float(np.abs(d + d[::-1]).max())
+    return resid / swing
 
 
 def flatten_corridor(corridor: Corridor) -> Corridor:

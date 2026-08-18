@@ -1,7 +1,7 @@
 {
   "gate": 3,
   "question": "Does the expected corridor intersect a visible target-like trace?",
-  "generated_at": "2026-08-18T12:14:44.393803+00:00",
+  "generated_at": "2026-08-18T19:48:29.209726+00:00",
   "verdict": "NOT_ESTABLISHED",
   "threshold": 0.7,
   "observations_decisive": 7,
@@ -37,6 +37,7 @@
     "seed": 42
   },
   "threshold_rationale": {
+    "margin_null_sd_min": "5.0 standard deviations of the observation's own null sigma distribution, above the best of those nulls. Five sigma is the conventional discovery floor in physics and is fixed here before rescoring. It is stated in null standard deviations rather than in raw sigma so the bar cannot be cleared by rescaling, and so it is calibrated on the wrong corridors rather than on the right ones. Why it was added: p_value_max alone is cleared by a corridor with the frequency axis inverted, which reaches 0 of 200 and p = 0.005 while beating its best null by about 3 null standard deviations. The three shipped observations clear the same bar by 120 to 200.",
     "z_min": "4.0 robust z, the same detection floor scripts/a3_doppler_investigation.py uses in visible_track, so a pixel called a detection here would have been called one there.",
     "min_detect_frac": "0.30 of rows. A trace is not visible for a whole pass; it fades at low elevation at both ends. A3 scored 39 rows on observation 14740031. Below this fraction the observation is reported as not measurable rather than as a corridor miss, because those are different findings.",
     "coverage_threshold": "0.70 of detected rows inside the corridor. Mirrors the plan's own gate-3 figure, applied per observation to rows so that the gate across observations and the gate within one observation use the same bar.",
@@ -104,6 +105,11 @@
         "beats_scaled_swing": null,
         "offset_at_bound": null,
         "corridor_span_hz": null,
+        "null_sigma_sd": null,
+        "margin_in_null_sd": null,
+        "reversed_sigma": null,
+        "beats_reversed": null,
+        "odd_symmetry_residual_frac": null,
         "discriminates": null
       },
       "null_controls": [
@@ -205,6 +211,11 @@
         "beats_scaled_swing": null,
         "offset_at_bound": null,
         "corridor_span_hz": null,
+        "null_sigma_sd": null,
+        "margin_in_null_sd": null,
+        "reversed_sigma": null,
+        "beats_reversed": null,
+        "odd_symmetry_residual_frac": null,
         "discriminates": null
       },
       "null_controls": [
@@ -306,6 +317,11 @@
         "beats_scaled_swing": null,
         "offset_at_bound": null,
         "corridor_span_hz": null,
+        "null_sigma_sd": null,
+        "margin_in_null_sd": null,
+        "reversed_sigma": null,
+        "beats_reversed": null,
+        "odd_symmetry_residual_frac": null,
         "discriminates": null
       },
       "null_controls": [
@@ -407,6 +423,11 @@
         "beats_scaled_swing": null,
         "offset_at_bound": null,
         "corridor_span_hz": null,
+        "null_sigma_sd": null,
+        "margin_in_null_sd": null,
+        "reversed_sigma": null,
+        "beats_reversed": null,
+        "odd_symmetry_residual_frac": null,
         "discriminates": null
       },
       "null_controls": [
@@ -513,6 +534,11 @@
         "beats_scaled_swing": true,
         "offset_at_bound": false,
         "corridor_span_hz": 17289.651679120747,
+        "null_sigma_sd": 0.007697156768326338,
+        "margin_in_null_sd": 188.7829248319374,
+        "reversed_sigma": 0.5848309150237391,
+        "beats_reversed": true,
+        "odd_symmetry_residual_frac": 0.001107471044099025,
         "discriminates": true
       },
       "null_controls": [
@@ -642,6 +668,11 @@
         "beats_scaled_swing": true,
         "offset_at_bound": false,
         "corridor_span_hz": 19480.07861597743,
+        "null_sigma_sd": 0.007595989876256491,
+        "margin_in_null_sd": 148.64477482386567,
+        "reversed_sigma": 0.397187673877935,
+        "beats_reversed": true,
+        "odd_symmetry_residual_frac": 0.013487245884432848,
         "discriminates": true
       },
       "null_controls": [
@@ -771,6 +802,11 @@
         "beats_scaled_swing": true,
         "offset_at_bound": false,
         "corridor_span_hz": 18628.085741132025,
+        "null_sigma_sd": 0.0077239795883987635,
+        "margin_in_null_sd": 161.79649306430488,
+        "reversed_sigma": 0.4127012141168841,
+        "beats_reversed": true,
+        "odd_symmetry_residual_frac": 0.0159092153521747,
         "discriminates": true
       },
       "null_controls": [
