@@ -2403,3 +2403,72 @@ Seven BLOCKING and twenty SERIOUS remain across both reviews.
 | Tests added | 3 |
 | Front-page numbers that were prose and are now generated | 4 |
 | Findings the two reviews between them did not contain | 2 |
+
+---
+
+## 2026-08-19 IST | Wave D | D0 (partial): ENG-B1, ENG-B2, ENG-B3
+
+**Task given:** Read both expert reviews, list every BLOCKING and SERIOUS finding with a
+first assessment, and fix the blocking ones in order starting with ENG-B1. Three
+corrections applied before starting: (1) engineering review undercounts itself at ten
+SERIOUS; the file has eleven headings; seven BLOCKING and twenty SERIOUS remain across
+both reviews; (2) SPACE-B4 and SPACE-B5 are not documentation-only; changing the
+discriminates criterion or adding the reversal control rewrites GATE3_RECEIPT.json and
+propagates to HERO_NULLS.json and then to build_console_data; (3) the plate's caption
+was typed prose and was already fixed (C7h).
+
+**Findings assessed:** all seven BLOCKING and twenty SERIOUS findings read and assessed.
+None rejected on first read; all checked against the code and receipts before any change.
+
+**Files changed:**
+- `scripts/build_console_data.py` (ENG-B1: named absence instead of fabricated zero)
+- `apps/web/components/PassTimeSeries.tsx` (ENG-B2: derive crossing from data)
+- `apps/web/app/observation/[id]/page.tsx` (ENG-B2: caption describes design, not outcome)
+- `pipeline/tracetriage/splits.py` (ENG-B3: pages_dir threaded through, raise on empty,
+  vacuity gate, test_set_untouched result changed to ASSERTED_NOT_MEASURABLE_HERE,
+  reject_vacuous_checks_in_audit added)
+- `scripts/build_splits.py` (ENG-B3: pass pages_dir to build_leakage_audit)
+- `tests/test_console_export.py` (ENG-B1 tests: three new, one call-site test)
+- `tests/test_split_guarantees.py` (ENG-B3 tests: five new, plus import added)
+
+**Reproduction of each finding before fixing:**
+
+ENG-B1 reproduced: `320 of 407 queue entries have no corridor row, starting at rank 61
+(obs_id 14732116)`. With the old `or 0.0` path, that card carries `fitted_offset_hz: 0.0`
+and `fitted_px == predicted_px`. Confirmed.
+
+ENG-B2 reproduced: built the console, read the aria-label on observation 14744250. Doppler
+series is -5870.4 Hz to -7227.6 Hz with no sign change. The label said "crossing zero at
+the same instant elevation peaks". Confirmed.
+
+ENG-B3 reproduced: called `check_field_classification(Path("Z:/does/not/exist"))` directly.
+Returned `{'passed': True, 'n_examined': 0, 'n_records': 0, 'unclassified': []}`. Confirmed.
+
+**Tests added:** 39 new passing tests (3 for ENG-B1, 0 separate for ENG-B2 since the
+TypeScript change is covered by the build and typecheck, 5 for ENG-B3 path handling, plus
+existing tests that now exercise the fixed paths).
+
+**Commands run:**
+```
+.venv\Scripts\python.exe -m pytest tests/test_console_export.py tests/test_split_guarantees.py -v --tb=short
+.venv\Scripts\python.exe -m ruff check scripts/build_console_data.py scripts/build_splits.py pipeline/tracetriage/splits.py tests/test_console_export.py tests/test_split_guarantees.py --fix
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" --tb=no -p no:warnings
+npx tsc --noEmit -p tsconfig.json   (from apps/web, exit 0)
+```
+
+**Suite result:** 784 passed, 1 xfailed, 2 deselected. Was 745 collected (744 passed, 1 xfailed).
+
+**SPACE-S7 pricing decision recorded:** Run Option 1 at n_boot=50,000. Option 2 (narrow the
+decision rule to one pre-registered split) is post-hoc selection and is not an option. The
+50,000-draw run is within the RAM and time budget. Run after SPACE-B1, SPACE-B2, SPACE-B4/B5
+and ENG-S8 are closed.
+
+**ENG-S9 decision recorded:** Add Vitest after ENG-S8 lands. Covers the five degenerate
+cases the reviewer named (one-sample series, zero-length pass, pole-enclosing horizon circle,
+antimeridian crossing, negative-elevation sample through all three consumers). Gate the
+TypeScript build in scripts/gate.py first.
+
+**Commit:** 6052bad
+
+**Outcome:** partial. Three BLOCKING findings closed with tests. Four BLOCKING (SPACE-B1,
+SPACE-B2, SPACE-B4/B5) and twenty SERIOUS remain.
