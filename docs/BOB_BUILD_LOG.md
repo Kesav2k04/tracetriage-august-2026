@@ -2472,3 +2472,123 @@ TypeScript build in scripts/gate.py first.
 
 **Outcome:** partial. Three BLOCKING findings closed with tests. Four BLOCKING (SPACE-B1,
 SPACE-B2, SPACE-B4/B5) and twenty SERIOUS remain.
+
+---
+
+## 2026-08-19 IST | Wave D | D0b: the leakage remainder, and the rebuild nobody ran
+
+**Task given:** verify the D0 commit mechanically rather than on its report, then close what
+the verification found.
+
+**Verification of D0 first, because a self-report is not a gate:** `scripts/gate.py` returns
+8/8 with exit 0, `ruff check .` returns "All checks passed" over the whole repo (the D0 note
+that ruff was reading `.tsx` files as Python does not reproduce; the config selects E, F, I,
+UP, B, SIM and excludes `scripts/recon` only), `tests/test_split_guarantees.py` runs 30 and
+`tests/test_console_export.py` runs 17 with zero skips, and both commits are authored
+`Kesav2k04 <kesavk659@gmail.com>` with no trailer. ENG-B3's three-part suggested fix is
+implemented as filed, and the ENG-B1 fix correctly uses `is None` rather than truthiness, so
+a genuine 0.0 Hz fit is still publishable.
+
+**What the verification found, all of it downstream of one thing D0 did not do: rebuild the
+artifact.**
+
+1. Half of the sibling SERIOUS finding was open. `REVIEW_ENGINEERING.md:382` names two code
+   paths, `splits.py:1110-1123` and `1339-1360`. D0 changed the second. The manifest emitter
+   still wrote `passed: true, n_examined: 1349` for `test_set_untouched`, so the next rebuild
+   would have produced one artifact saying the property cannot be measured from inside the
+   build and another publishing a measured count of it. `split_manifest.schema.json` pinned
+   `passed` to `const: true` and `n_examined` to integer minimum 1, so the honest shape was
+   not representable there at all.
+2. The vacuity gate that ran was a copy of the one the tests exercised.
+   `build_leakage_audit` repeated the predicate inline instead of calling
+   `reject_vacuous_checks_in_audit`, and `test_split_guarantees.py` said so in a comment: the
+   synthetic rows meant "the gate cannot be exercised through a real build call here". The
+   build ran one gate, the suite tested another, and they could drift with nothing failing.
+3. The null introduced in D0 slipped both gates. The predicate was `n_examined == 0`, and
+   `None == 0` is False, so a row reporting `PASS` with no examination at all was accepted.
+   Measured before the fix: `reject_vacuous_checks_in_audit` returned without raising on
+   `{"result": "PASS", "n_examined": None}`. `reject_vacuous_checks` was worse on the manifest
+   side: `v.get("n_examined", 0) < 1` compares None with an int, so it would have died with a
+   TypeError rather than naming the check.
+4. The published artifact still carried the defect and no standing gate could see it.
+   `LEAKAGE_AUDIT.json` still read `test_set_untouched PASS 1349 0`, which is exactly what the
+   review's reproduce command prints, and `provenance.json` pinned its digest. `gate.py` runs
+   pytest, ruff, a contract status check, a clean-tree check, a gate-6 verdict check, a secret
+   grep, a build-log check and an identity check. It never rebuilds an artifact and diffs it,
+   so 8/8 green coexisted with a published artifact contradicting its own generator.
+5. A pre-existing test was passing on the stale artifact.
+   `test_splits.py::TestLeakageAuditStructure::test_audit_rows_have_n_examined` asserts
+   `row["n_examined"] > 0` on every audit row, and its fixture reads the committed file. With
+   the artifact rebuilt it fails with `TypeError: '>' not supported between instances of
+   'NoneType' and 'int'`. So the suite was green on a file the code could no longer produce.
+   It now permits a null only on a row whose result names it, which is the property worth
+   asserting.
+6. The rebuild would have crashed. `scripts/build_splits.py:163` maps a result string to a
+   status label with a dict lookup, and `ASSERTED_NOT_MEASURABLE_HERE` was not a key, so the
+   first attempt to regenerate exited 1 with `KeyError`. The line below it formatted
+   `n_examined` with `:5d`, which a null cannot satisfy either. The summary line then counted
+   the asserted row among the claimed guarantees that "hold with zero crossings", which is the
+   tally the review asked to fix.
+
+**What changed:**
+- `contracts/split_manifest.schema.json` to 0.4.0 (breaking). New `$defs/leakage_assertion`:
+  requires `result: ASSERTED_NOT_MEASURABLE_HERE`, forbids `passed`, requires `n_examined`
+  null, requires four 64-hex `test_id_digests` and a non-empty rationale, with
+  `additionalProperties: false`. `test_set_untouched` references it instead of
+  `leakage_check`. Added optional `rebuilt_at`.
+- `pipeline/tracetriage/splits.py`: `ASSERTED_NOT_MEASURABLE_HERE` as one module constant used
+  by both artifacts; the manifest entry rewritten to the assertion shape; `reject_vacuous_checks`
+  now distinguishes an assertion from a vacuous measurement, and refuses an assertion that
+  carries a number; the audit gate treats null and zero alike on a PASS row; the inline copy
+  replaced by a call to the shared function; the fail-fast loop no longer assumes every entry
+  has `passed`, and raises when an entry states no outcome at all; `frozen_at` is pinnable and
+  `rebuilt_at` is always emitted.
+- `scripts/build_splits.py`: `--frozen-at`, the status map and count formatting handle the
+  third outcome, and the closing tally counts measured guarantees separately from the
+  asserted one.
+- `apps/web/components/PassTimeSeries.tsx`: the label asserted that the crossing happens at
+  the elevation peak whenever a crossing existed. It now measures that too, with one sample
+  of tolerance, and reports the offset in seconds when they do not coincide.
+
+**The rebuild, and what it proves:**
+```
+.venv\Scripts\python.exe scripts\build_splits.py --frozen-at "2026-08-17T16:11:19.249864+00:00"
+```
+`frozen_at` preserved at 2026-08-17T16:11:19.249864+00:00, `rebuilt_at` recorded separately,
+the four `test_id_digests` byte-identical, and every partition id list byte-identical. The
+diff on `SPLIT_MANIFEST.json` is `rebuilt_at`, the four changed fields of one entry and
+nothing else; the diff on `LEAKAGE_AUDIT.json` is three fields of one row. The console
+rebuild changed only the three digests and the contract version in `provenance.json`.
+
+The two builders have to run as a pair, in this order. `rebuilt_at` is a write time, so the
+manifest digest moves on every rebuild even when nothing else does, and `provenance.json`
+carries that digest. A freshness gate should diff with `rebuilt_at` excluded, or it will
+report drift on every run.
+
+**Tests added: 14.** Five in `test_contracts.py` (a pass on the unmeasurable check, an
+assertion carrying a count, an assertion carrying a pass, missing or too few digests, a
+malformed digest). Seven in `test_split_guarantees.py`, including one that patches the shared
+gate and asserts the build path reaches it, which an inline copy cannot satisfy. Two in
+`test_splits.py`: the two artifacts must agree on the unmeasurable check and on digests
+recomputed from the ids published beside them, and the freeze date must still be the freeze.
+
+**Suite result:** 8/8 standing gates pass, exit 0. 799 tests selected, up from 785.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q -p no:warnings
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\build_splits.py --frozen-at "2026-08-17T16:11:19.249864+00:00"
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+npx tsc --noEmit   (from apps/web, exit 0)
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+**Still open, and named rather than quietly carried:** `gate.py` has no artifact freshness
+step, so nothing mechanical would have caught item 4. The cheapest form is a rebuild into a
+temporary directory with the freeze pinned, then a diff against the committed artifact,
+ignoring `rebuilt_at`. It belongs with the ENG-S9 work that adds the TypeScript build to the
+gate, and it is worth more than either test suite it would sit beside. The label change
+in PassTimeSeries.tsx also has no test, for the same reason ENG-B2 had none: there is no
+TypeScript test framework yet. It is verified by `tsc --noEmit` and by reading the two
+branches, and the degenerate cases belong in the ENG-S9 Vitest work.
