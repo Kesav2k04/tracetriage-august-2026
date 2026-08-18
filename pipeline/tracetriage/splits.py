@@ -878,6 +878,15 @@ CHECK_SCOPES: dict[str, dict[str, Any]] = {
 }
 
 
+#: The result a check carries when the build cannot measure its own claim. It is a
+#: third outcome beside PASS and BY_DESIGN, and it is the only value that permits a
+#: null n_examined: a check that examined nothing must not report a count of
+#: something else. test_set_untouched is the only entry that uses it, in both the
+#: manifest and the audit, so the two artifacts cannot disagree about what was
+#: measured.
+ASSERTED_NOT_MEASURABLE_HERE = "ASSERTED_NOT_MEASURABLE_HERE"
+
+
 def reject_vacuous_checks(leakage_results: dict[str, dict[str, Any]]) -> None:
     """Raise if any check passed without examining anything.
 
@@ -886,11 +895,28 @@ def reject_vacuous_checks(leakage_results: dict[str, dict[str, Any]]) -> None:
     empty examination is a failure here, not a pass. The schema enforces the same
     floor on the artifact; this stops the build before the artifact exists.
     """
-    vacuous = sorted(k for k, v in leakage_results.items() if v.get("n_examined", 0) < 1)
+    vacuous: list[str] = []
+    for name, entry in leakage_results.items():
+        if entry.get("result") == ASSERTED_NOT_MEASURABLE_HERE:
+            # An entry that declares itself unmeasurable here must carry null, not a
+            # number. A number in that field is what let an emitted-id count read as
+            # the examination behind the claim.
+            if entry.get("n_examined") is not None:
+                raise RuntimeError(
+                    f"Leakage check {name} declares {ASSERTED_NOT_MEASURABLE_HERE} "
+                    f"and still reports n_examined={entry.get('n_examined')!r}. A "
+                    "check that examined nothing must not publish a count of "
+                    "something else."
+                )
+            continue
+        n = entry.get("n_examined")
+        if n is None or n < 1:
+            vacuous.append(name)
     if vacuous:
         msg = (
-            f"Leakage checks examined zero records: {vacuous}. A check with nothing to "
-            "examine passes trivially and is not evidence. Do not freeze this manifest."
+            f"Leakage checks examined zero records: {sorted(vacuous)}. A check with "
+            "nothing to examine passes trivially and is not evidence. Do not freeze "
+            "this manifest."
         )
         raise RuntimeError(msg)
 
@@ -907,12 +933,15 @@ def reject_vacuous_checks_in_audit(audit: list[dict[str, Any]]) -> None:
     vacuous = [
         r["check"]
         for r in audit
-        if r.get("result") == "PASS" and r.get("n_examined") == 0
+        if r.get("result") == "PASS"
+        and (r.get("n_examined") is None or r.get("n_examined") == 0)
     ]
     if vacuous:
         raise RuntimeError(
-            f"Leakage audit contains vacuous PASS rows (n_examined=0): {vacuous}. "
-            "A check with zero examinations proves nothing."
+            f"Leakage audit contains vacuous PASS rows (n_examined is 0 or null): "
+            f"{vacuous}. A check with zero examinations proves nothing, and a PASS "
+            f"with no count does not say what it examined. Only "
+            f"{ASSERTED_NOT_MEASURABLE_HERE} may carry a null."
         )
 
 
@@ -970,6 +999,7 @@ def build_splits(
     manifest_path: Path | None = None,
     pages_dir: Path | None = None,
     a3_summary_path: Path | None = None,
+    frozen_at: str | None = None,
 ) -> dict[str, Any]:
     """Build all four split types and return the split manifest dict.
 
@@ -1141,9 +1171,14 @@ def build_splits(
         for name, ids in splits_obj.items()
     }
     leakage_results["test_set_untouched"] = {
-        "passed": True,
+        "result": ASSERTED_NOT_MEASURABLE_HERE,
         "applies_to": ["chronological", "cold_station", "cold_transmitter", "cold_combined"],
-        "n_examined": sum(len(ids["test"]) for ids in splits_obj.values()),
+        # Null by design, and no "passed" key. The count that used to sit here was
+        # sum(len(ids["test"])), the number of emitted test ids, which measures a
+        # different property under the name of this check. Anyone tallying six of
+        # six passes counted this row, and neither the pass nor the number was
+        # evidence for the claim above them.
+        "n_examined": None,
         "test_id_digests": test_digests,
         "rationale": (
             "Test ids are emitted and never loaded, scored, or inspected during the "
@@ -1151,12 +1186,25 @@ def build_splits(
             "is not asserted alone: each digest above pins one frozen test set, and "
             "any evaluation that reports a number must quote the digest it scored. A "
             "test set redrawn between freeze and evaluation changes its digest, which "
-            "is the failure this records rather than claims away."
+            "is the failure this records rather than claims away. n_examined is null "
+            "because nothing was examined to produce this entry, and a count here "
+            "would be a measurement of something else."
         ),
     }
 
     # Fail fast: if any leakage check failed, surface it clearly
-    failed_checks = [k for k, v in leakage_results.items() if not v["passed"]]
+    failed_checks = []
+    for _name, _entry in leakage_results.items():
+        if _entry.get("result") == ASSERTED_NOT_MEASURABLE_HERE:
+            continue  # bound by its digests, not by a pass this build could measure
+        if "passed" not in _entry:
+            raise RuntimeError(
+                f"Leakage check {_name} records neither passed nor "
+                f"{ASSERTED_NOT_MEASURABLE_HERE}. An entry that states no outcome "
+                "cannot be read as a pass."
+            )
+        if not _entry["passed"]:
+            failed_checks.append(_name)
     if failed_checks:
         msg = f"Leakage checks failed: {failed_checks}. Do not freeze this manifest."
         raise RuntimeError(msg)
@@ -1203,7 +1251,13 @@ def build_splits(
     # -----------------------------------------------------------------------
     split_manifest: dict[str, Any] = {
         "snapshot_id": snapshot_id,
-        "frozen_at": datetime.datetime.now(datetime.UTC).isoformat(),
+        # frozen_at is pinned when the caller supplies it, because rebuilding this
+        # file to correct a reporting field must not re-date the freeze: a reader
+        # cannot otherwise tell a corrected artifact from a re-drawn split.
+        # rebuilt_at is when the file was last written, which is a different fact,
+        # and the test id digests are what prove the partitions did not move.
+        "frozen_at": frozen_at or datetime.datetime.now(datetime.UTC).isoformat(),
+        "rebuilt_at": datetime.datetime.now(datetime.UTC).isoformat(),
         "build_seed": seed,
         "n_observations": len(rows),
         "sampling_design": (
@@ -1367,7 +1421,7 @@ def build_leakage_audit(
             "n_violators": None,
             "n_skipped_excluded": 0,
             "n_skipped_no_key": 0,
-            "result": "ASSERTED_NOT_MEASURABLE_HERE",
+            "result": ASSERTED_NOT_MEASURABLE_HERE,
             "detail": (
                 "Test ids are emitted, not loaded, scored, or inspected at build time. "
                 "This is the one check that cannot be proved from inside the build, so "
@@ -1378,19 +1432,10 @@ def build_leakage_audit(
         }
     )
 
-    # Vacuity gate: any row that claims PASS with n_examined == 0 is a silent pass
-    # over nothing, which is the same defect as a check that cannot fail.
-    vacuous = [
-        r["check"]
-        for r in audit
-        if r.get("result") == "PASS" and r.get("n_examined") == 0
-    ]
-    if vacuous:
-        raise RuntimeError(
-            f"Leakage audit contains vacuous PASS rows (n_examined=0): {vacuous}. "
-            "A check with zero examinations proves nothing; supply the correct "
-            "snapshot pages directory or fix the check."
-        )
+    # Vacuity gate. This calls the shared function rather than repeating its
+    # predicate: an inline copy meant the build ran one gate while the tests
+    # exercised another, and the two could drift with no failure anywhere.
+    reject_vacuous_checks_in_audit(audit)
 
     return audit
 

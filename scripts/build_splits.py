@@ -24,6 +24,7 @@ from pipeline.tracetriage.splits import (  # noqa: E402
     _A3_SUMMARY_PATH,
     _MANIFEST_PATH,
     _PAGES_DIR,
+    ASSERTED_NOT_MEASURABLE_HERE,
     _build_obs_table,
     _extract_partition_maps,
     build_leakage_audit,
@@ -58,6 +59,16 @@ def main(argv: list[str] | None = None) -> int:
         default=_A3_SUMMARY_PATH,
         help="Path to a3_overlays/summary.json.",
     )
+    parser.add_argument(
+        "--frozen-at",
+        default=None,
+        help=(
+            "Pin frozen_at to this ISO timestamp instead of now. Use it when "
+            "rebuilding the artifact to correct a reported field, so the freeze is "
+            "not silently re-dated. rebuilt_at always records the write time, and "
+            "the four test_id_digests are what prove the partitions did not move."
+        ),
+    )
     args = parser.parse_args(argv)
 
     out_dir: Path = args.out_dir
@@ -67,6 +78,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  Manifest:   {args.manifest}")
     print(f"  Pages dir:  {args.pages_dir}")
     print(f"  A3 summary: {args.a3_summary}")
+    if args.frozen_at:
+        print(f"  frozen_at:  {args.frozen_at} (pinned, this is a rebuild)")
     print()
 
     try:
@@ -75,6 +88,7 @@ def main(argv: list[str] | None = None) -> int:
             manifest_path=args.manifest,
             pages_dir=args.pages_dir,
             a3_summary_path=args.a3_summary,
+            frozen_at=args.frozen_at,
         )
     except RuntimeError as exc:
         print(f"[FAIL] {exc}", file=sys.stderr)
@@ -145,23 +159,48 @@ def main(argv: list[str] | None = None) -> int:
     # BY_DESIGN is not a pass and not a failure. It is a split that never claimed the
     # guarantee, printed with the crossing count it measured, so the exemption can be
     # weighed rather than trusted.
+    # ASSERTED_NOT_MEASURABLE_HERE is the third outcome for the one claim this build
+    # cannot measure. It prints as an assertion and carries no counts, because a null
+    # formatted as 0 is how an unmeasured claim comes to read as a clean measurement.
+    status_for = {
+        "PASS": "[PASS]",
+        "FAIL": "[FAIL]",
+        "BY_DESIGN": "[ n/a ]",
+        ASSERTED_NOT_MEASURABLE_HERE: "[asrt]",
+    }
     failures = [r for r in leakage_audit if r["result"] == "FAIL"]
     for row in leakage_audit:
-        status = {"PASS": "[PASS]", "FAIL": "[FAIL]", "BY_DESIGN": "[ n/a ]"}[row["result"]]
-        counts = f"{row['n_violators']:4d} crossing / {row['n_examined']:5d} examined"
+        status = status_for[row["result"]]
+        if row["n_examined"] is None:
+            counts = "asserted, not measured here; bound by the test id digests"
+        else:
+            counts = f"{row['n_violators']:4d} crossing / {row['n_examined']:5d} examined"
         print(f"  {status} {row['check']:38s} {row['split']:17s} {counts}")
     print()
     if failures:
         print("SOME LEAKAGE CHECKS FAILED — see above.", file=sys.stderr)
         return 1
 
-    claimed = [r for r in leakage_audit if r["guaranteed"]]
+    # The asserted row is counted separately. Folding it into the claimed total is
+    # what made a tally of six of six read as six measurements.
+    asserted = [r for r in leakage_audit if r["result"] == ASSERTED_NOT_MEASURABLE_HERE]
+    claimed = [
+        r
+        for r in leakage_audit
+        if r["guaranteed"] and r["result"] != ASSERTED_NOT_MEASURABLE_HERE
+    ]
     exempt = [r for r in leakage_audit if not r["guaranteed"]]
     print(
-        f"All {len(claimed)} claimed guarantees hold with zero crossings. "
+        f"All {len(claimed)} measured guarantees hold with zero crossings. "
         f"{len(exempt)} check/split pairs are out of scope by design and report "
         "their measured crossing counts above."
     )
+    for row in asserted:
+        print(
+            f"{row['check']} is asserted and not measured here, so it is not one of "
+            f"those {len(claimed)}. What binds it is the digest per frozen test set "
+            "in the manifest, which a later evaluation has to quote."
+        )
 
     return 0
 

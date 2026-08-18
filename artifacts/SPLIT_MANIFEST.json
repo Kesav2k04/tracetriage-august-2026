@@ -1,6 +1,7 @@
 {
   "snapshot_id": "snap-20260817-stage1",
   "frozen_at": "2026-08-17T16:11:19.249864+00:00",
+  "rebuilt_at": "2026-08-18T18:37:47.478895+00:00",
   "build_seed": 42,
   "n_observations": 2727,
   "sampling_design": "Stage-1 snapshot: 2,727 observations collected chronologically backwards from 2026-08-10T00:00:00Z, all from a single UTC day (2026-08-09). Chronological split: 70/15/15 by time-ordered observation count, grouped by (station, satellite, revolution) pass episode so no single pass straddles a cut. It holds out time on entities the model has seen, so transmitters and stations appear on both sides by design. Grouping it by transmitter instead was tried and collapsed it to 2,595/78/54, leaving 18 decisive test labels, because 211 of 613 transmitters are observed on both sides of a single evening's 70% mark. Cold-station: 20% of ground stations (by random draw, seed-controlled) held out for test, 10% for calibration. Cold-transmitter: 20% of transmitters held out, 10% for calibration; NORAD rideshare clusters (consecutive NORAD IDs, gap\u22645) held out together to prevent cross-split LO-error bias (Finding 2). Cold-combined: its own station and transmitter tiers, 25% test and 20% calibration on each axis, drawn separately from the two splits above. An observation is kept only where its station tier and its transmitter tier agree, and is excluded otherwise, so a station or transmitter in the test tier appears in the test partition or nowhere. 1,489 of 2,727 observations are excluded, which is the arithmetic of an intersection: most passes pair a cold station with a warm transmitter or the reverse. Its training partition is 945 observations against 2,595 for the chronological split, so a drop measured here confounds unseen entities with less training data and needs the size-matched control in B6 to separate them. Its calibration partition carries 49 decisive labels, which admits temperature scaling and rules out isotonic regression. Known biases: single-day corpus limits temporal generalisation; the A3 doppler-correction verdict pool covers only 24 observations (3 UNCORRECTED, 4 CORRECTED, 17 UNRESOLVED), so the physics-arm evaluability depends almost entirely on NORAD cluster 63214/63217/63218 which lands in whichever partition receives ground stations 91 and 1696.",
@@ -11394,21 +11395,21 @@
       "rationale": "The split manifest emits observation ids and no features, so this file cannot leak by itself. The classification binds whatever extracts features next: a feature may be derived only from an observation_time field. Identifier fields join and group; they are not model inputs."
     },
     "test_set_untouched": {
-      "passed": true,
+      "result": "ASSERTED_NOT_MEASURABLE_HERE",
       "applies_to": [
         "chronological",
         "cold_station",
         "cold_transmitter",
         "cold_combined"
       ],
-      "n_examined": 1349,
+      "n_examined": null,
       "test_id_digests": {
         "chronological": "8b069e02f4effd58361324f1d9843e696b45b789b76ad269b47948fb90ec66b3",
         "cold_station": "f89dada0f5d3413e3052cef3d36c9e08138a987f7e107c99c88cddd64a43590a",
         "cold_transmitter": "16a9d100aecaa31216e92b1fd86484ab5c672aad69f71678054c31e92d32646a",
         "cold_combined": "b5496368da27c6fa48d1dcea595fc650f3d659ef43dd9c564cc863a433c794f8"
       },
-      "rationale": "Test ids are emitted and never loaded, scored, or inspected during the build. Unlike the other five this one cannot be proved from here, so it is not asserted alone: each digest above pins one frozen test set, and any evaluation that reports a number must quote the digest it scored. A test set redrawn between freeze and evaluation changes its digest, which is the failure this records rather than claims away."
+      "rationale": "Test ids are emitted and never loaded, scored, or inspected during the build. Unlike the other five this one cannot be proved from here, so it is not asserted alone: each digest above pins one frozen test set, and any evaluation that reports a number must quote the digest it scored. A test set redrawn between freeze and evaluation changes its digest, which is the failure this records rather than claims away. n_examined is null because nothing was examined to produce this entry, and a count here would be a measurement of something else."
     }
   },
   "composition": {

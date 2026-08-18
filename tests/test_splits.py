@@ -12,7 +12,7 @@ ACCEPTANCE REQUIREMENTS CHECKED HERE
    (Acceptance check 5.)
 
 3. Re-running the builder with the same seed produces byte-identical manifests
-   apart from the `frozen_at` timestamp.
+   apart from the `frozen_at` and `rebuilt_at` timestamps.
    (Acceptance check 6.)
 
 4. Per-split uncorrected counts are reported and match the A3 verdict source.
@@ -31,6 +31,7 @@ The MANIFEST_PATH and A3_SUMMARY_PATH are read from the repo-root constants.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -103,12 +104,19 @@ def test_split_manifest_validates_against_schema(split_manifest):
 
 
 def test_leakage_checks_all_passed_in_manifest(split_manifest):
-    """Every leakage check must record passed=True with a scope and a real examination.
+    """Every measured leakage check records passed=True with a scope and a real
+    examination, and the one unmeasurable entry records neither.
 
     Checking ``passed`` alone would reproduce the defect this replaced: a flat true
     that reads as "nothing crosses anywhere" while the check covered a subset of the
-    splits. So the scope and the examined count are asserted with it.
+    splits. So the scope and the examined count are asserted with it. The loop also
+    refuses to accept a pass on test_set_untouched, which published one for a
+    property nothing here measured.
     """
+    from pipeline.tracetriage.splits import (  # noqa: PLC0415
+        ASSERTED_NOT_MEASURABLE_HERE,
+    )
+
     lc = split_manifest["leakage_checks"]
     assert lc, "manifest recorded no leakage checks at all"
     for name, entry in lc.items():
@@ -116,11 +124,26 @@ def test_leakage_checks_all_passed_in_manifest(split_manifest):
             f"leakage_checks.{name} is {entry!r}. A bare boolean cannot say which "
             "splits it covers, which is how a stale exemption hid real crossings."
         )
+        assert entry["applies_to"], f"leakage_checks.{name} claims no scope"
+        if entry.get("result") == ASSERTED_NOT_MEASURABLE_HERE:
+            assert "passed" not in entry, (
+                f"leakage_checks.{name} declares itself unmeasurable here and still "
+                "carries a pass. One or the other."
+            )
+            assert entry["n_examined"] is None, (
+                f"leakage_checks.{name} examined nothing, so any number in "
+                f"n_examined measures something else; found "
+                f"{entry['n_examined']!r}."
+            )
+            assert len(entry["test_id_digests"]) == 4, (
+                f"leakage_checks.{name} substitutes digests for a measurement, so "
+                "one per frozen test set is the minimum that binds anything."
+            )
+            continue
         assert entry["passed"] is True, (
             f"leakage_checks.{name}.passed = {entry['passed']!r}. A failing check "
             "must halt the freeze, not be recorded as False."
         )
-        assert entry["applies_to"], f"leakage_checks.{name} claims no scope"
         assert entry["n_examined"] >= 1, (
             f"leakage_checks.{name} examined {entry['n_examined']} records. A check "
             "that examined nothing passes trivially and is not evidence."
@@ -150,6 +173,72 @@ def test_manifest_and_audit_agree_on_every_scope(split_manifest, leakage_audit):
             f"{check_name}: audit claims {sorted(audit_scope)}, "
             f"table says {sorted(scope['applies_to'])}"
         )
+
+
+def test_manifest_and_audit_agree_on_the_unmeasurable_check(
+    split_manifest, leakage_audit
+):
+    """One artifact must not publish a measurement the other says is impossible.
+
+    The audit row was changed to ASSERTED_NOT_MEASURABLE_HERE with a null count
+    while the manifest kept passed true and n_examined 1349 for the same check.
+    Either artifact read alone looked coherent; together they contradicted each
+    other, and the reader who tallies passes was reading the manifest.
+    """
+    from pipeline.tracetriage.splits import (  # noqa: PLC0415
+        ASSERTED_NOT_MEASURABLE_HERE,
+    )
+
+    entry = split_manifest["leakage_checks"]["test_set_untouched"]
+    rows = [r for r in leakage_audit if r["check"] == "test_set_untouched"]
+    assert len(rows) == 1, f"expected one audit row, found {len(rows)}"
+    row = rows[0]
+    assert entry["result"] == row["result"] == ASSERTED_NOT_MEASURABLE_HERE
+    assert entry["n_examined"] is None and row["n_examined"] is None
+    assert "passed" not in entry
+    assert row["n_violators"] is None, (
+        "a violator count is a measurement, and this row measured nothing"
+    )
+    assert len(entry["test_id_digests"]) == 4, (
+        "the digests are what the assertion stands on, so the manifest carries one "
+        "per frozen test set"
+    )
+    assert "digest" in row["detail"], (
+        "the audit row must point a reader at the binding mechanism rather than "
+        "leave a null with no explanation"
+    )
+    for name, digest in entry["test_id_digests"].items():
+        expected = hashlib.sha256(
+            json.dumps(
+                sorted(split_manifest["splits"][name]["test"]), separators=(",", ":")
+            ).encode("utf-8")
+        ).hexdigest()
+        assert digest == expected, (
+            f"{name}: the published digest does not match the test ids published "
+            f"beside it, so it pins nothing"
+        )
+
+
+def test_rebuild_did_not_redate_the_freeze(split_manifest):
+    """frozen_at is the freeze, not the last write.
+
+    build_splits sets frozen_at from datetime.now() unless the caller pins it, so
+    rebuilding the artifact to correct a reported field silently moves the freeze
+    date and a reader cannot tell that from a re-drawn split. This pins the value
+    the splits were actually frozen at; a rebuild must pass --frozen-at to keep
+    it, and rebuilt_at is where the write time belongs.
+    """
+    assert split_manifest["frozen_at"] == "2026-08-17T16:11:19.249864+00:00", (
+        f"frozen_at is {split_manifest['frozen_at']!r}. If the splits were "
+        "deliberately re-drawn, update this test and say so in the build log. "
+        "If this was a rebuild, pass --frozen-at to preserve the freeze."
+    )
+    assert "rebuilt_at" in split_manifest, (
+        "a rebuilt artifact must say when it was written"
+    )
+    assert split_manifest["rebuilt_at"] >= split_manifest["frozen_at"], (
+        "the file cannot have been written before the freeze it records"
+    )
 
 
 def test_by_design_exemptions_carry_a_measured_count(split_manifest, leakage_audit):
@@ -339,8 +428,9 @@ class TestDeterminism:
     """Re-running the builder with the same seed must produce byte-identical
     split assignment — the same observation IDs in the same partitions.
 
-    The frozen_at timestamp differs between runs; we compare only the splits
-    and composition fields.
+    The two timestamps differ between runs by construction, so they are dropped
+    before comparing: frozen_at is now() unless the caller pins it, and rebuilt_at
+    is always the write time. Everything else must match.
     """
 
     def test_same_seed_produces_identical_splits(self, rows):
@@ -357,11 +447,15 @@ class TestDeterminism:
         m1 = build_splits(seed=42, **kw)
         m2 = build_splits(seed=42, **kw)
 
-        # The acceptance criterion is the whole manifest apart from the timestamp, not
-        # just the id lists. Comparing only "splits" would let composition, the
-        # leakage measurements or the physics report drift between runs unnoticed.
+        # The acceptance criterion is the whole manifest apart from the two
+        # timestamps, not just the id lists. Comparing only "splits" would let
+        # composition, the leakage measurements or the physics report drift between
+        # runs unnoticed. Both timestamps are removed rather than one, because
+        # rebuilt_at is a write time and would otherwise fail every run for a
+        # reason that says nothing about determinism.
         for m in (m1, m2):
             del m["frozen_at"]
+            del m["rebuilt_at"]
         s1 = json.dumps(m1, sort_keys=True)
         s2 = json.dumps(m2, sort_keys=True)
         assert s1 == s2, "Same seed produced a different manifest"
@@ -561,10 +655,27 @@ class TestLeakageAuditStructure:
         )
 
     def test_audit_rows_have_n_examined(self, leakage_audit):
-        """Every audit row must declare n_examined > 0 (no vacuous checks)."""
+        """A measured row declares n_examined > 0; only an assertion may be null.
+
+        A null count is legitimate on exactly one row, the one whose claim the build
+        cannot measure, and it has to say so in result. Anywhere else a null is the
+        vacuous check this test exists to catch, and it is worse than a zero: it does
+        not even report what it failed to examine.
+        """
+        from pipeline.tracetriage.splits import (  # noqa: PLC0415
+            ASSERTED_NOT_MEASURABLE_HERE,
+        )
+
         for row in leakage_audit:
             # SCOPE_NOTE rows for n_examined may be equal to total obs
             assert "n_examined" in row, f"Row missing n_examined: {row}"
+            if row["n_examined"] is None:
+                assert row["result"] == ASSERTED_NOT_MEASURABLE_HERE, (
+                    f"Check {row['check']} for {row['split']} reports no "
+                    f"examination and claims {row['result']}. A null count is only "
+                    "honest under the result that names it."
+                )
+                continue
             assert row["n_examined"] > 0, (
                 f"Check {row['check']} for {row['split']} examined 0 records"
             )

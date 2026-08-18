@@ -131,21 +131,34 @@ export default function PassTimeSeries({
 
   const timeTicks = [0, 0.25, 0.5, 0.75, 1];
 
-  // Whether the Doppler series changes sign within the recorded window.
-  // Checking only sign changes, not whether the series crosses zero exactly,
-  // because the samples are discrete and the crossing may land between them.
-  const crossesZero = dops
-    ? dops.some((v, i) => i > 0 && ((v >= 0) !== ((dops[i - 1] ?? v) >= 0)))
-    : false;
+  // Index of the first sign change in the Doppler series, or -1 when the window
+  // lies entirely on one side of closest approach. Sign changes rather than an
+  // exact zero, because the samples are discrete and the crossing lands between
+  // two of them.
+  const iCross = dops
+    ? dops.findIndex((v, i) => i > 0 && (v >= 0) !== ((dops[i - 1] ?? v) >= 0))
+    : -1;
+  const crossesZero = iCross > 0;
+  // Whether the crossing lands on the sample where elevation peaks. The physics
+  // says both happen at closest approach, and on a modelled series they do, but
+  // the label must not assert the coincidence on a series that does not show it.
+  // One sample of tolerance, because the crossing falls between iCross - 1 and
+  // iCross while iTca is a sample index.
+  const crossingIsAtPeak = crossesZero && Math.abs(iCross - iTca) <= 1;
 
   const label =
     `Elevation and Doppler shift against pass time over ${durationS.toFixed(0)} seconds.`
     + ` Elevation rises to ${(els[iTca] ?? 0).toFixed(1)} degrees and falls back.`
     + (dops
       ? crossesZero
-        ? ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
-          + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero at the`
-          + ` same instant elevation peaks.`
+        ? crossingIsAtPeak
+          ? ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
+            + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero at the`
+            + ` same instant elevation peaks.`
+          : ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
+            + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero`
+            + ` ${Math.abs(((fracs[iCross] ?? 0) - (fracs[iTca] ?? 0)) * durationS).toFixed(0)}`
+            + ` seconds from the elevation peak rather than at it.`
         : ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
           + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz. The recording window`
           + ` lies entirely on one side of closest approach, so the Doppler shift`

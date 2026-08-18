@@ -112,8 +112,8 @@
   },
   {
    "name": "LEAKAGE_AUDIT.json",
-   "sha256": "c07273b493d8eab74a68ea7ff87399e6ee5c2a525441822bb08bd2712080c22c",
-   "bytes": 11315
+   "sha256": "68fc3a8344dc7fef9ef66288b3224e6695c9e83a6e24fef840c7cbd398b7e2c0",
+   "bytes": 11342
   },
   {
    "name": "PHYSICS_VALIDATION.json",
@@ -127,8 +127,8 @@
   },
   {
    "name": "SPLIT_MANIFEST.json",
-   "sha256": "2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199",
-   "bytes": 234732
+   "sha256": "2ba59e0ebd89ed3f737b19187a05a6cfd7baf147d137d390175cc41e87442255",
+   "bytes": 234941
   },
   {
    "name": "TRIAGE_RECEIPT.json",
@@ -169,9 +169,9 @@
   },
   {
    "name": "split_manifest.schema.json",
-   "version": "0.3.0",
+   "version": "0.4.0",
    "status": "ratified",
-   "sha256": "c9b74142a47fcf748b5c0ceef7b54fd1d5408568c03a7cdc64400d46875599b8"
+   "sha256": "63573058fdc884d94d405fca471f58289010a36281636efe06a142151a3a0a37"
   },
   {
    "name": "triage_receipt.schema.json",

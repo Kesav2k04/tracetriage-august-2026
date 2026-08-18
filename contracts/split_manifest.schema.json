@@ -3,8 +3,8 @@
   "$id": "tracetriage/split_manifest",
   "title": "Grouped split assignment",
   "status": "ratified",
-  "schema_version": "0.3.0",
-  "description": "Frozen split assignment. Random image-level splits leak station, satellite, rendering, and duplicate patterns, so every split here is grouped by a natural entity boundary. Ratified 2026-08-16 by Bob (task A0): added sampling_design field (required; a stratified sample described as random is a leakage claim that will fail review); added orbital_revolution note (derived field, not present on source_observation directly); added no_station_across_splits to leakage_checks. Revised 2026-08-16 in post-ratification review: every leakage_checks flag is now const true, so a manifest that records a failed check is invalid by construction. Revised 2026-08-17 in B1 (breaking, hence the minor bump): a leakage_checks entry is no longer a bare boolean. A bare true could not say which splits it covered, so a manifest asserted 'no transmitter crosses' while its own audit exempted two split types from that check, and the exemption survived a builder change that made it false. Each entry is now an object carrying passed (still const true), the applies_to list of splits that claim the guarantee, a positive n_examined so a check that examined nothing cannot pass for free, and the measured crossing count on the splits where crossing is by design. An 'excluded' partition is also now permitted, for splits where an observation belongs to no partition.",
+  "schema_version": "0.4.0",
+  "description": "Frozen split assignment. Random image-level splits leak station, satellite, rendering, and duplicate patterns, so every split here is grouped by a natural entity boundary. Ratified 2026-08-16 by Bob (task A0): added sampling_design field (required; a stratified sample described as random is a leakage claim that will fail review); added orbital_revolution note (derived field, not present on source_observation directly); added no_station_across_splits to leakage_checks. Revised 2026-08-16 in post-ratification review: every leakage_checks flag is now const true, so a manifest that records a failed check is invalid by construction. Revised 2026-08-17 in B1 (breaking, hence the minor bump): a leakage_checks entry is no longer a bare boolean. A bare true could not say which splits it covered, so a manifest asserted 'no transmitter crosses' while its own audit exempted two split types from that check, and the exemption survived a builder change that made it false. Each entry is now an object carrying passed (still const true), the applies_to list of splits that claim the guarantee, a positive n_examined so a check that examined nothing cannot pass for free, and the measured crossing count on the splits where crossing is by design. An 'excluded' partition is also now permitted, for splits where an observation belongs to no partition. Revised 2026-08-18 in D0b (breaking, hence the minor bump): test_set_untouched is no longer a leakage_check. It reported passed true with n_examined 1349, the number of emitted test ids, which is a count of a different property than the claim it sat under, and const true made a false unrepresentable while the count made the row look measured. It now references leakage_assertion, which requires the result ASSERTED_NOT_MEASURABLE_HERE, forbids passed, requires n_examined null, and requires the per-split test id digests that are the mechanism actually binding a later evaluation. The audit list carries the same third outcome for the same row, so the two artifacts cannot disagree about what was measured. rebuilt_at is also added, so an artifact rebuilt to correct a reported field does not have to re-date frozen_at to say when it was written.",
   "type": "object",
   "required": ["snapshot_id", "frozen_at", "splits", "grouping_keys", "leakage_checks", "sampling_design"],
   "properties": {
@@ -13,6 +13,11 @@
       "type": "string",
       "format": "date-time",
       "description": "When the split assignment was frozen. After this point the test set is never touched until final evaluation."
+    },
+    "rebuilt_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this file was last written. Distinct from frozen_at on purpose: an artifact rebuilt to correct a reported field keeps its original freeze, and a reader who sees rebuilt_at later than frozen_at can ask what changed instead of guessing whether the splits were re-drawn. The four test_id_digests are what prove they were not."
     },
     "sampling_design": {
       "type": "string",
@@ -42,7 +47,7 @@
     },
     "leakage_checks": {
       "type": "object",
-      "description": "Each check must be measured programmatically, not assumed, and each entry states which splits it covers. passed is const true, so a manifest that records a failed check does not validate and cannot be frozen. That is deliberate: this file is the frozen artifact, produced only after the checks pass. A failing check must halt the freeze and be written up in docs/KILL_GATE.md with the measured value, never softened or dropped from this file to make it validate. Two escape routes are closed here on purpose: a check cannot claim a scope it did not measure (applies_to is required), and it cannot pass on an empty examination (n_examined must be at least 1).",
+      "description": "Each check must be measured programmatically, not assumed, and each entry states which splits it covers. Five entries are measurements referencing leakage_check, where passed is const true, so a manifest that records a failed check does not validate and cannot be frozen. test_set_untouched is the exception and references leakage_assertion: the build cannot measure whether the test set was touched, so that entry carries the result ASSERTED_NOT_MEASURABLE_HERE, no passed flag, a null n_examined and the digests that bind a later evaluation. The exception is named in the schema rather than left to a reader, because the previous version let it publish a pass and a count that measured a different property. That is deliberate: this file is the frozen artifact, produced only after the checks pass. A failing check must halt the freeze and be written up in docs/KILL_GATE.md with the measured value, never softened or dropped from this file to make it validate. Two escape routes are closed here on purpose: a check cannot claim a scope it did not measure (applies_to is required), and it cannot pass on an empty examination (n_examined must be at least 1).",
       "required": [
         "no_transmitter_across_splits",
         "no_station_across_splits",
@@ -74,13 +79,47 @@
           "description": "Every field on the source record is classified as observation_time, identifier, or post_observation, and a field the classification does not cover fails the freeze. The manifest emits ids and no features, so it cannot leak alone; the classification binds whatever extracts features next. n_examined is the field count, not an observation count."
         },
         "test_set_untouched": {
-          "$ref": "#/$defs/leakage_check",
-          "description": "Test ids are emitted and never loaded, scored, or inspected before final evaluation. This is the one entry that cannot be proved from inside the build, so it does not stand on its assertion alone: it carries a digest per frozen test set, and any reported result must quote the digest it scored. A test set redrawn after the freeze changes its digest."
+          "$ref": "#/$defs/leakage_assertion",
+          "description": "Test ids are emitted and never loaded, scored, or inspected before final evaluation. This is the one entry that cannot be proved from inside the build, which is why it references leakage_assertion rather than leakage_check: it carries no passed flag and no examination count, because the build examined nothing to produce it. It stands on the digest per frozen test set instead, and any reported result must quote the digest it scored. A test set redrawn after the freeze changes its digest."
         }
       }
     }
   },
   "$defs": {
+    "leakage_assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "applies_to", "n_examined", "test_id_digests", "rationale"],
+      "description": "One claim the build states but cannot measure from inside itself. It is deliberately not a leakage_check: a measured check and an asserted one must not be tallied together, and an assertion that could carry passed true with a positive n_examined is how a count of emitted test ids came to read as evidence for a claim about whether those ids were touched. Everything here is either the named absence of a measurement or the mechanism that substitutes for one.",
+      "properties": {
+        "result": {
+          "type": "string",
+          "const": "ASSERTED_NOT_MEASURABLE_HERE",
+          "description": "REQUIRED, and the only permitted value. A third outcome beside PASS and BY_DESIGN, so a reader tallying passes does not count this entry as one. The audit list uses the same string for the same row."
+        },
+        "applies_to": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "enum": ["chronological", "cold_station", "cold_transmitter", "cold_combined"] },
+          "description": "REQUIRED. The splits the assertion covers. An unmeasurable claim still has a scope, and a claim with no stated scope reads as covering everything."
+        },
+        "n_examined": {
+          "type": "null",
+          "description": "REQUIRED, and must be null. Nothing was examined to produce this entry, so any number here would be a measurement of something else. The previous version published 1349, the count of emitted test ids, which is exactly that."
+        },
+        "test_id_digests": {
+          "type": "object",
+          "minProperties": 4,
+          "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "description": "REQUIRED. One SHA-256 per frozen test set, over the sorted test ids. This is the mechanism that replaces a measurement: an evaluation must quote the digest it scored, and a test set redrawn after the freeze stops matching. Four entries minimum, one per split."
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "description": "REQUIRED. Why the claim cannot be measured here and what binds it instead. An assertion with no stated reason has to be taken on trust and outlives whatever made it true."
+        }
+      }
+    },
     "leakage_check": {
       "type": "object",
       "required": ["passed", "applies_to", "n_examined"],

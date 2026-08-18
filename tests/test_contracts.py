@@ -162,6 +162,16 @@ def split_manifest(**overrides: Any) -> dict[str, Any]:
             "n_examined": 4,
         }
 
+    def assertion() -> dict[str, Any]:
+        """test_set_untouched, the one entry the build cannot measure."""
+        return {
+            "result": "ASSERTED_NOT_MEASURABLE_HERE",
+            "applies_to": _ALL_SPLITS,
+            "n_examined": None,
+            "test_id_digests": {name: "a" * 64 for name in _ALL_SPLITS},
+            "rationale": "Test ids are emitted, never loaded or scored here.",
+        }
+
     doc: dict[str, Any] = {
         "snapshot_id": "snap-2026-08-17-stage1",
         "frozen_at": "2026-08-17T00:00:00Z",
@@ -176,7 +186,7 @@ def split_manifest(**overrides: Any) -> dict[str, Any]:
             "no_revolution_across_splits": check(),
             "no_duplicate_image_across_splits": check(),
             "no_future_feature_in_train": check(),
-            "test_set_untouched": check(),
+            "test_set_untouched": assertion(),
         },
     }
     doc.update(overrides)
@@ -209,6 +219,60 @@ def test_split_manifest_rejects_a_check_that_examined_nothing() -> None:
     """A check with nothing to examine passes for free, so zero is invalid."""
     doc = split_manifest()
     doc["leakage_checks"]["no_station_across_splits"]["n_examined"] = 0
+    assert not is_valid("split_manifest", doc)
+
+
+def test_split_manifest_rejects_a_pass_on_the_unmeasurable_check() -> None:
+    """test_set_untouched cannot claim a pass, because nothing measured it.
+
+    Schema 0.3.0 accepted ``passed: true`` with ``n_examined: 1349`` here, and
+    1349 is the count of emitted test ids: a different property than whether
+    those ids were touched. Both halves are now unrepresentable.
+    """
+    doc = split_manifest()
+    doc["leakage_checks"]["test_set_untouched"] = {
+        "passed": True,
+        "applies_to": _ALL_SPLITS,
+        "n_examined": 1349,
+    }
+    assert not is_valid("split_manifest", doc)
+
+
+def test_split_manifest_rejects_an_assertion_that_carries_a_count() -> None:
+    """A count under a null-only field is a measurement of something else."""
+    doc = split_manifest()
+    doc["leakage_checks"]["test_set_untouched"]["n_examined"] = 1349
+    assert not is_valid("split_manifest", doc)
+
+
+def test_split_manifest_rejects_an_assertion_that_carries_a_pass() -> None:
+    """passed is forbidden on the assertion, not merely discouraged."""
+    doc = split_manifest()
+    doc["leakage_checks"]["test_set_untouched"]["passed"] = True
+    assert not is_valid("split_manifest", doc)
+
+
+def test_split_manifest_rejects_an_assertion_with_no_digests() -> None:
+    """The digests are the mechanism that replaces the missing measurement.
+
+    Drop them and the entry is a bare sentence, which is what the third outcome
+    exists to avoid. Fewer than four is also invalid: one per frozen test set.
+    """
+    doc = split_manifest()
+    del doc["leakage_checks"]["test_set_untouched"]["test_id_digests"]
+    assert not is_valid("split_manifest", doc)
+
+    doc = split_manifest()
+    doc["leakage_checks"]["test_set_untouched"]["test_id_digests"] = {
+        "chronological": "b" * 64
+    }
+    assert not is_valid("split_manifest", doc)
+
+
+def test_split_manifest_rejects_an_assertion_with_a_bad_digest() -> None:
+    """A digest that is not 64 hex characters cannot pin anything."""
+    doc = split_manifest()
+    doc["leakage_checks"]["test_set_untouched"]["test_id_digests"]["cold_station"] = "nope"
     assert not is_valid("split_manifest", doc)
 
 

@@ -31,6 +31,7 @@ from typing import Any
 import pytest
 
 from pipeline.tracetriage.splits import (
+    ASSERTED_NOT_MEASURABLE_HERE,
     CHECK_SCOPES,
     FIELD_CLASSIFICATION,
     _build_cold_combined_split,
@@ -501,3 +502,133 @@ class TestLeakageAuditPathHandling:
             "n_examined must be None: the emitted test-id count measures a "
             "different property and must not stand in for this one."
         )
+
+
+class TestVacuityGateCoversTheThirdOutcome:
+    """The gate has to cover the null that the third outcome introduced.
+
+    Until test_set_untouched carried a null n_examined, every audit row held an
+    integer, so a predicate of ``n_examined == 0`` was complete. Adding null to the
+    vocabulary opened a shape the gate accepted: PASS with no count at all, which
+    says even less than PASS with a zero. The same commit that added the null had to
+    widen the gate, and did not.
+    """
+
+    @staticmethod
+    def _pass_row(**overrides):
+        row = {
+            "check": "no_station_across_splits",
+            "split": "chronological",
+            "result": "PASS",
+            "n_examined": 12,
+            "n_violators": 0,
+            "guaranteed": True,
+            "entity": "station",
+            "n_entities": 3,
+            "n_skipped_excluded": 0,
+            "n_skipped_no_key": 0,
+            "detail": "synthetic",
+            "examples": [],
+        }
+        row.update(overrides)
+        return row
+
+    def test_pass_with_a_null_count_is_refused(self) -> None:
+        """A PASS that reports no examination is not evidence of anything."""
+        with pytest.raises(RuntimeError, match="0 or null"):
+            reject_vacuous_checks_in_audit([self._pass_row(n_examined=None)])
+
+    def test_pass_with_a_zero_count_is_still_refused(self) -> None:
+        with pytest.raises(RuntimeError, match="0 or null"):
+            reject_vacuous_checks_in_audit([self._pass_row(n_examined=0)])
+
+    def test_a_real_pass_and_the_third_outcome_both_survive(self) -> None:
+        """Widening the gate must not make the legitimate null unrepresentable."""
+        reject_vacuous_checks_in_audit(
+            [
+                self._pass_row(),
+                self._pass_row(
+                    check="test_set_untouched",
+                    result=ASSERTED_NOT_MEASURABLE_HERE,
+                    n_examined=None,
+                    n_violators=None,
+                    split="all",
+                ),
+            ]
+        )
+
+    def test_the_build_calls_the_shared_gate_not_a_copy(self, tmp_path, monkeypatch) -> None:
+        """build_leakage_audit had an inline copy of the gate's predicate.
+
+        The tests exercised the function while the build ran the copy, so the two
+        could drift with nothing failing. This patches the shared function and asserts
+        the build path goes through it, which an inline copy cannot satisfy.
+        """
+        import pipeline.tracetriage.splits as S
+
+        called = []
+
+        def _spy(audit):
+            called.append(len(audit))
+            raise RuntimeError("shared gate reached")
+
+        monkeypatch.setattr(S, "reject_vacuous_checks_in_audit", _spy)
+
+        pages_dir = tmp_path / "pages"
+        pages_dir.mkdir()
+        (pages_dir / "page1.json").write_text(
+            json.dumps([{"id": 1, "start": "2026-08-09T00:00:00Z"}]), encoding="utf-8"
+        )
+        rows, chron, station, tx, combined = (
+            TestLeakageAuditPathHandling._minimal_audit_args(tmp_path)
+        )
+        with pytest.raises(RuntimeError, match="shared gate reached"):
+            S.build_leakage_audit(rows, chron, station, tx, combined, pages_dir=pages_dir)
+        assert called and called[0] > 0, "the gate was called on an empty audit"
+
+
+class TestManifestAssertionEntry:
+    """reject_vacuous_checks has to tell an assertion from a vacuous measurement.
+
+    Both carry no usable count. One is a named absence with digests behind it; the
+    other is a check that examined nothing and reported a pass. Treating them alike
+    either blocks the honest entry or lets the vacuous one through.
+    """
+
+    def test_an_assertion_with_a_null_count_is_not_vacuous(self) -> None:
+        reject_vacuous_checks(
+            {
+                "no_station_across_splits": {"passed": True, "n_examined": 7},
+                "test_set_untouched": {
+                    "result": ASSERTED_NOT_MEASURABLE_HERE,
+                    "n_examined": None,
+                },
+            }
+        )
+
+    def test_an_assertion_that_carries_a_number_is_refused(self) -> None:
+        """1349 emitted test ids is a count of a different property.
+
+        This is the shape the artifact published: a check that measured nothing,
+        reporting the size of the thing it did not measure.
+        """
+        with pytest.raises(RuntimeError, match="count of something else"):
+            reject_vacuous_checks(
+                {
+                    "test_set_untouched": {
+                        "result": ASSERTED_NOT_MEASURABLE_HERE,
+                        "n_examined": 1349,
+                    }
+                }
+            )
+
+    def test_a_measured_check_with_a_null_count_is_refused(self) -> None:
+        """A null on a check that claims a pass used to raise TypeError.
+
+        ``v.get("n_examined", 0) < 1`` compares None with an int, so the build died
+        with a type error instead of naming the check that reported nothing.
+        """
+        with pytest.raises(RuntimeError, match="examined zero records"):
+            reject_vacuous_checks(
+                {"no_station_across_splits": {"passed": True, "n_examined": None}}
+            )

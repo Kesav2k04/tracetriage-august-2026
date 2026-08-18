@@ -389,12 +389,12 @@
     "split": "all",
     "entity": "process",
     "guaranteed": true,
-    "n_examined": 1349,
+    "n_examined": null,
     "n_entities": 4,
-    "n_violators": 0,
+    "n_violators": null,
     "n_skipped_excluded": 0,
     "n_skipped_no_key": 0,
-    "result": "PASS",
+    "result": "ASSERTED_NOT_MEASURABLE_HERE",
     "detail": "Test ids are emitted, not loaded, scored, or inspected at build time. This is the one check that cannot be proved from inside the build, so the manifest records a digest per frozen test set and any reported number must quote the digest it scored.",
     "examples": []
   }
