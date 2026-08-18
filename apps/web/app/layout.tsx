@@ -1,14 +1,23 @@
 import type { Metadata } from "next";
 
 // IBM Plex, self-hosted, latin subset only, at the three weights this console
-// actually sets. Carbon's typeface served from the console's own origin: there is
-// no font request to a third party, so the content security policy stays closed
-// and the page has no runtime dependency on anyone else being up.
+// actually sets. Carbon's typeface served from the console's own origin, so every
+// word of running prose and every digit of every measurement paints without a
+// third-party request and without waiting on anyone else being up.
 //
-// The display face is a token, not an import. --font-display currently falls back
-// to Plex Sans; pointing it at an Adobe Fonts kit is a one-line change in
-// globals.css plus a <link> here, and it would be the only third-party request on
-// the site, which is a trade this console has so far declined to make.
+// The display and label faces are the one exception, and they are licensed rather
+// than free, so they cannot be self-hosted: Adobe's terms of use forbid serving
+// the files from another origin. They are loaded from the kit in <head> below.
+// The split is deliberate and it is the whole reason the trade is worth making:
+//
+//   prose and every number  ->  Plex Sans, Plex Mono, same origin, no dependency
+//   display headings        ->  Neue Haas Grotesk Display, third-party
+//   technical labels        ->  DIN 2014 Narrow, third-party
+//
+// If the kit never loads, the page is still complete. Both third-party faces sit
+// in front of a Plex fallback in the same token, so a reader on a blocked network
+// or a cold cache gets the console in Plex rather than a page with holes in it.
+// Nothing that carries a measurement depends on a request leaving this origin.
 import "@fontsource/ibm-plex-sans/latin-400.css";
 import "@fontsource/ibm-plex-sans/latin-600.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
@@ -54,6 +63,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* The handshake to the font origin costs a DNS lookup and a TLS
+            negotiation, and it is on the critical path for the display face.
+            Starting it before the stylesheet is parsed overlaps that cost with
+            the rest of the document instead of queueing behind it. */}
+        <link rel="preconnect" href="https://use.typekit.net" crossOrigin="" />
+        {/* Adobe Fonts kit iie4ixd. The kit itself @imports p.typekit.net for
+            usage reporting, which is why the content security policy in
+            vercel.json names two hosts rather than one: the second host is not in
+            this markup and cannot be found by reading it. Both are declared on
+            the provenance page as named third-party origins. */}
+        <link
+          rel="stylesheet"
+          href="https://use.typekit.net/iie4ixd.css"
+        />
+      </head>
       <body>
         <a className="skip-link" href="#main">
           Skip to main content

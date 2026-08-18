@@ -278,10 +278,31 @@ export default function ProvenancePage() {
           }}
         >
           <li>
-            No request to any origin but its own, before or after load, including
-            for the typeface. The router does prefetch the next page&rsquo;s data
-            when a link enters the viewport, which is a request to this site for a
-            file that is already public.
+            No request for <em>data</em> to any origin but its own, before or after
+            load. There is exactly one exception to the wider claim and it is not
+            data: two licensed typefaces are served from Adobe Fonts, because their
+            terms forbid serving the files from anywhere else. Measured cold, that
+            is 43,598 bytes: a 4,166 byte stylesheet from{" "}
+            <code>use.typekit.net</code>, one 23,224 byte face for page titles and
+            one 16,208 byte face for small labels. The faces carry a one-year cache
+            header, so a returning reader fetches none of it. Every word of prose
+            and every digit of every measurement is set in IBM Plex from this
+            origin, and both licensed faces sit in front of a Plex fallback, so a
+            blocked font host costs the lettering and not the reading.
+          </li>
+          <li>
+            The kit stylesheet imports a five-byte counter from{" "}
+            <code>p.typekit.net</code> so Adobe can meter the licence. It is named
+            here rather than blocked: it sets no cookie and returns no content, and
+            suppressing a licensor&rsquo;s own metering to keep a claim tidy would
+            be the wrong way to earn it. Those two hosts are the complete list, and
+            the content security policy in <code>vercel.json</code> names both, so
+            a request to any third origin would be refused by the browser.
+          </li>
+          <li>
+            The router does prefetch the next page&rsquo;s data when a link enters
+            the viewport, which is a request to this site for a file that is
+            already public.
           </li>
           <li>
             No model runs in the browser. The probabilities shown were fitted offline
@@ -293,8 +314,10 @@ export default function ProvenancePage() {
             and the waterfall viewer says so on every card.
           </li>
           <li>
-            No analytics, no cookies, no storage. There is nothing to consent to
-            because there is nothing being collected.
+            No analytics about you, no cookies, no storage. Nothing is collected
+            about a reader, nothing is stored on their machine, and there is
+            nothing to consent to. The font counter above reports that a licence
+            was used; it is told nothing about who used it.
           </li>
         </ul>
       </Section>

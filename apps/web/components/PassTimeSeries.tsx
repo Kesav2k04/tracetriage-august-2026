@@ -25,15 +25,44 @@ export type SeriesGeometry = {
   doppler_hz: number[] | null;
 };
 
-const W = 420;
-const PANEL_H = 92;
-const GAP = 26;
-const PAD_L = 42;
-const PAD_R = 10;
-const PAD_T = 8;
-const PAD_B = 20;
+// The viewBox is sized so one user unit is about one CSS pixel at the width this
+// instrument is actually displayed at, and that is not cosmetic. An SVG laid out
+// with width:100% scales its whole coordinate system, text included, so a label
+// declared at 9px renders at 9px times the scale factor. Measured on the built
+// page at a 1440px viewport: the sky plot scales 1.18, the ground track 1.30, and
+// this instrument, 420 units wide inside a 1151px column, scaled 2.74. Its axis
+// labels were rendering at 24.7px next to 14px body prose, so the chrome of the
+// chart was the largest text in the section.
+//
+// The fix is the coordinate system rather than the font size, because the scale
+// factor depends on the viewport and any font-size chosen to cancel it would only
+// be right at one width. At 1120 units wide the scale is about 1.03 and the labels
+// land near their declared size at every width the column takes.
+//
+// Two consequences worth naming. Stroke widths come from CSS and were being
+// multiplied by 2.74 here, so the curves drop from about 4.8px to 1.75px and now
+// match the weight of the other two instruments instead of overpowering them. And
+// the small offsets below are NOT the old numbers scaled by 8/3: they position
+// text that did not scale with the geometry, so each one is re-derived for a label
+// of about 11px rather than one of 25px.
+const W = 1120;
+const PANEL_H = 250;
+const GAP = 30;
+const PAD_L = 44;
+const PAD_R = 16;
+const PAD_T = 18;
+const PAD_B = 44;
 const H = PAD_T + PANEL_H * 2 + GAP + PAD_B;
 const PLOT_W = W - PAD_L - PAD_R;
+
+/** Right-aligned tick label to its axis. */
+const AXIS_GAP = 8;
+/** Panel title baseline above the panel's top edge. */
+const TITLE_LIFT = 5;
+/** Time tick baseline below the plot's bottom edge. */
+const TICK_DROP = 16;
+/** Axis title baseline above the bottom of the frame. */
+const AXIS_TITLE_LIFT = 6;
 
 const TOP_Y = PAD_T;
 const BOTTOM_Y = PAD_T + PANEL_H + GAP;
@@ -116,7 +145,7 @@ export default function PassTimeSeries({
     yPos: number,
   ): ReactNode => (
     <text
-      x={PAD_L - 6}
+      x={PAD_L - AXIS_GAP}
       y={yPos}
       className="plot-label"
       textAnchor="end"
@@ -149,7 +178,7 @@ export default function PassTimeSeries({
         </g>
       ))}
       <polyline points={elPath.join(" ")} className="plot-track" />
-      <text x={PAD_L} y={TOP_Y - 1} className="plot-label">
+      <text x={PAD_L} y={TOP_Y - TITLE_LIFT} className="plot-label">
         ELEVATION, DEG
       </text>
 
@@ -191,7 +220,7 @@ export default function PassTimeSeries({
           no receive frequency on this record, so no Doppler curve
         </text>
       )}
-      <text x={PAD_L} y={BOTTOM_Y - 1} className="plot-label">
+      <text x={PAD_L} y={BOTTOM_Y - TITLE_LIFT} className="plot-label">
         DOPPLER, HZ
       </text>
 
@@ -209,7 +238,7 @@ export default function PassTimeSeries({
         <text
           key={`t-${frac}`}
           x={x(frac)}
-          y={H - PAD_B + 12}
+          y={H - PAD_B + TICK_DROP}
           className="plot-label"
           textAnchor={frac === 0 ? "start" : frac === 1 ? "end" : "middle"}
         >
@@ -218,7 +247,7 @@ export default function PassTimeSeries({
       ))}
       <text
         x={PAD_L + PLOT_W / 2}
-        y={H - 1}
+        y={H - AXIS_TITLE_LIFT}
         className="plot-label"
         textAnchor="middle"
       >

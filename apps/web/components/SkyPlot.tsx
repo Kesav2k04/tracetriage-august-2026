@@ -128,10 +128,14 @@ export default function SkyPlot({
         return (
           <g key={name}>
             <line x1={SKY.cx} y1={SKY.cy} x2={x2} y2={y2} className="plot-grid" />
+            {/* The cardinals are the only glyphs in this plot that are not a
+                measurement, so they take the label face while every tick label
+                stays in the mono. That is the same split the rest of the console
+                uses, drawn inside one SVG. */}
             <text
               x={lx}
               y={ly}
-              className="plot-label-strong"
+              className="plot-cardinal"
               textAnchor="middle"
               dominantBaseline="middle"
             >

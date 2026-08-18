@@ -137,15 +137,37 @@
 
   --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
-  /* Display face. "Neue Haas Grotesk Display Pro" is the Adobe Fonts cut of the
-     Helvetica that NASA's own identity ran on for two decades, and it is the one
-     departure from Plex worth making: Plex Sans is a fine UI face and a weak
-     display face at 6rem. The kit link drops into app/layout.tsx and this stack
-     picks it up with no other change. Numbers never use it: figures stay in Plex
-     Mono, which is IBM's, is genuinely the better technical mono, and keeps the
-     host system's signal on the part of the page that carries the measurements. */
-  --font-display: "Neue Haas Grotesk Display Pro", "IBM Plex Sans", system-ui,
+  /* Display face. Neue Haas Grotesk is Helvetica digitised from Max Miedinger's
+     1957 drawings rather than from the 1983 Neue Helvetica redraw, and the
+     Display cut is the one optimised for size: tighter sidebearings, shorter
+     descenders, apertures that stay closed at 6rem instead of opening up the way
+     a text cut does. The 1975 NASA Graphics Standards Manual specified Helvetica
+     for the whole identity, and the 2015 reissue kept it, so this is the
+     historically correct face for an instrument console rather than a face that
+     resembles one. It is also the one departure from Plex worth paying for: Plex
+     Sans is a good UI face and a weak display face at 6rem.
+
+     The family name here is the kit's, "neue-haas-grotesk-display". It is NOT
+     "Neue Haas Grotesk Display Pro", which is the Monotype retail name for the
+     desktop licence and resolves to nothing from a web kit. This token carried
+     the retail name until C7d, so every display heading on the site had been
+     silently falling through to Plex Sans since the token was written.
+
+     Numbers never use this face. Figures stay in Plex Mono, which is IBM's own,
+     is the better technical mono, has tabular figures so a digit changing in the
+     replay readout cannot reflow the line, and keeps the measurements on a face
+     served from this origin. */
+  --font-display: "neue-haas-grotesk-display", "IBM Plex Sans", system-ui,
     sans-serif;
+  /* Label face, for axis ticks, instrument captions and small tracked uppercase.
+     DIN 2014 descends from DIN 1451, the German standard drawn for engineering
+     drawings and machine plates rather than for reading, and the Narrow cut fits
+     a legible tick label in the width an axis actually has. It does a job the
+     other two faces cannot: it separates the chrome of an instrument from its
+     content by drawing them in different registers, which is how a real
+     instrument panel is laid out. Falls back to Plex Sans, so a blocked kit
+     costs the register and not the label. */
+  --font-label: "din-2014-narrow", "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     monospace;
 
@@ -191,6 +213,41 @@ h4 {
   margin: 0;
   font-weight: 400;
   letter-spacing: 0;
+}
+
+/* Only h1 takes the display face, and the reason is optical size rather than
+   hierarchy. Neue Haas Grotesk Display is drawn for 24pt and up: short descenders,
+   tight sidebearings, apertures that stay closed. Below about 32px those choices
+   invert and work against legibility. Measured on the built pages, h1 is 68px on
+   the home lede and 32px on every subpage, so h1 sits inside the cut's range at
+   both ends. Section h2 is 20px, which is not, and it showed: set in the Display
+   cut at 20px, "Kill gate 6" read as one word because the cut's word space is
+   narrower than a text cut's and the negative tracking took more off it.
+
+   So h2 stays in Plex Sans at 600. The kit does carry neue-haas-grotesk-text, the
+   cut drawn for exactly this size, and it was the obvious fix and the wrong one:
+   it is a third licensed family and another font file on the wire to solve a
+   problem a face already in the page solves for nothing. Plex Sans 600 at 20px is
+   a good section head, it is Carbon's own, and it leaves the licensed face doing
+   work only where it is visible, which is the argument for buying it at all.
+
+   Weight 500 on h1 rather than 600: on a Gray 100 ground a light-on-dark stem
+   reads thicker than the same stem dark-on-light, which is why Carbon's dark
+   themes step weights down rather than up. */
+h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.014em;
+  /* Letter-spacing shortens every glyph's advance including the space character,
+     so tracking a heading in also closes its word gaps, and a Display cut already
+     spaces words tighter than a text cut. Handing the same figure back as
+     word-spacing tightens the letters and leaves the gaps alone. */
+  word-spacing: 0.014em;
+}
+
+h2 {
+  font-weight: 600;
+  letter-spacing: -0.006em;
 }
 
 a {
@@ -319,7 +376,12 @@ code,
 .rail-mark {
   font-family: var(--font-display);
   font-size: 1.0625rem;
-  font-weight: 600;
+  /* 500, matching h1, and the reason is bytes rather than taste. A second weight
+     of a licensed face is a second font file: measured cold, one Display weight is
+     23,224 B and the wordmark was the only thing on the site asking for 600, so
+     600 cost 24,428 B to set two words. At 17px the difference between 500 and 600
+     is not visible next to a rule that thick anyway. */
+  font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--text-01);
 }
@@ -381,6 +443,8 @@ code,
   margin: 0;
   text-transform: uppercase;
   letter-spacing: var(--tracking-label);
+  font-family: var(--font-label);
+  font-weight: 600;
   font-size: 0.6875rem;
 }
 
@@ -458,15 +522,28 @@ code,
  * making exactly the claim the gate refused to make.
  * =========================================================================== */
 
+/* This file is mobile-first, so a single padding figure here is the phone's figure
+   as well as the desktop's, and 3rem was written for the desktop. Measured at 375px:
+   the rail ends at 143px and the kicker starts at 231px, so 88px of an 812px screen
+   went to nothing before the first word, above the fold, where it is most expensive.
+   1.5rem at the base and 3rem from 52rem up. */
 .lede {
-  padding: var(--sp-09) 0 var(--sp-08);
+  padding: var(--sp-06) 0 var(--sp-07);
   border-bottom: 1px solid var(--border-subtle);
+}
+
+@media (min-width: 52rem) {
+  .lede {
+    padding: var(--sp-09) 0 var(--sp-08);
+  }
 }
 
 .lede-kicker {
   margin: 0;
   font-size: var(--type-label);
   letter-spacing: var(--tracking-label);
+  font-family: var(--font-label);
+  font-weight: 600;
   text-transform: uppercase;
   color: var(--text-03);
 }
@@ -483,13 +560,34 @@ code,
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* The hero figure. Plex Sans 600 with tabular figures, not Plex Mono, and the
+   reason is the decimal point rather than the digits. A monospaced period gets the
+   same advance as an 8, so at 136px it sits alone in a gap about 40px wide and the
+   figure reads as three tokens instead of one number. Uniform negative tracking
+   cannot fix that, because the defect is one glyph's advance and tracking applies
+   to every gap: measured at 112px, Plex Mono needed -0.075em before the figure
+   closed up at all, and by then the 5 and 8 were colliding while the period gap
+   was still open. Four treatments were rendered and compared at 112px before this
+   was chosen; the ink widths were 259, 235, 222 and 173 px for Plex Mono at
+   -0.022em, Plex Mono at -0.075em, this, and Neue Haas Display 500.
+
+   The rule this console follows is that measurements are set in Plex, not that
+   they are set in the mono. The mono's job is a readout whose digits must not
+   reflow when a value changes during playback, which is why the replay readout
+   keeps it. This figure is generated once at build time and never changes, so it
+   buys nothing from a fixed advance and pays for it in legibility.
+
+   Weight 600 rather than 400: it is already self-hosted so it costs no bytes, and
+   it sits one step above the headline's 500 so the figure leads the hero instead
+   of tying with the sentence beside it. */
 .lede-number {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: 600;
   font-variant-numeric: tabular-nums lining-nums;
   font-size: var(--type-display-03);
   line-height: 0.82;
-  letter-spacing: var(--tracking-display);
+  letter-spacing: -0.03em;
   color: var(--text-01);
   margin-left: -0.04em;
 }
@@ -516,6 +614,8 @@ code,
   font-size: var(--type-display-02);
   line-height: 1.04;
   letter-spacing: var(--tracking-display);
+  /* Same compensation as the h1/h2 rule, at this element's own tracking figure. */
+  word-spacing: 0.022em;
   /* A display size can push a long token past the viewport on a 320px screen. */
   overflow-wrap: anywhere;
   min-width: 0;
@@ -573,6 +673,8 @@ code,
   margin: 0;
   font-size: var(--type-label);
   letter-spacing: var(--tracking-label);
+  font-family: var(--font-label);
+  font-weight: 600;
   text-transform: uppercase;
   color: var(--text-03);
 }
@@ -594,6 +696,14 @@ code,
    two plots instead of being squeezed into one column of the pair. */
 .instrument-wide {
   grid-column: 1 / -1;
+}
+
+/* The wide instrument's viewBox is in display pixels, so its labels are not scaled
+   up the way the two square plots' are. 11px here lands within half a pixel of what
+   the sky plot's 9px renders at after its own 1.18 scale, which is what keeps the
+   three instruments reading as one set. */
+.instrument-wide .plot-label {
+  font-size: 11px;
 }
 
 .replay-cursor-time {
@@ -626,6 +736,19 @@ code,
   font-family: var(--font-mono);
   font-size: 9px;
   font-variant-numeric: tabular-nums;
+}
+
+/* The four cardinals. Letters, not measurements, so they take the label face and
+   sit a step brighter than a tick: they are how a reader orients the plot before
+   reading anything off it. Slightly larger than plot-label-strong because DIN
+   Narrow is narrower per glyph and would otherwise read as smaller at the same
+   nominal size. */
+.plot-cardinal {
+  fill: var(--text-02);
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
 }
 
 .plot-label-strong {
@@ -721,6 +844,8 @@ code,
 .colophon h2 {
   font-size: 0.6875rem;
   letter-spacing: var(--tracking-label);
+  font-family: var(--font-label);
+  font-weight: 600;
   text-transform: uppercase;
   color: var(--text-03);
   margin: 0 0 var(--sp-04);
@@ -844,6 +969,8 @@ code,
   color: var(--text-03);
   text-transform: uppercase;
   letter-spacing: var(--tracking-label);
+  font-family: var(--font-label);
+  font-weight: 600;
 }
 
 .replay-scrub input {
@@ -871,6 +998,8 @@ code,
 .replay-readout dt {
   font-size: 0.6875rem;
   letter-spacing: var(--tracking-label);
+  font-family: var(--font-label);
+  font-weight: 600;
   text-transform: uppercase;
   color: var(--text-03);
 }

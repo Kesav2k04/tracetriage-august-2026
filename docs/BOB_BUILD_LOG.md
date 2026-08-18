@@ -1881,3 +1881,124 @@ tracked file outside the frozen API cache, which is third-party JSON and is not 
 
 The wave labels stay A, B, C and D throughout, which was already the rule. This entry
 extends the same reasoning from tool names to the tool's billing unit.
+
+## C7d: the typography, and the claim it cost
+
+### What changed
+
+The console had a `--font-display` token naming "Neue Haas Grotesk Display Pro". That
+string is the Monotype retail name for the desktop licence and resolves to nothing from
+a web kit, so every heading on the site had been falling through to the Plex Sans
+fallback since the token was written. Nobody noticed because the fallback is good. The
+kit's family name is `neue-haas-grotesk-display`, lowercase and hyphenated, and that is
+what the token says now.
+
+Four faces, each with one job, and no overlap:
+
+| Role | Face | Served from |
+|---|---|---|
+| Page titles, h1 only | Neue Haas Grotesk Display 500 | Adobe Fonts |
+| Small tracked uppercase labels, plot cardinals | DIN 2014 Narrow 600 | Adobe Fonts |
+| Running prose, section h2, the hero figure | IBM Plex Sans 400 and 600 | this origin |
+| Every readout and every table figure | IBM Plex Mono 400 | this origin |
+
+Neue Haas Grotesk is Helvetica digitised from Miedinger's 1957 drawings rather than from
+the 1983 Neue Helvetica redraw. The 1975 NASA Graphics Standards Manual specified
+Helvetica for the whole identity and the 2015 reissue kept it, so for an instrument
+console this is the historically correct face rather than one that resembles it. DIN
+2014 descends from DIN 1451, drawn for engineering drawings and machine plates, and it
+separates an instrument's chrome from its content by drawing them in different
+registers.
+
+### The claim this cost, and why it was not quietly reworded
+
+Adobe's terms of use forbid serving the font files from another origin, so a licensed
+face cannot be self-hosted. Before this unit the console requested nothing at all from
+any third party, and the provenance page said so in those words, adding "including for
+the typeface". That claim is now false and it is corrected rather than softened.
+
+Measured cold, with a warm cache excluded by fetching each URL directly:
+
+| Resource | Bytes | Cache-Control |
+|---|---|---|
+| Kit stylesheet, gzip, all 7 families | 4,166 | private, max-age=600 |
+| Neue Haas Grotesk Display 500, woff2 | 23,224 | public, max-age=31536000 |
+| DIN 2014 Narrow 600, woff2 | 16,208 | public, max-age=31536000 |
+| Total | 43,598 | |
+
+The faces carry a one-year cache header, so this is once per reader rather than once per
+page, across all 31 pages. The provenance page now publishes that table's total, names
+both hosts, and states that the licence counter at `p.typekit.net` is a five-byte
+response that sets no cookie. The counter is named rather than blocked. It could be
+blocked by leaving that host out of the content security policy, and suppressing a
+licensor's own metering to keep a claim tidy is the wrong way to earn the claim.
+
+The negative claims in the colophon and on the provenance page were narrowed from
+"anything" to "any data", which is the part that is still absolutely true, and the
+video's own claim was narrowed so it describes the video rather than the page. The Wave
+D prompt now records the exception explicitly and tells the next unit not to restate the
+old absolute.
+
+### Four measured defects found while doing it
+
+**The display cut at the wrong optical size.** Neue Haas Grotesk Display is drawn for
+24pt and up. Applying it to `h1, h2` put it on section heads at 20px, where its narrow
+word space plus negative tracking ran words together: "Kill gate 6" read as one word.
+The kit does carry `neue-haas-grotesk-text`, the cut drawn for that size, and that was
+the obvious fix and the wrong one, because it is a third licensed family and another
+file on the wire to solve a problem Plex Sans 600 already solves for nothing. h1 is 68px
+on the home lede and 32px on every subpage, both inside the Display cut's range, so h1
+keeps it and h2 does not.
+
+**Negative tracking closes word gaps too.** `letter-spacing` shortens the advance of
+every glyph including the space, so a heading tracked at -0.014em also loses 0.014em
+from each word gap. Handing the same figure back as `word-spacing` tightens the letters
+and leaves the gaps where they were.
+
+**A monospaced period cannot be tracked into place.** The hero figure was Plex Mono at
+136px, where the decimal point gets the same advance as an 8 and sits alone in a gap
+about 40px wide, so "1.58" read as three tokens. Uniform tracking cannot fix a single
+glyph's advance: measured at 112px, Plex Mono needed -0.075em before the figure closed
+up at all, and by then the 5 and 8 were colliding while the period gap was still open.
+Four treatments were rendered and compared at 112px, ink widths 259, 235, 222 and 173
+px. Plex Sans 600 with tabular figures won. The rule this console follows is that
+measurements are set in Plex, not that they are set in the mono; the mono's job is a
+readout whose digits must not reflow mid-playback, and a figure generated once at build
+time buys nothing from a fixed advance.
+
+**An SVG scaled by width:100% scales its text with it.** The wide time-series
+instrument was 420 user units inside a 1151px column, a factor of 2.74, so its axis
+labels declared at 9px were rendering at 24.7px next to 14px body prose: the chrome of
+the chart was the largest text in the section. The two square instruments scale 1.18 and
+1.30 and were fine, which is why this went unseen. The fix is the coordinate system,
+not the font size, because the scale factor depends on the viewport and any font-size
+chosen to cancel it is only right at one width. At 1120 units wide the scale is 1.03 and
+all three instruments now render labels at 11.3, 11.7 and 12.9px. Two consequences: the
+CSS stroke widths were also being multiplied by 2.74, so the curves drop from about
+4.8px to 1.75px and now match the other two instruments; and the five small text
+offsets are re-derived rather than scaled by 8/3, because they position text that did
+not scale with the geometry.
+
+### One measurement that lied, and how it was caught
+
+A first reading of the third-party cost said 138,112 bytes across six font files, four
+of them weights the page never asks for. Every one of those six entries turned out to
+have `transferSize: 0` and `deliveryType: "cache"`. The canvas `measureText` probes used
+earlier in the same tab to prove the faces were rendering had themselves pulled those
+weights into the disk cache, and resource timing reported the cached size. The harness
+had contaminated its own subject. The honest figure came from fetching each URL cold,
+outside the browser, and is the 43,598 above.
+
+The wordmark was pinned from weight 600 to 500 as a result: it was the only element on
+the site asking for a second Display weight, and a second weight is a second 24 kB file
+to set two words.
+
+### Also
+
+The hero's top padding was a single desktop figure in a mobile-first stylesheet, so at
+375px the first word sat 88px down an 812px screen. 1.5rem at the base and 3rem from
+52rem up brings that to 64px with the headline still fully above the fold.
+
+Verified after the change: no horizontal scroll and no two-line click target at 360px,
+all four replay cursors still track (the time-series cursor lands at 574.00, which is
+exactly `PAD_L + 0.5 x PLOT_W` for the new constants), typecheck clean, lint clean.

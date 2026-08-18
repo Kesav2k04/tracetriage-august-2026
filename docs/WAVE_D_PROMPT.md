@@ -49,7 +49,13 @@ are met, two came back inconclusive, one was never run:
                                         PASSED on cold-station
 
 The static console is deployed and live. It is a Next.js 15 static export: no server,
-no database, no runtime fetch, no credentials. Four instruments on one clock sit on each
+no database, no runtime fetch of data, no credentials. It makes exactly one class of
+third-party request, added in C7d: two licensed typefaces from Adobe Fonts, 43,598
+bytes cold, plus a five-byte licence counter. Adobe's terms forbid self-hosting the
+files, so this cannot be closed by moving them. It is disclosed with its measured
+byte count on the provenance page and in the colophon, and the content security
+policy names both hosts. Do not restate the old absolute claim that the site requests
+nothing from another origin: it was true until C7d and is not true now. Four instruments on one clock sit on each
 observation page (waterfall with the fitted corridor, polar sky track, ground track with
 the horizon circle, and elevation and Doppler against time). 745 offline tests are
 collected: 744 pass, and 1 is a declared expected failure that task D2 below implements.

@@ -57,7 +57,7 @@ export default function Colophon({
             <h2>What it will not do</h2>
             <ul>
               <li>Run a model in the browser</li>
-              <li>Request anything from another origin</li>
+              <li>Request any data from another origin</li>
               <li>Set a cookie, or store anything at all</li>
               <li>Compute a number the receipts do not contain</li>
             </ul>
@@ -78,9 +78,16 @@ export default function Colophon({
 
         <div className="colophon-rule">
           <p>
-            Typeset in IBM Plex, self-hosted. Colour from the IBM Carbon Gray 100
-            theme, with one documented departure where Carbon&rsquo;s own token
-            failed a contrast requirement.
+            Prose and every figure set in IBM Plex, self-hosted from this origin.
+            Page titles in Neue Haas Grotesk Display and small labels in DIN 2014
+            Narrow, both licensed and served from Adobe Fonts, which is the one
+            third-party origin this site requests and the reason its content
+            security policy names two hosts. Nothing that carries a measurement
+            depends on that request: both licensed faces sit in front of a Plex
+            fallback, so a blocked kit costs the lettering and not the reading.
+            Colour from the IBM Carbon Gray 100 theme, with one documented
+            departure where Carbon&rsquo;s own token failed a contrast
+            requirement.
           </p>
           <p>
             <a href="/data/KILL_GATE.md">Gates</a>
