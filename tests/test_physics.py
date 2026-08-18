@@ -36,6 +36,7 @@ from pipeline.tracetriage.physics import (
     CORRECTED_CORRIDOR_HZ,
     FREQ_OFFSET_SEARCH_HZ,
     N_SAMPLES,
+    SGP4_MAX_MISSING_FRACTION,
     TLE_MAX_EPOCH_AGE_DAYS,
     UNCORRECTED_CORRIDOR_HZ,
     Corridor,
@@ -328,6 +329,37 @@ class TestDegradedStates:
                 assert r.degraded is not None
             except Exception as exc:  # noqa: BLE001
                 pytest.fail(f"corridor_for_obs raised unexpectedly: {exc}")
+
+    # SPACE-B1: an unparseable TLE epoch must return UNPARSEABLE_TLE_EPOCH,
+    # not silently propagate from a garbage epoch and return degraded=None.
+
+    def test_unparseable_tle_epoch_returns_named_code(self):
+        """Replacing the epoch year with 'XX' makes tle_epoch_datetime return None.
+
+        Before the fix: the staleness gate is guarded by 'if tle_epoch is not None',
+        so it is skipped, propagation runs from a garbage epoch, and degraded=None
+        is returned — a confident wrong corridor.  After the fix: UNPARSEABLE_TLE_EPOCH.
+        """
+        bad_tle1 = _TLE1[:18] + "XX" + _TLE1[20:]   # corrupt the 2-digit year field
+        assert tle_epoch_datetime(bad_tle1) is None, (
+            "pre-condition: the corrupted TLE1 must not parse"
+        )
+        r = corridor_for_obs(_obs(tle1=bad_tle1))
+        assert r.degraded == "UNPARSEABLE_TLE_EPOCH", (
+            f"expected UNPARSEABLE_TLE_EPOCH, got degraded={r.degraded!r}. "
+            "A TLE whose epoch cannot be read must not be propagated."
+        )
+        assert r.uncorrected is None
+        assert r.corrected is None
+
+    def test_unparseable_tle_epoch_does_not_raise(self):
+        """corridor_for_obs must return, not raise, on a garbage epoch."""
+        bad_tle1 = _TLE1[:18] + "XX" + _TLE1[20:]
+        try:
+            r = corridor_for_obs(_obs(tle1=bad_tle1))
+            assert r.degraded is not None
+        except Exception as exc:  # noqa: BLE001
+            pytest.fail(f"corridor_for_obs raised on unparseable epoch: {exc}")
 
 
 # ---------------------------------------------------------------------------
@@ -952,3 +984,97 @@ class TestPassGeometry:
                 _TLE1, _TLE2, self._START_DT, self._END_DT, site,
                 np.zeros(3),
             )
+
+
+# ---------------------------------------------------------------------------
+# 12. SPACE-B2: n_sgp4_errors and n_samples_propagated on PhysicsResult
+#
+# errs is collected by propagate_pass and must be surfaced on the result.
+# A corridor built on a fraction of the pass (due to SGP4 errors) must degrade
+# when the missing-sample fraction exceeds SGP4_MAX_MISSING_FRACTION.
+# ---------------------------------------------------------------------------
+
+
+class TestSgp4ErrorSurfacing:
+    """SPACE-B2: SGP4 error counts must be on PhysicsResult, not silently dropped."""
+
+    def test_n_sgp4_errors_field_exists_on_result(self):
+        """PhysicsResult must expose n_sgp4_errors."""
+        r = corridor_for_obs(_FROZEN_OBS)
+        assert hasattr(r, "n_sgp4_errors"), (
+            "PhysicsResult must have n_sgp4_errors; errs from propagate_pass "
+            "was bound and discarded before this fix."
+        )
+
+    def test_n_samples_propagated_field_exists_on_result(self):
+        """PhysicsResult must expose n_samples_propagated."""
+        r = corridor_for_obs(_FROZEN_OBS)
+        assert hasattr(r, "n_samples_propagated"), (
+            "PhysicsResult must have n_samples_propagated."
+        )
+
+    def test_clean_pass_has_zero_sgp4_errors(self):
+        """The frozen ISS pass must propagate without any SGP4 errors."""
+        r = corridor_for_obs(_FROZEN_OBS)
+        assert r.n_sgp4_errors == 0
+        assert r.n_samples_propagated == len(r.uncorrected.fracs)
+
+    def test_sgp4_max_missing_fraction_constant_exists(self):
+        """The threshold must be a named constant, not a magic literal."""
+        assert 0.0 < SGP4_MAX_MISSING_FRACTION < 1.0
+
+    def test_sgp4_partial_failure_degrades_above_threshold(self):
+        """A corridor built on (1 - threshold - epsilon) of the samples must degrade.
+
+        Simulated by patching propagate_pass to return only a tiny slice of fracs,
+        leaving most of N_SAMPLES as error codes.
+        """
+        from unittest.mock import patch
+
+        n_good = max(1, int(N_SAMPLES * (1.0 - SGP4_MAX_MISSING_FRACTION) * 0.5))
+        good_fracs = [i / (n_good - 1) for i in range(n_good)] if n_good > 1 else [0.0]
+        good_dops = [0.0] * n_good
+        good_els = [10.0] * n_good
+        # Fill the rest of N_SAMPLES with synthetic error codes
+        n_errors = N_SAMPLES - n_good
+        fake_errs = [6] * n_errors  # SGP4 error code 6 = decay
+
+        with patch(
+            "pipeline.tracetriage.physics.propagate_pass",
+            return_value=(good_fracs, good_dops, good_els, fake_errs),
+        ):
+            r = corridor_for_obs(_FROZEN_OBS)
+
+        assert r.degraded == "SGP4_PARTIAL_ERROR", (
+            f"expected SGP4_PARTIAL_ERROR when {n_errors} of {N_SAMPLES} samples "
+            f"failed (> {SGP4_MAX_MISSING_FRACTION:.0%} missing), "
+            f"got degraded={r.degraded!r}"
+        )
+        assert r.uncorrected is None
+        assert r.corrected is None
+        assert r.n_sgp4_errors == n_errors
+        assert r.n_samples_propagated == n_good
+
+    def test_sgp4_partial_failure_below_threshold_does_not_degrade(self):
+        """A corridor built on (1 - threshold/2) of the samples must succeed."""
+        from unittest.mock import patch
+
+        n_good = int(N_SAMPLES * (1.0 - SGP4_MAX_MISSING_FRACTION * 0.5))
+        good_fracs = [i / (n_good - 1) for i in range(n_good)]
+        good_dops = list(np.linspace(5000.0, -5000.0, n_good))
+        good_els = [max(1.0, 30.0 - abs(i - n_good // 2) * 0.1) for i in range(n_good)]
+        n_errors = N_SAMPLES - n_good
+        fake_errs = [6] * n_errors
+
+        with patch(
+            "pipeline.tracetriage.physics.propagate_pass",
+            return_value=(good_fracs, good_dops, good_els, fake_errs),
+        ):
+            r = corridor_for_obs(_FROZEN_OBS)
+
+        assert r.degraded is None, (
+            f"expected success when only {n_errors} of {N_SAMPLES} samples failed "
+            f"(< {SGP4_MAX_MISSING_FRACTION:.0%} missing), got {r.degraded!r}"
+        )
+        assert r.n_sgp4_errors == n_errors
+        assert r.n_samples_propagated == n_good

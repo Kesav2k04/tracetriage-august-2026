@@ -48,12 +48,17 @@ DEGRADED STATES
 All degrade states return a named reason code in ``PhysicsResult.degraded`` and
 never raise.  Codes:
 
-  ``MISSING_TLE``      tle1 or tle2 absent or empty
-  ``STALE_TLE``        TLE epoch more than ``TLE_MAX_EPOCH_AGE_DAYS`` from the pass
-                       midpoint
-  ``SGP4_ERROR``       SGP4 returned a non-zero error code on every sample
-  ``MISSING_STATION``  station_lat, station_lng or station_alt missing
-  ``MISSING_FREQ``     rx-freq absent in client_metadata and no usable fallback
+  ``MISSING_TLE``            tle1 or tle2 absent or empty
+  ``UNPARSEABLE_TLE_EPOCH``  the epoch field in tle1 could not be parsed; the TLE
+                             must not be propagated because the epoch is unknown
+  ``STALE_TLE``              TLE epoch more than ``TLE_MAX_EPOCH_AGE_DAYS`` from the
+                             pass midpoint
+  ``SGP4_ERROR``             SGP4 returned a non-zero error code on every sample
+  ``SGP4_PARTIAL_ERROR``     SGP4 returned errors on more than
+                             ``SGP4_MAX_MISSING_FRACTION`` of samples; the corridor
+                             would be built from too few points to be trustworthy
+  ``MISSING_STATION``        station_lat, station_lng or station_alt missing
+  ``MISSING_FREQ``           rx-freq absent in client_metadata and no usable fallback
 
 Usage::
 
@@ -127,6 +132,14 @@ UNCORRECTED_CORRIDOR_HZ: float = 2_000.0
 # TLE epoch staleness threshold.  If |epoch - pass_midpoint| > this, emit STALE_TLE.
 TLE_MAX_EPOCH_AGE_DAYS: float = 14.0
 
+# Maximum fraction of N_SAMPLES that may fail with a non-zero SGP4 error code before
+# the corridor is considered untrustworthy.  A corridor built on fewer than
+# (1 - SGP4_MAX_MISSING_FRACTION) of its intended samples has a significant gap that
+# np.interp fills by clamping to the nearest good value; that produces a flat
+# vertical segment wherever the physics produced nothing.  0.5 means more than half
+# the samples may not fail; set to a lower value to be stricter.
+SGP4_MAX_MISSING_FRACTION: float = 0.5
+
 # Stated search range for the free constant frequency offset (Section 5.4 of the
 # task prompt).  The three uncorrected observations sat 14.0, 2.4 and 1.8 kHz off
 # the predicted curve, so ±20 kHz covers the largest of those with about 40
@@ -181,6 +194,8 @@ class PhysicsResult:
     rx_freq_hz: float | None
     pass_duration_s: float | None
     tle_epoch_age_days: float | None    # |epoch − midpoint| in days; None on error
+    n_sgp4_errors: int | None           # non-zero SGP4 error count; None before propagation
+    n_samples_propagated: int | None    # samples that propagated successfully
 
 
 # ---------------------------------------------------------------------------
@@ -583,6 +598,8 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
     rx_freq: float | None = None
     pass_dur: float | None = None
     epoch_age: float | None = None
+    n_sgp4_err: int | None = None
+    n_propagated: int | None = None
 
     def _fail(reason: str) -> PhysicsResult:
         return PhysicsResult(
@@ -593,6 +610,8 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
             rx_freq_hz=rx_freq,
             pass_duration_s=pass_dur,
             tle_epoch_age_days=epoch_age,
+            n_sgp4_errors=n_sgp4_err,
+            n_samples_propagated=n_propagated,
         )
 
     # ── 1. TLE presence ──────────────────────────────────────────────────────
@@ -625,18 +644,24 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
     # ── 5. TLE epoch staleness ───────────────────────────────────────────────
     midpoint = start_dt + timedelta(seconds=pass_dur / 2.0)
     tle_epoch = tle_epoch_datetime(tle1)
-    if tle_epoch is not None:
-        epoch_age = abs((midpoint - tle_epoch).total_seconds()) / 86_400.0
-        if epoch_age > TLE_MAX_EPOCH_AGE_DAYS:
-            return PhysicsResult(
-                uncorrected=None,
-                corrected=None,
-                degraded="STALE_TLE",
-                obs_id=obs_id,
-                rx_freq_hz=rx_freq,
-                pass_duration_s=pass_dur,
-                tle_epoch_age_days=epoch_age,
-            )
+    if tle_epoch is None:
+        # The epoch field could not be parsed.  Propagating from a garbage epoch
+        # produces a wrong corridor with degraded=None (SPACE-B1).  Return a
+        # named code instead so every caller knows the TLE is unusable.
+        return _fail("UNPARSEABLE_TLE_EPOCH")
+    epoch_age = abs((midpoint - tle_epoch).total_seconds()) / 86_400.0
+    if epoch_age > TLE_MAX_EPOCH_AGE_DAYS:
+        return PhysicsResult(
+            uncorrected=None,
+            corrected=None,
+            degraded="STALE_TLE",
+            obs_id=obs_id,
+            rx_freq_hz=rx_freq,
+            pass_duration_s=pass_dur,
+            tle_epoch_age_days=epoch_age,
+            n_sgp4_errors=None,
+            n_samples_propagated=None,
+        )
 
     # ── 6. Propagate ─────────────────────────────────────────────────────────
     site = station_ecef(lat, lon, alt)
@@ -644,9 +669,21 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
         tle1, tle2, start_dt, end_dt, site, rx_freq, geodetic_normal(lat, lon)
     )
 
+    # Record the counts now so _fail() can carry them even on partial failure.
+    n_sgp4_err = len(errs)
+    n_propagated = len(fracs)
+
     if not fracs:
         # Every sample failed — could be a decayed object, bad TLE line, etc.
         return _fail("SGP4_ERROR")
+
+    # SPACE-B2: degrade when too many samples failed.  np.interp clamps outside
+    # the sample range, so a large gap is filled with the nearest surviving value —
+    # a flat segment where the physics produced nothing.  Callers cannot currently
+    # tell a full corridor from one built on 22 percent of the pass.
+    missing_frac = n_sgp4_err / N_SAMPLES
+    if missing_frac > SGP4_MAX_MISSING_FRACTION:
+        return _fail("SGP4_PARTIAL_ERROR")
 
     # ── 7. Build corridor objects ─────────────────────────────────────────────
     max_el = max(els)
@@ -680,6 +717,8 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
         rx_freq_hz=rx_freq,
         pass_duration_s=pass_dur,
         tle_epoch_age_days=epoch_age,
+        n_sgp4_errors=n_sgp4_err,
+        n_samples_propagated=n_propagated,
     )
 
 
