@@ -714,6 +714,45 @@ code,
   visibility: visible;
 }
 
+/* The elapsed overlay on the sky and ground plots. Hidden until the replay clock
+   mounts, for the same reason the cursors are: a marker frozen at one end of a track
+   on a page with no clock reads as a defect rather than as a starting position.
+
+   Not a Lottie file, and that was a decision rather than an omission. The animation
+   this console needs is a measurement moving, not an illustration playing: the thing
+   in motion here is the pass geometry that the physics module computed, drawn from
+   the same array the readout reads. A Lottie runtime is around 60 to 70 kB gzipped
+   to play authored art, against 1.73 kB of clock that plays the data, on a site
+   whose whole claim is that everything published traces to a receipt. An authored
+   loop would have been the only thing on the page that traced to nobody.
+
+   stroke-dashoffset rather than a clip or a shortened path: the path is written once
+   by the server and the client changes one number on it, so there is no geometry
+   recomputed per frame and no React render. stroke-linecap must be butt, because a
+   round cap on a dash draws a visible stub at zero progress. */
+.replay-trail {
+  fill: none;
+  stroke: var(--text-01);
+  stroke-width: 2.25;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  visibility: hidden;
+  will-change: stroke-dashoffset;
+}
+
+[data-replay="ready"] .replay-trail {
+  visibility: visible;
+}
+
+/* A reader who asked for less motion still gets the position, from the cursors and
+   the readout, and playback is never offered to them. The trail would be a line
+   growing across the frame with no way to stop it, so it does not paint at all. */
+@media (prefers-reduced-motion: reduce) {
+  .replay-trail {
+    visibility: hidden;
+  }
+}
+
 .replay-cursor-time line {
   stroke: var(--text-04);
   stroke-width: 1;

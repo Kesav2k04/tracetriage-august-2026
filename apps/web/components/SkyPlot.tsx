@@ -161,6 +161,27 @@ export default function SkyPlot({
       ))}
 
       <path d={path} className="plot-track" />
+      {/* The elapsed overlay. Hidden until the replay mounts, then revealed from the
+          start of the path by the clock writing one stroke-dashoffset per frame. The
+          full track stays visible underneath, so a reader who never presses play
+          sees the whole pass and a reader who does sees how much of it has run. A
+          point marker cannot carry that: it says where the satellite is now and
+          nothing about where it has been.
+
+          A second <path> repeating the same d, and not a <use> referencing the
+          first, which was tried and does not work. Two things were wrong with it.
+          The saving was 100 bytes, not the 6 kB it first appeared to be: that figure
+          came from comparing a gzip measurement against a brotli one, and gzip
+          spends almost nothing on a second copy of an identical long string. And
+          the feature silently stopped painting. stroke-dasharray and
+          stroke-dashoffset do inherit, and the computed values on the <use> were
+          correct, but a <use> clones the referenced element WITH its class, so the
+          clone still matches .plot-track, and a directly matched declaration beats
+          an inherited one. The clone therefore drew in the track's own blue at the
+          track's own width, dashed, directly over the solid original, and the page
+          looked exactly as though nothing had been wired up. The DOM read correct
+          throughout; only the pixels showed it. */}
+      <path d={path} id="sky-trail" className="replay-trail" aria-hidden="true" />
 
       {/* Rise and set, drawn as an open ring and a square so the direction of
           travel is readable without an arrowhead, which at this scale would be

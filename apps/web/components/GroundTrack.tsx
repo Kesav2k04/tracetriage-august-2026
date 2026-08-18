@@ -204,6 +204,14 @@ export default function GroundTrack({
 
       <polygon points={circlePoints.join(" ")} className="plot-footprint" />
       <polyline points={trackPath.join(" ")} className="plot-track" />
+      {/* Elapsed overlay, same as the sky plot, including the reason it repeats the
+          point list rather than referencing it with a <use>. */}
+      <polyline
+        points={trackPath.join(" ")}
+        id="ground-trail"
+        className="replay-trail"
+        aria-hidden="true"
+      />
       <circle cx={x(tcaLon)} cy={y(tcaLat)} r={3.5} className="plot-marker" />
 
       {/* The station: a cross rather than a dot, and drawn after the closest

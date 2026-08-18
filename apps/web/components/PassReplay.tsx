@@ -123,6 +123,21 @@ export default function PassReplay({
     time: SVGGElement | null;
   }>({ sky: null, ground: null, row: null, time: null });
 
+  /* The two elapsed overlays, with their path lengths measured once. getTotalLength
+     walks the path, so calling it per frame would put a geometry query inside the
+     clock; the length cannot change because the server wrote the path and nothing
+     rewrites it. The last written offset is kept so a change too small to see can
+     be skipped: a stroke-dashoffset write re-rasterises the path, and the sky path
+     is only about 232 user units long, so at 60 frames a second across a 12 second
+     pass most frames move the end of the line a fraction of a unit. The threshold
+     is one user unit, which at these plots' scales (1.03 to 1.30) is close enough
+     to one device pixel to be the right unit to think in. Measured: 180 of 721
+     frames write, so the guard drops 75 per cent of the rasters, and both writes
+     together with a forced style flush cost 0.009 ms per frame. */
+  const trailRef = useRef<
+    Array<{ node: SVGGeometryElement; length: number; lastOffset: number }>
+  >([]);
+
   // The cursors and the waterfall row marker are rendered by the server, so they
   // are looked up once rather than owned by React. That keeps the plots out of the
   // client bundle: this component ships the clock, not the drawing.
@@ -133,6 +148,24 @@ export default function PassReplay({
       row: document.getElementById("waterfall-row-cursor") as SVGGElement | null,
       time: document.getElementById("timeseries-cursor") as SVGGElement | null,
     };
+    const trails: Array<{
+      node: SVGGeometryElement;
+      length: number;
+      lastOffset: number;
+    }> = [];
+    for (const id of ["sky-trail", "ground-trail"]) {
+      const node = document.getElementById(id) as SVGGeometryElement | null;
+      if (!node) continue;
+      const length = node.getTotalLength();
+      // A zero-length path would make every offset NaN and paint nothing, which is
+      // indistinguishable from the overlay simply not being wired up.
+      if (!Number.isFinite(length) || length <= 0) continue;
+      node.style.strokeDasharray = String(length);
+      node.style.strokeDashoffset = String(length);
+      trails.push({ node, length, lastOffset: length });
+    }
+    trailRef.current = trails;
+
     setReady(true);
     document.documentElement.dataset.replay = "ready";
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -194,6 +227,15 @@ export default function PassReplay({
           "transform",
           `translate(${timeSeriesCursorX(value).toFixed(2)} 0)`,
         );
+      }
+
+      // The elapsed overlays. One number each, and only when the end of the drawn
+      // line has actually moved a pixel's worth along the path.
+      for (const trail of trailRef.current) {
+        const offset = trail.length * (1 - value);
+        if (Math.abs(offset - trail.lastOffset) < 1) continue;
+        trail.lastOffset = offset;
+        trail.node.style.strokeDashoffset = offset.toFixed(2);
       }
 
       const write = (key: string, text: string) => {

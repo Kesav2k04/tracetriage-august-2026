@@ -2002,3 +2002,91 @@ The hero's top padding was a single desktop figure in a mobile-first stylesheet,
 Verified after the change: no horizontal scroll and no two-line click target at 360px,
 all four replay cursors still track (the time-series cursor lands at 574.00, which is
 exactly `PAD_L + 0.5 x PLOT_W` for the new constants), typecheck clean, lint clean.
+
+## C7e: motion, and why it is not a Lottie file
+
+### The decision
+
+The ask was for animation, effects and designed motion, with Lottie named. Lottie was
+audited and rejected, and the reasoning is worth keeping because it is not a judgement
+about Lottie.
+
+The animation this console needs already exists: one clock driving four cursors from the
+pass geometry the physics module computed. What was missing was not a library, it was
+that the two spatial plots showed only a point. A point says where the satellite is and
+nothing about where it has been, so the sky plot and the ground track both sat almost
+still while the waterfall and the time series moved.
+
+The fix is an elapsed overlay: the same track drawn a second time in the foreground ink,
+hidden until the clock mounts, then revealed from the rise by one `stroke-dashoffset`
+write per frame. Press play and the ground track paints itself across the frame while
+the Doppler crosses zero at the instant elevation peaks. That is the strongest single
+sequence this project has for a demo, and it is a measurement moving rather than an
+illustration playing.
+
+Against that, a Lottie runtime is roughly 60 to 70 kB gzipped to play authored art. The
+clock it would sit beside is 1.73 kB and the whole shared bundle is 102 kB. The heavier
+objection is not weight: every number and every drawn line on this site traces to a
+receipt, and a hand-authored loop would have been the only thing on the page that traced
+to nobody. On a submission whose entire claim is that it is checkable, that is a bad
+trade at any file size. Recorded as rejected rather than skipped, with the measurement.
+
+### Cost, measured
+
+| Quantity | Value |
+|---|---|
+| Both overlay writes per frame, with a forced style flush | 0.009 ms |
+| Frames that actually write, 12 s pass at 60 fps | 180 of 721 |
+| Rasters dropped by the sub-pixel guard | 75 per cent |
+| Route JavaScript for the observation page | 7.12 kB, unchanged |
+| Shared client JavaScript | 102 kB, unchanged |
+| Frame intervals over 4 s of playback | median 6.1 ms, max 6.5 ms, none over 20 ms |
+
+The frame-interval row is the weakest of these and is reported as such: it was taken in a
+headless browser running rAF at about 164 Hz, so the absolute cadence means nothing. What
+it supports is only that the distribution is flat with no outliers, which is why the
+direct 0.009 ms write measurement is the number to rely on.
+
+The guard is worth its four lines. The sky path is 232 user units long, so across a 12
+second pass most frames move the end of the drawn line a fraction of a unit, and a
+`stroke-dashoffset` write re-rasterises the path. Skipping changes below one user unit
+drops three quarters of those rasters for a change no reader could see.
+
+### Two wrong turns, both caught by measuring the right thing
+
+**A 6 kB saving that was 100 bytes.** The overlay repeats the track's coordinate string,
+and the duplicated markup looked like it cost about 6 kB per observation page. That
+figure came from comparing a gzip measurement against a brotli one. Measured on the same
+compressor: 34,138 B against 34,038 B, so the real saving from removing the duplicate is
+100 bytes. gzip finds the second copy of a long identical string and spends almost
+nothing on it.
+
+**A `<use>` that accepted the style and painted nothing.** Chasing that saving, the
+overlay became `<use href="#sky-track-path">`. `stroke-dasharray` and `stroke-dashoffset`
+are inherited SVG properties and the computed values on the `<use>` were exactly right:
+dasharray 232.438px, dashoffset 69.73px at 70 per cent progress. The feature was dead
+anyway. A `<use>` clones the referenced element together with its class, so the clone
+still matched `.plot-track`, and a directly matched declaration beats an inherited one.
+The clone drew in the track's own blue at the track's own width, dashed, directly over
+the solid original. Every DOM reading said it worked. Only the pixels said otherwise, and
+the screenshot is what caught it.
+
+Reverted to a second real path, for 100 bytes, and the acceptance check is now a hit test
+rather than a style read: at 60 per cent progress, a point 10 per cent along the path
+hit-tests as `sky-trail`, and a point 92 per cent along hits `path.plot-track` instead,
+because a dash gap does not hit-test. That check fails on the `<use>` version and passes
+on this one, which is the property a style read could not distinguish.
+
+### Direction, checked rather than eyeballed
+
+A trail that reveals from the wrong end looks plausible in a screenshot: it is still a
+line growing along a track. Verified numerically instead. At value 0 the sky cursor sits
+at translate(169.40 44.46) and the path's own start point is (169.4, 44.5), so the
+reveal origin and the rise are the same point. Getting this backwards would have drawn
+the pass running from set to rise while looking entirely normal.
+
+### Reduced motion
+
+`prefers-reduced-motion: reduce` already suppressed playback. The overlay is suppressed
+too, rather than left as a line that grows with no way to stop it. Position is still
+available to those readers from the four cursors and the readout, which are static.
