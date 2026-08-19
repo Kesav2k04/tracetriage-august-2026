@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-19T13:17:12+05:30",
- "commit": "5666ff8140b635b534ca639db221b9943062ae3a",
- "tracked_files": 257,
- "tracked_bytes": 32351870,
- "tracked_megabytes": 30.85,
+ "measured_at_commit_date": "2026-08-19T18:24:51+05:30",
+ "commit": "0e663e286ce1783c46324814dde3153671c6c6c0",
+ "tracked_files": 280,
+ "tracked_bytes": 32854209,
+ "tracked_megabytes": 31.33,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,11 +13,11 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 4.56
+   "megabytes": 4.59
   },
   {
    "path": "tests/fixtures",
-   "megabytes": 3.46
+   "megabytes": 3.48
   },
   {
    "path": "artifacts/DATASET_MANIFEST.json",
@@ -29,7 +29,7 @@
   },
   {
    "path": "pipeline/tracetriage",
-   "megabytes": 0.47
+   "megabytes": 0.51
   },
   {
    "path": "artifacts/SECOND_TRACE_SURVEY.json",
@@ -37,7 +37,7 @@
   },
   {
    "path": "docs/BOB_BUILD_LOG.md",
-   "megabytes": 0.25
+   "megabytes": 0.28
   },
   {
    "path": "artifacts/QUEUE_RECEIPT.json",
@@ -140,9 +140,9 @@
   },
   {
    "path": "tests/fixtures/",
-   "files": 5,
-   "bytes": 3630877,
-   "megabytes": 3.46,
+   "files": 6,
+   "bytes": 3653877,
+   "megabytes": 3.48,
    "keep_because": "inputs the offline suite needs. Removing any of it breaks the clean-clone claim."
   },
   {
