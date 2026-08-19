@@ -12,8 +12,13 @@ what its imports import.
 The sink: the store refuses any path carrying a URL scheme, so a configuration
 mistake cannot redirect a reviewer's notes at a remote endpoint.
 
-The codebase: no HTTP write verb exists anywhere in non-test code, so a future unit
-cannot add a POST path that this module could then reach.
+The codebase: exactly one HTTP write verb exists under pipeline/ and scripts/, in the
+module that speaks to the local model runtime, and its destination is proved to be loopback
+before the request is built. The scan covers the four method names, the three methods that
+take a verb as an argument, and the verb spelled as a string literal, because an
+attribute-name scan alone would miss `request("POST", ...)`. The count is asserted, so a
+future unit cannot add a second write path without this test changing, and nothing in the
+annotation store's import closure reaches the one that exists.
 """
 
 from __future__ import annotations
@@ -46,16 +51,29 @@ _RECEIPT_SHA = "a" * 64
 
 
 def _imports_of(path: Path) -> set[str]:
+    """Every module named by an import in one file, relative forms included.
+
+    ``from . import granite`` gives ``module=None`` with ``level=1``, so a walker that
+    guards on ``node.module`` skips the node entirely and the import is invisible. That is
+    the shape a future unit would most naturally use to reach a sibling module, which makes
+    it exactly the one a capability check cannot afford to miss.
+    """
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    package = ".".join(path.relative_to(_REPO).with_suffix("").parts[:-1])
     found: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 found.add(alias.name)
-        elif isinstance(node, ast.ImportFrom) and node.module:
-            found.add(node.module)
-            for alias in node.names:
-                found.add(f"{node.module}.{alias.name}")
+        elif isinstance(node, ast.ImportFrom):
+            base = node.module or ""
+            if node.level:
+                prefix = package.rsplit(".", node.level - 1)[0] if node.level > 1 else package
+                base = f"{prefix}.{base}" if base else prefix
+            if base:
+                found.add(base)
+                for alias in node.names:
+                    found.add(f"{base}.{alias.name}")
     return found
 
 
@@ -111,28 +129,80 @@ def test_annotation_import_closure_has_no_network_capability():
     assert len(imports) >= 4, f"only {len(imports)} imports examined: {sorted(imports)}"
 
 
-def test_no_http_write_verb_exists_in_non_test_code():
+#: The one file allowed an HTTP write verb, and the number of call sites it may hold.
+#: Running a local model needs a POST because that is the shape of the runtime's API. The
+#: exemption is a path and a count rather than a pattern, so it cannot widen quietly: an
+#: exemption with no measured size outlives its reason.
+_WRITE_VERB_EXEMPTION = "pipeline/tracetriage/granite.py"
+_WRITE_VERB_EXEMPTION_SITES = 1
+
+#: Method names that write, and the same methods spelled as a string. The second set
+#: exists because the first one is not the rule: `httpx.request("POST", url)`,
+#: `client.stream("POST", ...)` and `getattr(client, "post")(...)` all write and none of
+#: them puts a write verb where an attribute-name scan would look.
+_WRITE_VERB_NAMES = frozenset({"post", "put", "patch", "delete"})
+_WRITE_VERB_LITERALS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+_WRITE_VERB_ARGUMENT_METHODS = frozenset({"request", "stream", "send"})
+
+
+def test_the_only_http_write_verb_is_the_local_model_call():
     """A future unit cannot add a POST path for this module to reach.
 
-    Scans first-party source for HTTP write verbs on any client object. The
-    snapshot fetcher is included in the scan and is expected to be clean: it reads
-    the SatNOGS API and never writes to it.
+    Scans first-party source for HTTP write verbs on any client object. The snapshot
+    fetcher is included in the scan and is expected to be clean: it reads the SatNOGS API
+    and never writes to it. The model runtime module is expected to hold exactly one write
+    verb, which is asserted rather than skipped, because "there is an exemption" and "the
+    exemption is one line" are different claims and only the second one is checkable.
     """
     offenders: list[str] = []
+    exempted: list[str] = []
     for path in sorted((_REPO / "pipeline").rglob("*.py")) + sorted(
         (_REPO / "scripts").rglob("*.py")
     ):
+        rel = path.relative_to(_REPO).as_posix()
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in ast.walk(tree):
-            if (
-                isinstance(node, ast.Call)
-                and isinstance(node.func, ast.Attribute)
-                and node.func.attr in {"post", "put", "patch", "delete"}
+            site = None
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                # The four verb names, plus the three methods that take the verb as an
+                # argument. A write reached the network through `.request("POST", ...)`
+                # without any of the four names appearing, so a scan on the name alone was
+                # narrower than the rule it claimed to enforce.
+                if node.func.attr in _WRITE_VERB_NAMES | _WRITE_VERB_ARGUMENT_METHODS:
+                    site = f"{rel}:{node.lineno} .{node.func.attr}()"
+            elif (
+                isinstance(node, ast.Constant)
+                and isinstance(node.value, str)
+                and node.value.upper() in _WRITE_VERB_LITERALS
             ):
-                offenders.append(
-                    f"{path.relative_to(_REPO)}:{node.lineno} .{node.func.attr}()"
-                )
-    assert not offenders, f"HTTP write verbs found: {offenders}"
+                # The method as a string literal, which is how `.request("POST", ...)` and
+                # `getattr(client, "post")` both spell it.
+                site = f"{rel}:{node.lineno} {node.value!r}"
+            if site is None:
+                continue
+            (exempted if rel == _WRITE_VERB_EXEMPTION else offenders).append(site)
+
+    assert not offenders, f"HTTP write verbs outside the exemption: {offenders}"
+    assert len(exempted) == _WRITE_VERB_EXEMPTION_SITES, (
+        f"{_WRITE_VERB_EXEMPTION} holds {len(exempted)} write-verb call sites and the "
+        f"exemption is for {_WRITE_VERB_EXEMPTION_SITES}: {exempted}. Either the new one "
+        f"belongs somewhere else or the exemption needs re-arguing at its new size."
+    )
+
+
+def test_the_annotation_store_cannot_reach_the_model_runtime():
+    """The exempted module must stay outside this module's closure.
+
+    The exemption is only safe while the code that holds a reviewer's private notes has no
+    path to the code that can POST. That is a property of the import graph, so it is
+    walked rather than assumed.
+    """
+    imports, _ = _import_closure(_ANNOTATE)
+    reachable = sorted(m for m in imports if "granite" in m)
+    assert not reachable, (
+        f"annotate.py's import closure reaches {reachable}. The write-verb exemption was "
+        f"argued on the basis that it cannot."
+    )
 
 
 def test_a_url_sink_is_refused():

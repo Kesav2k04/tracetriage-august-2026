@@ -1,0 +1,507 @@
+{
+ "frozen_at_commit": "2026-08-19T13:41:46+05:30",
+ "model": {
+  "name": "granite3.1-dense:8b",
+  "digest": "34d3be74ec547c3e1969a9ea125e1869f052f7cfd3d0bbbb5aa5e42ec033108c",
+  "parameter_size": "8.2B",
+  "quantization": "Q4_K_M",
+  "context_length": 131072
+ },
+ "generation": {
+  "model_name": "granite3.1-dense:8b",
+  "seed": 7,
+  "temperature": 0.0,
+  "max_tokens": 220,
+  "prompt_version": "e1.2",
+  "prompt_contract_sha256": "4779ba89f2d2a1b69c4f382be63bd4e404c77803672ca0fbbface0d54d96f8a7"
+ },
+ "stability": {
+  "within_process": {
+   "repeats": 2,
+   "observations": 25,
+   "drafts_compared": 50,
+   "drafts_that_differed": 18,
+   "per_pass_differing": [
+    10,
+    8
+   ],
+   "text_disagreement_rate": 0.36,
+   "verdict_flips": [
+    {
+     "obs_id": 14745990,
+     "pass": 1,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    },
+    {
+     "obs_id": 14744248,
+     "pass": 1,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    },
+    {
+     "obs_id": 14741735,
+     "pass": 1,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    },
+    {
+     "obs_id": 14735884,
+     "pass": 1,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    },
+    {
+     "obs_id": 14745990,
+     "pass": 2,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    }
+   ],
+   "verdict_flip_rate": 0.1,
+   "reading": "Temperature is zero and the seed is fixed, so a prompt repeated inside the same process with the model already resident should return identical text. This is the check that it does."
+  },
+  "across_processes": {
+   "passes": [
+    {
+     "pass": 1,
+     "model_unloaded_first": true,
+     "drafts_compared": 25,
+     "drafts_that_differed": 14,
+     "verdict_flips": 3,
+     "differences": [
+      {
+       "obs_id": 14746092,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735140,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745990,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14744250,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14733024,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14740027,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14741735,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745664,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745929,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735884,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14736746,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745985,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735176,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14746118,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      }
+     ]
+    },
+    {
+     "pass": 2,
+     "model_unloaded_first": true,
+     "drafts_compared": 25,
+     "drafts_that_differed": 14,
+     "verdict_flips": 3,
+     "differences": [
+      {
+       "obs_id": 14746092,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735140,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745990,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14744250,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14733024,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14740027,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14741735,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745664,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745929,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735884,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14736746,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745985,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735176,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14746118,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      }
+     ]
+    },
+    {
+     "pass": 3,
+     "model_unloaded_first": true,
+     "drafts_compared": 25,
+     "drafts_that_differed": 14,
+     "verdict_flips": 3,
+     "differences": [
+      {
+       "obs_id": 14746092,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735140,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745990,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14744250,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14733024,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14740027,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14741735,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745664,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745929,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735884,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14736746,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745985,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735176,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14746118,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      }
+     ]
+    }
+   ],
+   "note": "Appended by --measure-drift, one record per invocation, because a process boundary is the thing being measured and a loop inside one process cannot cross it.",
+   "passes_recorded": 3,
+   "drafts_compared": 75,
+   "drafts_that_differed": 42,
+   "verdict_flips": 9,
+   "text_disagreement_rate": 0.56,
+   "verdict_flip_rate": 0.12
+  }
+ },
+ "drafts": [
+  {
+   "obs_id": 14746092,
+   "packet_sha256": "1daae25481fceab93fa1c474a8945cdd617d0cd9150451905d2fc5b93258350c",
+   "draft": "The observation disagrees with the expected transmission frequency of 435.275 MHz, as indicated by the fitted offset of 6904 Hz (15.8 ppm). Look for signals around 436.49 MHz in the waterfall image. A definitive observation would be the clear detection of a signal at or near this frequency during the pass.",
+   "draft_sha256": "15131cd5f40179a9298509ce75edc3ef91e9be916272fcf92f082ecb364d4784"
+  },
+  {
+   "obs_id": 14735140,
+   "packet_sha256": "0b7e5da9107277d5eed8b00a7174b066bade1d7ca6712dd5d4c7744f2d6151f4",
+   "draft": "The observation disagrees with the expected frequency of 437.5 MHz, as indicated by the fitted offset of 1995 Hz. To confirm this, focus on the waterfall image around 401.6 MHz (437.5 MHz - 1995 Hz). A definitive observation would be the detection of a signal at or near this frequency, which would resolve the discrepancy.",
+   "draft_sha256": "8095c110fc8aa2b8120a0887f1ad61e59ed1035929b38e1dcb3bf037a5eb7d33"
+  },
+  {
+   "obs_id": 14732518,
+   "packet_sha256": "eb43777f2a79063214886e0e3ab46a3771df6dd0a4ec4daf57293fcd8848df8b",
+   "draft": "The observation disagrees with the NORAD catalogue, suggesting a frequency of 145.815 MHz. In the waterfall image, look for a signal around the 20th degree elevation, near the center of the pass duration. A definitive observation would be the clear detection of a BPSK modulated signal at approximately 145.815 MHz, with a Doppler shift matching the provided fitted offset of 6146 Hz or 42.1 ppm.",
+   "draft_sha256": "946598fefbebda2e121dd9dec7cb2cb0176f38df0130806fe29927941f1fc5f5"
+  },
+  {
+   "obs_id": 14745718,
+   "packet_sha256": "b631d85c0969c45ec0596cd34dfd6f817b83b4463276017c871bc1d5bd2a951e",
+   "draft": "The observed frequency of 136.69 MHz deviates from the NORAD catalogue's expected value of 137.00 MHz. Focus on the central region of the waterfall image for this discrepancy. A definitive observation would be a clear, stable signal at the expected frequency during the satellite's closest approach, which occurred at 45% of the pass duration.",
+   "draft_sha256": "92f88497ad4a26da4b59972d73752a7ff9fb8c0278ee59060b9556157734992c"
+  },
+  {
+   "obs_id": 14745990,
+   "packet_sha256": "60134bf21e6ce930211e9c11db0a097d77f6dc726139eb28286015c5a4fa0d41",
+   "draft": "The observation disagrees with the NORAD catalogue, suggesting a frequency of 145.9 MHz instead of the reported 145.900 MHz. Focus on the center of the waterfall image around 145.9 MHz. A definitive observation would be the clear detection of a signal at the exact frequency of 145.900 MHz, which would resolve this discrepancy.",
+   "draft_sha256": "c47c03a5c2436b320fc4261f1bb859624810be35e69c97ab620e8d6400fe0ae6"
+  },
+  {
+   "obs_id": 14744250,
+   "packet_sha256": "76f972bfe09764f365a677ab7b12b563ba879c967d3d203fa8788b07547f0647",
+   "draft": "The observed receiver frequency of 387174755 Hz does not align with the NORAD catalogue's expected frequency for ID 46487. To confirm, focus on the waterfall image around the 284-second mark, where the signal should be strongest at an elevation of approximately 37 degrees. A definitive observation would be a clear, unambiguous signal within the corridor half-width of \u00b12000 Hz from the fitted offset of 9737 Hz.",
+   "draft_sha256": "a622c41723394bd25313df6e787d96c05f9fb19706e87ac1b35d2897b68957cc"
+  },
+  {
+   "obs_id": 14746054,
+   "packet_sha256": "a230c5e8a7c23f7e1e1f53c74de038de46dc3b2b00cda6b0e778b33175bf09e8",
+   "draft": "The observed frequency of 136.92 MHz deviates from the expected value for NORAD catalogue ID 1430, which is typically around 137.56 MHz. Focus on the central region of the waterfall image to assess this discrepancy. A definitive observation would be a clear, stable signal at the expected frequency during the satellite's closest approach, which occurred at 50% of the pass duration.",
+   "draft_sha256": "8451dfd1c682139562171c4b21237399939c6d5fff2ee060a11a03d923ee9c6d"
+  },
+  {
+   "obs_id": 14744187,
+   "packet_sha256": "5345b53be29acc51f7150d761bd4f795bcce83674fe28e29e42212eef2fbbde5",
+   "draft": "The observation disagrees with the NORAD catalogue, suggesting a frequency of 436.68 MHz. In the waterfall image, look for a signal around the 10th pixel from the left edge, approximately 27 seconds into the pass. A definitive observation would be made if a clear, stable signal is visible throughout this duration.",
+   "draft_sha256": "f563efaf9a04197a86f565a79d519684e3615683fb50a01079f4ca7b39191886"
+  },
+  {
+   "obs_id": 14733024,
+   "packet_sha256": "df4928c56c487b7120710a66bec9548b256cf61ba34c1d5230c356f6d36263c4",
+   "draft": "The observation disagrees with the NORAD catalogue, suggesting a frequency of 400.5 MHz. In the waterfall image, look for a signal around the 83.7\u00b0 elevation mark, approximately halfway through the pass duration. A definitive observation would be the clear detection of a FSK signal at this frequency and elevation.",
+   "draft_sha256": "41d5b196acdc8266036a2a3d17152a1b9c403d183cb737d34117ae2affeb4b2b"
+  },
+  {
+   "obs_id": 14744248,
+   "packet_sha256": "2ea6cfb04780f5b8ca6f5951eae382647a2fed1c044ca82f6328f55e5cf354d4",
+   "draft": "The observed transmitter mode is FSK, which contradicts the network label indicating no signal. Focus on the frequency range around 401 MHz. A definitive observation would be a clear, distinct signal within this range, settling the question of signal presence.",
+   "draft_sha256": "e83ce49002f9822894623b93965eed528dd49cd47f75cc41bad45b250f07ad3b"
+  },
+  {
+   "obs_id": 14742034,
+   "packet_sha256": "698921c6c41e7bd35bc3bf6dc14372a402ed45ff22338195b452b8560ec5cb3e",
+   "draft": "The observation disagrees with the NORAD catalogue, suggesting a frequency of 400.63 MHz for NORAD ID 67683. In the waterfall image, look at the center for a signal around 400.63 MHz. A definitive observation would be the clear detection of a signal at this frequency during the pass, which would settle the question.",
+   "draft_sha256": "83aeddbcbfd8d5de9ac70de904fb3a3294652f01d9cceda50cdc6dde878ea6c8"
+  },
+  {
+   "obs_id": 14740027,
+   "packet_sha256": "aeafc845c1cfb12138f5c4b6f292a6e7b200a08a3f7cd72765fc1e43f39c1f6b",
+   "draft": "The observed frequency of 436.4 MHz deviates from the NORAD catalogue's expected value of 436.2 MHz. Focus on the central region of the waterfall image for this discrepancy. A definitive observation would be a clear, consistent deviation of at least 1 kHz from the expected frequency throughout the pass.",
+   "draft_sha256": "d925e1852158f2223750aa6c21f961cd502989416ade783452837153b726cc3b"
+  },
+  {
+   "obs_id": 14740031,
+   "packet_sha256": "faa68ba3871503ee0b02bf2209a514d5729ca82b0fe8fb6377e5394588a32106",
+   "draft": "The observed frequency of 436.4 MHz deviates from the NORAD catalogue's expected value of 436.2 MHz. Focus on the central region of the waterfall image for this discrepancy. A definitive observation would be a clear, consistent deviation of at least 1 kHz from the expected frequency throughout the pass.",
+   "draft_sha256": "d925e1852158f2223750aa6c21f961cd502989416ade783452837153b726cc3b"
+  },
+  {
+   "obs_id": 14741735,
+   "packet_sha256": "67989dce358a4d39082d47f0cef0bd2ac88e78bd72583c08088f66fb74b77c7d",
+   "draft": "The observed transmitter mode is GFSK, which deviates from the expected FSK mode for this satellite. Focus on the frequency stability, particularly around 401.62 MHz. A definitive observation would be a consistent, narrow band with minimal frequency drift, indicative of a stable signal.",
+   "draft_sha256": "1a0578fe9f7883cf261bcfa0abc9a025cabc6d923d565d3424869e167c56ac57"
+  },
+  {
+   "obs_id": 14742036,
+   "packet_sha256": "5adb92f2f45ca2c21ca832b31f3d7ca9c2aac3f3b1d8fb966bfeebad763ba3ab",
+   "draft": "The observation disagrees with the NORAD catalogue, suggesting a frequency of 436.785 MHz for satellite 60237. In the waterfall image, look at the area around 13.7 degrees elevation, where the closest approach occurred. A definitive observation would be the clear detection of a CW signal at this frequency during this pass.",
+   "draft_sha256": "7159009cb16c5b93231d5a52c28b4b54e5a135bc7555e49b5da6ac1bd8422a24"
+  },
+  {
+   "obs_id": 14745664,
+   "packet_sha256": "40c54533fa655f6240b8e9ad14053f73cdab902356fb96bba2a40badabd8c617",
+   "draft": "The observed frequency of 436.4 MHz deviates from the expected value for NORAD catalogue ID 63218, which is typically around 407 MHz. Focus on the central region of the waterfall image to assess the stability of the signal. A definitive observation would be a consistent frequency within the corridor half-width of \u00b12 kHz from the fitted offset of -7149 Hz, which would help clarify the satellite's identity.",
+   "draft_sha256": "fc0364b9fc94a071668f60c3c5588b4d03a0d347260344edfd2b91e4d896e942"
+  },
+  {
+   "obs_id": 14745929,
+   "packet_sha256": "074da09f39214a5a3f424fe409ccdff8d5821ce95680344ea3a92f221bb8cb3a",
+   "draft": "The observed frequency of 436.4 MHz deviates from the expected value, as indicated by a negative offset of -16.4 ppm. Focus on the central region of the waterfall image for this discrepancy. A definitive resolution would be achieved with a comparison to a known reference signal during the same pass.",
+   "draft_sha256": "5762aa9da22e8e644beb6f68da23165e8b7c8a5da2565861d8538fae64571268"
+  },
+  {
+   "obs_id": 14735884,
+   "packet_sha256": "0d02185fb7d6ce9a2b86cc506c99fde062d532beca94ad7842f168d2a2c6cbc1",
+   "draft": "The observed frequency of 437274600 Hz deviates from the expected value for NORAD catalogue ID 32785. Focus on the central region of the waterfall image to assess this discrepancy. A definitive conclusion would require a comparison with known, reliable frequency data for this satellite.",
+   "draft_sha256": "5f120e5cf9804745fef9cf573adc836b9bcbb2a506004ccd9877cb5456c21c33"
+  },
+  {
+   "obs_id": 14736746,
+   "packet_sha256": "26fe759e35b0a7a25248adc40e703989a6749490ef21a54052fad59cb9ea1d35",
+   "draft": "The observed frequency of 436.15 MHz deviates from the expected value of 436.12 MHz, as indicated by a fitted offset of 5082 Hz or 11.7 ppm. The discrepancy is significant, appearing consistently throughout the pass. To confirm this observation, a more precise measurement during the closest approach (fraction 0.5) would be beneficial.",
+   "draft_sha256": "de820ad27450916984a54f67bc018da8c7e2b787bb4e9334b2493e7af9b65cc9"
+  },
+  {
+   "obs_id": 14745985,
+   "packet_sha256": "9b0d89a3e71ce927d700566419689d82c1b1bc1bf0396f48137d134cc705ce50",
+   "draft": "The observed frequency of 401.52 MHz deviates from the NORAD catalogue's expected value of 401.53 MHz, with a discrepancy of 36.2 ppm. The waterfall image should be examined around the 74.7\u00b0 elevation mark for this anomaly. A definitive resolution would require re-observation and confirmation of the correct frequency.",
+   "draft_sha256": "a93b5fb5e0459e096b006dbb317f9dfa9d7bbeb7c93b37c6617b0e4385b2488f"
+  },
+  {
+   "obs_id": 14735176,
+   "packet_sha256": "2f21771ad23dd927fdaba38a577772d8e78e19afcabfbf845e283516a1e9f702",
+   "draft": "The observed frequency of 401.51 MHz deviates from the NORAD catalogue's 401.49 MHz. Focus on the central region of the waterfall image for this discrepancy. A definitive resolution would be achieved with a precise frequency measurement, ideally within \u00b1500 Hz of the observed value.",
+   "draft_sha256": "dc955a988f0db0b861f892fe8ea7c4ad3de4f5deaa0d88a54f2c298a29b05022"
+  },
+  {
+   "obs_id": 14735743,
+   "packet_sha256": "2da7a73440f79de98f589591f8c44dca55c3a404d4c14992fba7b8a6e201744f",
+   "draft": "The observation disagrees with the NORAD catalogue, suggesting a potential frequency discrepancy. Focus on the central region of the waterfall image for signs of a consistent signal. A definitive observation would be the presence of a stable, horizontal line or pattern, indicating a consistent carrier frequency.",
+   "draft_sha256": "2178dede1b2cfba93f623bb680eb5e0b69175185616413f37746436a772d5f2a"
+  },
+  {
+   "obs_id": 14745984,
+   "packet_sha256": "72faf2099b1dfca41ca4edb7868e63f3a63483a44c69943b9895b094d3551e3e",
+   "draft": "The observed frequency deviates from the expected, with a fitted offset of -13.0 ppm, indicating a shift of approximately 926 Hz from the nominal value of 435.4 MHz. The waterfall image should be examined around the 435.4 MHz mark for any consistent deviation. A definitive conclusion would require multiple observations to confirm this frequency discrepancy.",
+   "draft_sha256": "b453476582ea857e58132475db8d70927cdfefdae99973e7b24cc4dd087951b2"
+  },
+  {
+   "obs_id": 14742229,
+   "packet_sha256": "282d1678c50a459e20c0bb893dc8a67b21ebedd8711d21830127488c13e88b5a",
+   "draft": "The observation disagrees with the expected frequency of 436.8 MHz, showing a deviation of approximately 18.7 ppm. Focus on the central region of the waterfall image for this analysis. A definitive observation would be achieved by comparing this deviation with known satellite anomalies or by verifying the ground station's frequency accuracy.",
+   "draft_sha256": "800229af6e35991cddcd8d5d02fdf2bd0b5e076e5d386c3cf7fc425585043a92"
+  },
+  {
+   "obs_id": 14746118,
+   "packet_sha256": "46652d1b16bd49d3fe64873435cd66ddea7cb19d22302596f9b8ae28955920da",
+   "draft": "The observed transmitter mode, BPSK PMT-A3, deviates from the expected FSK mode for this satellite. Focus on the frequency stability, particularly around 400.65 MHz. A definitive conclusion would require a consistent deviation from the expected frequency, as indicated by a persistent pattern in the waterfall image.",
+   "draft_sha256": "a92ee7b5d800ac292249739eb02321ebae26d8a3dbd46931153e6aeab13ea8c6"
+  }
+ ]
+}

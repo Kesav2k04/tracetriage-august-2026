@@ -1,0 +1,877 @@
+{
+ "generated_at_commit": "2026-08-19T13:41:46+05:30",
+ "unit": "E1",
+ "model": {
+  "name": "granite3.1-dense:8b",
+  "digest": "34d3be74ec547c3e1969a9ea125e1869f052f7cfd3d0bbbb5aa5e42ec033108c",
+  "parameter_size": "8.2B",
+  "quantization": "Q4_K_M",
+  "context_length": 131072
+ },
+ "generation": {
+  "model_name": "granite3.1-dense:8b",
+  "seed": 7,
+  "temperature": 0.0,
+  "max_tokens": 220,
+  "prompt_version": "e1.2",
+  "prompt_contract_sha256": "4779ba89f2d2a1b69c4f382be63bd4e404c77803672ca0fbbface0d54d96f8a7",
+  "allowed_transforms": [
+   "a frequency in hertz written as megahertz, for fields ending in _hz",
+   "a frequency in hertz written as kilohertz, for fields ending in _hz",
+   "a value on the unit interval written as a percentage, for the listed fields only"
+  ]
+ },
+ "drafts_frozen_at_commit": "2026-08-19T13:41:46+05:30",
+ "counts": {
+  "observations": 25,
+  "decided_by_the_checker": 25,
+  "emitted": 11,
+  "refused": 14,
+  "refusal_rate": 0.56,
+  "violations_by_code": {
+   "OVERCLAIM": 1,
+   "UNGROUNDED_NUMBER": 14
+  }
+ },
+ "hallucinated_downlink_frequency": {
+  "definition": "An ungrounded number written in megahertz, within five percent of the observation's own receiver frequency in megahertz, so a wrong downlink rather than an arbitrary value that happens to fall in the same numeric range.",
+  "occurrences": 9,
+  "observations_affected": 9,
+  "of_observations": 25,
+  "in_range_but_not_written_as_a_frequency": 0,
+  "cases": [
+   {
+    "obs_id": 14746092,
+    "written_mhz": 435.275,
+    "actual_mhz": 436.49,
+    "error_khz": -1215.0
+   },
+   {
+    "obs_id": 14745718,
+    "written_mhz": 137.0,
+    "actual_mhz": 136.694,
+    "error_khz": 306.0
+   },
+   {
+    "obs_id": 14746054,
+    "written_mhz": 137.56,
+    "actual_mhz": 136.92,
+    "error_khz": 640.0
+   },
+   {
+    "obs_id": 14740027,
+    "written_mhz": 436.2,
+    "actual_mhz": 436.4,
+    "error_khz": -200.0
+   },
+   {
+    "obs_id": 14740031,
+    "written_mhz": 436.2,
+    "actual_mhz": 436.4,
+    "error_khz": -200.0
+   },
+   {
+    "obs_id": 14736746,
+    "written_mhz": 436.12,
+    "actual_mhz": 436.15,
+    "error_khz": -30.0
+   },
+   {
+    "obs_id": 14745985,
+    "written_mhz": 401.53,
+    "actual_mhz": 401.52,
+    "error_khz": 10.0
+   },
+   {
+    "obs_id": 14735176,
+    "written_mhz": 401.49,
+    "actual_mhz": 401.51,
+    "error_khz": -20.0
+   },
+   {
+    "obs_id": 14742229,
+    "written_mhz": 436.8,
+    "actual_mhz": 436.68,
+    "error_khz": 120.0
+   }
+  ]
+ },
+ "run_to_run_stability": {
+  "within_process": {
+   "repeats": 2,
+   "observations": 25,
+   "drafts_compared": 50,
+   "drafts_that_differed": 18,
+   "per_pass_differing": [
+    10,
+    8
+   ],
+   "text_disagreement_rate": 0.36,
+   "verdict_flips": [
+    {
+     "obs_id": 14745990,
+     "pass": 1,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    },
+    {
+     "obs_id": 14744248,
+     "pass": 1,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    },
+    {
+     "obs_id": 14741735,
+     "pass": 1,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    },
+    {
+     "obs_id": 14735884,
+     "pass": 1,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    },
+    {
+     "obs_id": 14745990,
+     "pass": 2,
+     "frozen_verdict": "EMITTED",
+     "repeat_verdict": "REFUSED"
+    }
+   ],
+   "verdict_flip_rate": 0.1,
+   "reading": "Temperature is zero and the seed is fixed, so a prompt repeated inside the same process with the model already resident should return identical text. This is the check that it does."
+  },
+  "across_processes": {
+   "passes": [
+    {
+     "pass": 1,
+     "model_unloaded_first": true,
+     "drafts_compared": 25,
+     "drafts_that_differed": 14,
+     "verdict_flips": 3,
+     "differences": [
+      {
+       "obs_id": 14746092,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735140,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745990,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14744250,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14733024,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14740027,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14741735,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745664,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745929,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735884,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14736746,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745985,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735176,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14746118,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      }
+     ]
+    },
+    {
+     "pass": 2,
+     "model_unloaded_first": true,
+     "drafts_compared": 25,
+     "drafts_that_differed": 14,
+     "verdict_flips": 3,
+     "differences": [
+      {
+       "obs_id": 14746092,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735140,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745990,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14744250,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14733024,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14740027,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14741735,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745664,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745929,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735884,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14736746,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745985,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735176,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14746118,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      }
+     ]
+    },
+    {
+     "pass": 3,
+     "model_unloaded_first": true,
+     "drafts_compared": 25,
+     "drafts_that_differed": 14,
+     "verdict_flips": 3,
+     "differences": [
+      {
+       "obs_id": 14746092,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735140,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745990,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14744250,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14733024,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14740027,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14741735,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745664,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14745929,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "EMITTED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735884,
+       "frozen_verdict": "EMITTED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": true
+      },
+      {
+       "obs_id": 14736746,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14745985,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14735176,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      },
+      {
+       "obs_id": 14746118,
+       "frozen_verdict": "REFUSED",
+       "repeat_verdict": "REFUSED",
+       "verdict_flipped": false
+      }
+     ]
+    }
+   ],
+   "note": "Appended by --measure-drift, one record per invocation, because a process boundary is the thing being measured and a loop inside one process cannot cross it.",
+   "passes_recorded": 3,
+   "drafts_compared": 75,
+   "drafts_that_differed": 42,
+   "verdict_flips": 9,
+   "text_disagreement_rate": 0.56,
+   "verdict_flip_rate": 0.12
+  }
+ },
+ "checker_sensitivity": {
+  "observations_measured": 25,
+  "adversarial_drafts": 525,
+  "refused_for_any_reason": 525,
+  "caught_for_the_expected_reason": 525,
+  "detection_rate": 1.0,
+  "refusal_rate_over_adversarial": 1.0,
+  "misattributed": [],
+  "control_drafts": 175,
+  "control_refused": 0,
+  "false_refusal_rate": 0.0,
+  "control_refusals": [],
+  "reading": "A detection rate of 1.0 means nothing on its own: a checker that refuses every draft scores it. The false-refusal rate over drafts that break no rule is the other half. Detection here requires the expected code and not merely a refusal, so refusing everything for one reason would show as a gap between detection_rate and refusal_rate_over_adversarial."
+ },
+ "per_observation": [
+  {
+   "obs_id": 14746092,
+   "packet_sha256": "1daae25481fceab93fa1c474a8945cdd617d0cd9150451905d2fc5b93258350c",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'435.275' is not in the evidence packet",
+     "literal": "435.275",
+     "unit": "mhz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 307,
+   "draft_sha256": "15131cd5f40179a9298509ce75edc3ef91e9be916272fcf92f082ecb364d4784",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14735140,
+   "packet_sha256": "0b7e5da9107277d5eed8b00a7174b066bade1d7ca6712dd5d4c7744f2d6151f4",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'437.5' is not in the evidence packet",
+     "literal": "437.5",
+     "unit": "mhz"
+    },
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'437.5' is not in the evidence packet",
+     "literal": "437.5",
+     "unit": "mhz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 323,
+   "draft_sha256": "8095c110fc8aa2b8120a0887f1ad61e59ed1035929b38e1dcb3bf037a5eb7d33",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14732518,
+   "packet_sha256": "eb43777f2a79063214886e0e3ab46a3771df6dd0a4ec4daf57293fcd8848df8b",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 396,
+   "draft_sha256": "946598fefbebda2e121dd9dec7cb2cb0176f38df0130806fe29927941f1fc5f5",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14745718,
+   "packet_sha256": "b631d85c0969c45ec0596cd34dfd6f817b83b4463276017c871bc1d5bd2a951e",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'137.00' is not in the evidence packet",
+     "literal": "137.00",
+     "unit": "mhz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 343,
+   "draft_sha256": "92f88497ad4a26da4b59972d73752a7ff9fb8c0278ee59060b9556157734992c",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14745990,
+   "packet_sha256": "60134bf21e6ce930211e9c11db0a097d77f6dc726139eb28286015c5a4fa0d41",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 328,
+   "draft_sha256": "c47c03a5c2436b320fc4261f1bb859624810be35e69c97ab620e8d6400fe0ae6",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14744250,
+   "packet_sha256": "76f972bfe09764f365a677ab7b12b563ba879c967d3d203fa8788b07547f0647",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 413,
+   "draft_sha256": "a622c41723394bd25313df6e787d96c05f9fb19706e87ac1b35d2897b68957cc",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14746054,
+   "packet_sha256": "a230c5e8a7c23f7e1e1f53c74de038de46dc3b2b00cda6b0e778b33175bf09e8",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'137.56' is not in the evidence packet",
+     "literal": "137.56",
+     "unit": "mhz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 383,
+   "draft_sha256": "8451dfd1c682139562171c4b21237399939c6d5fff2ee060a11a03d923ee9c6d",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14744187,
+   "packet_sha256": "5345b53be29acc51f7150d761bd4f795bcce83674fe28e29e42212eef2fbbde5",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'10' is not in the evidence packet",
+     "literal": "10",
+     "unit": ""
+    },
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'27' is not in the evidence packet",
+     "literal": "27",
+     "unit": ""
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 315,
+   "draft_sha256": "f563efaf9a04197a86f565a79d519684e3615683fb50a01079f4ca7b39191886",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14733024,
+   "packet_sha256": "df4928c56c487b7120710a66bec9548b256cf61ba34c1d5230c356f6d36263c4",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 315,
+   "draft_sha256": "41d5b196acdc8266036a2a3d17152a1b9c403d183cb737d34117ae2affeb4b2b",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14744248,
+   "packet_sha256": "2ea6cfb04780f5b8ca6f5951eae382647a2fed1c044ca82f6328f55e5cf354d4",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 260,
+   "draft_sha256": "e83ce49002f9822894623b93965eed528dd49cd47f75cc41bad45b250f07ad3b",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14742034,
+   "packet_sha256": "698921c6c41e7bd35bc3bf6dc14372a402ed45ff22338195b452b8560ec5cb3e",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 317,
+   "draft_sha256": "83aeddbcbfd8d5de9ac70de904fb3a3294652f01d9cceda50cdc6dde878ea6c8",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14740027,
+   "packet_sha256": "aeafc845c1cfb12138f5c4b6f292a6e7b200a08a3f7cd72765fc1e43f39c1f6b",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'436.2' is not in the evidence packet",
+     "literal": "436.2",
+     "unit": "mhz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 304,
+   "draft_sha256": "d925e1852158f2223750aa6c21f961cd502989416ade783452837153b726cc3b",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14740031,
+   "packet_sha256": "faa68ba3871503ee0b02bf2209a514d5729ca82b0fe8fb6377e5394588a32106",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'436.2' is not in the evidence packet",
+     "literal": "436.2",
+     "unit": "mhz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 304,
+   "draft_sha256": "d925e1852158f2223750aa6c21f961cd502989416ade783452837153b726cc3b",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14741735,
+   "packet_sha256": "67989dce358a4d39082d47f0cef0bd2ac88e78bd72583c08088f66fb74b77c7d",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 287,
+   "draft_sha256": "1a0578fe9f7883cf261bcfa0abc9a025cabc6d923d565d3424869e167c56ac57",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14742036,
+   "packet_sha256": "5adb92f2f45ca2c21ca832b31f3d7ca9c2aac3f3b1d8fb966bfeebad763ba3ab",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 324,
+   "draft_sha256": "7159009cb16c5b93231d5a52c28b4b54e5a135bc7555e49b5da6ac1bd8422a24",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14745664,
+   "packet_sha256": "40c54533fa655f6240b8e9ad14053f73cdab902356fb96bba2a40badabd8c617",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'407' is not in the evidence packet",
+     "literal": "407",
+     "unit": "mhz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 408,
+   "draft_sha256": "fc0364b9fc94a071668f60c3c5588b4d03a0d347260344edfd2b91e4d896e942",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14745929,
+   "packet_sha256": "074da09f39214a5a3f424fe409ccdff8d5821ce95680344ea3a92f221bb8cb3a",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 300,
+   "draft_sha256": "5762aa9da22e8e644beb6f68da23165e8b7c8a5da2565861d8538fae64571268",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14735884,
+   "packet_sha256": "0d02185fb7d6ce9a2b86cc506c99fde062d532beca94ad7842f168d2a2c6cbc1",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 287,
+   "draft_sha256": "5f120e5cf9804745fef9cf573adc836b9bcbb2a506004ccd9877cb5456c21c33",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14736746,
+   "packet_sha256": "26fe759e35b0a7a25248adc40e703989a6749490ef21a54052fad59cb9ea1d35",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'436.12' is not in the evidence packet",
+     "literal": "436.12",
+     "unit": "mhz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 336,
+   "draft_sha256": "de820ad27450916984a54f67bc018da8c7e2b787bb4e9334b2493e7af9b65cc9",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14745985,
+   "packet_sha256": "9b0d89a3e71ce927d700566419689d82c1b1bc1bf0396f48137d134cc705ce50",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'401.53' is not in the evidence packet",
+     "literal": "401.53",
+     "unit": "mhz"
+    },
+    {
+     "code": "OVERCLAIM",
+     "detail": "asserts a confirmation: 'and confirmation'"
+    }
+   ],
+   "codes": [
+    "OVERCLAIM",
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 319,
+   "draft_sha256": "a93b5fb5e0459e096b006dbb317f9dfa9d7bbeb7c93b37c6617b0e4385b2488f",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14735176,
+   "packet_sha256": "2f21771ad23dd927fdaba38a577772d8e78e19afcabfbf845e283516a1e9f702",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'401.49' is not in the evidence packet",
+     "literal": "401.49",
+     "unit": "mhz"
+    },
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'500' is not in the evidence packet",
+     "literal": "500",
+     "unit": "hz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 283,
+   "draft_sha256": "dc955a988f0db0b861f892fe8ea7c4ad3de4f5deaa0d88a54f2c298a29b05022",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14735743,
+   "packet_sha256": "2da7a73440f79de98f589591f8c44dca55c3a404d4c14992fba7b8a6e201744f",
+   "packet_fields": 26,
+   "verdict": "EMITTED",
+   "violations": [],
+   "codes": [],
+   "draft_chars": 313,
+   "draft_sha256": "2178dede1b2cfba93f623bb680eb5e0b69175185616413f37746436a772d5f2a",
+   "shipped": "generated"
+  },
+  {
+   "obs_id": 14745984,
+   "packet_sha256": "72faf2099b1dfca41ca4edb7868e63f3a63483a44c69943b9895b094d3551e3e",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'926' is not in the evidence packet",
+     "literal": "926",
+     "unit": "hz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 359,
+   "draft_sha256": "b453476582ea857e58132475db8d70927cdfefdae99973e7b24cc4dd087951b2",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14742229,
+   "packet_sha256": "282d1678c50a459e20c0bb893dc8a67b21ebedd8711d21830127488c13e88b5a",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'436.8' is not in the evidence packet",
+     "literal": "436.8",
+     "unit": "mhz"
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 343,
+   "draft_sha256": "800229af6e35991cddcd8d5d02fdf2bd0b5e076e5d386c3cf7fc425585043a92",
+   "shipped": "deterministic"
+  },
+  {
+   "obs_id": 14746118,
+   "packet_sha256": "46652d1b16bd49d3fe64873435cd66ddea7cb19d22302596f9b8ae28955920da",
+   "packet_fields": 26,
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "UNGROUNDED_NUMBER",
+     "detail": "'3,' is not in the evidence packet",
+     "literal": "3,",
+     "unit": ""
+    }
+   ],
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ],
+   "draft_chars": 316,
+   "draft_sha256": "a92ee7b5d800ac292249739eb02321ebae26d8a3dbd46931153e6aeab13ea8c6",
+   "shipped": "deterministic"
+  }
+ ],
+ "what_this_does_not_measure": "Whether a note that passed the checker is useful. Grounding is a property of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN."
+}

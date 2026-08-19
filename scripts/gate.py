@@ -56,7 +56,7 @@ def main() -> int:
     print("standing gates\n")
     results = []
 
-    rc, out = run([str(PY), "-m", "pytest", "-m", "not network and not ocr", "-q"])
+    rc, out = run([str(PY), "-m", "pytest", "-m", "not network and not ocr and not llm", "-q"])
     tail = out.splitlines()[-1] if out else ""
     results.append(check("offline test suite", rc == 0, tail[:70]))
 

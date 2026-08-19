@@ -12,6 +12,7 @@ import cardsJson from "@/public/data/cards.json";
 import heroNullsJson from "@/public/data/hero_nulls.json";
 import evaluationJson from "@/public/data/evaluation.json";
 import provenanceJson from "@/public/data/provenance.json";
+import notesJson from "@/public/data/notes.json";
 import queueJson from "@/public/data/queue.json";
 
 export {
@@ -548,6 +549,54 @@ export const queue = queueData;
 export const cards = cardsData;
 export const evaluation = evaluationData;
 export const provenance = provenanceData;
+
+/**
+ * A reviewer note and where it came from.
+ *
+ * The note is either text a local model wrote and a grounding checker accepted, or the
+ * deterministic template that ships when the checker refused it. Which one it is, and the
+ * codes it was refused for, are part of the record rather than a detail the console hides:
+ * a reader who cannot tell a generated sentence from a template cannot calibrate either.
+ */
+export interface ReviewerNote {
+  obs_id: number;
+  note: string;
+  source: "generated" | "deterministic";
+  refused_codes: string[];
+  why: string | null;
+}
+
+export interface NoteModel {
+  name: string;
+  digest: string;
+  parameter_size: string;
+  quantization: string;
+  context_length: number;
+}
+
+interface NotesFile {
+  generated_at_commit: string;
+  model: NoteModel | null;
+  prompt_version: string;
+  notes: ReviewerNote[];
+}
+
+const notesData = notesJson as unknown as NotesFile;
+
+// Same rule as the hero nulls: an empty file would render as "no note for this
+// observation" on every card, which reads as a design decision rather than a missing
+// build step. Fail the build instead.
+if (notesData.notes.length === 0) {
+  throw new Error(
+    "notes.json contains no notes. Run scripts/run_explanations.py.",
+  );
+}
+
+export const notes = notesData;
+
+export const noteById = new Map<number, ReviewerNote>(
+  notesData.notes.map((note) => [note.obs_id, note]),
+);
 
 export const cardById = new Map<number, Card>(
   cardsData.cards.map((card) => [card.obs_id, card]),

@@ -71,6 +71,7 @@ markers = [
     "slow: long-running test",
     "acceptance: judged-path acceptance check",
     "dataset: test reads a built snapshot from disk (skipped when none is present)",
+    "llm: test calls the local model runtime (excluded from the offline replay gate)",
 ]
 
 [tool.ruff]

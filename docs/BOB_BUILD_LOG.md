@@ -4150,3 +4150,154 @@ lint caught.
 **Outcome:** accepted. Zero secrets in the tree and in the history, every redistributed
 file carries all six obligations, and the weight question is answered with sizes instead of
 a guess.
+
+---
+
+## 2026-08-19 IST | Wave E | E0: the console had never been live, and the gate could never have been green
+
+Two failures that no test in this repository could see, because both were outside it.
+
+**The deployment served nothing, for eleven consecutive production deployments.**
+`vercel.json` sat at `apps/web/vercel.json` while the project's root directory is the
+repository root, so the host never read it. Every deployment reported READY after finishing
+in under 300 milliseconds with no install step and no build step, and
+`https://tracetriage.vercel.app/` answered 404 to every request. Two claims were silently
+false for the whole period: that the console was reachable, and that the five security
+headers declared in that file were being served. The file was syntactically perfect and in
+a plausible place, which is why nothing caught it.
+
+The file moves to the repository root and gains the two commands the host was missing, so
+the deployment is reproducible from the repository rather than from a panel setting.
+`tests/test_deploy_contract.py` pins the relationship that broke: the output directory named
+in the contract is the directory the export writes. Putting a second copy back under
+`apps/web` fails it, and so does renaming the output directory. **Verified after the push:
+all six routes answer 200, all five headers are served, and an anonymous request from
+outside the browser gets the page.**
+
+**The offline gate could never have been green in CI, on any commit.**
+`tests/test_a_windows_drive_letter_is_not_a_url_scheme` asserted the basename of a
+backslash-separated path. A backslash is an ordinary character in a POSIX path, so on the
+`ubuntu-latest` runner the workflow declares, that basename is the whole string and the
+assertion raises. `resolve_store_path` does not split paths and never claimed to; its claim
+is that a drive letter is not read as a one-character URL scheme, which holds identically on
+both platforms, so that is what the test now asserts.
+
+Then the whole gate was run on real Linux rather than argued about: a fresh clone into
+Ubuntu 24.04 under WSL, a pinned environment built by uv, `ruff check .`,
+`pytest -m "not network and not ocr"` and `sync_readme_results.py --check`. **957 passed, 30
+skipped, 2 deselected, in 162 seconds, with lint and the README check clean.** The 30 skips
+are the snapshot-dependent tests, which is the correct behaviour where no snapshot exists.
+
+**Three README claims that were false or stale.** `bob_sessions/` was described as holding
+exported task histories; it held one `.gitkeep` and git does not publish empty directories,
+so on GitHub the sentence pointed at nothing. The results table cited `FUSION_RECEIPT.json`
+and `QUEUE_RECEIPT.json` as bare filenames, which resolve nowhere from the repository root.
+And the status banner still said a quoted value was not compared against its artifact, which
+task D2 had closed: editing the AUC row from 0.875 to 0.999 turns three tests red, verified
+by mutation. `tests/test_readme_claims.py` extracts every backticked repository path from the
+README and requires each to exist, to carry something, and to be published by git; a guard
+test fails if the extractor stops matching, so it cannot pass over an empty list.
+
+The generator also stopped typing the gate tally. It said two gates were inconclusive while
+three were, in the paragraph that introduces the evidence table, so the count is now read
+from the same function the console publishes it from.
+
+**Files changed:** `vercel.json` (moved from `apps/web/`), `tests/test_deploy_contract.py`
+(new), `tests/test_annotate.py`, `tests/test_readme_claims.py` (new), `README.md`,
+`scripts/sync_readme_results.py`, `bob_sessions/` (deleted).
+**Tests:** 4 new for the deploy contract, 31 for the README's paths.
+**Outcome:** accepted. The console is live and publicly reachable, and the offline gate is
+green on the platform the workflow runs on.
+
+---
+
+## 2026-08-19 IST | Wave E | E1: a local Granite model writes the reviewer's note, and a checker refuses most of them
+
+The console shows a reviewer numbers. What they need first is the sentence those numbers add
+up to: what disagrees with what, where to look in the image, and what would settle it. That
+sentence is worth generating and it is exactly the kind of sentence a language model will
+invent, so the generation is not the interesting part of this unit. The checker is.
+
+**The arrangement.** `pipeline/tracetriage/explain.py` builds an evidence packet for one
+observation out of the committed console data, twenty-six fields printed at fixed
+precision, and hands over nothing else: no image, no retrieval, no tool call.
+`pipeline/tracetriage/granite.py` sends that packet to **IBM Granite 3.1 dense 8B**, running
+locally through Ollama at Q4_K_M, at temperature zero with a fixed seed. The draft comes
+back and the checker decides whether it may ship. Nothing is retried.
+
+**What the model did with it.** Of 25 cards, **11 drafts were accepted and 14 refused, a 56
+percent refusal rate, and every refusal was an ungrounded number.** In **9 of the 25** the
+model wrote a downlink frequency in megahertz that was not this observation's: 436.2 for a
+true 436.4, 437.215 for 436.15, 2401.975 for a 401-megahertz pass. Errors from 10 kHz to
+1215 kHz. Every one is a real amateur satellite frequency, which is what makes them
+dangerous: a reviewer shown an unchecked note would have been told the wrong band for the
+satellite they were judging, in a sentence that reads like the rest of the card.
+
+**The checker is measured in both directions, which is the point.** A checker that refuses
+everything catches every adversarial draft and is worthless. So the receipt carries a
+detection rate over drafts built to break exactly one rule, and a false-refusal rate over
+drafts that break none, both computed over every observation rather than over whichever card
+happens to be first: **525 of 525 adversarial drafts refused for the reason they were built
+to trip, and 0 of 175 clean drafts refused.** Detection means the expected code fired, not
+merely that something was refused, because a checker that refuses everything for one reason
+would otherwise score 1.0.
+
+**Generation is not reproducible, and the first version of this unit assumed it was.** Same
+prompt, same weights, temperature zero, fixed seed: **36 percent of drafts differed when the
+prompts were repeated inside one process, and 56 percent differed in a fresh process after
+asking the runtime to unload the model. About one repeat in nine crossed the checker's accept
+or refuse decision.** One freeze produced no differences at all over 75 repeats, so the
+instability is itself variable and cannot be retried away. The consequence is architectural:
+the text a reviewer sees is frozen into `tests/fixtures/granite_notes.json` and committed,
+every later step reads that file, and the disagreement rate is published beside it.
+
+**One HTTP write verb now exists in this repository, and the rule that forbade them is
+stronger for it.** A local model needs a POST because that is the shape of the runtime's API.
+The rule is now an exemption of one named file with an asserted count of one call site, the
+destination is proved to be loopback before the URL is built, and a second test walks the
+annotation store's import closure to prove it cannot reach the module that can POST. The scan
+also gained the three methods that take the verb as an argument and the verb spelled as a
+string literal, because `request("POST", ...)` writes and an attribute-name scan never saw
+it.
+
+**An adversarial review broke the first two versions of the number check, and both are worth
+recording.** The first accepted any literal that appeared anywhere in the rendered packet, so
+`6490` was grounded by the digits inside a receiver frequency of 436490000 while the true
+offset was 6904: a digit transposition passed with no violation at all. The second compared
+the converted value without reading the unit, so an offset of 6904 Hz written as "6.9 MHz"
+passed, an error of three orders of magnitude. Tokenising, and requiring the unit the
+conversion produces, closes both, and `adversarial_drafts` now builds a case for each out of
+the packet under test rather than from a typed constant.
+
+The same review found the confirmation rule admitting four assertions through an allow list
+that had grown by observation rather than by argument: "the offset is large and confirms a
+catalogue drift", "means confirmed mistuning", "requires confirmed identity", "after
+confirmation of the pass". The indicative and the participle now assert regardless of what
+precedes them, and only the bare verb, the gerund and the noun are read in context. All four
+are in the adversarial suite.
+
+**What this does not measure.** Whether an accepted note is useful. Grounding is a property
+of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks
+a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.
+
+**Files changed:** `pipeline/tracetriage/explain.py`, `pipeline/tracetriage/granite.py`,
+`scripts/run_explanations.py` (all new), `apps/web/components/ReviewerNote.tsx` (new),
+`apps/web/lib/data.ts`, `apps/web/app/observation/[id]/page.tsx`,
+`tests/test_explain.py`, `tests/test_explain_receipt.py`,
+`apps/web/tests/reviewer-note.test.ts` (all new), `tests/test_annotate.py`, `pyproject.toml`
+(new `llm` marker), `.github/workflows/ci.yml`, `scripts/gate.py`,
+`artifacts/EXPLAIN_RECEIPT.json`, `tests/fixtures/granite_notes.json`,
+`apps/web/public/data/notes.json` (all new), `apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/run_explanations.py --freeze --repeats 2`,
+`scripts/run_explanations.py --measure-drift --unload` three times,
+`scripts/run_explanations.py`, `scripts/build_console_data.py --skip-images`,
+`python -m ruff check .`, `python -m pytest -m "not network and not ocr and not llm"`,
+`npm run typecheck`, `npm run test`, `npm run build`.
+**Tests:** 1027 offline Python tests collected and passing, up from 981; 93 console tests, up
+from 81.
+**Failures and repairs:** the percentage transform was unreachable, because a percent sign is
+not a word character and the unit pattern required a trailing word boundary, so a
+probability of 0.999999 written as "100%" was refused. `provenance.json` was found listing
+`CLEAN_CLONE_TRANSCRIPT.json`, which git does not track, so a clean clone would regenerate a
+different file list; the entry is gone until that unit lands.
+**Outcome:** accepted, with the refusal rate published rather than tuned away.

@@ -20,6 +20,7 @@ because that is precisely the case that shipped.
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -47,7 +48,6 @@ _NOT_A_PATH: dict[str, str] = {
     "git": "a command",
     "next": "a command",
     "npx": "a command",
-    "not network": "a pytest marker expression",
     "with-signal": "a SatNOGS label value",
     "without-signal": "a SatNOGS label value",
     "unknown": "a SatNOGS label value",
@@ -63,7 +63,6 @@ _NOT_A_PATH: dict[str, str] = {
     "PRE_PASSED": "a verdict value",
     "OPEN": "a verdict value",
     "UNMEASURED": "a table marker",
-    "[UNMEASURED]": "a table marker",
 }
 
 
@@ -79,6 +78,25 @@ def _readme_paths() -> list[str]:
         # A trailing slash is how the README writes a directory.
         out.append(token)
     return sorted(set(out))
+
+
+def _tracked(rel: str) -> list[str]:
+    """What git publishes at this path. The filesystem is not the question here.
+
+    The whole rationale for this test is what a reader finds on GitHub, and the first
+    version answered a different question: it walked the local directory. A directory full
+    of gitignored files passed, which is the same failure as the one it was written for.
+    `media/` is ignored, so naming it in the README would have been green here and invisible
+    to every reader.
+    """
+    out = subprocess.run(
+        ["git", "ls-files", "--", rel.rstrip("/")],
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return [line for line in out.stdout.splitlines() if line.strip()]
 
 
 def _is_empty(path: Path) -> bool:
@@ -116,4 +134,9 @@ def test_every_path_the_readme_names_exists_and_is_not_empty(rel: str):
         f"README.md names {rel!r} and it is empty. A directory holding only .gitkeep is "
         "not published by git at all, so the sentence pointing at it is false on GitHub "
         "even though the path exists locally."
+    )
+    assert _tracked(rel), (
+        f"README.md names {rel!r} and git publishes nothing there. It exists on this "
+        "machine and is ignored or unstaged, so a reader following the reference on GitHub "
+        "finds nothing, which is the case this test exists for."
     )

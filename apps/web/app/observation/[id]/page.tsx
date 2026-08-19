@@ -13,6 +13,8 @@ import {
   entryById,
   fmt,
   isBuilt,
+  noteById,
+  notes,
   showcaseIds,
 } from "@/lib/data";
 import WaterfallViewer from "@/components/WaterfallViewer";
@@ -20,6 +22,7 @@ import SkyPlot from "@/components/SkyPlot";
 import GroundTrack, { boundsForPass } from "@/components/GroundTrack";
 import PassReplay from "@/components/PassReplay";
 import PassTimeSeries from "@/components/PassTimeSeries";
+import ReviewerNote from "@/components/ReviewerNote";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export function generateStaticParams() {
@@ -132,6 +135,13 @@ export default async function ObservationPage({
           secondsPerPx={card.seconds_per_px}
         />
       </div>
+
+      {/* The note goes directly under the image and above every plot, because it is the
+          thing a reviewer reads first and its whole value is in framing what they are
+          about to look at. It carries its own provenance: either the model that wrote it
+          and the fact that a checker accepted it, or the codes a draft was refused for and
+          the template that shipped in its place. */}
+      <ReviewerNote record={noteById.get(obsId)} model={notes.model} />
 
       {/* The geometry behind the trace.
           Two plots of the same propagation the corridor was scored against, laid

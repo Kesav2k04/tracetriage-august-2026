@@ -32,11 +32,11 @@ jobs:
 
       - name: Offline test suite
         # -m "not network" is the gate that proves the replay needs no external service.
-        run: .venv/bin/python -m pytest -m "not network and not ocr" -q
+        run: .venv/bin/python -m pytest -m "not network and not ocr and not llm" -q
 
       - name: Claim drift
         # Fails if a README or video number stops matching its generated receipt.
-        run: .venv/bin/python -m pytest -m "not network and not ocr" -q tests/test_claim_drift.py
+        run: .venv/bin/python -m pytest -m "not network and not ocr and not llm" -q tests/test_claim_drift.py
 
       - name: README results match the receipts
         # The results table is generated from the receipts. This is the check that the
