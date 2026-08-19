@@ -6,11 +6,16 @@ or C.
 
 Units are named A, B, C and D. Nothing else is named.
 
-Current as of 2026-08-19, after D2. Wave C is closed and Wave D is in progress:
-working tree clean, every standing gate green (12 of 12 as of D2, which added the
-console checks and artifact freshness), 818 offline tests collected with 817 passing
-and one declared expected failure. The gate prints its own count, so read that
-rather than this sentence.
+Current as of 2026-08-19, after D0c. Wave C is closed and Wave D is in progress:
+working tree clean, every standing gate green (13 of 13), 922 offline tests collected
+and all passing with no expected failures, 81 console tests under vitest. The gate
+prints its own count, so read that rather than this sentence.
+
+Review work is finished: all 8 BLOCKING and all 20 SERIOUS findings across the two
+review documents are closed, and ten MINOR findings in the engineering review are not.
+The units below that remain are the failure injection, the last claim-drift sub-ask, the
+clean clone, the secret and attribution audit, the documentation and demo, and the final
+acceptance.
 
 ---
 
@@ -238,6 +243,16 @@ a silent success: malformed image, blank image, missing TLE, stale TLE beyond th
 threshold, absent frequency bins, wrong start offset, multiple traces in one waterfall,
 network unavailable, missing model artifact, unsupported client image format, empty
 queue after filtering, and a request that times out.
+
+Read docs/DEGRADED_STATE_RECON.md before you plan this unit. It maps all twelve modes to
+the reason string the code emits today, with file and line, and to the test that asserts
+that reason where one exists. Measured at commit 77ae14b: five modes are covered, three
+are tested against the wrong input, and four have no test at all. Three of those four
+have no named reason in the code either, so they need production code before they can
+have a test: wrong start offset (a broken pass window is published as MISSING_STATION),
+multiple traces in one waterfall (nothing counts traces), and unsupported client image
+format (a complete JPEG is published as TRUNCATED). The same document lists eleven reason
+constants the code can emit that no test asserts, which is the honest size of this unit.
 
 The rule that matters: an absence must never be published as a measurement. A missing
 value is a named reason, not a null and not a zero. Two absences were published as
