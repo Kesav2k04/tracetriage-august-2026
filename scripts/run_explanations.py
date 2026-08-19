@@ -142,9 +142,17 @@ def _checker_sensitivity(packets: list[EvidencePacket]) -> dict[str, Any]:
                     }
                 )
 
+    # Named for what they count. The earlier names said "drafts", and 525 is 21 drafts
+    # checked against each of 25 packets: a judge opening explain.py counts seventeen
+    # packet-independent cases and four built from the packet, so a headline of 525 drafts
+    # overstated the suite by a factor of twenty-five. The per-observation counts are
+    # published beside the totals so neither number can be read as the other.
+    per_observation = len(adversarial_drafts(packets[0])) if packets else 0
+    controls_per_observation = len(control_drafts(packets[0])) if packets else 0
     return {
         "observations_measured": len(packets),
-        "adversarial_drafts": adversarial,
+        "adversarial_drafts_per_observation": per_observation,
+        "adversarial_checks": adversarial,
         "refused_for_any_reason": refused_at_all,
         "caught_for_the_expected_reason": expected_fired,
         "detection_rate": round(expected_fired / adversarial, 4) if adversarial else None,
@@ -152,17 +160,20 @@ def _checker_sensitivity(packets: list[EvidencePacket]) -> dict[str, Any]:
             round(refused_at_all / adversarial, 4) if adversarial else None
         ),
         "misattributed": misattributed,
-        "control_drafts": controls,
+        "control_drafts_per_observation": controls_per_observation,
+        "control_checks": controls,
         "control_refused": len(refused_controls),
         "false_refusal_rate": (
             round(len(refused_controls) / controls, 4) if controls else None
         ),
         "control_refusals": refused_controls,
         "reading": (
-            "A detection rate of 1.0 means nothing on its own: a checker that refuses "
-            "every draft scores it. The false-refusal rate over drafts that break no rule "
-            "is the other half. Detection here requires the expected code and not merely a "
-            "refusal, so refusing everything for one reason would show as a gap between "
+            "A check is one draft against one observation's packet, so the totals are "
+            "the per-observation counts times the observations measured. A detection rate "
+            "of 1.0 means nothing on its own: a checker that refuses every draft scores "
+            "it. The false-refusal rate over drafts that break no rule is the other half. "
+            "Detection here requires the expected code and not merely a refusal, so "
+            "refusing everything for one reason would show as a gap between "
             "detection_rate and refusal_rate_over_adversarial."
         ),
     }
@@ -219,7 +230,13 @@ def _frequency_near_misses(
         "definition": (
             "An ungrounded number written in megahertz, within five percent of the "
             "observation's own receiver frequency in megahertz, so a wrong downlink rather "
-            "than an arbitrary value that happens to fall in the same numeric range."
+            "than an arbitrary value that happens to fall in the same numeric range. "
+            "Within five percent is also what makes each one dangerous: the invented value "
+            "sits in the same band as the real downlink, so nothing about it looks wrong "
+            "to a reader. The bands themselves are not classified here and no claim is made "
+            "about them: an earlier draft of this project's README called all nine amateur "
+            "satellite frequencies, and four of them are not, being 137 MHz meteorological "
+            "downlinks and 401 MHz records."
         ),
         "occurrences": len(hits),
         "observations_affected": len({h["obs_id"] for h in hits}),
@@ -603,9 +620,9 @@ def publish() -> int:
     tail = f" ({100 * refused / decided:.0f}% refusal)" if decided else ""
     print(f"{len(rows)} observations: {emitted} emitted, {refused} refused{tail}")
     print(
-        f"checker: {sens['caught_for_the_expected_reason']}/{sens['adversarial_drafts']} "
-        f"adversarial caught for the right reason, {sens['control_refused']}"
-        f"/{sens['control_drafts']} clean drafts refused"
+        f"checker: {sens['caught_for_the_expected_reason']}/{sens['adversarial_checks']} "
+        f"adversarial checks caught for the right reason, {sens['control_refused']}"
+        f"/{sens['control_checks']} clean checks refused"
     )
     print(
         f"wrong downlink frequency written in {freq['observations_affected']} of "

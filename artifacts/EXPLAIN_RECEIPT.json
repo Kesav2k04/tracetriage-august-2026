@@ -34,7 +34,7 @@
   }
  },
  "hallucinated_downlink_frequency": {
-  "definition": "An ungrounded number written in megahertz, within five percent of the observation's own receiver frequency in megahertz, so a wrong downlink rather than an arbitrary value that happens to fall in the same numeric range.",
+  "definition": "An ungrounded number written in megahertz, within five percent of the observation's own receiver frequency in megahertz, so a wrong downlink rather than an arbitrary value that happens to fall in the same numeric range. Within five percent is also what makes each one dangerous: the invented value sits in the same band as the real downlink, so nothing about it looks wrong to a reader. The bands themselves are not classified here and no claim is made about them: an earlier draft of this project's README called all nine amateur satellite frequencies, and four of them are not, being 137 MHz meteorological downlinks and 401 MHz records.",
   "occurrences": 9,
   "observations_affected": 9,
   "of_observations": 25,
@@ -435,17 +435,19 @@
  },
  "checker_sensitivity": {
   "observations_measured": 25,
-  "adversarial_drafts": 525,
+  "adversarial_drafts_per_observation": 21,
+  "adversarial_checks": 525,
   "refused_for_any_reason": 525,
   "caught_for_the_expected_reason": 525,
   "detection_rate": 1.0,
   "refusal_rate_over_adversarial": 1.0,
   "misattributed": [],
-  "control_drafts": 175,
+  "control_drafts_per_observation": 7,
+  "control_checks": 175,
   "control_refused": 0,
   "false_refusal_rate": 0.0,
   "control_refusals": [],
-  "reading": "A detection rate of 1.0 means nothing on its own: a checker that refuses every draft scores it. The false-refusal rate over drafts that break no rule is the other half. Detection here requires the expected code and not merely a refusal, so refusing everything for one reason would show as a gap between detection_rate and refusal_rate_over_adversarial."
+  "reading": "A check is one draft against one observation's packet, so the totals are the per-observation counts times the observations measured. A detection rate of 1.0 means nothing on its own: a checker that refuses every draft scores it. The false-refusal rate over drafts that break no rule is the other half. Detection here requires the expected code and not merely a refusal, so refusing everything for one reason would show as a gap between detection_rate and refusal_rate_over_adversarial."
  },
  "per_observation": [
   {

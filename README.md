@@ -4,6 +4,11 @@
 
 Submitted to the AI Builders Challenge with IBM Bob, August 2026 theme: **Advance Space Exploration with AI**.
 
+**Live console: <https://tracetriage.vercel.app/>.** A static export, no server and no
+credentials. `FOR_JUDGES.md` is the shortest path through the evidence: it maps each judged
+criterion to the file that carries it, and it is generated from the receipts by
+`scripts/sync_for_judges.py`, so it cannot drift from them.
+
 > **Status: six kill gates asked, two met, three inconclusive, one not run.** Every number in this README is generated from a frozen artifact under `artifacts/` and carries a row in `docs/CLAIM_REGISTER.md`; `tests/test_claim_drift.py` compares each quoted value against the artifact it came from, not merely the presence of a register row: editing the AUC row from 0.875 to 0.999 turns three tests red. `tests/test_readme_claims.py` does the same for the paths this file names, because an existence claim is as checkable as a number. The three inconclusive gates are reported as NOT_ESTABLISHED rather than rounded into a pass, and the gate that was never run is reported as OPEN rather than omitted. Gate 3 moved from PASSED to NOT_ESTABLISHED on 2026-08-18: every one of its three testable observations discriminates, and three successes in three trials cannot establish the 70 percent rate the gate asked for, because the exact one-sided 95 percent lower bound is 0.368.
 
 ---
@@ -99,9 +104,24 @@ sequence, and every step writes a file that the next one reads.
    review budget. Intervals are bootstrapped over pass episodes and over ground
    stations, and the reported interval is the union of the two.
 8. **Export and console.** `scripts/build_console_data.py` projects the receipts into
-   the four JSON files the site reads, refusing to substitute a null for a field it
+   the JSON files the site reads, refusing to substitute a null for a field it
    could not find. `apps/web` is a Next.js static export: no server, no database, no
    runtime fetch, no credentials.
+9. **Reviewer note.** `pipeline/tracetriage/explain.py` builds a closed evidence packet of
+   26 printed fields for one observation and nothing else: no image, no retrieval, no tool
+   call. `pipeline/tracetriage/granite.py` sends it to a local IBM Granite model, the only
+   HTTP write verb in this repository and one that refuses any destination that is not
+   loopback. The checker then requires every numeric token in the draft to be one of the
+   packet's own tokens, or to equal a packet value at the precision it was printed to under
+   three unit conversions that each have to carry the unit they produce, and refuses any
+   draft that asserts a confirmation, a detection, decoding, telemetry, proof or an
+   absolute. A refused draft is not retried: the deterministic template ships and the card
+   says which codes refused it.
+10. **Evidence server.** `scripts/mcp_server.py` exposes the queue, one observation's
+    packet, the gate verdicts, a receipt summary and the grounding checker itself as five
+    read-only MCP tools over stdio, with no dependency outside the standard library. An
+    agent writing about an observation can have its own prose checked by the same code that
+    decides whether this project's generated notes ship.
 
 **Model ladder**, each rung compared against the last: centre-energy heuristic, HOG plus regularised logistic regression, a frozen MobileNetV3-Small or ResNet18 encoder, a physics-only residual model, then a fusion head over image plus metadata plus physics. Calibration by temperature or isotonic fitting on a later time period. Selective or conformal abstention on top.
 
@@ -109,14 +129,46 @@ sequence, and every step writes a file that the next one reads.
 
 **Labels are silver, not truth.** `waterfall_status` supplies weak supervision. Unknowns stay unlabelled rather than being coerced into a negative class. A blinded local audit with separate artifact, visible-signal and target-consistency axes decides the evaluation target.
 
-**IBM Granite was scoped and not built, and the reason is on the record.** The plan was
-a local open Granite model translating a bounded natural-language request into typed
-queue filters, with a plain form as the primary control and three conditions for
-removal: if it altered a single number, accepted an unsupported field, or failed an
-exact semantic test. None of that shipped. The queue's filters are a plain form, which
-is what the plan called the primary control. Stating this as delivered would be the
-easiest claim in this document to make and the easiest to check, so it is stated as
-not delivered instead.
+**IBM Granite writes the reviewer's first sentence, and a checker refuses most of what it
+writes.** Granite 3.1 dense 8B runs locally at Q4_K_M, temperature zero, and drafts one note
+per card from the evidence packet described in step 9. Of 25 cards, 11 drafts were accepted
+and 14 refused, and every refusal was an ungrounded number. In **9 of the 25** the model
+wrote a downlink frequency in megahertz that was not this observation's, wrong by 10 kHz to
+1215 kHz. Each invented value lands within five percent of that observation's real downlink,
+which is the finding's own definition and also what makes it dangerous: the number looks
+like the number that belongs there, in a sentence that reads like the rest of the card. An
+earlier version of this paragraph called all nine real amateur satellite frequencies. Four
+are not: two sit in the 137 MHz meteorological downlink band and two at 401 MHz. The claim
+that survives is proximity to the truth, which the receipt measures, rather than membership
+of a band, which it does not.
+
+The checker is measured in both directions, because one direction alone is worthless: a
+checker that refuses everything catches every adversarial draft. The suite is 21 drafts
+built to break exactly one rule each, and 7 that break none, checked against every one of
+the 25 observations' packets: **525 of 525** adversarial checks were refused for the reason
+they were built to trip and **0 of 175** clean checks were refused. Detection requires the
+expected violation code rather than merely a refusal. The counts are checks rather than
+distinct drafts, and the receipt publishes the per-observation figures beside the totals so
+neither can be read as the other. All of it is in `artifacts/EXPLAIN_RECEIPT.json`.
+
+Generation turned out not to be reproducible, and the first version of this layer assumed it
+was. Same prompt, same weights, temperature zero, fixed seed: 36 percent of drafts differed
+on a repeat inside one process and 56 percent differed in a fresh process after a model
+unload, with about one repeat in nine crossing the checker's accept-or-refuse decision. One
+freeze produced no differences at all over 75 repeats, so the instability is itself variable
+and cannot be retried away. The consequence is architectural: the text a reviewer sees is
+frozen into `tests/fixtures/granite_notes.json` and committed, the publisher needs no model
+and no network, and the disagreement rate is published beside the notes rather than smoothed
+over.
+
+**What was scoped for Granite and was not built.** The plan also called for a local Granite
+model translating a bounded natural-language request into typed queue filters, with a plain
+form as the primary control and three conditions for removal. None of that shipped. The
+queue's filters are a plain form, which is what the plan called the primary control.
+
+**What none of this measures.** Whether an accepted note is useful. Grounding is a property
+of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks
+a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.
 
 ### Selected challenge theme
 
@@ -130,7 +182,7 @@ Bob's work is recorded, not asserted:
 
 - `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures and repairs, with actual build credit consumption
 - `docs/BOB_HANDOFF.md` carries exact state across trial-account rotations
-- `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool contracts and MCP wiring each Bob task ran under, tracked so the conditions of the work are readable and not just its output
+- `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool contracts and MCP wiring each Bob task ran under, tracked so the conditions of the work are readable and not just its output. The specification separates the five tools that exist from the five that were specified and were not, naming for each of those the script that did its job instead, and a test fails if the registration ever points at a server that is not there
 - exported task transcripts are **not included**. An earlier draft of this section said they were, pointing at a directory that held nothing but a placeholder file, which git does not publish at all. The directory is gone and the build log is the record; a test now fails if this file names a path that is missing or empty
 - a final Bob task inspects the release commit, runs the acceptance suite, repairs failures and generates a sign-off receipt
 
@@ -207,7 +259,15 @@ uv pip install --python .venv/Scripts/python.exe -e ".[dev,onnx]"
 .venv/Scripts/python.exe -m pytest -q
 ```
 
-The offline replay path must work with networking disabled. `pytest -m "not network"` is the gate that proves it.
+The offline replay path must work with networking disabled. The gate that proves it is
+`pytest -m "not network and not ocr and not llm"`: `ocr` needs a system binary and `llm`
+needs the local model runtime, and neither is available on a clean runner, so a run that
+included them would fail for reasons that say nothing about the replay path. Everything that
+publishes a number runs in that gate.
+
+The reviewer notes need the model only to be re-frozen. `scripts/run_explanations.py
+--freeze` is the step that talks to it; the default run publishes from the committed fixture
+and needs neither the model nor the network.
 
 ## Prior art and honest scope
 

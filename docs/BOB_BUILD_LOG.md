@@ -4228,19 +4228,33 @@ back and the checker decides whether it may ship. Nothing is retried.
 **What the model did with it.** Of 25 cards, **11 drafts were accepted and 14 refused, a 56
 percent refusal rate, and every refusal was an ungrounded number.** In **9 of the 25** the
 model wrote a downlink frequency in megahertz that was not this observation's: 436.2 for a
-true 436.4, 437.215 for 436.15, 2401.975 for a 401-megahertz pass. Errors from 10 kHz to
-1215 kHz. Every one is a real amateur satellite frequency, which is what makes them
-dangerous: a reviewer shown an unchecked note would have been told the wrong band for the
-satellite they were judging, in a sentence that reads like the rest of the card.
+true 436.4, 436.12 for 436.15, 401.53 for 401.52. Errors from 10 kHz to 1215 kHz. Each one
+lands within five percent of that observation's real downlink, which is the finding's own
+definition and also what makes it dangerous: a reviewer shown an unchecked note would read a
+number that looks like the number that belongs there, in a sentence that reads like the rest
+of the card.
+
+**Corrected on 2026-08-19 after review, and the correction is the point of writing it down.**
+This paragraph first read "437.215 for 436.15, 2401.975 for a 401-megahertz pass" and called
+every one of the nine a real amateur satellite frequency. Neither of those two values appears
+in the receipt: they were written from memory in an entry about a model writing numbers from
+memory. And four of the nine are not amateur frequencies at all, two being 137 MHz
+meteorological downlinks and two at 401 MHz, while the receipt classifies no bands and cannot
+support a claim about them. The examples above are now read from
+`artifacts/EXPLAIN_RECEIPT.json` and the surviving claim is the one it measures.
 
 **The checker is measured in both directions, which is the point.** A checker that refuses
 everything catches every adversarial draft and is worthless. So the receipt carries a
 detection rate over drafts built to break exactly one rule, and a false-refusal rate over
 drafts that break none, both computed over every observation rather than over whichever card
-happens to be first: **525 of 525 adversarial drafts refused for the reason they were built
-to trip, and 0 of 175 clean drafts refused.** Detection means the expected code fired, not
-merely that something was refused, because a checker that refuses everything for one reason
-would otherwise score 1.0.
+happens to be first: **525 of 525 adversarial checks refused for the reason they were built
+to trip, and 0 of 175 clean checks refused.** A check is one draft against one observation's
+packet, so those totals are 21 adversarial drafts and 7 clean ones against each of 25
+packets. Calling them drafts, as this entry first did, overstated the suite twenty-five-fold
+against an `explain.py` a reader can count; the receipt now publishes the per-observation
+counts beside the totals. Detection means the expected code fired, not merely that something
+was refused, because a checker that refuses everything for one reason would otherwise score
+1.0.
 
 **Generation is not reproducible, and the first version of this unit assumed it was.** Same
 prompt, same weights, temperature zero, fixed seed: **36 percent of drafts differed when the
@@ -4463,3 +4477,94 @@ session, `npm run typecheck`, `npm run test`, `npm run build`.
 file went from 21 tests to 31.
 **Outcome:** accepted. Every finding closed with a test, and the two that were claims about
 the source rather than about behaviour are now claims the source is checked against.
+
+---
+
+## 2026-08-19 IST | Wave E | E5: a page for judges, generated, and the false sentence it found
+
+A judge reads one file. That makes it the file most worth keeping honest and the one least
+likely to be re-derived, which is the combination that produces a stale submission page:
+written early when the numbers are provisional, then never revisited while the pipeline runs
+again. `FOR_JUDGES.md` is generated from the receipts by `scripts/sync_for_judges.py`. Every
+number in it is read from a file under `artifacts/`, `--check` fails if the committed page
+differs by one character, and both `scripts/gate.py` and the CI offline-replay job run that
+check.
+
+The page maps each judged criterion and each submission requirement to the file that carries
+the evidence, opens with four commands a sceptic can run, and ends with the section that
+matters more than the rest: what the project does not claim. The kill-gate tally, the
+inconclusive count, the refusal rate, the non-reproducibility rates and the queue's interval
+containing its own threshold are all in it, because a page that lists only wins is the
+failure this project is built to avoid.
+
+**The clean-clone transcript it reads.** `scripts/clean_clone_check.py` clones the repository
+into a fresh directory, refuses every non-loopback socket by replacing `socket.connect`,
+`connect_ex` and `getaddrinfo` through a `sitecustomize` on `PYTHONPATH`, and runs the gate
+from there. **14 of 15 steps pass at commit `ca324f6`, and all three regenerable artifacts
+come back byte-identical.** The one failure is the offline dependency install, which needs an
+index or a warm cache and is recorded with its reason rather than hidden. The offline suite
+runs twice, once with the 4 GB snapshot directory present and once with it hidden, because
+the presence of that directory on this machine would otherwise conceal every test that only
+passes with a warm cache: **1059 passed with it, 1029 passed and 30 skipped without it.** The
+page quotes the second pair, which is a judge's case, and a test pins that choice of column
+so a later edit cannot quietly switch to the flattering one.
+
+**A review of the page found a sentence that was false, and it was mine.** The README, this
+log's E1 entry and the E1 commit message all said that every one of the nine invented
+downlink frequencies was a real amateur satellite frequency. Four are not: two sit in the
+137 MHz meteorological downlink band and two at 401 MHz, and the receipt classifies no bands
+at all, so the claim was both wrong and unsupported by the artifact it cited. The E1 entry
+also gave two example values, 437.215 and 2401.975, that appear nowhere in the receipt: they
+were written from memory, in an entry about a language model writing numbers from memory.
+Both are corrected in place, the correction is stated where the original stood, and the
+surviving claim is the one the receipt measures: each invented value lands within five
+percent of that observation's real downlink, which is what makes it dangerous, because the
+number looks like the number that belongs there.
+
+**A headline that overstated a suite twenty-five-fold.** The receipt reported 525
+`adversarial_drafts` and 175 `control_drafts`. Those are checks, not drafts: 21 adversarial
+drafts and 7 clean ones against each of 25 observations' packets, against an `explain.py` in
+which a reader counts 17 packet-independent cases and four built from the packet. The keys are
+`adversarial_checks` and `control_checks` now, the per-observation counts are published beside
+them, and a test asserts the totals factorise, so neither number can be read as the other.
+
+**Six more findings against the generator, each of which would have surfaced at the worst
+time.** The page died at import when the frequency case list was empty, which is the day the
+checker finds nothing wrong: the success condition for the unit was the failure condition for
+its page. It divided refusals by `observations` rather than by what the checker decided on,
+and reported an occurrence count as an observation count, both of which are equal today and
+wrong in the flattering direction the moment one row is not decided. It typed "two" cold
+splits where the manifest has three, "about one repeat in nine" where the receipt carries two
+measured flip rates, "1.5x" where the gate's own wording carries the threshold, "eleven
+receipts" where there are 17, and "five and five" tools where the specification can be
+counted. All are derived now, and the threshold is parsed out of the gate's wording with a
+pattern that fails loudly rather than falling back to a constant.
+
+**And the page's own absence read as a pass.** Five of the six tests in
+`tests/test_for_judges.py` skip when `FOR_JUDGES.md` is missing, so a page that was never
+generated and never committed produced five skips and no failure: the third-outcome mistake
+this project has made before, absence folding into correctness. One test now asserts the page
+exists, is longer than two kilobytes, and is published by git, with no skip in it. The path
+check that runs over everything the page cites never ran over the page itself, which is the
+same defect one level up.
+
+One claim in that review was rejected after checking. `SECRET_SCAN.json` carrying a commit
+two behind HEAD is not the defect the receipt purity fix addressed: a secret scan is a
+measurement of a particular history, so recording which commit it measured is correct
+provenance, and nothing asserts that file is byte-reproducible from a later commit. Re-running
+`scripts/audit_release.py` belongs in the release sequence and is recorded there instead.
+
+**Files changed:** `FOR_JUDGES.md`, `scripts/sync_for_judges.py`, `tests/test_for_judges.py`,
+`scripts/clean_clone_check.py`, `artifacts/CLEAN_CLONE_TRANSCRIPT.json` (all new),
+`scripts/gate.py`, `.github/workflows/ci.yml`, `scripts/run_explanations.py`,
+`tests/test_explain_receipt.py`, `artifacts/EXPLAIN_RECEIPT.json`, `README.md`,
+`docs/CLAIM_REGISTER.md`, `apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/clean_clone_check.py --clone-dir D:/_cleanclone`,
+`scripts/run_explanations.py`, `scripts/build_console_data.py --skip-images`,
+`scripts/sync_for_judges.py`, `scripts/sync_readme_results.py --check`,
+`python -m ruff check .`, `python -m pytest -m "not network and not ocr and not llm"`,
+`npm run typecheck`, `npm run test`, `npm run build`.
+**Tests:** 1072 offline Python tests pass, up from 1064, and 93 console tests. 8 new register
+rows.
+**Outcome:** accepted. The README now links the live console, which it never did, and names
+the note layer, the checker and the evidence server in the sequence they run.

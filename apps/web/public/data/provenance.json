@@ -97,6 +97,11 @@
    "bytes": 9010
   },
   {
+   "name": "CLEAN_CLONE_TRANSCRIPT.json",
+   "sha256": "0eb0dc7ccb475d62d733a9a1f187f815fa536318a70fb941757a3c5a1d2ea471",
+   "bytes": 13741
+  },
+  {
    "name": "corridor_features.json",
    "sha256": "dea323857f560cc884fb1cf66a34967d5be32797ed14e10728e1161602292cab",
    "bytes": 543929
@@ -108,8 +113,8 @@
   },
   {
    "name": "EXPLAIN_RECEIPT.json",
-   "sha256": "812e88357e521f1fdb665f71a8d8f0968f88aae9010f8e83d7c767502fb240f4",
-   "bytes": 24277
+   "sha256": "304b475a589cc2ec71bc9611ab82e0df83fb7df7a1849e865ace63bf8e43f739",
+   "bytes": 24915
   },
   {
    "name": "FUSION_RECEIPT.json",

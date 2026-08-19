@@ -177,11 +177,22 @@ def test_the_checker_sensitivity_is_reproducible(receipt, packets):
             if not verify_note(draft, packet).ok:
                 refused_controls += 1
 
-    assert sens["adversarial_drafts"] == adversarial
+    assert sens["adversarial_checks"] == adversarial
     assert sens["refused_for_any_reason"] == refused_at_all
     assert sens["caught_for_the_expected_reason"] == expected_fired
-    assert sens["control_drafts"] == controls
+    assert sens["control_checks"] == controls
     assert sens["control_refused"] == refused_controls
+
+    # A check is one draft against one packet, so the totals have to factorise. Without
+    # this, "525" reads as the size of the adversarial suite, which is 21.
+    assert sens["adversarial_checks"] == (
+        sens["adversarial_drafts_per_observation"] * sens["observations_measured"]
+    )
+    assert sens["control_checks"] == (
+        sens["control_drafts_per_observation"] * sens["observations_measured"]
+    )
+    assert sens["adversarial_drafts_per_observation"] == len(adversarial_drafts(packet))
+    assert sens["control_drafts_per_observation"] == len(control_drafts(packet))
     assert sens["detection_rate"] == round(expected_fired / adversarial, 4)
     assert sens["refusal_rate_over_adversarial"] == round(refused_at_all / adversarial, 4)
     assert sens["false_refusal_rate"] == round(refused_controls / controls, 4)

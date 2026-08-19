@@ -44,6 +44,12 @@ jobs:
         # before: the drift test beside it compares metric names, not values.
         run: .venv/bin/python scripts/sync_readme_results.py --check
 
+      - name: The judges' page matches the receipts
+        # FOR_JUDGES.md is the one file a judge is certain to read and the one nobody
+        # re-derives, so it is generated. This fails on any hand edit to it, and on any
+        # receipt that moved without the page being regenerated.
+        run: .venv/bin/python scripts/sync_for_judges.py --check
+
       - name: Secret scan
         run: |
           if grep -rInE "(api[_-]?key|secret|password|token)[[:space:]]*=[[:space:]]*['\"][A-Za-z0-9_-]{16,}" \

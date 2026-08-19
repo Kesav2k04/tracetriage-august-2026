@@ -1,0 +1,316 @@
+{
+ "schema": "CLEAN_CLONE_TRANSCRIPT",
+ "schema_version": "0.1.0",
+ "run_at_utc": "2026-08-19T11:41:20Z",
+ "source_repo": "D:\\IBM August Challenge\\tracetriage-august-2026",
+ "clone": "D:\\_cleanclone\\tracetriage",
+ "source_commit": "ca324f652d789746d81bd4d6f44c9969dd5d6b49",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.13"
+ },
+ "network": {
+  "python_steps": "refused by sitecustomize.py on PYTHONPATH: connect, connect_ex and getaddrinfo raise on any non-loopback address",
+  "node_steps": "weaker: NEXT_TELEMETRY_DISABLED=1 and a dead proxy. Node does not import sitecustomize, so this is a deterrent rather than a block, and it is recorded as such.",
+  "loopback": "allowed, because torch and multiprocessing use it locally",
+  "violations": []
+ },
+ "prerequisites_not_in_the_repository": [
+  {
+   "prerequisite": "a prepared Python environment",
+   "why": "uv pip install --offline could not resolve the dependency set in the clone, so the source clone's interpreter and site-packages were used against the clone's source tree. This tests the code in isolation and does not test dependency resolution.",
+   "interpreter": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe",
+   "python_version": "3.12.13"
+  },
+  {
+   "prerequisite": "apps/web/node_modules",
+   "why": "npm ci needs the registry, which this run refuses.",
+   "package_lock_sha256": "4a30b534f98173123166a055b8a21b2aa6486c590278eeeafedbaad698e0a7fe",
+   "package_lock_bytes": 242313
+  }
+ ],
+ "snapshot_present_on_this_host": true,
+ "cannot_regenerate_without_the_snapshot": [
+  {
+   "artifact": "artifacts/GATE3_RECEIPT.json",
+   "builder": "scripts/run_gate3.py",
+   "needs": "the 4 GB snapshot: waterfall PNGs and the page cache"
+  },
+  {
+   "artifact": "artifacts/HERO_NULLS.json",
+   "builder": "scripts/export_hero_nulls.py",
+   "needs": "the snapshot, via run_gate3's receipt inputs"
+  },
+  {
+   "artifact": "artifacts/corridor_features.json",
+   "builder": "scripts/extract_corridor_features.py",
+   "needs": "every waterfall PNG in the snapshot"
+  },
+  {
+   "artifact": "artifacts/SPLIT_MANIFEST.json",
+   "builder": "pipeline.tracetriage.splits",
+   "needs": "the page cache at D:/tracetriage_data/snap-stage1/pages"
+  },
+  {
+   "artifact": "artifacts/SECOND_TRACE_SURVEY.json",
+   "builder": "scripts/measure_second_trace.py",
+   "needs": "every waterfall PNG in the snapshot"
+  },
+  {
+   "artifact": "apps/web/public/data/cards.json",
+   "builder": "scripts/build_console_data.py",
+   "needs": "the waterfall PNGs, which is why --skip-images exists"
+  }
+ ],
+ "regenerated": [
+  {
+   "artifact": "README.md",
+   "command": "scripts/sync_readme_results.py",
+   "exit_code": 0,
+   "sha256_committed": "ad1e0a49ca30a870c1d36366fabe3e5e1b807b457d88739e339ef417c2ccfda3",
+   "sha256_rebuilt": "ad1e0a49ca30a870c1d36366fabe3e5e1b807b457d88739e339ef417c2ccfda3",
+   "identical": true
+  },
+  {
+   "artifact": "docs/KILL_GATE.md",
+   "command": "scripts/sync_kill_gate.py",
+   "exit_code": 0,
+   "sha256_committed": "6935bd78c47db367d1e6464901a0a30f1bd7893a1905457ca4caa7eb1e3706c9",
+   "sha256_rebuilt": "6935bd78c47db367d1e6464901a0a30f1bd7893a1905457ca4caa7eb1e3706c9",
+   "identical": true
+  },
+  {
+   "artifact": "apps/web/public/data/provenance.json",
+   "command": "scripts/build_console_data.py --skip-images",
+   "exit_code": 0,
+   "sha256_committed": "21e7499ea888985b97e87fcc7e09156fb18f330026ef19d531c5e069e9b06919",
+   "sha256_rebuilt": "21e7499ea888985b97e87fcc7e09156fb18f330026ef19d531c5e069e9b06919",
+   "identical": true
+  }
+ ],
+ "console_build_index_html_files": 30,
+ "steps": [
+  {
+   "step": "git clone (local, --no-hardlinks)",
+   "command": "git clone --no-hardlinks D:\\IBM August Challenge\\tracetriage-august-2026 D:\\_cleanclone\\tracetriage",
+   "exit_code": 0,
+   "seconds": 1.8,
+   "needs_outside_the_repo": "the source clone. A judge would fetch from GitHub, which needs the network.",
+   "output_tail": [
+    "Cloning into 'D:\\_cleanclone\\tracetriage'...",
+    "done."
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "uv pip install --offline -e . (dependency resolution, offline)",
+   "command": "C:\\Users\\Kesav\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.EXE pip install --offline -e .",
+   "exit_code": 2,
+   "seconds": 0.3,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "error: Failed to inspect Python interpreter from first executable in the search path at `C:\\ProgramData\\chocolatey\\bin\\python3.12.exe`",
+    "  Caused by: Querying Python at `C:\\ProgramData\\chocolatey\\bin\\python3.12.exe` failed with exit status exit code: 0xffffffff",
+    "    [stdout]",
+    "    Cannot find file at 'c:\\python312\\python.exe' (c:\\python312\\python.exe). This usually indicates a missing or moved file."
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "link apps/web/node_modules from the source clone",
+   "command": "cmd /c mklink /J D:\\_cleanclone\\tracetriage\\apps\\web\\node_modules D:\\IBM August Challenge\\tracetriage-august-2026\\apps\\web\\node_modules",
+   "exit_code": 0,
+   "seconds": 0.0,
+   "needs_outside_the_repo": "apps/web/node_modules, 425 MB. npm ci needs the npm registry.",
+   "output_tail": [
+    "Junction created for D:\\_cleanclone\\tracetriage\\apps\\web\\node_modules <<===>> D:\\IBM August Challenge\\tracetriage-august-2026\\apps\\web\\node_modules"
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "offline test suite, snapshot present",
+   "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
+   "exit_code": 0,
+   "seconds": 183.1,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "    torch.quantization.quantize_dynamic(model, dtype=torch.qint8, inplace=True)",
+    "tests/test_console_export.py::test_export_observation_returns_named_absence_for_obs_outside_decisive_pool",
+    "  D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Lib\\site-packages\\torch\\ao\\nn\\quantized\\dynamic\\modules\\rnn.py:162: UserWarning: torch.quantize_per_tensor, torch.quantize_per_channel and other quantized tensor creation functions that produce tensors with dtype torch.quint8, torch.qint8, and torch.qint32 are deprecated and will be removed in a future PyTorch release. Please see https://github.com/pytorch/pytorch/issues/184982 for more information. (Triggered internally at C:\\actions-runner\\_work\\pytorch\\pytorch\\aten\\src\\ATen\\quantized\\Quantizer.cpp:116.)",
+    "    w_ih = torch.quantize_per_tensor(",
+    "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+    "1059 passed, 3 deselected, 5 warnings in 180.98s (0:03:00)"
+   ],
+   "offline_violation": false,
+   "counts": {
+    "passed": 1059,
+    "deselected": 3
+   }
+  },
+  {
+   "step": "offline test suite, snapshot HIDDEN",
+   "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
+   "exit_code": 0,
+   "seconds": 176.5,
+   "needs_outside_the_repo": "nothing: this is the judge's case",
+   "output_tail": [
+    "    torch.quantization.quantize_dynamic(model, dtype=torch.qint8, inplace=True)",
+    "tests/test_waterfall.py::test_centre_px_is_null_without_freq",
+    "  D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Lib\\site-packages\\torch\\ao\\nn\\quantized\\dynamic\\modules\\rnn.py:162: UserWarning: torch.quantize_per_tensor, torch.quantize_per_channel and other quantized tensor creation functions that produce tensors with dtype torch.quint8, torch.qint8, and torch.qint32 are deprecated and will be removed in a future PyTorch release. Please see https://github.com/pytorch/pytorch/issues/184982 for more information. (Triggered internally at C:\\actions-runner\\_work\\pytorch\\pytorch\\aten\\src\\ATen\\quantized\\Quantizer.cpp:116.)",
+    "    w_ih = torch.quantize_per_tensor(",
+    "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+    "1029 passed, 30 skipped, 3 deselected, 5 warnings in 174.44s (0:02:54)"
+   ],
+   "offline_violation": false,
+   "counts": {
+    "passed": 1029,
+    "skipped": 30,
+    "deselected": 3
+   }
+  },
+  {
+   "step": "lint (ruff check .)",
+   "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe -m ruff check .",
+   "exit_code": 0,
+   "seconds": 0.3,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "All checks passed!"
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "sync_kill_gate.py --check (generated document drift)",
+   "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe scripts/sync_kill_gate.py --check",
+   "exit_code": 0,
+   "seconds": 0.1,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "KILL_GATE.md is in sync with the receipts"
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "sync_readme_results.py --check (generated table drift)",
+   "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe scripts/sync_readme_results.py --check",
+   "exit_code": 0,
+   "seconds": 0.4,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "README results are current: 11 measured rows"
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "check_contrast.py",
+   "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe scripts/check_contrast.py",
+   "exit_code": 0,
+   "seconds": 0.1,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "26/26 contrast pairs meet their floor"
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "regenerate README.md",
+   "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe scripts/sync_readme_results.py",
+   "exit_code": 0,
+   "seconds": 0.3,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "README results synced: 11 measured rows, 2 marked unmeasured",
+    "  shipped arm brier 0.1292, auc 0.875",
+    "  selective risk 0.0857 at 79.5% coverage"
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "regenerate docs/KILL_GATE.md",
+   "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe scripts/sync_kill_gate.py",
+   "exit_code": 0,
+   "seconds": 0.1,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "KILL_GATE.md already in sync; nothing written"
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "regenerate apps/web/public/data/provenance.json",
+   "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe scripts/build_console_data.py --skip-images",
+   "exit_code": 0,
+   "seconds": 0.4,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "skipping imagery and cards.json (it needs the waterfall PNGs)"
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "npx tsc --noEmit",
+   "command": "C:\\Program Files\\nodejs\\npx.CMD tsc --noEmit",
+   "exit_code": 0,
+   "seconds": 5.0,
+   "needs_outside_the_repo": null,
+   "output_tail": [],
+   "offline_violation": false
+  },
+  {
+   "step": "npx vitest run",
+   "command": "C:\\Program Files\\nodejs\\npx.CMD vitest run",
+   "exit_code": 0,
+   "seconds": 3.2,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    " \u001b[32m\u00e2\u0153\u201c\u001b[39m tests/reviewer-note.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 15\u001b[2mms\u001b[22m\u001b[39m",
+    " \u001b[32m\u00e2\u0153\u201c\u001b[39m tests/plot-helpers.test.ts \u001b[2m(\u001b[22m\u001b[2m25 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 18\u001b[2mms\u001b[22m\u001b[39m",
+    "\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m5 passed\u001b[39m\u001b[22m\u001b[90m (5)\u001b[39m",
+    "\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m93 passed\u001b[39m\u001b[22m\u001b[90m (93)\u001b[39m",
+    "\u001b[2m   Start at \u001b[22m 17:10:59",
+    "\u001b[2m   Duration \u001b[22m 890ms\u001b[2m (transform 327ms, setup 0ms, collect 736ms, tests 91ms, environment 1ms, prepare 1.31s)\u001b[22m"
+   ],
+   "offline_violation": false
+  },
+  {
+   "step": "npx next build",
+   "command": "C:\\Program Files\\nodejs\\npx.CMD next build",
+   "exit_code": 0,
+   "seconds": 19.8,
+   "needs_outside_the_repo": null,
+   "output_tail": [
+    "+ First Load JS shared by all             102 kB",
+    "  \u00e2\u201d\u0153 chunks/1b227c3b-eef4346efae41d7f.js  54.2 kB",
+    "  \u00e2\u201d\u0153 chunks/982-1ba0897a4dd2c783.js       45.6 kB",
+    "  \u00e2\u201d\u201d other shared chunks (total)          1.99 kB",
+    "\u00e2\u2014\u2039  (Static)  prerendered as static content",
+    "\u00e2\u2014\ufffd  (SSG)     prerendered as static HTML (uses generateStaticParams)"
+   ],
+   "offline_violation": false
+  }
+ ],
+ "suite_with_and_without_the_snapshot": {
+  "with": {
+   "passed": 1059,
+   "deselected": 3
+  },
+  "without": {
+   "passed": 1029,
+   "skipped": 30,
+   "deselected": 3
+  },
+  "reading": "Tests that skip or fail only in the second column are tests a judge cannot run. A skip is honest and a pass that depended on the cache is not, which is why both columns are published."
+ },
+ "summary": {
+  "steps_run": 15,
+  "steps_failed": [
+   "uv pip install --offline -e . (dependency resolution, offline)"
+  ],
+  "regenerated_identical": [
+   "README.md",
+   "docs/KILL_GATE.md",
+   "apps/web/public/data/provenance.json"
+  ],
+  "regenerated_differed": []
+ }
+}
