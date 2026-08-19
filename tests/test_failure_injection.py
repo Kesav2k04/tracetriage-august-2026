@@ -17,11 +17,13 @@ not repeated here:
   absent bins, fit    NO_HZ_PER_PX   tests/test_corridor_fit.py,
                                      test_missing_inputs_are_named_degraded_states
 
-The six below were uncovered, or were covered against the wrong input. One mode of the
-twelve is still not implemented: nothing counts the traces in a waterfall, so a second
-satellite in the same image is scored as noise around the first. There is no test for it
-here because there is no named reason to assert, and an expected failure standing in for
-missing code is exactly what D2 removed from this suite.
+The six below were uncovered, or were covered against the wrong input. Two of them had
+no named reason in the code at all until this suite was written, and one had no
+implementation: nothing counted the traces in a waterfall, so a second satellite in the
+same image was averaged into the background the first one is measured against.
+``corridor_fit.second_trace_evidence`` names that now, and the incidence across the
+shipped corpus is measured in ``artifacts/SECOND_TRACE_SURVEY.json`` rather than
+asserted here, because a detector's value is how often it fires on real data.
 
 Every anchor is recorded in docs/DEGRADED_STATE_RECON.md, read out of the source rather
 than from a docstring, and each test below was confirmed to go red against the behaviour
@@ -38,9 +40,14 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import httpx
+import numpy as np
 import pytest
 from PIL import Image
 
+from pipeline.tracetriage.corridor_fit import (
+    max_coherent_jump_px,
+    second_trace_evidence,
+)
 from pipeline.tracetriage.physics import corridor_for_obs
 from pipeline.tracetriage.snapshot import download_waterfall
 from pipeline.tracetriage.waterfall import (
@@ -363,3 +370,164 @@ class TestEmptyQueueAfterFiltering:
         assert out["degraded"] == "TOO_FEW_TRAINING_ROWS"
         assert out["gate6_result"]["verdict"] == "NOT_MEASURABLE"
         assert "TOO_FEW_TRAINING_ROWS" in out["gate6_result"]["not_measurable_reason"]
+
+
+# ---------------------------------------------------------------------------
+# Mode 7: multiple traces in one waterfall
+# ---------------------------------------------------------------------------
+
+
+_TRACE_H = 160
+_TRACE_W = 320
+
+
+def _noise_field(seed: int) -> np.ndarray:
+    """Background with enough variation that a row has a non-zero MAD."""
+    rng = np.random.default_rng(seed)
+    lum = np.clip(rng.normal(40.0, 6.0, size=(_TRACE_H, _TRACE_W)), 0, 255)
+    return lum.astype(np.uint8)[:, :, None].repeat(3, axis=2)
+
+
+def _draw(img: np.ndarray, cols: np.ndarray, brightness: int = 200, width: int = 3):
+    out = img.copy()
+    half = width // 2
+    for r in range(img.shape[0]):
+        c = int(round(float(cols[r])))
+        lo, hi = max(0, c - half), min(img.shape[1], c + half + 1)
+        out[r, lo:hi, :] = brightness
+    return out
+
+
+def _s_curve(centre: float, swing: float, steepness: float = 3.0) -> np.ndarray:
+    """The shape a Doppler trace has: steep at closest approach, flat at the ends."""
+    t = np.linspace(-1.0, 1.0, _TRACE_H)
+    return centre - swing * np.tanh(steepness * t)
+
+
+class TestMultipleTraces:
+    """A second satellite in the same waterfall, which nothing counted.
+
+    One corridor is fitted and one path is scored, so a second carrier was averaged
+    into the background the first is measured against. The image read as one satellite
+    with noisier surroundings, which is a silent success rather than a named state.
+
+    The hard part is not finding a second peak. Real waterfalls are full of second
+    peaks. It is telling a second trace from interference, and the separator is physics:
+    a real trace cannot move faster than Doppler allows, which is what
+    max_coherent_jump_px converts into pixels.
+    """
+
+    def _box(self, h: int = _TRACE_H, w: int = _TRACE_W):
+        from pipeline.tracetriage.waterfall import Box
+
+        return Box(x0=0, y0=0, x1=w, y1=h)
+
+    # A 12 px corridor half-width at the fitter's own search factor of 2.0.
+    WINDOW_PX = 24.0
+    # 119.4 Hz/s of peak Doppler slope at 123.46 Hz/px and 0.19 s/row, plus half the
+    # 3 px matched-filter width.
+    MAX_JUMP_PX = 1.68375
+
+    def _measure(self, img: np.ndarray, h: int = _TRACE_H, w: int = _TRACE_W):
+        return second_trace_evidence(
+            img,
+            self._box(h, w),
+            window_px=self.WINDOW_PX,
+            max_jump_px=self.MAX_JUMP_PX,
+        )
+
+    def test_one_trace_is_not_two(self):
+        img = _draw(_noise_field(11), _s_curve(160.0, 40.0))
+        ev = self._measure(img)
+
+        assert ev["measurable"] is True
+        assert ev["reason"] is None
+        assert ev["n_rows_primary_detected"] > 100
+        assert ev["second_frac_of_primary_rows"] == 0.0
+
+    def test_a_second_trace_is_named(self):
+        img = _draw(_noise_field(12), _s_curve(160.0, 40.0))
+        img = _draw(img, _s_curve(250.0, 30.0, steepness=2.0))
+        ev = self._measure(img)
+
+        assert ev["reason"] == "MULTIPLE_TRACES_SUSPECTED"
+        assert ev["coherent"] is True
+        assert ev["second_frac_of_primary_rows"] >= 0.30
+        assert ev["median_jump_px"] <= self.MAX_JUMP_PX
+
+    def test_interference_is_not_a_second_trace(self):
+        # This is the test the coherence bound exists for. Sporadic bright pixels put a
+        # second peak above the detection bar in most rows, so a detector that counted
+        # second peaks and stopped there would report a second satellite here.
+        rng = np.random.default_rng(13)
+        img = _draw(_noise_field(13), _s_curve(160.0, 40.0))
+        for r in range(_TRACE_H):
+            c = int(rng.integers(10, _TRACE_W - 10))
+            img[r, c - 1 : c + 2, :] = 200
+        ev = self._measure(img)
+
+        # The fraction bar is cleared and the coherence bar is not, which is the whole
+        # point: assert both, or this passes for the wrong reason.
+        assert ev["second_frac_of_primary_rows"] > 0.30
+        assert ev["median_jump_px"] > ev["max_jump_px_allowed"]
+        assert ev["coherent"] is False
+        assert ev["reason"] is None
+
+    def test_a_peak_inside_the_search_window_is_the_same_trace(self):
+        # A trace 8 px from the first, well inside the fitter's 24 px window. By this
+        # pipeline's own definition that is one trace, and calling it two would report a
+        # second satellite for every wide carrier in the corpus.
+        img = _draw(_noise_field(14), _s_curve(160.0, 40.0))
+        img = _draw(img, _s_curve(168.0, 40.0))
+        ev = self._measure(img)
+
+        assert ev["reason"] is None
+        assert ev["second_frac_of_primary_rows"] == 0.0
+
+    def test_an_image_with_no_detection_is_unmeasurable_not_clean(self):
+        # A flat image cannot answer the question. Reporting it as "no second trace"
+        # would count it as evidence of a single trace, which it is not.
+        flat = np.full((_TRACE_H, _TRACE_W, 3), 100, dtype=np.uint8)
+        ev = self._measure(flat)
+
+        assert ev["measurable"] is False
+        assert ev["why_not"] == "TOO_FEW_DETECTED_ROWS"
+        assert ev["reason"] is None
+
+    def test_too_few_rows_is_named(self):
+        tiny = np.full((6, _TRACE_W, 3), 100, dtype=np.uint8)
+        ev = self._measure(tiny, h=6)
+
+        assert ev["measurable"] is False
+        assert ev["why_not"] == "TOO_FEW_ROWS"
+
+    def test_a_plot_too_narrow_to_hold_two_peaks_is_named(self):
+        narrow = np.full((_TRACE_H, 40, 3), 100, dtype=np.uint8)
+        ev = self._measure(narrow, w=40)
+
+        assert ev["measurable"] is False
+        assert ev["why_not"] == "PLOT_TOO_NARROW"
+
+
+class TestCoherentJumpBound:
+    """The jump bound is derived from Doppler, not chosen to fit the data."""
+
+    def test_the_arithmetic(self):
+        # 119.4 Hz/s at 0.19 s per row is 22.686 Hz per row. At 123.46 Hz/px that is
+        # 0.18375 px per row, plus half of the 3 px filter width.
+        assert max_coherent_jump_px(123.46, 0.19) == pytest.approx(1.68375, abs=1e-5)
+
+    def test_the_bound_scales_with_the_image(self):
+        # A coarser frequency axis means the same Hz moves fewer pixels, so the bound
+        # falls. A detector with one pixel bound for every image would be wrong on both.
+        fine = max_coherent_jump_px(80.0, 0.19)
+        coarse = max_coherent_jump_px(123.46, 0.19)
+        assert fine > coarse
+
+    def test_it_refuses_impossible_inputs(self):
+        # A zero or negative scale is a missing measurement. Returning a number here
+        # would put a fabricated bound into the comparison.
+        with pytest.raises(ValueError):
+            max_coherent_jump_px(0.0, 0.19)
+        with pytest.raises(ValueError):
+            max_coherent_jump_px(123.46, 0.0)

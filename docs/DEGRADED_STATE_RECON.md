@@ -7,8 +7,9 @@ twice. Every anchor below was read out of the file it names on 2026-08-19, at co
 
 The unit's rule is that every mode must produce a **named** degraded state, never a blank
 frame, a zero, or a silent success, and that a test asserting "did not crash" does not
-count. Read that against the table: five modes already satisfy it, three are tested
-against the wrong input, and four are not implemented at all.
+count. As first measured at `a41b87e`: five modes satisfied it, three were tested against
+the wrong input, and four were not implemented at all. As of D8 and D8b, all twelve have a
+named reason and a test that asserts it. What each one still lacks is recorded in its row.
 
 ---
 
@@ -22,7 +23,7 @@ against the wrong input, and four are not implemented at all.
 | 4 | stale TLE beyond the age threshold | `STALE_TLE` | `pipeline/tracetriage/physics.py:899` | `tests/test_physics.py:313` | COVERED |
 | 5 | absent frequency bins | `NO_AXIS_DETECTED` at image level, `NO_HZ_PER_PX` at fit level | `pipeline/tracetriage/waterfall.py:749`, raised at `:527`, `:541`, `:545`; `pipeline/tracetriage/corridor_fit.py:916` | fit level asserted exactly at `tests/test_corridor_fit.py:340`; image level only as a disjunction, `assert degraded in ("NO_AXIS_DETECTED", "UNKNOWN_LAYOUT")`, `tests/test_waterfall.py:297` | PARTIAL |
 | 6 | wrong start offset | none | see below | none | MISSING |
-| 7 | multiple traces in one waterfall | none | nothing in `pipeline/`, `scripts/` or `contracts/` counts traces | none | MISSING |
+| 7 | multiple traces in one waterfall | `MULTIPLE_TRACES_SUSPECTED` | `pipeline/tracetriage/corridor_fit.py`, `second_trace_evidence` | `tests/test_failure_injection.py`, `TestMultipleTraces` | COVERED, measured on the corpus, not wired into the feature matrix |
 | 8 | network unavailable | `HTTP_ERROR` | two producers: the transport-exception catch at `pipeline/tracetriage/snapshot.py:360` and the status path at `:379` | `tests/test_snapshot.py:323` asserts `HTTP_ERROR` from an injected 500, so it exercises `:379` and never `:360` | PARTIAL |
 | 9 | missing model artifact | `MODEL_ARTIFACT_MISSING` | `scripts/run_triage_slice.py:563` | none | MISSING |
 | 10 | unsupported client image format | none for a decodable format | nearest is `TRUNCATED` on non-PNG magic, `pipeline/tracetriage/snapshot.py:391` | `tests/test_snapshot.py:305` asserts `TRUNCATED` on 8 bytes of wrong magic, not on a valid image in another format | PARTIAL |
@@ -43,10 +44,47 @@ onto rows by fraction of plot height only (`corridor_fit.py:539`, `:573`), and
 origin enters the calculation. Note that `OFFSET_AT_BOUND` (`queue.py:70`,
 `corridor_fit.py:416`) is a **frequency** offset saturating its ppm bound. It is not this.
 
-**Mode 7, multiple traces in one waterfall.** No code counts traces. `corridor_fit.py`
-scores one path per corridor and reports `TRACE_NOT_MEASURABLE` when too few rows carry a
-usable maximum. A second satellite in the same image is scored as though it were noise
-around the first, silently.
+**Mode 7, multiple traces in one waterfall. Implemented in D8b.**
+`corridor_fit.second_trace_evidence` names it `MULTIPLE_TRACES_SUSPECTED`. Before it, no
+code counted traces: one path is scored per corridor, and a second satellite in the same
+image was averaged into the background the first one is measured against.
+
+Every parameter is one the module already justified, so the detector introduces no new
+tunable. `z_min = 4.0` decides that a pixel is a detection, which is the fitter's own bar.
+The exclusion window is `search_window_factor` (2.0) times the corridor half-width in
+pixels, so a peak the fitter is already following cannot count as a second trace.
+`min_detect_frac = 0.30` is the share of rows the primary itself must appear in. The one
+new quantity is the coherence bound, and it is Doppler rather than a choice:
+`max_coherent_jump_px` converts `PEAK_DOPPLER_SLOPE_HZ_PER_S = 119.4`, derived in D6 for
+the TLE staleness threshold, into this image's pixels using its own Hz per pixel and
+seconds per row, plus half the matched-filter width.
+
+**Measured incidence, `artifacts/SECOND_TRACE_SURVEY.json`.** 743 decisive observations,
+14.5 minutes at 1.17 s each. 4 have no image, 14 fail on a stale TLE, and **543 of 743
+(73.1 percent) cannot be measured at all**: fewer than 8 rows carry any pixel at
+`z_min`, which is the same reason `detect_frac_curved` is 0.0 for most of this corpus.
+That leaves 182 measurable, of which **10 (5.5 percent)** carry a coherent second trace.
+
+**What the coherence bound buys, in numbers.** 61 of the 182 (33.5 percent) clear the
+row-fraction bar. Only 10 of those 61 move slowly enough to be following an orbit. The
+median second peak in this corpus moves 7.09 pixels per row against a median allowance of
+1.82, so without the physics bound this detector would report a second satellite in a third
+of the measurable corpus, and most of those would be interference. The 10 that fire move
+0.0 to 1.49 pixels per row against allowances of 1.51 to 2.34.
+
+**Two caveats that belong beside the 10.** They are not 10 independent events: station 91
+contributes 4 of them, across 4 different satellites within 4.5 hours of one night, which
+is the signature of a persistent interferer at one station rather than four second
+satellites. The other 6 sit at 6 distinct stations, and all 10 are distinct satellites. And
+one of the 10 (14733003) is labelled `without-signal`, which is not necessarily a wrong
+label: the label speaks about the target, and a coherent carrier from something else can
+sit in the same image. It is the exact disagreement this project's queue exists to rank.
+
+**Not wired into the feature matrix, on purpose.** The path a measurement like this
+normally takes is `extract_corridor_features.py` into `artifacts/corridor_features.json`
+into `features.py`, which is how `flat_row_frac` reached the model and the queue. Taking it
+there means refitting, which moves the numbers behind gates 5 and 6. That is a decision to
+make deliberately and not as a side effect of closing a failure mode.
 
 **Mode 10, unsupported client image format.** `_load_rgb`
 (`pipeline/tracetriage/waterfall.py:210` to `:253`) accepts anything PIL can decode, so a

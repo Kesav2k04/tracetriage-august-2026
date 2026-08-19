@@ -4004,3 +4004,77 @@ was the right place to fix something and the file itself was the wrong one.
 **Failures and repairs:** the "same gate" row, described above. No code defect.
 **Outcome:** accepted. The `[UNMEASURED]` marker can no longer be used without naming a
 gate that produced no number, and a gate that produced no number can no longer go unnamed.
+
+---
+
+## 2026-08-19 IST | Wave D | D8b: the twelfth failure mode, and the bound that separates a satellite from interference
+
+The mode D8 left open. Nothing counted the traces in a waterfall, so a second carrier was
+averaged into the background the first one is measured against, and an image with two
+satellites read as an image with one satellite and noisier surroundings.
+
+**Finding a second peak is easy and useless.** 61 of the 182 measurable decisive
+observations carry a second peak above the fitter's own detection bar in at least 30
+percent of their rows. A detector that stopped there would report a second satellite in a
+third of the corpus. What makes the question answerable is that a real trace cannot move
+faster than Doppler allows: `max_coherent_jump_px` converts
+`PEAK_DOPPLER_SLOPE_HZ_PER_S = 119.4`, the slope D6 derived for the TLE staleness bound,
+into each image's own pixels through its Hz per pixel and its seconds per row, and adds
+half the matched-filter width because the smoothing moves a peak by that much on its own.
+With that bound, **10 of 182 (5.5 percent)** fire. The median second peak in this corpus
+moves 7.09 pixels per row against a median allowance of 1.82.
+
+**No new tunable.** `z_min = 4.0` is the fitter's detection bar, the exclusion window is
+`search_window_factor` times the corridor half-width so a peak the fit is already following
+cannot count twice, and `min_detect_frac = 0.30` is the share of rows the primary must
+itself appear in. The only new quantity is the physics bound above.
+
+**What the survey says about the corpus, which is worth more than the detector.** 543 of
+743 decisive observations (73.1 percent) cannot be measured for this at all: fewer than
+eight rows carry a single pixel at `z_min`. That is the same fact as `detect_frac_curved`
+being 0.0 across most of the feature cache, and it is the honest frame for every image
+statistic this project publishes. The detector speaks about 182 observations, not 743, and
+the receipt says so in its own `states` block.
+
+**Two caveats recorded with the 10, not underneath them.** Station 91 contributes 4 of the
+10, across 4 different satellites inside 4.5 hours of one night, which reads as a persistent
+interferer at one station rather than four second satellites. The remaining 6 are at 6
+distinct stations and all 10 are distinct satellites. One of the 10, 14733003, is labelled
+`without-signal`: not necessarily a wrong label, because the label speaks about the target
+and another satellite's carrier can share the image. That is the disagreement the queue
+exists to rank, and it is the first time this pipeline could see it.
+
+**Deliberately not wired into the feature matrix.** The route a measurement like this
+normally takes is `extract_corridor_features.py`, `corridor_features.json`, `features.py`,
+which is how `flat_row_frac` reached the model and the queue's conflict reasons. Going there
+means refitting, which moves the published numbers behind gates 5 and 6. Closing a failure
+mode is not a licence to move a gate, so the survey stands as its own receipt and the wiring
+is a decision to take on its own terms.
+
+**Mutation check, both halves.** Dropping the coherence bound turns
+`test_interference_is_not_a_second_trace` red: 86 percent of that image's rows carry a
+second peak and it is noise. Dropping the exclusion window turns
+`test_one_trace_is_not_two` and `test_a_peak_inside_the_search_window_is_the_same_trace`
+red, because one carrier then counts as two. Ten tests cover the detector, three of them
+controls: a single trace, a peak inside the window, and an image with no detection at all,
+which must come back unmeasurable rather than clean.
+
+**The survey is not in the artifact-freshness check.** It reads the 4 GB snapshot, which no
+clean clone and no CI runner has, and `scripts/check_artifact_freshness.py` says the same
+about itself. It is deterministic, so a second run over the same snapshot writes identical
+bytes. Its file is 345,808 bytes, which the D4 repository-weight audit should see.
+
+**Files changed:** `pipeline/tracetriage/corridor_fit.py`,
+`scripts/measure_second_trace.py` (new), `tests/test_failure_injection.py` (10 tests
+added, 30 in the file), `docs/DEGRADED_STATE_RECON.md`,
+`artifacts/SECOND_TRACE_SURVEY.json` (new).
+**Commands run:** `.venv\Scripts\python.exe scripts\measure_second_trace.py
+--decisive-only`, `.venv\Scripts\python.exe -m pytest tests/test_failure_injection.py -q`,
+`.venv\Scripts\python.exe -m ruff check .`, `.venv\Scripts\python.exe scripts\gate.py`.
+**Tests:** 30 of 30 in the failure-injection file. Full offline suite green. Lint clean.
+**Failures and repairs:** the first estimate of what the coherence bound buys was wrong. I
+put it at 92 percent from the share of images with any second peak, then computed it and
+found 33.5 percent, because clearing the row-fraction bar is a different question from
+having a second peak somewhere. The number in this entry is the computed one.
+**Outcome:** accepted. All twelve failure modes now have a named reason and a test that
+asserts it.

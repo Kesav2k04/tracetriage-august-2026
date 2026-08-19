@@ -69,6 +69,7 @@ import numpy as np
 from pipeline.tracetriage.physics import (
     AXIS_SIGN_CONVENTION,
     AXIS_SIGN_MEASURABLE_RATIO,
+    PEAK_DOPPLER_SLOPE_HZ_PER_S,
     Corridor,
     corridor_columns,
     visible_rows,
@@ -76,6 +77,8 @@ from pipeline.tracetriage.physics import (
 
 __all__ = [
     "CorridorFit",
+    "max_coherent_jump_px",
+    "second_trace_evidence",
     "NullCalibration",
     "NullControlResult",
     "GateThresholds",
@@ -329,6 +332,163 @@ def flat_row_fraction(rgb: np.ndarray, crop_box: Any) -> dict[str, Any]:
         "n_flat_rows": n_flat,
         "flat_row_frac": (n_flat / n_rows) if n_rows else None,
         "min_row_mad": float(mad.min()) if n_rows else None,
+    }
+
+
+def max_coherent_jump_px(
+    hz_per_px: float,
+    seconds_per_row: float,
+    thresholds: GateThresholds = DEFAULT_THRESHOLDS,
+) -> float:
+    """Largest row-to-row frequency step a real satellite trace can take, in pixels.
+
+    A second trace in the same waterfall is another satellite, so it obeys the same
+    physics as the first: its frequency can only move as fast as Doppler allows. The
+    bound is the peak Doppler slope already derived for the TLE staleness threshold,
+    ``PEAK_DOPPLER_SLOPE_HZ_PER_S``, converted into this image's pixels by its own Hz
+    per pixel and its own seconds per row. Half the matched-filter width is added
+    because the smoothing can move a peak by that much on its own.
+
+    This is what separates a second trace from interference. A carrier that jumps
+    further than this between adjacent rows is not following an orbit, so counting it
+    as a trace would report every burst of noise as a second satellite.
+    """
+    if hz_per_px <= 0.0 or seconds_per_row <= 0.0:
+        raise ValueError(
+            "hz_per_px and seconds_per_row must both be positive to convert a "
+            f"Doppler slope into pixels. Got {hz_per_px} and {seconds_per_row}."
+        )
+    slope_px_per_row = (PEAK_DOPPLER_SLOPE_HZ_PER_S * seconds_per_row) / hz_per_px
+    return slope_px_per_row + thresholds.filter_width / 2.0
+
+
+def second_trace_evidence(
+    rgb: np.ndarray,
+    crop_box: Any,
+    *,
+    window_px: float,
+    max_jump_px: float,
+    thresholds: GateThresholds = DEFAULT_THRESHOLDS,
+) -> dict[str, Any]:
+    """Evidence that a second satellite is transmitting inside the same waterfall.
+
+    Nothing in this pipeline counted traces. One corridor is fitted, one path is
+    scored, and a second carrier was averaged into the background that the first is
+    measured against, so an image with two satellites in it read as an image with one
+    satellite and noisier surroundings. That is a silent success. It matters here and
+    not only in the abstract: the corridor question is whether the trace in the image
+    follows the target's predicted Doppler, and a second trace gives a reviewer a
+    second curve that the first can be confused with.
+
+    Every threshold is one this module already uses, so there is no second definition
+    of signal:
+
+    * ``thresholds.z_min`` decides that a pixel is a detection, the same bar the
+      corridor fit uses.
+    * ``window_px`` is the caller's per-row search window, normally
+      ``thresholds.search_window_factor`` times the corridor half-width in pixels. A
+      maximum inside that window is the trace the fitter is already following, so the
+      second peak is taken outside it.
+    * ``thresholds.min_detect_frac`` is the share of rows a trace must appear in
+      before it counts as a trace at all, which is the bar the primary has to clear.
+    * ``max_jump_px`` comes from :func:`max_coherent_jump_px`, which is Doppler
+      physics rather than a tuned number.
+    * ``MIN_VISIBLE_ROWS`` is the floor below which a fraction is noise with a
+      denominator.
+
+    The denominator is rows where the primary is itself detected, not every row. A row
+    with no primary has no second peak to speak of, and dividing by every row would
+    let a mostly empty image dilute a real second trace out of the result.
+
+    Returns a dict, matching :func:`flat_row_fraction`, and carries ``reason`` set to
+    ``MULTIPLE_TRACES_SUSPECTED`` when the evidence clears both bars and ``None`` when
+    it does not. ``measurable`` is False when the image cannot support the question at
+    all, with ``why_not`` naming the bar it failed, because an unmeasurable image and a
+    clean image are different answers and must not share one word.
+    """
+    if window_px < 0.0 or max_jump_px <= 0.0:
+        raise ValueError(
+            "window_px must be non-negative and max_jump_px positive. Got "
+            f"{window_px} and {max_jump_px}."
+        )
+
+    z = smooth_columns(normalised_rows(rgb, crop_box), thresholds.filter_width)
+    n_rows, n_cols = z.shape
+
+    unmeasurable: dict[str, Any] = {
+        "measurable": False,
+        "why_not": None,
+        "n_rows": n_rows,
+        "n_rows_primary_detected": 0,
+        "n_rows_second_detected": 0,
+        "second_frac_of_primary_rows": None,
+        "median_jump_px": None,
+        "max_jump_px_allowed": max_jump_px,
+        "coherent": None,
+        "reason": None,
+    }
+
+    if n_rows < MIN_VISIBLE_ROWS:
+        unmeasurable["why_not"] = "TOO_FEW_ROWS"
+        return unmeasurable
+    # Two peaks need somewhere to sit. A plot narrower than two exclusion windows
+    # cannot hold a separated pair, so the question is unanswerable rather than
+    # answered no.
+    if n_cols < 2 * window_px + 2:
+        unmeasurable["why_not"] = "PLOT_TOO_NARROW"
+        return unmeasurable
+
+    primary_col = np.argmax(z, axis=1)
+    primary_z = z[np.arange(n_rows), primary_col]
+    lit = primary_z >= thresholds.z_min
+    n_primary = int(lit.sum())
+    if n_primary < MIN_VISIBLE_ROWS:
+        unmeasurable["why_not"] = "TOO_FEW_DETECTED_ROWS"
+        unmeasurable["n_rows_primary_detected"] = n_primary
+        return unmeasurable
+
+    # Blank out the fitter's own search window around the primary and take what is
+    # left. Anything inside that window is the same trace, by this pipeline's own
+    # definition of the same trace.
+    cols = np.arange(n_cols)[None, :]
+    outside = np.abs(cols - primary_col[:, None]) > window_px
+    masked = np.where(outside, z, -np.inf)
+    second_col = np.argmax(masked, axis=1)
+    second_z = masked[np.arange(n_rows), second_col]
+
+    qualifies = lit & np.isfinite(second_z) & (second_z >= thresholds.z_min)
+    n_second = int(qualifies.sum())
+    frac = n_second / n_primary
+
+    # Coherence, over the qualifying rows in row order: how far the second peak moves
+    # per row it travels. A gap between qualifying rows is divided out rather than
+    # ignored, because a trace that reappears twenty rows later has had twenty rows in
+    # which to move and must not be charged for one jump.
+    rows_q = np.flatnonzero(qualifies)
+    median_jump: float | None = None
+    if rows_q.size >= 2:
+        d_col = np.abs(np.diff(second_col[rows_q]).astype(float))
+        d_row = np.diff(rows_q).astype(float)
+        median_jump = float(np.median(d_col / d_row))
+
+    coherent = median_jump is not None and median_jump <= max_jump_px
+    reason = (
+        "MULTIPLE_TRACES_SUSPECTED"
+        if coherent and frac >= thresholds.min_detect_frac
+        else None
+    )
+
+    return {
+        "measurable": True,
+        "why_not": None,
+        "n_rows": n_rows,
+        "n_rows_primary_detected": n_primary,
+        "n_rows_second_detected": n_second,
+        "second_frac_of_primary_rows": frac,
+        "median_jump_px": median_jump,
+        "max_jump_px_allowed": max_jump_px,
+        "coherent": coherent,
+        "reason": reason,
     }
 
 

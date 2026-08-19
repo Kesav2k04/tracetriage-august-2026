@@ -8,12 +8,12 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-19, IST, after D8 |
+| **Handoff written** | 2026-08-19, IST, after D8b and D9 |
 | **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h) |
-| **Current wave** | **Wave D, in progress.** Committed: D0, D0b, E1, D1 to D7, D0c (all review-closing work, which is prompt unit D0) and D8, the failure injection, which is partial. |
-| **Next unit** | **finish D8**: the multiple-trace mode is the one failure mode of twelve with no named reason in the code, and it needs a detector plus a measurement of how often it fires across the 2,500 shipped waterfalls. Then the prompt's D2 sub-ask (the `[UNMEASURED]` row count against the gates recorded OPEN), then D3, D4, D5, D6, which are untouched. |
+| **Current wave** | **Wave D, in progress.** Committed: D0, D0b, E1, D1 to D7, D0c (all review-closing work, which is prompt unit D0), then D8 and D8b (failure injection, all twelve modes now named and tested) and D9 (the `[UNMEASURED]` accounting). |
+| **Next unit** | **D10, the clean-clone reproduction with the network disabled** (the prompt's D3). Then D11 secrets and attribution, D12 documentation and the demo, D13 final acceptance. Kesav's order: finish every unit first, then an external review pass, then the video last. |
 | **Numbering** | The committed entries named D1 to D7 are review-closing passes and are **not** the prompt's units D1 to D6. The prompt's units are numbered from D8 onward in the build log: D8 is its D1, the failure injection. |
-| **Open failures** | none. **942** offline tests collected, all pass, no expected failures. Lint clean. **81** console tests pass under vitest across 4 files. `npx tsc --noEmit` clean. `npx next build` exits 0 and emits 30 `index.html` files, where the prompt's acceptance line says 33. `scripts/gate.py` green on **13 of 13** standing gates. |
+| **Open failures** | none. **954** offline tests collected, all pass, no expected failures. Lint clean. **81** console tests pass under vitest across 4 files. `npx tsc --noEmit` clean. `npx next build` exits 0 and emits 30 `index.html` files, where the prompt's acceptance line says 33. `scripts/gate.py` green on **13 of 13** standing gates. |
 | **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 **OPEN and never run**: `artifacts/annotations/annotations.jsonl` holds 2 rows and there is no gate-4 script. |
 | **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
@@ -378,10 +378,12 @@ file and line, and to the test that asserts it. Read it before touching this. As
 
 - Six modes have a test that asserts the exact reason, in `tests/test_failure_injection.py`.
 - Six were already covered in the module they belong to, anchored in that file's docstring.
-- **One is not implemented at all.** Nothing counts the traces in a waterfall, so a second
-  satellite in the same image is scored as noise around the first. It needs a per-row
-  multi-peak detector and a measurement of how often it fires across the shipped
-  waterfalls. A detector that fires on half the corpus is wrong; one that fires on none is
-  untested. Do not add an expected failure in place of it.
+- **All twelve now have a named reason and a test.** The last one, the multiple-trace mode,
+  landed in D8b as `corridor_fit.second_trace_evidence`, with the incidence measured in
+  `artifacts/SECOND_TRACE_SURVEY.json`: 10 of 182 measurable decisive observations, where
+  543 of 743 cannot be measured at all because fewer than eight rows carry a pixel at
+  `z_min`. It is **not** wired into the feature matrix, on purpose: that route runs through
+  `corridor_features.json` and `features.py` and would require a refit, which moves the
+  numbers behind gates 5 and 6.
 - Eleven reason constants can be emitted with nothing asserting them, listed in the recon
   document. A rename or a lost branch on any of those passes the suite today.
