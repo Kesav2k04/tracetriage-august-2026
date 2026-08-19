@@ -8,16 +8,44 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-19, IST, after D8b and D9 |
-| **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h) |
-| **Current wave** | **Wave D, in progress.** Committed: D0, D0b, E1, D1 to D7, D0c (all review-closing work, which is prompt unit D0), then D8 and D8b (failure injection, all twelve modes now named and tested) and D9 (the `[UNMEASURED]` accounting). |
-| **Next unit** | **D10, the clean-clone reproduction with the network disabled** (the prompt's D3). Then D11 secrets and attribution, D12 documentation and the demo, D13 final acceptance. Kesav's order: finish every unit first, then an external review pass, then the video last. |
-| **Numbering** | The committed entries named D1 to D7 are review-closing passes and are **not** the prompt's units D1 to D6. The prompt's units are numbered from D8 onward in the build log: D8 is its D1, the failure injection. |
-| **Open failures** | none. **954** offline tests collected, all pass, no expected failures. Lint clean. **81** console tests pass under vitest across 4 files. `npx tsc --noEmit` clean. `npx next build` exits 0 and emits 30 `index.html` files, where the prompt's acceptance line says 33. `scripts/gate.py` green on **13 of 13** standing gates. |
-| **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 **OPEN and never run**: `artifacts/annotations/annotations.jsonl` holds 2 rows and there is no gate-4 script. |
-| **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app |
+| **Handoff written** | 2026-08-20, IST, after D13 and the sign-off |
+| **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h), **D** (D0 to D13), **E** (E0 to E8) |
+| **Current wave** | **None. Wave D is closed.** Every unit the D prompt asked for is committed: the review-closing work (D0, D0b, D0c and the passes named D1 to D7), failure injection (D8, D8b), the `[UNMEASURED]` accounting (D9), the clean-clone reproduction (D10), secrets and attribution (D11), generated documentation and the demo script (D12, D12a), and final acceptance with a sign-off receipt (D13, D13a, D13b). |
+| **What remains** | Two things, both outside the repository: record the demo video against `docs/DEMO_SCRIPT.md`, and make the repository public on 25 August. Nothing in the tree is waiting on either. |
+| **Numbering** | The committed entries named D1 to D7 are review-closing passes and are **not** the prompt's units D1 to D6. The prompt's units are numbered from D8 onward in the build log: D8 is its D1 (failure injection), D9 its D2, D10 its D3, D11 its D4, D12 its D5, D13 its D6. |
+| **Open failures** | none. **1,245** offline tests collected and all pass, 4 deselected, no expected failures. Lint clean. **103** console tests pass under vitest across 6 files. `npx tsc --noEmit` clean. `npx next build` emits **32** `index.html` files. `scripts/gate.py` green on **17 of 17** standing gates. |
+| **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 **OPEN and never run**, with its instrument built in E6: `scripts/build_gate4_worksheet.py` produces a blinded 72-item bundle committed to in advance, and `artifacts/GATE4_RECEIPT.json` reads `NOT_RUN` with no rate. |
+| **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app. Six pages: queue, evaluation, agent, precedent, replay, provenance. |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
-| **Last commit** | see `git log -1` |
+| **Last commit** | see `git log -1`. `artifacts/SIGNOFF_RECEIPT.json` names the commit the final acceptance measured. |
+
+### Five documents are generated. Do not hand-edit any of them.
+
+| Document | Generator | `--check` in the gate |
+|---|---|---|
+| `README.md` results tables | `scripts/sync_readme_results.py` | yes |
+| `docs/KILL_GATE.md` | `scripts/sync_kill_gate.py` | yes |
+| `FOR_JUDGES.md` | `scripts/sync_for_judges.py` | yes |
+| `docs/REFERENCE.md` | `scripts/sync_docs.py` | yes |
+| `docs/DEMO_SCRIPT.md` | `scripts/sync_demo.py` | yes |
+
+`apps/web/public/data/` is generated in its entirety by `scripts/build_console_data.py`, and
+`artifacts/HERO_NULLS.json` by `scripts/export_hero_nulls.py`. `scripts/check_artifact_freshness.py`
+rebuilds them into a scratch directory and diffs, and the gate runs it.
+
+**Run the gate before every commit.** Three separate defects in Wave D were commits that
+looked finished and left a generated document one run behind: a stale `provenance.json` after
+the release audit was re-run, a stale `FOR_JUDGES.md` after the clean-clone transcript moved,
+and a stale `docs/REFERENCE.md` after one line was added to `scripts/signoff.py`. Each was
+caught by a clean clone or by the gate afterwards rather than before, and each cost a repair
+commit.
+
+**The sign-off is `scripts/signoff.py`.** It runs the standing gate, the acceptance checks the
+gate does not cover, and the release audit at one commit, and writes
+`artifacts/SIGNOFF_RECEIPT.json` naming each check and its result. Re-run it at any commit that
+is meant to be a release: the receipt records what it measured and the gate requires it to be
+present and `SIGNED`. It has three outcomes rather than two, so a check that could not run here
+is `NOT_CHECKED` with a stated reason instead of being folded into a pass or a failure.
 
 ### Read this before D0
 
@@ -118,7 +146,7 @@ Key facts for B1:
 - The BASELINE_RECEIPT model_checksum = `e0912b14…` (SHA-256 of `artifacts/BASELINE_RECEIPT.json`).
 - `run_triage_slice.py` loads `artifacts/hoglr_model.pkl` for deterministic scoring; re-runs produce identical numbers.
 - A3 correction status for obs 14740031 is UNCORRECTED (read from `artifacts/a3_overlays/summary.json`).
-  DO NOT infer correction status from metadata fields — they are null for both corrected and uncorrected.
+  DO NOT infer correction status from metadata fields: they are null for both corrected and uncorrected.
 
 ---
 
@@ -130,12 +158,12 @@ Do not regenerate it.  Key facts for any unit that uses it:
 - `label_from_obs(obs)` → `ProvenanceRecord`.  Raises `FutureObservationError`
   when `obs["status"] == "future"`.  Never raises for any other input.
 - `label_observations(obs_list, *, skip_future=False)` → batch helper.
-- `ProvenanceRecord.label_outcome` — `POSITIVE` / `NEGATIVE` / `UNLABELLED`.
-- `ProvenanceRecord.labelled_positive` — bool shorthand for `POSITIVE` outcome.
-- `ProvenanceRecord.carries_measurable_trace` — bool, separate from the above.
+- `ProvenanceRecord.label_outcome`: `POSITIVE` / `NEGATIVE` / `UNLABELLED`.
+- `ProvenanceRecord.labelled_positive`: bool shorthand for `POSITIVE` outcome.
+- `ProvenanceRecord.carries_measurable_trace`: bool, separate from the above.
   At provenance time this is always `False` (trace_presence = `UNVETTED`).
   A7 or the model updates it to `MEASURABLE` or `VISIBLE_BUT_UNMEASURABLE`.
-- `ProvenanceRecord.vetting_lag_seconds` — seconds between pass end and
+- `ProvenanceRecord.vetting_lag_seconds`: seconds between pass end and
   snapshot retrieval.  Small lag = unvetted recent.  None when timestamps missing.
 - `to_receipt_provenance(record, *, artifact_sha256, split)` → dict assembling
   the `provenance` sub-object of `contracts/triage_receipt.schema.json`.
@@ -157,8 +185,8 @@ not regenerate it.  Key facts for any unit that uses it:
 
 - `corridor_for_obs(obs)` → `PhysicsResult`.  Never raises; all failures return
   a named `degraded` reason code.
-- `PhysicsResult.uncorrected` — full Doppler S-curve, `half_width_hz = 2000.0`.
-- `PhysicsResult.corrected` — near-vertical residual band, `half_width_hz = 200.0`.
+- `PhysicsResult.uncorrected`: full Doppler S-curve, `half_width_hz = 2000.0`.
+- `PhysicsResult.corrected`: near-vertical residual band, `half_width_hz = 200.0`.
 - `AXIS_SIGN_CONVENTION = -1`: positive Doppler → LEFT on the rendered axis.
 - `corridor_columns(corridor, hz_per_px, centre_px, image_height)` → pixel
   columns per image row.  Accepts a `freq_offset_hz` argument (search range
@@ -344,7 +372,7 @@ Three of six gates pre-measured. See `docs/KILL_GATE.md` for thresholds and evid
 
 In a **fresh Bob chat**: paste the master prompt from `docs/BOB_TASK_PROMPTS.md`, then unit **B1: cold-entity splits + physics-conditioned model**.
 
-Wave A is complete (A0–A7). The seam works. The corridor intersects the trace (gate 3 PASSED). The baseline is calibrated and beats the prior. Wave B builds volume: cold-entity splits, physics feature extraction for all 2,500 waterfalls, and the physics-conditioned HOG model that gate 5 requires.
+Wave A is complete (A0 to A7). The seam works. The corridor intersects the trace (gate 3 PASSED). The baseline is calibrated and beats the prior. Wave B builds volume: cold-entity splits, physics feature extraction for all 2,500 waterfalls, and the physics-conditioned HOG model that gate 5 requires.
 
 ### What A0 settled, so A1 does not rediscover it
 

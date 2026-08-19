@@ -5068,3 +5068,84 @@ rather than implying parity.
 **Outcome:** accepted. The transcript in this commit describes the previous commit, which is
 inherent: the run reads a clone of a commit and its output is committed after. The run at the
 release commit is recorded in the entry that follows.
+
+---
+
+## 2026-08-20 IST | Wave D | D13: final acceptance, and the two credentials the history still held
+
+The prompt's unit D6. Inspect the release commit, run every acceptance check, repair what
+fails, generate the sign-off receipt.
+
+**`scripts/signoff.py` runs the checks rather than remembering them.** The standing gate, the
+acceptance checks the gate does not cover (the 26 contrast pairs, the kill-gate document
+against its receipts), the console typecheck, tests and build with the emitted page count read
+off the tree rather than parsed out of the log, the release audit re-run rather than read, the
+commit identity, the working tree, and the deployed console. Each row records the command, the
+exit code, a line of output and how long it took, and `artifacts/SIGNOFF_RECEIPT.json` carries
+all of them.
+
+**Three outcomes, not two.** A check that could not run here is `NOT_CHECKED` with a stated
+reason, and the sheet refuses to record one without a reason. The live-console row is the case
+that needs it: it is the only check that touches the network, and folding a skipped network
+check into `FAILED` manufactures a regression while folding it into `PASSED` is a lie. The
+verdict counts the three separately and refuses to sign while any check has failed. Four tests
+prove the refusal works, including one that builds a sheet of eight passes and one failure and
+asserts the count moves.
+
+**The first sign-off in a repository was unreachable.** The gate checks that a signed receipt
+exists; the sign-off runs the gate and then writes that receipt. So the check failed on the
+absence of the file the run was about to create, and no first receipt could ever be produced.
+The sign-off sets a flag, the gate omits that one row when it sees it, and it prints the
+omission rather than counting the check green. A check quietly treated as passing is the defect
+this whole file exists to prevent, so the omission is visible in the gate's own output.
+
+**The working-tree check failed on the receipts the same run had just written.** The release
+audit rewrites three receipts immediately before the tree is inspected, and only the sign-off's
+own receipt was named as allowed to be dirty. The four are named one by one now rather than
+matched by a pattern over `artifacts/`, because a pattern would hide a receipt the run did not
+write, which is exactly what the check is for.
+
+**Two credential shapes in the history, from the test that proves the scanner works.** The
+full scan, which reads the history and not only the working tree, returned two findings in the
+D12 commit: a private-key header and a sample JWT, both planted as test fixtures to prove the
+fourteen patterns match what they name. D12a split them into fragments in the working tree and
+that is where the working-tree check stops. The blob stayed in the history, which is precisely
+the case the scanner's own docstring was written for: "a rotated key that was committed once
+and removed in the next commit passes that check and is still public forever."
+
+Two ways to close it were available. A scoped allowlist naming that commit and those two
+rules, published in the receipt, is non-destructive and leaves the strings reachable in a
+repository that goes public on 25 August. Rewriting was destructive but the commits were not
+pushed: `origin/main` was seven commits behind, so no published history existed to rewrite.
+The rewrite was chosen, because the standing rule is that nothing lands in the repository that
+a judge does not need, and a credential-shaped blob is something a judge does not need and
+that a judge's own scanner would flag.
+
+It was done with a backup tag first, a tree filter over the unpushed range only, and one
+check that decides whether it worked: **the tree hash at the tip is unchanged**,
+`dce8b4f695a56cc`, so the final content is byte-identical and only the intermediate blob
+moved. The scan over every commit in the rewritten range returns nothing. The commit ids the
+receipts had recorded no longer exist, so the release audit, the clean clone and the sign-off
+were all re-run afterwards rather than left pointing at commits that had been replaced.
+
+**What the clean clone found on the way.** Its first run at the rewritten tip failed one test:
+`docs/REFERENCE.md` was one line behind, because D13b added four receipt names to
+`scripts/signoff.py` and that changed the page's "named by" column. Three separate defects in
+this wave have that same shape, a commit that looked finished with one generated document a
+run behind, and all three were caught after the commit rather than before it. The handoff now
+says to run the gate before every commit, in those words, because the rule was not written
+down and the cost was three repair commits.
+
+**Files changed:** `scripts/signoff.py`, `tests/test_signoff.py` (both new),
+`scripts/gate.py`, `docs/BOB_HANDOFF.md`, `README.md`, `FOR_JUDGES.md`,
+`artifacts/SIGNOFF_RECEIPT.json`, `artifacts/SECRET_SCAN.json`,
+`artifacts/ATTRIBUTION_AUDIT.json`, `artifacts/REPO_WEIGHT.json`,
+`artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `docs/REFERENCE.md`,
+`apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/signoff.py --check-live`, `git filter-branch` over the unpushed
+range, `scripts/audit_release.py`, `scripts/clean_clone_check.py`, every generator with and
+without `--check`, `python -m ruff check .`, `python -m pytest`, `scripts/gate.py`.
+**Tests:** 10 new offline tests in `tests/test_signoff.py`. One new standing gate: a signed
+sign-off receipt has to be present.
+**Outcome:** accepted. Wave D is closed. What remains is outside the repository: the demo
+video, recorded against `docs/DEMO_SCRIPT.md`, and making the repository public on 25 August.
