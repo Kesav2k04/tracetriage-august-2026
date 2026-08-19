@@ -85,6 +85,10 @@ never raise.  Codes:
                              ``SGP4_MAX_MISSING_FRACTION`` of samples; the corridor
                              would be built from too few points to be trustworthy
   ``MISSING_STATION``        station_lat, station_lng or station_alt missing
+  ``UNPARSEABLE_PASS_WINDOW``  start or end is not an ISO timestamp, so the pass has no
+                             time origin and no sample can be placed inside it
+  ``NONPOSITIVE_PASS_WINDOW``  end is at or before start, so the window has no duration
+                             to spread the samples across
   ``MISSING_FREQ``           rx-freq absent in client_metadata and no usable fallback
 
 Usage::
@@ -871,12 +875,23 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
         return _fail("MISSING_STATION")
 
     # ── 3. Pass timing ───────────────────────────────────────────────────────
+    # These two reasons used to be one MISSING_STATION, with a comment saying timing is
+    # always present so the failure could be handled gracefully. Graceful was not the
+    # problem: a shifted or reversed recording window was published under the name of a
+    # missing ground station, which sends a reader to the wrong field. The station
+    # coordinates are checked above and are present in both of these cases.
     try:
         start_dt = datetime.fromisoformat(obs["start"].replace("Z", "+00:00"))
         end_dt = datetime.fromisoformat(obs["end"].replace("Z", "+00:00"))
-        pass_dur = (end_dt - start_dt).total_seconds()
     except Exception:
-        return _fail("MISSING_STATION")   # timing is always present; fail gracefully
+        return _fail("UNPARSEABLE_PASS_WINDOW")
+
+    pass_dur = (end_dt - start_dt).total_seconds()
+    # A window that ends at or before it starts cannot carry a pass. Every sample would
+    # land at the same instant, so the corridor would be one column wide with nothing
+    # in the record marking it as wrong.
+    if pass_dur <= 0.0:
+        return _fail("NONPOSITIVE_PASS_WINDOW")
 
     # ── 4. Receive frequency ─────────────────────────────────────────────────
     rx_freq = rx_freq_of(obs)

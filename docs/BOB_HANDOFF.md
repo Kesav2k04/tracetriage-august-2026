@@ -8,12 +8,12 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-19, IST, after D0c |
+| **Handoff written** | 2026-08-19, IST, after D8 |
 | **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h) |
-| **Current wave** | **Wave D, in progress.** Committed: D0, D0b, E1, D1 to D7, D0c. Every one of those is review-closing work, which is prompt unit D0. |
-| **Next unit** | **D1: failure injection across the full list**, per `docs/WAVE_D_PROMPT.md`. D2 has one sub-ask left, the `[UNMEASURED]` row count against the gates recorded OPEN. D3, D4, D5 and D6 are untouched. |
-| **Numbering** | The committed entries named D1 to D7 are review-closing passes and are **not** the prompt's units D1 to D6. Name the remaining units so the two cannot be confused before starting one. |
-| **Open failures** | none. **922** offline tests collected, all pass, no expected failures. Lint clean. **81** console tests pass under vitest across 4 files. `npx tsc --noEmit` clean. `npx next build` exits 0 and emits 30 `index.html` files, where the prompt's acceptance line says 33. `scripts/gate.py` green on **13 of 13** standing gates. |
+| **Current wave** | **Wave D, in progress.** Committed: D0, D0b, E1, D1 to D7, D0c (all review-closing work, which is prompt unit D0) and D8, the failure injection, which is partial. |
+| **Next unit** | **finish D8**: the multiple-trace mode is the one failure mode of twelve with no named reason in the code, and it needs a detector plus a measurement of how often it fires across the 2,500 shipped waterfalls. Then the prompt's D2 sub-ask (the `[UNMEASURED]` row count against the gates recorded OPEN), then D3, D4, D5, D6, which are untouched. |
+| **Numbering** | The committed entries named D1 to D7 are review-closing passes and are **not** the prompt's units D1 to D6. The prompt's units are numbered from D8 onward in the build log: D8 is its D1, the failure injection. |
+| **Open failures** | none. **942** offline tests collected, all pass, no expected failures. Lint clean. **81** console tests pass under vitest across 4 files. `npx tsc --noEmit` clean. `npx next build` exits 0 and emits 30 `index.html` files, where the prompt's acceptance line says 33. `scripts/gate.py` green on **13 of 13** standing gates. |
 | **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 **OPEN and never run**: `artifacts/annotations/annotations.jsonl` holds 2 rows and there is no gate-4 script. |
 | **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
@@ -367,3 +367,21 @@ Before the account runs dry, at **3 credits remaining**:
 6. Commit.
 
 The next account reads this file, reruns the tests, inspects the current code, and continues at the next unfinished unit. **It must not regenerate completed modules.**
+
+
+---
+
+## Failure injection: what D8 left
+
+`docs/DEGRADED_STATE_RECON.md` maps all twelve modes to the reason the code emits, with
+file and line, and to the test that asserts it. Read it before touching this. As of D8:
+
+- Six modes have a test that asserts the exact reason, in `tests/test_failure_injection.py`.
+- Six were already covered in the module they belong to, anchored in that file's docstring.
+- **One is not implemented at all.** Nothing counts the traces in a waterfall, so a second
+  satellite in the same image is scored as noise around the first. It needs a per-row
+  multi-peak detector and a measurement of how often it fires across the shipped
+  waterfalls. A detector that fires on half the corpus is wrong; one that fires on none is
+  untested. Do not add an expected failure in place of it.
+- Eleven reason constants can be emitted with nothing asserting them, listed in the recon
+  document. A rename or a lost branch on any of those passes the suite today.

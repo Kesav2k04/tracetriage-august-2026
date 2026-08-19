@@ -234,6 +234,17 @@ def _load_rgb(data: bytes | Path) -> tuple[np.ndarray, int, int]:
     except Exception as exc:
         raise _DegradedError("MALFORMED_PNG") from exc
 
+    # Format, before anything is decoded into pixels. A complete JPEG or GIF is neither
+    # malformed nor truncated, and both of those names are already taken: by the paths
+    # above and by the download magic check in snapshot.py. Without this the file went
+    # on into layout detection and failed as UNKNOWN_LAYOUT, which names the layout
+    # rather than the format and sends a reader looking for a client that draws its axes
+    # differently. SatNOGS serves PNG, so another format means the client, a proxy or
+    # the archive changed, which is a different investigation.
+    fmt = (pil.format or "").upper()
+    if fmt and fmt != "PNG":
+        raise _DegradedError("UNSUPPORTED_IMAGE_FORMAT")
+
     # Convert RGBA → RGB by compositing onto white.
     # Alpha must not become a fourth feature plane.
     if pil.mode == "RGBA":

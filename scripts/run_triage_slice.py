@@ -348,6 +348,19 @@ def _score_with_hoglr(
 # Main
 # ---------------------------------------------------------------------------
 
+def model_checksum_and_source(model_path: Path) -> tuple[str | None, str]:
+    """The model artifact's checksum, or the named absence when it is not on disk.
+
+    Split out of ``main`` so the absent branch can be tested. The receipt has to let a
+    reader tell two situations apart: the artifact was missing, and the artifact was
+    there and its bytes were never read. A null checksum with no reason beside it says
+    the model is unverified without saying which of those happened.
+    """
+    if model_path.exists():
+        return hashlib.sha256(model_path.read_bytes()).hexdigest(), "artifacts/hoglr_model.pkl"
+    return None, "MODEL_ARTIFACT_MISSING"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="End-to-end triage slice for one observation."
@@ -555,12 +568,7 @@ def main(argv: list[str] | None = None) -> int:
     # well-formed 64-character hex string that reads like a real hash in a
     # provenance field. A missing model is now a named degraded state.
     model_path = _REPO_ROOT / "artifacts" / "hoglr_model.pkl"
-    if model_path.exists():
-        model_checksum = hashlib.sha256(model_path.read_bytes()).hexdigest()
-        model_checksum_source = "artifacts/hoglr_model.pkl"
-    else:
-        model_checksum = None
-        model_checksum_source = "MODEL_ARTIFACT_MISSING"
+    model_checksum, model_checksum_source = model_checksum_and_source(model_path)
 
     receipt: dict[str, Any] = {
         # Pinned to the contract this writer was built against. The contract requires

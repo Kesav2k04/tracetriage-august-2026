@@ -3871,3 +3871,88 @@ The offline Python suite and all 13 standing gates were green before and after.
 **Failures and repairs:** none in the run. The repair is the missing coverage itself.
 **Outcome:** accepted. ENG-B2 now has a test that fails without its fix, which was the last
 outstanding item in the wave's BLOCKING and SERIOUS acceptance criteria.
+
+---
+
+## 2026-08-19 IST | Wave D | D8: the failure modes that had no name, and four that had no test
+
+The failure-injection unit, taken against `docs/DEGRADED_STATE_RECON.md` rather than
+against the twelve-item list on its own. Recon first, because the list says what must be
+named and says nothing about what is already named. Measured at `a41b87e`: five modes were
+covered, three were tested against the wrong input, and four had no test at all.
+
+**Two modes had no name in the code, and both were emitting a name that belonged to
+something else.**
+
+`physics.py` returned `MISSING_STATION` when the pass window would not parse, with a
+comment saying timing is always present so the failure could be handled gracefully. The
+station coordinates are checked twelve lines above and are present in that case, so a
+reader who trusted the reason went to the wrong field. It now returns
+`UNPARSEABLE_PASS_WINDOW`, and a second guard returns `NONPOSITIVE_PASS_WINDOW` for a
+window that ends at or before it starts, which nothing checked at all. That case would
+have put every sample at the same instant and produced a corridor one column wide, with
+nothing in the record marking it as wrong.
+
+`waterfall.py`'s `_load_rgb` accepted anything PIL could decode. A complete JPEG or GIF
+went on into layout detection and came back as `UNKNOWN_LAYOUT`, which names the layout and
+sends the reader after a client that draws its axes differently. It now raises
+`UNSUPPORTED_IMAGE_FORMAT` on a decodable non-PNG, checked after the integrity verify and
+before the pixels are touched, so the format is decided before the blank test can claim the
+image. The download-time magic check in `snapshot.py` calls the same file `TRUNCATED`, which
+is false for a complete image in another format, and that one is left alone: it guards the
+bytes as they arrive, and its enum is pinned in `dataset_manifest.schema.json`.
+
+**Four modes had a name and no test.** `NO_AXIS_DETECTED` was covered only by
+`assert degraded in ("NO_AXIS_DETECTED", "UNKNOWN_LAYOUT")` on a black image, which passes
+whichever the code returns. `HTTP_ERROR` has two producers and the only test injected a 500
+response, so the transport-exception branch, which is the one a machine with no route
+takes, was never entered. `MODEL_ARTIFACT_MISSING` reaches the triage receipt and nothing
+asserted it. The empty-test-partition guard in `run_queue.py` was referenced by no test at
+all, and the alternative to its named reason is a lift over zero candidates, which is a
+ratio of two zeros dressed as a gate result.
+
+`tests/test_failure_injection.py` covers those six modes in 20 tests. Three of them are
+controls rather than assertions about failure: a measurable axis is not degraded, a PNG is
+not rejected for its format, and a record with no station coordinates still reports the
+station. Without the third, the rename would have been free to widen.
+
+**Two extractions, for the same reason as D0c.** `model_checksum_and_source` came out of
+`run_triage_slice.main`, and the empty-partition path was reached by patching
+`fit_arm_for_split` rather than by building a fitted arm, so the guard under test is the
+real one in the real function.
+
+**The mutation check.** Restoring `MISSING_STATION` on the two window guards and disabling
+the format check turns six of the 20 red: four in `TestPassWindow` and two in
+`TestUnsupportedImageFormat`. The other fourteen pin behaviour that already existed and were
+never going to move under that mutation, which is what a coverage test is for.
+
+**One mode of the twelve is not done, and it is not hidden.** Nothing counts the traces in
+a waterfall. A second satellite in the same image is scored as noise around the first, and
+`corridor_fit` reports `TRACE_NOT_MEASURABLE` only when too few rows carry a usable
+maximum. There is no test for it in this entry because there is no named reason to assert
+yet, and an expected failure standing in for missing code is what D2 removed from this
+suite. Building it needs a per-row multi-peak detector and, more to the point, a
+measurement of how often it fires across the 2,500 shipped waterfalls, because a detector
+that fires on half the corpus is wrong and one that fires on none is untested. That is the
+next piece of this unit rather than a note for later.
+
+**Also still open, from the recon and unchanged here.** Eleven reason constants the code
+can emit that no test asserts: `NO_OCR_BACKEND`, `SGP4_ERROR`, `CORRIDOR_LEFT_PLOT`,
+`TRACE_NOT_MEASURABLE`, `NO_VALID_MEMBERS`, `DISPLACED_STATION_CAP`,
+`DISPLACED_TRANSMITTER_CAP`, `MISCONFIGURED_CLIENT_SUSPECTED`, `DEAD_CAPTURE_CONFIRMED`,
+`OUT_OF_DISTRIBUTION` and, until this entry, `MODEL_ARTIFACT_MISSING`.
+
+**Files changed:** `pipeline/tracetriage/physics.py`, `pipeline/tracetriage/waterfall.py`,
+`scripts/run_triage_slice.py`, `tests/test_failure_injection.py` (new, 20 tests),
+`docs/DEGRADED_STATE_RECON.md` (added in the preceding commit).
+**Commands run:** `.venv\Scripts\python.exe -m pytest tests/test_failure_injection.py -q`,
+`.venv\Scripts\python.exe -m ruff check .`, `.venv\Scripts\python.exe -m pytest -q`,
+`.venv\Scripts\python.exe scripts\gate.py`.
+**Tests:** 20 of 20 in the new file. Full offline suite green. Lint clean. All 13 standing
+gates green.
+**Failures and repairs:** the first version of the two queue tests asserted
+`gate6_result["reason"]`, and the field is `not_measurable_reason`. Caught by the tests
+themselves, not by reading, which is the argument for asserting the value rather than the
+shape.
+**Outcome:** partial. Six of the twelve modes now have a test that names the reason, two of
+those needed the reason to exist first, and the multiple-trace mode is not built.
