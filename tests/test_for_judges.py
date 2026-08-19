@@ -85,15 +85,19 @@ def test_every_path_the_page_cites_exists_and_is_published(page: str):
     """
     # A bare filename is a path claim too, so the extractor takes a known suffix as well
     # as a separator. Requiring a separator let a cited "vercel.json" through unchecked.
-    # `.venv/` is the one exclusion: the page names the interpreter it means, and a virtual
-    # environment is built by the Setup section rather than published, so requiring git to
-    # track it would be requiring the wrong thing rather than catching a broken claim.
+    # Two exclusions, each with its reason. `.venv/` is built by the Setup section rather
+    # than published, so requiring git to track it would be requiring the wrong thing.
+    # `apps/web/node_modules` is cited precisely because the clean-clone run had to borrow
+    # it, and a published node_modules would be the defect: the page discloses an unpublished
+    # directory on purpose, and this test exists to catch a path a judge cannot reach, not a
+    # path the page already says is absent.
+    unpublished_on_purpose = (".venv/", "apps/web/node_modules")
     suffixes = (".py", ".json", ".md", ".ts", ".tsx", ".yml", ".toml")
     candidates = {
         token
         for token in re.findall(r"`([^`]+)`", page)
         if " " not in token
-        and not token.startswith(("http", "-", ".venv/"))
+        and not token.startswith(("http", "-", *unpublished_on_purpose))
         and ("/" in token or token.endswith(suffixes))
     }
     assert len(candidates) >= 10, f"the extractor found {len(candidates)} paths, so it broke"

@@ -1,0 +1,36 @@
+{
+ "schema": "GATE4_RECEIPT",
+ "schema_version": 1,
+ "gate": 4,
+ "unit": "E6",
+ "threshold": 0.8,
+ "decisive_rule": "An item is decisive when the reviewer committed to an answer rather than declining. artifact_usable must be yes or no. When it is no, that is itself the decisive artifact judgment the gate names and the item counts. When it is yes, at least one of visible_signal or target_consistent must also be yes or no, because an image the reviewer calls usable and then declines to judge on every axis supported no judgment.",
+ "verdict_rule": "PASSED when the 95 percent lower bound is at or above the threshold. FAILED when the upper bound is below it. NOT_ESTABLISHED when the interval contains it. NOT_RUN when no response has been recorded, which is not a failure and is not a pass.",
+ "ci_method": "Exact one-sided Clopper-Pearson bounds at 95 percent, from scripts/run_gate3.py::rate_lower_bound and rate_upper_bound, so gates 3 and 4 read their rates from the same function.",
+ "worksheet": {
+  "source": "snapshot",
+  "seed": 4,
+  "items": 72,
+  "unique_observations": 60,
+  "repeated_observations": 12,
+  "per_class_requested": 20,
+  "observations_available_per_class": {
+   "with-signal": 462,
+   "without-signal": 277,
+   "unknown": 1761
+  },
+  "salt_source": "32 random bytes from secrets.token_hex, so the commitment binds",
+  "what_this_sample_size_can_establish": {
+   "unique_observations": 60,
+   "minimum_decisive_for_pass": 54,
+   "minimum_rate_for_pass": 0.9,
+   "maximum_decisive_for_fail": 42,
+   "lower_bound_if_the_true_rate_is_0.90": 0.8121,
+   "lower_bound_if_the_true_rate_is_0.95": 0.8758,
+   "reading": "The verdict reads the interval and not the point estimate, so a sample size fixes the rate at which PASSED becomes reachable at all. minimum_rate_for_pass is that rate. It is above the threshold on purpose: an exact bound at 95 percent will not certify 0.80 from a sample that merely averages 0.80."
+  }
+ },
+ "verdict": "NOT_RUN",
+ "why": "D:\\tracetriage_gate4\\responses.csv has no answered rows. The worksheet exists and nobody has filled it in.",
+ "reading": "NOT_RUN is a third outcome and it is not a failure. The instrument exists, its sample is committed, and the review has not been carried out. Folding this into FAILED would manufacture a measurement, and folding it into silence would hide that the gate is still open."
+}

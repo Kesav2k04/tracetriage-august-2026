@@ -182,6 +182,28 @@ def rate_lower_bound(successes: int, trials: int, alpha: float = 0.05) -> float 
     return float(beta.ppf(alpha, successes, trials - successes + 1))
 
 
+def rate_upper_bound(successes: int, trials: int, alpha: float = 0.05) -> float | None:
+    """Exact one-sided Clopper-Pearson upper bound, the partner of the bound above.
+
+    Added for gate 4, which needs three outcomes rather than two: a rate whose interval sits
+    entirely below the threshold is a failure and says the labelling protocol is wrong, while
+    a rate whose interval merely contains the threshold is inconclusive. Deciding that with a
+    lower bound alone would collapse those two into one and report the protocol as broken on
+    evidence that does not support it.
+
+    For k = 0 the closed form is 1 - alpha ** (1 / n), which mirrors the k = n case beside it.
+    """
+    if trials <= 0 or successes < 0 or successes > trials:
+        return None
+    if successes == trials:
+        return 1.0
+    if successes == 0:
+        return float(1.0 - alpha ** (1.0 / trials))
+    from scipy.stats import beta
+
+    return float(beta.ppf(1.0 - alpha, successes + 1, trials - successes))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--snapshot", type=Path, default=Path("D:/tracetriage_data/snap-stage1"))

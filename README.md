@@ -168,7 +168,11 @@ queue's filters are a plain form, which is what the plan called the primary cont
 
 **What none of this measures.** Whether an accepted note is useful. Grounding is a property
 of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks
-a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.
+a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN. The
+instrument itself now exists: `scripts/build_gate4_worksheet.py` builds a blinded bundle whose
+sample is committed to in advance as one salted sha256 per item, and `scripts/score_gate4.py`
+scores the filled form. `artifacts/GATE4_RECEIPT.json` reads `NOT_RUN`, which is a fourth
+outcome beside passed, failed and inconclusive, and it carries no rate.
 
 ### Selected challenge theme
 

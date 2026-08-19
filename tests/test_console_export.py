@@ -304,6 +304,28 @@ def test_export_observation_returns_named_absence_for_obs_outside_decisive_pool(
         finally:
             mod._IMG_DIR = orig_img_dir
 
+    # This test needs the geometry path to have run at all. A clean clone installed
+    # without the optional ocr extra returns a degraded card for every snapshot record,
+    # which is the export contract working as written: the degraded member of the card
+    # union deliberately carries no measurement fields, so the console cannot read one
+    # without checking. The corridor_note this test is about lives on the other member.
+    # Absence of the precondition is a third outcome and it is not a failure, so the
+    # NO_OCR_BACKEND case skips with its reason named. Every other degraded reason fails,
+    # because those are statements about the data or the code rather than about the
+    # environment. Found by a clean clone that built its own environment: on the machine
+    # that wrote this test, easyocr is installed and the branch never ran.
+    if result.get("degraded"):
+        if "NO_OCR_BACKEND" in result["degraded"]:
+            pytest.skip(
+                "no OCR backend in this environment, so waterfall geometry is degraded for "
+                "every record and the corridor_note path cannot be reached. Install the ocr "
+                "extra to run this one."
+            )
+        pytest.fail(
+            f"obs_id={obs_id}: the card is degraded for a reason this test cannot excuse: "
+            f"{result['degraded']}"
+        )
+
     # With no corridor row, the function must return a named corridor_note and
     # must NOT publish a corridor dict with a zero offset.
     assert result.get("corridor") is None, (

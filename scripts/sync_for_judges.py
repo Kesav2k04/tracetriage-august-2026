@@ -54,6 +54,7 @@ secrets = _receipt("SECRET_SCAN.json")
 attribution = _receipt("ATTRIBUTION_AUDIT.json")
 weight = _receipt("REPO_WEIGHT.json")
 clone = _receipt("CLEAN_CLONE_TRANSCRIPT.json")
+gate4 = _receipt("GATE4_RECEIPT.json")
 
 gates = build_gate_summary(queue, fusion)
 verdicts = [g["verdict"] for g in gates["gates"]]
@@ -119,12 +120,71 @@ CLONE_OK = CLONE_TOTAL - CLONE_FAILED
 CLONE_COMMIT = clone["source_commit"][:7]
 CLONE_FAILED_STEPS = ", ".join(clone["summary"]["steps_failed"])
 
+# What the clone had to borrow, read from the transcript rather than described. A run that
+# borrows an environment and a run that builds one are different claims, and this page said
+# neither until a review pointed out that its headline implied the stronger of the two.
+_PREREQ = clone["prerequisites_not_in_the_repository"]
+
+
+def _prereq_named(fragment: str) -> dict | None:
+    for row in _PREREQ:
+        if fragment in row["prerequisite"]:
+            return row
+    return None
+
+
+CLONE_ENV_CACHE = _prereq_named("uv cache")
+CLONE_ENV_BORROWED = _prereq_named("prepared Python environment")
+CLONE_NODE = _prereq_named("node_modules")
+if (CLONE_ENV_CACHE is None) == (CLONE_ENV_BORROWED is None):
+    raise SystemExit(
+        "the clean-clone transcript names neither a built environment nor a borrowed one, or "
+        f"it names both: {[row['prerequisite'] for row in _PREREQ]}. One of the two has to be "
+        "true, and which one it is decides what this page is allowed to say."
+    )
+if CLONE_NODE is None:
+    raise SystemExit(
+        "the clean-clone transcript does not record where apps/web/node_modules came from, so "
+        "the page cannot disclose it."
+    )
+
+if CLONE_ENV_CACHE is not None:
+    CLONE_ENV_SENTENCE = (
+        "The clone built its own Python environment, inside itself, with the network refused, "
+        "resolving the pinned set from a local package cache rather than from an index, so a "
+        "judge with a cold cache needs one online install before this step reproduces. The "
+        "transcript records which cache it read, because a run that resolves from a warm cache "
+        "and a run that resolves from nothing are different claims."
+    )
+else:
+    CLONE_ENV_SENTENCE = (
+        "The offline install into the clone did not succeed, for the reason its own output "
+        "tail gives, so the suite ran on this machine's interpreter at "
+        f"`{CLONE_ENV_BORROWED['python_version']}` against the clone's source tree. The code "
+        "under test is the clone's and the environment is not, which is a weaker claim than a "
+        "cold-start install and is stated here rather than left to be inferred."
+    )
+
 if N_PASSED is None or N_SKIPPED is None:
     raise SystemExit(
         "the clean-clone transcript carries no parsed pytest count for the hidden-snapshot "
         f"pass ({_pytest}), so the number of tests cannot be quoted from it. Re-run "
         "scripts/clean_clone_check.py."
     )
+
+
+_AUDIT_COMMITS = {
+    "SECRET_SCAN.json": secrets["commit"],
+    "ATTRIBUTION_AUDIT.json": attribution["commit"],
+    "REPO_WEIGHT.json": weight["commit"],
+}
+if len(set(_AUDIT_COMMITS.values())) != 1:
+    _seen = {name: value[:7] for name, value in _AUDIT_COMMITS.items()}
+    raise SystemExit(
+        f"the three release-audit receipts were measured at different commits ({_seen}), so no "
+        "single commit can be named for their numbers. Re-run scripts/audit_release.py."
+    )
+AUDIT_COMMIT = secrets["commit"][:7]
 
 
 def _plural(n: int, one: str, many: str) -> str:
@@ -232,13 +292,41 @@ INTRO = _para(
     the console rather than typed here."""
 )
 
+_FAILED_CLAUSE = "" if not CLONE_FAILED else f". What did not: {CLONE_FAILED_STEPS}"
+
+GATE4_PARA = _para(
+    f"""What has not been measured is whether a reviewer reads a generated note faster or
+    better than the numbers alone. That is kill gate 4. The instrument for it exists now:
+    `scripts/build_gate4_worksheet.py` builds a blinded bundle of
+    {gate4["worksheet"]["items"]} items over {gate4["worksheet"]["unique_observations"]}
+    observations, {gate4["worksheet"]["repeated_observations"]} of them repeated under a second
+    item id so intra-rater agreement falls out of the answers, and it commits one salted
+    sha256 per item so the sample provably predates the review. `scripts/score_gate4.py`
+    scores the filled form against a {gate4["threshold"]:.2f} threshold using the same exact
+    bounds gate 3 reads. `artifacts/GATE4_RECEIPT.json` currently says `{gate4["verdict"]}`,
+    with no rate in it, because nobody has filled the form in. That is a person's afternoon
+    rather than a code change, and it is reported as OPEN rather than estimated."""
+)
+
 CLONE_PARA = _para(
     f"""The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken
     from a fresh clone of commit `{CLONE_COMMIT}` with every non-loopback socket refused:
-    {CLONE_OK} of {CLONE_TOTAL} steps succeeded. What did not: {CLONE_FAILED_STEPS}. The
-    transcript carries each step's exit code and the tail of its output, so the reason is
-    readable rather than summarised. The test counts above are from the pass with the
-    snapshot directory hidden, which is a judge's case rather than this machine's."""
+    {CLONE_OK} of {CLONE_TOTAL} steps succeeded{_FAILED_CLAUSE}. The transcript carries each
+    step's exit code and the tail of its output, so the reason is readable rather than
+    summarised. The test counts above are from the pass with the snapshot directory hidden,
+    which is a judge's case rather than this machine's, and they are the count at that commit
+    rather than at the tip of the branch."""
+)
+
+CLONE_LIMITS = _para(
+    f"""Two things about that run are worth knowing before it is trusted.
+    {CLONE_ENV_SENTENCE} And `apps/web/node_modules` was linked from the source clone rather
+    than installed, because `npm ci` needs the registry this run refuses; the transcript
+    records the lockfile's sha256 (`{CLONE_NODE["package_lock_sha256"][:12]}`) so a reader can
+    check that the borrowed tree belongs to this repository's pins. The socket refusal itself
+    is a Python-level patch loaded through `PYTHONPATH`, so it reaches every Python child
+    process and constrains nothing else: the Node steps are outside it, and that is a limit of
+    the guard rather than a claim about them."""
 )
 
 TECHNICAL = _para(
@@ -306,7 +394,8 @@ FEASIBILITY_ONE = _para(
 
 FEASIBILITY_TWO = _para(
     f"""The repository is {weight["tracked_megabytes"]} MB across {weight["tracked_files"]}
-    tracked files, `artifacts/SECRET_SCAN.json` reports {secrets["n_findings"]}
+    tracked files as of commit `{AUDIT_COMMIT}`, `artifacts/SECRET_SCAN.json` reports
+    {secrets["n_findings"]}
     credential-shaped {_plural(secrets["n_findings"], "value", "values")} across the history
     it scanned, and the console is a static export, so hosting it costs nothing."""
 )
@@ -364,6 +453,8 @@ run as having collected nothing.
 
 {CLONE_PARA}
 
+{CLONE_LIMITS}
+
 ## Where each submission requirement is answered
 
 | Requirement | Where |
@@ -405,9 +496,7 @@ matching its receipt.
 
 {IMPACT}
 
-What has not been measured is whether a reviewer reads a generated note faster or better than
-the numbers alone. That is kill gate 4, it needs human judgements under blinding, and it is
-reported as OPEN rather than estimated.
+{GATE4_PARA}
 
 ## What this project does not claim
 
@@ -415,6 +504,9 @@ reported as OPEN rather than estimated.
 - **A grounded note is not a useful note.** Grounding is a property of the numbers in a
   sentence. Nothing here asked a human whether the sentence was worth reading.
 {INCONCLUSIVE_BULLET}
+- **Nobody has read the blinded worksheet yet.** `artifacts/GATE4_RECEIPT.json` says
+  `NOT_RUN`, which is a fourth outcome beside passed, failed and inconclusive, and it carries
+  no rate because there is nothing to compute one from.
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
 

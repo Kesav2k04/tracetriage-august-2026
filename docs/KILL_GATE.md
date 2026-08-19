@@ -210,9 +210,57 @@ The Hz/px derivation was verified: **123.76 Hz/px** from axis-tick OCR maps the 
 
 **Threshold:** a balanced sample reviewed with API labels and model output hidden; at least 80% must support a decisive artifact or target-consistency judgment.
 
-Requires the snapshot and a blinded review harness. Split assignment must be frozen **before** review begins. Separate axes: artifact usability, visible signal, target consistency. Relabel a fixed subset after a delay and report intra-rater agreement.
+Split assignment must be frozen **before** review begins. Separate axes: artifact usability, visible signal, target consistency. Relabel a fixed subset after a delay and report intra-rater agreement.
 
 If below 80%, the labelling protocol is the problem, not the model. Fix the protocol before training anything.
+
+**The instrument exists now, and it has not been run.** `scripts/build_gate4_worksheet.py`
+builds the blinded bundle: 20 observations per label class chosen by a fixed seed, one image
+per opaque item, a form with three axes and no label anywhere in it, and 12 observations
+repeated under a second item id so intra-rater agreement can be measured without telling the
+reviewer which items are repeats. That is 72 items over 60 observations.
+`scripts/score_gate4.py` reads the filled form and writes `artifacts/GATE4_RECEIPT.json`.
+
+The sample is committed to rather than promised. A random 32-byte salt and the mapping from
+item to observation are written **outside** the repository, and what is committed is one
+sha256 per item over the salt, the item id, the observation id and the digest of the image
+file. Before the review nobody can invert that; after it, the scorer re-hashes every image
+from disk, recomputes every commitment, refuses outright if one fails, and publishes the salt
+and the mapping in the receipt. So the commitment binds the sample, its order **and** the
+pictures, and the claim that all three were fixed in advance is checkable by anyone rather
+than resting on the word of whoever built it.
+
+**Why 60 observations and not 36.** The verdict reads the interval rather than the point
+estimate, so the sample size decides which rates the study can establish at all. At 36
+observations the exact 95% lower bound only reaches 0.80 at 34 of 36, a rate of 0.944, so a
+corpus whose true decisive rate is 0.90 would return NOT_ESTABLISHED however the review went.
+At 60 it reaches 0.80 at 54 of 60, and a true rate of 0.90 gives a lower bound of 0.8121,
+which clears it. The manifest publishes those numbers as
+`what_this_sample_size_can_establish`, computed from the same bounds the verdict uses, so the
+sizing is a number a reader can check rather than a judgment they have to accept.
+
+**The receipt currently says NOT_RUN, which is this table's OPEN with a receipt behind it.**
+NOT_RUN is a distinct outcome from FAILED on purpose: an unfilled worksheet is a fact about
+the world, and folding it into a failure would manufacture the measurement this gate is
+missing. The three measured verdicts follow the interval, exactly as gates 3, 5 and 6 do:
+PASSED when the exact 95% Clopper-Pearson lower bound reaches 0.80, FAILED when the upper
+bound is below it, NOT_ESTABLISHED when the interval contains it. On the committed 60, that is
+PASSED at 54 or more decisive, FAILED at 42 or fewer, and NOT_ESTABLISHED in between.
+
+Two numbers come out beside the gate and neither decides it: intra-rater agreement on the
+repeated items, which bounds how far the first number can be trusted, and agreement between
+the blinded reviewer and the network's own `waterfall_status`, which is the measurement that
+would say whether the silver labels this project trains against are what a careful human sees
+in the same image. The second excludes items the network left unknown and items the reviewer
+answered `unsure` on, and the receipt publishes both counts, because the second exclusion
+conditions the rate on the reviewer's own confidence.
+
+**What the blinding does not cover**, stated in the manifest rather than left to be assumed:
+the image files are byte-distinct, so hashing the bundle no longer recovers the repeat pairs,
+but a reviewer who decodes them and hashes the pixels still can; and a bundle built with
+`--source console` is made of re-encodes of waterfalls this repository tracks, so a determined
+reader could match pixels against `apps/web/public/waterfalls` and recover the label. The
+committed build used the snapshot, which has no such path.
 
 ---
 

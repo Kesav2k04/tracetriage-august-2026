@@ -1,0 +1,795 @@
+"""The gate 4 instrument, tested where it could quietly stop being blinded (unit E6).
+
+Gate 4 asks a human whether an image supports a judgment at all, and a study like that fails
+in ways its own output cannot show: a sample chosen after the answers were known, a worksheet
+that leaks the label it is meant to hide, a repeat sitting next to its twin so the reviewer
+recognises it, an unfilled form scored as a failure. None of those produce an error. Each one
+produces a number that reads fine.
+
+Everything here runs from the console's tracked waterfalls rather than the snapshot, so the
+whole file works in a clean clone with no 4 GB directory anywhere.
+"""
+
+from __future__ import annotations
+
+import csv
+import hashlib
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "scripts"))
+
+from build_gate4_worksheet import MIN_REPEAT_SEPARATION, THRESHOLD  # noqa: E402
+from build_gate4_worksheet import main as build_main  # noqa: E402
+from run_gate3 import rate_lower_bound, rate_upper_bound  # noqa: E402
+from score_gate4 import (  # noqa: E402
+    ScoringError,
+    is_decisive,
+    read_responses,
+    verify_commitments,
+)
+from score_gate4 import main as score_main  # noqa: E402
+
+_SALT = "0" * 64
+_PER_CLASS = 12
+_REPEATS = 3
+
+
+@pytest.fixture(scope="module")
+def bundle(tmp_path_factory) -> dict:
+    """One build, from the tracked console imagery, with a fixed salt so it is comparable."""
+    out = tmp_path_factory.mktemp("gate4")
+    manifest = out / "GATE4_WORKSHEET.json"
+    code = build_main(
+        [
+            "--out",
+            str(out),
+            "--source",
+            "console",
+            "--per-class",
+            str(_PER_CLASS),
+            "--repeats",
+            str(_REPEATS),
+            "--salt",
+            _SALT,
+            "--manifest",
+            str(manifest),
+        ]
+    )
+    assert code == 0
+    return {
+        "dir": out,
+        "manifest_path": manifest,
+        "manifest": json.loads(manifest.read_text(encoding="utf-8")),
+        "key": json.loads(
+            (out / "KEY_do_not_open_until_scored.json").read_text(encoding="utf-8")
+        ),
+    }
+
+
+def _write_responses(path: Path, answers: dict[str, tuple[str, str, str]]) -> None:
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(
+            ["item", "artifact_usable", "visible_signal", "target_consistent", "notes"]
+        )
+        for item, row in answers.items():
+            writer.writerow([item, *row, ""])
+
+
+def _score(bundle: dict, answers: dict[str, tuple[str, str, str]], tmp_path: Path) -> dict:
+    responses = tmp_path / "responses.csv"
+    receipt = tmp_path / "GATE4_RECEIPT.json"
+    _write_responses(responses, answers)
+    code = score_main(
+        [
+            "--bundle",
+            str(bundle["dir"]),
+            "--responses",
+            str(responses),
+            "--manifest",
+            str(bundle["manifest_path"]),
+            "--out",
+            str(receipt),
+        ]
+    )
+    assert code == 0
+    return json.loads(receipt.read_text(encoding="utf-8"))
+
+
+# ---------------------------------------------------------------------------
+# The blinding
+# ---------------------------------------------------------------------------
+
+
+def test_the_committed_manifest_leaks_nothing_the_reviewer_must_not_see(bundle):
+    """What is committed has to be inert on its own.
+
+    A manifest carrying observation ids would let the reviewer look the pass up on the
+    network's own site, and one carrying an unsalted image digest would be invertible in a
+    minute against this repository's tracked waterfalls, which is the same defect wearing a
+    different name.
+    """
+    text = bundle["manifest_path"].read_text(encoding="utf-8")
+    cards = json.loads(
+        (REPO / "apps" / "web" / "public" / "data" / "cards.json").read_text(encoding="utf-8")
+    )["cards"]
+    for card in cards:
+        assert str(card["obs_id"]) not in text, f"the manifest names observation {card['obs_id']}"
+
+    # The field-name scan runs over the data and not over the manifest's own account of what
+    # it withholds. The first version scanned the whole file and failed on the sentence
+    # "network's waterfall_status label" inside what_is_hidden_from_the_reviewer, which is the
+    # disclosure rather than the leak. Dropping every prose field (a string, or a list of
+    # them) keeps the scan pointed at values; the disclosure is asserted below, positively,
+    # because a manifest that hides a field without saying so is worse than one that names it.
+    def is_prose(value):
+        if isinstance(value, str):
+            return True
+        return isinstance(value, list) and all(isinstance(item, str) for item in value)
+
+    data = {
+        key: value for key, value in bundle["manifest"].items() if not is_prose(value)
+    }
+    assert "commitments" in data, "the scan dropped the rows it exists to check"
+    data_text = json.dumps(data)
+    for leak in ("waterfall_status", "model_prob", '"label"', '"obs_id"', "image_sha256"):
+        assert leak not in data_text, f"the manifest carries {leak}"
+
+    hidden = " ".join(bundle["manifest"]["what_is_hidden_from_the_reviewer"]).lower()
+    for named in ("waterfall_status", "model", "observation id", "repeats"):
+        assert named in hidden, f"the manifest hides things without saying it hides {named}"
+
+    # The class names appear once, as the keys of the availability count, which says how many
+    # of each class the source held and not which item is which. Per item, only two fields
+    # exist, and that is what has to stay true.
+    for row in bundle["manifest"]["commitments"]:
+        assert set(row) == {"item", "commitment"}, row
+
+    for row in bundle["key"]["items"]:
+        assert row["image_sha256"] not in text, (
+            "an unsalted image digest is in the committed manifest, so the mapping can be "
+            "inverted against the repository's own images"
+        )
+
+
+def test_every_commitment_verifies_and_a_changed_key_does_not(bundle):
+    salt = bundle["key"]["salt"]
+    for row, committed in zip(
+        bundle["key"]["items"], bundle["manifest"]["commitments"], strict=True
+    ):
+        recomputed = hashlib.sha256(
+            f"{salt}|{row['item']}|{row['obs_id']}|{row['image_sha256']}".encode()
+        ).hexdigest()
+        assert recomputed == committed["commitment"], row["item"]
+
+    tampered = hashlib.sha256(
+        f"{salt}|{bundle['key']['items'][0]['item']}|999999|x".encode()
+    ).hexdigest()
+    assert tampered != bundle["manifest"]["commitments"][0]["commitment"]
+
+
+def test_a_tampered_key_is_refused_rather_than_scored(bundle, tmp_path):
+    """The check that makes this a blinded study rather than a claim of one.
+
+    A mapping chosen after the answers were known would produce a perfectly tidy receipt.
+    This has to refuse, and refuse without writing one, which is why it is a hard exit and
+    not the NOT_RUN branch.
+    """
+    forged = tmp_path / "KEY_forged.json"
+    key = json.loads(json.dumps(bundle["key"]))
+    key["items"][0]["obs_id"] = 999_999
+    forged.write_text(json.dumps(key), encoding="utf-8")
+
+    responses = tmp_path / "responses.csv"
+    _write_responses(
+        responses, {row["item"]: ("yes", "yes", "yes") for row in key["items"]}
+    )
+    receipt = tmp_path / "receipt.json"
+    with pytest.raises(SystemExit) as caught:
+        score_main(
+            [
+                "--bundle",
+                str(bundle["dir"]),
+                "--responses",
+                str(responses),
+                "--key",
+                str(forged),
+                "--manifest",
+                str(bundle["manifest_path"]),
+                "--out",
+                str(receipt),
+            ]
+        )
+    assert "commitment" in str(caught.value)
+    assert not receipt.exists(), "a refusal must not leave a receipt behind"
+
+
+def test_a_repeat_is_the_same_image_and_never_lands_beside_its_twin(bundle):
+    positions: dict[int, list[int]] = {}
+    for index, row in enumerate(bundle["key"]["items"]):
+        positions.setdefault(row["obs_id"], []).append(index)
+    repeated = {obs: places for obs, places in positions.items() if len(places) > 1}
+    assert len(repeated) == _REPEATS, f"{len(repeated)} observations repeat, expected {_REPEATS}"
+    for obs, places in repeated.items():
+        assert min(b - a for a, b in zip(places, places[1:], strict=False)) >= (
+            MIN_REPEAT_SEPARATION
+        ), f"observation {obs} appears at {places}"
+        pixels = {bundle["key"]["items"][i]["pixel_sha256"] for i in places}
+        assert len(pixels) == 1, "a repeat has to depict the same image, or it measures nothing"
+
+    # The property that matters and the property that leaked are not the same one. Byte
+    # identity was how the first version achieved pixel identity, and it handed the repeat
+    # pairs to anyone with sha256sum: 45 files, 36 distinct digests, 9 groups of two, no salt
+    # and no key needed. Intra-rater agreement is the number that breaks under that, upward,
+    # and it is the ceiling this gate puts on its own decisive rate. So the files have to
+    # differ, and what they depict has to not.
+    files = sorted((bundle["dir"] / "images").glob("*.png"))
+    assert len(files) == len(bundle["key"]["items"])
+    byte_digests = {hashlib.sha256(f.read_bytes()).hexdigest() for f in files}
+    assert len(byte_digests) == len(files), (
+        "two images in the bundle are byte-identical, so hashing the directory recovers the "
+        "repeat pairs without the key"
+    )
+    assert len({row["pixel_sha256"] for row in bundle["key"]["items"]}) == len(positions), (
+        "the number of distinct pixel digests has to be the number of distinct observations"
+    )
+
+
+def test_the_committed_worksheet_is_balanced_and_says_what_was_available():
+    """The balance assertions have to run against the real manifest, not only the fixture.
+
+    The fixture builds from the console source, which has no unknown class, so every balance
+    assertion below it was scoped to a two-class sample and none of them ever looked at the
+    worksheet this repository commits to. A gate whose wording asks for a balanced sample
+    should be checked on the sample it is committed to.
+    """
+    manifest = json.loads(
+        (REPO / "artifacts" / "GATE4_WORKSHEET.json").read_text(encoding="utf-8")
+    )
+    available = manifest["observations_available_per_class"]
+    requested = manifest["per_class_requested"]
+    classes_with_stock = [name for name, count in available.items() if count > 0]
+    assert classes_with_stock, "the committed manifest reports no observations at all"
+
+    # What the sample can be, given what each class held. Asserting a perfectly balanced
+    # sample would be asserting a property of the source: a clean clone with no snapshot has
+    # 11 without-signal observations and no unknown class at all, so a --source console
+    # rebuild is legitimately unbalanced. What has to hold either way is that the manifest's
+    # own numbers account for it, so a reader can tell a short class from a quiet one.
+    expected = sum(min(requested, available[name]) for name in classes_with_stock)
+    assert manifest["unique_observations"] == expected, (
+        f"{manifest['unique_observations']} unique observations against {expected} the "
+        f"published availability allows, so the manifest does not account for its own sample"
+    )
+    assert manifest["items"] == expected + manifest["repeated_observations"]
+    short = {name: available[name] for name in classes_with_stock if available[name] < requested}
+    if not short:
+        assert manifest["unique_observations"] == requested * len(classes_with_stock), (
+            "every class had stock for the full request, so the committed sample has to be "
+            "the balanced one the gate's wording asks for"
+        )
+
+
+def test_the_sample_is_balanced_and_records_what_it_could_not_balance(bundle):
+    """The console source has no unknown class at all, and the manifest has to say so."""
+    manifest = bundle["manifest"]
+    assert manifest["source"] == "console"
+    available = manifest["observations_available_per_class"]
+    assert available["unknown"] == 0, (
+        "the console ships imagery only for decisively labelled observations, so a manifest "
+        "claiming a balanced three-class sample from it would be false"
+    )
+    labels = [row["label"] for row in bundle["key"]["items"]]
+    for name in ("with-signal", "without-signal"):
+        # As many as were asked for, or every one the source had. The console holds 11
+        # without-signal observations against a request for 12, and the manifest publishes
+        # the availability so a smaller class reads as a property of the source.
+        assert labels.count(name) >= min(_PER_CLASS, available[name]), (
+            f"{name}: {labels.count(name)} sampled, {available[name]} available"
+        )
+
+
+def test_the_build_is_reproducible_from_the_seed_and_the_salt(bundle, tmp_path):
+    manifest = tmp_path / "again.json"
+    assert (
+        build_main(
+            [
+                "--out",
+                str(tmp_path / "bundle"),
+                "--source",
+                "console",
+                "--per-class",
+                str(_PER_CLASS),
+                "--repeats",
+                str(_REPEATS),
+                "--salt",
+                _SALT,
+                "--manifest",
+                str(manifest),
+            ]
+        )
+        == 0
+    )
+    assert json.loads(manifest.read_text(encoding="utf-8")) == bundle["manifest"]
+
+
+# ---------------------------------------------------------------------------
+# The rule, and the three outcomes plus one
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("artifact", "signal", "target", "expected"),
+    [
+        ("yes", "yes", "yes", True),
+        ("yes", "no", "na", True),
+        ("yes", "unsure", "no", True),
+        ("no", "unsure", "unsure", True),  # a decisive artifact judgment is the gate's own
+        ("yes", "unsure", "unsure", False),
+        ("yes", "unsure", "na", False),  # na is not a judgment about the signal
+        ("unsure", "yes", "yes", False),  # an unreadable image cannot support a judgment
+    ],
+)
+def test_the_decisive_rule_is_the_one_the_manifest_publishes(
+    artifact, signal, target, expected
+):
+    assert (
+        is_decisive(
+            {
+                "artifact_usable": artifact,
+                "visible_signal": signal,
+                "target_consistent": target,
+            }
+        )
+        is expected
+    )
+
+
+def test_an_unfilled_worksheet_is_not_run_and_carries_no_rate(bundle, tmp_path):
+    """The third outcome. Absence must not read as a failure or as silence."""
+    receipt = _score(bundle, {}, tmp_path)
+    assert receipt["verdict"] == "NOT_RUN"
+    assert "rate" not in receipt
+    assert receipt["threshold"] == THRESHOLD
+    assert "not a failure" in receipt["reading"]
+
+
+def test_all_three_measured_verdicts_are_reachable(bundle, tmp_path):
+    """Every branch fired by construction, so none of them is dead code.
+
+    The mixture is found by scanning rather than typed, because the number of decisive items
+    that leaves the interval straddling the threshold depends on the sample size.
+    """
+    items = [row["item"] for row in bundle["key"]["items"]]
+    by_observation: dict[int, list[str]] = {}
+    for row in bundle["key"]["items"]:
+        by_observation.setdefault(row["obs_id"], []).append(row["item"])
+    trials = len(by_observation)
+
+    straddling = next(
+        (
+            k
+            for k in range(trials + 1)
+            if (rate_lower_bound(k, trials) or 0) < THRESHOLD <= (rate_upper_bound(k, trials) or 0)
+        ),
+        None,
+    )
+    assert straddling is not None, "no count leaves the interval containing the threshold"
+
+    def answers(decisive_observations: int) -> dict[str, tuple[str, str, str]]:
+        chosen = list(by_observation)[:decisive_observations]
+        out: dict[str, tuple[str, str, str]] = {}
+        for obs, obs_items in by_observation.items():
+            row = ("yes", "yes", "yes") if obs in chosen else ("yes", "unsure", "unsure")
+            for item in obs_items:
+                out[item] = row
+        return out
+
+    assert _score(bundle, answers(trials), tmp_path)["verdict"] == "PASSED"
+    assert _score(bundle, answers(0), tmp_path)["verdict"] == "FAILED"
+    middle = _score(bundle, answers(straddling), tmp_path)
+    assert middle["verdict"] == "NOT_ESTABLISHED"
+    assert middle["decisive"] == straddling
+    assert middle["observations_scored"] == trials
+    assert len(items) > trials, "the sample has to contain repeats for the next test"
+
+
+def test_only_the_first_occurrence_of_an_observation_counts(bundle, tmp_path):
+    """A reviewer who answers the repeat differently is not scored twice on one image.
+
+    Counting both would let one observation move the gate's numerator by two, and the repeat
+    exists to measure the reviewer against themselves rather than to add evidence.
+    """
+    by_observation: dict[int, list[str]] = {}
+    for row in bundle["key"]["items"]:
+        by_observation.setdefault(row["obs_id"], []).append(row["item"])
+    repeated = {obs: items for obs, items in by_observation.items() if len(items) > 1}
+
+    answers: dict[str, tuple[str, str, str]] = {}
+    for obs, items in by_observation.items():
+        for index, item in enumerate(sorted(items)):
+            if obs in repeated and index == 1:
+                answers[item] = ("yes", "unsure", "unsure")  # not decisive, second time
+            else:
+                answers[item] = ("yes", "yes", "yes")
+
+    receipt = _score(bundle, answers, tmp_path)
+    assert receipt["observations_scored"] == len(by_observation)
+    assert receipt["decisive"] == len(by_observation), (
+        "the second occurrence changed the decisive count, so an observation was scored twice"
+    )
+    intra = receipt["intra_rater"]
+    assert intra["repeated_pairs_scored"] == len(repeated)
+    assert intra["identical_on_all_three_axes"] == 0
+    assert intra["per_axis"]["artifact_usable"]["identical"] == len(repeated)
+
+
+def test_an_uninterpretable_answer_refuses_and_writes_nothing(bundle, tmp_path):
+    responses = tmp_path / "responses.csv"
+    _write_responses(
+        responses,
+        {bundle["key"]["items"][0]["item"]: ("probably", "yes", "yes")},
+    )
+    receipt = tmp_path / "receipt.json"
+    with pytest.raises(SystemExit) as caught:
+        score_main(
+            [
+                "--bundle",
+                str(bundle["dir"]),
+                "--responses",
+                str(responses),
+                "--manifest",
+                str(bundle["manifest_path"]),
+                "--out",
+                str(receipt),
+            ]
+        )
+    assert "probably" in str(caught.value)
+    assert not receipt.exists()
+
+
+def test_the_receipt_reveals_what_a_reader_needs_to_verify_the_commitments(bundle, tmp_path):
+    answers = {row["item"]: ("yes", "yes", "yes") for row in bundle["key"]["items"]}
+    receipt = _score(bundle, answers, tmp_path)
+    reveal = receipt["reveal"]
+    assert reveal["salt"] == bundle["key"]["salt"]
+    committed = {row["item"]: row["commitment"] for row in bundle["manifest"]["commitments"]}
+    for row in reveal["items"]:
+        recomputed = hashlib.sha256(
+            f"{reveal['salt']}|{row['item']}|{row['obs_id']}|{row['image_sha256']}".encode()
+        ).hexdigest()
+        assert recomputed == committed[row["item"]]
+
+
+def test_the_label_agreement_is_reported_and_is_not_the_gate(bundle, tmp_path):
+    """The interesting number, kept out of the verdict on purpose."""
+    answers = {row["item"]: ("yes", "yes", "na") for row in bundle["key"]["items"]}
+    receipt = _score(bundle, answers, tmp_path)
+    agreement = receipt["network_label_agreement"]
+    labels = [row["label"] for row in bundle["key"]["items"]]
+    # Everyone answered "signal present", so agreement is exactly the with-signal share of
+    # the first occurrences, and the gate still passed on decisiveness alone.
+    assert receipt["verdict"] == "PASSED"
+    assert agreement["items_scored"] == receipt["observations_scored"]
+    assert agreement["agreed_with_the_network_label"] < agreement["items_scored"], (
+        f"every item was answered yes and the sample holds without-signal cases: {labels}"
+    )
+    assert "not gate 4" in agreement["reading"]
+
+
+# ---------------------------------------------------------------------------
+# The bounds
+# ---------------------------------------------------------------------------
+
+
+def test_the_exact_bounds_agree_with_their_closed_forms():
+    """Gate 4 needed an upper bound, and a wrong one would invent a FAILED verdict."""
+    for trials in (3, 10, 23, 45):
+        assert rate_lower_bound(trials, trials) == pytest.approx(0.05 ** (1 / trials))
+        assert rate_upper_bound(0, trials) == pytest.approx(1 - 0.05 ** (1 / trials))
+        assert rate_lower_bound(0, trials) == 0.0
+        assert rate_upper_bound(trials, trials) == 1.0
+        for successes in range(trials + 1):
+            lower = rate_lower_bound(successes, trials)
+            upper = rate_upper_bound(successes, trials)
+            rate = successes / trials
+            assert lower <= rate + 1e-12
+            assert rate - 1e-12 <= upper
+            assert lower < upper
+
+
+def test_the_verdict_rule_cannot_report_passed_and_failed_for_one_count():
+    """The three branches partition the line, which is what makes the third one honest."""
+    trials = 45
+    seen = set()
+    for successes in range(trials + 1):
+        lower = rate_lower_bound(successes, trials)
+        upper = rate_upper_bound(successes, trials)
+        passed = lower >= THRESHOLD
+        failed = upper < THRESHOLD
+        assert not (passed and failed)
+        seen.add("PASSED" if passed else "FAILED" if failed else "NOT_ESTABLISHED")
+    assert seen == {"PASSED", "FAILED", "NOT_ESTABLISHED"}
+
+
+def test_the_committed_receipt_and_worksheet_agree_with_each_other():
+    """The real pair in this repository, rather than the fixtures above."""
+    worksheet = REPO / "artifacts" / "GATE4_WORKSHEET.json"
+    receipt = REPO / "artifacts" / "GATE4_RECEIPT.json"
+    if not (worksheet.exists() and receipt.exists()):
+        pytest.skip("the gate 4 instrument has not been built in this checkout")
+    w = json.loads(worksheet.read_text(encoding="utf-8"))
+    r = json.loads(receipt.read_text(encoding="utf-8"))
+    assert r["threshold"] == w["threshold"]
+    assert r["decisive_rule"] == w["decisive_rule"]
+    assert r["verdict_rule"] == w["verdict_rule"]
+    assert r["worksheet"]["items"] == w["items"]
+    assert r["worksheet"]["seed"] == w["seed"]
+    assert r["verdict"] in {"PASSED", "FAILED", "NOT_ESTABLISHED", "NOT_RUN"}
+    if r["verdict"] == "NOT_RUN":
+        assert "rate" not in r, "a receipt with no review must not carry a rate"
+
+
+def test_the_worksheet_the_repository_commits_to_is_not_the_test_fixture():
+    """A committed manifest built with the fixed test salt would not be a commitment at all."""
+    worksheet = REPO / "artifacts" / "GATE4_WORKSHEET.json"
+    if not worksheet.exists():
+        pytest.skip("the gate 4 instrument has not been built in this checkout")
+    text = worksheet.read_text(encoding="utf-8")
+    assert _SALT not in text
+    built_with_the_test_salt = hashlib.sha256(
+        f"{_SALT}|G4-001|0|0".encode()
+    ).hexdigest()
+    assert built_with_the_test_salt not in text
+
+
+def test_the_instrument_is_wired_into_the_gate_document():
+    """A gate whose instrument exists and whose document still says OPEN with no path to it."""
+    document = (REPO / "docs" / "KILL_GATE.md").read_text(encoding="utf-8")
+    assert "scripts/build_gate4_worksheet.py" in document, (
+        "docs/KILL_GATE.md does not tell a reader how to run gate 4, so the instrument is "
+        "invisible from the document that declares the gate"
+    )
+    assert "scripts/score_gate4.py" in document
+
+
+def test_the_bundle_is_never_committed():
+    """The images and the key live outside the repository, and that is load-bearing."""
+    tracked = subprocess.run(
+        ["git", "ls-files"],
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
+    for path in tracked:
+        assert "KEY_do_not_open" not in path, f"the answer key is tracked at {path}"
+        assert not path.startswith("artifacts/gate4"), f"the blind bundle is tracked at {path}"
+
+
+def test_the_stimulus_is_rehashed_from_disk(bundle, tmp_path):
+    """The commitment has to bind what the reviewer saw, not only who saw what.
+
+    The first version hashed the digest the key carried, so every image in the bundle could be
+    replaced and all 45 commitments still verified, while the error message blamed exactly that
+    case. A preregistration that does not bind the stimulus is half a preregistration, so swap
+    one file and the scorer must refuse.
+    """
+    images = tmp_path / "images"
+    images.mkdir()
+    for source in sorted((bundle["dir"] / "images").glob("*.png")):
+        (images / source.name).write_bytes(source.read_bytes())
+    victim = sorted(images.glob("*.png"))[0]
+    victim.write_bytes(victim.read_bytes() + b"\x00")
+
+    with pytest.raises(ScoringError) as caught:
+        verify_commitments(bundle["manifest"], bundle["key"], images)
+    assert "stimulus changed" in str(caught.value)
+
+    # And the honest case still verifies, so the check is not simply always failing.
+    assert verify_commitments(
+        bundle["manifest"], bundle["key"], bundle["dir"] / "images"
+    ) == len(bundle["key"]["items"])
+
+
+def test_a_deleted_bundle_cannot_be_scored_as_verified(bundle, tmp_path):
+    with pytest.raises(ScoringError) as caught:
+        verify_commitments(bundle["manifest"], bundle["key"], tmp_path / "gone")
+    assert "no images" in str(caught.value)
+
+
+def test_one_item_answered_twice_is_refused_rather_than_deduplicated(bundle, tmp_path):
+    """Building a dict from the rows keeps the last answer and says nothing."""
+    responses = tmp_path / "responses.csv"
+    item = bundle["key"]["items"][0]["item"]
+    with responses.open("w", encoding="utf-8", newline="") as handle:
+        handle.write("item,artifact_usable,visible_signal,target_consistent,notes\n")
+        handle.write(f"{item},yes,yes,yes,\n")
+        handle.write(f"{item},no,no,no,\n")
+    with pytest.raises(ScoringError) as caught:
+        read_responses(responses)
+    assert "answered twice" in str(caught.value)
+
+
+def test_a_key_that_is_not_json_refuses_instead_of_crashing(bundle, tmp_path):
+    """By the script's own taxonomy an unreadable key is an instrument failure."""
+    broken = tmp_path / "KEY_broken.json"
+    broken.write_text("{not json", encoding="utf-8")
+    responses = tmp_path / "responses.csv"
+    _write_responses(
+        responses, {row["item"]: ("yes", "yes", "yes") for row in bundle["key"]["items"]}
+    )
+    receipt = tmp_path / "receipt.json"
+    with pytest.raises(SystemExit) as caught:
+        score_main(
+            [
+                "--bundle",
+                str(bundle["dir"]),
+                "--responses",
+                str(responses),
+                "--key",
+                str(broken),
+                "--manifest",
+                str(bundle["manifest_path"]),
+                "--out",
+                str(receipt),
+            ]
+        )
+    assert "not readable JSON" in str(caught.value)
+    assert not receipt.exists()
+
+
+def test_the_sample_size_can_establish_the_threshold_it_publishes():
+    """The arithmetic that decides whether running the study can answer the question.
+
+    A verdict read off an exact 95 percent lower bound needs a rate strictly above the
+    threshold before PASSED is reachable at all. At 36 observations that rate is 0.944, so a
+    corpus whose true decisive rate is 0.90 returns NOT_ESTABLISHED however the review goes.
+    The committed sample has to be sized so the band a real corpus plausibly sits in can
+    clear it, and the number that says so has to be computed rather than believed.
+    """
+    manifest = json.loads(
+        (REPO / "artifacts" / "GATE4_WORKSHEET.json").read_text(encoding="utf-8")
+    )
+    sizing = manifest["what_this_sample_size_can_establish"]
+    n = manifest["unique_observations"]
+    assert sizing["unique_observations"] == n
+    k = sizing["minimum_decisive_for_pass"]
+    assert k is not None, "no number of decisive answers could reach PASSED at this size"
+    assert rate_lower_bound(k, n) >= manifest["threshold"]
+    assert rate_lower_bound(k - 1, n) < manifest["threshold"], (
+        "minimum_decisive_for_pass is not minimal, so the published sizing overstates what "
+        "this sample can conclude"
+    )
+    assert rate_upper_bound(sizing["maximum_decisive_for_fail"], n) < manifest["threshold"]
+    assert sizing["lower_bound_if_the_true_rate_is_0.90"] >= manifest["threshold"], (
+        f"at {n} observations a true decisive rate of 0.90 gives a lower bound of "
+        f"{sizing['lower_bound_if_the_true_rate_is_0.90']}, which cannot establish "
+        f"{manifest['threshold']}. The study would return NOT_ESTABLISHED by construction, "
+        f"which is a sample size defect rather than a finding."
+    )
+
+
+def test_the_receipt_publishes_the_balance_and_the_sizing(bundle, tmp_path):
+    receipt = _score(
+        bundle,
+        {row["item"]: ("yes", "yes", "yes") for row in bundle["key"]["items"]},
+        tmp_path,
+    )
+    balance = receipt["sample_balance"]
+    assert sum(balance["observations_per_class"].values()) == receipt["observations_scored"]
+    assert balance["balanced"] is (balance["smallest_class"] == balance["largest_class"])
+    assert receipt["worksheet"]["what_this_sample_size_can_establish"]["unique_observations"] == (
+        bundle["manifest"]["unique_observations"]
+    )
+    assert "--salt" in receipt["worksheet"]["salt_source"] or "random" in (
+        receipt["worksheet"]["salt_source"]
+    )
+    assert receipt["stimulus"]["images_rehashed_from_disk"] == len(bundle["key"]["items"])
+
+
+def test_the_label_agreement_says_how_many_items_it_excluded(bundle, tmp_path):
+    """It conditions on the reviewer's own confidence, which is the flattering direction."""
+    items = [row["item"] for row in bundle["key"]["items"]]
+    answers = {item: ("yes", "yes", "yes") for item in items}
+    answers[items[0]] = ("yes", "unsure", "unsure")
+    receipt = _score(bundle, answers, tmp_path)
+    agreement = receipt["network_label_agreement"]
+    assert agreement["items_excluded_reviewer_unsure"] >= 1
+    assert "unsure" in agreement["reading"]
+    assert (
+        agreement["items_scored"]
+        + agreement["items_excluded_reviewer_unsure"]
+        + agreement["items_excluded_unknown_label"]
+        == receipt["observations_scored"]
+    ), "the exclusions and the scored items have to account for every observation"
+
+
+def test_the_published_decisive_rule_names_what_the_code_reads():
+    """Prose and behaviour drift apart silently, so the prose has to name the fields."""
+    manifest = json.loads(
+        (REPO / "artifacts" / "GATE4_WORKSHEET.json").read_text(encoding="utf-8")
+    )
+    rule = manifest["decisive_rule"]
+    for field in ("artifact_usable", "visible_signal", "target_consistent"):
+        assert field in rule, f"the published rule does not name {field}"
+    assert "no" in rule and "yes" in rule
+    # The two hard cases the code implements, stated in the prose a reader gets.
+    assert is_decisive(
+        {"artifact_usable": "no", "visible_signal": "unsure", "target_consistent": "unsure"}
+    ), "an unusable artifact is itself the decisive judgment, and the rule says so"
+    assert not is_decisive(
+        {"artifact_usable": "yes", "visible_signal": "unsure", "target_consistent": "unsure"}
+    ), "usable and then unsure on every axis supported no judgment, and the rule says so"
+
+
+def test_the_manifest_states_what_the_blinding_does_not_cover():
+    """A threat model that lists only the threats it defeats is an advertisement."""
+    manifest = json.loads(
+        (REPO / "artifacts" / "GATE4_WORKSHEET.json").read_text(encoding="utf-8")
+    )
+    limits = " ".join(manifest["what_the_blinding_does_not_cover"]).lower()
+    assert "pixel" in limits, "the pixel-hash route to the repeat pairs is not disclosed"
+    assert "console" in limits, (
+        "a console-source bundle is invertible against the tracked waterfalls, and the "
+        "manifest has to say so"
+    )
+
+
+def test_the_committed_manifest_is_not_silently_replaced(tmp_path):
+    """A commitment that a later build can overwrite without saying so is not a commitment.
+
+    The builder writes artifacts/GATE4_WORKSHEET.json by default, so a judge who runs it out
+    of curiosity would replace the preregistration this repository is committed to and nothing
+    would record that the sample had changed.
+    """
+    manifest = tmp_path / "GATE4_WORKSHEET.json"
+    manifest.write_text("{}", encoding="utf-8")
+    with pytest.raises(SystemExit) as caught:
+        build_main(
+            [
+                "--out",
+                str(tmp_path / "bundle"),
+                "--source",
+                "console",
+                "--per-class",
+                "8",
+                "--repeats",
+                "2",
+                "--salt",
+                _SALT,
+                "--manifest",
+                str(manifest),
+            ]
+        )
+    assert "already committed" in str(caught.value)
+    assert manifest.read_text(encoding="utf-8") == "{}", "the refusal still wrote over it"
+
+    # And --force is a real path rather than a token in a help string.
+    assert (
+        build_main(
+            [
+                "--out",
+                str(tmp_path / "bundle"),
+                "--source",
+                "console",
+                "--per-class",
+                "8",
+                "--repeats",
+                "2",
+                "--salt",
+                _SALT,
+                "--manifest",
+                str(manifest),
+                "--force",
+            ]
+        )
+        == 0
+    )
+    assert json.loads(manifest.read_text(encoding="utf-8"))["schema"] == "GATE4_WORKSHEET"

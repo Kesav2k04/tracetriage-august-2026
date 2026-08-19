@@ -18,7 +18,7 @@ is read from the receipts by the console rather than typed here.
 
 | Question | Command | What it prints |
 |---|---|---|
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1029 passed, 30 skipped, measured in a clean clone with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1042 passed, 30 skipped, measured in a clean clone with every non-loopback socket refused |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 11 emitted, 14 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake and 5 read-only tools, one of which is the grounding checker |
 | Does the repository hold together? | `python scripts/gate.py` | The standing gates, one line each |
@@ -29,11 +29,25 @@ this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest optio
 run as having collected nothing.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `ca324f6` with every non-loopback socket refused: 14 of 15 steps
-succeeded. What did not: uv pip install --offline -e . (dependency resolution, offline).
-The transcript carries each step's exit code and the tail of its output, so the reason is
-readable rather than summarised. The test counts above are from the pass with the snapshot
-directory hidden, which is a judge's case rather than this machine's.
+fresh clone of commit `e940907` with every non-loopback socket refused: 15 of 16 steps
+succeeded. What did not: offline test suite, snapshot present. The transcript carries each
+step's exit code and the tail of its output, so the reason is readable rather than
+summarised. The test counts above are from the pass with the snapshot directory hidden,
+which is a judge's case rather than this machine's, and they are the count at that commit
+rather than at the tip of the branch.
+
+Two things about that run are worth knowing before it is trusted. The clone built its own
+Python environment, inside itself, with the network refused, resolving the pinned set from
+a local package cache rather than from an index, so a judge with a cold cache needs one
+online install before this step reproduces. The transcript records which cache it read,
+because a run that resolves from a warm cache and a run that resolves from nothing are
+different claims. And `apps/web/node_modules` was linked from the source clone rather than
+installed, because `npm ci` needs the registry this run refuses; the transcript records
+the lockfile's sha256 (`4a30b534f981`) so a reader can check that the borrowed tree
+belongs to this repository's pins. The socket refusal itself is a Python-level patch
+loaded through `PYTHONPATH`, so it reaches every Python child process and constrains
+nothing else: the Node steps are outside it, and that is a limit of the guard rather than
+a claim about them.
 
 ## Where each submission requirement is answered
 
@@ -107,9 +121,9 @@ frozen into a committed fixture so the publisher needs no model and no network a
 MCP server imports nothing outside the standard library and is tested with site-packages
 switched off.
 
-The repository is 30.85 MB across 257 tracked files, `artifacts/SECRET_SCAN.json` reports
-0 credential-shaped values across the history it scanned, and the console is a static
-export, so hosting it costs nothing.
+The repository is 30.85 MB across 257 tracked files as of commit `5666ff8`,
+`artifacts/SECRET_SCAN.json` reports 0 credential-shaped values across the history it
+scanned, and the console is a static export, so hosting it costs nothing.
 
 ### Real-world impact
 
@@ -120,9 +134,16 @@ chronological split is 1.582x with a 95% interval of [1.353, 1.755], which is ab
 station split, where a reviewer meets ground stations the model never trained on, the lift
 is 2.253x with an interval of [1.920, 3.896], which does clear it.
 
-What has not been measured is whether a reviewer reads a generated note faster or better than
-the numbers alone. That is kill gate 4, it needs human judgements under blinding, and it is
-reported as OPEN rather than estimated.
+What has not been measured is whether a reviewer reads a generated note faster or better
+than the numbers alone. That is kill gate 4. The instrument for it exists now:
+`scripts/build_gate4_worksheet.py` builds a blinded bundle of 72 items over 60
+observations, 12 of them repeated under a second item id so intra-rater agreement falls
+out of the answers, and it commits one salted sha256 per item so the sample provably
+predates the review. `scripts/score_gate4.py` scores the filled form against a 0.80
+threshold using the same exact bounds gate 3 reads. `artifacts/GATE4_RECEIPT.json`
+currently says `NOT_RUN`, with no rate in it, because nobody has filled the form in. That
+is a person's afternoon rather than a code change, and it is reported as OPEN rather than
+estimated.
 
 ## What this project does not claim
 
@@ -137,6 +158,9 @@ time.
 - **3 of the 6 kill gates came back inconclusive** and are published as NOT_ESTABLISHED,
 which means a measurement was run and its interval did not exclude the null, not that it
 failed and not that it passed.
+- **Nobody has read the blinded worksheet yet.** `artifacts/GATE4_RECEIPT.json` says
+  `NOT_RUN`, which is a fourth outcome beside passed, failed and inconclusive, and it carries
+  no rate because there is nothing to compute one from.
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
 

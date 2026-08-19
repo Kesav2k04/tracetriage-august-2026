@@ -1,0 +1,334 @@
+{
+ "schema": "GATE4_WORKSHEET",
+ "schema_version": 1,
+ "gate": 4,
+ "unit": "E6",
+ "source": "snapshot",
+ "seed": 4,
+ "per_class_requested": 20,
+ "observations_available_per_class": {
+  "with-signal": 462,
+  "without-signal": 277,
+  "unknown": 1761
+ },
+ "unique_observations": 60,
+ "repeated_observations": 12,
+ "items": 72,
+ "min_repeat_separation": 6,
+ "threshold": 0.8,
+ "what_this_sample_size_can_establish": {
+  "unique_observations": 60,
+  "minimum_decisive_for_pass": 54,
+  "minimum_rate_for_pass": 0.9,
+  "maximum_decisive_for_fail": 42,
+  "lower_bound_if_the_true_rate_is_0.90": 0.8121,
+  "lower_bound_if_the_true_rate_is_0.95": 0.8758,
+  "reading": "The verdict reads the interval and not the point estimate, so a sample size fixes the rate at which PASSED becomes reachable at all. minimum_rate_for_pass is that rate. It is above the threshold on purpose: an exact bound at 95 percent will not certify 0.80 from a sample that merely averages 0.80."
+ },
+ "salt_source": "32 random bytes from secrets.token_hex, so the commitment binds",
+ "decisive_rule": "An item is decisive when the reviewer committed to an answer rather than declining. artifact_usable must be yes or no. When it is no, that is itself the decisive artifact judgment the gate names and the item counts. When it is yes, at least one of visible_signal or target_consistent must also be yes or no, because an image the reviewer calls usable and then declines to judge on every axis supported no judgment.",
+ "verdict_rule": "PASSED when the 95 percent lower bound is at or above the threshold. FAILED when the upper bound is below it. NOT_ESTABLISHED when the interval contains it. NOT_RUN when no response has been recorded, which is not a failure and is not a pass.",
+ "ci_method": "Exact one-sided Clopper-Pearson bounds at 95 percent, from scripts/run_gate3.py::rate_lower_bound and rate_upper_bound, so gates 3 and 4 read their rates from the same function.",
+ "commitment_scheme": "sha256(salt | item | obs_id | image_sha256) per item, with the salt and the mapping written outside the repository. The reveal is published by scripts/score_gate4.py, which recomputes every commitment before it scores a single response and refuses on any mismatch.",
+ "what_is_hidden_from_the_reviewer": [
+  "the network's waterfall_status label",
+  "every model output, probability and reason code",
+  "the observation id, the station, the satellite and the pass time",
+  "which items are repeats of one another"
+ ],
+ "what_the_blinding_does_not_cover": [
+  "A reviewer who decodes the images and hashes the pixels can still group the repeats. The files are byte-distinct, which stops the accident; nothing here stops someone who is trying.",
+  "With --source console the images are re-encodes of waterfalls this repository tracks, so a pixel match against apps/web/public/waterfalls recovers the observation id and cards.json then gives the label. The snapshot source has no such path, is preferred when present, and is what the committed build used.",
+  "The reviewer is one person's judgment. Two readers scoring the same bundle is what would separate the protocol from the reader, and this instrument supports it by being reproducible from the seed rather than by measuring it."
+ ],
+ "commitments": [
+  {
+   "item": "G4-001",
+   "commitment": "93d2a15a0d4b331322c96c2266a986221619dfe2b2dc8e9459a3ea2d52dc02bf"
+  },
+  {
+   "item": "G4-002",
+   "commitment": "a6f556ceacd466b1bb5da5d6bad0219ef1b46f0da9406e460b47680b6759c6c9"
+  },
+  {
+   "item": "G4-003",
+   "commitment": "38a20aedca56a3a6f8fec53427d340f66c7f9bfe020ea700b86ec2064f748edb"
+  },
+  {
+   "item": "G4-004",
+   "commitment": "5c5b432f0f7cf5cc0f38d9e6532f721ad2ad1c3bc6fc6c536c5e19132500dfce"
+  },
+  {
+   "item": "G4-005",
+   "commitment": "6dc45736b477dc1817ca1dfc8074f8dbb8ee92bd1fdaa055a13376253ddab97f"
+  },
+  {
+   "item": "G4-006",
+   "commitment": "bb9a975122810c608b005f4f6ba789a3102d170b824d9fd11a662a95b5e4d699"
+  },
+  {
+   "item": "G4-007",
+   "commitment": "c2a9ec2f8d9693515e2226f2a0818082944d32188f7e691fd1cc451020e79f9b"
+  },
+  {
+   "item": "G4-008",
+   "commitment": "9526c913aaee6c979a3e4dc4c6e23b7757168556b1039db77188f2a3a7575f91"
+  },
+  {
+   "item": "G4-009",
+   "commitment": "1aa645ccda21947334d58aca8efad02be0a98af7c43e129ae485da5304542cb8"
+  },
+  {
+   "item": "G4-010",
+   "commitment": "6c64121d4364ef7c5635e35f921769fa06f72560f8620219a843f2c2a26a7463"
+  },
+  {
+   "item": "G4-011",
+   "commitment": "93a163ba92e6cda52ff0338ebb4898f26e110cc2ea854c9d6cf7b8e8fe9fc474"
+  },
+  {
+   "item": "G4-012",
+   "commitment": "3dd12cc2582df302de63a0ee96c49a940c45c0b00620010e757c31fc19ca0ad6"
+  },
+  {
+   "item": "G4-013",
+   "commitment": "a59828746ce198250f1e506b9d3634196d7a8bee50a938f6c8f6ae98c1169e1c"
+  },
+  {
+   "item": "G4-014",
+   "commitment": "36a29adf7c3cd6c320df41979a729c091adaf35397bbd69d60f2ad876b7f5448"
+  },
+  {
+   "item": "G4-015",
+   "commitment": "9e1566cd7cf02ab5e78a762184774c6f78ef4e69bf0495cac4578aadc61664df"
+  },
+  {
+   "item": "G4-016",
+   "commitment": "3073145b6da2c3aa8433ab92e25f370be71e4831634c6ba7d356832b09a478b6"
+  },
+  {
+   "item": "G4-017",
+   "commitment": "b899fcd38ec4dbf1165b8aaca260b42701c58d967ed11cd16eb2aa48ba2aeb0a"
+  },
+  {
+   "item": "G4-018",
+   "commitment": "59501bdc8994856b8a56b3bfa3bdfacbca27f08e02f71875361b10e0e69b2550"
+  },
+  {
+   "item": "G4-019",
+   "commitment": "14300c9495a01b3ddffe5ecd30f245c0cd050c9205698cf3f5c1e3efb486b22a"
+  },
+  {
+   "item": "G4-020",
+   "commitment": "5362f6fe802699229c5ea95ae4f0f54fc6b7a8a61f6be08acf1e325c0cb46a6a"
+  },
+  {
+   "item": "G4-021",
+   "commitment": "41e0e06ee762e1c4d38a02308c143225b7765561b1374e1cc20448f11c40e63a"
+  },
+  {
+   "item": "G4-022",
+   "commitment": "1f9615f6cac62b0ea6cc4ae28d4a3518f198579beb9b8d16cbef78490e79a288"
+  },
+  {
+   "item": "G4-023",
+   "commitment": "b7309ea1e30428b266580ce7c101eb86a965c7b2da84992c263f0d499ff1125f"
+  },
+  {
+   "item": "G4-024",
+   "commitment": "94f84a0c590fdc34bc588abb2cfe836b1cc47c5cfdd542c3486d624934eed372"
+  },
+  {
+   "item": "G4-025",
+   "commitment": "6cff85674657f081e11095064f4ee2b9812da5ab8e23f359424e5920b7081718"
+  },
+  {
+   "item": "G4-026",
+   "commitment": "7679a699e4ad92fb250ab3ad7d932ddd421b24c7432a8470550e2f5e1f138055"
+  },
+  {
+   "item": "G4-027",
+   "commitment": "751e4375a108a56cb1065a566269d6196e6bcb214bc69021b93b2222977ab98a"
+  },
+  {
+   "item": "G4-028",
+   "commitment": "f48fc1657c04ea5b152fa4708dd362dac10d2d570af0eb3ffb1fedd124b28b56"
+  },
+  {
+   "item": "G4-029",
+   "commitment": "47cf455fb02fa03291d8e6810547b88e8ec577b5682f64241ed261030d612dc5"
+  },
+  {
+   "item": "G4-030",
+   "commitment": "3dc4682dc342849dc720f17c4bb355286225a6680bb153ba7db4023c98c10b9b"
+  },
+  {
+   "item": "G4-031",
+   "commitment": "73b3d7460eed9950b3c6b9fce47e8d92052be234a9c49886a941750008e1c31f"
+  },
+  {
+   "item": "G4-032",
+   "commitment": "6be814c29661853ab9dca536ca6c447704a742a568a732bc8242daa0c7e2be03"
+  },
+  {
+   "item": "G4-033",
+   "commitment": "8f64ab009cceecb5ba8e041c46f04b5dddbc424c8ddc499c58981da1c879be4c"
+  },
+  {
+   "item": "G4-034",
+   "commitment": "fde8c1c559aaa8c3d41e41742e7f384cd01a940257aeaaf5ab6a1ee065948fe3"
+  },
+  {
+   "item": "G4-035",
+   "commitment": "7565679f1c925065f1ecb78023b2b2a537dacef9d490389264a01e617de461cd"
+  },
+  {
+   "item": "G4-036",
+   "commitment": "f859411c086aeff6415bc4aa104ac22d27c11f2cd12af0100aa484f05df1a8ed"
+  },
+  {
+   "item": "G4-037",
+   "commitment": "9872e4492f0e0ad318968552566db716a6b6e104bcd662885937577df6b812f0"
+  },
+  {
+   "item": "G4-038",
+   "commitment": "73bd5d5b9e33807662d70754d9c020ec49e02468cb930a14db0e8a366538628d"
+  },
+  {
+   "item": "G4-039",
+   "commitment": "ad0cd1af14b2fef5e47f3479a829102285056af1435443dbeb9bb41bf3cb1bef"
+  },
+  {
+   "item": "G4-040",
+   "commitment": "6c53bd7ef31700bc964f750a63e0d9f9adb86e7ebc31a13b287a15527e75a858"
+  },
+  {
+   "item": "G4-041",
+   "commitment": "832bc2215e6b3f73b157e5e985db001767e0c79dec9235ddf8e8773374e523d4"
+  },
+  {
+   "item": "G4-042",
+   "commitment": "37d38e6c1a7bfdcb91461d0147ec0d1e9026e2eed4df6851a18b4638baec6e0f"
+  },
+  {
+   "item": "G4-043",
+   "commitment": "6804510ea51ae097969fd2426f0d7e56f48cba51cc2c34f590c584f4992936fd"
+  },
+  {
+   "item": "G4-044",
+   "commitment": "2b17ebbb0d6f501820a8144d6e0407a51f28b74b72f7b8917654b6b570b8abee"
+  },
+  {
+   "item": "G4-045",
+   "commitment": "c3ce857c0e574d68f25afd078cda0f657b5a2aa59ad38004fb61f9b5468cc138"
+  },
+  {
+   "item": "G4-046",
+   "commitment": "0e59951cf991bc08381951fcc8fedfe56fcb9b66c95ecc246811ca764c82730f"
+  },
+  {
+   "item": "G4-047",
+   "commitment": "89384b8af8f163b3d15b0d1eedd12db9fd2ac1e37c6c562c495143962d1314a5"
+  },
+  {
+   "item": "G4-048",
+   "commitment": "2b36a24e8b42a750c05073f57146e2c181fd1f7e0365022e66e6fe8a3fbbc1c3"
+  },
+  {
+   "item": "G4-049",
+   "commitment": "74cd4a5199d3a22de408d50480ae4974eaef03545b66113cf8869fb2933281e3"
+  },
+  {
+   "item": "G4-050",
+   "commitment": "0e7cda664fcd8938312a1acfcff8073f7c5ff60bde4c076d62078a545a7f811b"
+  },
+  {
+   "item": "G4-051",
+   "commitment": "ee6a1ccce0bc0b94001006dacd84cd1ec2e2e8032a12e6d5864c1e0beb9285e4"
+  },
+  {
+   "item": "G4-052",
+   "commitment": "3a2c160ee01b10b33e270900e6857de9dfdc498b58d69811abee01195d09d173"
+  },
+  {
+   "item": "G4-053",
+   "commitment": "7e142a750abae0fdc8a6d393bd25e38894506ca9c0cbf13a9add53d45f7a66c1"
+  },
+  {
+   "item": "G4-054",
+   "commitment": "eeaaa815c13be3d2f2b41c9cb809a722a11c7cf87bc68e2d66f161d4096b7058"
+  },
+  {
+   "item": "G4-055",
+   "commitment": "256cee68beb29fedff2b67c08705b43b4533fb3729edb21b7602c3a3d9115da4"
+  },
+  {
+   "item": "G4-056",
+   "commitment": "a84ab1ea45a10f6f5948e5d2ea2bfba226a8affb20ece3fd535f6f75d5cd30fb"
+  },
+  {
+   "item": "G4-057",
+   "commitment": "c2fa4707af487532ab86156b17d4004d9597b8e859266d7a0914d185a91add27"
+  },
+  {
+   "item": "G4-058",
+   "commitment": "a894b8211d8a15a9a819f2f4278c73883cbb06649831dbcbd3dad80027e89545"
+  },
+  {
+   "item": "G4-059",
+   "commitment": "d520992a2b8fdc25eac98558d017c64e58229760ef087f61ca41586e0bb51f9c"
+  },
+  {
+   "item": "G4-060",
+   "commitment": "e3252894a4eda8fc46bca80fb16f5ca1f28c91feb6549fa4ef58027ef1f883e1"
+  },
+  {
+   "item": "G4-061",
+   "commitment": "d6e937b37fea7c91ad39f77578c915044bf5714cc36156270218835a70de2dab"
+  },
+  {
+   "item": "G4-062",
+   "commitment": "66fc53f811e6bcf32bb43f4568198f01b519c809d231cd6dc2910653d59d9e60"
+  },
+  {
+   "item": "G4-063",
+   "commitment": "49a75892b172e6c0db074705656ac701b2a49bb25183e071adf959e66f09536a"
+  },
+  {
+   "item": "G4-064",
+   "commitment": "d5de25864ca5eab0a96d9a734fc8099c0f147ffbce1e11c7a089092f23d45e84"
+  },
+  {
+   "item": "G4-065",
+   "commitment": "0ca746cabdd0ed128ff598c304bacd9d517cfdf8f2eb7362c0541d3e6094d6c6"
+  },
+  {
+   "item": "G4-066",
+   "commitment": "997597da531e46ee2fc3dc7cc8887925547e04a7844e6c88fed54a91aec721d3"
+  },
+  {
+   "item": "G4-067",
+   "commitment": "e5e51e6fd5672cd9587112e6efe88f2243d30461784f408b0a9b9c57c9d94392"
+  },
+  {
+   "item": "G4-068",
+   "commitment": "9f2670bedbac340ff999f62f4f2b55175deb69c4829fa1045be99e41aecab093"
+  },
+  {
+   "item": "G4-069",
+   "commitment": "e0de93c87d44dcbbd1d99ee93a990c1713433fd50dbb0100c39d091caa083a2e"
+  },
+  {
+   "item": "G4-070",
+   "commitment": "4485f5bce2c9418a70b4234010d6c05b00fb8b1d057f3fa5691ae896c60d7434"
+  },
+  {
+   "item": "G4-071",
+   "commitment": "9cfc849ee69cbf6ae73788ecb96a4c81f58012f8919474f74b256a5ae64e1b3a"
+  },
+  {
+   "item": "G4-072",
+   "commitment": "a1061df18ffc57da8b4c30f8b2f1cf56fca1d8c142b9d4de2323df9fb92a1348"
+  }
+ ]
+}

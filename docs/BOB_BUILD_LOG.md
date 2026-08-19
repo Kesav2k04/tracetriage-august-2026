@@ -4568,3 +4568,134 @@ provenance, and nothing asserts that file is byte-reproducible from a later comm
 rows.
 **Outcome:** accepted. The README now links the live console, which it never did, and names
 the note layer, the checker and the evidence server in the sequence they run.
+
+## 2026-08-19 IST | Wave E | E6: an instrument for the gate nobody could run, and the pass that was unreachable
+
+Gate 4 asks whether a human, shown the waterfall and nothing else, can decide the thing the
+model is being scored on. It has been OPEN since the gate document was written, and OPEN was
+the honest word for it, because the study needs a person and the repository held no way to run
+one. A gate that cannot be run is not a stop-rule. It is a paragraph.
+
+`scripts/build_gate4_worksheet.py` builds the bundle: a balanced sample from the snapshot or,
+when the snapshot is absent, from the 25 observations the console ships, one PNG per opaque
+item id, a form with three axes and no label anywhere in it, and a repeated subset that carries
+two item ids for the same observation so intra-rater agreement falls out of the answers without
+telling the reviewer which items are repeats. `scripts/score_gate4.py` reads the filled form
+and writes `artifacts/GATE4_RECEIPT.json`. The committed bundle is 72 items over 60 unique
+observations with 12 repeated, and it lands outside the checkout, at `D:/tracetriage_gate4`.
+
+**The sample is committed to rather than promised.** A study whose sample is chosen after the
+answers are in is not blinded, and no amount of prose in a README fixes it. What the repository
+commits is one sha256 per item, taken over a random 32-byte salt, the item id, the observation
+id and the digest of the image file. The salt and the mapping are written outside the
+repository. Nobody can invert 72 hashes without the salt; afterwards the scorer re-hashes every
+image from disk, recomputes every commitment, refuses outright if one fails, and then publishes
+the salt in the receipt so that any reader can repeat the check. The claim that the order, the
+sample and the pictures were all fixed in advance is therefore checkable rather than asserted.
+
+**A pass was arithmetically impossible at the first sample size, and a test found it.** The
+bundle started at 8 unique observations. The exact one-sided Clopper-Pearson lower bound for
+8 successes in 8 trials is 0.688, which is below the gate's 0.80 threshold, so the PASSED
+branch could not be reached by any set of answers a reviewer could give: the instrument could
+only ever have returned NOT_ESTABLISHED or FAILED. The test that asks whether all three
+measured verdicts are reachable is what caught it.
+
+**The same analysis one step further, which a review supplied and I had not done.** Raising the
+bundle to 36 observations made PASSED reachable and left it out of reach of any rate a real
+corpus is likely to have. At 36 the lower bound only clears 0.80 at 34 of 36, which is 0.944,
+so a corpus whose true decisive rate is 0.90 would have returned NOT_ESTABLISHED however the
+review went: the study could not have answered its own question. At 60 observations the bound
+clears at 54, and a true rate of 0.90 gives 0.8121. So the committed bundle is 60 observations
+and 12 repeats, the manifest publishes `what_this_sample_size_can_establish` computed from the
+same bounds the verdict reads, and a test asserts that the published minimum is minimal and
+that a 0.90 corpus can clear the threshold. The cost of the change was reviewer minutes and it
+was paid before anyone had spent any. One number in this entry was wrong before that check: it
+said 34 of 36 gives 0.795, which is the bound for 33 of 36. Corrected here, and the arithmetic
+is now computed into the manifest rather than typed into prose.
+
+**Byte-identical repeats handed the pairs to anyone with `sha256sum`.** A repeated
+observation appeared twice under two item ids, written with `shutil.copyfile`, so the two files
+were byte-identical: 45 files, 36 distinct digests, 9 groups of two, and those 9 groups were
+exactly the 9 repeats. No salt, no key, no repository. The gate metric survived it, because it
+scores first occurrences only, but intra-rater agreement did not, and that number is the
+ceiling this gate puts on its own decisive rate: a reviewer who notices the duplicate can
+reproduce their earlier answer deliberately, which moves the ceiling the wrong way. Worse, the
+test that guarded the design was the test that defeated it, because it asserted byte identity
+as a proxy for depicting the same image. Each item is now re-encoded through PIL with its own
+item id in a PNG text chunk, so 72 files have 72 distinct digests and 60 distinct pixel
+digests, and the test asserts pixel identity for a repeat and byte distinctness across the
+bundle. The manifest states what remains: a reviewer who decodes and hashes pixels can still
+group the repeats, and a bundle built from the console source can be matched against the
+repository's own tracked waterfalls. Neither is defended against, and both are written down.
+
+**The commitment bound the mapping and not the stimulus.** `verify_commitments` recomputed
+each hash from the digest the key carried, and then blamed a mismatch on "the key was written
+after the manifest, or the image changed". The second was undetectable: every file in the
+bundle could have been replaced and all 45 commitments would still have verified, because
+nothing re-read the images. The scorer now re-hashes each file from the bundle before it scores
+anything, refuses if one differs, publishes the count in the receipt, and treats a deleted
+bundle as an instrument failure rather than a verified one. A preregistration that does not
+bind what the reviewer saw is half a preregistration.
+
+**NOT_RUN is a fourth outcome and the scorer will not collapse it.** An unfilled worksheet
+publishes `verdict: NOT_RUN`, no rate, and the sentence that says which file was empty. Folding
+absence into FAILED would manufacture the measurement the gate is missing, and this project has
+made that mistake before in the other direction. Two failure modes are kept apart on purpose: a
+missing response file raises `NotRun` and writes an honest receipt, while a commitment that
+does not verify raises `ScoringError`, exits non-zero and writes no receipt at all, because a
+tampered key means the numbers have no provenance and a receipt would launder them.
+
+**Four smaller things a review found, each of which reads as a number rather than an
+error.** The receipt copied five worksheet fields and dropped the availability per class, so a
+run whose source held no `unknown` observations would have published `source: console` and
+nothing about a missing class, against a gate whose wording asks for a balanced sample: the
+receipt now carries the availability, the request and the measured balance, and the test that
+checks balance runs against the committed manifest rather than only against the console
+fixture. A key that was not readable JSON escaped both `except` clauses as a bare traceback,
+which by the script's own taxonomy should have been an instrument failure. Two rows answering
+the same item were silently deduplicated by a dict comprehension, so the later answer won and
+nothing counted the rows. And the label-agreement rate excluded items the reviewer answered
+`unsure` on without saying so, which conditions the rate on their own confidence in the
+flattering direction; both exclusion counts are published beside it now and the totals are
+asserted to account for every observation.
+
+**The manifest can no longer be replaced by accident.** The builder writes
+`artifacts/GATE4_WORKSHEET.json` by default, so a judge running it out of curiosity would have
+replaced the preregistration with a newer one and nothing would have recorded that the sample
+changed. It refuses now unless `--force` is passed, and the refusal is tested to leave the
+existing file untouched.
+
+**The leak scan failed on the manifest's own disclosure.** The first version read the committed
+file as text and asserted that `waterfall_status` did not appear in it. It does appear, inside
+the list of the four things the manifest says it withholds from the reviewer. The scan now runs
+over the values with every prose field dropped, and asserts separately, positively, that the
+disclosure names all four, because a manifest that hides a field without saying so is worse
+than one that names it. The same test walks all 25 shipped observation ids, five field names
+and every image digest in the key.
+
+**The clean clone now builds its environment inside the clone.** The earlier run's offline
+install exited 2 in 0.3 seconds because `uv pip install --offline` with no `--python` found a
+chocolatey shim pointing at a `c:\python312` that does not exist, and never reached dependency
+resolution. The step was labelled as the expected cost of going offline, so a local PATH defect
+was recorded as an accepted limitation while every later step ran against this machine's
+site-packages. Naming the interpreter was the whole fix. The second attempt then failed for a
+real reason, which the transcript prints: `polars` was not in the uv cache, the cache lives on
+a system drive with 262 MB free, and `--offline` can only read what the cache holds. The run
+records the cache location in either branch now, so a reader can tell a cold cache from a
+missing one.
+
+**Files changed:** `scripts/build_gate4_worksheet.py`, `scripts/score_gate4.py`,
+`tests/test_gate4.py`, `artifacts/GATE4_WORKSHEET.json`, `artifacts/GATE4_RECEIPT.json` (all
+new), `scripts/run_gate3.py`, `scripts/clean_clone_check.py`,
+`artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `docs/KILL_GATE.md`, `docs/CLAIM_REGISTER.md`.
+**Commands run:** `scripts/build_gate4_worksheet.py`, `scripts/score_gate4.py`,
+`scripts/clean_clone_check.py --clone-dir D:/_cleanclone`, `python -m ruff check .`,
+`python -m pytest -m "not network and not ocr and not llm"`, `scripts/gate.py`.
+**Tests:** 37 new tests in `tests/test_gate4.py`. 8 new register rows.
+**Outcome:** accepted, and the gate stays OPEN. The instrument exists, the sample is committed,
+and the two blind readers have not sat down yet. That is a person's afternoon, not a code
+change, and nothing in this entry pretends otherwise. Six of the eleven repairs above came from
+a review that ran against the built bundle rather than the code, which is the only place three
+of them were visible: the leak needed `sha256sum` over 45 files, the sizing needed the bounds
+function evaluated at the size that was actually built, and the stimulus binding needed
+somebody to ask what the commitment would fail to notice.

@@ -98,8 +98,8 @@
   },
   {
    "name": "CLEAN_CLONE_TRANSCRIPT.json",
-   "sha256": "0eb0dc7ccb475d62d733a9a1f187f815fa536318a70fb941757a3c5a1d2ea471",
-   "bytes": 13741
+   "sha256": "7f4c864a1154ea0d5b4e71dfd3863efb5041dce541f946acf86dff7e9f04a711",
+   "bytes": 14670
   },
   {
    "name": "corridor_features.json",
@@ -125,6 +125,16 @@
    "name": "GATE3_RECEIPT.json",
    "sha256": "766543ffb36cd88fc755c3e89fbe9f9e08fc06e71bbb3a962ab56dce57d9dfe2",
    "bytes": 52145
+  },
+  {
+   "name": "GATE4_RECEIPT.json",
+   "sha256": "3a066d7784ecbdd040d4438677fbbd47c66ff84da8beda2f79b3b519fa5576bd",
+   "bytes": 2411
+  },
+  {
+   "name": "GATE4_WORKSHEET.json",
+   "sha256": "517cae73592b61a0aec71354e473cb8fd9881d5807536bc73b731512150f2703",
+   "bytes": 11815
   },
   {
    "name": "HERO_NULLS.json",

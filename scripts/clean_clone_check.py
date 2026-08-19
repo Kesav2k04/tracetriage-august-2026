@@ -18,10 +18,13 @@ so rather than implying parity.
 Two prerequisites are deliberately not reinstalled, and both are recorded with their
 versions in the transcript rather than hidden:
 
-* The Python environment. ``uv pip install`` needs an index or a warm uv cache, and this
-  script tries the offline install first and records whether it worked. When it does not,
-  the source clone's interpreter is used against the clone's source tree, which tests the
-  code in isolation and not the dependency resolution.
+* The Python environment. The run builds one inside the clone with ``uv venv`` and installs
+  into it with ``uv pip install --python <the clone's interpreter> --offline``, so the wheels
+  come from the local uv cache and never from an index. A judge with no warm cache needs one
+  network install before this reproduces, which is what the transcript records as the
+  prerequisite. When that install fails, the source clone's interpreter is used against the
+  clone's source tree instead, the transcript says so, and the number that comes out is then
+  a statement about this code in isolation rather than about this environment.
 * ``apps/web/node_modules``, 425 MB. ``npm ci`` needs the registry. It is linked from the
   source clone so the console steps can run at all, and the transcript names it as a
   prerequisite with the lockfile digest that pins it.
@@ -69,7 +72,12 @@ import os
 import pathlib
 import socket
 
-_ALLOWED = {"127.0.0.1", "::1", "localhost"}
+#: Loopback by address range rather than by a list of three strings. The list refused
+#: 127.0.0.2, which is loopback, and accepted the name "localhost" without resolving it. A
+#: name cannot be resolved here at all, because this file has replaced the resolver, so
+#: exactly one name is allowed and the asymmetry with granite.py's resolve_model_endpoint,
+#: which does resolve because it runs online, is deliberate.
+_ALLOWED_NAMES = {"localhost", ""}
 _SNAPSHOT_ROOT = "d:/tracetriage_data"  # compared after backslashes are normalised
 
 
@@ -83,6 +91,18 @@ def _host_of(address):
     return str(address)
 
 
+def _is_loopback(host):
+    text = str(host).strip().strip("[]").lower()
+    if text in _ALLOWED_NAMES:
+        return True
+    if text == "::1":
+        return True
+    parts = text.split(".")
+    if len(parts) == 4 and parts[0] == "127":
+        return all(part.isdigit() and 0 <= int(part) <= 255 for part in parts[1:])
+    return False
+
+
 _real_connect = socket.socket.connect
 _real_connect_ex = socket.socket.connect_ex
 _real_getaddrinfo = socket.getaddrinfo
@@ -90,7 +110,7 @@ _real_getaddrinfo = socket.getaddrinfo
 
 def _connect(self, address, *a, **k):
     host = _host_of(address)
-    if host not in _ALLOWED:
+    if not _is_loopback(host):
         raise OfflineViolation(
             f"outbound connect to {host!r} refused: clean-clone run is offline"
         )
@@ -99,7 +119,7 @@ def _connect(self, address, *a, **k):
 
 def _connect_ex(self, address, *a, **k):
     host = _host_of(address)
-    if host not in _ALLOWED:
+    if not _is_loopback(host):
         raise OfflineViolation(
             f"outbound connect_ex to {host!r} refused: clean-clone run is offline"
         )
@@ -107,7 +127,7 @@ def _connect_ex(self, address, *a, **k):
 
 
 def _getaddrinfo(host, *a, **k):
-    if str(host) not in _ALLOWED:
+    if not _is_loopback(host):
         raise OfflineViolation(
             f"DNS lookup of {host!r} refused: clean-clone run is offline"
         )
@@ -306,31 +326,94 @@ def main(argv: list[str] | None = None) -> int:
     env.pop("NO_PROXY", None)
     env.pop("no_proxy", None)
 
-    # Try the honest thing first: resolve dependencies with the network off.
+    # Build the environment inside the clone, from the warm uv cache, with the network off.
+    #
+    # The first version of this ran `uv pip install --offline -e .` with no --python, so uv
+    # searched PATH, found a chocolatey shim pointing at a c:\python312 that does not exist,
+    # and exited 2 in 0.3 seconds without reaching dependency resolution at all. The step was
+    # labelled "dependency resolution, offline" and the transcript recorded it as the expected
+    # cost of going offline, which converted a local PATH defect into an accepted limitation
+    # and left every later step running on this machine's site-packages. Naming the
+    # interpreter explicitly is the whole fix.
     uv = shutil.which("uv")
+    source_py = str(_REPO / ".venv" / "Scripts" / "python.exe")
+    clone_py = str(
+        clone / ".venv" / ("Scripts" if _IS_WINDOWS else "bin") / (
+            "python.exe" if _IS_WINDOWS else "python"
+        )
+    )
     offline_install = None
     if uv:
+        steps.append(
+            _run(
+                [uv, "venv", "--python", source_py, str(clone / ".venv")],
+                cwd=clone,
+                env=env,
+                label="uv venv (an interpreter inside the clone)",
+                needs="the source interpreter, copied. uv venv does not reach the network.",
+            )
+        )
         offline_install = _run(
-            [uv, "pip", "install", "--offline", "-e", "."],
+            [
+                uv,
+                "pip",
+                "install",
+                "--python",
+                clone_py,
+                "--offline",
+                "-e",
+                ".[dev,onnx]",
+            ],
             cwd=clone,
             env=env,
-            label="uv pip install --offline -e . (dependency resolution, offline)",
+            label="uv pip install --offline -e .[dev,onnx] into the clone's environment",
+            needs=(
+                "a warm uv cache. --offline resolves from it and never reaches the index, so "
+                "this measures whether the pinned set can be rebuilt without the network, "
+                "not whether it can be resolved from scratch."
+            ),
         )
         steps.append(offline_install)
 
-    py = str(_REPO / ".venv" / "Scripts" / "python.exe")
-    if offline_install is None or offline_install["exit_code"] != 0:
+    installed_in_the_clone = (
+        offline_install is not None
+        and offline_install["exit_code"] == 0
+        and Path(clone_py).exists()
+    )
+    py = clone_py if installed_in_the_clone else source_py
+    if installed_in_the_clone:
+        prerequisites.append(
+            {
+                "prerequisite": "a warm uv cache",
+                "why": (
+                    "the environment was built inside the clone with --offline, so the "
+                    "wheels came from the local cache rather than from an index. A judge "
+                    "with no cache needs one network install before this run reproduces."
+                ),
+                "uv_cache_dir": os.environ.get("UV_CACHE_DIR", "uv's default location"),
+                "interpreter": py,
+                "python_version": platform.python_version(),
+            }
+        )
+    else:
         prerequisites.append(
             {
                 "prerequisite": "a prepared Python environment",
                 "why": (
-                    "uv pip install --offline could not resolve the dependency set in the "
-                    "clone, so the source clone's interpreter and site-packages were used "
-                    "against the clone's source tree. This tests the code in isolation and "
-                    "does not test dependency resolution."
+                    "the offline install into the clone did not succeed, so the source "
+                    "clone's interpreter and site-packages were used against the clone's "
+                    "source tree. That tests the code in isolation and does not test "
+                    "dependency resolution, and it means the environment below is this "
+                    "machine's rather than the clone's. The failing step's own output tail "
+                    "carries the reason; read it rather than assuming the reason was the "
+                    "network."
                 ),
                 "interpreter": py,
                 "python_version": platform.python_version(),
+                "install_exit_code": (
+                    None if offline_install is None else offline_install["exit_code"]
+                ),
+                "uv_cache_dir": os.environ.get("UV_CACHE_DIR", "uv's default location"),
             }
         )
 
@@ -384,7 +467,12 @@ def main(argv: list[str] | None = None) -> int:
         cwd=clone,
         env=hidden_env,
         label="offline test suite, snapshot HIDDEN",
-        needs="nothing: this is the judge's case",
+        needs=(
+            "the interpreter named in prerequisites_not_in_the_repository. This is a judge's "
+            "case for the snapshot and not necessarily for the environment, and the earlier "
+            "wording claimed nothing at all was needed while the command it recorded beside "
+            "it named an interpreter that may sit outside the clone."
+        ),
         count_pytest=True,
     )
     steps.append(hidden)
@@ -508,7 +596,26 @@ def main(argv: list[str] | None = None) -> int:
                 "sitecustomize, so this is a deterrent rather than a block, and it is "
                 "recorded as such."
             ),
-            "loopback": "allowed, because torch and multiprocessing use it locally",
+            "loopback": (
+                "allowed, because torch and multiprocessing use it locally. Any address in "
+                "127.0.0.0/8 and ::1 pass; a hostname passes only if it is literally "
+                "localhost, because the guard has replaced the resolver it would need to "
+                "check any other name. pipeline/tracetriage/granite.py resolves names and "
+                "requires every address to be loopback, which it can do because it runs "
+                "with a network."
+            ),
+            "binds_inside_python_only": (
+                "The patch replaces socket methods in the Python process it is imported "
+                "into, so it reaches every Python child through PYTHONPATH and constrains "
+                "nothing else. A step that shells out to curl, git or node is outside it. "
+                "The Node steps are the disclosed instance rather than the only possible one."
+            ),
+            "how_violations_are_detected": (
+                "By scanning each step's output for the guard's exception name, so the list "
+                "records a refusal that was printed. A step that caught the exception and "
+                "degraded quietly records false, which makes an empty list a statement about "
+                "traffic rather than about intent."
+            ),
             "violations": [s["step"] for s in steps if s.get("offline_violation")],
         },
         "prerequisites_not_in_the_repository": prerequisites,
