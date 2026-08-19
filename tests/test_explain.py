@@ -293,6 +293,7 @@ def test_a_loopback_endpoint_is_accepted():
 
 
 @pytest.mark.llm
+@pytest.mark.network
 def test_the_installed_model_produces_a_note_the_checker_judges(packets):
     """Not "produces a note that passes". Whether it passes is the measurement."""
     from pipeline.tracetriage.granite import ModelUnavailable, generate, model_identity

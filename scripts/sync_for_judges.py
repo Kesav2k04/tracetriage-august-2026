@@ -55,6 +55,16 @@ attribution = _receipt("ATTRIBUTION_AUDIT.json")
 weight = _receipt("REPO_WEIGHT.json")
 clone = _receipt("CLEAN_CLONE_TRANSCRIPT.json")
 gate4 = _receipt("GATE4_RECEIPT.json")
+agent = _receipt("AGENT_RECEIPT.json")
+
+_AGENT_TOOLS = agent["arms"]["tools"]
+_AGENT_CONTROL = agent["arms"]["control"]
+_AGENT_PAIRED = agent["paired"]
+
+_AGENT_CONTROL_INVENTED = sum(
+    1 for row in agent["per_run"] if row["arm"] == "control" and not row["grounded"]
+)
+
 
 gates = build_gate_summary(queue, fusion)
 verdicts = [g["verdict"] for g in gates["gates"]]
@@ -237,6 +247,14 @@ CHECKS: list[tuple[str, ...]] = [
         f"every non-loopback socket refused",
     ),
     (
+        "Do the tools change what the agent gets right?",
+        "`python scripts/run_agent_study.py`",
+        f"{_AGENT_TOOLS['correct']['successes']}/{_AGENT_TOOLS['correct']['trials']} with tools "
+        f"against {_AGENT_CONTROL['correct']['successes']}/"
+        f"{_AGENT_CONTROL['correct']['trials']} without, paired p = "
+        f"{_AGENT_PAIRED['exact_p_one_sided']}",
+    ),
+    (
         "Does the model's own output survive the checker?",
         "`python scripts/run_explanations.py`",
         f"{counts['emitted']} emitted, {counts['refused']} refused, "
@@ -293,6 +311,25 @@ INTRO = _para(
 )
 
 _FAILED_CLAUSE = "" if not CLONE_FAILED else f". What did not: {CLONE_FAILED_STEPS}"
+
+AGENT_PARA = _para(
+    f"""The agent layer is measured against a control rather than demonstrated.
+    `scripts/run_agent_study.py` puts {agent["tasks"]} questions to the same local model twice,
+    once with the five MCP tools available over stdio JSON-RPC and once with no tools at all,
+    and grades both against ground truth derived from the files the console ships. With the
+    tools: {_AGENT_TOOLS["correct"]["successes"]} of {_AGENT_TOOLS["correct"]["trials"]}
+    correct, 95% interval [{_AGENT_TOOLS["correct"]["lower_95"]},
+    {_AGENT_TOOLS["correct"]["upper_95"]}], and every number in every answer appeared in
+    something the agent had read. Without them: {_AGENT_CONTROL["correct"]["successes"]} of
+    {_AGENT_CONTROL["correct"]["trials"]}, with {_AGENT_CONTROL["declined_unknown"]} questions
+    declined as unknown and {_AGENT_CONTROL_INVENTED} answers carrying a number nothing
+    supported. Of the
+    {_AGENT_PAIRED["discordant_pairs"]} questions the arms disagreed on, the tool arm was right
+    on {len(_AGENT_PAIRED["tools_only"])}: an exact one-sided p of
+    {_AGENT_PAIRED["exact_p_one_sided"]}. Before any model was graded, each question was proved
+    answerable in a single tool call, because a question the tools cannot serve would otherwise
+    be scored as a failure of the policy."""
+)
 
 GATE4_PARA = _para(
     f"""What has not been measured is whether a reviewer reads a generated note faster or
@@ -450,6 +487,8 @@ observation's own measured fields.
 this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest options include
 `-q`, so a second `-q` suppresses the summary line: that is worth knowing before reading a
 run as having collected nothing.
+
+{AGENT_PARA}
 
 {CLONE_PARA}
 

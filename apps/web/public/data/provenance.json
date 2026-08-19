@@ -87,6 +87,11 @@
  ],
  "receipts": [
   {
+   "name": "AGENT_RECEIPT.json",
+   "sha256": "312396289f9680fcecb786994dfaa7330ca84ada03edbfe784ca9a36b1e2487c",
+   "bytes": 25976
+  },
+  {
    "name": "ATTRIBUTION_AUDIT.json",
    "sha256": "0936458de4b284a34f81eaaf64848ca26859bb22be463931f9756f60cc4cec8f",
    "bytes": 81051
@@ -98,8 +103,8 @@
   },
   {
    "name": "CLEAN_CLONE_TRANSCRIPT.json",
-   "sha256": "7f4c864a1154ea0d5b4e71dfd3863efb5041dce541f946acf86dff7e9f04a711",
-   "bytes": 14670
+   "sha256": "0c4c6be54aee89cf65418792a5001a6c4ae99494dc95396050bb48b2cd04bf37",
+   "bytes": 14503
   },
   {
    "name": "corridor_features.json",

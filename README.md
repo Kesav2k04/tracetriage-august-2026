@@ -123,6 +123,21 @@ sequence, and every step writes a file that the next one reads.
     agent writing about an observation can have its own prose checked by the same code that
     decides whether this project's generated notes ship.
 
+11. **Agent, measured against a control.** `pipeline/tracetriage/agent.py` drives those five
+    tools from the local Granite model over real stdio JSON-RPC, capped at
+    6 steps, and `scripts/run_agent_study.py` puts
+    24 questions to it twice: once with the tools and once with no tools at
+    all. Ground truth comes from the files the console ships, by a different code path than
+    the tools use, and every question is proved answerable in a single call before any model
+    is graded on it. With the tools:
+    **22 of 24 correct**, 95% interval
+    [0.7602, 0.985]. Without them:
+    **2 of 24**, with
+    18 questions declined as unknown. Of the
+    20 questions the two arms disagreed on, the tool arm was right
+    on 20, which is an exact one-sided p of
+    1e-06.
+
 **Model ladder**, each rung compared against the last: centre-energy heuristic, HOG plus regularised logistic regression, a frozen MobileNetV3-Small or ResNet18 encoder, a physics-only residual model, then a fusion head over image plus metadata plus physics. Calibration by temperature or isotonic fitting on a later time period. Selective or conformal abstention on top.
 
 **Evaluation is grouped, never random.** Random image splits leak station, satellite and rendering patterns. Holdouts are chronological, cold-station, cold-transmitter, and combined cold-station-and-transmitter, with each transmitter and orbital revolution confined to a single split. Bootstrap intervals are computed over orbital episodes or days, not image rows.
@@ -165,6 +180,14 @@ over.
 model translating a bounded natural-language request into typed queue filters, with a plain
 form as the primary control and three conditions for removal. None of that shipped. The
 queue's filters are a plain form, which is what the plan called the primary control.
+
+**What the agent study does and does not settle.** Every number in every tool-arm answer
+appeared in something the agent had actually read (24 of
+24), and the control invented three. The two tool-arm failures are
+published as two different shapes rather than one rate: one question where the value was in
+front of it and it answered from a neighbouring field, and one where it never fetched the value
+at all. What it does not settle is whether the answers are useful. These are lookups with a
+single correct token, chosen so grading is mechanical, and a reviewer's real question is not.
 
 **What none of this measures.** Whether an accepted note is useful. Grounding is a property
 of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks

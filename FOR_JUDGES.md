@@ -19,6 +19,7 @@ is read from the receipts by the console rather than typed here.
 | Question | Command | What it prints |
 |---|---|---|
 | Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1081 passed, 30 skipped, measured in a clean clone with every non-loopback socket refused |
+| Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 11 emitted, 14 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake and 5 read-only tools, one of which is the grounding checker |
 | Does the repository hold together? | `python scripts/gate.py` | The standing gates, one line each |
@@ -27,6 +28,17 @@ is read from the receipts by the console rather than typed here.
 this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest options include
 `-q`, so a second `-q` suppresses the summary line: that is worth knowing before reading a
 run as having collected nothing.
+
+The agent layer is measured against a control rather than demonstrated.
+`scripts/run_agent_study.py` puts 24 questions to the same local model twice, once with
+the five MCP tools available over stdio JSON-RPC and once with no tools at all, and grades
+both against ground truth derived from the files the console ships. With the tools: 22 of
+24 correct, 95% interval [0.7602, 0.985], and every number in every answer appeared in
+something the agent had read. Without them: 2 of 24, with 18 questions declined as unknown
+and 3 answers carrying a number nothing supported. Of the 20 questions the arms disagreed
+on, the tool arm was right on 20: an exact one-sided p of 1e-06. Before any model was
+graded, each question was proved answerable in a single tool call, because a question the
+tools cannot serve would otherwise be scored as a failure of the policy.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
 fresh clone of commit `05d699a` with every non-loopback socket refused: 16 of 16 steps

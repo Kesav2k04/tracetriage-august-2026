@@ -4699,3 +4699,92 @@ a review that ran against the built bundle rather than the code, which is the on
 of them were visible: the leak needed `sha256sum` over 45 files, the sizing needed the bounds
 function evaluated at the size that was actually built, and the stimulus binding needed
 somebody to ask what the commitment would fail to notice.
+
+## 2026-08-19 IST | Wave E | E7: an agent over the evidence server, and the control that makes it a measurement
+
+An agent demonstration is a transcript, and a transcript cannot separate a model that read the
+tool output from one that answered from memory and happened to be right. The two halves this
+project needed were already here: five read-only MCP tools over stdio, and a local Granite model
+that writes a reviewer note and is refused most of the time for writing numbers nothing supports.
+E7 joins them into a loop and then measures the join.
+
+`pipeline/tracetriage/agent.py` is the loop. It speaks the transport the server speaks, which is
+newline-delimited JSON-RPC and nothing else, so the client needs no package and the server's
+no-dependency property stays observable from the one place it matters. The policy gets the tool
+menu read out of the server at run time rather than a list typed into a prompt, emits one JSON
+object per turn, and is capped at 6 steps.
+
+`scripts/run_agent_study.py` is the study. **24 questions, each put to the same model
+twice: once with the tools and once with no tools at all.** Ground truth is derived from the
+files the console ships, by a different code path than the tools use, and for the observation
+questions it is derived from the card and then cross-checked against the packet the tool serves,
+so a rounding difference between the two fails the build rather than grading a correct answer
+wrong.
+
+**With the tools: 22 of 24 correct**, exact 95
+percent interval [0.7602, 0.985], the expected tool
+called on 24 of 24
+questions, and every number in every answer present in something the agent had read.
+**Without them: 2 of 24**, with
+18 questions declined as unknown and 3 answers carrying a number
+nothing supported. Of the 20 questions the arms disagreed on, the tool
+arm was right on 20 and the control arm on
+0, which is an exact one-sided p of
+1e-06 by McNemar's test, computed with `math.comb` so a reader can check
+it at this sample size by hand.
+
+**Read the control's two successes rather than its rate.** One is a question with two allowed
+answers, GROUNDED or REFUSED, which a coin gets right half the time. The other is a count it
+guessed correctly, and the receipt marks that answer ungrounded, because the number appeared
+nowhere it had read. That is the same check the reviewer-note layer applies to a sentence,
+pointed at an agent's final answer, and it is what stops a lucky guess reading as knowledge.
+
+**A question the tools could not answer was being scored against the policy.** The receipt tool
+publishes a receipt's top-level scalars and the sizes of its collections, so "how many drafts did
+the checker refuse" had no answer in any tool output: the count lives inside a nested object. The
+model's wrong reply to it was counted as a policy failure until the study started proving, for
+every question, that the expected answer is a value in the result of one named reference call.
+All 24 pass that check now, the unanswerable question
+was replaced by three the receipt tool can serve, and a test mutates the check to confirm it
+still refuses an impossible question. The containment test walks the payload's leaves rather than
+matching substrings, because the digits of a refused count appear inside an observation id.
+
+**The two failures are published as two shapes, not one rate.** On one question the value was in
+front of it and it answered from a neighbouring field: it read the queue's
+`review_budget.n_observations` and answered 50 where the queue's `available` says 407. On the
+other it never fetched the value at all and wrote a sentence of prose citing a different tool.
+The receipt separates them with `answer_was_in_what_it_read`, which is derived rather than
+labelled, because a policy that never looked and a policy that looked and chose wrong are
+different defects and only the second is about reading.
+
+**The loop's own failure mode, counted rather than smoothed away.** The first version of the
+prompt appended tool results with no closing instruction, and the policy called `queue_top` six
+times in a row and never answered. Two changes fixed it: the history is a delimited block ending
+in an explicit "reply with one JSON object now, and if a result above already contains the
+answer, give the answer", and a call the policy has already made is refused by the loop rather
+than paid for twice. That refusal is recorded as a step and counted:
+47 calls in the study, 29 answered, 9 refused
+by the loop as repeats and 9 refused by the server for their arguments. Two
+numbers rather than one, because a repeat is a planning failure and a bad argument is not.
+
+**A live test that could never have run.** `tests/test_explain.py`'s llm-marked test asks the
+installed model for a note and checks it. `tests/conftest.py` blocks sockets for any test without
+the `network` marker, and that test does not carry one, so the guard fired before the runtime was
+reached and the test could only ever skip: a deferred test that outlived its blocker. Both live
+tests carry both markers now, and both pass against the running model. The offline gate excludes
+`network`, `ocr` and `llm`, so nothing moved into it.
+
+**Files changed:** `pipeline/tracetriage/agent.py`, `scripts/run_agent_study.py`,
+`tests/test_agent.py`, `tests/fixtures/agent_runs.json`, `artifacts/AGENT_RECEIPT.json` (all
+new), `README.md`, `FOR_JUDGES.md`, `scripts/sync_for_judges.py`, `docs/CLAIM_REGISTER.md`,
+`tests/test_explain.py`, `apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/run_agent_study.py --freeze`, `scripts/run_agent_study.py`,
+`scripts/build_console_data.py --skip-images`, `scripts/sync_for_judges.py`,
+`python -m ruff check .`, `python -m pytest -m "not network and not ocr and not llm"`,
+`python -m pytest -m llm`, `scripts/gate.py`.
+**Tests:** 33 new offline tests in `tests/test_agent.py` and one live test that now runs. 4 new
+register rows.
+**Outcome:** accepted. The receipt is published from the frozen runs, so it regenerates with no
+model and no network, and it states what it does not measure: these are lookups with one correct
+token, one model, one seed, and every question is answerable from the five tools, so nothing here
+measures whether the policy knows when to stop.

@@ -1,0 +1,2020 @@
+{
+ "schema": "AGENT_RUNS",
+ "schema_version": 1,
+ "model": {
+  "name": "granite3.1-dense:8b",
+  "digest": "34d3be74ec547c3e1969a9ea125e1869f052f7cfd3d0bbbb5aa5e42ec033108c",
+  "parameter_size": "8.2B",
+  "quantization": "Q4_K_M",
+  "context_length": 131072,
+  "seed": 7,
+  "temperature": 0.0,
+  "model_argument": "granite3.1-dense:8b"
+ },
+ "max_steps": 6,
+ "control_steps": 1,
+ "prompt_version": 2,
+ "answerable": [
+  {
+   "task_id": "queue-rank-1",
+   "tool": "queue_top",
+   "arguments": {
+    "limit": 10
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "queue-rank-1-score",
+   "tool": "queue_top",
+   "arguments": {
+    "limit": 10
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "queue-total",
+   "tool": "queue_top",
+   "arguments": {
+    "limit": 10
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "queue-packets-top-10",
+   "tool": "queue_top",
+   "arguments": {
+    "limit": 10
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "queue-reason-rank-1",
+   "tool": "queue_top",
+   "arguments": {
+    "limit": 10
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "obs-station-name",
+   "tool": "observation",
+   "arguments": {
+    "observation_id": 14746092
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "obs-fitted-offset",
+   "tool": "observation",
+   "arguments": {
+    "observation_id": 14746092
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "obs-hz-per-pixel",
+   "tool": "observation",
+   "arguments": {
+    "observation_id": 14735140
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "obs-network-label",
+   "tool": "observation",
+   "arguments": {
+    "observation_id": 14735140
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "obs-transmitter-mode",
+   "tool": "observation",
+   "arguments": {
+    "observation_id": 14732518
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "obs-axis-derivation",
+   "tool": "observation",
+   "arguments": {
+    "observation_id": 14732518
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "obs-max-elevation",
+   "tool": "observation",
+   "arguments": {
+    "observation_id": 14745718
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "claim-refused",
+   "tool": "check_claim",
+   "arguments": {
+    "observation_id": 14746092,
+    "text": "The fitted offset is 999 Hz."
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "claim-refused-code",
+   "tool": "check_claim",
+   "arguments": {
+    "observation_id": 14746092,
+    "text": "The fitted offset is 999 Hz."
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "claim-grounded",
+   "tool": "check_claim",
+   "arguments": {
+    "observation_id": 14746092,
+    "text": "The fitted offset is 6904 Hz."
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "gates-met",
+   "tool": "gate_status",
+   "arguments": {},
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "gates-total",
+   "tool": "gate_status",
+   "arguments": {},
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "gate-6-verdict",
+   "tool": "gate_status",
+   "arguments": {},
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "gate-4-verdict",
+   "tool": "gate_status",
+   "arguments": {},
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "receipt-queue-schema-version",
+   "tool": "receipt",
+   "arguments": {
+    "name": "QUEUE_RECEIPT.json"
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "receipt-gate3-verdict",
+   "tool": "receipt",
+   "arguments": {
+    "name": "GATE3_RECEIPT.json"
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "receipt-gate4-verdict",
+   "tool": "receipt",
+   "arguments": {
+    "name": "GATE4_RECEIPT.json"
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "receipt-explain-unit",
+   "tool": "receipt",
+   "arguments": {
+    "name": "EXPLAIN_RECEIPT.json"
+   },
+   "expected_is_a_value_in_the_result": true
+  },
+  {
+   "task_id": "receipt-explain-per-observation",
+   "tool": "receipt",
+   "arguments": {
+    "name": "EXPLAIN_RECEIPT.json"
+   },
+   "expected_is_a_value_in_the_result": true
+  }
+ ],
+ "tasks": [
+  {
+   "id": "queue-rank-1",
+   "question": "Which observation id is ranked first in the review queue?",
+   "expected": "14746092",
+   "tool": "queue_top",
+   "reference": {
+    "limit": 10
+   }
+  },
+  {
+   "id": "queue-rank-1-score",
+   "question": "What is the queue score of the top-ranked observation, as the queue reports it?",
+   "expected": "0.879634",
+   "tool": "queue_top",
+   "reference": {
+    "limit": 10
+   }
+  },
+  {
+   "id": "queue-total",
+   "question": "How many observations does the review queue rank in total?",
+   "expected": "407",
+   "tool": "queue_top",
+   "reference": {
+    "limit": 10
+   }
+  },
+  {
+   "id": "queue-packets-top-10",
+   "question": "Of the ten highest-ranked queue rows, how many have an evidence packet?",
+   "expected": "10",
+   "tool": "queue_top",
+   "reference": {
+    "limit": 10
+   }
+  },
+  {
+   "id": "queue-reason-rank-1",
+   "question": "What single reason code does the top-ranked observation carry in the queue?",
+   "expected": "MODEL_LABEL_DISAGREE",
+   "tool": "queue_top",
+   "reference": {
+    "limit": 10
+   }
+  },
+  {
+   "id": "obs-station-name",
+   "question": "What is the ground station name for observation 14746092?",
+   "expected": "dm43",
+   "tool": "observation",
+   "reference": {
+    "observation_id": 14746092
+   }
+  },
+  {
+   "id": "obs-fitted-offset",
+   "question": "What is the fitted offset in Hz for observation 14746092?",
+   "expected": "6904",
+   "tool": "observation",
+   "reference": {
+    "observation_id": 14746092
+   }
+  },
+  {
+   "id": "obs-hz-per-pixel",
+   "question": "How many Hz does one pixel span for observation 14735140?",
+   "expected": "79.8",
+   "tool": "observation",
+   "reference": {
+    "observation_id": 14735140
+   }
+  },
+  {
+   "id": "obs-network-label",
+   "question": "What network label does observation 14735140 carry?",
+   "expected": "with-signal",
+   "tool": "observation",
+   "reference": {
+    "observation_id": 14735140
+   }
+  },
+  {
+   "id": "obs-transmitter-mode",
+   "question": "What is the transmitter mode for observation 14732518?",
+   "expected": "BPSK",
+   "tool": "observation",
+   "reference": {
+    "observation_id": 14732518
+   }
+  },
+  {
+   "id": "obs-axis-derivation",
+   "question": "How was the frequency axis derived for observation 14732518?",
+   "expected": "axis_ticks_ocr",
+   "tool": "observation",
+   "reference": {
+    "observation_id": 14732518
+   }
+  },
+  {
+   "id": "obs-max-elevation",
+   "question": "What was the maximum elevation in degrees for observation 14745718?",
+   "expected": "38.4",
+   "tool": "observation",
+   "reference": {
+    "observation_id": 14745718
+   }
+  },
+  {
+   "id": "claim-refused",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 999 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
+   "expected": "REFUSED",
+   "tool": "check_claim",
+   "reference": {
+    "observation_id": 14746092,
+    "text": "The fitted offset is 999 Hz."
+   }
+  },
+  {
+   "id": "claim-refused-code",
+   "question": "For observation 14746092, which single violation code does the sentence \"The fitted offset is 999 Hz.\" produce?",
+   "expected": "UNGROUNDED_NUMBER",
+   "tool": "check_claim",
+   "reference": {
+    "observation_id": 14746092,
+    "text": "The fitted offset is 999 Hz."
+   }
+  },
+  {
+   "id": "claim-grounded",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 6904 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
+   "expected": "GROUNDED",
+   "tool": "check_claim",
+   "reference": {
+    "observation_id": 14746092,
+    "text": "The fitted offset is 6904 Hz."
+   }
+  },
+  {
+   "id": "gates-met",
+   "question": "How many of this project's kill gates are met?",
+   "expected": "2",
+   "tool": "gate_status",
+   "reference": {}
+  },
+  {
+   "id": "gates-total",
+   "question": "How many kill gates does this project define?",
+   "expected": "6",
+   "tool": "gate_status",
+   "reference": {}
+  },
+  {
+   "id": "gate-6-verdict",
+   "question": "What is the verdict of kill gate 6?",
+   "expected": "NOT_ESTABLISHED",
+   "tool": "gate_status",
+   "reference": {}
+  },
+  {
+   "id": "gate-4-verdict",
+   "question": "What is the verdict of kill gate 4?",
+   "expected": "OPEN",
+   "tool": "gate_status",
+   "reference": {}
+  },
+  {
+   "id": "receipt-queue-schema-version",
+   "question": "What schema version does the receipt QUEUE_RECEIPT.json carry?",
+   "expected": "0.3.0",
+   "tool": "receipt",
+   "reference": {
+    "name": "QUEUE_RECEIPT.json"
+   }
+  },
+  {
+   "id": "receipt-gate3-verdict",
+   "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
+   "expected": "NOT_ESTABLISHED",
+   "tool": "receipt",
+   "reference": {
+    "name": "GATE3_RECEIPT.json"
+   }
+  },
+  {
+   "id": "receipt-gate4-verdict",
+   "question": "What verdict does the receipt GATE4_RECEIPT.json record?",
+   "expected": "NOT_RUN",
+   "tool": "receipt",
+   "reference": {
+    "name": "GATE4_RECEIPT.json"
+   }
+  },
+  {
+   "id": "receipt-explain-unit",
+   "question": "Which unit produced the receipt EXPLAIN_RECEIPT.json?",
+   "expected": "E1",
+   "tool": "receipt",
+   "reference": {
+    "name": "EXPLAIN_RECEIPT.json"
+   }
+  },
+  {
+   "id": "receipt-explain-per-observation",
+   "question": "How many per-observation rows does the receipt EXPLAIN_RECEIPT.json carry?",
+   "expected": "25",
+   "tool": "receipt",
+   "reference": {
+    "name": "EXPLAIN_RECEIPT.json"
+   }
+  }
+ ],
+ "runs": [
+  {
+   "task_id": "queue-rank-1",
+   "question": "Which observation id is ranked first in the review queue?",
+   "arm": "tools",
+   "answer": "14746092",
+   "tools_called": [
+    "queue_top",
+    "queue_top"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 1}}",
+     "tool": "queue_top",
+     "arguments": {
+      "limit": 1
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 999
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 1}}",
+     "tool": "queue_top",
+     "arguments": {
+      "limit": 1
+     },
+     "error": "repeated call, the earlier result is already in the history",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 3,
+     "raw": "{\"answer\": \"14746092\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "14746092",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
+   ]
+  },
+  {
+   "task_id": "queue-rank-1-score",
+   "question": "What is the queue score of the top-ranked observation, as the queue reports it?",
+   "arm": "tools",
+   "answer": "0.879634",
+   "tools_called": [
+    "queue_top"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 1}}",
+     "tool": "queue_top",
+     "arguments": {
+      "limit": 1
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 999
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": \"0.879634\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "0.879634",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
+   ]
+  },
+  {
+   "task_id": "queue-total",
+   "question": "How many observations does the review queue rank in total?",
+   "arm": "tools",
+   "answer": "50",
+   "tools_called": [
+    "queue_top",
+    "queue_top",
+    "queue_top"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 0}}",
+     "tool": "queue_top",
+     "arguments": {
+      "limit": 0
+     },
+     "error": "{\"reason\": \"BAD_LIMIT\", \"detail\": \"limit must be at least 1, got 0.\"}",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 1}}",
+     "tool": "queue_top",
+     "arguments": {
+      "limit": 1
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 999
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 1}}",
+     "tool": "queue_top",
+     "arguments": {
+      "limit": 1
+     },
+     "error": "repeated call, the earlier result is already in the history",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 4,
+     "raw": "{\"answer\": \"50\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "50",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
+   ]
+  },
+  {
+   "task_id": "queue-packets-top-10",
+   "question": "Of the ten highest-ranked queue rows, how many have an evidence packet?",
+   "arm": "tools",
+   "answer": "10",
+   "tools_called": [
+    "queue_top"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 10}}",
+     "tool": "queue_top",
+     "arguments": {
+      "limit": 10
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 2804
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": \"10\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "10",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 10, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 10, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}, {\"obs_id\": 14735140, \"rank\": 2, \"score\": 0.849634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 1e-06, \"has_evidence_packet\": true}, {\"obs_id\": 14732518, \"rank\": 3, \"score\": 0.599878, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745718, \"rank\": 4, \"score\": 0.59622, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745990, \"rank\": 5, \"score\": 0.596098, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744250, \"rank\": 6, \"score\": 0.593171, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14746054, \"rank\": 7, \"score\": 0.584634, \"reasons\": [\"NO_REASON\"], \"is_conflict\": false, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744187, \"rank\": 8, \"score\": 0.583659, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 0.4375, \"has_evidence_packet\": true}, {\"obs_id\": 14733024, \"rank\": 9, \"score\": 0.583049, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14744248, \"rank\": 10, \"score\": 0.581585, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.5, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
+   ]
+  },
+  {
+   "task_id": "queue-reason-rank-1",
+   "question": "What single reason code does the top-ranked observation carry in the queue?",
+   "arm": "tools",
+   "answer": "MODEL_LABEL_DISAGREE",
+   "tools_called": [
+    "queue_top",
+    "queue_top",
+    "queue_top"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 1}}",
+     "tool": "queue_top",
+     "arguments": {
+      "limit": 1
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 999
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {}}",
+     "tool": "queue_top",
+     "arguments": {},
+     "error": null,
+     "answer": null,
+     "result_bytes": 2804
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {}}\n\nAnswer: MODEL_LABEL_DISAGREE",
+     "tool": "queue_top",
+     "arguments": {},
+     "error": "repeated call, the earlier result is already in the history",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 4,
+     "raw": "{\"answer\": \"MODEL_LABEL_DISAGREE\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "MODEL_LABEL_DISAGREE",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}",
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 10, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 10, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}, {\"obs_id\": 14735140, \"rank\": 2, \"score\": 0.849634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 1e-06, \"has_evidence_packet\": true}, {\"obs_id\": 14732518, \"rank\": 3, \"score\": 0.599878, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745718, \"rank\": 4, \"score\": 0.59622, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745990, \"rank\": 5, \"score\": 0.596098, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744250, \"rank\": 6, \"score\": 0.593171, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14746054, \"rank\": 7, \"score\": 0.584634, \"reasons\": [\"NO_REASON\"], \"is_conflict\": false, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744187, \"rank\": 8, \"score\": 0.583659, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 0.4375, \"has_evidence_packet\": true}, {\"obs_id\": 14733024, \"rank\": 9, \"score\": 0.583049, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14744248, \"rank\": 10, \"score\": 0.581585, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.5, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
+   ]
+  },
+  {
+   "task_id": "obs-station-name",
+   "question": "What is the ground station name for observation 14746092?",
+   "arm": "tools",
+   "answer": "dm43",
+   "tools_called": [
+    "observation",
+    "observation",
+    "check_claim"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": \"14746092\"}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": "14746092"
+     },
+     "error": "{\"reason\": \"BAD_ARGUMENTS\", \"detail\": \"observation_id must be an integer and not str '14746092'. Pass 14746092 rather than '14746092'.\"}",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": 14746092}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": 14746092
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 1591
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14746092, \"text\": \"What is the ground station name for observation 14746092?\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": 14746092,
+      "text": "What is the ground station name for observation 14746092?"
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 313
+    },
+    {
+     "index": 4,
+     "raw": "{\"answer\": \"dm43\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "dm43",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14746092, \"evidence_packet\": {\"observation_id\": \"14746092\", \"ground_station_id\": \"5078\", \"ground_station_name\": \"dm43\", \"norad_catalogue_id\": \"52899\", \"transmitter_mode\": \"GMSK\", \"receiver_frequency_hz\": \"436490000\", \"network_label\": \"without-signal\", \"pass_duration_s\": \"526\", \"max_elevation_deg\": \"62.5\", \"closest_approach_fraction\": \"0.50\", \"fitted_offset_hz\": \"6904\", \"fitted_offset_ppm\": \"15.8\", \"corridor_half_width_hz\": \"2000\", \"sigma_curved\": \"0.3\", \"sigma_vertical\": \"0.3\", \"hz_per_pixel\": \"95.9\", \"seconds_per_pixel\": \"0.34\", \"axis_derivation\": \"axis_ticks_ocr\", \"axis_derivation_confidence\": \"0.94\", \"model_probability\": \"1.000\", \"ensemble_uncertainty\": \"0.0009\", \"flat_row_fraction\": \"0.00\", \"queue_rank\": \"1\", \"queue_score\": \"0.880\", \"queue_reason_codes\": \"MODEL_LABEL_DISAGREE\", \"offset_at_bound\": \"false\"}, \"evidence_packet_sha256\": \"1daae25481fceab93fa1c474a8945cdd617d0cd9150451905d2fc5b93258350c\", \"note\": {\"text\": \"Ranked 1 with score 0.880, flagged MODEL_LABEL_DISAGREE. The network label is without-signal and the model probability is 1.000. The corridor sits 6904 Hz from the catalogue centre, 15.8 ppm, with a half width of 2000 Hz; the curved fit scores 0.3 against 0.3 for a vertical line. Peak elevation was 62.5 degrees at 0.50 of the pass.\", \"source\": \"deterministic\", \"refused_codes\": [\"UNGROUNDED_NUMBER\"], \"why\": \"GROUNDING_CHECK_REFUSED\"}, \"reading\": \"evidence_packet is the closed world a generated note may draw on. A note whose source is deterministic means a generated draft was refused or never existed, and refused_codes says which.\"}",
+    "{\"observation_id\": 14746092, \"verdict\": \"GROUNDED\", \"codes\": [], \"violations\": [], \"reading\": \"GROUNDED means every number in the text appears in this observation's evidence packet, in the unit it was written in, and the text asserts nothing the permission contract forbids. It does not mean the text is useful.\"}"
+   ]
+  },
+  {
+   "task_id": "obs-fitted-offset",
+   "question": "What is the fitted offset in Hz for observation 14746092?",
+   "arm": "tools",
+   "answer": "6904",
+   "tools_called": [
+    "observation",
+    "observation",
+    "check_claim"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": \"14746092\"}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": "14746092"
+     },
+     "error": "{\"reason\": \"BAD_ARGUMENTS\", \"detail\": \"observation_id must be an integer and not str '14746092'. Pass 14746092 rather than '14746092'.\"}",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": 14746092}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": 14746092
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 1591
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14746092, \"text\": \"The fitted offset in Hz for observation 14746092 is\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": 14746092,
+      "text": "The fitted offset in Hz for observation 14746092 is"
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 313
+    },
+    {
+     "index": 4,
+     "raw": "{\"answer\": \"6904\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "6904",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14746092, \"evidence_packet\": {\"observation_id\": \"14746092\", \"ground_station_id\": \"5078\", \"ground_station_name\": \"dm43\", \"norad_catalogue_id\": \"52899\", \"transmitter_mode\": \"GMSK\", \"receiver_frequency_hz\": \"436490000\", \"network_label\": \"without-signal\", \"pass_duration_s\": \"526\", \"max_elevation_deg\": \"62.5\", \"closest_approach_fraction\": \"0.50\", \"fitted_offset_hz\": \"6904\", \"fitted_offset_ppm\": \"15.8\", \"corridor_half_width_hz\": \"2000\", \"sigma_curved\": \"0.3\", \"sigma_vertical\": \"0.3\", \"hz_per_pixel\": \"95.9\", \"seconds_per_pixel\": \"0.34\", \"axis_derivation\": \"axis_ticks_ocr\", \"axis_derivation_confidence\": \"0.94\", \"model_probability\": \"1.000\", \"ensemble_uncertainty\": \"0.0009\", \"flat_row_fraction\": \"0.00\", \"queue_rank\": \"1\", \"queue_score\": \"0.880\", \"queue_reason_codes\": \"MODEL_LABEL_DISAGREE\", \"offset_at_bound\": \"false\"}, \"evidence_packet_sha256\": \"1daae25481fceab93fa1c474a8945cdd617d0cd9150451905d2fc5b93258350c\", \"note\": {\"text\": \"Ranked 1 with score 0.880, flagged MODEL_LABEL_DISAGREE. The network label is without-signal and the model probability is 1.000. The corridor sits 6904 Hz from the catalogue centre, 15.8 ppm, with a half width of 2000 Hz; the curved fit scores 0.3 against 0.3 for a vertical line. Peak elevation was 62.5 degrees at 0.50 of the pass.\", \"source\": \"deterministic\", \"refused_codes\": [\"UNGROUNDED_NUMBER\"], \"why\": \"GROUNDING_CHECK_REFUSED\"}, \"reading\": \"evidence_packet is the closed world a generated note may draw on. A note whose source is deterministic means a generated draft was refused or never existed, and refused_codes says which.\"}",
+    "{\"observation_id\": 14746092, \"verdict\": \"GROUNDED\", \"codes\": [], \"violations\": [], \"reading\": \"GROUNDED means every number in the text appears in this observation's evidence packet, in the unit it was written in, and the text asserts nothing the permission contract forbids. It does not mean the text is useful.\"}"
+   ]
+  },
+  {
+   "task_id": "obs-hz-per-pixel",
+   "question": "How many Hz does one pixel span for observation 14735140?",
+   "arm": "tools",
+   "answer": "79.8",
+   "tools_called": [
+    "observation",
+    "observation",
+    "check_claim"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": \"14735140\"}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": "14735140"
+     },
+     "error": "{\"reason\": \"BAD_ARGUMENTS\", \"detail\": \"observation_id must be an integer and not str '14735140'. Pass 14735140 rather than '14735140'.\"}",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": 14735140}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": 14735140
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 1583
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14735140, \"text\": \"one pixel spans 79.8 Hz\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": 14735140,
+      "text": "one pixel spans 79.8 Hz"
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 313
+    },
+    {
+     "index": 4,
+     "raw": "{\"answer\": \"79.8\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "79.8",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14735140, \"evidence_packet\": {\"observation_id\": \"14735140\", \"ground_station_id\": \"5078\", \"ground_station_name\": \"dm43\", \"norad_catalogue_id\": \"68481\", \"transmitter_mode\": \"GFSK\", \"receiver_frequency_hz\": \"401577500\", \"network_label\": \"with-signal\", \"pass_duration_s\": \"269\", \"max_elevation_deg\": \"15.6\", \"closest_approach_fraction\": \"0.50\", \"fitted_offset_hz\": \"1995\", \"fitted_offset_ppm\": \"5.0\", \"corridor_half_width_hz\": \"2000\", \"sigma_curved\": \"0.4\", \"sigma_vertical\": \"0.3\", \"hz_per_pixel\": \"79.8\", \"seconds_per_pixel\": \"0.17\", \"axis_derivation\": \"axis_ticks_ocr\", \"axis_derivation_confidence\": \"0.94\", \"model_probability\": \"0.000\", \"ensemble_uncertainty\": \"0.0013\", \"flat_row_fraction\": \"0.00\", \"queue_rank\": \"2\", \"queue_score\": \"0.850\", \"queue_reason_codes\": \"MODEL_LABEL_DISAGREE\", \"offset_at_bound\": \"false\"}, \"evidence_packet_sha256\": \"0b7e5da9107277d5eed8b00a7174b066bade1d7ca6712dd5d4c7744f2d6151f4\", \"note\": {\"text\": \"Ranked 2 with score 0.850, flagged MODEL_LABEL_DISAGREE. The network label is with-signal and the model probability is 0.000. The corridor sits 1995 Hz from the catalogue centre, 5.0 ppm, with a half width of 2000 Hz; the curved fit scores 0.4 against 0.3 for a vertical line. Peak elevation was 15.6 degrees at 0.50 of the pass.\", \"source\": \"deterministic\", \"refused_codes\": [\"UNGROUNDED_NUMBER\"], \"why\": \"GROUNDING_CHECK_REFUSED\"}, \"reading\": \"evidence_packet is the closed world a generated note may draw on. A note whose source is deterministic means a generated draft was refused or never existed, and refused_codes says which.\"}",
+    "{\"observation_id\": 14735140, \"verdict\": \"GROUNDED\", \"codes\": [], \"violations\": [], \"reading\": \"GROUNDED means every number in the text appears in this observation's evidence packet, in the unit it was written in, and the text asserts nothing the permission contract forbids. It does not mean the text is useful.\"}"
+   ]
+  },
+  {
+   "task_id": "obs-network-label",
+   "question": "What network label does observation 14735140 carry?",
+   "arm": "tools",
+   "answer": "with-signal",
+   "tools_called": [
+    "observation",
+    "observation",
+    "observation"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": \"14735140\"}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": "14735140"
+     },
+     "error": "{\"reason\": \"BAD_ARGUMENTS\", \"detail\": \"observation_id must be an integer and not str '14735140'. Pass 14735140 rather than '14735140'.\"}",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": 14735140}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": 14735140
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 1583
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": 14735140}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": 14735140
+     },
+     "error": "repeated call, the earlier result is already in the history",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 4,
+     "raw": "{\"answer\": \"with-signal\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "with-signal",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14735140, \"evidence_packet\": {\"observation_id\": \"14735140\", \"ground_station_id\": \"5078\", \"ground_station_name\": \"dm43\", \"norad_catalogue_id\": \"68481\", \"transmitter_mode\": \"GFSK\", \"receiver_frequency_hz\": \"401577500\", \"network_label\": \"with-signal\", \"pass_duration_s\": \"269\", \"max_elevation_deg\": \"15.6\", \"closest_approach_fraction\": \"0.50\", \"fitted_offset_hz\": \"1995\", \"fitted_offset_ppm\": \"5.0\", \"corridor_half_width_hz\": \"2000\", \"sigma_curved\": \"0.4\", \"sigma_vertical\": \"0.3\", \"hz_per_pixel\": \"79.8\", \"seconds_per_pixel\": \"0.17\", \"axis_derivation\": \"axis_ticks_ocr\", \"axis_derivation_confidence\": \"0.94\", \"model_probability\": \"0.000\", \"ensemble_uncertainty\": \"0.0013\", \"flat_row_fraction\": \"0.00\", \"queue_rank\": \"2\", \"queue_score\": \"0.850\", \"queue_reason_codes\": \"MODEL_LABEL_DISAGREE\", \"offset_at_bound\": \"false\"}, \"evidence_packet_sha256\": \"0b7e5da9107277d5eed8b00a7174b066bade1d7ca6712dd5d4c7744f2d6151f4\", \"note\": {\"text\": \"Ranked 2 with score 0.850, flagged MODEL_LABEL_DISAGREE. The network label is with-signal and the model probability is 0.000. The corridor sits 1995 Hz from the catalogue centre, 5.0 ppm, with a half width of 2000 Hz; the curved fit scores 0.4 against 0.3 for a vertical line. Peak elevation was 15.6 degrees at 0.50 of the pass.\", \"source\": \"deterministic\", \"refused_codes\": [\"UNGROUNDED_NUMBER\"], \"why\": \"GROUNDING_CHECK_REFUSED\"}, \"reading\": \"evidence_packet is the closed world a generated note may draw on. A note whose source is deterministic means a generated draft was refused or never existed, and refused_codes says which.\"}"
+   ]
+  },
+  {
+   "task_id": "obs-transmitter-mode",
+   "question": "What is the transmitter mode for observation 14732518?",
+   "arm": "tools",
+   "answer": "BPSK",
+   "tools_called": [
+    "observation",
+    "observation",
+    "observation"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": \"14732518\"}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": "14732518"
+     },
+     "error": "{\"reason\": \"BAD_ARGUMENTS\", \"detail\": \"observation_id must be an integer and not str '14732518'. Pass 14732518 rather than '14732518'.\"}",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": 14732518}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": 14732518
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 1631
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": 14732518}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": 14732518
+     },
+     "error": "repeated call, the earlier result is already in the history",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 4,
+     "raw": "{\"answer\": \"BPSK\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "BPSK",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14732518, \"evidence_packet\": {\"observation_id\": \"14732518\", \"ground_station_id\": \"4806\", \"ground_station_name\": \"KC1OCA UC-1464-531L (VHF)\", \"norad_catalogue_id\": \"40025\", \"transmitter_mode\": \"BPSK\", \"receiver_frequency_hz\": \"145815000\", \"network_label\": \"without-signal\", \"pass_duration_s\": \"214\", \"max_elevation_deg\": \"20.5\", \"closest_approach_fraction\": \"0.50\", \"fitted_offset_hz\": \"6146\", \"fitted_offset_ppm\": \"42.1\", \"corridor_half_width_hz\": \"2000\", \"sigma_curved\": \"3.1\", \"sigma_vertical\": \"0.8\", \"hz_per_pixel\": \"79.8\", \"seconds_per_pixel\": \"0.14\", \"axis_derivation\": \"axis_ticks_ocr\", \"axis_derivation_confidence\": \"0.94\", \"model_probability\": \"0.688\", \"ensemble_uncertainty\": \"0.0067\", \"flat_row_fraction\": \"0.00\", \"queue_rank\": \"3\", \"queue_score\": \"0.600\", \"queue_reason_codes\": \"STALE_CATALOGUE_FREQ\", \"offset_at_bound\": \"false\"}, \"evidence_packet_sha256\": \"eb43777f2a79063214886e0e3ab46a3771df6dd0a4ec4daf57293fcd8848df8b\", \"note\": {\"text\": \"The observation disagrees with the NORAD catalogue, suggesting a frequency of 145.815 MHz. In the waterfall image, look for a signal around the 20th degree elevation, near the center of the pass duration. A definitive observation would be the clear detection of a BPSK modulated signal at approximately 145.815 MHz, with a Doppler shift matching the provided fitted offset of 6146 Hz or 42.1 ppm.\", \"source\": \"generated\", \"refused_codes\": [], \"why\": null}, \"reading\": \"evidence_packet is the closed world a generated note may draw on. A note whose source is deterministic means a generated draft was refused or never existed, and refused_codes says which.\"}"
+   ]
+  },
+  {
+   "task_id": "obs-axis-derivation",
+   "question": "How was the frequency axis derived for observation 14732518?",
+   "arm": "tools",
+   "answer": "The frequency axis for observation 14732518 was derived from the data itself, as indicated by the GROUNDED verdict from check_claim.",
+   "tools_called": [
+    "observation",
+    "check_claim",
+    "check_claim"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": \"14732518\"}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": "14732518"
+     },
+     "error": "{\"reason\": \"BAD_ARGUMENTS\", \"detail\": \"observation_id must be an integer and not str '14732518'. Pass 14732518 rather than '14732518'.\"}",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14732518, \"text\": \"The frequency axis was derived using a Fourier transform.\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": 14732518,
+      "text": "The frequency axis was derived using a Fourier transform."
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 313
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14732518, \"text\": \"The frequency axis was derived using a Fourier transform.\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": 14732518,
+      "text": "The frequency axis was derived using a Fourier transform."
+     },
+     "error": "repeated call, the earlier result is already in the history",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 4,
+     "raw": "{\"answer\": \"The frequency axis for observation 14732518 was derived from the data itself, as indicated by the GROUNDED verdict from check_claim.\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "The frequency axis for observation 14732518 was derived from the data itself, as indicated by the GROUNDED verdict from check_claim.",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14732518, \"verdict\": \"GROUNDED\", \"codes\": [], \"violations\": [], \"reading\": \"GROUNDED means every number in the text appears in this observation's evidence packet, in the unit it was written in, and the text asserts nothing the permission contract forbids. It does not mean the text is useful.\"}"
+   ]
+  },
+  {
+   "task_id": "obs-max-elevation",
+   "question": "What was the maximum elevation in degrees for observation 14745718?",
+   "arm": "tools",
+   "answer": "38.4",
+   "tools_called": [
+    "observation",
+    "observation",
+    "check_claim"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": \"14745718\"}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": "14745718"
+     },
+     "error": "{\"reason\": \"BAD_ARGUMENTS\", \"detail\": \"observation_id must be an integer and not str '14745718'. Pass 14745718 rather than '14745718'.\"}",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": 14745718}}",
+     "tool": "observation",
+     "arguments": {
+      "observation_id": 14745718
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 1615
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14745718, \"text\": \"The maximum elevation was 38.4 degrees.\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": 14745718,
+      "text": "The maximum elevation was 38.4 degrees."
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 313
+    },
+    {
+     "index": 4,
+     "raw": "{\"answer\": \"38.4\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "38.4",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14745718, \"evidence_packet\": {\"observation_id\": \"14745718\", \"ground_station_id\": \"4272\", \"ground_station_name\": \"Sofia SAT Club - Hadji Boby VHF\", \"norad_catalogue_id\": \"5485\", \"transmitter_mode\": \"CW\", \"receiver_frequency_hz\": \"136694000\", \"network_label\": \"without-signal\", \"pass_duration_s\": \"783\", \"max_elevation_deg\": \"38.4\", \"closest_approach_fraction\": \"0.45\", \"fitted_offset_hz\": \"4258\", \"fitted_offset_ppm\": \"31.2\", \"corridor_half_width_hz\": \"2000\", \"sigma_curved\": \"0.4\", \"sigma_vertical\": \"0.3\", \"hz_per_pixel\": \"77.4\", \"seconds_per_pixel\": \"0.51\", \"axis_derivation\": \"axis_ticks_ocr\", \"axis_derivation_confidence\": \"0.70\", \"model_probability\": \"0.688\", \"ensemble_uncertainty\": \"0.0114\", \"flat_row_fraction\": \"0.00\", \"queue_rank\": \"4\", \"queue_score\": \"0.596\", \"queue_reason_codes\": \"STALE_CATALOGUE_FREQ\", \"offset_at_bound\": \"false\"}, \"evidence_packet_sha256\": \"b631d85c0969c45ec0596cd34dfd6f817b83b4463276017c871bc1d5bd2a951e\", \"note\": {\"text\": \"Ranked 4 with score 0.596, flagged STALE_CATALOGUE_FREQ. The network label is without-signal and the model probability is 0.688. The corridor sits 4258 Hz from the catalogue centre, 31.2 ppm, with a half width of 2000 Hz; the curved fit scores 0.4 against 0.3 for a vertical line. Peak elevation was 38.4 degrees at 0.45 of the pass.\", \"source\": \"deterministic\", \"refused_codes\": [\"UNGROUNDED_NUMBER\"], \"why\": \"GROUNDING_CHECK_REFUSED\"}, \"reading\": \"evidence_packet is the closed world a generated note may draw on. A note whose source is deterministic means a generated draft was refused or never existed, and refused_codes says which.\"}",
+    "{\"observation_id\": 14745718, \"verdict\": \"GROUNDED\", \"codes\": [], \"violations\": [], \"reading\": \"GROUNDED means every number in the text appears in this observation's evidence packet, in the unit it was written in, and the text asserts nothing the permission contract forbids. It does not mean the text is useful.\"}"
+   ]
+  },
+  {
+   "task_id": "claim-refused",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 999 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
+   "arm": "tools",
+   "answer": "REFUSED",
+   "tools_called": [
+    "check_claim"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14746092, \"text\": \"The fitted offset is 999 Hz.\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": 14746092,
+      "text": "The fitted offset is 999 Hz."
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 441
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": \"REFUSED\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "REFUSED",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14746092, \"verdict\": \"REFUSED\", \"codes\": [\"UNGROUNDED_NUMBER\"], \"violations\": [{\"code\": \"UNGROUNDED_NUMBER\", \"detail\": \"'999' is not in the evidence packet\", \"literal\": \"999\", \"unit\": \"hz\"}], \"reading\": \"GROUNDED means every number in the text appears in this observation's evidence packet, in the unit it was written in, and the text asserts nothing the permission contract forbids. It does not mean the text is useful.\"}"
+   ]
+  },
+  {
+   "task_id": "claim-refused-code",
+   "question": "For observation 14746092, which single violation code does the sentence \"The fitted offset is 999 Hz.\" produce?",
+   "arm": "tools",
+   "answer": "UNGROUNDED_NUMBER",
+   "tools_called": [
+    "check_claim",
+    "check_claim"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": \"14746092\", \"text\": \"The fitted offset is 999 Hz.\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": "14746092",
+      "text": "The fitted offset is 999 Hz."
+     },
+     "error": "{\"reason\": \"BAD_ARGUMENTS\", \"detail\": \"observation_id must be an integer and not str '14746092'. Pass 14746092 rather than '14746092'.\"}",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14746092, \"text\": \"The fitted offset is 999 Hz.\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": 14746092,
+      "text": "The fitted offset is 999 Hz."
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 441
+    },
+    {
+     "index": 3,
+     "raw": "{\"answer\": \"UNGROUNDED_NUMBER\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "UNGROUNDED_NUMBER",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14746092, \"verdict\": \"REFUSED\", \"codes\": [\"UNGROUNDED_NUMBER\"], \"violations\": [{\"code\": \"UNGROUNDED_NUMBER\", \"detail\": \"'999' is not in the evidence packet\", \"literal\": \"999\", \"unit\": \"hz\"}], \"reading\": \"GROUNDED means every number in the text appears in this observation's evidence packet, in the unit it was written in, and the text asserts nothing the permission contract forbids. It does not mean the text is useful.\"}"
+   ]
+  },
+  {
+   "task_id": "claim-grounded",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 6904 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
+   "arm": "tools",
+   "answer": "GROUNDED",
+   "tools_called": [
+    "check_claim"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14746092, \"text\": \"The fitted offset is 6904 Hz.\"}}",
+     "tool": "check_claim",
+     "arguments": {
+      "observation_id": 14746092,
+      "text": "The fitted offset is 6904 Hz."
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 313
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": \"GROUNDED\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "GROUNDED",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"observation_id\": 14746092, \"verdict\": \"GROUNDED\", \"codes\": [], \"violations\": [], \"reading\": \"GROUNDED means every number in the text appears in this observation's evidence packet, in the unit it was written in, and the text asserts nothing the permission contract forbids. It does not mean the text is useful.\"}"
+   ]
+  },
+  {
+   "task_id": "gates-met",
+   "question": "How many of this project's kill gates are met?",
+   "arm": "tools",
+   "answer": "2",
+   "tools_called": [
+    "gate_status"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"gate_status\", \"arguments\": {}}",
+     "tool": "gate_status",
+     "arguments": {},
+     "error": null,
+     "answer": null,
+     "result_bytes": 1231
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": 2}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "2",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"OPEN\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 2, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+   ]
+  },
+  {
+   "task_id": "gates-total",
+   "question": "How many kill gates does this project define?",
+   "arm": "tools",
+   "answer": "6",
+   "tools_called": [
+    "gate_status"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"gate_status\", \"arguments\": {}}",
+     "tool": "gate_status",
+     "arguments": {},
+     "error": null,
+     "answer": null,
+     "result_bytes": 1231
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": 6}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "6",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"OPEN\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 2, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+   ]
+  },
+  {
+   "task_id": "gate-6-verdict",
+   "question": "What is the verdict of kill gate 6?",
+   "arm": "tools",
+   "answer": "NOT_ESTABLISHED",
+   "tools_called": [
+    "gate_status"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"gate_status\", \"arguments\": {}}",
+     "tool": "gate_status",
+     "arguments": {},
+     "error": null,
+     "answer": null,
+     "result_bytes": 1231
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": \"NOT_ESTABLISHED\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "NOT_ESTABLISHED",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"OPEN\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 2, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+   ]
+  },
+  {
+   "task_id": "gate-4-verdict",
+   "question": "What is the verdict of kill gate 4?",
+   "arm": "tools",
+   "answer": "OPEN",
+   "tools_called": [
+    "gate_status"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"gate_status\", \"arguments\": {}}",
+     "tool": "gate_status",
+     "arguments": {},
+     "error": null,
+     "answer": null,
+     "result_bytes": 1231
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": \"OPEN\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "OPEN",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"OPEN\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 2, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+   ]
+  },
+  {
+   "task_id": "receipt-queue-schema-version",
+   "question": "What schema version does the receipt QUEUE_RECEIPT.json carry?",
+   "arm": "tools",
+   "answer": "0.3.0",
+   "tools_called": [
+    "receipt"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"QUEUE_RECEIPT.json\"}}",
+     "tool": "receipt",
+     "arguments": {
+      "name": "QUEUE_RECEIPT.json"
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 576
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": \"0.3.0\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "0.3.0",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"receipt\": \"QUEUE_RECEIPT.json\", \"bytes\": 253883, \"path\": \"artifacts/QUEUE_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"schema\": \"QUEUE_RECEIPT\", \"schema_version\": \"0.3.0\", \"contract\": \"contracts/queue_receipt.schema.json\", \"unit\": \"C2\", \"generated_at\": \"2026-08-18T07:36:31.780369+00:00\", \"seed\": 42, \"snapshot_id\": \"snap-20260817-stage1\", \"split_manifest_sha256\": \"2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199\"}, \"collection_sizes\": {\"conflict_definition\": 3, \"review_budget\": 2, \"deduplication\": 9, \"queue\": 407, \"per_split_summaries\": 4, \"gate6\": 6}}"
+   ]
+  },
+  {
+   "task_id": "receipt-gate3-verdict",
+   "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
+   "arm": "tools",
+   "answer": "NOT_ESTABLISHED",
+   "tools_called": [
+    "receipt",
+    "receipt"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"GATE3_RECEIPT.json\"}}",
+     "tool": "receipt",
+     "arguments": {
+      "name": "GATE3_RECEIPT.json"
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 1942
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"GATE3_RECEIPT.json\"}}",
+     "tool": "receipt",
+     "arguments": {
+      "name": "GATE3_RECEIPT.json"
+     },
+     "error": "repeated call, the earlier result is already in the history",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 3,
+     "raw": "{\"answer\": \"NOT_ESTABLISHED\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "NOT_ESTABLISHED",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"receipt\": \"GATE3_RECEIPT.json\", \"bytes\": 52145, \"path\": \"artifacts/GATE3_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"gate\": 3, \"question\": \"Does the expected corridor intersect a visible target-like trace?\", \"generated_at\": \"2026-08-19T01:18:00.823527+00:00\", \"verdict\": \"NOT_ESTABLISHED\", \"threshold\": 0.7, \"observations_decisive\": 7, \"observations_testable\": 3, \"observations_not_testable\": 4, \"observations_scored\": 3, \"discriminating_rate\": 1.0, \"rate_lower_bound_95\": 0.3684031498640387, \"clears_point_estimate\": true, \"clears_threshold\": false, \"not_testable_note\": \"A corrected corridor is identically 0 Hz across the pass, so it is a vertical line with a free horizontal offset and predicts no shape. Gate 3 can only be asked of uncorrected captures, where an S-curve is predicted and can be wrong. Excluding these is a limit on the gate's scope, not a pass.\", \"method\": \"Per observation: fit one constant frequency offset bounded at offset_ppm_limit ppm of the downlink, scoring the predicted curve with a matched filter and taking the best offset. Then repeat the identical fit for n_nulls corridors built by permuting the observation's own Doppler samples in time, which preserves every frequency value and the whole swing while destroying the monotone shape. The statistic is the one-sided empirical p-value of the true corridor against that null distribution. An observation discriminates when p <= p_value_max. The gate passes when the discriminating rate over scored observations reaches the threshold. Per-row residuals and coverage are reported as diagnostics but are not the gate: these traces integrate to significance along the path while individual rows stay below z_min, so a per-row instrument reports zero detections on a trace A3 localised at high sigma.\"}, \"collection_sizes\": {\"entity_grouping\": 12, \"axis_sign_scope\": 9, \"thresholds\": 7, \"threshold_rationale\": 11, \"claim\": 3, \"observations\": 7, \"skipped\": 0}}"
+   ]
+  },
+  {
+   "task_id": "receipt-gate4-verdict",
+   "question": "What verdict does the receipt GATE4_RECEIPT.json record?",
+   "arm": "tools",
+   "answer": "NOT_RUN",
+   "tools_called": [
+    "receipt",
+    "receipt"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"GATE4_RECEIPT.json\"}}",
+     "tool": "receipt",
+     "arguments": {
+      "name": "GATE4_RECEIPT.json"
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 1561
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"GATE4_RECEIPT.json\"}}",
+     "tool": "receipt",
+     "arguments": {
+      "name": "GATE4_RECEIPT.json"
+     },
+     "error": "repeated call, the earlier result is already in the history",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 3,
+     "raw": "{\"answer\": \"NOT_RUN\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "NOT_RUN",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"receipt\": \"GATE4_RECEIPT.json\", \"bytes\": 2411, \"path\": \"artifacts/GATE4_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"schema\": \"GATE4_RECEIPT\", \"schema_version\": 1, \"gate\": 4, \"unit\": \"E6\", \"threshold\": 0.8, \"decisive_rule\": \"An item is decisive when the reviewer committed to an answer rather than declining. artifact_usable must be yes or no. When it is no, that is itself the decisive artifact judgment the gate names and the item counts. When it is yes, at least one of visible_signal or target_consistent must also be yes or no, because an image the reviewer calls usable and then declines to judge on every axis supported no judgment.\", \"verdict_rule\": \"PASSED when the 95 percent lower bound is at or above the threshold. FAILED when the upper bound is below it. NOT_ESTABLISHED when the interval contains it. NOT_RUN when no response has been recorded, which is not a failure and is not a pass.\", \"ci_method\": \"Exact one-sided Clopper-Pearson bounds at 95 percent, from scripts/run_gate3.py::rate_lower_bound and rate_upper_bound, so gates 3 and 4 read their rates from the same function.\", \"verdict\": \"NOT_RUN\", \"why\": \"D:\\\\tracetriage_gate4\\\\responses.csv has no answered rows. The worksheet exists and nobody has filled it in.\", \"reading\": \"NOT_RUN is a third outcome and it is not a failure. The instrument exists, its sample is committed, and the review has not been carried out. Folding this into FAILED would manufacture a measurement, and folding it into silence would hide that the gate is still open.\"}, \"collection_sizes\": {\"worksheet\": 9}}"
+   ]
+  },
+  {
+   "task_id": "receipt-explain-unit",
+   "question": "Which unit produced the receipt EXPLAIN_RECEIPT.json?",
+   "arm": "tools",
+   "answer": "E1",
+   "tools_called": [
+    "receipt",
+    "receipt"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"EXPLAIN_RECEIPT.json\"}}",
+     "tool": "receipt",
+     "arguments": {
+      "name": "EXPLAIN_RECEIPT.json"
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 754
+    },
+    {
+     "index": 2,
+     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"EXPLAIN_RECEIPT.json\"}}",
+     "tool": "receipt",
+     "arguments": {
+      "name": "EXPLAIN_RECEIPT.json"
+     },
+     "error": "repeated call, the earlier result is already in the history",
+     "answer": null,
+     "result_bytes": null
+    },
+    {
+     "index": 3,
+     "raw": "{\"answer\": \"E1\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "E1",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"receipt\": \"EXPLAIN_RECEIPT.json\", \"bytes\": 24915, \"path\": \"artifacts/EXPLAIN_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"frozen_drafts_sha256\": \"27a4c77f87eedbfa6213e232d3a268aab4af946fc9cf731b9324b54bcec1d26a\", \"unit\": \"E1\", \"drafts_frozen_at_commit\": \"2026-08-19T13:41:46+05:30\", \"what_this_does_not_measure\": \"Whether a note that passed the checker is useful. Grounding is a property of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.\"}, \"collection_sizes\": {\"model\": 5, \"generation\": 7, \"counts\": 6, \"hallucinated_downlink_frequency\": 6, \"run_to_run_stability\": 2, \"checker_sensitivity\": 14, \"per_observation\": 25}}"
+   ]
+  },
+  {
+   "task_id": "receipt-explain-per-observation",
+   "question": "How many per-observation rows does the receipt EXPLAIN_RECEIPT.json carry?",
+   "arm": "tools",
+   "answer": "25",
+   "tools_called": [
+    "receipt"
+   ],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"EXPLAIN_RECEIPT.json\"}}",
+     "tool": "receipt",
+     "arguments": {
+      "name": "EXPLAIN_RECEIPT.json"
+     },
+     "error": null,
+     "answer": null,
+     "result_bytes": 754
+    },
+    {
+     "index": 2,
+     "raw": "{\"answer\": 25}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "25",
+     "result_bytes": null
+    }
+   ],
+   "read": [
+    "{\"receipt\": \"EXPLAIN_RECEIPT.json\", \"bytes\": 24915, \"path\": \"artifacts/EXPLAIN_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"frozen_drafts_sha256\": \"27a4c77f87eedbfa6213e232d3a268aab4af946fc9cf731b9324b54bcec1d26a\", \"unit\": \"E1\", \"drafts_frozen_at_commit\": \"2026-08-19T13:41:46+05:30\", \"what_this_does_not_measure\": \"Whether a note that passed the checker is useful. Grounding is a property of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.\"}, \"collection_sizes\": {\"model\": 5, \"generation\": 7, \"counts\": 6, \"hallucinated_downlink_frequency\": 6, \"run_to_run_stability\": 2, \"checker_sensitivity\": 14, \"per_observation\": 25}}"
+   ]
+  },
+  {
+   "task_id": "queue-rank-1",
+   "question": "Which observation id is ranked first in the review queue?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "queue-rank-1-score",
+   "question": "What is the queue score of the top-ranked observation, as the queue reports it?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "queue-total",
+   "question": "How many observations does the review queue rank in total?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "queue-packets-top-10",
+   "question": "Of the ten highest-ranked queue rows, how many have an evidence packet?",
+   "arm": "control",
+   "answer": "10",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"10\"}\n\nExplanation: In this context, it's assumed that all rows in the top 10 of a queue would have an evidence packet, as there's no reason to believe otherwise. If there were missing packets, they would likely be addressed before reaching the highest ranks.",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "10",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "queue-reason-rank-1",
+   "question": "What single reason code does the top-ranked observation carry in the queue?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "obs-station-name",
+   "question": "What is the ground station name for observation 14746092?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "obs-fitted-offset",
+   "question": "What is the fitted offset in Hz for observation 14746092?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "obs-hz-per-pixel",
+   "question": "How many Hz does one pixel span for observation 14735140?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "obs-network-label",
+   "question": "What network label does observation 14735140 carry?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "obs-transmitter-mode",
+   "question": "What is the transmitter mode for observation 14732518?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "obs-axis-derivation",
+   "question": "How was the frequency axis derived for observation 14732518?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "obs-max-elevation",
+   "question": "What was the maximum elevation in degrees for observation 14745718?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "claim-refused",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 999 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
+   "arm": "control",
+   "answer": "REFUSED",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"REFUSED\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "REFUSED",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "claim-refused-code",
+   "question": "For observation 14746092, which single violation code does the sentence \"The fitted offset is 999 Hz.\" produce?",
+   "arm": "control",
+   "answer": "999",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"999\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "999",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "claim-grounded",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 6904 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
+   "arm": "control",
+   "answer": "REFUSED",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"REFUSED\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "REFUSED",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "gates-met",
+   "question": "How many of this project's kill gates are met?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "gates-total",
+   "question": "How many kill gates does this project define?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "gate-6-verdict",
+   "question": "What is the verdict of kill gate 6?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "gate-4-verdict",
+   "question": "What is the verdict of kill gate 4?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "receipt-queue-schema-version",
+   "question": "What schema version does the receipt QUEUE_RECEIPT.json carry?",
+   "arm": "control",
+   "answer": "1.0",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"1.0\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "1.0",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "receipt-gate3-verdict",
+   "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "receipt-gate4-verdict",
+   "question": "What verdict does the receipt GATE4_RECEIPT.json record?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "receipt-explain-unit",
+   "question": "Which unit produced the receipt EXPLAIN_RECEIPT.json?",
+   "arm": "control",
+   "answer": "unknown",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": \"unknown\"}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "unknown",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  },
+  {
+   "task_id": "receipt-explain-per-observation",
+   "question": "How many per-observation rows does the receipt EXPLAIN_RECEIPT.json carry?",
+   "arm": "control",
+   "answer": "1",
+   "tools_called": [],
+   "stopped_because": "answered",
+   "steps": [
+    {
+     "index": 1,
+     "raw": "{\"answer\": 1}",
+     "tool": null,
+     "arguments": null,
+     "error": null,
+     "answer": "1",
+     "result_bytes": null
+    }
+   ],
+   "read": []
+  }
+ ]
+}
