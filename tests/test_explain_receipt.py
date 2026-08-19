@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -311,3 +312,40 @@ def test_publishing_twice_produces_identical_bytes():
     assert result.returncode == 0, result.stdout + result.stderr
     assert _RECEIPT.read_bytes() == before, "the receipt changed on a re-run"
     assert _NOTES.read_bytes() == notes_before, "notes.json changed on a re-run"
+
+
+def test_the_receipt_carries_no_value_derived_from_the_current_commit(receipt, fixture):
+    """The defect a clean clone found, and the reason the idempotence test above was weak.
+
+    The receipt used to record HEAD's commit date. That does not churn between two runs at
+    the same commit, which is what the field was reasoned about, and it churns on every
+    commit after a publish, so the committed receipt disagreed with the publisher's output
+    for every clone made later. A clone is always at a later commit than the publish, so a
+    judge saw the failure and this machine did not.
+
+    The invariant that replaces it: the receipt is a pure function of committed inputs, so
+    any timestamp in it has to have come from the frozen fixture. Reinstating a stamp read
+    from git turns this red as soon as one further commit exists.
+    """
+    fixture_text = json.dumps(fixture)
+    stamps: list[tuple[str, str]] = []
+
+    def walk(node: object, path: str) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                walk(value, f"{path}.{key}")
+        elif isinstance(node, list):
+            for i, value in enumerate(node):
+                walk(value, f"{path}[{i}]")
+        elif isinstance(node, str) and re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}.*", node
+        ):
+            stamps.append((path, node))
+
+    walk(receipt, "receipt")
+    foreign = [(path, value) for path, value in stamps if value not in fixture_text]
+    assert not foreign, (
+        f"these timestamps are in the receipt and not in the frozen fixture, so the "
+        f"receipt depends on when it was run rather than on what it read: {foreign}"
+    )
+    assert stamps, "the receipt records no timestamp at all, so this proves nothing"

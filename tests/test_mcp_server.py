@@ -44,8 +44,38 @@ _REGISTRATION = REPO / ".bob" / "mcp.json"
 _SPECIFICATION = REPO / ".bob" / "TOOL_SPECS.md"
 
 #: The two ways this file could stop being read-only.
-_NETWORK_WRITES = frozenset({"post", "put", "patch", "delete", "request", "stream"})
-_DISK_WRITES = frozenset({"write_text", "write_bytes", "unlink", "mkdir", "rmdir"})
+_NETWORK_WRITES = frozenset({"post", "put", "patch", "delete", "request", "stream", "send"})
+
+#: Every disk write reachable without an attribute this list does not name. The first
+#: version had five entries and missed six writes that an AST walk sees plainly:
+#: ``open(p, "w").write(x)``, ``os.remove``, ``shutil.rmtree``, ``Path.touch`` and
+#: ``json.dump(d, f)``. Enumerating names is the weakness; the answer is to enumerate more
+#: of them and to read ``open``'s mode, which is what the branch below does.
+_DISK_WRITES = frozenset(
+    {
+        "write_text",
+        "write_bytes",
+        "writelines",
+        "unlink",
+        "mkdir",
+        "rmdir",
+        "touch",
+        "remove",
+        "removedirs",
+        "rmtree",
+        "replace",
+        "rename",
+        "dump",
+        "write",
+    }
+)
+
+#: ``.write`` is on that list because a file object has it, and the transport writes to a
+#: stream, so exactly one receiver is exempt and the count of its call sites is asserted.
+#: A second ``sink.write`` would fail the test, which is the point: the exemption is a
+#: number, not a permission.
+_STREAM_RECEIVER = "sink"
+_STREAM_WRITE_SITES = 1
 
 
 def _call(name: str, arguments: dict | None = None) -> dict:
@@ -139,20 +169,76 @@ def test_an_unknown_observation_is_a_reason_and_not_an_empty_payload():
 
 def test_bad_arguments_are_named_rather_than_raised():
     assert _call("queue_top", {"limit": 0})["payload"]["reason"] == "BAD_LIMIT"
-    assert _call("queue_top", {"limit": "ten"})["payload"]["reason"] == "BAD_LIMIT"
+    assert _call("queue_top", {"limit": "ten"})["payload"]["reason"] == "BAD_ARGUMENTS"
     assert _call("check_claim", {"observation_id": 1, "text": "  "})["payload"][
         "reason"
     ] == "EMPTY_CLAIM"
     assert _call("queue_top", {"nonsense": 1})["payload"]["reason"] == "BAD_ARGUMENTS"
+    assert _call("queue_top", {"limit": []})["payload"]["reason"] == "BAD_ARGUMENTS"
+    # isinstance(True, int) is true in Python, so a bool clears a naive integer guard and
+    # returns one row while the schema says integer.
+    assert _call("queue_top", {"limit": True})["payload"]["reason"] == "BAD_ARGUMENTS"
+
+
+def test_an_id_passed_as_a_string_is_a_named_reason_and_not_a_dead_session():
+    """The likeliest mistake an agent makes, and it used to end the client's session.
+
+    ``int("abc")`` raised ValueError inside the tool arm, which caught ToolError and
+    TypeError only, so the exception left the read loop and the process died with no
+    response written at all. Both tools that take an id are checked, and the session is
+    proved alive afterwards by a following request in the same conversation.
+    """
+    for name, arguments in (
+        ("observation", {"observation_id": "abc"}),
+        ("check_claim", {"observation_id": "14746092", "text": "anything"}),
+    ):
+        out = _call(name, arguments)
+        assert out["isError"] is True, name
+        assert out["payload"]["reason"] == "BAD_ARGUMENTS", (name, out["payload"])
 
 
 def test_a_receipt_name_cannot_escape_the_artifacts_directory():
-    for bad in ("../pyproject.toml", "sub/dir.json", "..\\secrets.json"):
+    """Containment, tested with the form the blocklist let through.
+
+    ``C:foo.json`` holds no separator and no parent reference, and on Windows it is
+    drive-relative: it resolves against that drive's working directory, outside the
+    repository. The old guard rejected three shapes of the same trick and missed it, which
+    is what a blocklist does. It was also a crash primitive, because any readable non-JSON
+    file at that path died in json.loads and took the session with it.
+    """
+    for bad in (
+        "../pyproject.toml",
+        "sub/dir.json",
+        "..\\secrets.json",
+        "C:foo.json",
+        ".",
+        "",
+    ):
         out = _call("receipt", {"name": bad})
         assert out["isError"] is True, bad
-        assert out["payload"]["reason"] == "BAD_RECEIPT_NAME", bad
+        assert out["payload"]["reason"] in {"BAD_RECEIPT_NAME", "UNKNOWN_RECEIPT"}, bad
     out = _call("receipt", {"name": "NOT_A_RECEIPT.json"})
     assert out["payload"]["reason"] == "UNKNOWN_RECEIPT"
+
+
+def test_a_directory_named_as_a_receipt_is_a_reason_and_not_a_crash():
+    """`.` passed the old guard, existed, and raised PermissionError inside read_text."""
+    out = _call("receipt", {"name": "."})
+    assert out["isError"] is True
+    assert out["payload"]["reason"] == "BAD_RECEIPT_NAME"
+
+
+def test_a_list_rooted_receipt_summarises_to_something():
+    """The empty answer that reads like a measurement, on the audit least able to afford it.
+
+    artifacts/LEAKAGE_AUDIT.json is a JSON array. The dict-only summariser returned two
+    empty objects with isError false, so a client asking about the leakage audit was told,
+    in effect, that it holds nothing.
+    """
+    out = tool_receipt("LEAKAGE_AUDIT.json")
+    assert out["root"] == "list"
+    assert out["collection_sizes"]["<root>"] > 0
+    assert out["scalars"].get("row_fields"), "a list of records has fields worth naming"
 
 
 # ---------------------------------------------------------------------------
@@ -160,15 +246,52 @@ def test_a_receipt_name_cannot_escape_the_artifacts_directory():
 # ---------------------------------------------------------------------------
 
 
-def test_the_queue_comes_back_in_rank_order_and_capped():
+def test_the_queue_comes_back_in_rank_order_and_bounded():
     out = tool_queue_top(3)
     assert [e["rank"] for e in out["entries"]] == [1, 2, 3]
-    assert out["capped_at"] is None
-    big = tool_queue_top(MAX_QUEUE_LIMIT + 25)
-    assert big["returned"] <= MAX_QUEUE_LIMIT
-    assert big["capped_at"] == MAX_QUEUE_LIMIT, (
-        "a client that asks for everything has to be told it did not get everything"
+    assert out["cap"] == MAX_QUEUE_LIMIT
+    assert out["available"] > MAX_QUEUE_LIMIT, (
+        "the cap is only meaningful if there is more queue than the cap"
     )
+    assert tool_queue_top(MAX_QUEUE_LIMIT)["returned"] == MAX_QUEUE_LIMIT
+
+
+def test_a_limit_above_the_advertised_maximum_is_refused_rather_than_truncated():
+    """The schema and the handler have to agree about what is legal.
+
+    The handler used to cap silently and disclose the cap afterwards, while the schema
+    advertised maximum 50. A validating client therefore refused to send what this server
+    accepted, so the two disagreed about the same call.
+    """
+    declared = TOOLS["queue_top"]["schema"]["properties"]["limit"]["maximum"]
+    assert declared == MAX_QUEUE_LIMIT
+    out = _call("queue_top", {"limit": declared + 1})
+    assert out["isError"] is True
+    assert out["payload"]["reason"] == "BAD_LIMIT"
+    assert str(declared) in out["payload"]["detail"]
+
+
+def test_the_queue_says_which_rows_the_other_tools_can_answer_about():
+    """The failure a client hit roughly half the time, in the top fifty rows.
+
+    The queue is the whole ranking; only observations the console ships imagery for have an
+    evidence packet. Without the flag, a client walking queue_top into observation got
+    UNKNOWN_OBSERVATION on most rows, and the refusal message pointed it back at queue_top.
+    """
+    out = tool_queue_top(MAX_QUEUE_LIMIT)
+    flagged = [e for e in out["entries"] if e["has_evidence_packet"]]
+    unflagged = [e for e in out["entries"] if not e["has_evidence_packet"]]
+    assert out["with_evidence_packet"] == len(flagged)
+    assert flagged and unflagged, (
+        "both kinds have to be present or this proves nothing: "
+        f"{len(flagged)} flagged, {len(unflagged)} not"
+    )
+    for entry in flagged:
+        assert tool_observation(entry["obs_id"])["observation_id"] == entry["obs_id"]
+    for entry in unflagged:
+        with pytest.raises(ToolError) as caught:
+            tool_observation(entry["obs_id"])
+        assert caught.value.code == "UNKNOWN_OBSERVATION"
 
 
 def test_an_observation_carries_its_packet_and_the_note_that_shipped():
@@ -237,26 +360,62 @@ def test_a_missing_evidence_file_is_a_named_reason(monkeypatch, tmp_path):
 # ---------------------------------------------------------------------------
 
 
+def _write_sites(tree: ast.AST) -> tuple[list[str], list[str]]:
+    """Every network or disk write in the tree, and the stream writes exempted by name.
+
+    Three shapes, because the first version of this scan saw only the first: an attribute
+    call whose name is a write, ``open`` with a mode that writes, and ``.write`` on the one
+    receiver that is a stream rather than a file.
+    """
+    writes: list[str] = []
+    exempt: list[str] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        if isinstance(node.func, ast.Name) and node.func.id == "open":
+            modes = [a for a in node.args[1:2] if isinstance(a, ast.Constant)]
+            modes += [
+                k.value
+                for k in node.keywords
+                if k.arg == "mode" and isinstance(k.value, ast.Constant)
+            ]
+            for mode in modes:
+                if isinstance(mode.value, str) and set(mode.value) & set("wax+"):
+                    writes.append(f"line {node.lineno}: open(..., {mode.value!r})")
+            continue
+        if not isinstance(node.func, ast.Attribute):
+            continue
+        if node.func.attr not in _NETWORK_WRITES | _DISK_WRITES:
+            continue
+        receiver = node.func.value
+        if (
+            node.func.attr == "write"
+            and isinstance(receiver, ast.Name)
+            and receiver.id == _STREAM_RECEIVER
+        ):
+            exempt.append(f"line {node.lineno}: {_STREAM_RECEIVER}.write()")
+            continue
+        writes.append(f"line {node.lineno}: .{node.func.attr}()")
+    return writes, exempt
+
+
 def test_the_server_holds_no_write_verb_and_no_network_import():
     """The capability claim, checked against the source rather than the documentation."""
     tree = ast.parse(_SERVER.read_text(encoding="utf-8"), filename=str(_SERVER))
     imports: set[str] = set()
-    writes: list[str] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             imports.update(alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom) and node.module:
             imports.add(node.module)
-        elif (
-            # Both kinds of write: to the network, and to disk. A read-only server does
-            # neither, and naming them together keeps the failure message readable.
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Attribute)
-            and node.func.attr in _NETWORK_WRITES | _DISK_WRITES
-        ):
-            writes.append(f"line {node.lineno}: .{node.func.attr}()")
 
+    writes, exempt = _write_sites(tree)
     assert not writes, f"the read-only server writes: {writes}"
+    assert len(exempt) == _STREAM_WRITE_SITES, (
+        f"the stream exemption covers {_STREAM_WRITE_SITES} call site and this file has "
+        f"{len(exempt)}: {exempt}. Route every response through one writer rather than "
+        f"widening the exemption."
+    )
     offenders = sorted(
         m for m in imports if m.split(".")[0] in {"httpx", "requests", "socket", "urllib"}
     )
@@ -266,6 +425,36 @@ def test_the_server_holds_no_write_verb_and_no_network_import():
     assert not any("granite" in m for m in imports), (
         "the server must not import the module that can POST"
     )
+
+
+def test_the_write_scan_catches_each_shape_it_claims_to():
+    """The scan's own coverage, because a list of names is only as good as its entries.
+
+    Six of these were invisible to the first version, which enumerated five attribute
+    names. A scan that passes over a write is worse than no scan, because it publishes the
+    read-only claim as verified.
+    """
+    shapes = (
+        'p.write_text("x")',
+        'open(p, "w").write("x")',
+        'f = open(p, mode="a")',
+        "os.remove(p)",
+        "shutil.rmtree(p)",
+        "p.touch()",
+        "json.dump(d, f)",
+        "p.unlink()",
+        "client.post(url)",
+        'session.request("POST", url)',
+        "other.write(x)",
+    )
+    for shape in shapes:
+        found, _ = _write_sites(ast.parse(shape))
+        assert found, f"the scan does not see {shape}"
+
+    # And a read is not a write, or the scan would fail on this server's own source.
+    for benign in ('p.read_text("utf-8")', "json.loads(t)", "sink.write(t)", "open(p)"):
+        found, _ = _write_sites(ast.parse(benign))
+        assert not found, f"the scan reports {benign} as a write"
 
 
 def test_every_tool_has_a_handler_and_a_closed_schema():
@@ -305,6 +494,99 @@ def test_the_server_answers_under_an_interpreter_with_no_installed_packages():
     responses = [json.loads(line) for line in finished.stdout.splitlines() if line.strip()]
     assert responses[0]["result"]["serverInfo"]["name"] == SERVER_NAME
     assert {t["name"] for t in responses[1]["result"]["tools"]} == set(TOOLS)
+
+
+def test_a_frame_that_is_not_an_object_is_an_invalid_request():
+    """Four inputs that parse cleanly and then killed the loop.
+
+    The parse-error branch only saw unparseable bytes. ``5``, ``null`` and a batch array
+    are all valid JSON, so they reached ``request.get`` and raised AttributeError, which
+    left the read loop and ended the client's session with no response written.
+    """
+    stdin = io.StringIO(
+        "5\n"
+        + "null\n"
+        + '"a string"\n'
+        + '{"jsonrpc": "2.0", "id": 9, "method": "tools/list"}\n'
+    )
+    stdout = io.StringIO()
+    assert serve(stdin=stdin, stdout=stdout) == 0
+    responses = [json.loads(line) for line in stdout.getvalue().splitlines() if line.strip()]
+    assert [r["error"]["code"] for r in responses[:3]] == [-32600, -32600, -32600]
+    assert responses[3]["id"] == 9, "the session has to survive all three"
+
+
+def test_a_batch_is_answered_as_a_batch():
+    """Batching is in JSON-RPC 2.0, so a server that dies on one is broken rather than plain.
+
+    The reply to a batch is an array of the responses that are not notifications, and a
+    batch of nothing but notifications gets no reply at all, which is what a client waits
+    on.
+    """
+    batch = [
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
+        {"jsonrpc": "2.0", "method": "notifications/initialized"},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+    ]
+    stdin = io.StringIO(
+        json.dumps(batch)
+        + "\n"
+        + json.dumps([{"jsonrpc": "2.0", "method": "notifications/initialized"}])
+        + "\n"
+        + json.dumps([])
+        + "\n"
+    )
+    stdout = io.StringIO()
+    assert serve(stdin=stdin, stdout=stdout) == 0
+    lines = [json.loads(line) for line in stdout.getvalue().splitlines() if line.strip()]
+
+    assert isinstance(lines[0], list)
+    assert [r["id"] for r in lines[0]] == [1, 2], "the notification takes no slot"
+    # The all-notification batch produced no line at all, so the next line is the empty
+    # batch's error rather than a second array.
+    assert lines[1]["error"]["code"] == -32600
+
+
+def test_a_tool_that_fails_for_an_unforeseen_reason_still_answers(monkeypatch):
+    """The blanket clause, checked with a handler that raises something unclassified.
+
+    Every specific exception can be caught once it is known. The property worth pinning is
+    that an unknown one becomes a named reason instead of taking the transport down, since
+    a stdio server's blast radius is the client's whole session.
+    """
+    import scripts.mcp_server as server
+
+    def explode() -> dict:
+        raise RuntimeError(f"unforeseen, in {REPO}")
+
+    monkeypatch.setitem(server.TOOLS["gate_status"], "handler", explode)
+    out = _call("gate_status")
+    assert out["isError"] is True
+    assert out["payload"]["reason"] == "TOOL_FAILED"
+    assert "RuntimeError" in out["payload"]["detail"]
+    assert str(REPO) not in out["payload"]["detail"], (
+        "a message a client receives must not carry this host's filesystem path"
+    )
+
+
+def test_the_server_refuses_to_start_without_the_evidence_it_advertises(monkeypatch, tmp_path):
+    """The docstring claimed this before it was true.
+
+    What existed was a per-call reason code, which is weaker: a client that has completed a
+    handshake and read a tool list has been told those tools work. With the data directory
+    empty, initialize and tools/list both answered normally and all five tools were
+    advertised.
+    """
+    import scripts.mcp_server as server
+
+    monkeypatch.setattr(server, "_DATA", tmp_path)
+    stdin = io.StringIO('{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}\n')
+    stdout = io.StringIO()
+    assert server.serve(stdin=stdin, stdout=stdout) == 2
+    assert stdout.getvalue() == "", "a refusal to start answers nothing at all"
+    assert sorted(server.missing_evidence()) == sorted(
+        f"{n} (outside this checkout)" for n in server.REQUIRED_EVIDENCE
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -412,10 +694,15 @@ def test_every_path_the_specification_cites_exists_and_is_published():
     there. A citation to a file a reader cannot open is the same defect as a missing tool.
     """
     text = _SPECIFICATION.read_text(encoding="utf-8")
+    # A bare filename is a path claim too. Requiring a separator meant a cited
+    # "vercel.json" was never checked for existence or for publication.
+    suffixes = (".py", ".json", ".md", ".ts", ".tsx", ".yml", ".toml")
     candidates = {
         token
         for token in re.findall(r"`([^`]+)`", text)
-        if "/" in token and " " not in token and not token.startswith("http")
+        if " " not in token
+        and not token.startswith("http")
+        and ("/" in token or token.endswith(suffixes))
     }
     assert len(candidates) >= 8, f"the extractor found {len(candidates)} paths, so it broke"
     missing = [c for c in sorted(candidates) if not (REPO / c).exists()]

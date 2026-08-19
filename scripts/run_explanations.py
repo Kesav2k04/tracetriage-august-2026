@@ -57,7 +57,16 @@ _FIXTURE = REPO / "tests" / "fixtures" / "granite_notes.json"
 
 
 def _commit_stamp() -> str:
-    """The commit date, not the wall clock, so a re-run does not churn the digest."""
+    """HEAD's commit date, recorded once when the drafts are frozen.
+
+    Not for a published receipt. This was in EXPLAIN_RECEIPT.json on the reasoning that a
+    commit date does not churn between two runs, which is true and not enough: it churns
+    once per commit, so every commit after a publish left the committed receipt disagreeing
+    with what the publisher produced. A clean clone found it, because a clone is always at a
+    later commit than the publish. The receipt now carries digests of the committed inputs
+    instead, which are a stronger provenance claim and a stable one, and the freeze record
+    keeps this stamp because a freeze is a one-time event rather than a derived file.
+    """
     out = subprocess.run(
         ["git", "log", "-1", "--format=%cI"],
         cwd=REPO,
@@ -545,7 +554,10 @@ def publish() -> int:
             by_code[code] = by_code.get(code, 0) + 1
 
     receipt = {
-        "generated_at_commit": _commit_stamp(),
+        # Provenance by content rather than by clock: the receipt is a pure function of the
+        # frozen drafts and the prompt contract, both committed, so two runs of the
+        # publisher at any two commits produce identical bytes.
+        "frozen_drafts_sha256": _sha(_FIXTURE.read_text(encoding="utf-8")),
         "unit": "E1",
         "model": fixture["model"],
         "generation": fixture["generation"]
@@ -575,7 +587,7 @@ def publish() -> int:
     _NOTES.write_text(
         json.dumps(
             {
-                "generated_at_commit": receipt["generated_at_commit"],
+                "drafts_frozen_at_commit": receipt["drafts_frozen_at_commit"],
                 "model": fixture["model"],
                 "prompt_version": fixture["generation"]["prompt_version"],
                 "notes": notes,

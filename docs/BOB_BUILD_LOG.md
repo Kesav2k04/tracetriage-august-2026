@@ -4379,3 +4379,87 @@ queue read, a gate read and an unknown observation; the same under `-S -E`;
 two repairs.
 **Outcome:** accepted. The evidence is callable, the registration launches, and the
 specification says which half of it was built.
+
+---
+
+## 2026-08-19 IST | Wave E | E4: a clean clone broke the receipt, and a review broke the server
+
+Two independent checks, run against the two commits above rather than against a description
+of them, and both found something.
+
+**A receipt that could not survive a commit.** `artifacts/EXPLAIN_RECEIPT.json` recorded
+HEAD's commit date under `generated_at_commit`. The reasoning written beside it was that a
+commit date does not churn between two runs, which is true and is not enough: it churns once
+per commit, so from the moment anything else was committed the published receipt disagreed
+with what the publisher produced. The idempotence test beside it passed on this machine for
+exactly as long as no further commit existed, and a clean clone is always at a later commit
+than the publish, so a judge would have hit it and the author never would. It failed on the
+first clone taken after the push: 1047 passed, 1 failed.
+
+The field is gone. What replaces it is provenance by content: the sha256 of the frozen
+drafts, beside the prompt contract digest that was already there, so the receipt is a pure
+function of two committed inputs and two runs at any two commits produce identical bytes. A
+new test walks the receipt for anything shaped like a timestamp and requires each one to
+appear in the frozen fixture, which is the general form of the defect rather than the one
+field that had it. Reinstating a value read from git turns it red as soon as one more commit
+exists. The console's `notes.json` carried the same stamp and now carries the freeze date,
+which is data rather than an accident of when the publisher ran.
+
+**Eleven findings against the evidence server, one of them fatal to a session.** The tool
+arm caught `ToolError` and `TypeError`, and the read loop caught only a JSON parse error, so
+six ordinary inputs killed the process with no response written at all: an observation id
+passed as a string, which is the likeliest mistake an agent makes; a receipt name of `.`,
+which passed the name guard, existed, and raised inside `read_text`; and a **batch request,
+which is valid JSON-RPC 2.0**, along with a bare `5` and a `null`, all of which parsed
+cleanly and then met `.get` on something that is not a dict. For a stdio server the blast
+radius of one raised exception is the client's whole session.
+
+All six now answer. Every argument that has to be an integer goes through one converter that
+returns a named reason, a frame that is not an object gets an invalid-request error, a batch
+is answered as a batch with notifications taking no slot, and an unforeseen exception inside
+a handler becomes `TOOL_FAILED` with the exception type and this checkout's path removed
+from the message, because a message a client receives should not carry a host filesystem
+path. The blanket clause is deliberate and its test raises something unclassified to prove
+it.
+
+**The rest of that review, each with a test.** The server's own docstring claimed it refuses
+to start when an advertised evidence file is missing; what existed was a per-call reason
+code, which is weaker, because a client that has completed a handshake and read a tool list
+has been told those tools work. Startup validation now exists and returns 2 with nothing
+written. `queue_top` ranked all 407 observations while only the 25 with imagery have an
+evidence packet, so a client walking the top fifty into `observation` was refused on 26 of
+them by a message that pointed it back at `queue_top`; every row now carries
+`has_evidence_packet` and the payload carries the count, and the test asserts both kinds are
+present so it cannot pass vacuously. The receipt name guard rejected a separator and a
+parent reference and let `C:foo.json` through, which is drive-relative on Windows and
+resolves outside the repository entirely; it is containment now rather than a blocklist,
+asking where the path landed instead of listing tricks. `LEAKAGE_AUDIT.json` is a JSON array
+and the dict-only summariser returned two empty objects with no error, which is the empty
+answer that reads like a measurement, on the audit least able to afford one.
+
+The disk half of the read-only scan named five write methods and missed six writes that an
+AST walk sees plainly, including `open(p, "w").write(x)`, `os.remove` and `json.dump`. It
+names fourteen now, reads `open`'s mode argument, and treats `.write` as a write with one
+named receiver exempted and its call site count asserted at one, so a second write to the
+stream fails the test rather than inheriting the exemption. That forced the transport's two
+response writers into one, which is better anyway. A new test feeds the scan eleven write
+shapes and four benign ones, because a list of names is worth only what its entries cover.
+
+Three smaller ones: `isinstance(True, int)` is true in Python, so a bool cleared the integer
+guard and returned one row; the schema advertised `maximum: 50` while the handler capped
+silently, so a validating client refused what the server accepted, and a limit above the cap
+is now refused with the cap named; and the comment above `MAX_QUEUE_LIMIT` argued for
+twenty-five while the constant was fifty.
+
+**Files changed:** `scripts/mcp_server.py`, `tests/test_mcp_server.py`,
+`scripts/run_explanations.py`, `tests/test_explain_receipt.py`, `apps/web/lib/data.ts`,
+`artifacts/EXPLAIN_RECEIPT.json`, `apps/web/public/data/notes.json`,
+`apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/run_explanations.py`, `scripts/build_console_data.py
+--skip-images`, `python -m ruff check .`, `python -m pytest -m "not network and not ocr and
+not llm"`, the eleven killer frames replayed through the server as a subprocess in one
+session, `npm run typecheck`, `npm run test`, `npm run build`.
+**Tests:** 1064 offline Python tests collected, up from 1027, and 93 console tests. The MCP
+file went from 21 tests to 31.
+**Outcome:** accepted. Every finding closed with a test, and the two that were claims about
+the source rather than about behaviour are now claims the source is checked against.

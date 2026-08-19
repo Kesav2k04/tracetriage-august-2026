@@ -575,7 +575,7 @@ export interface NoteModel {
 }
 
 interface NotesFile {
-  generated_at_commit: string;
+  drafts_frozen_at_commit: string;
   model: NoteModel | null;
   prompt_version: string;
   notes: ReviewerNote[];
