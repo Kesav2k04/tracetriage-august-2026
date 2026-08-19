@@ -1,10 +1,10 @@
 {
  "schema": "CLEAN_CLONE_TRANSCRIPT",
  "schema_version": "0.1.0",
- "run_at_utc": "2026-08-19T13:06:47Z",
+ "run_at_utc": "2026-08-19T13:45:07Z",
  "source_repo": "D:\\IBM August Challenge\\tracetriage-august-2026",
  "clone": "D:\\_cleanclone\\tracetriage",
- "source_commit": "05d699a63115962f8e648231958550f41de44852",
+ "source_commit": "ebb445508e8c56c6d2fd56e22b2c5ddd69fa7d2f",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",
   "python": "3.12.13"
@@ -70,8 +70,8 @@
    "artifact": "README.md",
    "command": "scripts/sync_readme_results.py",
    "exit_code": 0,
-   "sha256_committed": "bcf4a57713de19993981acc7a6f7a82cd690e87a3a57f7f8985efa2aee6af6c7",
-   "sha256_rebuilt": "bcf4a57713de19993981acc7a6f7a82cd690e87a3a57f7f8985efa2aee6af6c7",
+   "sha256_committed": "2640ea64726e54fffb2224b98cf1b1501165187e51d36d13ad551ff8e80aacc5",
+   "sha256_rebuilt": "2640ea64726e54fffb2224b98cf1b1501165187e51d36d13ad551ff8e80aacc5",
    "identical": true
   },
   {
@@ -86,8 +86,8 @@
    "artifact": "apps/web/public/data/provenance.json",
    "command": "scripts/build_console_data.py --skip-images",
    "exit_code": 0,
-   "sha256_committed": "dd6dc5abe0d1947a648b85b33e285fff6b1a1b007c34e2494d8ecb755be86632",
-   "sha256_rebuilt": "dd6dc5abe0d1947a648b85b33e285fff6b1a1b007c34e2494d8ecb755be86632",
+   "sha256_committed": "ca4689b9b28a0deb5fd2e9cf3c013dd79d5cf3b9d7ecf946d728957d869e41d8",
+   "sha256_rebuilt": "ca4689b9b28a0deb5fd2e9cf3c013dd79d5cf3b9d7ecf946d728957d869e41d8",
    "identical": true
   }
  ],
@@ -97,7 +97,7 @@
    "step": "git clone (local, --no-hardlinks)",
    "command": "git clone --no-hardlinks D:\\IBM August Challenge\\tracetriage-august-2026 D:\\_cleanclone\\tracetriage",
    "exit_code": 0,
-   "seconds": 1.3,
+   "seconds": 1.7,
    "needs_outside_the_repo": "the source clone. A judge would fetch from GitHub, which needs the network.",
    "output_tail": [
     "Cloning into 'D:\\_cleanclone\\tracetriage'...",
@@ -122,7 +122,7 @@
    "step": "uv pip install --offline -e .[dev,onnx] into the clone's environment",
    "command": "C:\\Users\\Kesav\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.EXE pip install --python D:\\_cleanclone\\tracetriage\\.venv\\Scripts\\python.exe --offline -e .[dev,onnx]",
    "exit_code": 0,
-   "seconds": 9.0,
+   "seconds": 7.4,
    "needs_outside_the_repo": "a warm uv cache. --offline resolves from it and never reaches the index, so this measures whether the pinned set can be rebuilt without the network, not whether it can be resolved from scratch.",
    "output_tail": [
     " + threadpoolctl==3.6.0",
@@ -149,42 +149,42 @@
    "step": "offline test suite, snapshot present",
    "command": "D:\\_cleanclone\\tracetriage\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
    "exit_code": 0,
-   "seconds": 180.3,
+   "seconds": 176.8,
    "needs_outside_the_repo": null,
    "output_tail": [
-    "........................................................................ [ 77%]",
-    "........................................................................ [ 84%]",
-    "........................................................................ [ 90%]",
-    "........................................................................ [ 97%]",
-    "...............................                                          [100%]",
-    "1110 passed, 1 skipped, 3 deselected in 179.42s (0:02:59)"
+    "........................................................................ [ 75%]",
+    "........................................................................ [ 81%]",
+    "........................................................................ [ 87%]",
+    "........................................................................ [ 94%]",
+    "..................................................................       [100%]",
+    "1145 passed, 1 skipped, 4 deselected in 175.73s (0:02:55)"
    ],
    "offline_violation": false,
    "counts": {
-    "passed": 1110,
+    "passed": 1145,
     "skipped": 1,
-    "deselected": 3
+    "deselected": 4
    }
   },
   {
    "step": "offline test suite, snapshot HIDDEN",
    "command": "D:\\_cleanclone\\tracetriage\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
    "exit_code": 0,
-   "seconds": 169.1,
+   "seconds": 174.0,
    "needs_outside_the_repo": "the interpreter named in prerequisites_not_in_the_repository. This is a judge's case for the snapshot and not necessarily for the environment, and the earlier wording claimed nothing at all was needed while the command it recorded beside it named an interpreter that may sit outside the clone.",
    "output_tail": [
-    "........................................................................ [ 77%]",
-    "........................................................................ [ 84%]",
-    "........................................................................ [ 90%]",
-    ".................................ssssssss..s.s.s........................ [ 97%]",
-    "...............................                                          [100%]",
-    "1081 passed, 30 skipped, 3 deselected in 168.23s (0:02:48)"
+    "........................................................................ [ 75%]",
+    "........................................................................ [ 81%]",
+    "........................................................................ [ 87%]",
+    "....................................................................ssss [ 94%]",
+    "ssss..s.s.s.......................................................       [100%]",
+    "1116 passed, 30 skipped, 4 deselected in 173.00s (0:02:52)"
    ],
    "offline_violation": false,
    "counts": {
-    "passed": 1081,
+    "passed": 1116,
     "skipped": 30,
-    "deselected": 3
+    "deselected": 4
    }
   },
   {
@@ -213,7 +213,7 @@
    "step": "sync_readme_results.py --check (generated table drift)",
    "command": "D:\\_cleanclone\\tracetriage\\.venv\\Scripts\\python.exe scripts/sync_readme_results.py --check",
    "exit_code": 0,
-   "seconds": 0.2,
+   "seconds": 0.3,
    "needs_outside_the_repo": null,
    "output_tail": [
     "README results are current: 11 measured rows"
@@ -259,7 +259,7 @@
    "step": "regenerate apps/web/public/data/provenance.json",
    "command": "D:\\_cleanclone\\tracetriage\\.venv\\Scripts\\python.exe scripts/build_console_data.py --skip-images",
    "exit_code": 0,
-   "seconds": 0.3,
+   "seconds": 0.4,
    "needs_outside_the_repo": null,
    "output_tail": [
     "skipping imagery and cards.json (it needs the waterfall PNGs)"
@@ -270,7 +270,7 @@
    "step": "npx tsc --noEmit",
    "command": "C:\\Program Files\\nodejs\\npx.CMD tsc --noEmit",
    "exit_code": 0,
-   "seconds": 7.5,
+   "seconds": 5.3,
    "needs_outside_the_repo": null,
    "output_tail": [],
    "offline_violation": false
@@ -279,15 +279,15 @@
    "step": "npx vitest run",
    "command": "C:\\Program Files\\nodejs\\npx.CMD vitest run",
    "exit_code": 0,
-   "seconds": 2.4,
+   "seconds": 3.2,
    "needs_outside_the_repo": null,
    "output_tail": [
-    " \u001b[32m\u00e2\u0153\u201c\u001b[39m tests/reviewer-note.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 12\u001b[2mms\u001b[22m\u001b[39m",
-    " \u001b[32m\u00e2\u0153\u201c\u001b[39m tests/plot-helpers.test.ts \u001b[2m(\u001b[22m\u001b[2m25 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 14\u001b[2mms\u001b[22m\u001b[39m",
+    " \u001b[32m\u00e2\u0153\u201c\u001b[39m tests/reviewer-note.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 13\u001b[2mms\u001b[22m\u001b[39m",
+    " \u001b[32m\u00e2\u0153\u201c\u001b[39m tests/plot-helpers.test.ts \u001b[2m(\u001b[22m\u001b[2m25 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 16\u001b[2mms\u001b[22m\u001b[39m",
     "\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m5 passed\u001b[39m\u001b[22m\u001b[90m (5)\u001b[39m",
     "\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m93 passed\u001b[39m\u001b[22m\u001b[90m (93)\u001b[39m",
-    "\u001b[2m   Start at \u001b[22m 18:36:21",
-    "\u001b[2m   Duration \u001b[22m 673ms\u001b[2m (transform 309ms, setup 0ms, collect 597ms, tests 71ms, environment 1ms, prepare 908ms)\u001b[22m"
+    "\u001b[2m   Start at \u001b[22m 19:14:43",
+    "\u001b[2m   Duration \u001b[22m 988ms\u001b[2m (transform 365ms, setup 0ms, collect 743ms, tests 92ms, environment 2ms, prepare 1.46s)\u001b[22m"
    ],
    "offline_violation": false
   },
@@ -295,7 +295,7 @@
    "step": "npx next build",
    "command": "C:\\Program Files\\nodejs\\npx.CMD next build",
    "exit_code": 0,
-   "seconds": 25.0,
+   "seconds": 23.1,
    "needs_outside_the_repo": null,
    "output_tail": [
     "+ First Load JS shared by all             102 kB",
@@ -310,14 +310,14 @@
  ],
  "suite_with_and_without_the_snapshot": {
   "with": {
-   "passed": 1110,
+   "passed": 1145,
    "skipped": 1,
-   "deselected": 3
+   "deselected": 4
   },
   "without": {
-   "passed": 1081,
+   "passed": 1116,
    "skipped": 30,
-   "deselected": 3
+   "deselected": 4
   },
   "reading": "Tests that skip or fail only in the second column are tests a judge cannot run. A skip is honest and a pass that depended on the cache is not, which is why both columns are published."
  },
