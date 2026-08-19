@@ -134,6 +134,29 @@ def main() -> int:
         )
     )
 
+    # The reference page maps every artifact to what writes it and what checks it, and it
+    # is generated from the tree rather than maintained, so a script added without a
+    # docstring or a receipt nothing rebuilds shows up here instead of in a judge's diff.
+    rc, out = run([str(PY), str(REPO / "scripts" / "sync_docs.py"), "--check"])
+    results.append(
+        check(
+            "reference page matches the tree",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
+    # The shot list quotes measured numbers into a public, unversioned video. It is the one
+    # document here where a stale figure cannot be corrected after submission.
+    rc, out = run([str(PY), str(REPO / "scripts" / "sync_demo.py"), "--check"])
+    results.append(
+        check(
+            "demo script matches the receipts",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
     # Artifact freshness. Every other check here can pass while a committed artifact
     # disagrees with the code that produced it, which is exactly what happened in D0:
     # LEAKAGE_AUDIT.json kept a PASS the builder could no longer emit, and a test was

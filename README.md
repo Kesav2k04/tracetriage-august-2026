@@ -312,6 +312,23 @@ The reviewer notes need the model only to be re-frozen. `scripts/run_explanation
 --freeze` is the step that talks to it; the default run publishes from the committed fixture
 and needs neither the model nor the network.
 
+## Generated documentation
+
+Five documents in this repository are produced by a script and fail the standing gate when
+they drift from what produced them. Editing any of them by hand is the defect they exist to
+catch.
+
+| Document | Generator | What it is |
+|---|---|---|
+| `README.md` results tables | `scripts/sync_readme_results.py` | the measured rows, from the receipts |
+| `docs/KILL_GATE.md` | `scripts/sync_kill_gate.py` | the gate summary and the failure log |
+| `FOR_JUDGES.md` | `scripts/sync_for_judges.py` | the submission page, from the receipts |
+| `docs/REFERENCE.md` | `scripts/sync_docs.py` | what writes each artifact, what validates it, what tests name it |
+| `docs/DEMO_SCRIPT.md` | `scripts/sync_demo.py` | the video shot list, with every spoken number read from a receipt |
+
+Each takes `--check`, which regenerates into memory and exits non-zero on any difference
+without writing. `scripts/gate.py` runs all five.
+
 ## Prior art and honest scope
 
 SatNOGS already assigns observation and waterfall statuses. Public projects already classify waterfalls with CNNs. STRF-based tooling already extracts Doppler traces. **TraceTriage claims novelty for none of those.**

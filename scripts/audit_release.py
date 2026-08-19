@@ -446,6 +446,8 @@ def audit_weight() -> dict[str, Any]:
         per_dir[key] = per_dir.get(key, 0) + size
 
     per_file.sort(reverse=True)
+    _top_dirs = sorted(per_dir.items(), key=lambda kv: -kv[1])[:15]
+    _remainder = total - sum(v for _, v in _top_dirs)
     notes = []
     for prefix, why in _WEIGHT_NOTES:
         matched = [(s, f) for s, f in per_file if f.startswith(prefix)]
@@ -469,9 +471,21 @@ def audit_weight() -> dict[str, Any]:
         "tracked_bytes": total,
         "tracked_megabytes": round(total / 1048576, 2),
         "by_directory": [
-            {"path": k, "megabytes": round(v / 1048576, 2)}
-            for k, v in sorted(per_dir.items(), key=lambda kv: -kv[1])[:15]
+            {"path": k, "megabytes": round(v / 1048576, 2)} for k, v in _top_dirs
         ],
+        # The table is the fifteen largest groups, so it does not add up to the tree on its
+        # own. Publishing it without this row let a reader sum the column, get less than
+        # tracked_megabytes and have nothing to attribute the difference to: a truncation
+        # that reads as a measurement. The remainder is named and the two now close.
+        "by_directory_remainder": {
+            "groups": len(per_dir) - len(_top_dirs),
+            "bytes": _remainder,
+            "megabytes": round(_remainder / 1048576, 2),
+            "why": (
+                "everything outside the fifteen largest groups above, so that the table "
+                "and tracked_bytes account for the same tree"
+            ),
+        },
         "largest_files": [
             {"path": f, "megabytes": round(s / 1048576, 3)} for s, f in per_file[:15]
         ],

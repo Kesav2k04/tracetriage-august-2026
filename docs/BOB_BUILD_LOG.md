@@ -4876,3 +4876,86 @@ condition in turn and assert the export goes red.
 index and no snapshot, and it states in its own text that it measures agreement with a silver
 network label rather than with the sky, that it says nothing about images, and that whether a
 reviewer shown these neighbours decides better is kill gate 4's territory and still open.
+
+---
+
+## 2026-08-19 IST | Wave D | D12: a reference page that found three untested receipts, and a shot list that cannot go stale
+
+The prompt's unit D5, generated documentation and the demo. Two generators, and the first one
+found something on its first run.
+
+**`docs/REFERENCE.md`, and nothing in it is typed.** The page answers the question a judge
+asks while tracing a number back to the code: what writes this artifact, what contract
+validates it, what test asserts it. Every cell is read off the tree. A module's purpose is the
+first sentence of its own docstring, and a module with no docstring gets the words **no module
+docstring** rather than an empty cell, because an empty cell in a generated table reads as
+"nothing to say". The builder column is the set of non-test modules whose source names the
+file, which is a fact about the code rather than a table someone maintained. The contract
+column is matched by identifier against the receipt's own `schema` field, so a receipt naming
+a schema no contract declares shows as `none` rather than as a guess. Each row carries the
+first sixteen hex characters of the committed bytes, so a receipt rebuilt without regenerating
+this page fails `--check`.
+
+**What it found: three receipts no test named.** `SECRET_SCAN.json`, `ATTRIBUTION_AUDIT.json`
+and `REPO_WEIGHT.json` carry the strongest sentences in the repository (zero secrets, every
+redistributed file attributed, nothing tracked a judge does not need) and the "named in tests"
+column came back empty for all three. A scanner that had stopped scanning would have published
+`clean: true` and no gate would have moved: the shape gate 3 had before it was withdrawn.
+`tests/test_release_audit.py` now plants one credential per pattern against all fourteen
+rules, feeds four benign lines that must not match, requires every allowlist entry to carry a
+reason longer than a phrase, and mutates one attribution obligation to prove that `clean` is
+computed rather than constant. The credentials are planted as strings rather than written into
+the tree, because committing a real-shaped key to make a point about key scanning is a bad
+trade. One of those tests failed on its first run: the planted JWT was two characters short of
+the pattern's own minimum, which is the test being wrong rather than the scanner, and it is
+recorded here because a planted sample that does not match is the failure mode of the whole
+approach.
+
+**A weight table that did not add up to its own tree.** `by_directory` is the fifteen largest
+groups, and the field name reads as a partition. Summing the column gave 29.39 MB of a tree the
+same run measured at 31.33 MB: 6.2 percent unaccounted, with nothing on the page to attribute
+it to, which is a truncation that reads as a measurement. The receipt now carries
+`by_directory_remainder` with the group count, the bytes and a sentence saying what it is, and
+the test asserts the two close. Re-measured at this commit: 295 tracked files, 32.36 MB, of
+which the fifteen largest groups are 30.29 MB and the remaining 123 groups are 2.08 MB. The
+audit had last run at `0e663e2`, fifteen files ago, which is the E6a finding recurring, and it
+is why `scripts/signoff.py` in D13 re-runs it rather than reading it.
+
+**`docs/DEMO_SCRIPT.md`, generated from the receipts.** Seven shots, 154 seconds against a
+180-second ceiling and a 165-second target that leaves room for a retake. The five constraints
+are the competition's own: under three minutes, open with the pitch, show it running against
+real input and real output, one flow end to end, no narration over slides. The sixth is this
+project's: every number spoken is read from a committed receipt at generation time. That
+matters here more than anywhere else in the repository, because the video is public and
+unversioned and the claim register's rule 4 says drift there cannot be recovered after
+submission. The flow is the one the prompt names: the plate opens, the observation page is the
+middle, the queue reorder is the product and the verdict follows it. The inconclusive gate 3
+verdict gets sixteen seconds at shot 3, before the product, because a demo that hides it and a
+console that publishes it are not the same submission.
+
+**The test goes the other way from `--check`.** `--check` compares the committed page against
+the generator and cannot catch the generator, which is the gap `tests/test_for_judges.py`
+exists to close for the judges' page. `tests/test_demo_script.py` re-reads every numeric token
+in every spoken line from the artifact that shot cites, walking the payload's leaves at the
+precision the script quoted rather than matching substrings, because a receipt holds enough
+digits that "appears somewhere in the file" can be satisfied by an unrelated observation id.
+Three tokens are exempt and named: the ceiling, the target and the word "three" in "three
+minutes", which belong to the script rather than to a receipt. Two mutations prove the checks
+can fail: padding a shot past the target has to stop the generator, and moving the queue's
+lift in the receipt has to move the spoken line.
+
+**Files changed:** `scripts/sync_docs.py`, `scripts/sync_demo.py`, `docs/REFERENCE.md`,
+`docs/DEMO_SCRIPT.md`, `tests/test_reference_sync.py`, `tests/test_demo_script.py`,
+`tests/test_release_audit.py` (all new), `scripts/audit_release.py`, `scripts/gate.py`,
+`README.md`, `FOR_JUDGES.md`, `artifacts/SECRET_SCAN.json`,
+`artifacts/ATTRIBUTION_AUDIT.json`, `artifacts/REPO_WEIGHT.json`,
+`apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/audit_release.py --skip-history`, `scripts/sync_docs.py`,
+`scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/build_console_data.py
+--skip-images`, `python -m ruff check .`, `python -m pytest -m "not network and not ocr and
+not llm"`, `scripts/gate.py`.
+**Tests:** 40 new offline tests across three files. Two new standing gates: the reference page
+and the demo script each fail the gate when they drift.
+**Outcome:** accepted. The demo capture itself is the remaining step and it is last by
+instruction, after the external review pass. The script is what the capture is recorded
+against, and it is checked rather than trusted.
