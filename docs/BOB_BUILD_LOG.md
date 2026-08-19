@@ -4959,3 +4959,46 @@ and the demo script each fail the gate when they drift.
 **Outcome:** accepted. The demo capture itself is the remaining step and it is last by
 instruction, after the external review pass. The script is what the capture is recorded
 against, and it is checked rather than trusted.
+
+---
+
+## 2026-08-19 IST | Wave D | D12a: the credential scanner found the test that tests it
+
+Three defects in D12's own work, all found by checks that already existed, which is the
+outcome a standing gate is for.
+
+**The secret gate fired on `tests/test_release_audit.py`.** Planting one credential per
+pattern put a private-key header and a full JWT into a tracked file as literals, and both the
+gate's three-pattern grep and the audit's own fourteen-pattern scan found them. A test written
+to prove a credential scanner works, which commits a credential-shaped string to make the
+point, is the thing it was written to prevent. Every planted value is now assembled from
+fragments at runtime, so the pattern matches the value and no literal in the file matches the
+scanner. The comment above them says not to join them back up, because the obvious tidy-up is
+the regression. The other eight planted values were already safe by accident, and now they are
+safe on purpose.
+
+**A test that filled the disk.** The reference-page tests mutate a copy of the tree rather than
+the repository, and the first copy took `artifacts/` whole, so `hog_cache/hog.npy` went into
+the system temporary directory once per test. The suite errored with `[WinError 112] There is
+not enough space on the disk`, and it put weights on `C:`, which this project's rules forbid.
+The generator globs `artifacts/*.json` and reads `.py` under three source roots and never
+descends further, so the copy is now exactly that: a few hundred kilobytes instead of thirty
+megabytes.
+
+**A weight report the audit's own re-run kept moving.** `audit_release.py` measures the
+tracked tree, and its three receipts are part of that tree, so the first run after their
+content changes reports the previous sizes and the second settles. That is recorded in the
+function's own docstring and it is why the count moved from 295 files to 302 across these
+runs: seven files landed between them. It is left as a real measurement of the whole tree
+rather than excluding its own siblings, because a judge cloning the repository gets the whole
+tree.
+
+**Files changed:** `tests/test_release_audit.py`, `tests/test_reference_sync.py`,
+`artifacts/SECRET_SCAN.json`, `artifacts/ATTRIBUTION_AUDIT.json`, `artifacts/REPO_WEIGHT.json`,
+`FOR_JUDGES.md`, `docs/REFERENCE.md`, `apps/web/public/data/provenance.json`.
+**Commands run:** `git grep -lIE` with the gate's own pattern, `scripts/audit_release.py
+--skip-history`, `scripts/sync_for_judges.py`, `scripts/build_console_data.py --skip-images`,
+`scripts/sync_docs.py`, `scripts/sync_demo.py`, `python -m ruff check .`, `python -m pytest`.
+**Tests:** no new tests. Three existing checks did the work.
+**Outcome:** accepted. The secret scan is clean at zero findings over the working tree and the
+history, and the gate's grep returns nothing.

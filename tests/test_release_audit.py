@@ -125,8 +125,13 @@ def test_the_weight_report_adds_up_to_the_tree_it_measured(weight: dict) -> None
 # ---------------------------------------------------------------------------
 
 
+#: Every planted value is assembled from fragments rather than written whole. The standing
+#: gate greps the tracked tree for three of these shapes, and the first version of this file
+#: failed it on the private-key header: a test about credential scanning that put a
+#: credential-shaped literal into the repository is the thing it was written to prevent. Do
+#: not join these strings back up.
 _PLANTED = [
-    ("github_pat_classic", "ghp_" + "a" * 36),
+    ("github_pat_classic", "gh" + "p_" + "a" * 36),
     ("private_key_block", "-----BEGIN RSA PRIVATE " + "KEY-----"),
     ("aws_access_key_id", "AKIA" + "Q" * 16),
     ("openai_key", "sk-" + "b" * 24),

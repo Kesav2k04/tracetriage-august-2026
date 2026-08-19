@@ -20,7 +20,7 @@ file that no longer exists in that form.
 | Artifact | Schema | Version | Contract | Bytes | sha256 | Named by | Named in tests |
 |---|---|---|---|---|---|---|---|
 | `AGENT_RECEIPT.json` | AGENT_RECEIPT | 1 | none | 30,114 | `cfc07bbcdac087d8` | `scripts/build_console_data.py`, `scripts/run_agent_study.py`, `scripts/sync_for_judges.py` | `test_agent.py` |
-| `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 81,051 | `f2bb225114451284` | `scripts/audit_release.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
+| `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 81,051 | `d51ea1ee9528a05c` | `scripts/audit_release.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `BASELINE_RECEIPT.json` | BASELINE_RECEIPT | 0.1.0 | none | 9,010 | `e0912b1454763c14` | `scripts/run_baseline.py`, `scripts/run_triage_slice.py` | `test_baseline.py` |
 | `CLEAN_CLONE_TRANSCRIPT.json` | CLEAN_CLONE_TRANSCRIPT | 0.1.0 | none | 14,503 | `ebfff4a77b7e73da` | `scripts/clean_clone_check.py`, `scripts/sync_for_judges.py` | `test_for_judges.py` |
 | `corridor_features.json` | CORRIDOR_FEATURES | 0.1.0 | none | 543,929 | `dea323857f560cc8` | `pipeline/tracetriage/features.py`, `scripts/build_console_data.py`, `scripts/clean_clone_check.py`, `scripts/extract_corridor_features.py`, `scripts/run_queue.py` | `test_console_export.py` |
@@ -35,9 +35,9 @@ file that no longer exists in that form.
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 65,343 | `b5990be2a373ad5c` | `pipeline/tracetriage/physics.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
 | `PRECEDENT_RECEIPT.json` | PRECEDENT_RECEIPT | 1 | none | 7,849 | `2022347ed3180ee2` | `scripts/build_console_data.py`, `scripts/run_precedent_study.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py` | `test_console_export.py`, `test_precedent.py` |
 | `QUEUE_RECEIPT.json` | QUEUE_RECEIPT | 0.3.0 | `contracts/queue_receipt.schema.json` | 253,883 | `94dca2ed61434bd7` | `scripts/annotate.py`, `scripts/build_console_data.py`, `scripts/gate.py`, `scripts/run_agent_study.py`, `scripts/run_queue.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_demo_script.py`, `test_kill_gate_sync.py`, `test_mcp_server.py`, `test_queue_concentration.py`, `test_reference_sync.py` |
-| `REPO_WEIGHT.json` | REPO_WEIGHT | 0.1.0 | none | 4,271 | `19875bf4f4e9ab4b` | `scripts/audit_release.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
+| `REPO_WEIGHT.json` | REPO_WEIGHT | 0.1.0 | none | 4,271 | `25c9c7d8a65cbd33` | `scripts/audit_release.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `SECOND_TRACE_SURVEY.json` | SECOND_TRACE_SURVEY | 0.1.0 | none | 345,808 | `c6481e8dc7240be4` | `scripts/audit_release.py`, `scripts/clean_clone_check.py`, `scripts/measure_second_trace.py` | `test_failure_injection.py` |
-| `SECRET_SCAN.json` | SECRET_SCAN | 0.1.0 | none | 1,146 | `47abd329c785ba2e` | `scripts/audit_release.py`, `scripts/sync_for_judges.py` | `test_reference_sync.py`, `test_release_audit.py` |
+| `SECRET_SCAN.json` | SECRET_SCAN | 0.1.0 | none | 1,146 | `96ab0c8fc0d5c479` | `scripts/audit_release.py`, `scripts/sync_for_judges.py` | `test_reference_sync.py`, `test_release_audit.py` |
 | `SPLIT_MANIFEST.json` | none declared | 0.5.0 | none | 234,971 | `bdb159ca13ece61c` | `scripts/build_console_data.py`, `scripts/build_splits.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/run_fusion.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py` | `test_contracts.py`, `test_splits.py` |
 | `TRIAGE_RECEIPT.json` | none declared | 0.3.0 | none | 3,847 | `08be0ca60bac7e75` | `scripts/check_artifact_freshness.py`, `scripts/render_evidence_card.py`, `scripts/run_triage_slice.py` | `test_contracts.py` |
 

@@ -46,14 +46,35 @@ def sync_docs():
 
 @pytest.fixture
 def clone(tmp_path: Path) -> Path:
-    """A copy of the parts of the tree the generator reads."""
+    """A copy of exactly what the generator reads, and nothing else.
+
+    The first version copied `artifacts/` whole and put `hog_cache/hog.npy` into the system
+    temp directory four times over, which filled the disk and errored the suite. The
+    generator globs `artifacts/*.json` rather than walking it, and reads only `.py` under
+    the source roots, so copying a cache into a test directory was work in service of
+    nothing. It also put weights on `C:`, which this project's rules forbid outright.
+    """
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
-    for name in ("scripts", "contracts", "artifacts", "tests"):
-        shutil.copytree(_REPO / name, repo / name, dirs_exist_ok=True)
-    shutil.copytree(
-        _REPO / "pipeline" / "tracetriage", repo / "pipeline" / "tracetriage", dirs_exist_ok=True
-    )
+    for name in ("scripts", "contracts", "tests", "artifacts"):
+        (repo / name).mkdir(parents=True, exist_ok=True)
+    (repo / "pipeline" / "tracetriage").mkdir(parents=True)
+
+    for source, pattern in (
+        (_REPO / "scripts", "*.py"),
+        (_REPO / "contracts", "*.schema.json"),
+        (_REPO / "tests", "*.py"),
+        (_REPO / "pipeline" / "tracetriage", "*.py"),
+    ):
+        target = repo / source.relative_to(_REPO)
+        for path in source.glob(pattern):
+            shutil.copy2(path, target / path.name)
+
+    # Top-level files only. The generator lists these by suffix and never descends.
+    for path in (_REPO / "artifacts").iterdir():
+        if path.is_file():
+            shutil.copy2(path, repo / "artifacts" / path.name)
+
     shutil.copy2(_REFERENCE, repo / "docs" / "REFERENCE.md")
     return repo
 
