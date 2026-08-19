@@ -29,6 +29,8 @@
 export type IconName =
   | "queue"
   | "evaluation"
+  | "agent"
+  | "precedent"
   | "replay"
   | "provenance"
   | "corridor";
@@ -48,6 +50,27 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M2.5 13.5h11" />
       <path d="M2.5 13.5 13.5 2.5" className="icon-faint" />
       <path d="M2.5 13.5c3 0 3.6-8 11-8" className="icon-mark" />
+    </>
+  ),
+  agent: (
+    <>
+      <path d="M4.5 2.5h7v4h-7z" className="icon-mark" />
+      <path d="M8 6.5v3" />
+      <path d="M3.5 9.5h9v4h-9z" />
+      <path d="M6 11.5h.01" className="icon-mark" />
+      <path d="M10 11.5h.01" className="icon-mark" />
+    </>
+  ),
+  precedent: (
+    <>
+      <path d="M8 8.5a2 2 0 1 0 0-.01" className="icon-mark" />
+      <path d="M3 3.5h.01" />
+      <path d="M13 4.5h.01" />
+      <path d="M4 12.5h.01" />
+      <path d="M12.5 12h.01" />
+      <path d="m6.4 7.6-3.1-3.7" className="icon-faint" />
+      <path d="m9.6 7.9 3.1-3" className="icon-faint" />
+      <path d="m6.6 9.6-2.4 2.5" className="icon-faint" />
     </>
   ),
   replay: (

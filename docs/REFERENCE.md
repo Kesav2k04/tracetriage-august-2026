@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 23 JSON artifacts, 8 contracts, 34 scripts, 17 package modules and 1082 test functions across 43 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 23 JSON artifacts, 8 contracts, 34 scripts, 17 package modules and 1086 test functions across 44 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -141,6 +141,7 @@ Receipts no test names: none.
 | `tests/test_claim_drift.py` | 9 | Every public number must come from a generated artifact, not a keyboard. |
 | `tests/test_clean_clone.py` | 10 | The clean-clone transcript, and the counts it publishes. |
 | `tests/test_console_export.py` | 22 | The console export, and the episode key the receipt now names (C5). |
+| `tests/test_console_routes.py` | 4 | Every page the console builds has to be reachable from the console. |
 | `tests/test_contracts.py` | 60 | Contract-level tests. |
 | `tests/test_contrast.py` | 7 | Every rendered colour pair meets its WCAG floor, recomputed from the tokens. |
 | `tests/test_corridor_fit.py` | 54 | Tests for the gate-3 corridor fit. |

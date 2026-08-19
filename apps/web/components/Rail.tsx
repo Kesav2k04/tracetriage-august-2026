@@ -15,9 +15,22 @@ import Icon, { type IconName } from "./Icon";
  * Everything here is a string or a number the server already had.
  */
 
+/**
+ * Every route this console has, in reading order.
+ *
+ * Two were missing for the whole build. `/agent/` and `/precedent/` existed, returned
+ * 200, were described in the README as two of six pages, and could not be reached from
+ * anywhere on the site: `components/Nav.tsx` listed all six and was imported by nothing,
+ * while this list, the one that renders, had four. A route a reader cannot navigate to is
+ * a route that does not exist for them.
+ *
+ * `tests/test_console_routes.py` fails if a page under `apps/web/app` is not listed here.
+ */
 const LINKS: { href: string; label: string; icon: IconName }[] = [
   { href: "/", label: "Queue", icon: "queue" },
   { href: "/evaluation/", label: "Evaluation", icon: "evaluation" },
+  { href: "/agent/", label: "Agent", icon: "agent" },
+  { href: "/precedent/", label: "Precedent", icon: "precedent" },
   { href: "/replay/", label: "Replay", icon: "replay" },
   { href: "/provenance/", label: "Provenance", icon: "provenance" },
 ];

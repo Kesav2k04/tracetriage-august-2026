@@ -5283,3 +5283,35 @@ queue receipt.
 **Outcome:** accepted. One new dependency on the reader: the CI badge added to the README
 reports whatever the last run on `main` did, and nobody here can query the Actions API to see
 it. It wants one look after the repository goes public.
+
+## 2026-08-20 IST | Wave D | D14a: two of the six console pages could not be reached from the console
+
+The lede screenshot taken to check D14 showed four items in the side rail. The console has
+six pages. `/agent/` and `/precedent/` were built, deployed, answered 200 and were named in
+`README.md` as two of six, and no link on the site went to either.
+
+`apps/web/components/Nav.tsx` listed all six and was imported by nothing.
+`apps/web/components/Rail.tsx`, which renders on every page, listed four. The dead file
+almost certainly took the place of the live one in a refactor and kept being updated.
+
+Nothing in the repository could catch it. `next build` emitted all six routes. The deploy
+contract test checks the output directory. The live-route check requests each page by URL and
+gets 200. Every screenshot was taken by navigating straight to the page. A route is
+unreachable only to someone who arrives at the top and looks for it, and no check was doing
+that. The agent study and the precedent study are two of the four things this submission is
+judged on, and a judge who read the console rather than the README would never have found
+either.
+
+The two links are in the rail with icons, `Nav.tsx` is deleted rather than left as a second
+list that disagrees, and `tests/test_console_routes.py` enumerates the page files under
+`apps/web/app` and requires each route to appear in the rail. It checks the other direction
+too, so a rail link to a route that is not built fails before a judge finds it by clicking,
+and it ties the README's page count to the number the rail actually reaches.
+
+**Files changed:** `apps/web/components/Rail.tsx`, `apps/web/components/Icon.tsx`,
+`apps/web/components/Nav.tsx` (deleted), `tests/test_console_routes.py` (new),
+`docs/REFERENCE.md`.
+**Commands run:** `npx tsc --noEmit`, `npx vitest run`, `npx next build`,
+`python -m pytest`, `python -m ruff check .`, `scripts/gate.py`.
+**Tests:** 10 new offline tests in `tests/test_console_routes.py`.
+**Outcome:** accepted.
