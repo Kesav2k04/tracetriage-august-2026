@@ -4,7 +4,7 @@
 
 Submitted to the AI Builders Challenge with IBM Bob, August 2026 theme: **Advance Space Exploration with AI**.
 
-> **Status: six kill gates asked, two met, three inconclusive, one not run.** Every number in this README is generated from a frozen artifact under `artifacts/` and carries a row in `docs/CLAIM_REGISTER.md`; `tests/test_claim_drift.py` fails if a README number loses its register row. It does not yet compare a quoted value against its artifact, and saying that it did was wrong: mutating the AUC row from 0.875 to 0.999 leaves the suite green. Task D2 closes that, and `tests/test_gate3_bound.py` is the pattern. The three inconclusive gates are reported as NOT_ESTABLISHED rather than rounded into a pass, and the gate that was never run is reported as OPEN rather than omitted. Gate 3 moved from PASSED to NOT_ESTABLISHED on 2026-08-18: every one of its three testable observations discriminates, and three successes in three trials cannot establish the 70 percent rate the gate asked for, because the exact one-sided 95 percent lower bound is 0.368.
+> **Status: six kill gates asked, two met, three inconclusive, one not run.** Every number in this README is generated from a frozen artifact under `artifacts/` and carries a row in `docs/CLAIM_REGISTER.md`; `tests/test_claim_drift.py` compares each quoted value against the artifact it came from, not merely the presence of a register row: editing the AUC row from 0.875 to 0.999 turns three tests red. `tests/test_readme_claims.py` does the same for the paths this file names, because an existence claim is as checkable as a number. The three inconclusive gates are reported as NOT_ESTABLISHED rather than rounded into a pass, and the gate that was never run is reported as OPEN rather than omitted. Gate 3 moved from PASSED to NOT_ESTABLISHED on 2026-08-18: every one of its three testable observations discriminates, and three successes in three trials cannot establish the 70 percent rate the gate asked for, because the exact one-sided 95 percent lower bound is 0.368.
 
 ---
 
@@ -130,7 +130,8 @@ Bob's work is recorded, not asserted:
 
 - `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures and repairs, with actual build credit consumption
 - `docs/BOB_HANDOFF.md` carries exact state across trial-account rotations
-- `bob_sessions/` holds exported task histories and screenshots with secrets removed
+- `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool contracts and MCP wiring each Bob task ran under, tracked so the conditions of the work are readable and not just its output
+- exported task transcripts are **not included**. An earlier draft of this section said they were, pointing at a directory that held nothing but a placeholder file, which git does not publish at all. The directory is gone and the build log is the record; a test now fails if this file names a path that is missing or empty
 - a final Bob task inspects the release commit, runs the acceptance suite, repairs failures and generates a sign-off receipt
 
 `docs/PRE_BUILD_BASELINE.md` lists exactly what existed before Bob's first task, so the line between scaffolding and Bob's work is auditable rather than implied.
@@ -163,22 +164,23 @@ Full method, margins and open questions: **`docs/DOPPLER_CORRECTION_FINDING.md`*
 ### Measured, with receipts
 
 Every cell below is read from a receipt under `artifacts/` and registered in
-`docs/CLAIM_REGISTER.md`. Two of the six kill gates came back inconclusive and one was
-never run; those rows say so rather than being left out.
+`docs/CLAIM_REGISTER.md`. Of the 6 kill gates, 2 were met, 3 came back inconclusive and 1
+was never run. The rows for the gates that produced no number say so rather than being
+left out.
 
 | Metric | Value | Receipt |
 |---|---|---|
-| Brier score, chronological holdout | 0.1292 for the shipped arm, against 0.1495 image-only and 0.2085 for a prior-only floor | `FUSION_RECEIPT.json` |
-| AUC, chronological holdout | 0.875, against 0.842 image-only | `FUSION_RECEIPT.json` |
-| Calibration slope and intercept | 1.483 and -0.246, ECE 0.0713 | `FUSION_RECEIPT.json` |
-| Selective risk near 80% coverage | 0.0857 at 79.5% coverage | `FUSION_RECEIPT.json` |
-| Queue lift over random, chronological | 1.582x, 95% CI [1.353, 1.755], **NOT_ESTABLISHED** against a 1.5x threshold | `QUEUE_RECEIPT.json` |
-| Queue lift over image-only uncertainty | 1.582x against 1.186x at the same budget | `QUEUE_RECEIPT.json` |
-| Queue lift over first-in-first-out | 1.582x against 1.107x | `QUEUE_RECEIPT.json` |
-| Cold-station holdout | **PASSED**, 2.253x, 95% CI [1.920, 3.896] | `QUEUE_RECEIPT.json` |
-| Cold-transmitter holdout | 1.656x, 95% CI [1.340, 1.913], NOT_ESTABLISHED | `QUEUE_RECEIPT.json` |
-| Cold station and transmitter together | 1.292x, 95% CI [1.073, 1.520], NOT_ESTABLISHED | `QUEUE_RECEIPT.json` |
-| Physics beats image-only on Brier | **NOT ESTABLISHED**. Margin +0.02079, interval spans zero | `FUSION_RECEIPT.json` gate5 |
+| Brier score, chronological holdout | 0.1292 for the shipped arm, against 0.1495 image-only and 0.2085 for a prior-only floor | `artifacts/FUSION_RECEIPT.json` |
+| AUC, chronological holdout | 0.875, against 0.842 image-only | `artifacts/FUSION_RECEIPT.json` |
+| Calibration slope and intercept | 1.483 and -0.246, ECE 0.0713 | `artifacts/FUSION_RECEIPT.json` |
+| Selective risk near 80% coverage | 0.0857 at 79.5% coverage | `artifacts/FUSION_RECEIPT.json` |
+| Queue lift over random, chronological | 1.582x, 95% CI [1.353, 1.755], **NOT_ESTABLISHED** against a 1.5x threshold | `artifacts/QUEUE_RECEIPT.json` |
+| Queue lift over image-only uncertainty | 1.582x against 1.186x at the same budget | `artifacts/QUEUE_RECEIPT.json` |
+| Queue lift over first-in-first-out | 1.582x against 1.107x | `artifacts/QUEUE_RECEIPT.json` |
+| Cold-station holdout | **PASSED**, 2.253x, 95% CI [1.920, 3.896] | `artifacts/QUEUE_RECEIPT.json` |
+| Cold-transmitter holdout | 1.656x, 95% CI [1.340, 1.913], NOT_ESTABLISHED | `artifacts/QUEUE_RECEIPT.json` |
+| Cold station and transmitter together | 1.292x, 95% CI [1.073, 1.520], NOT_ESTABLISHED | `artifacts/QUEUE_RECEIPT.json` |
+| Physics beats image-only on Brier | **NOT ESTABLISHED**. Margin +0.02079, interval spans zero | `artifacts/FUSION_RECEIPT.json` gate5 |
 
 ### Still unmeasured, and named as such
 

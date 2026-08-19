@@ -19,8 +19,17 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import sys
+import textwrap
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
+
+# The gate tally is computed by the console builder from the receipts. Importing it is
+# the point: the last time this sentence was typed by hand it said two gates were
+# inconclusive while three were, for a week, in the paragraph that introduces the
+# evidence table. The insert makes the import work whichever directory it is run from.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from build_console_data import build_gate_summary  # noqa: E402
 
 fusion = json.loads((REPO / "artifacts/FUSION_RECEIPT.json").read_text(encoding="utf-8"))
 queue = json.loads((REPO / "artifacts/QUEUE_RECEIPT.json").read_text(encoding="utf-8"))
@@ -38,8 +47,37 @@ g5 = fusion["gate5"]["per_split"]["chronological"]
 curve = [r for r in chronological["selective"]["curve"] if r.get("coverage") is not None]
 near80 = min(curve, key=lambda r: abs(r["coverage"] - 0.80))
 
-FUSION_REF = "`FUSION_RECEIPT.json`"
-QUEUE_REF = "`QUEUE_RECEIPT.json`"
+# The path, not the bare filename. A reader who follows `FUSION_RECEIPT.json` has to
+# guess the directory, and a test that checks the README's paths exist reads the bare
+# name as a claim about the repository root, where no such file is.
+_summary = build_gate_summary(queue, fusion)
+_verdicts = [g["verdict"] for g in _summary["gates"]]
+N_GATES = _summary["n_gates"]
+N_MET = _summary["n_met"]
+N_INCONCLUSIVE = _verdicts.count("NOT_ESTABLISHED")
+N_OPEN = _verdicts.count("OPEN")
+
+
+def _were(n: int) -> str:
+    return "was" if n == 1 else "were"
+
+
+GATE_TALLY = (
+    f"Of the {N_GATES} kill gates, {N_MET} {_were(N_MET)} met, "
+    f"{N_INCONCLUSIVE} came back inconclusive and {N_OPEN} {_were(N_OPEN)} never run."
+)
+
+# Wrapped here rather than in the template, because the tally's length depends on the
+# receipts and a hand-wrapped paragraph would go ragged the first time a gate changed.
+INTRO = textwrap.fill(
+    "Every cell below is read from a receipt under `artifacts/` and registered in "
+    f"`docs/CLAIM_REGISTER.md`. {GATE_TALLY} The rows for the gates that produced no "
+    "number say so rather than being left out.",
+    width=90,
+)
+
+FUSION_REF = "`artifacts/FUSION_RECEIPT.json`"
+QUEUE_REF = "`artifacts/QUEUE_RECEIPT.json`"
 
 
 def lift(name: str) -> str:
@@ -136,9 +174,7 @@ UNMEASURED_TABLE = "\n".join(
 
 SECTION = f"""### Measured, with receipts
 
-Every cell below is read from a receipt under `artifacts/` and registered in
-`docs/CLAIM_REGISTER.md`. Two of the six kill gates came back inconclusive and one was
-never run; those rows say so rather than being left out.
+{INTRO}
 
 | Metric | Value | Receipt |
 |---|---|---|
