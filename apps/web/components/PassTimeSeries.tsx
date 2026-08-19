@@ -77,6 +77,86 @@ export function niceCeil(value: number): number {
   return 10 * magnitude;
 }
 
+/**
+ * Index of the highest elevation sample, which is closest approach as this instrument
+ * knows it. Exported because the drawn marker and the accessible label have to agree
+ * about which sample that is.
+ */
+export function indexOfPeakElevation(els: readonly number[]): number {
+  let iTca = 0;
+  for (let i = 1; i < els.length; i += 1) {
+    const v = els[i];
+    const best = els[iTca];
+    if (v !== undefined && best !== undefined && v > best) iTca = i;
+  }
+  return iTca;
+}
+
+/**
+ * Index of the first sign change in the Doppler series, or -1 when the window lies
+ * entirely on one side of closest approach. Sign changes rather than an exact zero,
+ * because the samples are discrete and the crossing lands between two of them.
+ */
+export function indexOfFirstSignChange(dops: readonly number[] | null): number {
+  if (!dops) return -1;
+  return dops.findIndex((v, i) => i > 0 && (v >= 0) !== ((dops[i - 1] ?? v) >= 0));
+}
+
+/**
+ * The accessible label, derived from the series rather than from its endpoints.
+ *
+ * This is a pure function and not inline markup because of what it used to say. The
+ * sentence was built from the first and last sample and asserted that the curve ran
+ * "down through zero", which is false on any window that sits entirely on one side of
+ * closest approach. One of the 25 shipped observations, 14744250, is exactly that: the
+ * Doppler curve runs from -5870.4 Hz to -7227.6 Hz and never changes sign. A sighted
+ * reader sees a curve that stays below the zero line and can discount the sentence. A
+ * reader using a screen reader gets the sentence and nothing else, so the console was
+ * asserting as measured fact something its own data contradicts. Exported so the three
+ * branches can be tested, which is the only way that class of defect stays closed.
+ */
+export function passTimeSeriesLabel({
+  durationS,
+  fracs,
+  els,
+  dops,
+}: {
+  durationS: number;
+  fracs: readonly number[];
+  els: readonly number[];
+  dops: readonly number[] | null;
+}): string {
+  const iTca = indexOfPeakElevation(els);
+  const iCross = indexOfFirstSignChange(dops);
+  const crossesZero = iCross > 0;
+  // Whether the crossing lands on the sample where elevation peaks. The physics
+  // says both happen at closest approach, and on a modelled series they do, but
+  // the label must not assert the coincidence on a series that does not show it.
+  // One sample of tolerance, because the crossing falls between iCross - 1 and
+  // iCross while iTca is a sample index.
+  const crossingIsAtPeak = crossesZero && Math.abs(iCross - iTca) <= 1;
+
+  return (
+    `Elevation and Doppler shift against pass time over ${durationS.toFixed(0)} seconds.`
+    + ` Elevation rises to ${(els[iTca] ?? 0).toFixed(1)} degrees and falls back.`
+    + (dops
+      ? crossesZero
+        ? crossingIsAtPeak
+          ? ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
+            + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero at the`
+            + ` same instant elevation peaks.`
+          : ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
+            + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero`
+            + ` ${Math.abs(((fracs[iCross] ?? 0) - (fracs[iTca] ?? 0)) * durationS).toFixed(0)}`
+            + ` seconds from the elevation peak rather than at it.`
+        : ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
+          + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz. The recording window`
+          + ` lies entirely on one side of closest approach, so the Doppler shift`
+          + ` does not cross zero within it.`
+      : " The Doppler shift is not measurable for this record.")
+  );
+}
+
 export default function PassTimeSeries({
   geometry,
   durationS,
@@ -129,49 +209,12 @@ export default function PassTimeSeries({
 
   // Closest approach, from the elevation series, drawn on both panels so the
   // alignment is explicit rather than left for the reader to eyeball.
-  let iTca = 0;
-  for (let i = 1; i < els.length; i += 1) {
-    const v = els[i];
-    const best = els[iTca];
-    if (v !== undefined && best !== undefined && v > best) iTca = i;
-  }
+  const iTca = indexOfPeakElevation(els);
   const tcaX = x(fracs[iTca] ?? 0);
 
   const timeTicks = [0, 0.25, 0.5, 0.75, 1];
 
-  // Index of the first sign change in the Doppler series, or -1 when the window
-  // lies entirely on one side of closest approach. Sign changes rather than an
-  // exact zero, because the samples are discrete and the crossing lands between
-  // two of them.
-  const iCross = dops
-    ? dops.findIndex((v, i) => i > 0 && (v >= 0) !== ((dops[i - 1] ?? v) >= 0))
-    : -1;
-  const crossesZero = iCross > 0;
-  // Whether the crossing lands on the sample where elevation peaks. The physics
-  // says both happen at closest approach, and on a modelled series they do, but
-  // the label must not assert the coincidence on a series that does not show it.
-  // One sample of tolerance, because the crossing falls between iCross - 1 and
-  // iCross while iTca is a sample index.
-  const crossingIsAtPeak = crossesZero && Math.abs(iCross - iTca) <= 1;
-
-  const label =
-    `Elevation and Doppler shift against pass time over ${durationS.toFixed(0)} seconds.`
-    + ` Elevation rises to ${(els[iTca] ?? 0).toFixed(1)} degrees and falls back.`
-    + (dops
-      ? crossesZero
-        ? crossingIsAtPeak
-          ? ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
-            + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero at the`
-            + ` same instant elevation peaks.`
-          : ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
-            + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz, crossing zero`
-            + ` ${Math.abs(((fracs[iCross] ?? 0) - (fracs[iTca] ?? 0)) * durationS).toFixed(0)}`
-            + ` seconds from the elevation peak rather than at it.`
-        : ` The Doppler shift runs from ${(dops[0] ?? 0).toFixed(0)} Hz to`
-          + ` ${(dops[dops.length - 1] ?? 0).toFixed(0)} Hz. The recording window`
-          + ` lies entirely on one side of closest approach, so the Doppler shift`
-          + ` does not cross zero within it.`
-      : " The Doppler shift is not measurable for this record.");
+  const label = passTimeSeriesLabel({ durationS, fracs, els, dops });
 
   const axis = (
     text: string,

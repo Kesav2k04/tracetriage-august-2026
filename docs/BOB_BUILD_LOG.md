@@ -3791,3 +3791,83 @@ the reason, because a null correlation with no reason reads as an absence of clu
 it means the opposite. The version stays at 0.1.0 on the same reasoning as the D3
 tightening: the writer in this repository emits every newly required field, so no document
 had to be rewritten.
+
+---
+
+## 2026-08-19 IST | Wave D | D0c: a BLOCKING finding closed without the test its acceptance required, and two ledgers that undercount
+
+`REVIEW_ENGINEERING.md:89` (ENG-B2, the accessible label asserting a zero crossing that
+did not happen) was fixed in D0 and refined in D0b. Neither entry added a test, and both
+say why: no TypeScript test framework existed in this repository until D2 brought Vitest
+in. Once it did, the finding was never retro-tested. Wave D's own acceptance says a
+BLOCKING finding is resolved when a test fails without the fix, so on that criterion this
+one was still open while the wave counted it closed.
+
+**The fix was real, the coverage was not.** `apps/web/components/PassTimeSeries.tsx`
+already conditioned the sentence on the series: `iCross` is the first sign change,
+`crossesZero` is `iCross > 0`, and the third branch says the recording window lies on one
+side of closest approach. Nothing exercised any of the three branches. The built page for
+observation 14744250 confirms the fix ships, read straight out of `out/`:
+
+```
+Elevation and Doppler shift against pass time over 284 seconds. Elevation rises to 37.1
+degrees and falls back. The Doppler shift runs from -5870 Hz to -7228 Hz. The recording
+window lies entirely on one side of closest approach, so the Doppler shift does not cross
+zero within it.
+```
+
+**Why the label had to move before it could be tested.** It was assembled inline in the
+component body, so testing it meant rendering the component, and `vitest.config.ts` keeps
+components out of scope by design: node environment, no DOM, no React. Three exported pure
+functions now carry the arithmetic, following the `niceCeil` and `timeSeriesCursorX`
+precedent in the same file: `indexOfPeakElevation`, `indexOfFirstSignChange` and
+`passTimeSeriesLabel`. The rendered string is unchanged. The quotation above is from a
+build after the extraction, and the endpoints in the test fixture are the endpoints on the
+shipped card.
+
+**The mutation check.** Replacing `const crossesZero = iCross > 0` with
+`const crossesZero = dops !== null`, which is the endpoint-derived behaviour the finding
+described, turns one test in `tests/series-label.test.ts` red and leaves the other 80
+green. The failing assertion is the one that matters: the label must not contain the
+substring "crossing zero" for a series that does not cross zero.
+
+**The console suite is larger than the handoff says.** 81 tests across 4 files, up from 70
+before this entry. The handoff has claimed 53 since C6.
+
+**The review counts, verified by grep rather than by summary line.** `REVIEW_SPACE.md`
+carries 5 BLOCKING, 9 SERIOUS and 11 MINOR headings, which matches its own summary.
+`REVIEW_ENGINEERING.md` carries 3 BLOCKING, 11 SERIOUS and 13 MINOR. C7h already recorded
+that the engineering review undercounts its own SERIOUS by one, and the handoff line was
+never corrected after it: it still says ten. Corrected totals across both documents are 8
+BLOCKING, 20 SERIOUS, 24 MINOR, 52 findings.
+
+**What is still open in the reviews.** All 8 BLOCKING and all 20 SERIOUS findings are
+closed. Ten MINOR findings in the engineering review are closed by nothing and cited
+nowhere: `:498`, `:555`, `:565`, `:587`, `:598`, `:614`, `:626`, `:641`, `:652`, `:684`.
+Two more were closed incidentally by work aimed at other findings and are recorded nowhere
+as closed: `:528` by D7's pole-enclosure and antimeridian work, and `:543` by D2's
+`svgPolyline`. Wave D's acceptance covers BLOCKING and SERIOUS only, so these do not hold
+the unit open. They are listed with their line numbers so a later pass does not spend the
+time rediscovering which ones they are.
+
+**Three closures that name no file, recorded as debt rather than repaired here.** SPACE
+`:861`, `:994` and `:782` are recorded in D7 with their measurements and without naming the
+file, symbol or test that carries the change. For `:861` and `:994` the measurement is the
+substance. `:782` states that the omitted frequency terms now appear in a module docstring
+and does not say which module. The D7 entry also has no files-changed list, no commands
+block and no test count, which is the only Wave D entry missing all three.
+
+**One number to check in the final acceptance unit, not a regression from this entry.** The
+build emits 30 `index.html` files, where the wave prompt's acceptance line says 33 pages.
+The extraction here cannot change a page count, and no page-count assertion exists in the
+suite to catch a drift either way.
+
+**Files changed:** `apps/web/components/PassTimeSeries.tsx`,
+`apps/web/tests/series-label.test.ts` (new, 11 tests).
+**Commands run:** `npx vitest run`, `npx tsc --noEmit`, `npx next build`,
+`.venv\Scripts\python.exe scripts\gate.py`.
+**Tests:** console suite 81 of 81 pass. `npx tsc --noEmit` clean. `npx next build` exits 0.
+The offline Python suite and all 13 standing gates were green before and after.
+**Failures and repairs:** none in the run. The repair is the missing coverage itself.
+**Outcome:** accepted. ENG-B2 now has a test that fails without its fix, which was the last
+outstanding item in the wave's BLOCKING and SERIOUS acceptance criteria.

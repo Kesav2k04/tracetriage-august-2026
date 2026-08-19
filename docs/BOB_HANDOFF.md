@@ -8,12 +8,13 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-18, IST |
+| **Handoff written** | 2026-08-19, IST, after D0c |
 | **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h) |
-| **Current wave** | Wave C, closed |
-| **Next unit** | **D0: act on the two expert reviews**, per `docs/WAVE_D_PROMPT.md` |
-| **Open failures** | none in the suite. 818 offline tests collected, 817 pass, 1 declared expected failure. Lint clean. 53 console tests pass under vitest. `scripts/gate.py` green on every standing gate. |
-| **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 OPEN. |
+| **Current wave** | **Wave D, in progress.** Committed: D0, D0b, E1, D1 to D7, D0c. Every one of those is review-closing work, which is prompt unit D0. |
+| **Next unit** | **D1: failure injection across the full list**, per `docs/WAVE_D_PROMPT.md`. D2 has one sub-ask left, the `[UNMEASURED]` row count against the gates recorded OPEN. D3, D4, D5 and D6 are untouched. |
+| **Numbering** | The committed entries named D1 to D7 are review-closing passes and are **not** the prompt's units D1 to D6. Name the remaining units so the two cannot be confused before starting one. |
+| **Open failures** | none. **922** offline tests collected, all pass, no expected failures. Lint clean. **81** console tests pass under vitest across 4 files. `npx tsc --noEmit` clean. `npx next build` exits 0 and emits 30 `index.html` files, where the prompt's acceptance line says 33. `scripts/gate.py` green on **13 of 13** standing gates. |
+| **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 **OPEN and never run**: `artifacts/annotations/annotations.jsonl` holds 2 rows and there is no gate-4 script. |
 | **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, 2,727 observations, 2,500 waterfalls, 739 decisive labels |
 | **Last commit** | see `git log -1` |
@@ -21,10 +22,20 @@
 ### Read this before D0
 
 Two independent reviews of A, B and C are committed as `docs/REVIEW_SPACE.md`
-(5 BLOCKING, 9 SERIOUS, 11 MINOR) and `docs/REVIEW_ENGINEERING.md` (3 BLOCKING, 10
-SERIOUS, 13 MINOR). One blocking finding is closed, and it is the pattern for the rest:
-reproduce it, fix it, add a test that fails without the fix, record it in the build log
-and the claim register. See the C7f entry.
+(5 BLOCKING, 9 SERIOUS, 11 MINOR) and `docs/REVIEW_ENGINEERING.md` (3 BLOCKING, **11**
+SERIOUS, 13 MINOR). The engineering review's own summary line says ten and the file
+carries eleven headings; C7h recorded that and this line said ten until D0c. Corrected
+totals across both documents: 8 BLOCKING, 20 SERIOUS, 24 MINOR, 52 findings.
+
+**State as of D0c: every BLOCKING and every SERIOUS finding is closed.** What is not:
+ten MINOR findings in the engineering review are closed by nothing and cited nowhere,
+`:498`, `:555`, `:565`, `:587`, `:598`, `:614`, `:626`, `:641`, `:652` and `:684`, and two
+more, `:528` and `:543`, were closed incidentally with no record saying so. The wave's
+acceptance covers BLOCKING and SERIOUS, so these do not hold the unit open.
+
+The pattern for any finding is unchanged: reproduce it, fix it, add a test that fails
+without the fix, record it in the build log and the claim register. See the C7f entry, and
+see D0c for what happens when the test is skipped because no framework existed yet.
 
 **Gate 3 moved from PASSED to NOT_ESTABLISHED on 2026-08-18.** Its three testable
 observations all discriminate, and 3 of 3 cannot establish a 70% rate: the exact
