@@ -18,7 +18,7 @@ is read from the receipts by the console rather than typed here.
 
 | Question | Command | What it prints |
 |---|---|---|
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1042 passed, 30 skipped, measured in a clean clone with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1081 passed, 30 skipped, measured in a clean clone with every non-loopback socket refused |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 11 emitted, 14 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake and 5 read-only tools, one of which is the grounding checker |
 | Does the repository hold together? | `python scripts/gate.py` | The standing gates, one line each |
@@ -29,12 +29,11 @@ this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest optio
 run as having collected nothing.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `e940907` with every non-loopback socket refused: 15 of 16 steps
-succeeded. What did not: offline test suite, snapshot present. The transcript carries each
-step's exit code and the tail of its output, so the reason is readable rather than
-summarised. The test counts above are from the pass with the snapshot directory hidden,
-which is a judge's case rather than this machine's, and they are the count at that commit
-rather than at the tip of the branch.
+fresh clone of commit `05d699a` with every non-loopback socket refused: 16 of 16 steps
+succeeded. The transcript carries each step's exit code and the tail of its output, so the
+reason is readable rather than summarised. The test counts above are from the pass with
+the snapshot directory hidden, which is a judge's case rather than this machine's, and
+they are the count at that commit rather than at the tip of the branch.
 
 Two things about that run are worth knowing before it is trusted. The clone built its own
 Python environment, inside itself, with the network refused, resolving the pinned set from
