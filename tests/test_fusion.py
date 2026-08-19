@@ -16,6 +16,11 @@ The four that carry real weight:
 
 from __future__ import annotations
 
+import importlib
+import json
+from pathlib import Path
+from typing import Any
+
 import numpy as np
 import pytest
 
@@ -31,15 +36,30 @@ from pipeline.tracetriage.fusion import (
     GATE5_REFERENCE,
     Calibrator,
     FusionArm,
+    _percentile_resolution,
     auc,
     brier,
     build_design,
     calibration_slope_intercept,
+    clustered_multiplicity_adjusted,
+    clustered_paired_bootstrap,
+    clustered_statistic_difference,
+    clustering_diagnostics,
     expected_calibration_error,
     grouped_bootstrap_statistic_difference,
     grouped_paired_bootstrap,
     multiplicity_adjusted,
 )
+from pipeline.tracetriage.selective import (
+    area_under_risk_coverage,
+    risk_coverage_curve,
+)
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+_run_fusion = importlib.import_module("scripts.run_fusion")
+eligible_split_names = _run_fusion.eligible_split_names
+usable_ids = _run_fusion.usable_ids
 
 
 class TestAdmissibility:
@@ -641,7 +661,7 @@ class TestAblationRule:
             )
         ])
         assert res["multiplicity_corrected"]["blocks"]["physics"]["decision"] == "DROP"
-        assert "physics" not in res["shipped_blocks"]
+        assert "physics" not in res["recommended_blocks"]
 
     def test_a_win_that_does_not_survive_correction_is_not_established(self) -> None:
         """The nominal and corrected rules must disagree here, and both be reported."""
@@ -710,7 +730,7 @@ class TestAblationRule:
             "NOT_ESTABLISHED"
         ), "a block that helps on one split and hurts on another is not established"
 
-    def test_the_shipped_arm_must_be_one_the_ladder_measured(self) -> None:
+    def test_the_recommended_arm_must_be_one_the_ladder_measured(self) -> None:
         """A selected combination nothing fitted has no score to report."""
         mod = _load_run_fusion()
         res = mod._ablation_conclusion([
@@ -732,20 +752,714 @@ class TestAblationRule:
                 },
             )
         ])
-        assert res["shipped_blocks"] == ["image", "corridor", "metadata"]
+        assert res["recommended_blocks"] == ["image", "corridor", "metadata"]
         assert res["multiplicity_corrected"]["shipped_arm_was_measured"] is False, (
             "image + corridor + metadata is not an arm on the ladder, and the receipt "
             "has to admit that rather than report a score for it"
         )
 
-    def test_the_declared_shipped_arm_is_checked_against_the_measured_one(self) -> None:
-        """The consistency guard on ``SHIPPED_ARM_CANDIDATE``.
+    def test_what_ships_is_not_read_off_the_rule_that_recommends(self) -> None:
+        """The two meanings of "shipped" are separated, and the difference is published.
 
-        Without it, the selective block would keep reporting risk-coverage figures for
-        whichever arm the constant names, even after the ablation started selecting a
-        different one, and nothing in the receipt would say so.
+        The ranker is built from ``SHIPPED_ARM``. The ablation recommends a block set.
+        Those were one field until SPACE-S7 made them disagree, and collapsing them
+        again would either relabel the queue's numbers with another arm's name or hide
+        that the corrected rule no longer supports a block the queue is using.
         """
         mod = _load_run_fusion()
-        with pytest.raises(SystemExit, match="ablation rule selected"):
-            mod._check_shipped_arm_agrees({"shipped_arm": "full_fusion"})
-        mod._check_shipped_arm_agrees({"shipped_arm": mod.SHIPPED_ARM_CANDIDATE})
+        res = mod._ablation_conclusion([
+            self._split(
+                "chronological", 500,
+                {"image_corridor_vs_image_only": {"direction": "challenger_better"}},
+                {"image_corridor_vs_image_only": {
+                    "survives_correction": False,
+                    "direction_adjusted": "indistinguishable",
+                }},
+            )
+        ])
+        assert res["shipped_arm"] == mod.SHIPPED_ARM == "image_corridor"
+        assert res["shipped_blocks"] == ["image", "corridor"]
+        assert res["recommended_arm"] == "image_only"
+        assert res["recommended_blocks"] == ["image"]
+
+        stated = res["shipped_arm_vs_recommendation"]
+        assert stated["agree"] is False
+        assert stated["ships"] == "image_corridor"
+        assert stated["nominal_recommends"] == "image_corridor"
+        assert stated["corrected_recommends"] == "image_only"
+        assert stated["shipped_blocks_without_corrected_support"] == ["corridor"]
+        assert "corridor" in stated["note"]
+
+    def test_the_note_carries_the_metric_the_rule_does_not_read(self) -> None:
+        """The counter-evidence for the shipped arm is looked up, not asserted.
+
+        The ablation rule reads Brier comparisons. The queue does selective review, which
+        is what risk-coverage area measures, and on this corpus the two disagree about the
+        corridor block. A note that argued the ranker should stay without citing the
+        surviving interval would be a preference; one that cites it is a measurement.
+        """
+        mod = _load_run_fusion()
+        split = self._split(
+            "chronological", 500,
+            {"image_corridor_vs_image_only": {"direction": "challenger_better"}},
+            {"image_corridor_vs_image_only": {
+                "survives_correction": False,
+                "direction_adjusted": "indistinguishable",
+            }},
+        )
+        split["selective"] = {
+            "aurc_shipped_vs_image_only": {
+                "margin": 0.05736,
+                "ci_adjusted": [0.01192, 0.1158],
+                "direction": "challenger_better",
+                "survives_correction": True,
+                "n_comparisons": 21,
+            }
+        }
+        stated = mod._ablation_conclusion([split])["shipped_arm_vs_recommendation"]
+        cited = stated["selective_evidence_for_the_shipped_arm"]
+        assert cited["survives_correction"] is True
+        assert cited["n_comparisons"] == 21
+        assert "+0.01192 to +0.11580" in stated["note"]
+        assert "21 comparisons" in stated["note"]
+
+        # And the other direction: a selective comparison that also fails must not be
+        # reported as support.
+        split["selective"]["aurc_shipped_vs_image_only"]["survives_correction"] = False
+        split["selective"]["aurc_shipped_vs_image_only"]["direction"] = (
+            "indistinguishable"
+        )
+        stated = mod._ablation_conclusion([split])["shipped_arm_vs_recommendation"]
+        assert "does not clear zero after correction either" in stated["note"]
+        assert "+0.01192" not in stated["note"]
+
+    def test_agreement_is_stated_rather_than_left_to_be_inferred(self) -> None:
+        """When the two do agree, the receipt says so instead of omitting the field."""
+        mod = _load_run_fusion()
+        res = mod._ablation_conclusion([
+            self._split(
+                "chronological", 500,
+                {"image_corridor_vs_image_only": {"direction": "challenger_better"}},
+                {"image_corridor_vs_image_only": {
+                    "survives_correction": True,
+                    "direction_adjusted": "challenger_better",
+                }},
+            )
+        ])
+        stated = res["shipped_arm_vs_recommendation"]
+        assert stated["agree"] is True
+        assert stated["corrected_recommends"] == "image_corridor"
+        assert stated["shipped_blocks_without_corrected_support"] == []
+        assert "recommends the same combination" in stated["note"]
+
+    def test_the_shipped_arm_blocks_come_from_the_ladder(self) -> None:
+        """A block tuple written out by hand could name an arm and mean something else.
+
+        ``run_queue.py`` fits ``SHIPPED_ARM_BLOCKS`` and calls the result
+        ``SHIPPED_ARM``. Both were literals there until D7, so the queue could have been
+        ranked by one feature set while every receipt called it another. The second half
+        of this test is not a comparison of two definitions, because there is now one: it
+        fails if a local literal is reintroduced in the script and shadows the import.
+        """
+        from pipeline.tracetriage.fusion import (
+            ARM_LADDER,
+            SHIPPED_ARM,
+            SHIPPED_ARM_BLOCKS,
+        )
+
+        assert dict(ARM_LADDER)[SHIPPED_ARM] == SHIPPED_ARM_BLOCKS
+
+        import importlib.util
+        from pathlib import Path
+
+        path = Path(__file__).resolve().parents[1] / "scripts" / "run_queue.py"
+        spec = importlib.util.spec_from_file_location("run_queue_for_arm", path)
+        run_queue = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(run_queue)
+        assert run_queue.SHIPPED_ARM == SHIPPED_ARM
+        assert run_queue.SHIPPED_ARM_BLOCKS == SHIPPED_ARM_BLOCKS
+
+
+# ---------------------------------------------------------------------------
+# SPACE-S6: a grouped bootstrap that groups nothing is an ungrouped bootstrap
+#
+# Every published gate-5 interval carried mean_group_size 1.0 while its own note said
+# it protected against captures of one pass sharing a receiver. The episode grouping is
+# inert on these test partitions; stations are not. Both intervals are now computed and
+# the union of the measurable ones governs, which is what gate 6 already did.
+# ---------------------------------------------------------------------------
+
+
+def _clustered_fixture(
+    n: int = 80,
+    station_spread: float = 0.06,
+    within_station_spread: float = 0.12,
+    seed: int = 5,
+):
+    """Scores whose paired difference clusters by station, which is what is bootstrapped.
+
+    The challenger's advantage over the reference varies by station rather than the two
+    arms sharing a station offset. A shared offset moves both arms together and mostly
+    cancels in the paired Brier difference, which is the quantity the interval is about;
+    a per-station advantage does not. That distinction is the whole reason the ICC is
+    measured on the difference and not on the scores.
+
+    Iteration is over a sorted list, not a set: a set of strings iterates in an order
+    that changes with the process hash seed, which made an earlier version of this
+    fixture generate different data on every run and a marginal direction assertion pass
+    or fail at random.
+    """
+    rng = np.random.default_rng(seed)
+    labels = rng.integers(0, 2, n).astype(float)
+    station_ids = np.array([f"s{i % 8}" for i in range(n)])
+    stations = sorted(set(station_ids.tolist()))
+    advantage = {s: float(rng.normal(0.16, station_spread)) for s in stations}
+    signed = 2.0 * labels - 1.0                      # +1 on a positive, -1 otherwise
+    reference = np.clip(0.5 + 0.12 * signed + rng.normal(0, 0.08, n), 0.02, 0.98)
+    # Between-station spread against within-station spread is what sets the ICC. These
+    # values put it at 0.097 with a design effect of 1.873, the same order as the 0.247
+    # and 1.374 measured on the shipped chronological split, so the fixture exercises the
+    # union and the sensitivity without being a caricature of them.
+    per_observation = rng.normal(0.0, within_station_spread, n)
+    gain = (np.array([advantage[s] for s in station_ids]) + per_observation) * signed
+    challenger = np.clip(reference + gain, 0.02, 0.98)
+    episode_ids = np.array([f"e{i}" for i in range(n)])   # one observation each
+    return challenger, reference, labels, episode_ids, station_ids
+
+
+def test_the_episode_grouping_is_reported_as_unmeasurable_not_as_protection():
+    """One observation per group cannot partition variance, and the receipt says so."""
+    ch, ref, lab, ep, st = _clustered_fixture()
+    out = clustered_paired_bootstrap(ch, ref, lab, ep, st, n_boot=400, seed=1)
+
+    episode = out["clustering"]["episode"]
+    assert episode["measurable"] is False
+    assert "more observations than groups" in episode["reason"]
+    assert out["mean_group_size_episode"] == 1.0
+    assert out["clustering"]["station"]["measurable"] is True
+    assert out["mean_group_size_station"] > 1.0
+
+
+def test_the_governing_interval_is_the_union_and_names_what_it_unioned():
+    """A union can only widen, and the inert grouping is named for what it is.
+
+    Taking the union of both intervals rather than only the measurable ones matters in
+    the direction that counts: on the shipped chronological split the station
+    bootstrap's lower bound is the HIGHER of the two, so dropping the observation-level
+    interval would have raised the published lower bound. A fix to a finding about
+    intervals being too narrow must not end up publishing a narrower one.
+    """
+    ch, ref, lab, ep, st = _clustered_fixture()
+    out = clustered_paired_bootstrap(ch, ref, lab, ep, st, n_boot=400, seed=1)
+
+    assert out["governing_interval"] == "union_of_observation_level_and_station", (
+        "an episode grouping holding one observation per group is an observation-level "
+        f"bootstrap and has to be named as one: {out['governing_interval']}"
+    )
+    assert out["ci95"][0] == min(out["ci95_episode"][0], out["ci95_station"][0])
+    assert out["ci95"][1] == max(out["ci95_episode"][1], out["ci95_station"][1])
+    assert out["ci95"] != out["ci95_episode"], (
+        "the two groupings produced the same interval, so this fixture cannot show the "
+        "union doing anything"
+    )
+
+
+def test_both_groupings_govern_when_both_have_structure():
+    """With real episodes the union is at least as wide as either interval."""
+    ch, ref, lab, _ep, st = _clustered_fixture()
+    episodes = np.array([f"e{i // 2}" for i in range(len(lab))])   # two per episode
+    out = clustered_paired_bootstrap(ch, ref, lab, episodes, st, n_boot=400, seed=1)
+
+    assert out["clustering"]["episode"]["measurable"] is True
+    assert out["governing_interval"] == "union_of_episode_and_station", (
+        "with two measurable groupings the label must name both by their real names"
+    )
+    assert out["ci95"][0] == min(out["ci95_episode"][0], out["ci95_station"][0])
+    assert out["ci95"][1] == max(out["ci95_episode"][1], out["ci95_station"][1])
+
+
+def test_the_verdict_is_read_off_the_governing_interval():
+    """Publishing a verdict from the narrow interval is the defect, not the width.
+
+    A wider interval that nothing reads changes no decision. The direction, the
+    distinguishable flag and challenger_better all have to come from the interval that
+    governs, or the receipt disagrees with itself.
+    """
+    ch, ref, lab, ep, st = _clustered_fixture()
+    out = clustered_paired_bootstrap(ch, ref, lab, ep, st, n_boot=400, seed=1)
+    lo, hi = out["ci95"]
+    expected = (
+        "challenger_better" if lo > 0 else "reference_better" if hi < 0
+        else "indistinguishable"
+    )
+    assert out["direction"] == expected
+    assert out["distinguishable"] is (expected != "indistinguishable")
+    assert out["challenger_better"] is (expected == "challenger_better")
+
+
+def test_the_correction_and_the_clustering_apply_to_the_same_interval():
+    """Bonferroni under both groupings, unioned, or the rule reads the narrower one."""
+    ch, ref, lab, ep, st = _clustered_fixture()
+    adj = clustered_multiplicity_adjusted(
+        ch, ref, lab, ep, st, n_comparisons=6, n_boot=400, seed=1
+    )
+    nominal = clustered_paired_bootstrap(ch, ref, lab, ep, st, n_boot=400, seed=1)
+
+    assert adj["ci_adjusted"][0] == min(
+        adj["ci_adjusted_episode"][0], adj["ci_adjusted_station"][0]
+    )
+    assert adj["ci_adjusted"][1] == max(
+        adj["ci_adjusted_episode"][1], adj["ci_adjusted_station"][1]
+    )
+    assert adj["ci_adjusted"][0] <= nominal["ci95"][0], (
+        "the corrected interval is narrower than the nominal one on the low side"
+    )
+    assert adj["ci_adjusted"][1] >= nominal["ci95"][1]
+    assert adj["survives_correction"] is (
+        adj["ci_adjusted"][0] > 0 or adj["ci_adjusted"][1] < 0
+    )
+    assert adj["confidence_level"] > 0.95
+
+
+def test_a_measured_harm_is_not_flattened_into_no_difference():
+    """The three-way verdict survives the union, in the losing direction too."""
+    ch, ref, lab, ep, st = _clustered_fixture()
+    # Swap the arms: the challenger is now the weaker one by construction.
+    out = clustered_paired_bootstrap(ref, ch, lab, ep, st, n_boot=400, seed=1)
+    assert out["direction"] == "reference_better"
+    assert out["distinguishable"] is True
+    assert out["challenger_better"] is False
+    assert out["margin"] < 0.0
+
+
+def test_clustering_diagnostics_measure_the_paired_difference_not_the_scores():
+    """The ICC has to be of the quantity the interval is about.
+
+    Measuring it on the raw scores would report the clustering of ability rather than
+    the clustering of the difference between two arms, which is what the bootstrap
+    resamples.
+    """
+    ch, ref, lab, _ep, st = _clustered_fixture()
+    diag = clustering_diagnostics(ch, ref, lab, st)
+    assert diag["measurable"] is True
+    assert diag["n_groups"] == len(set(st.tolist()))
+    assert diag["design_effect"] >= 1.0
+    # Same arm against itself: the difference is identically zero, so there is no
+    # variance to partition either way and the ICC must not claim clustering.
+    flat = clustering_diagnostics(ch, ch, lab, st)
+    assert flat["icc"] == 0.0
+    assert flat["design_effect"] == 1.0
+
+
+class TestClusteredStatisticDifference:
+    """The risk-coverage interval was the one SPACE-S6 left ungrouped.
+
+    The paired Brier comparisons were fixed to resample stations as well as episodes, and
+    the statistic bootstrap was not, which left the defect in the interval the analysis
+    leans on hardest: an episode holds about one observation on these test partitions, so
+    an episode-resampled interval is an observation-level interval under a grouped name.
+    """
+
+    @staticmethod
+    def _aurc(probs, labels, groups):
+        return area_under_risk_coverage(risk_coverage_curve(probs, labels, groups))
+
+    def test_the_statistic_does_not_depend_on_the_grouping(self) -> None:
+        """The precondition that makes switching the resampling unit legitimate.
+
+        ``risk_coverage_curve`` reads ``groups`` only to report ``n_groups_kept``. Risk
+        and coverage are per observation, so the area is the same number under either
+        grouping and the two intervals are intervals for one quantity. If this ever stops
+        holding, the union stops being meaningful and this test is where it shows.
+        """
+        ch, _ref, lab, ep, st = _clustered_fixture()
+        assert self._aurc(ch, lab, ep) == pytest.approx(self._aurc(ch, lab, st))
+        assert self._aurc(ch, lab, ep) == pytest.approx(
+            self._aurc(ch, lab, np.arange(len(lab)))
+        )
+
+    def test_the_union_is_no_narrower_than_either_grouping(self) -> None:
+        ch, ref, lab, ep, st = _clustered_fixture()
+        out = clustered_statistic_difference(
+            self._aurc, ch, ref, lab, ep, st, n_boot=400, seed=3, n_comparisons=21
+        )
+        for field in ("ci95", "ci_adjusted"):
+            union = out[field]
+            for grouping in ("episode", "station"):
+                side = out[f"{field}_{grouping}"]
+                assert union[0] <= side[0] + 1e-12, f"{field} lower is inside {grouping}"
+                assert union[1] >= side[1] - 1e-12, f"{field} upper is inside {grouping}"
+        assert out["governing_interval"].startswith("union_of_")
+        assert out["n_groups_episode"] > out["n_groups_station"]
+        assert out["clustering"]["station"]["n_groups"] == out["n_groups_station"]
+
+    def test_the_verdict_is_read_off_the_union(self) -> None:
+        """Not off whichever grouping happened to be narrower."""
+        ch, ref, lab, ep, st = _clustered_fixture()
+        out = clustered_statistic_difference(
+            self._aurc, ch, ref, lab, ep, st, n_boot=400, seed=3, n_comparisons=1
+        )
+        lo, hi = out["ci95"]
+        expected = (
+            "challenger_better" if lo > 0
+            else "reference_better" if hi < 0
+            else "indistinguishable"
+        )
+        assert out["direction"] == expected
+        assert out["distinguishable"] is (expected != "indistinguishable")
+        adj_lo, adj_hi = out["ci_adjusted"]
+        assert out["survives_correction"] is bool(adj_lo > 0 or adj_hi < 0)
+
+    def test_a_grouping_that_cannot_be_resampled_makes_it_unmeasurable(self) -> None:
+        """One grouping's interval is not a union of two.
+
+        Publishing the surviving grouping alone would report a narrower interval under a
+        name that claims both were checked, which is the same substitution the union
+        exists to prevent.
+        """
+        ch, ref, lab, ep, st = _clustered_fixture()
+
+        def only_few_groups(probs, labels, groups):
+            # Finite for the station grouping, NaN for the episode grouping, so exactly
+            # one side fails to form an interval.
+            if len(np.unique(groups)) > 20:
+                return float("nan")
+            return self._aurc(probs, labels, groups)
+
+        out = clustered_statistic_difference(
+            only_few_groups, ch, ref, lab, ep, st, n_boot=300, seed=3, n_comparisons=21
+        )
+        assert out["ci95"] is None
+        assert out["ci_adjusted"] is None
+        assert out["direction"] == "unmeasurable"
+        assert out["survives_correction"] is False
+        assert out["governing_interval"] == "none"
+        assert "episode" in out["note"]
+        assert out["clustering"]["station"]["n_groups"] == 8
+
+
+def test_the_shipped_fusion_receipt_publishes_both_groupings():
+    """Presence and consistency on the artifact, per split and per comparison."""
+    receipt = json.loads(
+        (REPO_ROOT / "artifacts" / "FUSION_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    seen_inert_episode = False
+    for split in receipt["splits"]:
+        if split.get("degraded"):
+            continue
+        for key, comp in split["comparisons"].items():
+            for field in ("ci95_episode", "ci95_station", "governing_interval",
+                          "clustering", "mean_group_size_episode",
+                          "mean_group_size_station"):
+                assert field in comp, f"{split['split']}/{key} lacks {field}"
+            if comp["mean_group_size_episode"] == 1.0:
+                seen_inert_episode = True
+                assert comp["clustering"]["episode"]["measurable"] is False, (
+                    f"{split['split']}/{key} claims measurable episode clustering at a "
+                    "mean group size of 1.0"
+                )
+            lo, hi = comp["ci95"]
+            assert lo <= comp["ci95_station"][0] + 1e-12
+            assert hi >= comp["ci95_station"][1] - 1e-12
+    assert seen_inert_episode, (
+        "no shipped comparison has an inert episode grouping, so the branch this "
+        "finding is about is untested on real data"
+    )
+
+def test_the_design_effect_check_is_published_and_does_not_decide():
+    """The second accounting of the same clustering, reported rather than chosen.
+
+    On the shipped chronological comparison the two disagree at the corrected level: the
+    station cluster bootstrap clears zero and a normal-theory widening of the
+    observation-level interval by the measured design effect of 1.3741 does not. The
+    bootstrap resamples the 35 stations directly and assumes neither normality nor a
+    pure variance inflation, so it governs; the disagreement is published so nobody has
+    to take that on trust.
+    """
+    ch, ref, lab, ep, st = _clustered_fixture()
+    adj = clustered_multiplicity_adjusted(
+        ch, ref, lab, ep, st, n_comparisons=6, n_boot=400, seed=1
+    )
+    sens = adj["design_effect_sensitivity"]
+    assert sens["applicable"] is True
+    assert sens["grouping"] == "station"
+    assert sens["standard_error_factor"] > 1.0
+    assert sens["widened_from"] == adj["ci_adjusted_episode"]
+    assert sens["widened_ci"][0] < adj["ci_adjusted_episode"][0]
+    assert sens["widened_ci"][1] > adj["ci_adjusted_episode"][1]
+    # The published verdict comes from the bootstrap union, not from this.
+    assert adj["survives_correction"] is (
+        adj["ci_adjusted"][0] > 0 or adj["ci_adjusted"][1] < 0
+    )
+
+
+def test_the_design_effect_check_is_not_applied_twice():
+    """With no observation-level grouping there is no independence interval to widen.
+
+    Widening an already-clustered interval by a design effect measured on that same
+    clustering would count it twice and manufacture a failure.
+    """
+    ch, ref, lab, _ep, st = _clustered_fixture()
+    episodes = np.array([f"e{i // 2}" for i in range(len(lab))])
+    out = clustered_paired_bootstrap(ch, ref, lab, episodes, st, n_boot=400, seed=1)
+    sens = out["design_effect_sensitivity"]
+    assert sens["applicable"] is False
+    assert "no independence interval" in sens["reason"]
+
+
+# ---------------------------------------------------------------------------
+# SPACE-S7: correct over the family the rule reads, and resolve the endpoint
+# ---------------------------------------------------------------------------
+
+
+class TestPercentileResolution:
+    """A Bonferroni endpoint the bootstrap cannot resolve is not a measurement.
+
+    The correction pushes the endpoint into the tail, and a percentile bootstrap can
+    only report a quantile it has draws for. At 4000 draws over a 21-comparison family
+    the endpoint is the fifth-smallest resample. The failure is silent: the interval
+    comes back looking like any other interval, which is why the resolution is published
+    beside it.
+    """
+
+    def test_a_thin_tail_is_reported_as_unresolved(self):
+        res = _percentile_resolution(4000, 0.05 / 21)
+        assert res["draws_per_tail"] < 5.0
+        assert res["endpoint_resolved"] is False
+        assert res["n_boot_for_resolution"] > 4000
+
+    def test_the_stated_draw_count_resolves_it(self):
+        res = _percentile_resolution(50_000, 0.05 / 21)
+        assert res["draws_per_tail"] >= res["min_draws_per_tail"]
+        assert res["endpoint_resolved"] is True
+
+    def test_the_required_draw_count_is_what_it_says(self):
+        """n_boot_for_resolution must actually resolve, at the family it was asked about."""
+        for n_comparisons in (1, 7, 21, 40):
+            alpha = 0.05 / n_comparisons
+            needed = _percentile_resolution(10, alpha)["n_boot_for_resolution"]
+            assert _percentile_resolution(needed, alpha)["endpoint_resolved"] is True
+            assert _percentile_resolution(needed - 1, alpha)["endpoint_resolved"] is False
+
+    def test_the_correction_publishes_its_own_resolution(self):
+        ch, ref, lab, ep, st = _clustered_fixture()
+        adj = clustered_multiplicity_adjusted(
+            ch, ref, lab, ep, st, n_comparisons=21, n_boot=400, seed=1
+        )
+        res = adj["percentile_resolution"]
+        assert res["alpha"] == pytest.approx(0.05 / 21)
+        assert res["endpoint_resolved"] is False, (
+            "400 draws over a 21-comparison family cannot resolve the endpoint, so this "
+            "fixture is not exercising the check"
+        )
+
+
+class TestCrossSplitFamily:
+    """The family is every comparison the decision rule can read, across splits.
+
+    The rule is a disjunction: retain a block if an arm containing it wins on ANY split
+    above the training floor. Correcting over one split's seven comparisons while the
+    rule scans seven on each of three splits is a correction over the wrong family, and
+    the receipt's own justification already said the ladder runs five comparisons on each
+    of four splits.
+    """
+
+    @staticmethod
+    def _manifest(train_sizes: dict[str, int]) -> dict[str, Any]:
+        splits = {}
+        nxt = 1
+        for name, n_train in train_sizes.items():
+            ids = list(range(nxt, nxt + n_train + 60))
+            nxt += n_train + 60
+            splits[name] = {
+                "train": ids[:n_train],
+                "calibration": ids[n_train:n_train + 30],
+                "test": ids[n_train + 30:],
+            }
+        return {"splits": splits}
+
+    def test_only_splits_above_the_training_floor_count(self):
+        manifest = self._manifest({"a": 400, "b": 350, "c": 100})
+        rows = {i: {} for i in range(1, 2000)}
+        names = eligible_split_names(manifest, rows, ["a", "b", "c"])
+        assert names == ["a", "b"], names
+
+    def test_the_size_matched_control_is_not_a_split_the_rule_reads(self):
+        manifest = self._manifest({"chronological": 400, "chronological_size_matched": 400})
+        rows = {i: {} for i in range(1, 2000)}
+        names = eligible_split_names(
+            manifest, rows, ["chronological", "chronological_size_matched"]
+        )
+        assert names == ["chronological"]
+
+    def test_an_unrequested_or_missing_split_cannot_inflate_the_family(self):
+        manifest = self._manifest({"a": 400, "b": 400})
+        rows = {i: {} for i in range(1, 2000)}
+        assert eligible_split_names(manifest, rows, ["a"]) == ["a"]
+        assert eligible_split_names(manifest, rows, ["a", "nope"]) == ["a"]
+
+    def test_a_partition_with_no_decisive_rows_is_excluded(self):
+        """Eligibility is over decisive rows, which is what usable_ids filters to."""
+        manifest = self._manifest({"a": 400})
+        rows = {i: {} for i in range(1, 100)}   # most of split a's ids are not decisive
+        assert eligible_split_names(manifest, rows, ["a"]) == []
+
+    def test_the_family_size_is_decided_before_anything_is_fitted(self):
+        """The count comes from the manifest and the decisive rows, nothing else.
+
+        A family size that depended on a scored result could be influenced by which
+        result looked good, which is the failure a correction exists to prevent.
+        """
+        manifest = self._manifest({"a": 400, "b": 400})
+        rows = {i: {} for i in range(1, 2000)}
+        first = eligible_split_names(manifest, rows, ["a", "b"])
+        second = eligible_split_names(manifest, rows, ["b", "a"])
+        assert first == ["a", "b"] and second == ["b", "a"]
+        assert len(first) == len(second)
+
+
+def test_the_shipped_receipt_measures_the_arm_it_ships():
+    """Every split reports the risk-coverage behaviour of the arm the queue is ranked by.
+
+    This exists because it was briefly lost. Pointing the selective block at the arm the
+    corrected ablation rule recommends looked like a tightening, and it silently deleted
+    the shipped arm's risk-coverage comparison from all four splits, along with the
+    measurement the kill-gate document cites for it. The arm that ships is decided by
+    ``SHIPPED_ARM``, which the ranker reads, so the two can never differ again; what this
+    checks is that the figures are present and labelled with the arm they describe.
+    """
+    from pipeline.tracetriage.fusion import SHIPPED_ARM
+
+    receipt = json.loads(
+        (REPO_ROOT / "artifacts" / "FUSION_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    assert receipt["ablation_conclusion"]["shipped_arm"] == SHIPPED_ARM
+    scores = receipt["ablation_conclusion"]["shipped_arm_scores"]
+    assert scores, "the shipped arm ships without a measured score"
+
+    checked = 0
+    for split in receipt["splits"]:
+        if split.get("degraded"):
+            continue
+        sel = split.get("selective") or {}
+        assert sel.get("aurc_shipped_arm_name") == SHIPPED_ARM, (
+            f"{split['split']} labels its shipped-arm figures "
+            f"{sel.get('aurc_shipped_arm_name')!r}"
+        )
+        assert "aurc_shipped_arm" in sel, (
+            f"{split['split']} reports no risk-coverage area for {SHIPPED_ARM}"
+        )
+        if "aurc_shipped_vs_image_only" in sel:
+            checked += 1
+        else:
+            assert sel.get("aurc_shipped_not_measured_reason"), (
+                f"{split['split']} omits the shipped arm's comparison without saying why"
+            )
+    assert checked > 0, (
+        "no split compares the shipped arm against the reference, so the receipt cannot "
+        "say whether the arm being shipped selects better than the one it is built on"
+    )
+
+
+def test_the_receipt_states_whether_what_ships_is_what_is_recommended():
+    """The disagreement is on the artifact, not only in the code that can produce it."""
+    receipt = json.loads(
+        (REPO_ROOT / "artifacts" / "FUSION_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    conclusion = receipt["ablation_conclusion"]
+    stated = conclusion["shipped_arm_vs_recommendation"]
+    assert stated["ships"] == conclusion["shipped_arm"]
+    assert stated["corrected_recommends"] == conclusion["recommended_arm"]
+    assert stated["agree"] is (stated["ships"] == stated["corrected_recommends"])
+    assert len(stated["note"]) >= 40
+    for block in stated["shipped_blocks_without_corrected_support"]:
+        assert block in conclusion["shipped_blocks"], (
+            f"{block} is listed as unsupported but is not a block the product ships"
+        )
+        assert (
+            conclusion["multiplicity_corrected"]["blocks"][block]["decision"] != "RETAIN"
+        ), f"{block} is listed as unsupported while the corrected rule retains it"
+
+
+def test_the_shipped_receipt_corrects_over_the_cross_split_family():
+    """The receipt's family size must equal seven per split the conclusion says it used."""
+    receipt = json.loads(
+        (REPO_ROOT / "artifacts" / "FUSION_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    splits_used = receipt["ablation_conclusion"]["splits_used"]
+    expected = 7 * len(splits_used)
+    seen = []
+    for split in receipt["splits"]:
+        for entry in (split.get("multiplicity_adjusted") or {}).values():
+            seen.append(entry["n_comparisons"])
+        selective = split.get("selective") or {}
+        if "multiplicity_family_size" in selective:
+            seen.append(selective["multiplicity_family_size"])
+    assert seen, "no corrected comparison in the receipt"
+    assert set(seen) == {expected}, (
+        f"the receipt corrects over {sorted(set(seen))} comparisons while the rule reads "
+        f"{len(splits_used)} splits, which is {expected}"
+    )
+
+
+def test_the_shipped_receipt_resolves_its_corrected_endpoints():
+    """Every published Bonferroni endpoint has enough draws behind it to mean something."""
+    receipt = json.loads(
+        (REPO_ROOT / "artifacts" / "FUSION_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    checked = 0
+    for split in receipt["splits"]:
+        for key, entry in (split.get("multiplicity_adjusted") or {}).items():
+            res = entry.get("percentile_resolution")
+            assert res, f"{split['split']}/{key} publishes no percentile resolution"
+            checked += 1
+            assert res["endpoint_resolved"] is True, (
+                f"{split['split']}/{key} corrected endpoint sits at draw "
+                f"{res['draws_per_tail']:.1f}; {res['n_boot_for_resolution']} draws needed"
+            )
+        for name, entry in (split.get("selective") or {}).items():
+            if not isinstance(entry, dict) or "percentile_resolution" not in entry:
+                continue
+            res = entry["percentile_resolution"]
+            checked += 1
+            assert res["endpoint_resolved"] is True, (
+                f"{split['split']}/{name} corrected endpoint sits at draw "
+                f"{res['draws_per_tail']:.1f}"
+            )
+    assert checked > 0, "nothing in the receipt reports a corrected endpoint"
+
+
+def test_the_conclusion_states_what_its_retained_blocks_rest_on():
+    """A RETAIN on one comparison, or one that fails the design-effect check, is flagged."""
+    receipt = json.loads(
+        (REPO_ROOT / "artifacts" / "FUSION_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    conclusion = receipt["ablation_conclusion"]
+    assert "fragility" in conclusion
+    # The corrected rule retains nothing on this corpus, so the loop below has no rows to
+    # check. Say that here rather than let an empty list pass for a satisfied criterion: a
+    # fragility row with no RETAIN behind it would be qualifying a verdict the conclusion
+    # does not reach, and it is the same defect in the other direction.
+    if not [
+        b for b, v in conclusion["multiplicity_corrected"]["blocks"].items()
+        if v["decision"] == "RETAIN"
+    ]:
+        assert conclusion["fragility"] == [], (
+            "no block survives correction, so there is nothing to qualify, and the "
+            f"conclusion still carries {len(conclusion['fragility'])} fragility rows"
+        )
+    retained = [
+        b for b, v in conclusion["multiplicity_corrected"]["blocks"].items()
+        if v["decision"] == "RETAIN"
+    ]
+    flagged = {row["block"] for row in conclusion["fragility"]}
+    for block in retained:
+        entry = conclusion["multiplicity_corrected"]["blocks"][block]
+        if len(entry["better_on"]) == 1:
+            assert block in flagged, (
+                f"{block} is retained on the single comparison {entry['better_on']} and "
+                "the conclusion does not say so"
+            )
+    for row in conclusion["fragility"]:
+        assert row["concerns"], "a fragility row with no stated concern"
+        assert row["comparison"]

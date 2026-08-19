@@ -1,7 +1,7 @@
 {
   "gate": 3,
   "question": "Does the expected corridor intersect a visible target-like trace?",
-  "generated_at": "2026-08-19T00:36:37.311890+00:00",
+  "generated_at": "2026-08-19T01:18:00.823527+00:00",
   "verdict": "NOT_ESTABLISHED",
   "threshold": 0.7,
   "observations_decisive": 7,
@@ -106,7 +106,9 @@
         "curved_offset_hz": -8141.005223595363,
         "sigma_curved": 7.2679071838217535,
         "sigma_vertical": 54.242964140170514,
-        "predicted_swing_hz": 15769.14998458033
+        "predicted_swing_hz": 15769.14998458033,
+        "sigma_scale_ratio_to_fit": 1.4276250994836428,
+        "sigma_comparability": "Not comparable. sigma_curved and sigma_vertical come from A3's per-band normalisation; fit.sigma_at_fit and null_calibration.true_sigma come from this module's whole-image MAD. Measured across the seven decisive observations the ratio runs from 0.87 to 12.4, so it is not a rescaling. On 14740031 the A3 vertical sigma of 2.83 exceeds this module's curved sigma of 2.02, which inverts the comparison the two artifacts agree on. Compare a sigma only against another sigma from the same estimator."
       },
       "fit": {
         "obs_id": 14746118,
@@ -236,7 +238,9 @@
         "curved_offset_hz": 0.0,
         "sigma_curved": 21.01487768184555,
         "sigma_vertical": 32.41694472283802,
-        "predicted_swing_hz": 5767.220502093047
+        "predicted_swing_hz": 5767.220502093047,
+        "sigma_scale_ratio_to_fit": 7.1955146162754975,
+        "sigma_comparability": "Not comparable. sigma_curved and sigma_vertical come from A3's per-band normalisation; fit.sigma_at_fit and null_calibration.true_sigma come from this module's whole-image MAD. Measured across the seven decisive observations the ratio runs from 0.87 to 12.4, so it is not a rescaling. On 14740031 the A3 vertical sigma of 2.83 exceeds this module's curved sigma of 2.02, which inverts the comparison the two artifacts agree on. Compare a sigma only against another sigma from the same estimator."
       },
       "fit": {
         "obs_id": 14746055,
@@ -366,7 +370,9 @@
         "curved_offset_hz": 5408.888269713011,
         "sigma_curved": 1.7085084785878446,
         "sigma_vertical": 36.96205540298381,
-        "predicted_swing_hz": 19301.210303970118
+        "predicted_swing_hz": 19301.210303970118,
+        "sigma_scale_ratio_to_fit": 0.8690297309220165,
+        "sigma_comparability": "Not comparable. sigma_curved and sigma_vertical come from A3's per-band normalisation; fit.sigma_at_fit and null_calibration.true_sigma come from this module's whole-image MAD. Measured across the seven decisive observations the ratio runs from 0.87 to 12.4, so it is not a rescaling. On 14740031 the A3 vertical sigma of 2.83 exceeds this module's curved sigma of 2.02, which inverts the comparison the two artifacts agree on. Compare a sigma only against another sigma from the same estimator."
       },
       "fit": {
         "obs_id": 14746048,
@@ -496,7 +502,9 @@
         "curved_offset_hz": -7821.750116787701,
         "sigma_curved": 12.031333176654842,
         "sigma_vertical": 53.28140703634095,
-        "predicted_swing_hz": 17173.34524659226
+        "predicted_swing_hz": 17173.34524659226,
+        "sigma_scale_ratio_to_fit": 3.9527610199307643,
+        "sigma_comparability": "Not comparable. sigma_curved and sigma_vertical come from A3's per-band normalisation; fit.sigma_at_fit and null_calibration.true_sigma come from this module's whole-image MAD. Measured across the seven decisive observations the ratio runs from 0.87 to 12.4, so it is not a rescaling. On 14740031 the A3 vertical sigma of 2.83 exceeds this module's curved sigma of 2.02, which inverts the comparison the two artifacts agree on. Compare a sigma only against another sigma from the same estimator."
       },
       "fit": {
         "obs_id": 14745602,
@@ -626,7 +634,9 @@
         "curved_offset_hz": -13985.148514851486,
         "sigma_curved": 25.10175184368808,
         "sigma_vertical": 2.8276340038552434,
-        "predicted_swing_hz": 16605.61614030486
+        "predicted_swing_hz": 16605.61614030486,
+        "sigma_scale_ratio_to_fit": 12.401327891669846,
+        "sigma_comparability": "Not comparable. sigma_curved and sigma_vertical come from A3's per-band normalisation; fit.sigma_at_fit and null_calibration.true_sigma come from this module's whole-image MAD. Measured across the seven decisive observations the ratio runs from 0.87 to 12.4, so it is not a rescaling. On 14740031 the A3 vertical sigma of 2.83 exceeds this module's curved sigma of 2.02, which inverts the comparison the two artifacts agree on. Compare a sigma only against another sigma from the same estimator."
       },
       "fit": {
         "obs_id": 14740031,
@@ -785,7 +795,9 @@
         "curved_offset_hz": 7148.936170212766,
         "sigma_curved": 15.141844338900132,
         "sigma_vertical": 2.1666088291531733,
-        "predicted_swing_hz": 19120.251802095805
+        "predicted_swing_hz": 19120.251802095805,
+        "sigma_scale_ratio_to_fit": 9.83851744283651,
+        "sigma_comparability": "Not comparable. sigma_curved and sigma_vertical come from A3's per-band normalisation; fit.sigma_at_fit and null_calibration.true_sigma come from this module's whole-image MAD. Measured across the seven decisive observations the ratio runs from 0.87 to 12.4, so it is not a rescaling. On 14740031 the A3 vertical sigma of 2.83 exceeds this module's curved sigma of 2.02, which inverts the comparison the two artifacts agree on. Compare a sigma only against another sigma from the same estimator."
       },
       "fit": {
         "obs_id": 14745664,
@@ -944,7 +956,9 @@
         "curved_offset_hz": 7148.936170212766,
         "sigma_curved": 15.943451611024518,
         "sigma_vertical": 2.3678524930279474,
-        "predicted_swing_hz": 18137.486106350414
+        "predicted_swing_hz": 18137.486106350414,
+        "sigma_scale_ratio_to_fit": 9.651946705627156,
+        "sigma_comparability": "Not comparable. sigma_curved and sigma_vertical come from A3's per-band normalisation; fit.sigma_at_fit and null_calibration.true_sigma come from this module's whole-image MAD. Measured across the seven decisive observations the ratio runs from 0.87 to 12.4, so it is not a rescaling. On 14740031 the A3 vertical sigma of 2.83 exceeds this module's curved sigma of 2.02, which inverts the comparison the two artifacts agree on. Compare a sigma only against another sigma from the same estimator."
       },
       "fit": {
         "obs_id": 14745929,

@@ -814,8 +814,13 @@ the corridor block with the geometry block removed, beats calibrated image-only 
 | Brier | +0.02026 | +0.00695 to +0.03435 | +0.00296 to +0.03976, survives |
 | AURC (risk-coverage area) | +0.05736 | +0.02688 to +0.09369 | +0.01797 to +0.10579, survives |
 
-Both survive correction over the whole family of comparisons reported for that split. The
-AURC result is the one that matters for what this system does: 0.0735 against 0.1308 is a
+Both survive correction over the whole family of comparisons reported for that split.
+*Corrected in D7 on 2026-08-19: that family is the 21 comparisons the ablation rule reads
+across three eligible splits, not the 7 on this one, and the interval is the union of two
+groupings rather than an episode grouping of size 1.0. The Brier row does not survive the
+wider family; the AURC row does. The ablation table below inherits the same correction. See
+the D7 entry and the failure log in `docs/KILL_GATE.md`.*
+The AURC result is the one that matters for what this system does: 0.0735 against 0.1308 is a
 44% reduction in the area under the risk-coverage curve, which is the metric a triage
 queue with abstention is actually judged on.
 
@@ -3546,3 +3551,243 @@ from its own entry; so does this now.
 883 passed, ruff clean, the deep freshness check passes all eight artifacts including the
 gate-3 and physics rebuilds, and the standing gate reports 12 of 13 with only the
 uncommitted working tree outstanding.
+
+## 2026-08-19 IST | Wave D | D7: a correction over the wrong family, a bootstrap that grouped nothing, a footprint that spanned the world, and one claim withdrawn
+
+The last four SERIOUS findings in the space review, all eleven MINOR ones, and a retraction
+that came out of fixing the first two.
+
+**SPACE-S6, review `:544`. Every published gate-5 interval resampled groups of size 1.0.**
+The bootstrap was grouped, the receipt said so, and on this test set the grouping did
+nothing: 88 episodes over 88 observations. Measured on the same corpus, an episode ICC
+cannot be estimated at all (the estimator needs more observations than groups), while the
+paired Brier differences give a station ICC of **0.2471** with a design effect of
+**1.3741**. A grouped interval that resamples singletons is an ungrouped interval reported
+under a name that implies otherwise.
+
+`clustered_paired_bootstrap` now resamples both groupings and publishes both intervals, and
+the bound the verdict is read from is their **union**, meaning the worse end of each.
+
+The union is not a formality, and what it exposed is not what the review expected. On the
+chronological corridor comparison the two nominal intervals are 0.02816 and 0.02823 wide,
+which is the same width to four decimals, and the station-clustered one sits about 0.0013
+higher rather than wider. Corrected over 21 comparisons the observation-level interval is
+-0.00050 to +0.04364 while the station-clustered interval is +0.00297 to +0.04874, so the
+grouping the review argued was too narrow is the one whose lower bound crosses zero, and
+the station grouping alone would still clear it. The union is right because it is
+conservative whichever way the two fall, not because clustering was going to be the
+decisive term. On gate 5's own comparison the station interval is the wider one
+(-0.01301 against -0.01241 at the lower end), so the direction is not even consistent
+between two comparisons on the same partition, which is the argument for measuring both
+rather than reasoning about which should be wider. `clustering_diagnostics` reuses the one-way random-effects ICC
+already in `queue.py` rather than writing a second one, and every corrected entry carries
+`clustering`, `ci_adjusted_episode`, `ci_adjusted_station` and `governing_interval`.
+
+A cruder cross-check is published beside it. `design_effect_sensitivity` widens the interval
+by the normal-theory factor implied by the measured design effect, which is a different
+approximation from resampling stations directly. Where the two disagree the receipt says so
+in `ablation_conclusion.fragility` rather than leaving a reader to notice. That list is empty
+on this run, and empty for a reason worth stating: the corrected rule retains no block, so
+there is no verdict left to qualify. The test that reads it asserts exactly that, rather than
+passing over an empty list as though the criterion had been satisfied.
+
+**SPACE-S7, review `:607`. The correction stopped at the split boundary while the rule
+ranged across splits.** The ablation rule is a disjunction: retain a block if an arm
+containing it beats image-only on any split above the 300-row training floor. Three splits
+clear that floor, seven comparisons run on each, so the rule reads **21**. The correction
+was running over 7. The receipt's own justification for preferring the corrected rule
+already said the ladder runs comparisons on each of four splits, so the accounting
+contradicted the text beside it.
+
+Two consequences, both measured rather than argued.
+
+*The endpoint has to be resolvable.* A Bonferroni correction over 21 comparisons reads the
+0.119th percentile of the bootstrap distribution. At 4,000 draws that endpoint is the
+**fifth-smallest resample**, which is a quantile the bootstrap does not have the resolution
+to report; the interval comes back looking like any other interval. **16,800** draws are the
+minimum that puts 20 draws in the tail. The shipped run uses **50,000**, which puts 59.5
+there, and every corrected interval now publishes `percentile_resolution` with the count
+that would resolve it. The 2,000-draw cap on the risk-coverage bootstraps is gone: measured
+at 1.07 ms per draw on this corpus, 50,000 draws cost under a minute per comparison.
+
+*The eligible splits are counted before anything is fitted.* `eligible_split_names` reads
+the manifest and the decisive rows, never a score, because a family size that depended on
+which result looked good is the failure a correction exists to prevent. The size-matched
+control is excluded by name and the reason is published, and `in_multiplicity_family` with
+`family_exclusion_reason` now marks the one reported interval that is outside the family
+(`image_only_vs_prior_only`, a sanity check rather than a claim), which closes review
+`:928`.
+
+**The retraction this produced.** Correcting over 21 comparisons on the union interval moves
+the corridor block's Brier margin across zero. On the chronological split the margin is
+unchanged at **+0.02026** and the corrected interval is **-0.00050 to +0.04874**, which does
+not clear zero, where over 7 comparisons on the episode interval it was +0.00296 to +0.03976
+and did. The same arm's risk-coverage margin of **+0.05736** does survive the same
+correction, at **+0.01192 to +0.11887**. Nothing in the measurement moved: the point
+estimates are identical and the nominal endpoints shifted by less than 0.002 on the Brier
+comparison and less than 0.001 on the risk-coverage one.
+
+So the corrected ablation rule, which reads Brier comparisons, now retains no block beyond
+image and recommends `image_only`. `docs/KILL_GATE.md` carries the withdrawal in its failure
+log and the claim register carries the row.
+
+**What the retraction exposed about the word "shipped".** The first fix pointed the
+selective-prediction block at the arm the corrected rule recommends. That deleted
+`image_corridor`'s risk-coverage comparison from all four splits, which is a measurement
+`KILL_GATE.md` cites, and it would have published `image_only` as the shipped arm while
+`scripts/run_queue.py` ranked the queue with image and corridor. Two different questions had
+been sharing one field: what the product ships is a decision, and what the ablation
+recommends is a measurement. They agreed until this correction.
+
+They are now separate. `SHIPPED_ARM` and `SHIPPED_ARM_BLOCKS` live in
+`pipeline/tracetriage/fusion.py`, with the blocks read off `ARM_LADDER` so an arm's name and
+its feature set cannot come apart, and both scripts import them. `ablation_conclusion`
+reports `shipped_arm` for the product, `recommended_arm` for the rule, and
+`shipped_arm_vs_recommendation` for the difference, with the two measured reasons the ranker
+was not rebuilt: the narrower arm is not established as better either, and the shipped arm's
+risk-coverage margin does survive the same correction on the same split, which is the metric
+closest to what a review queue does. That comparison was not promoted into the ablation rule
+after the fact, and the note is generated from the receipt's own numbers rather than typed.
+
+The guard that used to abort the run when the two disagreed is gone, because its premise was
+backwards. What ships is set by the constant the ranker reads, so the risk-coverage figures
+describe the shipped arm by construction; what can differ is whether the ablation still
+supports every block in it. Aborting on that would have left the pipeline unable to publish
+its own most useful result.
+
+**Review `:659`. The ground track's footprint spanned 360 degrees on a shipped page.** On
+observation 14744250 the satellite is 62.28 degrees north at 1518 km, so its horizon circle
+has a half-angle of 36.14 degrees and encloses the pole. A circle enclosing a pole covers
+every longitude, so framing the plot to it drew the whole world on 378 px and left the
+15.5-degree ground track occupying **4.1 percent** of the width.
+
+Pole enclosure is the exact trigger, `|latitude| + half-angle >= 90`, and it fires on **1 of
+25** shipped cards. A ratio test between the footprint and the track cannot substitute:
+measured over the same cards that ratio has a median of 5.2 and a maximum of 17.2, so a cap
+of 3 would clip 23 of 25. The frame is now built from the track and the station, the
+footprint widens it only when the result still shows the pass, the polygon is clipped to the
+plot with `clipPath`, and the caption and the aria label say why it was clipped.
+`MIN_TRACK_WIDTH_FRACTION = 0.06` is a backstop for a case the pole test does not catch, and
+it is inert on everything that ships today: the smallest non-polar track share is 6.7
+percent. A circle that straddles the antimeridian without enclosing a pole is unwrapped
+instead of clipped, so it draws as one arc.
+
+**Review `:721`. Two sigmas on different scales, one docstring claiming they were
+comparable.** A3 normalises per column band; `corridor_fit` normalises against the median and
+MAD of the whole image. The ratio between them runs from **0.869 to 12.401** across the seven
+decisive observations, so it is not a rescaling and no conversion exists. The trap it sets is
+worse than a scale difference: on obs 14740031 A3's *vertical* sigma of 2.83 exceeds this
+gate's *curved* sigma of 2.02, so a reader comparing the two artifacts concludes a straight
+line beats the Doppler curve, which inverts what both artifacts otherwise agree on. The
+comparability claim is deleted, `KILL_GATE.md` states the inversion, and every observation in
+the gate-3 receipt carries `a3_reference.sigma_scale_ratio_to_fit` beside
+`sigma_comparability`.
+
+**Review `:757` (MINOR). The frame conversion's omissions are named in size order.**
+`eci_to_ecef` applies GMST1982 with no UT1 correction and no polar motion, so what it
+produces is a pseudo-Earth-fixed frame. The docstring listed "no polar motion, no nutation
+corrections", which named a term that does not apply (GMST1982 is the correct rotation angle
+for the TEME frame SGP4 emits) and omitted the largest one that does. The three real
+omissions are now given in size order with their magnitudes: UT1 minus UTC is bounded at
+0.9 s by leap-second policy, which is 0.003760 degrees of rotation, 451 m of displacement and
+0.052 degrees of pointing error at 500 km slant range; polar motion is roughly 10 m; the
+pseudo-Earth-fixed to WGS-84 difference is smaller again. The first is a quarter of the
+geodetic up-vector error C7 fixed and 45 times the second. No code changed.
+
+**A gap this pass did not close.** `artifacts/QUEUE_RECEIPT.json` does not record which arm
+ranked the queue. It cannot disagree with the fusion receipt any more, because `run_queue.py`
+imports the same constant, but a reader of the queue receipt alone still cannot see what
+produced the ordering. Adding it needs a queue-contract version bump, which is a change to a
+closed object in a schema this pass had no other reason to touch.
+
+**The other ten MINOR findings, closed or recorded with the measurement.** Two were already
+fixed by earlier waves, which the review could not see: the sky plot's cardinal labels
+(`:814`) sit 11.0 px outside the ring because D4 split `skyChromePoint` out of `projectSky`
+precisely so the chrome could ask for a negative elevation, and the closest-approach marker
+(`:969`) already inherits `projectSky`'s below-horizon policy, so it is dropped rather than
+clamped to the rim.
+
+*Frequency terms that are omitted (`:782`).* Every term beyond first-order Doppler and the
+free constant offset now appears in the module docstring with its size: second-order Doppler
+0.140 Hz at 436.4 MHz, gravitational shift 0.022 Hz, ionosphere 0.31 Hz at 436 MHz and
+0.98 Hz at 137 MHz for a 30 TECU slant change across a 300 s pass, troposphere under 1 Hz.
+Against half-widths of 1,200 and 2,000 Hz the largest is 0.05 percent of the band. One term
+is larger and still omitted on purpose: tropospheric refraction raises apparent elevation by
+0.16 degrees at 5 degrees and 0.55 degrees at the horizon, which is three times the geodetic
+effect C7 fixed, and it is left out because the reference it would be checked against is
+itself a geometric prediction. Applying it to one side of that comparison would add a bias.
+
+*The ground track's aspect ratio (`:839`).* The two axes are scaled independently to fill
+the box, so a footprint computed as a spherical locus is drawn into a frame that does not
+preserve its shape. Equalising the scales would waste most of the plot on a short pass, so
+the frame stays and the distortion is now labelled: `groundAxisScales` reports degrees per
+pixel on each axis and the ratio between them, and the plot's accessible label carries both.
+Measured across the 25 shipped cards the vertical stretch runs 0.5046 (14744250) to 1.6342
+(14735743), and 14733024 sits at 1.0081, so the sentence is chosen by the number rather than
+asserted: below 2 percent it says the footprint is drawn close to its true shape. The first
+version of that test asserted no card was at equal scale and failed on the data, which is the
+only reason the caption is not now telling one reader in twenty-five about an ellipse that
+is a circle.
+
+*Gate 1's page-count arithmetic (`:861`).* The plan said 400 cursor pages was "roughly 15
+minutes at 0.4 s spacing". At 0.4 s, 400 pages is 2.7 minutes, and the spacing is not what
+sets the wall clock. Measured over the 110 pages of the stage-1 snapshot, the interval
+between finished pages has a median of 27.1 s (mean 45.5, p10 23.7, p90 33.1) and the whole
+fetch took 82.6 minutes; each page carries 22.7 waterfall downloads at a median of 0.98 s,
+so the images are the cost. At that rate 400 pages is 3.0 hours, not 15 minutes. The budget
+conclusion is unchanged because disk was the binding constraint, but a 15-minute figure makes
+a resumable fetch look optional.
+
+*The downlink drift cross-check (`:880`), measured and not available.* SatNOGS publishes
+`transmitter_downlink_drift`, which is part of what the free constant offset absorbs, and
+comparing the two would move gate 3 toward the position test its name implies. It cannot be
+run on the pool that decides the gate. The field is present on 29 of the 200 validation
+records (-12.5 to +44.0 ppm) and on 2 of the 7 gate-3 observations: 14746048 at +4,573 ppb
+and 14746118 at -252 ppb. Both are corrected passes. On the 3 testable observations, the ones
+carrying the +32.0, -16.4 and -16.4 ppm fitted offsets, the field is absent, so the
+comparison the review asks for has no row to run on. Recorded rather than implemented,
+because a cross-check available on none of the decisive observations would be a feature with
+no measurement behind it.
+
+*The design-effect convention (`:908`).* The ICC denominator uses the size-adjusted `n0`
+while the design effect uses the plain mean group size. Both are published for every
+grouping. Measured on the gate-5 station grouping: mean 2.5143 against `n0` 2.4445, giving
+design effects of 1.3741 and 1.3569, a 1.27 percent difference, and the convention in use is
+the larger of the two, which is the conservative direction for a widening. Unchanged, and
+now stated where it is computed.
+
+*The interval outside the corrected family (`:928`).* `image_only_vs_prior_only` is
+published on every split and is not in the family of 21. It is now marked
+`in_multiplicity_family: false` with a reason, and the contract requires the reason whenever
+the flag is false, so an uncounted interval cannot sit beside a corrected family unexplained.
+
+*Spectral inversion (`:948`).* `transmitter_invert` reverses the sense of the observed
+frequency excursion on an inverting linear transponder, which would flip the axis sign for a
+reason unrelated to the client version that `AXIS_SIGN_CONVENTION` is scoped by. It is set on
+1 of 200 validation records and on none of the 7 gate-3 observations. The interaction is now
+recorded beside the constant, and it is not acted on, because applying a correction on one
+record with no measurable corridor would be a correction nothing has verified.
+
+*Truncated windows (`:969`).* One of the 199 propagated validation records has its
+culmination at the edge of its window, so its SGP4 maximum is a window boundary value being
+compared against an API pass maximum. `culmination_inside_window` now flags it per record and
+`distribution.culmination_window` reports the effect: 198 rows contain their culmination,
+1 does not (14745603), and the median absolute error over the rows that do is 0.2258 degrees
+against 0.2249 for all of them. The flag changes nothing published, which is the point of
+measuring it rather than asserting it.
+
+*Mean Earth radius with an ellipsoidal height (`:994`).* A real inconsistency, and smaller
+than a pixel here. The half-angle at 500 km is 22.016, 21.993 and 21.981 degrees for the
+polar, mean and equatorial radii; at the 1,518 km of the highest shipped card it is 36.174,
+36.140 and 36.123. The comment used to call the mean radius "the right one" and now gives
+those numbers and says the choice is stated rather than defended.
+
+**Contract.** `contracts/fusion_receipt.schema.json` now declares the clustered-bootstrap
+and cross-split-correction fields instead of letting open objects tolerate them, and it
+requires three things a receipt could previously omit: `percentile_resolution` on every
+corrected interval, `fragility` on the ablation, and `shipped_arm_vs_recommendation` with a
+statement of at least 40 characters. A grouping that reports an unmeasurable ICC must carry
+the reason, because a null correlation with no reason reads as an absence of clustering when
+it means the opposite. The version stays at 0.1.0 on the same reasoning as the D3
+tightening: the writer in this repository emits every newly required field, so no document
+had to be rewritten.

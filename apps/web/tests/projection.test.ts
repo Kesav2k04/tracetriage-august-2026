@@ -334,3 +334,123 @@ describe("stationLonInFrame", () => {
     expect(shifted).toBeLessThanOrEqual(Math.max(...frame) + 360);
   });
 });
+
+describe("footprint framing", () => {
+  // Observation 14744250 as shipped: NORAD 46487 seen from station 329CZ144, at closest
+  // approach 62.28 degrees north and 1518 km up, which puts the horizon circle over the
+  // pole. Framing to that circle drew 360 degrees of longitude and left the 15.5 degree
+  // ground track occupying 4.1 percent of the 378 px plot width.
+  const polarTrack = {
+    lats: [55.0, 62.28, 68.0],
+    unwrappedLons: [10.0, 17.0, 25.5],
+    stationLat: 60.0,
+    stationLonUnwrapped: 14.0,
+  };
+
+  it("reports pole enclosure from the exact geometric condition", () => {
+    const over = horizonCircle(62.28, 17, 1518);
+    expect(over.halfAngleDeg).toBeCloseTo(36.14, 1);
+    expect(Math.abs(62.28) + over.halfAngleDeg).toBeGreaterThan(90);
+    expect(over.enclosesPole).toBe(true);
+
+    // A degree or two lower and the same altitude no longer reaches the pole, which is
+    // the boundary the condition has to sit on rather than near.
+    const under = horizonCircle(53.0, 17, 1518);
+    expect(Math.abs(53.0) + under.halfAngleDeg).toBeLessThan(90);
+    expect(under.enclosesPole).toBe(false);
+  });
+
+  it("unwraps a circle that straddles the antimeridian into one arc", () => {
+    const c = horizonCircle(0, 179.5, 500);
+    expect(c.enclosesPole).toBe(false);
+    const span = Math.max(...c.lon) - Math.min(...c.lon);
+    expect(span).toBeLessThan(90);
+    // Every step is small: a wrapped ring shows a 360 degree jump between neighbours.
+    for (let i = 1; i < c.lon.length; i += 1) {
+      expect(Math.abs((c.lon[i] as number) - (c.lon[i - 1] as number))).toBeLessThan(30);
+    }
+  });
+
+  it("frames the ground track rather than a pole-enclosing footprint", () => {
+    const circle = horizonCircle(62.28, 17, 1518);
+    const framed = groundBounds({
+      ...polarTrack,
+      circleLat: circle.lat,
+      circleLon: circle.lon,
+      circleEnclosesPole: circle.enclosesPole,
+    });
+    expect(framed.footprintClipped).toBe(true);
+    expect(framed.footprintClipReason).toContain("encloses a pole");
+
+    const span = framed.lonMax - framed.lonMin;
+    expect(span).toBeLessThan(30);
+    const trackShare = (25.5 - 10.0) / span;
+    expect(trackShare).toBeGreaterThan(0.5);
+  });
+
+  it("keeps an ordinary footprint inside the frame", () => {
+    // The other 24 shipped cards. A footprint several times wider than a short track is
+    // normal and useful context, so a ratio test between the two is the wrong rule: over
+    // the 25 cards that ratio runs to 17.2 and a cap of 3 would clip 23 of them.
+    const circle = horizonCircle(20, 110, 500);
+    expect(circle.enclosesPole).toBe(false);
+    const framed = groundBounds({
+      lats: [10, 20, 30],
+      unwrappedLons: [100, 110, 120],
+      stationLat: 15,
+      stationLonUnwrapped: 105,
+      circleLat: circle.lat,
+      circleLon: circle.lon,
+      circleEnclosesPole: circle.enclosesPole,
+    });
+    expect(framed.footprintClipped).toBe(false);
+    expect(framed.footprintClipReason).toBe(null);
+    expect(framed.lonMin).toBeLessThanOrEqual(Math.min(...circle.lon));
+    expect(framed.lonMax).toBeGreaterThanOrEqual(Math.max(...circle.lon));
+  });
+
+  it("clips a footprint that would squeeze the track under the stated share", () => {
+    // The backstop, exercised deliberately: no pole involved, a wide footprint and a
+    // track a fraction of a degree long. Inert on everything that ships, where the
+    // smallest non-polar track share is 6.7 percent against the 6 percent floor.
+    const circle = horizonCircle(0, 0, 20_000);
+    expect(circle.enclosesPole).toBe(false);
+    const framed = groundBounds({
+      lats: [0.0, 0.05, 0.1],
+      unwrappedLons: [0.0, 0.05, 0.1],
+      stationLat: 0.0,
+      stationLonUnwrapped: 0.05,
+      circleLat: circle.lat,
+      circleLon: circle.lon,
+      circleEnclosesPole: circle.enclosesPole,
+    });
+    expect(framed.footprintClipped).toBe(true);
+    expect(framed.footprintClipReason).toContain("percent of the plot width");
+    expect(framed.lonMax - framed.lonMin).toBeLessThan(10);
+  });
+
+  it("never reports a clipped footprint without saying why", () => {
+    const cases = [
+      { lat: 62.28, alt: 1518 },
+      { lat: 20, alt: 500 },
+      { lat: 0, alt: 20_000 },
+      { lat: -75, alt: 800 },
+    ];
+    for (const c of cases) {
+      const circle = horizonCircle(c.lat, 17, c.alt);
+      const framed = groundBounds({
+        ...polarTrack,
+        lats: [c.lat - 2, c.lat, c.lat + 2],
+        stationLat: c.lat,
+        circleLat: circle.lat,
+        circleLon: circle.lon,
+        circleEnclosesPole: circle.enclosesPole,
+      });
+      expect(framed.footprintClipped).toBe(framed.footprintClipReason !== null);
+      expect(framed.lonMax).toBeGreaterThan(framed.lonMin);
+      expect(framed.latMax).toBeGreaterThan(framed.latMin);
+      expect(framed.latMin).toBeGreaterThanOrEqual(-90);
+      expect(framed.latMax).toBeLessThanOrEqual(90);
+    }
+  });
+});

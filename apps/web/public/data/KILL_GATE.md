@@ -14,7 +14,7 @@ The plan sets six thresholds that must pass before TraceTriage is worth building
 | 2 | Metadata coverage for the corridor | ≥80% of the sample computable | **PRE-PASSED** |
 | 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **NOT_ESTABLISHED. 3/3 testable discriminate (100%), but the exact one-sided 95% lower bound on that rate is 0.368, so a 70% rate is not established. 4 of 7 not testable; the 3 span 2 stations on 1 night** |
 | 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** |
-| 5 | Physics beats image-only on Brier | strict improvement, chronological split | **NOT ESTABLISHED. Margin +0.02079, 95% CI -0.01268 to +0.05029 on 88 test observations across 88 episodes. A narrower arm (image + corridor) does clear zero and survives correction; the gate as worded does not.** |
+| 5 | Physics beats image-only on Brier | strict improvement, chronological split | **NOT ESTABLISHED. Margin +0.02079, 95% CI -0.01301 to +0.05036 on 88 test observations across 88 episodes, on the union of the episode-grouped and station-clustered intervals. A narrower arm (image + corridor) leads on both metrics: its risk-coverage margin survives correction over the 21 comparisons the ablation rule reads and its Brier margin does not. The gate as worded does not pass.** |
 | 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **NOT_ESTABLISHED. Point lift 1.582×, 95% CI [1.353, 1.755] on 87 decisive test observations across 87 episodes (chronological split, budget 50). The interval contains the 1.5× threshold; cold_station PASSED at 2.253×.** |
 
 ---
@@ -53,7 +53,17 @@ The operator approved a **20 GB** data budget for exactly this reason. At the me
 | Waterfalls at 92.3% | ~9,230, about **15.7 GB** at 1.7 MB mean |
 | Decisive negatives at 10.17% | **~1,017** |
 | Decisive positives at 18.83% | ~1,883 |
-| Cursor pages at 25/page | ~400, roughly 15 minutes at 0.4 s spacing |
+| Cursor pages at 25/page | ~400, about **3.0 hours** end to end at the measured rate |
+
+That row read "roughly 15 minutes at 0.4 s spacing" until 2026-08-19, which was wrong by a
+factor of twelve: 400 pages at 0.4 s is 2.7 minutes of spacing, and the spacing is not what
+sets the wall clock. Measured over the 110 pages of the stage-1 snapshot, the interval
+between finished pages has a median of 27.1 s (mean 45.5, tenth percentile 23.7, ninetieth
+33.1) and the whole fetch took 82.6 minutes. Each page carries 22.7 waterfall downloads at a
+median of 0.98 s, so the images are the cost and the API spacing is a rounding term. At 27.1
+s per page, 400 pages is 3.0 hours. The budget conclusion does not change, because the
+binding constraint was disk rather than time, but a 15-minute figure would have made a
+resumable fetch look optional.
 
 That clears roughly 1,000 decisive per class on the negative side, which is the binding one. Task A1 carries this number and must not scale it down.
 
@@ -173,7 +183,7 @@ The plan requires bootstrapping "by orbital episode or day, not by image row" an
 
 ### Diagnostics that are reported but are not the gate
 
-Per-row residuals and corridor coverage are in the receipt as `fit.*` and are **not** the gate statistic. These traces integrate to significance along the path while individual rows stay below the 4.0 robust-z detection floor: on obs 14740031, 2.1% of rows carry a per-row detection, so `fit.degraded` reads `TRACE_NOT_MEASURABLE` and `residual_hz` is null. A per-row instrument reports nothing on a trace A3 localised at high sigma, which is why the gate uses the path-integrated statistic. Reporting a null residual honestly is the point; A7's 185.6 Hz was a constant standing in for this missing measurement.
+Per-row residuals and corridor coverage are in the receipt as `fit.*` and are **not** the gate statistic. These traces integrate to significance along the path while individual rows stay below the 4.0 robust-z detection floor: on obs 14740031, 2.1% of rows carry a per-row detection, so `fit.degraded` reads `TRACE_NOT_MEASURABLE` and `residual_hz` is null. A per-row instrument reports nothing on a trace A3 localised at high sigma, which is why the gate uses the path-integrated statistic. **A3's sigmas and this gate's sigmas are different statistics and cannot be read against each other**: A3 normalised per column band, `corridor_fit` normalises against the median and MAD of the whole image, and the ratio between them runs from 0.87 to 12.4 across the seven decisive observations, so it is not a rescaling. On obs 14740031 A3's *vertical* sigma of 2.83 exceeds this gate's *curved* sigma of 2.02, which inverts a comparison both artifacts otherwise agree on. Every observation in the receipt carries the ratio at `a3_reference.sigma_scale_ratio_to_fit`. Reporting a null residual honestly is the point; A7's 185.6 Hz was a constant standing in for this missing measurement.
 
 ### Thresholds
 
@@ -222,18 +232,66 @@ The wording was not changed to fit the result, and the challenger was not redefi
 manufacture a pass. `physics_conditioned` is the arm the gate names, and that arm is what
 was tested.
 
-**What was established instead, on the same 88 observations.** Removing the geometry block
-leaves `image_corridor`, which beats calibrated image-only on both metrics:
+**What was established instead, on the same 88 observations, and what was withdrawn on
+2026-08-19.** Removing the geometry block leaves `image_corridor`, which beats calibrated
+image-only on both metrics. One of the two margins survives the multiplicity correction:
 
-| comparison | margin | 95% CI | Bonferroni CI (7 comparisons) |
+| comparison | margin | 95% CI | Bonferroni CI (21 comparisons) |
 |---|---|---|---|
-| Brier | +0.02026 | +0.00695 to +0.03435 | +0.00296 to +0.03976, survives |
-| risk-coverage area | +0.05736 | +0.02688 to +0.09369 | +0.01797 to +0.10579, survives |
+| Brier | +0.02026 | +0.00678 to +0.03631 | -0.00050 to +0.04874, **does not survive** |
+| risk-coverage area | +0.05736 | +0.02605 to +0.09312 | +0.01192 to +0.11887, survives |
 
 `image_corridor` was nominated after reading the ladder, which is why the corrected
 interval travels with it.
 
-**Why the gate's own challenger fails while a narrower arm succeeds.** The geometry block
+Until 2026-08-19 both rows read "survives", over a family of 7 and on an interval that
+resampled episodes. Two things changed in D7. Both make the correction stricter, and
+neither was chosen after seeing what it did to this result:
+
+- **The family is the 21 comparisons the rule can read**, 7 on each of the 3 splits above
+  the 300-row training floor, rather than the 7 on the split being reported. The ablation
+  rule is a disjunction across splits: it retains a block if an arm containing it wins on
+  any eligible split. Correcting at the split boundary corrects over a family narrower
+  than the search, and the receipt's own justification for using a corrected rule already
+  said the ladder runs comparisons on each of four splits.
+- **The published interval is the union of two groupings.** Episodes are inert as clusters
+  on this test set: 88 episodes over 88 observations, a mean group size of 1.0, and an
+  intraclass correlation that cannot be estimated at all. The same paired differences give
+  a station ICC of 0.2471 and a design effect of 1.3741, so the interval is now measured
+  under both and the published bound is the worse end of each.
+
+Of those two changes, the family size is the one that withdraws the claim, and the
+measurement says so rather than the argument. Corrected over 21 comparisons the
+observation-level interval is -0.00050 to +0.04364 and the station-clustered interval is
++0.00297 to +0.04874, so the station grouping alone would still clear zero. The clustering
+did not widen this comparison in the direction the review expected: the two nominal
+intervals are 0.02816 and 0.02823 wide, near enough identical, and the station one sits
+about 0.0013 higher rather than being wider. The union is used because it is conservative
+whichever way the groupings fall, not because clustering was the decisive term here. The
+normal-theory design-effect widening is reported beside it and also fails to clear zero
+(-0.00408 to +0.04767), so the two accountings agree on the verdict while disagreeing about
+which grouping drives it.
+
+Both intervals are read at 50,000 draws, and the draw count is part of the result rather
+than a setting. A 21-comparison correction reads the 0.119th percentile, so 4,000 draws put
+that endpoint at the fifth-smallest resample of the whole distribution: a quantile the
+bootstrap does not have the resolution to report, returned as an interval that looks like
+any other interval. The minimum that puts 20 draws in the tail is 16,800, and 50,000 puts
+59.5 there. Every corrected interval in the receipt now carries `percentile_resolution`
+beside it, so an unresolvable endpoint is visible instead of implied.
+
+**What the retraction changes downstream.** The corrected ablation rule reads Brier
+comparisons, so it now retains no block beyond image and recommends `image_only`. The
+queue is still ranked by `image_corridor`, and the receipt states that disagreement at
+`ablation_conclusion.shipped_arm_vs_recommendation` rather than settling it silently in
+either direction. Two measured reasons are recorded there. The narrower arm is not
+established as better either, so swapping the shipped arm on this result would be a change
+made for the appearance of consistency rather than for a finding. And the same arm's
+risk-coverage margin does survive the same correction on the same split, which is the
+metric closest to what the queue actually does, because selective review is the queue's
+whole job. That comparison was not promoted into the ablation rule after the fact.
+
+**Why the gate's own challenger fails.** The geometry block
 carries no usable signal on this corpus. Its seven features measured marginal AUC between
 0.466 and 0.567 before any head was fitted, and `physics_only` scores Brier 0.2136 against
 the 0.2085 prior-only floor with a calibration slope of -0.07. Adding it to image widens
@@ -241,7 +299,10 @@ the combined interval past zero.
 
 **What this does not license.** The corridor block is physics, so "physics helps" is
 supported in the specific form measured: the fitted Doppler corridor helps, the orbital
-geometry summary does not. Any claim broader than that is not in evidence here.
+geometry summary does not. The claim is weaker after D7 than before it. What survives
+correction over the family the rule reads is a ranking gain on the metric the queue uses,
+not a calibration gain: the Brier interval no longer clears zero. Any claim broader than
+that is not in evidence here.
 
 The comparison was against a **calibrated** image-only baseline, calibrated by the same
 method on the same partition, so the improvement is not calibration wearing a physics
@@ -465,8 +526,10 @@ orbital-geometry feature block carries no usable signal on this corpus (marginal
 to 0.567 across its seven features; `physics_only` Brier 0.2136 against a 0.2085
 prior-only floor), and adding it to the image arm widens the interval past zero. Action
 taken: the block was dropped by the ablation rule, and the shipped arm is `image_corridor`,
-which does clear zero on both Brier and risk-coverage area and survives Bonferroni
-correction. The gate's wording was left intact and its challenger was not redefined.
+which cleared zero on both Brier and risk-coverage area and survived Bonferroni correction
+over the 7 comparisons then being counted. That last clause was corrected on 2026-08-19;
+see the entry at the end of this log. The gate's wording was left intact and its challenger
+was not redefined.
 Recorded rather than retried, because the honest failure of a specific claim is worth more
 here than a restated claim that passes. Full detail in the gate 5 section above and in
 `artifacts/FUSION_RECEIPT.json`.
@@ -526,3 +589,25 @@ and fails if this file drifts from them. `--check` reports drift without writing
 Nothing in the measurements changed. The first regenerated table was byte-identical to
 the hand-written one it replaced, which is the check that the generator reproduces
 what a reader had already been shown.
+
+**2026-08-19, correction to the gate 5 entry recorded on 17 Aug.** That entry said the
+shipped arm `image_corridor` "does clear zero on both Brier and risk-coverage area and
+survives Bonferroni correction". The Brier half of that no longer holds. The correction it
+survived ran over the 7 comparisons on one split, on an interval that resampled episodes.
+The ablation rule it feeds reads 7 comparisons on each of the 3 splits above its training
+floor, and episodes are inert as clusters on this test set: 88 groups over 88 observations,
+where an intraclass correlation cannot be estimated at all, while the same paired
+differences give a station ICC of 0.2471. Corrected over the 21 comparisons the rule reads,
+on the union of the episode-grouped and station-clustered intervals at 50,000 draws, the
+Brier margin of +0.02026 has a corrected interval of -0.00050 to +0.04874 and does not
+clear zero. The family size is what does that: over the same 21 comparisons the
+station-clustered interval alone is +0.00297 to +0.04874 and would still clear zero, so the
+clustering fix is not what withdraws the claim even though both changes landed together. The risk-coverage margin of +0.05736 does, at +0.01192 to +0.11887 over the
+same family. Nothing in the measurement changed: the point estimates are identical and the
+four nominal interval endpoints all moved by less than 0.002. What changed is the family
+the correction runs over and the grouping the interval resamples, both of which were too
+narrow, and both were found by reading the receipt against its own justification text
+rather than by any gate. The corrected ablation rule now retains no block beyond image and
+recommends `image_only`, while the queue is still ranked by `image_corridor`. That
+disagreement is published at `ablation_conclusion.shipped_arm_vs_recommendation` with the
+two measured reasons the arm was not swapped. Receipt: `artifacts/FUSION_RECEIPT.json`.

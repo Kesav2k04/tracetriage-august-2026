@@ -109,14 +109,59 @@ def _gate3_row(g3: dict) -> str:
     )
 
 
-def _gate5_row(g5: dict) -> str:
+def _narrow_arm_clause(brier: dict | None, aurc: dict | None) -> str:
+    """What the narrower arm has established, read from its two corrected verdicts.
+
+    This clause said "does clear zero and survives correction" as a literal until
+    2026-08-19, when correcting over the 21 comparisons the ablation rule reads rather
+    than the 7 on one split moved the Brier interval across zero while the risk-coverage
+    interval stayed clear of it. A sentence that cannot express that outcome would have
+    kept reporting the old one from a receipt that no longer said it.
+    """
+    def survives(comp: dict | None) -> bool | None:
+        if not comp:
+            return None
+        return bool(comp.get("survives_correction")) and (
+            comp.get("direction_adjusted", comp.get("direction")) == "challenger_better"
+        )
+
+    b, a = survives(brier), survives(aurc)
+    family = (brier or aurc or {}).get("n_comparisons")
+    over = f" over the {family} comparisons the ablation rule reads" if family else ""
+    if b is None or a is None:
+        return (
+            "A narrower arm (image + corridor) leads on both metrics; its corrected "
+            "intervals are in the receipt"
+        )
+    if b and a:
+        return (
+            "A narrower arm (image + corridor) clears zero on both Brier and "
+            f"risk-coverage area and survives correction{over}"
+        )
+    if a and not b:
+        return (
+            "A narrower arm (image + corridor) leads on both metrics: its risk-coverage "
+            f"margin survives correction{over} and its Brier margin does not"
+        )
+    if b and not a:
+        return (
+            "A narrower arm (image + corridor) leads on both metrics: its Brier margin "
+            f"survives correction{over} and its risk-coverage margin does not"
+        )
+    return (
+        "A narrower arm (image + corridor) leads on both metrics and neither margin "
+        f"survives correction{over}"
+    )
+
+
+def _gate5_row(g5: dict, brier: dict | None, aurc: dict | None) -> str:
     return (
         "| 5 | Physics beats image-only on Brier | strict improvement, chronological "
         f"split | **NOT ESTABLISHED. Margin +{g5['margin']:.5f}, 95% CI "
         f"{g5['ci95'][0]:+.5f} to {g5['ci95'][1]:+.5f} on {g5['n_observations']} test "
-        f"observations across {g5['n_groups']} episodes. A narrower arm (image + "
-        "corridor) does clear zero and survives correction; the gate as worded does "
-        "not.** |"
+        f"observations across {g5['n_groups']} episodes, on the union of the "
+        "episode-grouped and station-clustered intervals. "
+        f"{_narrow_arm_clause(brier, aurc)}. The gate as worded does not pass.** |"
     )
 
 
@@ -200,6 +245,16 @@ def render(text: str) -> str:
     chron = queue["gate6"]["per_split"]["chronological"]
     station = queue["gate6"]["per_split"]["cold_station"]
     g5 = fusion["gate5"]["per_split"]["chronological"]
+    # The narrower arm's two corrected verdicts, from the split the gate is taken on.
+    chron_split = next(
+        (s for s in fusion["splits"] if s["split"] == "chronological"), {}
+    )
+    narrow_brier = (chron_split.get("multiplicity_adjusted") or {}).get(
+        "image_corridor_vs_image_only"
+    )
+    narrow_aurc = (chron_split.get("selective") or {}).get(
+        "aurc_shipped_vs_image_only"
+    )
     # Gate 6's decisive count and gate 5's are different populations, and the document
     # had been quoting gate 5's 88 for both. Gate 6 runs on the queue, which
     # deduplicates 410 rows to 407, and one of the removed rows was decisive.
@@ -215,7 +270,7 @@ def render(text: str) -> str:
             _STATIC_ROWS[2],
             _gate3_row(g3),
             _STATIC_ROWS[4],
-            _gate5_row(g5),
+            _gate5_row(g5, narrow_brier, narrow_aurc),
             _gate6_row(chron, station, decisive),
         ]
     )

@@ -43,6 +43,33 @@ predicted curve.  The corridor is NOT assumed to be centred on rx-freq.
 ``FREQ_OFFSET_SEARCH_HZ`` (±20 kHz) is the stated search range that A7 and the
 model scan over, which clears the largest measured offset by about 40 percent.
 
+FREQUENCY TERMS THAT ARE OMITTED, WITH THEIR SIZES
+==================================================
+Only the first-order Doppler shift and the free constant offset above are modelled.
+Every other frequency term is below the corridor half-width by three orders of
+magnitude, and the numbers are here so a reader does not have to take that on trust:
+
+  * Second-order (relativistic) Doppler at 7.6 km/s is 3.21e-10 fractional, which is
+    **0.140 Hz** at 436.4 MHz.
+  * The gravitational shift between the surface and 500 km is 5.07e-11, **0.022 Hz**.
+  * The ionosphere contributes 2.12 m per TECU at 436 MHz and 21.32 m per TECU at
+    137 MHz, so a 30 TECU slant change across a 300 s pass is **0.31 Hz** and
+    **0.98 Hz** respectively.
+  * The troposphere is non-dispersive at these frequencies and contributes under 1 Hz.
+
+The largest of those is 0.98 Hz against half-widths of 1,200 Hz (corrected) and
+2,000 Hz (uncorrected), which is 0.05 percent of the band. Modelling any of them would
+be false precision beside a 14 kHz measured oscillator offset.
+
+One term is larger and is still deliberately not applied. Tropospheric *refraction*
+raises apparent elevation by about 0.16 degrees at 5 degrees elevation and 0.55 degrees
+at the horizon, which dwarfs the 0.19 degree geodetic up-vector effect that unit C7
+fixed. It is omitted because the reference it would be checked against,
+``max_altitude`` from the API, is itself a geometric prediction: applying refraction to
+one side of that comparison would introduce a bias rather than remove one. If an
+elevation from this module is ever compared against a pointed antenna, refraction has to
+go in first.
+
 DEGRADED STATES
 ===============
 All degrade states return a named reason code in ``PhysicsResult.degraded`` and
@@ -247,6 +274,17 @@ HORIZON_MASK_ELEVATION_DEG: float = 0.0
 # behind them: 1.6 (6 records) and 2.1.2 (46 records), so 52 of 150 observations come
 # from a renderer version the sign was measured on and 98 do not.
 #
+# One per-record condition could break the convention independently of the renderer,
+# and it is not consulted anywhere in the physics: `transmitter_invert`. An inverting
+# linear transponder reverses the sense of the observed frequency excursion, so on such a
+# record the axis sign would flip for a reason that has nothing to do with the client
+# version. It is set on 1 of the 200 records in the validation corpus, none of them in the
+# gate-3 pool, and a plain telemetry downlink (the usual case here) is unaffected. It is
+# recorded here rather than acted on because acting on it with one record and no
+# measurable corridor would be applying a correction nothing has verified. If the flag
+# ever appears on an observation with enough Doppler swing to measure the sign,
+# `corridor_fit.measure_axis_sign` is where the two would be checked against each other.
+#
 # The guard, rather than a comment alone: `axis_sign_evidence` below reports per
 # observation whether the family it came from has a measurement behind it, and
 # `corridor_fit.measure_axis_sign` re-measures the sign from the image whenever the
@@ -449,7 +487,20 @@ def gmst(dt: datetime) -> float:
 def eci_to_ecef(v_eci: np.ndarray, dt: datetime) -> np.ndarray:
     """Rotate an ECI vector into ECEF at the given UTC epoch.
 
-    Uses the GMST rotation only (no polar motion, no nutation corrections).
+    Uses the GMST1982 rotation only. Three frame terms are omitted, in this order of
+    size, measured rather than listed:
+
+      * UT1 minus UTC. GMST is evaluated on UTC here. The offset is bounded at 0.9 s by
+        leap seconds, which is 0.003760 degrees of Earth rotation (13.54 arcsec), 451 m
+        of displacement at orbital radius, and 0.052 degrees of pointing error at 500 km
+        slant range, 0.026 at 1000 km and 0.013 at 2000 km. A quarter of the geodetic
+        up-vector error unit C7 fixed, and 45 times polar motion.
+      * Polar motion. About 0.3 arcsec of pole offset, so roughly 10 m and 0.001 degrees.
+      * The pseudo-Earth-fixed to WGS-84 difference, smaller again.
+
+    Not "no nutation corrections": GMST1982 is the correct rotation angle for the TEME
+    frame SGP4 emits, so there is no nutation term being dropped. The earlier wording
+    named a term that does not apply and omitted the largest one that does.
     This level of accuracy reproduced max_altitude to 0.18 degrees in A3.
     """
     theta = gmst(dt)

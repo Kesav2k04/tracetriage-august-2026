@@ -97,13 +97,13 @@
   },
   {
    "name": "FUSION_RECEIPT.json",
-   "sha256": "2bd6244264825c68f1dbfe6ff8c58d4129c19ff7c4c72a068abcbbac4f3f0acb",
-   "bytes": 154738
+   "sha256": "db61b08f973aa1aee0388bd5fe06facdfa46133ab54635e3048f5b5eaa647a31",
+   "bytes": 248786
   },
   {
    "name": "GATE3_RECEIPT.json",
-   "sha256": "a1bd98cc7e6cae5b13776c017ce2727ab4cf3a579bd1c480a221be838130bbf0",
-   "bytes": 48032
+   "sha256": "766543ffb36cd88fc755c3e89fbe9f9e08fc06e71bbb3a962ab56dce57d9dfe2",
+   "bytes": 52145
   },
   {
    "name": "HERO_NULLS.json",
@@ -117,8 +117,8 @@
   },
   {
    "name": "PHYSICS_VALIDATION.json",
-   "sha256": "432a1d0b70d29a0f0d910cc0dba9e1a798fcc79f3d1705b0918bd7857f589d78",
-   "bytes": 56394
+   "sha256": "b5990be2a373ad5c0414a0b3d7b595b2f81a32e9170eefbc8dfbab59e4738ab7",
+   "bytes": 65343
   },
   {
    "name": "QUEUE_RECEIPT.json",
@@ -153,7 +153,7 @@
    "name": "fusion_receipt.schema.json",
    "version": "0.1.0",
    "status": "ratified",
-   "sha256": "564024a631e1a03200d08464f98ff52c564f3ab94e6c7e760ca7d35d81c93daf"
+   "sha256": "3da9f8f5f03728b07c037f4cd2afea08f82a2c70dd18a415b3f2494171c9bdf2"
   },
   {
    "name": "queue_receipt.schema.json",

@@ -3,10 +3,10 @@
  "schema_version": "0.1.0",
  "contract": "contracts/fusion_receipt.schema.json",
  "unit": "B2-B6",
- "generated_at": "2026-08-18T07:41:33.273428+00:00",
+ "generated_at": "2026-08-19T02:38:23.967186+00:00",
  "seed": 42,
  "snapshot_id": "snap-20260817-stage1",
- "split_manifest_sha256": "2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199",
+ "split_manifest_sha256": "bdb159ca13ece61c923992976589fade050976e69e2b1a0564acb334b4574808",
  "feature_admissibility": {
   "blocks": {
    "physics": [
@@ -136,20 +136,54 @@
   "reference": "image_only",
   "decided_on": "chronological",
   "verdict": "NOT_ESTABLISHED",
-  "statement": "The physics-conditioned arm has the lower Brier score by 0.02079, but the 95% interval (-0.01268 to 0.05029) spans zero on 88 test observations across 88 episodes. A point estimate in the right direction with an interval containing zero is not a gain, and reporting it as one would be the same error unit A7 made. The gate is not met.",
+  "statement": "The physics-conditioned arm has the lower Brier score by 0.02079, but the 95% interval (-0.01301 to 0.05036) spans zero on 88 test observations across 88 episodes. A point estimate in the right direction with an interval containing zero is not a gain, and reporting it as one would be the same error unit A7 made. The gate is not met.",
   "per_split": {
    "chronological": {
     "measurable": true,
     "margin": 0.020787292005955853,
     "ci95": [
-     -0.012684154835307377,
-     0.05028571830464391
+     -0.013010025198626823,
+     0.0503591062054338
     ],
     "direction": "indistinguishable",
     "distinguishable": false,
     "challenger_better": false,
     "n_observations": 88,
     "n_groups": 88,
+    "n_groups_episode": 88,
+    "n_groups_station": 35,
+    "mean_group_size_episode": 1.0,
+    "mean_group_size_station": 2.5142857142857142,
+    "ci95_episode": [
+     -0.012414016934463616,
+     0.0503591062054338
+    ],
+    "ci95_station": [
+     -0.013010025198626823,
+     0.04970595402275148
+    ],
+    "governing_interval": "union_of_observation_level_and_station",
+    "clustering": {
+     "episode": {
+      "measurable": false,
+      "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+      "icc": null,
+      "design_effect": null,
+      "n_groups": 88,
+      "n_observations": 88,
+      "mean_group_size": 1.0
+     },
+     "station": {
+      "measurable": true,
+      "reason": null,
+      "icc": -0.06151838188719366,
+      "design_effect": 1.0,
+      "n_groups": 35,
+      "n_observations": 88,
+      "mean_group_size": 2.5142857142857142,
+      "size_adjusted_mean_group_size": 2.44451871657754
+     }
+    },
     "challenger_brier": 0.12871283051762525,
     "reference_brier": 0.14950012252358108
    },
@@ -157,14 +191,48 @@
     "measurable": true,
     "margin": -0.00018355164597574645,
     "ci95": [
-     -0.01954528554077422,
-     0.01843479486688415
+     -0.01960716238407959,
+     0.018211939725325477
     ],
     "direction": "indistinguishable",
     "distinguishable": false,
     "challenger_better": false,
     "n_observations": 217,
     "n_groups": 217,
+    "n_groups_episode": 217,
+    "n_groups_station": 27,
+    "mean_group_size_episode": 1.0,
+    "mean_group_size_station": 8.037037037037036,
+    "ci95_episode": [
+     -0.019477140501500758,
+     0.018211939725325477
+    ],
+    "ci95_station": [
+     -0.01960716238407959,
+     0.017176941375429907
+    ],
+    "governing_interval": "union_of_observation_level_and_station",
+    "clustering": {
+     "episode": {
+      "measurable": false,
+      "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+      "icc": null,
+      "design_effect": null,
+      "n_groups": 217,
+      "n_observations": 217,
+      "mean_group_size": 1.0
+     },
+     "station": {
+      "measurable": true,
+      "reason": null,
+      "icc": -0.11796024965450666,
+      "design_effect": 1.0,
+      "n_groups": 27,
+      "n_observations": 217,
+      "mean_group_size": 8.037037037037036,
+      "size_adjusted_mean_group_size": 6.718539524991138
+     }
+    },
     "challenger_brier": 0.21612099865494325,
     "reference_brier": 0.21593744700896753
    },
@@ -172,14 +240,48 @@
     "measurable": true,
     "margin": -0.0008894105613577197,
     "ci95": [
-     -0.05211229437152687,
-     0.055710638436412996
+     -0.06700480875898397,
+     0.0723938436171875
     ],
     "direction": "indistinguishable",
     "distinguishable": false,
     "challenger_better": false,
     "n_observations": 96,
     "n_groups": 96,
+    "n_groups_episode": 96,
+    "n_groups_station": 28,
+    "mean_group_size_episode": 1.0,
+    "mean_group_size_station": 3.4285714285714284,
+    "ci95_episode": [
+     -0.05314967130527634,
+     0.05405458555775938
+    ],
+    "ci95_station": [
+     -0.06700480875898397,
+     0.0723938436171875
+    ],
+    "governing_interval": "union_of_observation_level_and_station",
+    "clustering": {
+     "episode": {
+      "measurable": false,
+      "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+      "icc": null,
+      "design_effect": null,
+      "n_groups": 96,
+      "n_observations": 96,
+      "mean_group_size": 1.0
+     },
+     "station": {
+      "measurable": true,
+      "reason": null,
+      "icc": 0.23983602213694435,
+      "design_effect": 1.5824589109040077,
+      "n_groups": 28,
+      "n_observations": 96,
+      "mean_group_size": 3.4285714285714284,
+      "size_adjusted_mean_group_size": 3.2924382716049383
+     }
+    },
     "challenger_brier": 0.20158079582820912,
     "reference_brier": 0.2006913852668514
    },
@@ -187,14 +289,48 @@
     "measurable": true,
     "margin": -0.08013788581148551,
     "ci95": [
-     -0.11629458712032514,
-     -0.04531589122323049
+     -0.12322894020705609,
+     -0.01024925161139175
     ],
     "direction": "reference_better",
     "distinguishable": true,
     "challenger_better": false,
     "n_observations": 76,
     "n_groups": 76,
+    "n_groups_episode": 76,
+    "n_groups_station": 12,
+    "mean_group_size_episode": 1.0,
+    "mean_group_size_station": 6.333333333333333,
+    "ci95_episode": [
+     -0.11616880498739733,
+     -0.04532021564064668
+    ],
+    "ci95_station": [
+     -0.12322894020705609,
+     -0.01024925161139175
+    ],
+    "governing_interval": "union_of_observation_level_and_station",
+    "clustering": {
+     "episode": {
+      "measurable": false,
+      "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+      "icc": null,
+      "design_effect": null,
+      "n_groups": 76,
+      "n_observations": 76,
+      "mean_group_size": 1.0
+     },
+     "station": {
+      "measurable": true,
+      "reason": null,
+      "icc": 0.08766783806386828,
+      "design_effect": 1.4675618030072974,
+      "n_groups": 12,
+      "n_observations": 76,
+      "mean_group_size": 6.333333333333333,
+      "size_adjusted_mean_group_size": 5.6913875598086126
+     }
+    },
     "challenger_brier": 0.20974162699126012,
     "reference_brier": 0.12960374117977463
    },
@@ -202,14 +338,48 @@
     "measurable": true,
     "margin": -0.01851665293005524,
     "ci95": [
-     -0.058380054236107204,
-     0.01914553820179673
+     -0.06067112813966365,
+     0.018197055068813892
     ],
     "direction": "indistinguishable",
     "distinguishable": false,
     "challenger_better": false,
     "n_observations": 88,
     "n_groups": 88,
+    "n_groups_episode": 88,
+    "n_groups_station": 35,
+    "mean_group_size_episode": 1.0,
+    "mean_group_size_station": 2.5142857142857142,
+    "ci95_episode": [
+     -0.057945298119084505,
+     0.018197055068813892
+    ],
+    "ci95_station": [
+     -0.06067112813966365,
+     0.017469015055203943
+    ],
+    "governing_interval": "union_of_observation_level_and_station",
+    "clustering": {
+     "episode": {
+      "measurable": false,
+      "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+      "icc": null,
+      "design_effect": null,
+      "n_groups": 88,
+      "n_observations": 88,
+      "mean_group_size": 1.0
+     },
+     "station": {
+      "measurable": true,
+      "reason": null,
+      "icc": -0.049262381771662235,
+      "design_effect": 1.0,
+      "n_groups": 35,
+      "n_observations": 88,
+      "mean_group_size": 2.5142857142857142,
+      "size_adjusted_mean_group_size": 2.44451871657754
+     }
+    },
     "challenger_brier": 0.1646564146005865,
     "reference_brier": 0.14613976167053125
    }
@@ -221,7 +391,42 @@
    "multiplicity_corrected": "The same, but the interval must clear zero after Bonferroni correction over the comparison family run on that split."
   },
   "deciding_rule": "multiplicity_corrected",
-  "why_the_corrected_rule_decides": "The correction was promoted from a report to a gate after the nominal rule retained the metadata block on one split whose interval did not survive correction, so this is a rule tightened after seeing a number and that is worth stating. It stands on two grounds independent of which way it fell: gate 5 already reports corrected intervals, so holding the ablation to a weaker standard would be the inconsistency; and this ladder runs 5 comparisons on each of 4 splits, where one nominal win by chance is the expected outcome rather than evidence. The corrected rule also selects a combination the ladder actually fitted, so the shipped arm carries a measured score and an interval, which the nominal rule's selection does not.",
+  "why_the_corrected_rule_decides": "The correction was promoted from a report to a gate after the nominal rule retained the metadata block on one split whose interval did not survive correction, so this is a rule tightened after seeing a number and that is worth stating. It stands on two grounds independent of which way it fell: gate 5 already reports corrected intervals, so holding the ablation to a weaker standard would be the inconsistency; and this ladder runs 5 comparisons on each of 4 splits, where one nominal win by chance is the expected outcome rather than evidence. The corrected rule also selects a combination the ladder actually fitted, so its recommendation carries a measured score and an interval, which the nominal rule's selection does not.",
+  "shipped_arm_vs_recommendation": {
+   "ships": "image_corridor",
+   "ship_blocks": [
+    "image",
+    "corridor"
+   ],
+   "nominal_recommends": "image_corridor",
+   "nominal_recommends_blocks": [
+    "image",
+    "corridor"
+   ],
+   "corrected_recommends": "image_only",
+   "corrected_recommends_blocks": [
+    "image"
+   ],
+   "agree": false,
+   "shipped_blocks_without_corrected_support": [
+    "corridor"
+   ],
+   "selective_evidence_for_the_shipped_arm": {
+    "split": "chronological",
+    "metric": "risk-coverage area against the reference arm",
+    "margin": 0.05735851428375377,
+    "ci_adjusted": [
+     0.011920702829754876,
+     0.11887038855453319
+    ],
+    "direction": "challenger_better",
+    "survives_correction": true,
+    "n_comparisons": 21
+   },
+   "note": "The queue is ranked by image_corridor (image + corridor), while the corrected ablation rule recommends image_only (image). The blocks the shipped ranker uses without corrected support are corridor: retained by the nominal rule, and the Brier interval does not clear zero once the multiplicity correction runs over the family the rule reads. The ranker was not rebuilt to match, for two measured reasons. The same comparison does not establish the narrower arm as better either, so swapping on it would be a change made for the appearance of consistency rather than for a result. And the ablation rule reads Brier comparisons only, while the same arm's risk-coverage area against the reference arm on chronological is +0.05736 with a corrected interval of +0.01192 to +0.11887 over the same 21 comparisons, which does clear zero. Selective review is what the queue does, so that is the metric closest to the shipped use, and it is reported rather than promoted into the rule after the fact."
+  },
+  "fragility": [],
+  "fragility_note": "Qualifications on the corrected conclusion above, not corrections to it. The verdict is read from the cluster bootstrap, which resamples stations directly; the design-effect entry here is a cruder normal-theory check on the same clustering and is reported where the two disagree.",
   "min_train_for_verdict": 300,
   "min_train_justification": "Set from the size-matched control, not from taste. The corridor block loses roughly 0.036 Brier on the chronological split purely by cutting the training partition from 530 rows to 188, which exceeds the 0.020 it gains at full size. Below the floor a verdict measures the sample size instead of the block, so those splits still appear in the receipt and still inform the training-size caveat; they do not decide whether a block ships.",
   "splits_used": [
@@ -233,38 +438,6 @@
    "cold_combined"
   ],
   "nominal": {
-   "blocks": {
-    "physics": {
-     "decision": "DROP",
-     "better_on": [],
-     "worse_on": [
-      "cold_station/image_physics"
-     ]
-    },
-    "corridor": {
-     "decision": "RETAIN",
-     "better_on": [
-      "chronological/image_corridor"
-     ],
-     "worse_on": []
-    },
-    "metadata": {
-     "decision": "RETAIN",
-     "better_on": [
-      "cold_station/image_metadata"
-     ],
-     "worse_on": []
-    }
-   },
-   "shipped_blocks": [
-    "image",
-    "corridor",
-    "metadata"
-   ],
-   "shipped_arm": null,
-   "shipped_arm_was_measured": false
-  },
-  "multiplicity_corrected": {
    "blocks": {
     "physics": {
      "decision": "DROP",
@@ -293,8 +466,33 @@
    "shipped_arm": "image_corridor",
    "shipped_arm_was_measured": true
   },
+  "multiplicity_corrected": {
+   "blocks": {
+    "physics": {
+     "decision": "NOT_ESTABLISHED",
+     "better_on": [],
+     "worse_on": []
+    },
+    "corridor": {
+     "decision": "NOT_ESTABLISHED",
+     "better_on": [],
+     "worse_on": []
+    },
+    "metadata": {
+     "decision": "NOT_ESTABLISHED",
+     "better_on": [],
+     "worse_on": []
+    }
+   },
+   "shipped_blocks": [
+    "image"
+   ],
+   "shipped_arm": "image_only",
+   "shipped_arm_was_measured": true
+  },
   "rules_disagree_on": [
-   "metadata"
+   "corridor",
+   "physics"
   ],
   "shipped_blocks": [
    "image",
@@ -308,6 +506,10 @@
    "ece": 0.07130435876916258,
    "calibration_slope": 1.483470830430276
   },
+  "recommended_arm": "image_only",
+  "recommended_blocks": [
+   "image"
+  ],
   "caveat": "The retain decision reads test-set comparisons, so the shipped arm's Brier is optimistic by an amount this corpus cannot measure. A second snapshot is the only thing that settles it, and until then the number travels with this sentence."
  },
  "size_matched_control": {
@@ -526,8 +728,8 @@
     "image_metadata_vs_image_only": {
      "margin": -0.011198979835859556,
      "ci95": [
-      -0.04223537889868669,
-      0.01966599331989351
+      -0.04213225750931116,
+      0.020534770626951943
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -535,15 +737,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.04213225750931116,
+      0.020534770626951943
+     ],
+     "ci95_station": [
+      -0.03821963866323345,
+      0.01685986783279223
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.005904561798330209,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.04213225750931116,
+       0.020534770626951943
+      ],
+      "widened_ci": [
+       -0.04213225750931116,
+       0.020534770626951946
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "image_physics_vs_image_only": {
      "margin": -0.0025165239324061715,
      "ci95": [
-      -0.032672515253422275,
-      0.02317882190169002
+      -0.03449964049530926,
+      0.022492003647517002
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -551,15 +804,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.03196142948958674,
+      0.022492003647517002
+     ],
+     "ci95_station": [
+      -0.03449964049530926,
+      0.02143790565060904
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.07600629652496639,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.03196142948958674,
+       0.022492003647517002
+      ],
+      "widened_ci": [
+       -0.03196142948958674,
+       0.022492003647517002
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "image_corridor_vs_image_only": {
      "margin": 0.020264043677822457,
      "ci95": [
-      0.006950965547512503,
-      0.03435159948951016
+      0.006777847585029543,
+      0.03630742727148266
      ],
      "direction": "challenger_better",
      "distinguishable": true,
@@ -567,15 +871,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      0.006777847585029543,
+      0.03493687203091032
+     ],
+     "ci95_station": [
+      0.008073373243025235,
+      0.03630742727148266
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.24707898795681188,
+       "design_effect": 1.3741481817631722,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.3741481817631722,
+      "standard_error_factor": 1.1722406671682961,
+      "widened_from": [
+       0.006777847585029543,
+       0.03493687203091032
+      ],
+      "widened_ci": [
+       0.004454976172444423,
+       0.037464129775692065
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "physics_conditioned_vs_image_only": {
      "margin": 0.020787292005955853,
      "ci95": [
-      -0.012684154835307377,
-      0.05028571830464391
+      -0.013010025198626823,
+      0.0503591062054338
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -583,15 +938,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.012414016934463616,
+      0.0503591062054338
+     ],
+     "ci95_station": [
+      -0.013010025198626823,
+      0.04970595402275148
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.06151838188719366,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.012414016934463616,
+       0.0503591062054338
+      ],
+      "widened_ci": [
+       -0.012414016934463618,
+       0.0503591062054338
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "full_fusion_vs_image_only": {
      "margin": -0.0008550731935434065,
      "ci95": [
-      -0.04188730434545358,
-      0.03939815351011365
+      -0.041823489789390655,
+      0.03962527235786959
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -599,15 +1005,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.041823489789390655,
+      0.03962527235786959
+     ],
+     "ci95_station": [
+      -0.04013143901575765,
+      0.03425944953371741
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.08491121348165889,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.041823489789390655,
+       0.03962527235786959
+      ],
+      "widened_ci": [
+       -0.041823489789390655,
+       0.03962527235786959
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "image_only_vs_prior_only": {
      "margin": 0.05900611428197388,
      "ci95": [
-      0.01843680690495302,
-      0.09990604891906447
+      0.013591590586895429,
+      0.11197081301120304
      ],
      "direction": "challenger_better",
      "distinguishable": true,
@@ -615,25 +1072,131 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      0.018174564860548543,
+      0.09897552669025575
+     ],
+     "ci95_station": [
+      0.013591590586895429,
+      0.11197081301120304
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.14610528046727012,
+       "design_effect": 1.2212451389932948,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.2212451389932948,
+      "standard_error_factor": 1.1050996059149125,
+      "widened_from": [
+       0.018174564860548543,
+       0.09897552669025575
+      ],
+      "widened_ci": [
+       0.01388318510746147,
+       0.1031762961830168
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
     }
    },
    "multiplicity_adjusted": {
     "image_corridor_vs_image_only": {
-     "n_comparisons": 7,
+     "n_comparisons": 21,
      "family_alpha": 0.05,
-     "per_comparison_alpha": 0.0071428571428571435,
-     "confidence_level": 0.9928571428571429,
+     "per_comparison_alpha": 0.002380952380952381,
+     "confidence_level": 0.9976190476190476,
      "margin": 0.020264043677822457,
      "ci_adjusted": [
-      0.002959260381135832,
-      0.03976305257275872
+      -0.0005029843414966027,
+      0.0487444066119483
      ],
-     "survives_correction": true,
-     "direction_adjusted": "challenger_better",
-     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "survives_correction": false,
+     "direction_adjusted": "indistinguishable",
+     "note": "Bonferroni over the n_comparisons comparisons the caller declares as its family, in both directions, under both groupings. ci_adjusted is the union of both groupings, so the correction and the clustering apply to the same interval and survives_correction is read off the widest defensible one.",
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.3741481817631722,
+      "standard_error_factor": 1.1722406671682961,
+      "widened_from": [
+       -0.0005029843414966027,
+       0.04364192949262369
+      ],
+      "widened_ci": [
+       -0.004079911102646817,
+       0.0476685521423493
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "ci_adjusted_episode": [
+      -0.0005029843414966027,
+      0.04364192949262369
+     ],
+     "ci_adjusted_station": [
+      0.0029667978578578206,
+      0.0487444066119483
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.24707898795681188,
+       "design_effect": 1.3741481817631722,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     }
     }
    },
    "ensemble": {
@@ -996,53 +1559,150 @@
     "aurc_vs_image_only": {
      "margin": 0.04725632933381656,
      "ci95": [
-      -0.0359178807140808,
-      0.12107134354816398
+      -0.046470176647642594,
+      0.12045947346202876
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
      "challenger_better": false,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      -0.06528662446782527,
-      0.14859649146361043
+      -0.11520422382808833,
+      0.15981284314882727
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": false,
      "n_observations": 88,
      "n_groups": 88,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.06151838188719366,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "ci95_episode": [
+      -0.03601929392895387,
+      0.12032848869888683
+     ],
+     "ci95_station": [
+      -0.046470176647642594,
+      0.12045947346202876
+     ],
+     "ci_adjusted_episode": [
+      -0.08731109567867557,
+      0.15981284314882727
+     ],
+     "ci_adjusted_station": [
+      -0.11520422382808833,
+      0.15315352864272722
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 88,
+     "n_groups_station": 35
     },
+    "aurc_shipped_arm_name": "image_corridor",
     "aurc_shipped_arm": 0.07348295030343599,
     "aurc_shipped_vs_image_only": {
      "margin": 0.05735851428375377,
      "ci95": [
-      0.026880049939984278,
-      0.09368937272096899
+      0.026046288115393203,
+      0.09312408416064002
      ],
      "direction": "challenger_better",
      "distinguishable": true,
      "challenger_better": true,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      0.017967758553437786,
-      0.10579406525358977
+      0.011920702829754876,
+      0.11887038855453319
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": true,
      "n_observations": 88,
      "n_groups": 88,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.24707898795681188,
+       "design_effect": 1.3741481817631722,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "ci95_episode": [
+      0.026046288115393203,
+      0.09293266699806217
+     ],
+     "ci95_station": [
+      0.029157894575649396,
+      0.09312408416064002
+     ],
+     "ci_adjusted_episode": [
+      0.011920702829754876,
+      0.11580442839819251
+     ],
+     "ci_adjusted_station": [
+      0.0163785740330269,
+      0.11887038855453319
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 88,
+     "n_groups_station": 35
     },
-    "multiplicity_family_size": 7,
+    "multiplicity_family_size": 21,
     "ceilings": [
      {
       "chosen_on_calibration": {
@@ -1478,24 +2138,75 @@
     "image_metadata_vs_image_only": {
      "margin": 0.016720448561572447,
      "ci95": [
-      0.0036810479800532285,
-      0.030069835878420298
+      -0.00690825410502201,
+      0.035213158188986425
      ],
-     "direction": "challenger_better",
-     "distinguishable": true,
-     "challenger_better": true,
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
      "n_observations": 217,
      "n_groups": 217,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      0.003087513901335507,
+      0.030315419639445295
+     ],
+     "ci95_station": [
+      -0.00690825410502201,
+      0.035213158188986425
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.02276217666786869,
+       "design_effect": 1.1601782802553722,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.1601782802553722,
+      "standard_error_factor": 1.0771157227779067,
+      "widened_from": [
+       0.003087513901335507,
+       0.030315419639445295
+      ],
+      "widened_ci": [
+       0.002036200291427358,
+       0.031363805660260195
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 217,
+     "n_groups_station": 27,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 8.037037037037036,
+     "in_multiplicity_family": true
     },
     "image_physics_vs_image_only": {
      "margin": -0.0153115307248219,
      "ci95": [
-      -0.021815946792833402,
-      -0.009352864151695004
+      -0.02315987607825613,
+      -0.0016900258763469275
      ],
      "direction": "reference_better",
      "distinguishable": true,
@@ -1503,15 +2214,66 @@
      "n_observations": 217,
      "n_groups": 217,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.021835404328437544,
+      -0.009321598958919906
+     ],
+     "ci95_station": [
+      -0.02315987607825613,
+      -0.0016900258763469275
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.011471218272876161,
+       "design_effect": 1.0807233878461655,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0807233878461655,
+      "standard_error_factor": 1.039578466420965,
+      "widened_from": [
+       -0.021835404328437544,
+       -0.009321598958919906
+      ],
+      "widened_ci": [
+       -0.022093609240792865,
+       -0.009084526645659282
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 217,
+     "n_groups_station": 27,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 8.037037037037036,
+     "in_multiplicity_family": true
     },
     "image_corridor_vs_image_only": {
      "margin": 0.005938585355566882,
      "ci95": [
-      -0.013688976274526659,
-      0.02432549745089395
+      -0.013249166968058168,
+      0.024204744724252263
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -1519,15 +2281,66 @@
      "n_observations": 217,
      "n_groups": 217,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.013249166968058168,
+      0.024204744724252263
+     ],
+     "ci95_station": [
+      -0.006586357172709097,
+      0.017774380053120892
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.13734053618736958,
+       "design_effect": 1.0,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.013249166968058168,
+       0.024204744724252263
+      ],
+      "widened_ci": [
+       -0.013249166968058168,
+       0.024204744724252263
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 217,
+     "n_groups_station": 27,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 8.037037037037036,
+     "in_multiplicity_family": true
     },
     "physics_conditioned_vs_image_only": {
      "margin": -0.00018355164597574645,
      "ci95": [
-      -0.01954528554077422,
-      0.01843479486688415
+      -0.01960716238407959,
+      0.018211939725325477
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -1535,15 +2348,66 @@
      "n_observations": 217,
      "n_groups": 217,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.019477140501500758,
+      0.018211939725325477
+     ],
+     "ci95_station": [
+      -0.01960716238407959,
+      0.017176941375429907
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.11796024965450666,
+       "design_effect": 1.0,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.019477140501500758,
+       0.018211939725325477
+      ],
+      "widened_ci": [
+       -0.019477140501500758,
+       0.018211939725325477
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 217,
+     "n_groups_station": 27,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 8.037037037037036,
+     "in_multiplicity_family": true
     },
     "full_fusion_vs_image_only": {
      "margin": 0.0182064317678532,
      "ci95": [
-      -0.00484142122031933,
-      0.04009940081696487
+      -0.015168604694389647,
+      0.04294154543846247
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -1551,15 +2415,66 @@
      "n_observations": 217,
      "n_groups": 217,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.004727207803284517,
+      0.0401147511138126
+     ],
+     "ci95_station": [
+      -0.015168604694389647,
+      0.04294154543846247
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.06027295596680477,
+       "design_effect": 1.0,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.004727207803284517,
+       0.0401147511138126
+      ],
+      "widened_ci": [
+       -0.004727207803284516,
+       0.0401147511138126
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 217,
+     "n_groups_station": 27,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 8.037037037037036,
+     "in_multiplicity_family": true
     },
     "image_only_vs_prior_only": {
      "margin": 0.047088162475236645,
      "ci95": [
-      0.03248845320787263,
-      0.06068019911211968
+      0.025075908373922585,
+      0.07737285488019582
      ],
      "direction": "challenger_better",
      "distinguishable": true,
@@ -1567,39 +2482,131 @@
      "n_observations": 217,
      "n_groups": 217,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      0.03290607840727652,
+      0.06049143393645507
+     ],
+     "ci95_station": [
+      0.025075908373922585,
+      0.07737285488019582
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.032987132624642125,
+       "design_effect": 1.2321316740252595,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.2321316740252595,
+      "standard_error_factor": 1.1100142674872515,
+      "widened_from": [
+       0.03290607840727652,
+       0.06049143393645507
+      ],
+      "widened_ci": [
+       0.031345846817097275,
+       0.061965985028193796
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 217,
+     "n_groups_station": 27,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 8.037037037037036,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
     }
    },
    "multiplicity_adjusted": {
-    "image_metadata_vs_image_only": {
-     "n_comparisons": 7,
-     "family_alpha": 0.05,
-     "per_comparison_alpha": 0.0071428571428571435,
-     "confidence_level": 0.9928571428571429,
-     "margin": 0.016720448561572447,
-     "ci_adjusted": [
-      -0.0012778691952284027,
-      0.034452285374485164
-     ],
-     "survives_correction": false,
-     "direction_adjusted": "indistinguishable",
-     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
-    },
     "image_physics_vs_image_only": {
-     "n_comparisons": 7,
+     "n_comparisons": 21,
      "family_alpha": 0.05,
-     "per_comparison_alpha": 0.0071428571428571435,
-     "confidence_level": 0.9928571428571429,
+     "per_comparison_alpha": 0.002380952380952381,
+     "confidence_level": 0.9976190476190476,
      "margin": -0.0153115307248219,
      "ci_adjusted": [
-      -0.024437487394808544,
-      -0.007313264919703298
+      -0.027451605588806174,
+      0.005848143686133575
      ],
-     "survives_correction": true,
-     "direction_adjusted": "reference_better",
-     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "survives_correction": false,
+     "direction_adjusted": "indistinguishable",
+     "note": "Bonferroni over the n_comparisons comparisons the caller declares as its family, in both directions, under both groupings. ci_adjusted is the union of both groupings, so the correction and the clustering apply to the same interval and survives_correction is read off the widest defensible one.",
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0807233878461655,
+      "standard_error_factor": 1.039578466420965,
+      "widened_from": [
+       -0.025678088598196612,
+       -0.006207850786494877
+      ],
+      "widened_ci": [
+       -0.026088381060888965,
+       -0.005847541095748587
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "ci_adjusted_episode": [
+      -0.025678088598196612,
+      -0.006207850786494877
+     ],
+     "ci_adjusted_station": [
+      -0.027451605588806174,
+      0.005848143686133575
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.011471218272876161,
+       "design_effect": 1.0807233878461655,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     }
     }
    },
    "ensemble": {
@@ -1962,53 +2969,150 @@
     "aurc_vs_image_only": {
      "margin": 0.0020668310525178146,
      "ci95": [
-      -0.08607693928152774,
-      0.0911487374123303
+      -0.08743156716058079,
+      0.08857681971720409
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
      "challenger_better": false,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      -0.12193247370490638,
-      0.11938671458560984
+      -0.137928263743956,
+      0.13675426968610302
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": false,
      "n_observations": 217,
      "n_groups": 217,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.11796024965450666,
+       "design_effect": 1.0,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "ci95_episode": [
+      -0.08743156716058079,
+      0.08857681971720409
+     ],
+     "ci95_station": [
+      -0.06279636535878011,
+      0.07501793326049135
+     ],
+     "ci_adjusted_episode": [
+      -0.137928263743956,
+      0.13675426968610302
+     ],
+     "ci_adjusted_station": [
+      -0.0874446805386674,
+      0.12957541563032873
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 217,
+     "n_groups_station": 27
     },
+    "aurc_shipped_arm_name": "image_corridor",
     "aurc_shipped_arm": 0.2377423299128653,
     "aurc_shipped_vs_image_only": {
      "margin": 0.017195389196550448,
      "ci95": [
-      -0.0705878097614328,
-      0.10563441632789515
+      -0.07135640721501903,
+      0.10306417660152525
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
      "challenger_better": false,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      -0.09825716126755873,
-      0.13659290420187695
+      -0.11914597489887867,
+      0.15086110893078938
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": false,
      "n_observations": 217,
      "n_groups": 217,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.13734053618736958,
+       "design_effect": 1.0,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "ci95_episode": [
+      -0.07135640721501903,
+      0.10306417660152525
+     ],
+     "ci95_station": [
+      -0.02087448899858108,
+      0.0739846607365256
+     ],
+     "ci_adjusted_episode": [
+      -0.11914597489887867,
+      0.15086110893078938
+     ],
+     "ci_adjusted_station": [
+      -0.04687595752411901,
+      0.11879547306620282
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 217,
+     "n_groups_station": 27
     },
-    "multiplicity_family_size": 7,
+    "multiplicity_family_size": 21,
     "ceilings": [
      {
       "chosen_on_calibration": {
@@ -2387,8 +3491,8 @@
     "image_metadata_vs_image_only": {
      "margin": -0.042246491316819484,
      "ci95": [
-      -0.08931899445908968,
-      0.004829832400366936
+      -0.0919138204948062,
+      0.021882346946749898
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -2396,15 +3500,66 @@
      "n_observations": 96,
      "n_groups": 96,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.09000465717369445,
+      0.004554546146116769
+     ],
+     "ci95_station": [
+      -0.0919138204948062,
+      0.021882346946749898
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.016944168499790645,
+       "design_effect": 1.0411501234994915,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0411501234994915,
+      "standard_error_factor": 1.020367641342811,
+      "widened_from": [
+       -0.09000465717369445,
+       0.004554546146116769
+      ],
+      "widened_ci": [
+       -0.09097737836705777,
+       0.005507772891633324
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 96,
+     "n_groups_station": 28,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 3.4285714285714284,
+     "in_multiplicity_family": true
     },
     "image_physics_vs_image_only": {
      "margin": -0.023054035587051085,
      "ci95": [
-      -0.07155925156094402,
-      0.02798011272255324
+      -0.08593583988670211,
+      0.05144708277042714
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -2412,15 +3567,66 @@
      "n_observations": 96,
      "n_groups": 96,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.07155925156094402,
+      0.02840296917041589
+     ],
+     "ci95_station": [
+      -0.08593583988670211,
+      0.05144708277042714
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.2534242383600538,
+       "design_effect": 1.615458864588702,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.615458864588702,
+      "standard_error_factor": 1.271007027749533,
+      "widened_from": [
+       -0.07155925156094402,
+       0.02840296917041589
+      ],
+      "widened_ci": [
+       -0.0847045059723779,
+       0.04234817908663059
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 96,
+     "n_groups_station": 28,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 3.4285714285714284,
+     "in_multiplicity_family": true
     },
     "image_corridor_vs_image_only": {
      "margin": 0.005533261140052442,
      "ci95": [
-      -0.04598009419946529,
-      0.0598223905596948
+      -0.0576431464050797,
+      0.0748317341228664
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -2428,15 +3634,66 @@
      "n_observations": 96,
      "n_groups": 96,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.04749390738521522,
+      0.059235414608854405
+     ],
+     "ci95_station": [
+      -0.0576431464050797,
+      0.0748317341228664
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.21083049203999343,
+       "design_effect": 1.512016909239984,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.512016909239984,
+      "standard_error_factor": 1.229640967616151,
+      "widened_from": [
+       -0.04749390738521522,
+       0.059235414608854405
+      ],
+      "widened_ci": [
+       -0.05967111767530239,
+       0.07156762909450114
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 96,
+     "n_groups_station": 28,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 3.4285714285714284,
+     "in_multiplicity_family": true
     },
     "physics_conditioned_vs_image_only": {
      "margin": -0.0008894105613577197,
      "ci95": [
-      -0.05211229437152687,
-      0.055710638436412996
+      -0.06700480875898397,
+      0.0723938436171875
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -2444,15 +3701,66 @@
      "n_observations": 96,
      "n_groups": 96,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.05314967130527634,
+      0.05405458555775938
+     ],
+     "ci95_station": [
+      -0.06700480875898397,
+      0.0723938436171875
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.23983602213694435,
+       "design_effect": 1.5824589109040077,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.5824589109040077,
+      "standard_error_factor": 1.257958230985436,
+      "widened_from": [
+       -0.05314967130527634,
+       0.05405458555775938
+      ],
+      "widened_ci": [
+       -0.06663063571761521,
+       0.06822784159991749
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 96,
+     "n_groups_station": 28,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 3.4285714285714284,
+     "in_multiplicity_family": true
     },
     "full_fusion_vs_image_only": {
      "margin": -0.00658616763134891,
      "ci95": [
-      -0.05940735700354443,
-      0.048879134916149834
+      -0.0709721373836001,
+      0.06242975397887301
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -2460,15 +3768,66 @@
      "n_observations": 96,
      "n_groups": 96,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.05944688904800919,
+      0.04804285857952525
+     ],
+     "ci95_station": [
+      -0.0709721373836001,
+      0.06242975397887301
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.20733923264651,
+       "design_effect": 1.5035381364272387,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.5035381364272387,
+      "standard_error_factor": 1.2261884587726466,
+      "widened_from": [
+       -0.05944688904800919,
+       0.04804285857952525
+      ],
+      "widened_ci": [
+       -0.07140337415485382,
+       0.060399313822413384
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 96,
+     "n_groups_station": 28,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 3.4285714285714284,
+     "in_multiplicity_family": true
     },
     "image_only_vs_prior_only": {
      "margin": 0.05224932580623439,
      "ci95": [
-      -0.007769399396415853,
-      0.10916655270318631
+      -0.03344506063480132,
+      0.1259141411867557
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -2476,9 +3835,61 @@
      "n_observations": 96,
      "n_groups": 96,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.00773789530426241,
+      0.10845430954610596
+     ],
+     "ci95_station": [
+      -0.03344506063480132,
+      0.1259141411867557
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.25926842156442964,
+       "design_effect": 1.6296518809421863,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.6296518809421863,
+      "standard_error_factor": 1.2765781922554476,
+      "widened_from": [
+       -0.00773789530426241,
+       0.10845430954610596
+      ],
+      "widened_ci": [
+       -0.02432905247743144,
+       0.12399938234462646
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 96,
+     "n_groups_station": 28,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 3.4285714285714284,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
     }
    },
    "multiplicity_adjusted": {},
@@ -2842,53 +4253,150 @@
     "aurc_vs_image_only": {
      "margin": 0.05510284195332263,
      "ci95": [
-      -0.04654981112046148,
-      0.15934643814995095
+      -0.054043985272476856,
+      0.18833305924096125
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
      "challenger_better": false,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      -0.09028098682211162,
-      0.1972829487749619
+      -0.11534823831896591,
+      0.28256133053675736
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": false,
      "n_observations": 96,
      "n_groups": 96,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.23983602213694435,
+       "design_effect": 1.5824589109040077,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "ci95_episode": [
+      -0.054043985272476856,
+      0.16231421518796954
+     ],
+     "ci95_station": [
+      -0.049986340120733316,
+      0.18833305924096125
+     ],
+     "ci_adjusted_episode": [
+      -0.11534823831896591,
+      0.22727718597304616
+     ],
+     "ci_adjusted_station": [
+      -0.10599162624819149,
+      0.28256133053675736
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 96,
+     "n_groups_station": 28
     },
+    "aurc_shipped_arm_name": "image_corridor",
     "aurc_shipped_arm": 0.1904954526135323,
     "aurc_shipped_vs_image_only": {
      "margin": 0.015936986388817076,
      "ci95": [
-      -0.08374383694450215,
-      0.11945532976384036
+      -0.09099754162695106,
+      0.14014416812827032
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
      "challenger_better": false,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      -0.12306948367514092,
-      0.15858184748142282
+      -0.15266044037555057,
+      0.2243116001191058
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": false,
      "n_observations": 96,
      "n_groups": 96,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.21083049203999343,
+       "design_effect": 1.512016909239984,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "ci95_episode": [
+      -0.09099754162695106,
+      0.12252112854530968
+     ],
+     "ci95_station": [
+      -0.08817511437329109,
+      0.14014416812827032
+     ],
+     "ci_adjusted_episode": [
+      -0.15266044037555057,
+      0.18795842022321782
+     ],
+     "ci_adjusted_station": [
+      -0.15157283787763196,
+      0.2243116001191058
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 96,
+     "n_groups_station": 28
     },
-    "multiplicity_family_size": 7,
+    "multiplicity_family_size": 21,
     "ceilings": [
      {
       "chosen_on_calibration": {
@@ -3289,8 +4797,8 @@
     "image_metadata_vs_image_only": {
      "margin": -0.02945882595671659,
      "ci95": [
-      -0.053064573309065305,
-      -0.005955998890905112
+      -0.06044437341379038,
+      -0.0022298477184199664
      ],
      "direction": "reference_better",
      "distinguishable": true,
@@ -3298,15 +4806,66 @@
      "n_observations": 76,
      "n_groups": 76,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.05317552712340363,
+      -0.0056857805938755794
+     ],
+     "ci95_station": [
+      -0.06044437341379038,
+      -0.0022298477184199664
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.136540314837961,
+       "design_effect": 1.7282150124691253,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.7282150124691253,
+      "standard_error_factor": 1.3146159182320611,
+      "widened_from": [
+       -0.05317552712340363,
+       -0.0056857805938755794
+      ],
+      "widened_ci": [
+       -0.06063717883839627,
+       0.0017935979021270892
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 76,
+     "n_groups_station": 12,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 6.333333333333333,
+     "in_multiplicity_family": true
     },
     "image_physics_vs_image_only": {
      "margin": -0.07250275251747194,
      "ci95": [
-      -0.09398811391323629,
-      -0.04782076725716726
+      -0.09464840544664625,
+      -0.04874434156735473
      ],
      "direction": "reference_better",
      "distinguishable": true,
@@ -3314,31 +4873,133 @@
      "n_observations": 76,
      "n_groups": 76,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.09464840544664625,
+      -0.04874434156735473
+     ],
+     "ci95_station": [
+      -0.08338035647504977,
+      -0.060622991789142065
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.1034104732488073,
+       "design_effect": 1.0,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.09464840544664625,
+       -0.04874434156735473
+      ],
+      "widened_ci": [
+       -0.09464840544664625,
+       -0.04874434156735473
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 76,
+     "n_groups_station": 12,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 6.333333333333333,
+     "in_multiplicity_family": true
     },
     "image_corridor_vs_image_only": {
      "margin": -0.04297543526810157,
      "ci95": [
-      -0.07205385279299195,
-      -0.014846061041300438
+      -0.0874777367110496,
+      0.025869375395653326
      ],
-     "direction": "reference_better",
-     "distinguishable": true,
+     "direction": "indistinguishable",
+     "distinguishable": false,
      "challenger_better": false,
      "n_observations": 76,
      "n_groups": 76,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.07212519817724238,
+      -0.015646430480590515
+     ],
+     "ci95_station": [
+      -0.0874777367110496,
+      0.025869375395653326
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.21094744601940718,
+       "design_effect": 2.125053045436838,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 2.125053045436838,
+      "standard_error_factor": 1.4577561680325137,
+      "widened_from": [
+       -0.07212519817724238,
+       -0.015646430480590515
+      ],
+      "widened_ci": [
+       -0.08546868194558696,
+       -0.0031364099729172326
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 76,
+     "n_groups_station": 12,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 6.333333333333333,
+     "in_multiplicity_family": true
     },
     "physics_conditioned_vs_image_only": {
      "margin": -0.08013788581148551,
      "ci95": [
-      -0.11629458712032514,
-      -0.04531589122323049
+      -0.12322894020705609,
+      -0.01024925161139175
      ],
      "direction": "reference_better",
      "distinguishable": true,
@@ -3346,15 +5007,66 @@
      "n_observations": 76,
      "n_groups": 76,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.11616880498739733,
+      -0.04532021564064668
+     ],
+     "ci95_station": [
+      -0.12322894020705609,
+      -0.01024925161139175
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.08766783806386828,
+       "design_effect": 1.4675618030072974,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.4675618030072974,
+      "standard_error_factor": 1.2114296525210606,
+      "widened_from": [
+       -0.11616880498739733,
+       -0.04532021564064668
+      ],
+      "widened_ci": [
+       -0.12378680970877479,
+       -0.03795872773483333
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 76,
+     "n_groups_station": 12,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 6.333333333333333,
+     "in_multiplicity_family": true
     },
     "full_fusion_vs_image_only": {
      "margin": -0.058370358855042076,
      "ci95": [
-      -0.09657971536050176,
-      -0.020254216138304883
+      -0.09716755511877874,
+      -0.00602318489311585
      ],
      "direction": "reference_better",
      "distinguishable": true,
@@ -3362,15 +5074,66 @@
      "n_observations": 76,
      "n_groups": 76,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.09716755511877874,
+      -0.021480663867763778
+     ],
+     "ci95_station": [
+      -0.09098751557720229,
+      -0.00602318489311585
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.014063329913871995,
+       "design_effect": 1.0750044262073173,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0750044262073173,
+      "standard_error_factor": 1.036824202170897,
+      "widened_from": [
+       -0.09716755511877874,
+       -0.021480663867763778
+      ],
+      "widened_ci": [
+       -0.09859623091765855,
+       -0.020122230281529506
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 76,
+     "n_groups_station": 12,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 6.333333333333333,
+     "in_multiplicity_family": true
     },
     "image_only_vs_prior_only": {
      "margin": 0.0988355592847018,
      "ci95": [
-      0.07048274712583884,
-      0.12410533545887703
+      0.03926933766374997,
+      0.13622212600088449
      ],
      "direction": "challenger_better",
      "distinguishable": true,
@@ -3378,81 +5141,335 @@
      "n_observations": 76,
      "n_groups": 76,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      0.07062731008942817,
+      0.12438804615345224
+     ],
+     "ci95_station": [
+      0.03926933766374997,
+      0.13622212600088449
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.18271423912785728,
+       "design_effect": 1.9744759420152387,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.9744759420152387,
+      "standard_error_factor": 1.4051604684217525,
+      "widened_from": [
+       0.07062731008942817,
+       0.12438804615345224
+      ],
+      "widened_ci": [
+       0.05919844263211359,
+       0.13474090370253586
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 76,
+     "n_groups_station": 12,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 6.333333333333333,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
     }
    },
    "multiplicity_adjusted": {
     "image_metadata_vs_image_only": {
-     "n_comparisons": 7,
+     "n_comparisons": 21,
      "family_alpha": 0.05,
-     "per_comparison_alpha": 0.0071428571428571435,
-     "confidence_level": 0.9928571428571429,
+     "per_comparison_alpha": 0.002380952380952381,
+     "confidence_level": 0.9976190476190476,
      "margin": -0.02945882595671659,
      "ci_adjusted": [
-      -0.06253435921381711,
-      0.0022636693416375944
+      -0.0893586120974426,
+      0.013968978980680717
      ],
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "survives_correction": false,
      "direction_adjusted": "indistinguishable",
-     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+     "note": "Bonferroni over the n_comparisons comparisons the caller declares as its family, in both directions, under both groupings. ci_adjusted is the union of both groupings, so the correction and the clustering apply to the same interval and survives_correction is read off the widest defensible one.",
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.7282150124691253,
+      "standard_error_factor": 1.3146159182320611,
+      "widened_from": [
+       -0.06641070219789999,
+       0.006434754688013176
+      ],
+      "widened_ci": [
+       -0.07803635067191739,
+       0.01772744652119137
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "ci_adjusted_episode": [
+      -0.06641070219789999,
+      0.006434754688013176
+     ],
+     "ci_adjusted_station": [
+      -0.0893586120974426,
+      0.013968978980680717
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.136540314837961,
+       "design_effect": 1.7282150124691253,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     }
     },
     "image_physics_vs_image_only": {
-     "n_comparisons": 7,
+     "n_comparisons": 21,
      "family_alpha": 0.05,
-     "per_comparison_alpha": 0.0071428571428571435,
-     "confidence_level": 0.9928571428571429,
+     "per_comparison_alpha": 0.002380952380952381,
+     "confidence_level": 0.9976190476190476,
      "margin": -0.07250275251747194,
      "ci_adjusted": [
-      -0.10274063101728886,
-      -0.03955115105109859
+      -0.10643325285242711,
+      -0.03396721508477605
      ],
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "survives_correction": true,
      "direction_adjusted": "reference_better",
-     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
-    },
-    "image_corridor_vs_image_only": {
-     "n_comparisons": 7,
-     "family_alpha": 0.05,
-     "per_comparison_alpha": 0.0071428571428571435,
-     "confidence_level": 0.9928571428571429,
-     "margin": -0.04297543526810157,
-     "ci_adjusted": [
-      -0.08283041727569573,
-      -0.006777959634701027
+     "note": "Bonferroni over the n_comparisons comparisons the caller declares as its family, in both directions, under both groupings. ci_adjusted is the union of both groupings, so the correction and the clustering apply to the same interval and survives_correction is read off the widest defensible one.",
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.10643325285242711,
+       -0.03396721508477605
+      ],
+      "widened_ci": [
+       -0.10643325285242711,
+       -0.03396721508477605
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "ci_adjusted_episode": [
+      -0.10643325285242711,
+      -0.03396721508477605
      ],
-     "survives_correction": true,
-     "direction_adjusted": "reference_better",
-     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+     "ci_adjusted_station": [
+      -0.09552110205406489,
+      -0.045820996202173475
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.1034104732488073,
+       "design_effect": 1.0,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     }
     },
     "physics_conditioned_vs_image_only": {
-     "n_comparisons": 7,
+     "n_comparisons": 21,
      "family_alpha": 0.05,
-     "per_comparison_alpha": 0.0071428571428571435,
-     "confidence_level": 0.9928571428571429,
+     "per_comparison_alpha": 0.002380952380952381,
+     "confidence_level": 0.9976190476190476,
      "margin": -0.08013788581148551,
      "ci_adjusted": [
-      -0.12997336631481768,
-      -0.0316598916151392
+      -0.1408600244774834,
+      0.025594928049471808
      ],
-     "survives_correction": true,
-     "direction_adjusted": "reference_better",
-     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "survives_correction": false,
+     "direction_adjusted": "indistinguishable",
+     "note": "Bonferroni over the n_comparisons comparisons the caller declares as its family, in both directions, under both groupings. ci_adjusted is the union of both groupings, so the correction and the clustering apply to the same interval and survives_correction is read off the widest defensible one.",
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.4675618030072974,
+      "standard_error_factor": 1.2114296525210606,
+      "widened_from": [
+       -0.13613544596145466,
+       -0.02593331457734608
+      ],
+      "widened_ci": [
+       -0.14797499064598985,
+       -0.014472860916258906
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "ci_adjusted_episode": [
+      -0.13613544596145466,
+      -0.02593331457734608
+     ],
+     "ci_adjusted_station": [
+      -0.1408600244774834,
+      0.025594928049471808
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.08766783806386828,
+       "design_effect": 1.4675618030072974,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     }
     },
     "full_fusion_vs_image_only": {
-     "n_comparisons": 7,
+     "n_comparisons": 21,
      "family_alpha": 0.05,
-     "per_comparison_alpha": 0.0071428571428571435,
-     "confidence_level": 0.9928571428571429,
+     "per_comparison_alpha": 0.002380952380952381,
+     "confidence_level": 0.9976190476190476,
      "margin": -0.058370358855042076,
      "ci_adjusted": [
-      -0.10980891019045586,
-      -0.0065751181233530825
+      -0.11931409009099989,
+      0.03918281355619339
      ],
-     "survives_correction": true,
-     "direction_adjusted": "reference_better",
-     "note": "Bonferroni over the comparisons reported against the reference on this split, in both directions. A result that clears zero at 95% but not here was selected as much as it was measured, and saying so costs less than having it questioned."
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "survives_correction": false,
+     "direction_adjusted": "indistinguishable",
+     "note": "Bonferroni over the n_comparisons comparisons the caller declares as its family, in both directions, under both groupings. ci_adjusted is the union of both groupings, so the correction and the clustering apply to the same interval and survives_correction is read off the widest defensible one.",
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0750044262073173,
+      "standard_error_factor": 1.036824202170897,
+      "widened_from": [
+       -0.11931409009099989,
+       0.00018295368014923063
+      ],
+      "widened_ci": [
+       -0.12155829437108161,
+       0.002339132698720839
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "ci_adjusted_episode": [
+      -0.11931409009099989,
+      0.00018295368014923063
+     ],
+     "ci_adjusted_station": [
+      -0.10521673806177544,
+      0.03918281355619339
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.014063329913871995,
+       "design_effect": 1.0750044262073173,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     }
     }
    },
    "ensemble": {
@@ -3815,53 +5832,150 @@
     "aurc_vs_image_only": {
      "margin": -0.13741904911337527,
      "ci95": [
-      -0.2740717134782285,
-      -0.02615788057787169
+      -0.2692832009193703,
+      -0.015723524464307657
      ],
      "direction": "reference_better",
      "distinguishable": true,
      "challenger_better": false,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      -0.3208697579129498,
-      0.008154983106372131
+      -0.34522293105889995,
+      0.08643637271106806
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": false,
      "n_observations": 76,
      "n_groups": 76,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.08766783806386828,
+       "design_effect": 1.4675618030072974,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "ci95_episode": [
+      -0.2692832009193703,
+      -0.02434668623804753
+     ],
+     "ci95_station": [
+      -0.20198211886767192,
+      -0.015723524464307657
+     ],
+     "ci_adjusted_episode": [
+      -0.34522293105889995,
+      0.027381683077634215
+     ],
+     "ci_adjusted_station": [
+      -0.22649871429699597,
+      0.08643637271106806
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 76,
+     "n_groups_station": 12
     },
+    "aurc_shipped_arm_name": "image_corridor",
     "aurc_shipped_arm": 0.1031204606747958,
     "aurc_shipped_vs_image_only": {
      "margin": -0.029372430124591217,
      "ci95": [
-      -0.1383185558205386,
-      0.05613765977502633
+      -0.13821804938953572,
+      0.1349376225381325
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
      "challenger_better": false,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      -0.17295019414184268,
-      0.08273546169929456
+      -0.20047937667537466,
+      0.2745113628472946
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": false,
      "n_observations": 76,
      "n_groups": 76,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.21094744601940718,
+       "design_effect": 2.125053045436838,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "ci95_episode": [
+      -0.13821804938953572,
+      0.05692660307825383
+     ],
+     "ci95_station": [
+      -0.11088837065216825,
+      0.1349376225381325
+     ],
+     "ci_adjusted_episode": [
+      -0.20047937667537466,
+      0.0895386140129723
+     ],
+     "ci_adjusted_station": [
+      -0.14061365449355298,
+      0.2745113628472946
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 76,
+     "n_groups_station": 12
     },
-    "multiplicity_family_size": 7,
+    "multiplicity_family_size": 21,
     "ceilings": [
      {
       "chosen_on_calibration": {
@@ -4259,8 +6373,8 @@
     "image_metadata_vs_image_only": {
      "margin": -0.02284652640528814,
      "ci95": [
-      -0.05236412698793207,
-      0.0070390396868862445
+      -0.05154250649074166,
+      0.006817746768143369
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -4268,15 +6382,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.05154250649074166,
+      0.006817746768143369
+     ],
+     "ci95_station": [
+      -0.04743557151085017,
+      0.0016950170870593012
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.161656348502974,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.05154250649074166,
+       0.006817746768143369
+      ],
+      "widened_ci": [
+       -0.05154250649074166,
+       0.006817746768143368
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "image_physics_vs_image_only": {
      "margin": -0.01438328383189431,
      "ci95": [
-      -0.04954472110877143,
-      0.017548761733702345
+      -0.049221288489659565,
+      0.016070282919475157
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -4284,15 +6449,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.048228854285496586,
+      0.016070282919475157
+     ],
+     "ci95_station": [
+      -0.049221288489659565,
+      0.014424198729827052
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.11388745995117106,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.048228854285496586,
+       0.016070282919475157
+      ],
+      "widened_ci": [
+       -0.048228854285496586,
+       0.016070282919475157
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "image_corridor_vs_image_only": {
      "margin": -0.020604070921909388,
      "ci95": [
-      -0.05015583095693899,
-      0.008624816564496691
+      -0.05330931279635032,
+      0.0075783664215935236
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -4300,15 +6516,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.04884005366647733,
+      0.0075783664215935236
+     ],
+     "ci95_station": [
+      -0.05330931279635032,
+      0.005141320784638592
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.032111525844357953,
+       "design_effect": 1.0486260248500276,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0486260248500276,
+      "standard_error_factor": 1.0240244259049818,
+      "widened_from": [
+       -0.04884005366647733,
+       0.0075783664215935236
+      ],
+      "widened_ci": [
+       -0.049518406941778545,
+       0.0082554332993743
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "physics_conditioned_vs_image_only": {
      "margin": -0.01851665293005524,
      "ci95": [
-      -0.058380054236107204,
-      0.01914553820179673
+      -0.06067112813966365,
+      0.018197055068813892
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -4316,15 +6583,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.057945298119084505,
+      0.018197055068813892
+     ],
+     "ci95_station": [
+      -0.06067112813966365,
+      0.017469015055203943
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.049262381771662235,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.057945298119084505,
+       0.018197055068813892
+      ],
+      "widened_ci": [
+       -0.0579452981190845,
+       0.018197055068813892
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "full_fusion_vs_image_only": {
      "margin": -0.03332303202368956,
      "ci95": [
-      -0.07399610963528729,
-      0.005383405532767884
+      -0.07292121103153702,
+      0.00437475689084068
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
@@ -4332,15 +6650,66 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      -0.07292121103153702,
+      0.00437475689084068
+     ],
+     "ci95_station": [
+      -0.07130202932009529,
+      -0.00016734108215479883
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.14760593015113935,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       -0.07292121103153702,
+       0.00437475689084068
+      ],
+      "widened_ci": [
+       -0.07292121103153702,
+       0.0043747568908406795
+      ],
+      "clears_zero": false,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": true
     },
     "image_only_vs_prior_only": {
      "margin": 0.06236610367024305,
      "ci95": [
-      0.024080196689437325,
-      0.10099816476092756
+      0.02592441130464923,
+      0.10430460750057571
      ],
      "direction": "challenger_better",
      "distinguishable": true,
@@ -4348,9 +6717,61 @@
      "n_observations": 88,
      "n_groups": 88,
      "mean_group_size": 1.0,
-     "n_boot": 4000,
+     "n_boot": 50000,
      "seed": 42,
-     "note": "Bootstrap resamples pass episodes, not observations, because captures of one pass at one station share a receiver and a geometry. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse. direction is the three-way verdict: an interval entirely below zero is a measured harm, not an absence of difference, and a positive margin whose interval spans zero is not a gain."
+     "note": "Two groupings, both published, and ci95 is the union of them, which can only be wider than either. Episodes hold about one observation each on these test partitions, so an episode bootstrap here is an observation-level bootstrap and is reported with its mean group size rather than described as protection. Stations hold several. margin is the Brier improvement of the challenger, so a negative margin means the challenger is worse, and an interval entirely below zero is a measured harm rather than an absence of difference.",
+     "ci95_episode": [
+      0.02592441130464923,
+      0.09891898898554269
+     ],
+     "ci95_station": [
+      0.03163134318985925,
+      0.10430460750057571
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.013993626276992363,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "design_effect_sensitivity": {
+      "applicable": true,
+      "grouping": "station",
+      "design_effect": 1.0,
+      "standard_error_factor": 1.0,
+      "widened_from": [
+       0.02592441130464923,
+       0.09891898898554269
+      ],
+      "widened_ci": [
+       0.02592441130464923,
+       0.09891898898554269
+      ],
+      "clears_zero": true,
+      "note": "A normal-theory check, not the published interval. It widens the observation-level interval by the square root of the measured design effect. The cluster bootstrap above resamples groups directly and is what the verdict is read from; this is reported so a reader can see how much of the margin survives the cruder accounting."
+     },
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "mean_group_size_episode": 1.0,
+     "mean_group_size_station": 2.5142857142857142,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
     }
    },
    "multiplicity_adjusted": {},
@@ -4714,53 +7135,150 @@
     "aurc_vs_image_only": {
      "margin": 0.01011316247763551,
      "ci95": [
-      -0.08727960207923961,
-      0.10062090003908591
+      -0.09230398774775145,
+      0.09659765853619186
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
      "challenger_better": false,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      -0.12530762057747646,
-      0.13563872942981123
+      -0.15830332896034088,
+      0.13887876791940942
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": false,
      "n_observations": 88,
      "n_groups": 88,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.049262381771662235,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "ci95_episode": [
+      -0.08787527298402942,
+      0.09659765853619186
+     ],
+     "ci95_station": [
+      -0.09230398774775145,
+      0.09122288927746777
+     ],
+     "ci_adjusted_episode": [
+      -0.14532651872049274,
+      0.13887876791940942
+     ],
+     "ci_adjusted_station": [
+      -0.15830332896034088,
+      0.1267955903384521
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 88,
+     "n_groups_station": 35
     },
+    "aurc_shipped_arm_name": "image_corridor",
     "aurc_shipped_arm": 0.09484138269521833,
     "aurc_shipped_vs_image_only": {
      "margin": 0.03621323241185584,
      "ci95": [
-      -0.013744214335954965,
-      0.08661262484458195
+      -0.014176177957956596,
+      0.08657027708296854
      ],
      "direction": "indistinguishable",
      "distinguishable": false,
      "challenger_better": false,
-     "n_comparisons": 7,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
      "ci_adjusted": [
-      -0.03122480789972901,
-      0.11040538022492986
+      -0.04895588969543296,
+      0.11874394646416107
      ],
-     "adjusted_confidence": 0.9928571428571429,
+     "adjusted_confidence": 0.9976190476190476,
      "survives_correction": false,
      "n_observations": 88,
      "n_groups": 88,
-     "n_boot": 2000,
-     "n_usable_resamples": 2000,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
      "n_degenerate_resamples": 0,
      "seed": 42,
-     "note": "The statistic is recomputed on each resampled episode set rather than averaged from per-observation terms, because it is a functional of the whole ranking. margin is signed so positive means the challenger is better. ci_adjusted is Bonferroni-widened over n_comparisons, because comparing arms on a second statistic opens a second family of comparisons."
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.032111525844357953,
+       "design_effect": 1.0486260248500276,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "ci95_episode": [
+      -0.012322767955231975,
+      0.08657027708296854
+     ],
+     "ci95_station": [
+      -0.014176177957956596,
+      0.08125344306520521
+     ],
+     "ci_adjusted_episode": [
+      -0.03798468301664084,
+      0.11874394646416107
+     ],
+     "ci_adjusted_station": [
+      -0.04895588969543296,
+      0.11127011937233697
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 88,
+     "n_groups_station": 35
     },
-    "multiplicity_family_size": 7,
+    "multiplicity_family_size": 21,
     "ceilings": [
      {
       "chosen_on_calibration": {

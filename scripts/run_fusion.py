@@ -41,16 +41,18 @@ from pipeline.tracetriage.fusion import (  # noqa: E402
     ARM_LADDER,
     GATE5_CHALLENGER,
     GATE5_REFERENCE,
+    SHIPPED_ARM,
+    SHIPPED_ARM_BLOCKS,
     Calibrator,
     FusionArm,
     auc,
     brier,
     calibration_slope_intercept,
+    clustered_multiplicity_adjusted,
+    clustered_paired_bootstrap,
+    clustered_statistic_difference,
     episode_bootstrap_ensemble,
     expected_calibration_error,
-    grouped_bootstrap_statistic_difference,
-    grouped_paired_bootstrap,
-    multiplicity_adjusted,
     seed_sensitivity,
 )
 from pipeline.tracetriage.ood import OodDetector, risk_by_novelty  # noqa: E402
@@ -68,20 +70,13 @@ from pipeline.tracetriage.splits import (  # noqa: E402
     _load_raw_pages,
 )
 
-#: The arm the ablation rule is expected to select, named here so the per-split
-#: selective-prediction block can measure it as it goes.
-#:
-#: This has to be a constant rather than a lookup, because the ablation conclusion is
-#: computed from all four splits after every split has been scored, while the selective
-#: block is built inside one split. Hardcoding it creates one hazard, which
-#: ``_check_shipped_arm_agrees`` closes: if the measured ablation ever selects a
-#: different arm, the run fails instead of quietly reporting the risk-coverage behaviour
-#: of an arm that is no longer shipped.
-SHIPPED_ARM_CANDIDATE = "image_corridor"
-
 #: How many risk-coverage comparisons each split reports: the gate-5 challenger against
 #: image-only, and the shipped arm against image-only. Named so the multiplicity family
 #: size can be computed before the selective block runs.
+#:
+#: Fixed by the ladder, which was declared before anything was fitted. A family size that
+#: shrank because one comparison turned out vacuous would be a family size influenced by
+#: the results, which is the thing a correction exists to prevent.
 _N_AURC_COMPARISONS = 2
 
 _HOG_DIR = _REPO / "artifacts" / "hog_cache"
@@ -190,6 +185,49 @@ def image_arm_scorer(matrix: np.ndarray, row_of: dict[int, int], seed: int) -> A
 # ---------------------------------------------------------------------------
 
 
+def usable_ids(
+    partitions: dict[str, Any], feature_rows: dict[int, Any], part: str
+) -> list[int]:
+    """Decisive observation ids in one partition of one split.
+
+    Module level because the multiplicity family has to be counted before any split is
+    scored, and a second copy of this filter would let the family size and the splits
+    the rule reads disagree about which splits are eligible.
+    """
+    return [i for i in partitions.get(part, []) if i in feature_rows]
+
+
+def eligible_split_names(
+    manifest: dict[str, Any], feature_rows: dict[int, Any], requested: list[str]
+) -> list[str]:
+    """Splits the ablation rule is allowed to read, decided before anything is fitted.
+
+    SPACE-S7: the multiplicity correction has to be over the family the decision rule
+    ranges across, and that rule is a disjunction over splits: retain a block if some
+    arm containing it beat image-only on SOME split above the training floor. So the
+    family size cannot be known inside one split, and this pass answers it up front.
+
+    ``chronological_size_matched`` is excluded because it is a control on the
+    chronological split rather than an independent split the rule may read, which is the
+    same exclusion the ablation conclusion applies.
+    """
+    out = []
+    for name in requested:
+        partitions = manifest["splits"].get(name)
+        if partitions is None or name == "chronological_size_matched":
+            continue
+        counts = {
+            part: len(usable_ids(partitions, feature_rows, part))
+            for part in ("train", "calibration", "test")
+        }
+        if min(counts.values()) < 20:
+            continue
+        if counts["train"] < MIN_TRAIN_FOR_BLOCK_VERDICT:
+            continue
+        out.append(name)
+    return out
+
+
 def run_split(
     split_name: str,
     partitions: dict[str, list[int]],
@@ -199,12 +237,13 @@ def run_split(
     n_boot: int,
     station_of: dict[int, Any],
     transmitter_of: dict[int, str],
+    n_eligible_splits: int,
 ) -> dict[str, Any]:
     matrix, row_of = hog
     fit_predict = image_arm_scorer(matrix, row_of, seed)
 
     def usable(part: str) -> list[int]:
-        return [i for i in partitions.get(part, []) if i in feature_rows]
+        return usable_ids(partitions, feature_rows, part)
 
     train_ids, cal_ids, test_ids = usable("train"), usable("calibration"), usable("test")
     counts = {
@@ -319,6 +358,12 @@ def run_split(
         )
 
     groups = np.array([str(feature_rows[i]["episode"]) for i in test_ids])
+    # SPACE-S6: the second grouping. Every published gate-5 interval carried
+    # mean_group_size 1.0, so the episode bootstrap was an observation-level bootstrap
+    # wearing a note about shared receivers. Stations are where the clustering is on
+    # these partitions, and gate 6 already measures it. Both are computed below and the
+    # union governs.
+    station_groups = np.array([str(station_of[i]) for i in test_ids])
 
     # Every arm that contains the reference's blocks is compared against it, so the
     # comparison family is fixed by the ladder rather than by which result looked good.
@@ -329,14 +374,31 @@ def run_split(
     ]
     comparisons = {}
     for challenger in challengers:
-        comparisons[f"{challenger}_vs_{GATE5_REFERENCE}"] = grouped_paired_bootstrap(
-            scored[challenger], scored[GATE5_REFERENCE], y_test, groups,
+        comparisons[f"{challenger}_vs_{GATE5_REFERENCE}"] = clustered_paired_bootstrap(
+            scored[challenger], scored[GATE5_REFERENCE], y_test, groups, station_groups,
             n_boot=n_boot, seed=seed,
         )
-    comparisons[f"{GATE5_REFERENCE}_vs_prior_only"] = grouped_paired_bootstrap(
-        scored[GATE5_REFERENCE], scored["prior_only"], y_test, groups,
+    comparisons[f"{GATE5_REFERENCE}_vs_prior_only"] = clustered_paired_bootstrap(
+        scored[GATE5_REFERENCE], scored["prior_only"], y_test, groups, station_groups,
         n_boot=n_boot, seed=seed,
     )
+
+    # Which published comparisons the correction covers, stated per comparison rather
+    # than left to a reader counting keys. Eight intervals are reported against a family
+    # of seven per split: image_only_vs_prior_only is a sanity check that the reference
+    # arm beats the prior, not a claim about the physics, and no decision reads it.
+    for key in comparisons:
+        counted = key.endswith(f"_vs_{GATE5_REFERENCE}")
+        comparisons[key]["in_multiplicity_family"] = counted
+        if not counted:
+            # Written only when it applies. A null reason beside
+            # in_multiplicity_family=false would satisfy a schema that requires the key
+            # while saying nothing, which is the shape this pair exists to prevent.
+            comparisons[key]["family_exclusion_reason"] = (
+                "A sanity check that the reference arm beats the prior-only arm. It is "
+                "not a comparison the ablation rule reads and no block verdict depends "
+                "on it, so it is published outside the corrected family."
+            )
 
     # The multiplicity family is every arm-against-reference comparison reported for this
     # split, across both statistics: the Brier comparisons for each challenger, plus the
@@ -344,7 +406,14 @@ def run_split(
     # ones would let the AURC claim, which is the one a reader leans on hardest, be the
     # one held to the weakest standard. The AURC statistic was also added after the Brier
     # ladder had been read, which is exactly the situation a correction is for.
-    n_family = len(challengers) + _N_AURC_COMPARISONS
+    # SPACE-S7: over the whole family the decision rule reads, not one split's worth.
+    # The rule retains a block if an arm containing it wins on ANY split above the
+    # training floor, so a correction over 7 comparisons while the rule scans 7 on each
+    # of several splits is a correction over the wrong family, and the receipt's own
+    # justification already said the ladder runs 5 comparisons on each of 4 splits. The
+    # eligible split count is computed before anything is fitted, so it cannot be
+    # influenced by which result looked good.
+    n_family = (len(challengers) + _N_AURC_COMPARISONS) * max(n_eligible_splits, 1)
 
     # Any arm whose interval clears zero at 95% is re-tested at the widened level,
     # because an arm quoted after the fact was selected as well as measured.
@@ -359,9 +428,9 @@ def run_split(
     for challenger in challengers:
         key = f"{challenger}_vs_{GATE5_REFERENCE}"
         if comparisons[key]["distinguishable"]:
-            multiplicity[key] = multiplicity_adjusted(
+            multiplicity[key] = clustered_multiplicity_adjusted(
                 scored[challenger], scored[GATE5_REFERENCE], y_test, groups,
-                n_comparisons=n_family, n_boot=n_boot, seed=seed,
+                station_groups, n_comparisons=n_family, n_boot=n_boot, seed=seed,
             )
 
     # B4: selective prediction on the gate-5 challenger. Threshold chosen on the
@@ -383,20 +452,59 @@ def run_split(
     def _aurc(probs: np.ndarray, labels: np.ndarray, grp: np.ndarray) -> float:
         return area_under_risk_coverage(risk_coverage_curve(probs, labels, grp))
 
-    selective["aurc_vs_image_only"] = grouped_bootstrap_statistic_difference(
-        _aurc, p_challenger, scored[GATE5_REFERENCE], y_test, groups,
-        n_boot=min(n_boot, 2000), seed=seed, lower_is_better=True,
+    # Both groupings, union governing, for the same reason the Brier comparisons use
+    # both. SPACE-S6 fixed those and left this one resampling episodes, which on these
+    # test partitions hold about one observation each, so the interval a reader leans on
+    # hardest was the one still wearing a grouped name over an ungrouped resample.
+    selective["aurc_vs_image_only"] = clustered_statistic_difference(
+        _aurc, p_challenger, scored[GATE5_REFERENCE], y_test, groups, station_groups,
+        # The 2000-draw cap is gone: measured at 1.07 ms per draw on this corpus, so
+        # 50,000 draws costs under a minute per comparison, and the Bonferroni
+        # endpoint over a cross-split family cannot be resolved by 2.4 draws.
+        n_boot=n_boot, seed=seed, lower_is_better=True,
         n_comparisons=n_family,
     )
-    shipped = SHIPPED_ARM_CANDIDATE
-    if shipped is not None and shipped in scored and shipped != GATE5_CHALLENGER:
+    # The arm the product ships, which is what the console ranks its queue by. It is
+    # read from the library constant the ranker itself uses, not from the ablation
+    # conclusion: the conclusion is computed after every split has been scored, and
+    # after SPACE-S7 it recommends a narrower arm than the one being shipped. Measuring
+    # the recommendation instead would publish the risk-coverage behaviour of an arm
+    # nobody can select in the console.
+    shipped = SHIPPED_ARM
+    selective["aurc_shipped_arm_name"] = shipped
+    if shipped == GATE5_REFERENCE:
+        # Reachable only by changing what the product ships to image alone. Comparing
+        # that against itself has a margin of exactly zero by construction and would
+        # read as "no evidence of benefit" when it is really "no comparison was made".
+        selective["aurc_shipped_arm"] = selective.get("aurc_image_only")
+        selective["aurc_shipped_not_measured_reason"] = (
+            f"The product ships {shipped!r}, which is the reference arm, so a "
+            "shipped-against-reference comparison is a self-comparison. The gate-5 "
+            "challenger comparison above is unaffected."
+        )
+    elif shipped == GATE5_CHALLENGER:
+        selective["aurc_shipped_arm"] = selective["aurc"]
+        selective["aurc_shipped_not_measured_reason"] = (
+            f"The product ships {shipped!r}, which is the gate-5 challenger, so the "
+            "comparison above already is the shipped arm's comparison."
+        )
+    elif shipped in scored:
         selective["aurc_shipped_arm"] = area_under_risk_coverage(
             risk_coverage_curve(scored[shipped], y_test, groups)
         )
-        selective["aurc_shipped_vs_image_only"] = grouped_bootstrap_statistic_difference(
+        selective["aurc_shipped_vs_image_only"] = clustered_statistic_difference(
             _aurc, scored[shipped], scored[GATE5_REFERENCE], y_test, groups,
-            n_boot=min(n_boot, 2000), seed=seed, lower_is_better=True,
+            station_groups,
+            # The 2000-draw cap is gone: measured at 1.07 ms per draw on this corpus, so
+            # 50,000 draws costs under a minute per comparison, and the Bonferroni
+            # endpoint over a cross-split family cannot be resolved by 2.4 draws.
+            n_boot=n_boot, seed=seed, lower_is_better=True,
             n_comparisons=n_family,
+        )
+    else:
+        selective["aurc_shipped_not_measured_reason"] = (
+            f"The product ships {shipped!r}, which this split did not score, so its "
+            "risk-coverage behaviour is not measurable here."
         )
     selective["multiplicity_family_size"] = n_family
     selective["ceilings"] = []
@@ -533,6 +641,14 @@ def main(argv: list[str] | None = None) -> int:
     transmitter_of = {oid: str(raw[oid].get("transmitter_uuid")) for oid in feature_rows}
 
     manifest = json.loads(_SPLIT_MANIFEST.read_text(encoding="utf-8"))
+    requested = [name.strip() for name in args.splits.split(",")]
+    eligible_names = eligible_split_names(manifest, feature_rows, requested)
+    n_eligible = len(eligible_names)
+    print(
+        f"\nmultiplicity family: {n_eligible} eligible split(s) "
+        f"{eligible_names} x 7 comparisons each",
+        flush=True,
+    )
     results = []
     for split_name in args.splits.split(","):
         split_name = split_name.strip()
@@ -548,6 +664,7 @@ def main(argv: list[str] | None = None) -> int:
             args.n_boot,
             station_of,
             transmitter_of,
+            n_eligible,
         )
         results.append(res)
         if res["degraded"]:
@@ -581,11 +698,16 @@ def main(argv: list[str] | None = None) -> int:
         sel = res.get("selective", {})
         for label, aurc_key, cmp_key in (
             (GATE5_CHALLENGER, "aurc", "aurc_vs_image_only"),
-            (SHIPPED_ARM_CANDIDATE, "aurc_shipped_arm", "aurc_shipped_vs_image_only"),
+            (SHIPPED_ARM, "aurc_shipped_arm", "aurc_shipped_vs_image_only"),
         ):
-            if aurc_key not in sel:
+            if aurc_key not in sel or sel.get(aurc_key) is None:
                 continue
-            cmp_ = sel.get(cmp_key, {})
+            if sel.get(cmp_key) is None:
+                # Reported as a named absence rather than as a zero margin.
+                reason = sel.get("aurc_shipped_not_measured_reason")
+                print(f"  AURC {label:22s} not compared: {reason}")
+                continue
+            cmp_ = sel[cmp_key]
             ci = cmp_.get("ci95")
             ci_txt = f"ci=[{ci[0]:+.5f},{ci[1]:+.5f}]" if ci else "ci=unmeasurable"
             adj_txt = ""
@@ -624,6 +746,10 @@ def main(argv: list[str] | None = None) -> int:
             "chronological_size_matched",
             {**chron, "train": trimmed},
             feature_rows, hog, args.seed, args.n_boot, station_of, transmitter_of,
+            # The size-matched control is not a split the ablation rule reads, so it is
+            # corrected at the same family size as the split it controls rather than
+            # adding to the family.
+            n_eligible,
         )
         if not res["degraded"]:
             for name, a in res["arms"].items():
@@ -657,7 +783,6 @@ def main(argv: list[str] | None = None) -> int:
 
     gate5 = _gate5_verdict(results)
     ablation = _ablation_conclusion(results)
-    _check_shipped_arm_agrees(ablation)
     payload = {
         "schema": "FUSION_RECEIPT",
         "schema_version": "0.1.0",
@@ -696,11 +821,19 @@ def main(argv: list[str] | None = None) -> int:
                 f"better={v['better_on'] or '-'} worse={v['worse_on'] or '-'}"
             )
         print(
-            f"    -> {ablation[rule]['shipped_blocks']} "
+            f"    -> recommends {ablation[rule]['shipped_blocks']} "
             f"arm={ablation[rule]['shipped_arm']} "
             f"measured={ablation[rule]['shipped_arm_was_measured']}"
         )
     print(f"  rules disagree on: {ablation['rules_disagree_on'] or 'nothing'}")
+    stated = ablation["shipped_arm_vs_recommendation"]
+    print(
+        f"  ships {stated['ships']}; corrected rule recommends "
+        f"{stated['corrected_recommends']}: "
+        f"{'agree' if stated['agree'] else 'DISAGREE'}"
+    )
+    if not stated["agree"]:
+        print(f"    {stated['note']}")
     if ablation["shipped_arm_scores"]:
         sc = ablation["shipped_arm_scores"]
         print(
@@ -781,22 +914,120 @@ def _validate_against_contract(payload: dict[str, Any]) -> None:
         raise SystemExit(msg)
 
 
-def _check_shipped_arm_agrees(ablation: dict[str, Any]) -> None:
-    """Fail the run if the measured ablation selects an arm other than the declared one.
+def _shipped_arm_vs_recommendation(
+    nominal: dict[str, Any],
+    corrected: dict[str, Any],
+    eligible: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """State whether the arm being shipped is the arm the ablation recommends.
 
-    ``SHIPPED_ARM_CANDIDATE`` is read inside each split, before the ablation can be
-    computed, so the two could drift apart. If they do, every ``aurc_shipped_*`` figure
-    in the receipt describes an arm that is not the one being shipped, and nothing in the
-    output would say so. Better to stop.
+    An earlier version of this aborted the run when the two differed, on the reasoning
+    that the receipt would otherwise report the risk-coverage behaviour of an arm nobody
+    ships. That reasoning had the direction wrong. What ships is decided by
+    ``SHIPPED_ARM``, which the ranker itself reads, so the risk-coverage figures describe
+    the shipped arm by construction; what can differ is whether the ablation still
+    supports every block in it.
+
+    After SPACE-S7 it does not. Correcting over the 21 comparisons the ablation rule
+    reads rather than the 7 on one split, on the station-clustered union interval, the
+    corridor block's single win no longer clears zero, so the corrected rule recommends
+    image alone while the queue is still ranked by image and corridor together. Aborting
+    on that would leave the pipeline unable to publish its own most useful result, so the
+    disagreement is measured, named, and carried in the receipt.
     """
-    measured = ablation["shipped_arm"]
-    if measured != SHIPPED_ARM_CANDIDATE:
-        msg = (
-            f"The ablation rule selected {measured!r} but the selective-prediction block "
-            f"measured {SHIPPED_ARM_CANDIDATE!r}. Update SHIPPED_ARM_CANDIDATE and "
-            "re-run, because the aurc_shipped_* figures currently describe the wrong arm."
+    unsupported = sorted(
+        b for b in SHIPPED_ARM_BLOCKS
+        if corrected["blocks"].get(b, {}).get("decision") != "RETAIN"
+        and b not in ("image",)
+    )
+
+    # The ablation rule reads the Brier comparisons only. The shipped arm's risk-coverage
+    # comparison is corrected over the same family and published beside them, and on this
+    # corpus the two metrics disagree about the corridor block. Carrying that here is the
+    # difference between a shipped arm defended by a measurement and one defended by
+    # having been chosen first, so it is looked up rather than argued. Read from the split
+    # the gate is worded against, because that is where its verdict is taken.
+    selective_evidence: dict[str, Any] | None = None
+    for r in eligible:
+        if r["split"] != "chronological":
+            continue
+        cmp_ = (r.get("selective") or {}).get("aurc_shipped_vs_image_only")
+        if cmp_ is None:
+            continue
+        selective_evidence = {
+            "split": r["split"],
+            "metric": "risk-coverage area against the reference arm",
+            "margin": cmp_.get("margin"),
+            "ci_adjusted": cmp_.get("ci_adjusted"),
+            "direction": cmp_.get("direction"),
+            "survives_correction": cmp_.get("survives_correction"),
+            "n_comparisons": cmp_.get("n_comparisons"),
+        }
+    agree = corrected["shipped_arm"] == SHIPPED_ARM
+    if agree:
+        note = (
+            f"The queue is ranked by {SHIPPED_ARM}, and the corrected ablation rule "
+            "recommends the same combination."
         )
-        raise SystemExit(msg)
+    else:
+        recommends = corrected["shipped_arm"] or "a combination no arm on the ladder fitted"
+        note = (
+            f"The queue is ranked by {SHIPPED_ARM} "
+            f"({' + '.join(SHIPPED_ARM_BLOCKS)}), while the corrected ablation rule "
+            f"recommends {recommends} "
+            f"({' + '.join(corrected['shipped_blocks'])}). "
+        )
+        if unsupported:
+            note += (
+                "The blocks the shipped ranker uses without corrected support are "
+                f"{', '.join(unsupported)}: retained by the nominal rule, and the Brier "
+                "interval does not clear zero once the multiplicity correction runs over "
+                "the family the rule reads. The ranker was not rebuilt to match, for two "
+                "measured reasons. The same comparison does not establish the narrower "
+                "arm as better either, so swapping on it would be a change made for the "
+                "appearance of consistency rather than for a result. "
+            )
+            if (
+                selective_evidence
+                and selective_evidence["survives_correction"]
+                and selective_evidence["direction"] == "challenger_better"
+            ):
+                ci = selective_evidence["ci_adjusted"]
+                note += (
+                    "And the ablation rule reads Brier comparisons only, while the same "
+                    f"arm's {selective_evidence['metric']} on "
+                    f"{selective_evidence['split']} is "
+                    f"{selective_evidence['margin']:+.5f} with a corrected interval of "
+                    f"{ci[0]:+.5f} to {ci[1]:+.5f} over the same "
+                    f"{selective_evidence['n_comparisons']} comparisons, which does clear "
+                    "zero. Selective review is what the queue does, so that is the metric "
+                    "closest to the shipped use, and it is reported rather than promoted "
+                    "into the rule after the fact."
+                )
+            elif selective_evidence:
+                note += (
+                    "The same arm's "
+                    f"{selective_evidence['metric']} on {selective_evidence['split']} "
+                    "does not clear zero after correction either, so nothing measured "
+                    "here supports the block."
+                )
+        else:
+            note += (
+                "The difference is in which ladder arm the block set maps to rather "
+                "than in the blocks themselves."
+            )
+    return {
+        "ships": SHIPPED_ARM,
+        "ship_blocks": list(SHIPPED_ARM_BLOCKS),
+        "nominal_recommends": nominal["shipped_arm"],
+        "nominal_recommends_blocks": nominal["shipped_blocks"],
+        "corrected_recommends": corrected["shipped_arm"],
+        "corrected_recommends_blocks": corrected["shipped_blocks"],
+        "agree": agree,
+        "shipped_blocks_without_corrected_support": unsupported,
+        "selective_evidence_for_the_shipped_arm": selective_evidence,
+        "note": note,
+    }
 
 
 def _ablation_conclusion(results: list[dict[str, Any]]) -> dict[str, Any]:
@@ -900,12 +1131,61 @@ def _ablation_conclusion(results: list[dict[str, Any]]) -> dict[str, Any]:
     nominal = _decide(corrected=False)
     corrected = _decide(corrected=True)
 
-    shipped_scores = None
-    if corrected["shipped_arm"] is not None:
-        for r in eligible:
-            if r["split"] != "chronological":
+    # SPACE-S6 and SPACE-S7: every way this conclusion could be thinner than it looks,
+    # collected in one place instead of left for a reader to reconstruct from four nested
+    # blocks. A RETAIN that rests on a single comparison, on an interval endpoint the
+    # bootstrap cannot resolve, or on a comparison that fails the design-effect check, is
+    # still a RETAIN; it is a RETAIN a reader is entitled to see qualified.
+    fragility: list[dict[str, Any]] = []
+    for block, verdict in corrected["blocks"].items():
+        if verdict["decision"] != "RETAIN":
+            continue
+        for label in verdict["better_on"]:
+            split_name, arm = label.split("/", 1)
+            res = next((r for r in eligible if r["split"] == split_name), None)
+            if res is None:
                 continue
-            row = r["arms"].get(corrected["shipped_arm"])
+            entry = res.get("multiplicity_adjusted", {}).get(
+                f"{arm}_vs_{GATE5_REFERENCE}"
+            )
+            if entry is None:
+                continue
+            sens = entry.get("design_effect_sensitivity") or {}
+            resolution = entry.get("percentile_resolution") or {}
+            concerns = []
+            if len(verdict["better_on"]) == 1:
+                concerns.append("the block rests on this one comparison")
+            if sens.get("applicable") and not sens.get("clears_zero"):
+                concerns.append(
+                    "a normal-theory widening by the measured design effect of "
+                    f"{sens['design_effect']:.4f} does not clear zero "
+                    f"({sens['widened_ci'][0]:+.6f})"
+                )
+            if resolution and not resolution.get("endpoint_resolved"):
+                concerns.append(
+                    f"the corrected endpoint sits at draw "
+                    f"{resolution['draws_per_tail']:.1f} of the bootstrap, so it is not "
+                    f"resolved; {resolution['n_boot_for_resolution']} draws would resolve it"
+                )
+            if concerns:
+                fragility.append({
+                    "block": block,
+                    "comparison": label,
+                    # Both correction paths always emit this. Read it defensively
+                    # anyway: a fragility row exists to qualify a verdict, and is a
+                    # poor place to lose the whole conclusion to a KeyError.
+                    "corrected_ci": entry.get("ci_adjusted"),
+                    "governing_interval": entry.get("governing_interval"),
+                    "concerns": concerns,
+                })
+
+    # Scores for the arm that ships, not for the arm the rule recommends. The console
+    # displays these under the shipped arm's name beside a queue ranked by it, so reading
+    # them off the recommendation would put one arm's name on another arm's numbers.
+    shipped_scores = None
+    for r in eligible:
+        if r["split"] == "chronological":
+            row = r["arms"].get(SHIPPED_ARM)
             if row is not None:
                 shipped_scores = {
                     "split": r["split"],
@@ -938,8 +1218,18 @@ def _ablation_conclusion(results: list[dict[str, Any]]) -> dict[str, Any]:
             "weaker standard would be the inconsistency; and this ladder runs 5 "
             "comparisons on each of 4 splits, where one nominal win by chance is the "
             "expected outcome rather than evidence. The corrected rule also selects a "
-            "combination the ladder actually fitted, so the shipped arm carries a "
-            "measured score and an interval, which the nominal rule's selection does not."
+            "combination the ladder actually fitted, so its recommendation carries "
+            "a measured score and an interval, which the nominal rule's selection does not."
+        ),
+        "shipped_arm_vs_recommendation": _shipped_arm_vs_recommendation(
+            nominal, corrected, eligible
+        ),
+        "fragility": fragility,
+        "fragility_note": (
+            "Qualifications on the corrected conclusion above, not corrections to it. "
+            "The verdict is read from the cluster bootstrap, which resamples stations "
+            "directly; the design-effect entry here is a cruder normal-theory check on "
+            "the same clustering and is reported where the two disagree."
         ),
         "min_train_for_verdict": MIN_TRAIN_FOR_BLOCK_VERDICT,
         "min_train_justification": (
@@ -958,9 +1248,14 @@ def _ablation_conclusion(results: list[dict[str, Any]]) -> dict[str, Any]:
             b for b in nominal["blocks"]
             if nominal["blocks"][b]["decision"] != corrected["blocks"][b]["decision"]
         ),
-        "shipped_blocks": corrected["shipped_blocks"],
-        "shipped_arm": corrected["shipped_arm"],
+        # "shipped" at this level means what the product ships. The per-rule blocks
+        # above are each rule's recommendation, which is a different thing and after
+        # SPACE-S7 a different answer.
+        "shipped_blocks": list(SHIPPED_ARM_BLOCKS),
+        "shipped_arm": SHIPPED_ARM,
         "shipped_arm_scores": shipped_scores,
+        "recommended_arm": corrected["shipped_arm"],
+        "recommended_blocks": corrected["shipped_blocks"],
         "caveat": (
             "The retain decision reads test-set comparisons, so the shipped arm's Brier "
             "is optimistic by an amount this corpus cannot measure. A second snapshot is "
@@ -992,7 +1287,18 @@ def _gate5_verdict(results: list[dict[str, Any]]) -> dict[str, Any]:
             "distinguishable": c["distinguishable"],
             "challenger_better": c["challenger_better"],
             "n_observations": c["n_observations"],
+            # SPACE-S6: both groupings, and which interval the verdict above came from.
+            # "n_groups" alone, equal to n_observations on every split, was the number
+            # that made an observation-level bootstrap look like a clustered one.
             "n_groups": c["n_groups"],
+            "n_groups_episode": c["n_groups_episode"],
+            "n_groups_station": c["n_groups_station"],
+            "mean_group_size_episode": c["mean_group_size_episode"],
+            "mean_group_size_station": c["mean_group_size_station"],
+            "ci95_episode": c["ci95_episode"],
+            "ci95_station": c["ci95_station"],
+            "governing_interval": c["governing_interval"],
+            "clustering": c["clustering"],
             "challenger_brier": r["arms"][GATE5_CHALLENGER]["brier"],
             "reference_brier": r["arms"][GATE5_REFERENCE]["brier"],
         }

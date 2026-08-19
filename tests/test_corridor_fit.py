@@ -996,3 +996,62 @@ def test_inverting_a_corridor_changes_only_the_direction():
     assert inv.fracs == c.fracs
     assert inv.elevation_deg == c.elevation_deg
     assert inv.half_width_hz == c.half_width_hz
+
+# ---------------------------------------------------------------------------
+# SPACE-S8: two sigmas, two normalisations, no conversion between them
+# ---------------------------------------------------------------------------
+
+
+def test_the_receipt_states_that_the_two_sigma_scales_are_not_comparable():
+    """The docstring used to claim they were, and the direction can invert.
+
+    A3 normalised per column band; this module normalises against the median and MAD of
+    the whole image. On obs 14740031 A3's vertical sigma of 2.83 exceeds this module's
+    curved sigma of 2.02, so a reader comparing the artifacts concludes a straight line
+    beats the Doppler curve, which is the opposite of what both found.
+    """
+    receipt = json.loads(
+        (REPO_ROOT / "artifacts" / "GATE3_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    ratios = []
+    for obs in receipt["observations"]:
+        ref = obs["a3_reference"]
+        assert "sigma_comparability" in ref, (
+            f"obs {obs['obs_id']} publishes two sigma scales and no statement that they "
+            "are different statistics"
+        )
+        assert "Not comparable" in ref["sigma_comparability"]
+        if ref["sigma_scale_ratio_to_fit"] is not None:
+            ratios.append(ref["sigma_scale_ratio_to_fit"])
+
+    assert len(ratios) >= 7, f"only {len(ratios)} observations carry the ratio"
+    assert max(ratios) / min(ratios) > 5.0, (
+        "the two sigma scales now differ by a near-constant factor across observations, "
+        f"spread {min(ratios):.2f} to {max(ratios):.2f}. If the normalisation was "
+        "deliberately made comparable, the comparability statement in corridor_fit.py, "
+        "docs/KILL_GATE.md and the receipt has to be rewritten rather than this "
+        "threshold relaxed."
+    )
+
+
+def test_the_two_sigmas_in_the_receipt_come_from_where_they_say():
+    """The fit sigma and the null calibration's true sigma are one measurement.
+
+    They are the same estimator on the same image, so they must agree exactly. A3's
+    numbers sit in a different block for the same reason they carry a warning.
+    """
+    receipt = json.loads(
+        (REPO_ROOT / "artifacts" / "GATE3_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    checked = 0
+    for obs in receipt["observations"]:
+        fit_sigma = (obs.get("fit") or {}).get("sigma_at_fit")
+        true_sigma = (obs.get("null_calibration") or {}).get("true_sigma")
+        if fit_sigma is None or true_sigma is None:
+            continue
+        checked += 1
+        assert fit_sigma == pytest.approx(true_sigma, rel=1e-9), (
+            f"obs {obs['obs_id']}: the fit sigma and the null calibration's true sigma "
+            "disagree, so one of them is not the estimator it claims to be"
+        )
+    assert checked >= 7

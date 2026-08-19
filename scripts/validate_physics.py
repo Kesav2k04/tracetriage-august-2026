@@ -378,6 +378,14 @@ def validate(observations: list[dict]) -> dict:
             "error_deg": round(error_deg, 4),
             "abs_error_deg": round(abs_error, 4),
             "tca_frac": round(result.uncorrected.tca_frac, 6),
+            # A culmination at the edge of the recorded window means sgp4_max_alt_deg is a
+            # window boundary value rather than a pass maximum, so the row compares a
+            # different quantity from the API's pass maximum. Flagged per record, because
+            # a boundary case that reads as an ordinary agreement is the shape that makes
+            # a distribution look better than the measurement supports.
+            "culmination_inside_window": bool(
+                0.001 < result.uncorrected.tca_frac < 0.999
+            ),
             "tle_epoch_age_days": (
                 round(result.tle_epoch_age_days, 3)
                 if result.tle_epoch_age_days is not None else None
@@ -410,6 +418,33 @@ def validate(observations: list[dict]) -> dict:
         ),
         "pct_within_5deg": (
             float(100.0 * np.mean(arr <= 5.0)) if n_success else None
+        ),
+    }
+
+    # How much of the distribution rests on rows whose culmination the window actually
+    # contains. Publishing the flag per record and not the effect would leave a reader to
+    # recompute the thing the flag exists to raise.
+    inside = [
+        r["abs_error_deg"] for r in records
+        if r.get("status") == "ok" and r.get("culmination_inside_window")
+    ]
+    boundary = [
+        r["obs_id"] for r in records
+        if r.get("status") == "ok" and not r.get("culmination_inside_window")
+    ]
+    inside_arr = np.asarray(inside) if inside else np.array([float("nan")])
+    dist["culmination_window"] = {
+        "n_inside": len(inside),
+        "n_at_boundary": len(boundary),
+        "obs_at_boundary": boundary,
+        "median_abs_error_deg_inside": float(np.median(inside_arr)) if inside else None,
+        "max_abs_error_deg_inside": float(np.max(inside_arr)) if inside else None,
+        "note": (
+            "A row whose culmination sits at the edge of the recorded window compares an "
+            "SGP4 window maximum against an API pass maximum, which are different "
+            "quantities. The rows are counted rather than dropped, and the median beside "
+            "them is over the rows that do contain their culmination, so the effect of "
+            "excluding them is visible instead of argued."
         ),
     }
 

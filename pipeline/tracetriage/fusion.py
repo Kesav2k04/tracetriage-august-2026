@@ -66,6 +66,29 @@ ARM_LADDER: tuple[tuple[str, tuple[str, ...]], ...] = (
 GATE5_CHALLENGER = "physics_conditioned"
 GATE5_REFERENCE = "image_only"
 
+#: The arm the product actually ships: what ranks the queue, what the console displays,
+#: and what every triage decision downstream is made from.
+#:
+#: It lives here rather than in a script because two scripts read it. `run_queue.py`
+#: fits it to rank the corpus, and `run_fusion.py` measures its risk-coverage behaviour.
+#: When those were two constants in two files, either could be changed alone and the
+#: receipt would then publish the selective behaviour of an arm that was not the one
+#: being shipped, with nothing in the run to say so.
+#:
+#: It is deliberately NOT defined as "whatever the ablation rule selects". The ablation
+#: is a measurement of which blocks earn their place; what ships is a decision that was
+#: taken before it. After SPACE-S7 the two disagree: correcting over the 21 comparisons
+#: the ablation rule reads, the corridor block's benefit no longer clears zero, while
+#: the shipped ranker still uses it. That disagreement is published in
+#: `ablation_conclusion.shipped_arm_vs_recommendation`, because a pipeline that aborted
+#: on it would make the honest state unreportable.
+SHIPPED_ARM = "image_corridor"
+
+#: The blocks the shipped arm is built from, read off the ladder rather than repeated,
+#: so an arm named on the ladder and the arm that ships cannot come to mean two
+#: different feature sets under one name.
+SHIPPED_ARM_BLOCKS: tuple[str, ...] = dict(ARM_LADDER)[SHIPPED_ARM]
+
 
 @dataclass
 class DesignMatrix:
@@ -439,6 +462,385 @@ def grouped_paired_bootstrap(
     }
 
 
+def _paired_brier_difference(
+    challenger: np.ndarray, reference: np.ndarray, labels: np.ndarray
+) -> np.ndarray:
+    """Per-observation Brier improvement of the challenger over the reference."""
+    return (reference - labels) ** 2 - (challenger - labels) ** 2
+
+
+def clustering_diagnostics(
+    challenger: np.ndarray,
+    reference: np.ndarray,
+    labels: np.ndarray,
+    groups: np.ndarray,
+) -> dict[str, Any]:
+    """How much of the paired difference's variance sits between groups.
+
+    SPACE-S6: a grouped bootstrap is only protection if the grouping holds more than
+    one observation per group. This measures that instead of assuming it, using the same
+    one-way ICC unit C2 applies to gate 6, so the two gates cannot disagree about what
+    clustering means.
+    """
+    from pipeline.tracetriage.queue import intraclass_correlation  # noqa: PLC0415
+
+    diff = _paired_brier_difference(challenger, reference, labels)
+    by_group: dict[Any, list[float]] = {}
+    for value, key in zip(diff, groups, strict=True):
+        by_group.setdefault(key, []).append(float(value))
+    return intraclass_correlation(list(by_group.values()))
+
+
+def _union(a: list[float], b: list[float]) -> list[float]:
+    return [min(a[0], b[0]), max(a[1], b[1])]
+
+
+#: Fewest bootstrap draws that may sit below an interval endpoint for that endpoint to
+#: be read as a measurement. Below this the percentile is an order statistic over a
+#: handful of draws and moves by whole samples: at n_boot = 4000 a 21-comparison
+#: Bonferroni endpoint sits at the 4.8th draw, so the published bound is essentially
+#: the fifth-smallest resample. Twenty is where the Monte Carlo standard error of the
+#: endpoint falls below a fifth of the interval half-width on these samples.
+MIN_DRAWS_PER_TAIL: int = 20
+
+
+def _percentile_resolution(n_effective: int, alpha: float) -> dict[str, Any]:
+    """How many bootstrap draws decide each endpoint at this confidence level.
+
+    SPACE-S7: a Bonferroni correction over a large family pushes the endpoint far into
+    the tail, and a percentile bootstrap cannot resolve a quantile it has only a few
+    draws for. Reported rather than assumed, because the failure is silent: the interval
+    comes back looking like any other interval.
+    """
+    draws = n_effective * alpha / 2.0
+    return {
+        "n_boot_effective": int(n_effective),
+        "alpha": float(alpha),
+        "draws_per_tail": float(draws),
+        "min_draws_per_tail": MIN_DRAWS_PER_TAIL,
+        "endpoint_resolved": bool(draws >= MIN_DRAWS_PER_TAIL),
+        "n_boot_for_resolution": int(
+            -(-MIN_DRAWS_PER_TAIL * 2 // alpha) if alpha > 0 else 0
+        ),
+    }
+
+
+def _grouping_label(name: str, diagnostics: dict[str, Any]) -> str:
+    """Name a grouping by what it actually is on this partition.
+
+    A grouping holding one observation per group is an observation-level bootstrap, and
+    calling it "episode" in the receipt is how a note about shared receivers came to sit
+    beside ``mean_group_size: 1.0``.
+    """
+    if diagnostics[name]["measurable"]:
+        return name
+    if diagnostics[name].get("mean_group_size") == 1.0:
+        return "observation_level"
+    return f"{name}_unmeasurable"
+
+
+def _design_effect_sensitivity(
+    margin: float,
+    independence_ci: list[float],
+    diagnostics: dict[str, dict[str, Any]],
+    independence_grouping: str,
+) -> dict[str, Any]:
+    """Normal-theory widening of an independence interval by the measured design effect.
+
+    A second, cruder accounting of the same clustering, published because on the one
+    gate-5 comparison that clears zero the two accountings disagree at the corrected
+    level. It scales the half-width of an interval computed under independence by
+    ``sqrt(1 + (mean group size - 1) * ICC)``, which assumes the margin is normal and
+    that the whole effect of clustering is a variance inflation. The cluster bootstrap
+    does not assume either, resamples the 35 stations directly, and is what governs
+    here and in gate 6.
+
+    ``applicable`` is False unless one grouping is genuinely an observation-level
+    bootstrap, because widening an already-clustered interval by a design effect
+    measured on the same clustering would count it twice.
+    """
+    deffs = {
+        name: block["design_effect"]
+        for name, block in diagnostics.items()
+        if block["measurable"] and block.get("design_effect")
+    }
+    if independence_grouping != "observation_level" or not deffs:
+        return {
+            "applicable": False,
+            "reason": (
+                "No grouping here is an observation-level bootstrap, so there is no "
+                "independence interval to widen and the cluster bootstrap stands alone."
+                if independence_grouping != "observation_level" else
+                "No grouping has measurable clustering, so no design effect exists."
+            ),
+        }
+    worst = max(deffs, key=lambda k: deffs[k])
+    deff = float(deffs[worst])
+    factor = deff ** 0.5
+    lo = margin - (margin - independence_ci[0]) * factor
+    hi = margin + (independence_ci[1] - margin) * factor
+    return {
+        "applicable": True,
+        "grouping": worst,
+        "design_effect": deff,
+        "standard_error_factor": float(factor),
+        "widened_from": [float(v) for v in independence_ci],
+        "widened_ci": [float(lo), float(hi)],
+        "clears_zero": bool(lo > 0.0 or hi < 0.0),
+        "note": (
+            "A normal-theory check, not the published interval. It widens the "
+            "observation-level interval by the square root of the measured design "
+            "effect. The cluster bootstrap above resamples groups directly and is what "
+            "the verdict is read from; this is reported so a reader can see how much of "
+            "the margin survives the cruder accounting."
+        ),
+    }
+
+
+def _direction_of(lo: float, hi: float) -> str:
+    if lo > 0.0:
+        return "challenger_better"
+    if hi < 0.0:
+        return "reference_better"
+    return "indistinguishable"
+
+
+def clustered_paired_bootstrap(
+    challenger: np.ndarray,
+    reference: np.ndarray,
+    labels: np.ndarray,
+    episode_groups: np.ndarray,
+    station_groups: np.ndarray,
+    n_boot: int = 10_000,
+    seed: int = 42,
+) -> dict[str, Any]:
+    """The paired Brier comparison under both groupings, with the union governing.
+
+    SPACE-S6. The episode bootstrap this replaces described itself as protecting against
+    captures of one pass sharing a receiver and a geometry, while every published gate-5
+    interval carried ``mean_group_size: 1.0``: the test partitions hold at most one
+    observation per episode, so resampling episodes was arithmetically an
+    observation-level bootstrap. Stations are the grouping that has structure here, and
+    the same corpus measures a station ICC near 0.09 on the gate-6 outcome.
+
+    Both intervals are computed and both are published. ``ci95`` is the union of the
+    measurable ones, and the verdict is read off that union, because publishing a
+    verdict from the narrower interval while displaying the wider one is the confusion
+    this finding was about. Unit C2 already does exactly this for gate 6, and gate 5
+    now agrees with it.
+    """
+    episode = grouped_paired_bootstrap(
+        challenger, reference, labels, episode_groups, n_boot=n_boot, seed=seed
+    )
+    station = grouped_paired_bootstrap(
+        challenger, reference, labels, station_groups, n_boot=n_boot, seed=seed
+    )
+    diagnostics = {
+        "episode": clustering_diagnostics(challenger, reference, labels, episode_groups),
+        "station": clustering_diagnostics(challenger, reference, labels, station_groups),
+    }
+
+    # The union of BOTH intervals, including a grouping that turned out to hold one
+    # observation per group. A union can only widen, so this cannot publish a bound
+    # narrower than either accounting on its own, and on the chronological split the
+    # station bootstrap's lower bound is the higher of the two: dropping the
+    # observation-level interval would have raised the published lower bound, which is
+    # the wrong direction for a fix to a finding about intervals being too narrow.
+    labels = {name: _grouping_label(name, diagnostics) for name in ("episode", "station")}
+    governing = _union(list(episode["ci95"]), list(station["ci95"]))
+    governing_name = "union_of_" + "_and_".join(
+        sorted({labels["episode"], labels["station"]})
+    )
+
+    lo, hi = governing[0], governing[1]
+    direction = _direction_of(lo, hi)
+    out = dict(episode)
+    out.update({
+        "ci95": [float(lo), float(hi)],
+        "ci95_episode": [float(v) for v in episode["ci95"]],
+        "ci95_station": [float(v) for v in station["ci95"]],
+        "governing_interval": governing_name,
+        "clustering": diagnostics,
+        "design_effect_sensitivity": _design_effect_sensitivity(
+            float(episode["margin"]), list(episode["ci95"]), diagnostics,
+            labels["episode"],
+        ),
+        "n_groups_episode": episode["n_groups"],
+        "n_groups_station": station["n_groups"],
+        "mean_group_size_episode": episode["mean_group_size"],
+        "mean_group_size_station": station["mean_group_size"],
+        "direction": direction,
+        "distinguishable": bool(direction != "indistinguishable"),
+        "challenger_better": bool(direction == "challenger_better"),
+        "note": (
+            "Two groupings, both published, and ci95 is the union of them, which can "
+            "only be wider than either. Episodes hold about one observation each on these "
+            "test partitions, so an episode bootstrap here is an observation-level "
+            "bootstrap and is reported with its mean group size rather than described "
+            "as protection. Stations hold several. margin is the Brier improvement of "
+            "the challenger, so a negative margin means the challenger is worse, and "
+            "an interval entirely below zero is a measured harm rather than an absence "
+            "of difference."
+        ),
+    })
+    return out
+
+
+def clustered_multiplicity_adjusted(
+    challenger: np.ndarray,
+    reference: np.ndarray,
+    labels: np.ndarray,
+    episode_groups: np.ndarray,
+    station_groups: np.ndarray,
+    n_comparisons: int,
+    n_boot: int = 10_000,
+    seed: int = 42,
+) -> dict[str, Any]:
+    """The Bonferroni-widened interval under both groupings, union governing.
+
+    The correction and the clustering have to be applied to the same interval. Widening
+    an episode-grouped interval for multiplicity and then publishing a station-grouped
+    interval beside it uncorrected would leave the decision rule reading whichever one
+    happened to be narrower.
+    """
+    episode = multiplicity_adjusted(
+        challenger, reference, labels, episode_groups,
+        n_comparisons=n_comparisons, n_boot=n_boot, seed=seed,
+    )
+    station = multiplicity_adjusted(
+        challenger, reference, labels, station_groups,
+        n_comparisons=n_comparisons, n_boot=n_boot, seed=seed,
+    )
+    diagnostics = {
+        "episode": clustering_diagnostics(challenger, reference, labels, episode_groups),
+        "station": clustering_diagnostics(challenger, reference, labels, station_groups),
+    }
+    labels = {name: _grouping_label(name, diagnostics) for name in ("episode", "station")}
+    governing = _union(list(episode["ci_adjusted"]), list(station["ci_adjusted"]))
+    governing_name = "union_of_" + "_and_".join(
+        sorted({labels["episode"], labels["station"]})
+    )
+
+    lo, hi = governing[0], governing[1]
+    out = dict(episode)
+    out.update({
+        "ci_adjusted": [float(lo), float(hi)],
+        "design_effect_sensitivity": _design_effect_sensitivity(
+            float(episode["margin"]), list(episode["ci_adjusted"]), diagnostics,
+            labels["episode"],
+        ),
+        "ci_adjusted_episode": [float(v) for v in episode["ci_adjusted"]],
+        "ci_adjusted_station": [float(v) for v in station["ci_adjusted"]],
+        "governing_interval": governing_name,
+        "clustering": diagnostics,
+        "survives_correction": bool(lo > 0.0 or hi < 0.0),
+        "direction_adjusted": _direction_of(lo, hi),
+        "note": (
+            "Bonferroni over the n_comparisons comparisons the caller declares as its "
+            "family, in both directions, under both groupings. ci_adjusted is the union "
+            "of both groupings, so the correction and the clustering apply to the same "
+            "interval and survives_correction is read off the widest defensible one."
+        ),
+    })
+    return out
+
+
+def clustered_statistic_difference(
+    statistic: Callable[[np.ndarray, np.ndarray, np.ndarray], float],
+    challenger: np.ndarray,
+    reference: np.ndarray,
+    labels: np.ndarray,
+    episode_groups: np.ndarray,
+    station_groups: np.ndarray,
+    n_boot: int = 10_000,
+    seed: int = 42,
+    lower_is_better: bool = True,
+    n_comparisons: int = 1,
+) -> dict[str, Any]:
+    """``grouped_bootstrap_statistic_difference`` under both groupings, union governing.
+
+    SPACE-S6 fixed the paired Brier intervals and left this one behind, which put the
+    defect in the statistic a reader leans on hardest: on these test partitions an episode
+    holds about one observation, so an episode-resampled risk-coverage interval is an
+    observation-level interval wearing a grouped name. Stations hold several.
+
+    Switching the resampling unit is safe for this statistic in a way it would not be for
+    every statistic. ``risk_coverage_curve`` reads its ``groups`` argument only to report
+    ``n_groups_kept``; risk and coverage are both per observation, so the area under the
+    curve does not depend on the grouping and the two intervals are intervals for the same
+    number.
+    """
+    episode = grouped_bootstrap_statistic_difference(
+        statistic, challenger, reference, labels, episode_groups,
+        n_boot=n_boot, seed=seed, lower_is_better=lower_is_better,
+        n_comparisons=n_comparisons,
+    )
+    station = grouped_bootstrap_statistic_difference(
+        statistic, challenger, reference, labels, station_groups,
+        n_boot=n_boot, seed=seed, lower_is_better=lower_is_better,
+        n_comparisons=n_comparisons,
+    )
+    diagnostics = {
+        "episode": clustering_diagnostics(
+            challenger, reference, labels, episode_groups
+        ),
+        "station": clustering_diagnostics(
+            challenger, reference, labels, station_groups
+        ),
+    }
+    names = {n: _grouping_label(n, diagnostics) for n in ("episode", "station")}
+
+    out = dict(episode)
+    out["clustering"] = diagnostics
+    if episode["ci95"] is None or station["ci95"] is None:
+        # One grouping could not be resampled. Reporting the other alone would publish a
+        # narrower interval under a name that claims both were checked.
+        failed = "episode" if episode["ci95"] is None else "station"
+        out["ci95"] = None
+        out["ci_adjusted"] = None
+        out["direction"] = "unmeasurable"
+        out["distinguishable"] = False
+        out["challenger_better"] = False
+        out["survives_correction"] = False
+        out["governing_interval"] = "none"
+        out["note"] = (
+            f"The {failed} grouping produced too few finite resamples to form an "
+            "interval, so no union is reported. A statement about the resampling, not "
+            "about the models."
+        )
+        return out
+
+    ci = _union(list(episode["ci95"]), list(station["ci95"]))
+    ci_adj = _union(list(episode["ci_adjusted"]), list(station["ci_adjusted"]))
+    out.update({
+        "ci95": [float(ci[0]), float(ci[1])],
+        "ci95_episode": [float(v) for v in episode["ci95"]],
+        "ci95_station": [float(v) for v in station["ci95"]],
+        "ci_adjusted": [float(ci_adj[0]), float(ci_adj[1])],
+        "ci_adjusted_episode": [float(v) for v in episode["ci_adjusted"]],
+        "ci_adjusted_station": [float(v) for v in station["ci_adjusted"]],
+        "governing_interval": "union_of_" + "_and_".join(
+            sorted({names["episode"], names["station"]})
+        ),
+        "direction": _direction_of(ci[0], ci[1]),
+        "distinguishable": bool(_direction_of(ci[0], ci[1]) != "indistinguishable"),
+        "challenger_better": bool(
+            _direction_of(ci[0], ci[1]) == "challenger_better"
+        ),
+        "survives_correction": bool(ci_adj[0] > 0.0 or ci_adj[1] < 0.0),
+        "n_groups_episode": int(episode["n_groups"]),
+        "n_groups_station": int(station["n_groups"]),
+        "note": (
+            "The statistic is recomputed on each resampled group set rather than "
+            "averaged from per-observation terms, because it is a functional of the "
+            "whole ranking. Two groupings are resampled and both intervals are "
+            "published; ci95 and ci_adjusted are their unions, which can only be wider "
+            "than either. margin is signed so positive means the challenger is better."
+        ),
+    })
+    return out
+
+
 def grouped_bootstrap_statistic_difference(
     statistic: Callable[[np.ndarray, np.ndarray, np.ndarray], float],
     challenger: np.ndarray,
@@ -528,6 +930,7 @@ def grouped_bootstrap_statistic_difference(
         direction = "indistinguishable"
 
     alpha = 0.05 / max(n_comparisons, 1)
+    resolution = _percentile_resolution(len(drawn_margins), alpha)
     lo_adj, hi_adj = np.percentile(
         drawn_margins, [100 * alpha / 2, 100 * (1 - alpha / 2)]
     )
@@ -540,6 +943,7 @@ def grouped_bootstrap_statistic_difference(
         "distinguishable": bool(direction != "indistinguishable"),
         "challenger_better": bool(direction == "challenger_better"),
         "n_comparisons": int(n_comparisons),
+        "percentile_resolution": resolution,
         "ci_adjusted": [float(lo_adj), float(hi_adj)],
         "adjusted_confidence": float(1.0 - alpha),
         "survives_correction": survives,
@@ -550,11 +954,12 @@ def grouped_bootstrap_statistic_difference(
         "n_degenerate_resamples": n_degenerate,
         "seed": seed,
         "note": (
-            "The statistic is recomputed on each resampled episode set rather than "
+            "The statistic is recomputed on each resampled group set rather than "
             "averaged from per-observation terms, because it is a functional of the "
             "whole ranking. margin is signed so positive means the challenger is better. "
-            "ci_adjusted is Bonferroni-widened over n_comparisons, because comparing "
-            "arms on a second statistic opens a second family of comparisons."
+            "ci_adjusted is Bonferroni-widened over the n_comparisons comparisons the "
+            "caller declares, because comparing arms on a second statistic opens a "
+            "second family of comparisons."
         ),
     }
 
@@ -602,6 +1007,7 @@ def multiplicity_adjusted(
         "confidence_level": float(1 - alpha),
         "margin": float(diff.mean()),
         "ci_adjusted": [float(lo), float(hi)],
+        "percentile_resolution": _percentile_resolution(n_boot, alpha),
         # Either direction. A measured harm is a finding that deserves the same
         # correction as a measured gain, and the earlier one-sided version reported an
         # interval lying entirely below zero as "does not survive", which reads as an
@@ -613,10 +1019,10 @@ def multiplicity_adjusted(
             else "indistinguishable"
         ),
         "note": (
-            "Bonferroni over the comparisons reported against the reference on this "
-            "split, in both directions. A result that clears zero at 95% but not here was "
-            "selected as much as it was measured, and saying so costs less than having it "
-            "questioned."
+            "Bonferroni over the n_comparisons comparisons the caller declares as its "
+            "family, in both directions. A result that clears zero at 95% but not here "
+            "was selected as much as it was measured, and saying so costs less than "
+            "having it questioned."
         ),
     }
 

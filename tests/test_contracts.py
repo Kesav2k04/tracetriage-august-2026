@@ -627,6 +627,17 @@ def fusion_receipt(**overrides: Any) -> dict[str, Any]:
             ),
             "splits_used": ["chronological"],
             "splits_below_training_floor": ["cold_combined"],
+            "shipped_arm_vs_recommendation": {
+                "ships": "image_corridor",
+                "ship_blocks": ["image", "corridor"],
+                "corrected_recommends": "image_corridor",
+                "agree": True,
+                "note": (
+                    "The queue is ranked by image_corridor, and the corrected ablation "
+                    "rule recommends the same combination."
+                ),
+            },
+            "fragility": [],
             "caveat": (
                 "The retain decision reads test-set comparisons, so the shipped arm's "
                 "Brier is optimistic by an amount this corpus cannot measure."
@@ -669,6 +680,124 @@ def test_fusion_receipt_accepts_the_real_artifact() -> None:
 
 def test_fusion_receipt_accepts_a_clean_fixture() -> None:
     assert is_valid("fusion_receipt", fusion_receipt())
+
+
+def test_fusion_receipt_requires_the_ablation_to_say_what_ships() -> None:
+    """Two different questions had one answer, until they disagreed.
+
+    What the ranker is built from is a decision; what the ablation recommends is a
+    measurement. While they agreed, one ``shipped_arm`` field could pass for both. After
+    the correction ran over the family the rule reads, the corrected rule recommends
+    image alone while the queue is still ranked by image and corridor, and a receipt
+    reporting only one of those is a receipt that hides the other.
+    """
+    doc = fusion_receipt()
+    del doc["ablation_conclusion"]["shipped_arm_vs_recommendation"]
+    assert not is_valid("fusion_receipt", doc)
+
+    doc = fusion_receipt()
+    doc["ablation_conclusion"]["shipped_arm_vs_recommendation"] = {
+        "ships": "image_corridor",
+        "corrected_recommends": "image_only",
+        "agree": False,
+    }
+    assert not is_valid("fusion_receipt", doc), (
+        "a disagreement between what ships and what the rule recommends cannot travel "
+        "as a bare boolean"
+    )
+
+
+def test_fusion_receipt_requires_a_corrected_endpoint_to_be_resolvable() -> None:
+    """A Bonferroni endpoint the bootstrap cannot resolve is not a measurement.
+
+    The correction pushes the endpoint into the tail. At 4000 draws over a
+    21-comparison family it sits at the fifth-smallest resample, and the interval still
+    comes back looking like any other interval, so the resolution travels with it.
+    """
+    doc = fusion_receipt()
+    doc["splits"][0]["multiplicity_adjusted"] = {
+        "image_corridor_vs_image_only": {
+            "n_comparisons": 21,
+            "ci_adjusted": [-0.0005, 0.0487],
+            "survives_correction": False,
+            "direction_adjusted": "indistinguishable",
+        }
+    }
+    assert not is_valid("fusion_receipt", doc)
+
+    doc["splits"][0]["multiplicity_adjusted"]["image_corridor_vs_image_only"][
+        "percentile_resolution"
+    ] = {
+        "alpha": 0.05 / 21,
+        "draws_per_tail": 59.5,
+        "min_draws_per_tail": 20,
+        "endpoint_resolved": True,
+    }
+    assert is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_requires_an_unmeasurable_icc_to_say_why() -> None:
+    """A null ICC with no reason reads as an absence of clustering.
+
+    It is the opposite: on gate 5's episode grouping there are 88 groups over 88
+    observations, so the correlation cannot be estimated at all, and a reader who takes
+    the null for zero would conclude the interval needs no widening.
+    """
+    grouping = {
+        "measurable": False,
+        "icc": None,
+        "design_effect": None,
+        "n_groups": 88,
+        "n_observations": 88,
+        "mean_group_size": 1.0,
+    }
+    doc = fusion_receipt()
+    doc["gate5"]["per_split"] = {
+        "chronological": {
+            "measurable": True,
+            "clustering": {"episode": dict(grouping), "station": dict(grouping)},
+        }
+    }
+    assert not is_valid("fusion_receipt", doc)
+
+    with_reason = {
+        **grouping,
+        "reason": (
+            "An intra-class correlation needs at least 2 populated groups and more "
+            "observations than groups."
+        ),
+    }
+    doc["gate5"]["per_split"]["chronological"]["clustering"] = {
+        "episode": with_reason,
+        "station": with_reason,
+    }
+    assert is_valid("fusion_receipt", doc)
+
+
+def test_fusion_receipt_requires_both_groupings_to_be_reported() -> None:
+    """One grouping is not a comparison of groupings.
+
+    A clustered interval published without the observation-level one beside it cannot be
+    checked for whether the clustering changed anything, which is the only reason to
+    report either.
+    """
+    doc = fusion_receipt()
+    doc["gate5"]["per_split"] = {
+        "chronological": {
+            "measurable": True,
+            "clustering": {
+                "station": {
+                    "measurable": True,
+                    "icc": 0.247,
+                    "design_effect": 1.374,
+                    "n_groups": 35,
+                    "n_observations": 88,
+                    "mean_group_size": 2.514,
+                }
+            },
+        }
+    }
+    assert not is_valid("fusion_receipt", doc)
 
 
 def test_fusion_receipt_rejects_a_two_valued_direction() -> None:
@@ -785,6 +914,12 @@ def test_fusion_receipt_rejects_a_correction_that_cannot_express_a_harm() -> Non
             "n_comparisons": 7,
             "ci_adjusted": [0.003, 0.039],
             "survives_correction": True,
+            "percentile_resolution": {
+                "alpha": 0.05 / 7,
+                "draws_per_tail": 28.6,
+                "min_draws_per_tail": 20,
+                "endpoint_resolved": True,
+            },
         }
     }
     assert not is_valid("fusion_receipt", doc)

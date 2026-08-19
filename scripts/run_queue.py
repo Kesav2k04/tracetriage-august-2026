@@ -37,6 +37,8 @@ from pipeline.tracetriage.features import (  # noqa: E402
     physics_features,
 )
 from pipeline.tracetriage.fusion import (  # noqa: E402
+    SHIPPED_ARM,
+    SHIPPED_ARM_BLOCKS,
     Calibrator,
     FusionArm,
 )
@@ -80,10 +82,6 @@ _DECISIVE = {"with-signal": 1, "without-signal": 0}
 #: 50 observations from the chronological test set of 88. Budget on cold splits
 #: is min(REVIEW_BUDGET, n_decisive_test_observations).
 REVIEW_BUDGET = 50
-
-#: The shipped arm whose predictions drive the ranking.
-SHIPPED_ARM = "image_corridor"
-SHIPPED_ARM_BLOCKS = ("image", "corridor")
 
 #: Gate 6 lift threshold.
 GATE6_THRESHOLD = 1.5

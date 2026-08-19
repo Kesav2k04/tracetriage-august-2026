@@ -485,9 +485,25 @@ def fit_offset(
     Returns ``(offset_hz, sigma_at_fit, at_bound, bound_hz)``. ``offset_hz`` is
     None when no candidate offset kept the path inside the plot.
 
-    The estimator is the same matched filter A3 used, so the numbers stay
-    comparable. The difference is the search range: bounded here, unbounded
-    there.
+    The estimator is the same matched filter A3 used and the search range is the
+    difference in intent: bounded here, unbounded there.
+
+    SPACE-S8: the sigmas are NOT comparable across the two, and an earlier version of
+    this docstring said they were. ``_pixel_sigma_scale`` normalises against the median
+    and MAD of the whole ``zs`` array; A3 normalised per column band. Measured on the
+    seven decisive observations, stored ``sigma_curved`` over the sigma this returns:
+
+        14740031  25.10 / 2.024 = 12.4x       14746118   7.27 / 5.091 =  1.43x
+        14745664  15.14 / 1.539 =  9.84x      14746055  21.01 / 2.921 =  7.20x
+        14745929  15.94 / 1.652 =  9.65x      14746048   1.71 / 1.966 =  0.87x
+                                              14745602  12.03 / 3.044 =  3.95x
+
+    The ratio is not a constant, so there is no conversion between the two scales, and
+    the direction of a comparison can invert: on 14740031 the upstream VERTICAL sigma of
+    2.83 exceeds this module's CURVED sigma of 2.024, which reads as a straight line
+    beating the Doppler curve and is the opposite of what both artifacts found. Compare
+    a sigma only against another sigma from the same estimator, which is what
+    ``calibrate_against_nulls`` does.
     """
     bound_hz = thresholds.offset_ppm_limit * rx_freq_hz / 1e6
     bound_px = int(math.floor(bound_hz / hz_per_px))

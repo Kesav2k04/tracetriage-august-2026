@@ -330,6 +330,25 @@ def main() -> int:
                 "sigma_curved": p["a3_sigma_curved"],
                 "sigma_vertical": p["a3_sigma_vertical"],
                 "predicted_swing_hz": p["predicted_swing_hz"],
+                # SPACE-S8: the two sigmas above and fit.sigma_at_fit below are different
+                # statistics. A3 normalised per column band; corridor_fit normalises
+                # against the median and MAD of the whole image. The ratio is published
+                # per observation because it is not a constant, so no conversion exists
+                # and the two cannot be read against each other.
+                "sigma_scale_ratio_to_fit": (
+                    float(p["a3_sigma_curved"] / fit.sigma_at_fit)
+                    if p["a3_sigma_curved"] and fit.sigma_at_fit else None
+                ),
+                "sigma_comparability": (
+                    "Not comparable. sigma_curved and sigma_vertical come from A3's "
+                    "per-band normalisation; fit.sigma_at_fit and "
+                    "null_calibration.true_sigma come from this module's whole-image "
+                    "MAD. Measured across the seven decisive observations the ratio "
+                    "runs from 0.87 to 12.4, so it is not a rescaling. On 14740031 the "
+                    "A3 vertical sigma of 2.83 exceeds this module's curved sigma of "
+                    "2.02, which inverts the comparison the two artifacts agree on. "
+                    "Compare a sigma only against another sigma from the same estimator."
+                ),
             },
             "fit": _fit_row(fit),
             # SPACE-S5: the axis sign is a property of the client that rendered this

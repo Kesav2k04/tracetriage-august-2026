@@ -232,6 +232,15 @@ def intraclass_correlation(groups: list[list[float]]) -> dict[str, Any]:
     variance exceeds the between-group variance. It is reported as measured and
     clamped only where it feeds the design effect, which cannot sensibly fall
     below 1.
+
+    Which group size goes where, because the two sit adjacent and differ. The ICC's own
+    denominator uses the size-adjusted ``n0 = (N - sum(n_i^2)/N) / (k - 1)``; the design
+    effect uses the plain mean ``N / k``. That pairing is the conventional one, and both
+    sizes are returned so a reader can recompute either way: on the gate-6 chronological
+    split they are 2.4857 and 2.4165, a 3 percent difference that moves the design effect
+    by under 1 percent. Stated here rather than in the emitted dict because
+    ``contracts/queue_receipt.schema.json`` closes the clustering object, and a note is
+    not worth a schema version bump.
     """
     populated = [g for g in groups if g]
     n_total = sum(len(g) for g in populated)

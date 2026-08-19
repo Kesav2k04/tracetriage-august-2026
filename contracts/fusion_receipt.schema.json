@@ -4,7 +4,7 @@
   "title": "Fusion ladder, calibration and kill gate 5",
   "status": "ratified",
   "schema_version": "0.1.0",
-  "description": "The measured result of the fusion ladder, including kill gate 5's verdict. Ratified 2026-08-17 in B2-B6. This contract exists because the receipt is the artifact a judge reads to decide whether the physics claim is real, and every way that claim could be overstated was available while it was being written. Four shapes are therefore invalid by construction rather than by review. A comparison cannot report a margin without the interval, the observation count and the episode count that produced it, because a margin alone is a number with no support. A comparison's direction is a four-valued enum rather than a boolean, because a two-valued verdict reports an interval lying entirely below zero as an absence of difference, which hides a measured harm behind a null; the operator's own first version of this code did exactly that. A gate verdict must carry a statement, so a bare 'PASSED' cannot travel without the sentence that qualifies it. And an infeasible risk ceiling must carry a reason, so 'no threshold was found' cannot be mistaken for 'no threshold was needed'. The ablation block must carry both the nominal and the multiplicity-corrected rule with the deciding rule named, because reporting only the rule that was applied would conceal that they disagree. Revised 2026-08-19 in D3 (ENG-S1): the root is closed and the document version is pinned with a const. Before this, a receipt written by an older script validated against the current schema and was read as current, and a root key nothing declares could be added without any reader noticing. The receipt already carried schema_version 0.1.0 and the contract path, so no document had to be rewritten and the version stays at 0.1.0: this tightening rejects only shapes no writer in this repository produces.",
+  "description": "The measured result of the fusion ladder, including kill gate 5's verdict. Ratified 2026-08-17 in B2-B6. This contract exists because the receipt is the artifact a judge reads to decide whether the physics claim is real, and every way that claim could be overstated was available while it was being written. Four shapes are therefore invalid by construction rather than by review. A comparison cannot report a margin without the interval, the observation count and the episode count that produced it, because a margin alone is a number with no support. A comparison's direction is a four-valued enum rather than a boolean, because a two-valued verdict reports an interval lying entirely below zero as an absence of difference, which hides a measured harm behind a null; the operator's own first version of this code did exactly that. A gate verdict must carry a statement, so a bare 'PASSED' cannot travel without the sentence that qualifies it. And an infeasible risk ceiling must carry a reason, so 'no threshold was found' cannot be mistaken for 'no threshold was needed'. The ablation block must carry both the nominal and the multiplicity-corrected rule with the deciding rule named, because reporting only the rule that was applied would conceal that they disagree. Revised 2026-08-19 in D7 (SPACE-S6, SPACE-S7): the fields the clustered bootstrap and the cross-split correction added are declared rather than tolerated by open objects, a corrected interval must now carry the resolution of the endpoint it is read at, and the ablation must state whether the arm the product ships is the arm it recommends. That last one is required because the two stopped agreeing: the corridor block's win does not survive correction over the family the rule reads, while the queue is still ranked by it, and a single shipped_arm field could report only one of those. The version stays at 0.1.0 on the same reasoning as the D3 tightening below: the writer in this repository emits every newly required field, so no document has to be rewritten. Revised 2026-08-19 in D3 (ENG-S1): the root is closed and the document version is pinned with a const. Before this, a receipt written by an older script validated against the current schema and was read as current, and a root key nothing declares could be added without any reader noticing. The receipt already carried schema_version 0.1.0 and the contract path, so no document had to be rewritten and the version stays at 0.1.0: this tightening rejects only shapes no writer in this repository produces.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -117,7 +117,47 @@
         "adjusted_confidence": { "type": "number" },
         "survives_correction": { "type": "boolean" },
         "seed": { "type": "integer" },
-        "note": { "type": "string" }
+        "note": { "type": "string" },
+        "ci95_episode": {
+          "type": ["array", "null"],
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "ci95_station": {
+          "type": ["array", "null"],
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "ci_adjusted_episode": {
+          "type": ["array", "null"],
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "ci_adjusted_station": {
+          "type": ["array", "null"],
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "governing_interval": {
+          "type": "string",
+          "description": "Which grouping produced the published bound, or the union of both. Declared so a reader does not have to infer from three intervals which one the verdict was read from."
+        },
+        "clustering": { "$ref": "#/$defs/clustering_diagnostics" },
+        "design_effect_sensitivity": { "type": "object" },
+        "percentile_resolution": { "$ref": "#/$defs/percentile_resolution" },
+        "mean_group_size_episode": { "type": "number", "minimum": 0 },
+        "mean_group_size_station": { "type": "number", "minimum": 0 },
+        "n_groups_episode": { "type": "integer", "minimum": 0 },
+        "n_groups_station": { "type": "integer", "minimum": 0 },
+        "in_multiplicity_family": {
+          "type": "boolean",
+          "description": "False for a reported interval that the correction does not count. Declared and paired with a reason, because an interval published beside a corrected family and not in it is the shape that lets an eighth comparison be reported against a family of seven."
+        },
+        "family_exclusion_reason": { "type": "string", "minLength": 20 }
       },
       "allOf": [
         {
@@ -143,6 +183,62 @@
             "required": ["note", "n_usable_resamples"],
             "description": "An unmeasurable comparison has to say why, or it is indistinguishable from a tie in every downstream reading."
           }
+        },
+        {
+          "if": {
+            "properties": { "in_multiplicity_family": { "const": false } },
+            "required": ["in_multiplicity_family"]
+          },
+          "then": {
+            "required": ["family_exclusion_reason"],
+            "description": "A comparison published outside the corrected family has to say why. Without the reason, an interval reported beside a family of seven and not counted in it is indistinguishable from a miscount."
+          }
+        }
+      ]
+    },
+    "percentile_resolution": {
+      "type": "object",
+      "required": ["alpha", "draws_per_tail", "min_draws_per_tail", "endpoint_resolved"],
+      "properties": {
+        "alpha": { "type": "number", "exclusiveMinimum": 0 },
+        "draws_per_tail": { "type": "number", "minimum": 0 },
+        "min_draws_per_tail": { "type": "number", "minimum": 1 },
+        "endpoint_resolved": { "type": "boolean" },
+        "n_boot": { "type": "integer", "minimum": 1 },
+        "n_boot_for_resolution": { "type": "integer", "minimum": 1 }
+      },
+      "description": "Whether the bootstrap had enough draws to resolve the quantile the corrected interval is read at. A Bonferroni correction over a 21-comparison family puts the endpoint at alpha/42 in each tail, and a percentile bootstrap can only report a quantile it has draws for. The failure is silent without this: the interval comes back looking like any other interval."
+    },
+    "clustering_diagnostics": {
+      "type": "object",
+      "required": ["episode", "station"],
+      "additionalProperties": { "$ref": "#/$defs/one_grouping" },
+      "description": "What each grouping actually grouped. Both are required because a grouped bootstrap whose groups are all of size 1 is an ungrouped bootstrap reporting the same interval under a name that implies otherwise, and the only way a reader can tell is to see both group counts. Gate 5's episode grouping is exactly that case on this corpus: 88 groups over 88 observations."
+    },
+    "one_grouping": {
+      "type": "object",
+      "required": ["measurable", "n_groups", "n_observations", "mean_group_size", "icc", "design_effect"],
+      "properties": {
+        "measurable": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
+        "icc": { "type": ["number", "null"] },
+        "design_effect": { "type": ["number", "null"] },
+        "n_groups": { "type": "integer", "minimum": 0 },
+        "n_observations": { "type": "integer", "minimum": 0 },
+        "mean_group_size": { "type": "number", "minimum": 0 },
+        "size_adjusted_mean_group_size": { "type": "number", "minimum": 0 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "measurable": { "const": false } },
+            "required": ["measurable"]
+          },
+          "then": {
+            "required": ["reason"],
+            "properties": { "reason": { "type": "string", "minLength": 20 } },
+            "description": "An unmeasurable intraclass correlation must say why. A null ICC with no reason reads as no clustering, which is the opposite of what one group per observation means."
+          }
         }
       ]
     },
@@ -166,7 +262,36 @@
           "description": "The gate as originally worded, so a reader can check the verdict against the claim rather than against a paraphrase of it."
         },
         "comparison": { "$ref": "#/$defs/comparison" },
-        "split": { "type": "string" }
+        "split": { "type": "string" },
+        "per_split": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["measurable"],
+            "properties": {
+              "measurable": { "type": "boolean" },
+              "reason": { "type": ["string", "null"] },
+              "margin": { "type": "number" },
+              "ci95": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+              "ci95_episode": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+              "ci95_station": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+              "governing_interval": { "type": "string" },
+              "clustering": { "$ref": "#/$defs/clustering_diagnostics" },
+              "direction": { "type": "string" },
+              "distinguishable": { "type": "boolean" },
+              "challenger_better": { "type": "boolean" },
+              "challenger_brier": { "type": "number" },
+              "reference_brier": { "type": "number" },
+              "n_observations": { "type": "integer", "minimum": 0 },
+              "n_groups": { "type": "integer", "minimum": 0 },
+              "n_groups_episode": { "type": "integer", "minimum": 0 },
+              "n_groups_station": { "type": "integer", "minimum": 0 },
+              "mean_group_size_episode": { "type": "number", "minimum": 0 },
+              "mean_group_size_station": { "type": "number", "minimum": 0 }
+            }
+          },
+          "description": "The gate is worded against one split and taken there, but every split is reported beside it, because a gain that appears only where entities are shared is a different claim from one that survives a cold split."
+        }
       }
     },
     "ablation_rule_outcome": {
@@ -208,6 +333,8 @@
         "min_train_justification",
         "splits_used",
         "splits_below_training_floor",
+        "shipped_arm_vs_recommendation",
+        "fragility",
         "caveat"
       ],
       "properties": {
@@ -233,9 +360,48 @@
         },
         "splits_used": { "type": "array", "items": { "type": "string" } },
         "splits_below_training_floor": { "type": "array", "items": { "type": "string" } },
-        "shipped_blocks": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "shipped_blocks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "The blocks the product ships, which is what the ranker is built from. Not the blocks the rule recommends: see recommended_blocks, and shipped_arm_vs_recommendation for the difference."
+        },
         "shipped_arm": { "type": ["string", "null"] },
         "shipped_arm_scores": { "type": ["object", "null"] },
+        "recommended_arm": { "type": ["string", "null"] },
+        "recommended_blocks": { "type": "array", "items": { "type": "string" } },
+        "shipped_arm_vs_recommendation": {
+          "type": "object",
+          "required": ["ships", "corrected_recommends", "agree", "note"],
+          "properties": {
+            "ships": { "type": "string" },
+            "ship_blocks": { "type": "array", "items": { "type": "string" } },
+            "nominal_recommends": { "type": ["string", "null"] },
+            "nominal_recommends_blocks": { "type": "array", "items": { "type": "string" } },
+            "corrected_recommends": { "type": ["string", "null"] },
+            "corrected_recommends_blocks": { "type": "array", "items": { "type": "string" } },
+            "agree": { "type": "boolean" },
+            "shipped_blocks_without_corrected_support": { "type": "array", "items": { "type": "string" } },
+            "note": { "type": "string", "minLength": 40 }
+          },
+          "description": "Required, and required to carry a statement, because the two can differ and after the D7 correction they do. Reporting one field called shipped_arm would either put the recommendation's name on the queue's numbers or hide that a block the queue ranks by has lost its interval to the multiplicity correction."
+        },
+        "fragility": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["block", "comparison", "concerns"],
+            "properties": {
+              "block": { "type": "string" },
+              "comparison": { "type": "string" },
+              "corrected_ci": { "type": ["array", "null"], "items": { "type": "number" } },
+              "governing_interval": { "type": ["string", "null"] },
+              "concerns": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+            }
+          },
+          "description": "Every way a RETAIN could be thinner than it looks, collected rather than left for a reader to reconstruct from four nested blocks. A concern list that could be empty would make a qualified verdict indistinguishable from an unqualified one, so a row exists only when it has something to say."
+        },
+        "fragility_note": { "type": "string", "minLength": 40 },
         "caveat": {
           "type": "string",
           "minLength": 40,
@@ -343,7 +509,7 @@
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "required": ["n_comparisons", "ci_adjusted", "survives_correction", "direction_adjusted"],
+            "required": ["n_comparisons", "ci_adjusted", "survives_correction", "direction_adjusted", "percentile_resolution"],
             "properties": {
               "n_comparisons": { "type": "integer", "minimum": 1 },
               "ci_adjusted": {
@@ -352,6 +518,25 @@
                 "minItems": 2,
                 "maxItems": 2
               },
+              "ci_adjusted_episode": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "ci_adjusted_station": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "governing_interval": {
+                "type": "string",
+                "description": "Which grouping produced the published bound. Both are measured and the union is published, so a reader can see whether the verdict rests on the grouping that happened to be wider."
+              },
+              "clustering": { "$ref": "#/$defs/clustering_diagnostics" },
+              "design_effect_sensitivity": { "type": "object" },
+              "percentile_resolution": { "$ref": "#/$defs/percentile_resolution" },
               "survives_correction": { "type": "boolean" },
               "direction_adjusted": {
                 "enum": ["challenger_better", "reference_better", "indistinguishable"],
@@ -372,7 +557,15 @@
             "aurc_image_only": { "type": "number" },
             "aurc_vs_image_only": { "$ref": "#/$defs/comparison" },
             "aurc_shipped_arm": { "type": "number" },
+            "aurc_shipped_arm_name": {
+              "type": "string",
+              "description": "The arm the aurc_shipped_* figures describe, written down rather than left to a reader who would have to know a constant in a script to find out."
+            },
             "aurc_shipped_vs_image_only": { "$ref": "#/$defs/comparison" },
+            "aurc_shipped_not_measured_reason": {
+              "type": "string",
+              "description": "Present instead of the comparison when the shipped arm is the reference or the challenger. A self-comparison has a margin of exactly zero by construction, which reads as an absence of benefit rather than an absence of a comparison."
+            },
             "multiplicity_family_size": { "type": "integer", "minimum": 1 },
             "curve": {
               "type": "array",

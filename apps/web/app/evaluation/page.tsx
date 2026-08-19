@@ -55,6 +55,16 @@ interface AblationRule {
 const nominal = ablation.nominal as unknown as AblationRule;
 const corrected = ablation.multiplicity_corrected as unknown as AblationRule;
 const disagree = (ablation.rules_disagree_on as string[]) ?? [];
+// What the ranker is built from, and what the ablation recommends, are two answers to
+// two questions. They agreed until the multiplicity correction ran over the family the
+// ablation rule reads; the page has to show both or it reports one as the other.
+const recommendation = ablation.shipped_arm_vs_recommendation as unknown as {
+  ships: string;
+  corrected_recommends: string | null;
+  agree: boolean;
+  shipped_blocks_without_corrected_support: string[];
+  note: string;
+};
 const shippedScores = ablation.shipped_arm_scores as unknown as {
   split: string;
   brier: number;
@@ -509,7 +519,7 @@ export default function EvaluationPage() {
                   color: "var(--text-03)",
                 }}
               >
-                ships:{" "}
+                recommends:{" "}
                 <span className="mono">{rule.shipped_blocks.join(" + ")}</span>
                 {rule.shipped_arm ? ` as ${rule.shipped_arm}` : ""}
               </p>
@@ -518,6 +528,10 @@ export default function EvaluationPage() {
         </div>
 
         <Note tone="warn">{ablation.why_the_corrected_rule_decides}</Note>
+
+        {recommendation && !recommendation.agree && (
+          <Note tone="limit">{recommendation.note}</Note>
+        )}
 
         <div
           style={{
