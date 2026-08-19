@@ -150,8 +150,25 @@ def test_a_url_sink_is_refused():
 
 
 def test_a_windows_drive_letter_is_not_a_url_scheme():
-    """The scheme test must not reject an ordinary local path."""
-    assert resolve_store_path(r"D:\annotations\notes.jsonl").name == "notes.jsonl"
+    """The scheme test must not reject an ordinary local path.
+
+    This asserted the resolved basename of a backslash-separated path, which made it a
+    guaranteed failure on the Linux runner the workflow declares. A backslash is an
+    ordinary character in a POSIX path, so the basename of a Windows-style path is the
+    whole string on Linux and the filename on Windows. The function under test does not
+    split paths and never claimed to. What it claims is that a drive letter is not read
+    as a one-character URL scheme, and that claim holds identically on both platforms.
+    """
+    for text in (
+        r"D:\annotations\notes.jsonl",
+        "C:/Users/x/notes.jsonl",
+        "artifacts/annotations/notes.jsonl",
+    ):
+        # Must not raise. Widening _URL_SCHEME to match a drive letter fails here.
+        resolve_store_path(text)
+
+    # The basename is asserted only for the forms that parse identically on both
+    # platforms, so this stays a check on the guard rather than on pathlib.
     assert resolve_store_path("artifacts/annotations/notes.jsonl").name == "notes.jsonl"
     assert resolve_store_path("C:/Users/x/notes.jsonl").name == "notes.jsonl"
 
