@@ -4774,16 +4774,26 @@ reached and the test could only ever skip: a deferred test that outlived its blo
 tests carry both markers now, and both pass against the running model. The offline gate excludes
 `network`, `ocr` and `llm`, so nothing moved into it.
 
+**The console page came second, on purpose.** `/agent` shows both arms with the same weight:
+the four cells of the paired table rather than a summary of them, the split between calls the
+loop refused as repeats and calls the server refused for their arguments, and a per-question
+table carrying both answers so a reader can disagree with any single grade. The join across arms
+happens in `scripts/build_console_data.py` from the receipt, because a page that re-paired the
+arms by index would be a second implementation of the study's design with nothing testing it.
+Ten vitest cases assert the payload against the arm summaries it was aggregated from.
+
 **Files changed:** `pipeline/tracetriage/agent.py`, `scripts/run_agent_study.py`,
 `tests/test_agent.py`, `tests/fixtures/agent_runs.json`, `artifacts/AGENT_RECEIPT.json` (all
 new), `README.md`, `FOR_JUDGES.md`, `scripts/sync_for_judges.py`, `docs/CLAIM_REGISTER.md`,
-`tests/test_explain.py`, `apps/web/public/data/provenance.json`.
+`tests/test_explain.py`, `apps/web/public/data/provenance.json`, `apps/web/app/agent/page.tsx`,
+`apps/web/tests/agent-study.test.ts`, `apps/web/public/data/agent.json`,
+`apps/web/lib/data.ts`, `apps/web/components/Nav.tsx`, `scripts/build_console_data.py`.
 **Commands run:** `scripts/run_agent_study.py --freeze`, `scripts/run_agent_study.py`,
 `scripts/build_console_data.py --skip-images`, `scripts/sync_for_judges.py`,
 `python -m ruff check .`, `python -m pytest -m "not network and not ocr and not llm"`,
 `python -m pytest -m llm`, `scripts/gate.py`.
-**Tests:** 33 new offline tests in `tests/test_agent.py` and one live test that now runs. 4 new
-register rows.
+**Tests:** 33 new offline tests in `tests/test_agent.py`, 10 new console tests, and one live test
+that now runs. 4 new register rows.
 **Outcome:** accepted. The receipt is published from the frozen runs, so it regenerates with no
 model and no network, and it states what it does not measure: these are lookups with one correct
 token, one model, one seed, and every question is answerable from the five tools, so nothing here
