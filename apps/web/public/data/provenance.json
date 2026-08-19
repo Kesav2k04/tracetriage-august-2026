@@ -1,6 +1,12 @@
 {
  "snapshot_id": "snap-20260817-stage1",
  "split_manifest_sha256": "2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199",
+ "data_licence": {
+  "name": "CC BY-SA 4.0",
+  "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "attribution": "Contains data from the SatNOGS Network (https://network.satnogs.org), (c) SatNOGS contributors, licensed CC BY-SA 4.0.",
+  "obligations": "DATA_LICENSE.md"
+ },
  "gate_summary": {
   "gates": [
    {
@@ -81,9 +87,19 @@
  ],
  "receipts": [
   {
+   "name": "ATTRIBUTION_AUDIT.json",
+   "sha256": "39228d102c578b3b162a69af4a47e4fe7094009f36933159d2b2378e2869d5cd",
+   "bytes": 81040
+  },
+  {
    "name": "BASELINE_RECEIPT.json",
    "sha256": "e0912b1454763c14b40b59e68f406cfd49fe051692dd4f2a044d6ad59f748df9",
    "bytes": 9010
+  },
+  {
+   "name": "CLEAN_CLONE_TRANSCRIPT.json",
+   "sha256": "763bdb3f5240808dd14087dd68a9b44b18b757c3a0d7b8742d84724b5e7d7099",
+   "bytes": 12255
   },
   {
    "name": "corridor_features.json",
@@ -126,9 +142,19 @@
    "bytes": 253883
   },
   {
+   "name": "REPO_WEIGHT.json",
+   "sha256": "32463f83347a93045ce703e5d7324e238ec353eea4f0d9bf2c3a1c02bb524885",
+   "bytes": 4026
+  },
+  {
    "name": "SECOND_TRACE_SURVEY.json",
    "sha256": "c6481e8dc7240be40352bc0e8a27d98a88b82e29d34d251222cb1d91100e3eb9",
    "bytes": 345808
+  },
+  {
+   "name": "SECRET_SCAN.json",
+   "sha256": "397afdcf879e4f6c100dcf70f3909aecf39849a79c9b21b9d0275e16e3af3185",
+   "bytes": 1202
   },
   {
    "name": "SPLIT_MANIFEST.json",

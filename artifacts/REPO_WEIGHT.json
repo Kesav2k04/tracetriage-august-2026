@@ -1,0 +1,164 @@
+{
+ "schema": "REPO_WEIGHT",
+ "schema_version": "0.1.0",
+ "generated_at_utc": "2026-08-19T07:46:25Z",
+ "commit": "5321e50159f98f4bea69dc543490aacbbc129965",
+ "tracked_files": 253,
+ "tracked_bytes": 32239050,
+ "tracked_megabytes": 30.75,
+ "by_directory": [
+  {
+   "path": "artifacts/a3_overlays",
+   "megabytes": 16.45
+  },
+  {
+   "path": "apps/web",
+   "megabytes": 4.56
+  },
+  {
+   "path": "tests/fixtures",
+   "megabytes": 3.46
+  },
+  {
+   "path": "artifacts/DATASET_MANIFEST.json",
+   "megabytes": 2.25
+  },
+  {
+   "path": "artifacts/corridor_features.json",
+   "megabytes": 0.52
+  },
+  {
+   "path": "pipeline/tracetriage",
+   "megabytes": 0.47
+  },
+  {
+   "path": "artifacts/SECOND_TRACE_SURVEY.json",
+   "megabytes": 0.33
+  },
+  {
+   "path": "artifacts/QUEUE_RECEIPT.json",
+   "megabytes": 0.24
+  },
+  {
+   "path": "docs/BOB_BUILD_LOG.md",
+   "megabytes": 0.24
+  },
+  {
+   "path": "artifacts/FUSION_RECEIPT.json",
+   "megabytes": 0.24
+  },
+  {
+   "path": "artifacts/SPLIT_MANIFEST.json",
+   "megabytes": 0.22
+  },
+  {
+   "path": "docs/REVIEW_SPACE.md",
+   "megabytes": 0.07
+  },
+  {
+   "path": "tests/test_fusion.py",
+   "megabytes": 0.07
+  },
+  {
+   "path": "artifacts/PHYSICS_VALIDATION.json",
+   "megabytes": 0.06
+  },
+  {
+   "path": "scripts/run_fusion.py",
+   "megabytes": 0.06
+  }
+ ],
+ "largest_files": [
+  {
+   "path": "artifacts/DATASET_MANIFEST.json",
+   "megabytes": 2.25
+  },
+  {
+   "path": "tests/fixtures/waterfall_836px_client_v2.3.png",
+   "megabytes": 1.823
+  },
+  {
+   "path": "tests/fixtures/waterfall_832px_client_2.1.2.png",
+   "megabytes": 1.637
+  },
+  {
+   "path": "apps/web/public/media/corridor-explainer.mp4",
+   "megabytes": 1.57
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14737186.png",
+   "megabytes": 0.784
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14746055.png",
+   "megabytes": 0.775
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14746118.png",
+   "megabytes": 0.741
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14737408.png",
+   "megabytes": 0.738
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14744577.png",
+   "megabytes": 0.737
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14746048.png",
+   "megabytes": 0.735
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14737118.png",
+   "megabytes": 0.734
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14746049.png",
+   "megabytes": 0.733
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14745839.png",
+   "megabytes": 0.733
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14744530.png",
+   "megabytes": 0.731
+  },
+  {
+   "path": "artifacts/a3_overlays/overlay_14736773.png",
+   "megabytes": 0.731
+  }
+ ],
+ "proposals": [
+  {
+   "path": "artifacts/a3_overlays/",
+   "files": 25,
+   "bytes": 17248027,
+   "megabytes": 16.45,
+   "keep_because": "the visual evidence for the A3 Doppler-correction finding. Removing it needs a replacement for that evidence, not just a smaller tree."
+  },
+  {
+   "path": "tests/fixtures/",
+   "files": 5,
+   "bytes": 3630877,
+   "megabytes": 3.46,
+   "keep_because": "inputs the offline suite needs. Removing any of it breaks the clean-clone claim."
+  },
+  {
+   "path": "apps/web/public/waterfalls/",
+   "files": 50,
+   "bytes": 1263028,
+   "megabytes": 1.2,
+   "keep_because": "the 25 shipped evidence cards. This is what the console displays; it is the product."
+  },
+  {
+   "path": "artifacts/SECOND_TRACE_SURVEY.json",
+   "files": 1,
+   "bytes": 345808,
+   "megabytes": 0.33,
+   "keep_because": "the second-trace incidence receipt. 743 rows; the per-row detail is what makes the 10 of 182 checkable."
+  }
+ ],
+ "recommendation": "Nothing here is proposed for removal. The two largest groups are evidence and product: the A3 overlays back a published finding and the shipped waterfalls are what the console renders. A 30 MB repository is not a judging problem; losing the evidence behind a claim is."
+}

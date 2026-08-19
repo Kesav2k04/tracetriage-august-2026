@@ -710,12 +710,34 @@ def main(argv: list[str] | None = None) -> int:
                 "an empty result means that shape changed."
             )
 
+    # The dataset manifest, for the licence terms it recorded at snapshot time. Read
+    # here rather than typed, because the licence a snapshot was taken under is a
+    # property of that snapshot.
+    dataset_manifest = json.loads(
+        (_ARTIFACTS / "DATASET_MANIFEST.json").read_text(encoding="utf-8")
+    )
+
     receipts = sorted(p for p in _ARTIFACTS.glob("*.json"))
     (data_dir / "provenance.json").write_text(
         json.dumps(
             {
                 "snapshot_id": queue["snapshot_id"],
                 "split_manifest_sha256": queue["split_manifest_sha256"],
+                # The data licence, read from the snapshot manifest rather than typed.
+                # The console's own colophon already credits SatNOGS and links the
+                # licence, so this is not the only place a reader can find it. It is here
+                # because the attribution audit reads the receipts, and an obligation
+                # that lives only in rendered markup cannot be checked by a script.
+                "data_licence": {
+                    "name": _require(dataset_manifest, "license"),
+                    "url": _require(dataset_manifest, "license_url"),
+                    "attribution": (
+                        "Contains data from the SatNOGS Network "
+                        "(https://network.satnogs.org), (c) SatNOGS contributors, "
+                        "licensed CC BY-SA 4.0."
+                    ),
+                    "obligations": "DATA_LICENSE.md",
+                },
                 "gate_summary": build_gate_summary(queue, fusion),
                 "splits": split_counts,
                 "receipts": [

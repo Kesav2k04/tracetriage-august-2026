@@ -4078,3 +4078,75 @@ found 33.5 percent, because clearing the row-fraction bar is a different questio
 having a second peak somewhere. The number in this entry is the computed one.
 **Outcome:** accepted. All twelve failure modes now have a named reason and a test that
 asserts it.
+
+---
+
+## 2026-08-19 IST | Wave D | D11: the secret scan the gate was not doing, and 74 files that owe an attribution
+
+The repository goes public on 25 August, so this unit is about what a stranger can find in
+it and what the licence obliges it to carry. `scripts/audit_release.py` writes three
+receipts: `artifacts/SECRET_SCAN.json`, `artifacts/ATTRIBUTION_AUDIT.json` and
+`artifacts/REPO_WEIGHT.json`.
+
+**The standing gate's secret check is narrower than it reads.** It greps the working tree
+for three patterns: two GitHub token shapes and a private-key header. Two consequences. A
+key of any other kind passes, and, worse, a key committed once and removed in the next
+commit passes forever while the blob stays in the history. The scan now carries **14
+credential shapes** and reads both: 175 text files and 245,710 lines in the working tree,
+then 132 commits and 10.1 MB of patch text. **Zero findings in either.** No `.env` is
+tracked. `.env.example` carries four populated values and none is credential-shaped:
+`TRACETRIAGE_CONTACT_EMAIL`, `TRACETRIAGE_USER_AGENT`, `TRACETRIAGE_REQUEST_DELAY` and
+`TRACETRIAGE_DATA_DIR`. The first version of that check flagged all four, which was the
+check being wrong rather than the file: SatNOGS asks for a contact in the user agent, so
+the email is there deliberately. The test is now the shape of the value or the name of the
+key, and the receipt records non-secret keys by name without republishing their values.
+
+**Matches are redacted in the receipt.** A scan that prints the credential it found into a
+committed file has moved the problem rather than reported it, so a finding carries the
+rule, the location, the first six characters and the length.
+
+**The attribution audit checks the obligations, not the licence file.** `DATA_LICENSE.md`
+commits this project to six things per redistributed artifact: attribution, the source URL
+of the record, the source URL of the waterfall, the retrieval timestamp, a sha256 of the
+retrieved bytes, and a notice of every modification. Checking that a licence file exists
+proves none of them. Every tracked image and video is now resolved back to its observation
+in `DATASET_MANIFEST.json` and checked against all six: **78 media files tracked, 74
+SatNOGS-derived across 43 observations and 22 ground stations, 0 incomplete.** The other 4
+are test fixtures that resolve to no observation, and the receipt says that rather than
+passing them silently.
+
+The modification notice is recorded per location, because "resized" and "recoloured and
+overlaid" are different claims: the console's waterfalls are cropped and re-encoded to
+WebP with the thumbnails additionally downscaled, the A3 overlays have the predicted
+corridor drawn over the spectrogram, and the explainer video is that same overlay geometry
+rendered and re-encoded.
+
+**One real gap, closed.** The console's colophon credits SatNOGS and links the licence, so
+the obligation was met in the markup. It was not in any receipt, which means no script
+could check it and a judge reading the data files would not find it.
+`provenance.json` now carries a `data_licence` block with the name, the URL, the
+attribution string and a pointer to `DATA_LICENSE.md`, read out of the snapshot manifest
+rather than typed, because the licence a snapshot was taken under is a property of that
+snapshot.
+
+**Repository weight, as a proposal and not a deletion.** 30.75 MB across 253 tracked
+files. `artifacts/a3_overlays` is 16.45 MB of it, `apps/web` 4.56 MB, `tests/fixtures`
+3.46 MB, `DATASET_MANIFEST.json` 2.25 MB. Nothing is proposed for removal and each group
+carries its reason: the overlays are the visual evidence for the A3 finding, the fixtures
+are what makes the offline suite runnable from a clean clone, and the shipped waterfalls
+are what the console renders. A 30 MB repository is not a judging problem. Deleting the
+evidence behind a published claim to make it 14 MB would be.
+
+**Files changed:** `scripts/audit_release.py` (new), `scripts/build_console_data.py`,
+`apps/web/public/data/provenance.json` (regenerated),
+`artifacts/SECRET_SCAN.json`, `artifacts/ATTRIBUTION_AUDIT.json`,
+`artifacts/REPO_WEIGHT.json` (all new).
+**Commands run:** `.venv\Scripts\python.exe scripts\audit_release.py`,
+`.venv\Scripts\python.exe scripts\build_console_data.py --skip-images`,
+`.venv\Scripts\python.exe -m ruff check .`.
+**Tests:** no new tests. The three receipts are the evidence, and each is regenerable.
+**Failures and repairs:** the `.env.example` check, described above. Eight long lines that
+lint caught.
+**Outcome:** accepted. Zero secrets in the tree and in the history, every redistributed
+file carries all six obligations, and the weight question is answered with sizes instead of
+a guess.
