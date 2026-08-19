@@ -18,7 +18,7 @@ is read from the receipts by the console rather than typed here.
 
 | Question | Command | What it prints |
 |---|---|---|
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1081 passed, 30 skipped, measured in a clean clone with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1116 passed, 30 skipped, measured in a clean clone with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 11 emitted, 14 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake and 5 read-only tools, one of which is the grounding checker |
@@ -41,7 +41,7 @@ graded, each question was proved answerable in a single tool call, because a que
 tools cannot serve would otherwise be scored as a failure of the policy.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `05d699a` with every non-loopback socket refused: 16 of 16 steps
+fresh clone of commit `ebb4455` with every non-loopback socket refused: 16 of 16 steps
 succeeded. The transcript carries each step's exit code and the tail of its output, so the
 reason is readable rather than summarised. The test counts above are from the pass with
 the snapshot directory hidden, which is a judge's case rather than this machine's, and
