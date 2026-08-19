@@ -4301,3 +4301,81 @@ probability of 0.999999 written as "100%" was refused. `provenance.json` was fou
 `CLEAN_CLONE_TRANSCRIPT.json`, which git does not track, so a clean clone would regenerate a
 different file list; the entry is gone until that unit lands.
 **Outcome:** accepted, with the refusal rate published rather than tuned away.
+
+---
+
+## 2026-08-19 IST | Wave E | E3: the evidence is a set of tools, and two registrations were lying
+
+Everything this project measured lives in files, and reading a number out of one means
+knowing which file holds it. A reviewer has the console for that. An agent does not, so the
+evidence is now an MCP server: five read-only tools over the committed receipts and the
+console payload, speaking newline-delimited JSON-RPC 2.0 on stdin and stdout, which is what
+an MCP stdio transport is.
+
+`queue_top` returns the ranked queue with the reason each row was flagged, capped at 50 rows.
+`observation` returns one observation's evidence packet, its digest, and the note that
+shipped for it including the codes that refused a generated draft. `gate_status` returns the
+kill gates and their verdicts, read from the receipt. `receipt` returns a receipt's scalar
+summary and the size of each collection inside it rather than the file: `QUEUE_RECEIPT.json`
+is 253,883 bytes and its summary renders to 558 characters, because a tool that spends a
+client's whole context on rows nobody asked for is a tool nobody calls twice.
+
+`check_claim` is the one worth having. Give it an observation id and a sentence and it runs
+the grounding checker from unit E1 over that sentence against that observation's own fields,
+returning GROUNDED or REFUSED with a violation code per problem. It is an import of the same
+function, asserted by a test, not a second implementation: an agent writing about an
+observation can have its prose checked by the same code that refused 14 of this project's own
+25 generated drafts, before a human reads it.
+
+**Two files in `.bob/` were making claims that were false, and both were public.**
+`.bob/mcp.json` registered a server at `tracetriage.mcp_server`, a module that was never
+written, so an agent that trusted the registration got an import error and a reader who
+trusted it got an impression of a capability that did not exist. `.bob/TOOL_SPECS.md`
+specified five tools, said plainly that none existed yet, and then nothing ever moved: the
+work each one described was done by a script instead. The honest sentence was never written
+down, so the specification read as a plan in progress a month after it had been overtaken.
+
+Both now say what is true. The registration names the server that exists, and the
+specification has an implemented section listing the five tools the server advertises, and a
+section titled for what it is: specified and not implemented, naming for each one the script
+that did its job. Five tests hold that arrangement in place, and each was checked by mutation:
+putting the old nonexistent module back, declaring an environment variable the server never
+reads, renaming a documented tool, citing a script that does not exist, and moving a planned
+tool into the implemented list each turn exactly one test red.
+
+**No dependency, and it is run rather than argued.** The server imports nothing outside the
+standard library, so it adds nothing to the offline install and any Python 3.11 or newer
+answers it. The test spawns it with `-S` and `-E`, which drops site-packages and the ambient
+environment, and asserts the handshake and the tool list still come back. Adding a numpy
+import to the server turns that test red while every other test in the file still passes,
+which is the only version of this claim worth making.
+
+The environment block is gone, and its absence is checked in both directions: a variable the
+config declares must appear in the server source, and a variable the server reads must appear
+in the config. A declared variable the server ignores tells a reader the behaviour is
+configurable when it is not.
+
+**The rest of the properties are asserted against the source, not the documentation.** An AST
+walk fails on any network write verb and on any filesystem write, so read-only is a property
+of the file rather than a sentence about it. The import scan fails if the server ever reaches
+the module that can POST. Every tool closes its schema with `additionalProperties: false`,
+because a schema that accepts anything is not a schema. Every failure returns a named reason
+code (`EVIDENCE_FILE_MISSING`, `UNKNOWN_OBSERVATION`, `BAD_LIMIT`, `EMPTY_CLAIM`,
+`BAD_RECEIPT_NAME`, `UNKNOWN_RECEIPT`, `UNKNOWN_TOOL`, `BAD_ARGUMENTS`) rather than an empty
+payload, because an empty result reads like a measurement. A receipt name containing a
+separator or a parent reference is refused before it becomes a path.
+
+Most of the tests drive the real transport through string buffers rather than calling the
+handlers, because calling a handler tests the tool and not the server, and one drives the
+whole conversation through a subprocess. A malformed line comes back as a parse error and the
+session continues, which a client depends on and no unit test of a handler would notice.
+
+**Files changed:** `scripts/mcp_server.py`, `tests/test_mcp_server.py` (both new),
+`.bob/mcp.json`, `.bob/TOOL_SPECS.md`.
+**Commands run:** the server as a subprocess over stdio for the handshake, the tool list, a
+queue read, a gate read and an unknown observation; the same under `-S -E`;
+`python -m pytest tests/test_mcp_server.py`; `python -m ruff check`.
+**Tests:** 21, of which 5 are the registration and specification drift tests added with the
+two repairs.
+**Outcome:** accepted. The evidence is callable, the registration launches, and the
+specification says which half of it was built.

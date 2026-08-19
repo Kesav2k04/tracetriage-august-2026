@@ -1,78 +1,114 @@
 # Project MCP tool specifications
 
-Five tools, named in the master plan, exposed to Bob through `.bob/mcp.json`.
-**None of them exist yet.** Bob implements the server at
-`pipeline/tracetriage/mcp_server.py`.
+This project registers one MCP server in `.bob/mcp.json`. It exposes the evidence
+this repository measured, plus the checker that decides whether a sentence about
+an observation is supported by it, so an agent can ask the questions directly
+instead of learning which file holds which number.
 
-Two rules bind all five:
+Two rules bind every tool:
 
-- **Read-only with respect to SatNOGS.** No tool may write upstream, ever.
-- **Deterministic.** Same snapshot plus same seed gives the same output, byte for
-  byte. A tool whose output drifts between runs cannot back a public claim.
+- **Read-only with respect to SatNOGS, and to this checkout.** No tool writes
+  upstream, and no tool writes to disk. `tests/test_mcp_server.py` walks the
+  server's source for a network write verb and for a filesystem write, and fails
+  on either.
+- **Deterministic.** Every value is copied from a committed receipt rather than
+  recomputed, so the same checkout gives the same answer. A tool whose output
+  drifts between runs cannot back a public claim.
+
+Two further properties are asserted rather than asked for: a call that cannot be
+answered returns a named reason code instead of an empty payload that reads like
+an answer, and output is bounded, because a tool that returns a quarter of a
+megabyte is a tool nobody calls twice.
 
 ---
 
-## `build_review_fixture`
+## Implemented tools
 
-Build a small, frozen, offline fixture from the snapshot so tests and the demo
-never touch the network.
+The server is `scripts/mcp_server.py`. It speaks newline-delimited JSON-RPC 2.0 on
+stdin and stdout, which is what an MCP stdio transport is, and it imports nothing
+outside the standard library, so it adds no dependency to the offline install.
 
-    in:  snapshot_id, n_observations, seed, include (list of reason codes to guarantee present)
-    out: fixture path, sha256, the observation ids chosen, and the label distribution
+### `queue_top`
 
-Must guarantee at least one of each: decisive positive, decisive negative,
-unknown, missing waterfall, unreadable axis. A fixture without the degraded cases
-tests only the happy path. Implement after A1.
+The top of the physics-conditioned review queue, in rank order.
 
-## `overlay_doppler_track`
+    in:  limit (optional, capped by the server)
+    out: rank, observation id, review value, reason code and label per row, and
+         the cap that was applied if the request asked for more than the cap
 
-Render one observation's waterfall with its expected corridor, detected trace and
-residual.
+### `observation`
 
-    in:  observation_id, hypothesis ("corrected" | "uncorrected"), show_residual
-    out: image path, hz_per_px used, plot box used, corridor width, degraded reason if any
+Everything measured for one observation, and the note that shipped with it.
 
-The `hypothesis` argument is deliberate: task A3 uses this tool to overlay both
-hypotheses on the same image and decide which one matches reality. Once A3
-settles it, the wrong hypothesis stays available so the finding stays
-reproducible. **Must state the Hz/px it used**, so a wrong constant is visible in
-the output rather than hidden in the picture. Implement after A2, before A3.
+    in:  observation_id
+    out: the evidence packet and its sha256, the reviewer note, whether that note
+         was generated or deterministic, and the refusal codes if a generated
+         draft was rejected
 
-## `score_triage_queue`
+### `check_claim`
 
-Rank a set of observations by review value and return the ordering with its
-reasons.
+Check a sentence about one observation against that observation's own fields.
 
-    in:  snapshot_id, split, budget, ordering ("tracetriage" | "random" | "fifo" | "entropy" | "image_confidence" | "physics_only")
-    out: ordered observation ids, per-item review value, reason codes, diversity stats
+    in:  observation_id, text
+    out: GROUNDED or REFUSED, with a violation code and a message per problem
 
-The baseline orderings are part of the tool, not a separate script, because gate
-6 is a comparison and a comparison run through two different code paths is not
-one. Implement in C1/C4.
+This is the tool worth knowing about. It is the same checker that refused 14 of
+25 of this project's own generated drafts, so an agent can have its prose checked
+against the evidence before a human reads it.
 
-## `run_selective_evaluation`
+### `gate_status`
 
-Evaluate calibrated probabilities with abstention.
+The kill gates and their verdicts, read from the receipt rather than typed.
 
-    in:  model_checksum, split, coverage_levels
-    out: Brier, log loss, calibration slope and intercept, risk-coverage curve,
-         precision at budget, cold-entity slices, grouped bootstrap intervals
+    in:  nothing
+    out: one row per gate with its title, its verdict and the document it was
+         decided in, plus the count met
 
-Bootstrap groups by orbital episode or day, never by image row. Must refuse to
-run against the frozen test set unless explicitly passed `final=true`, so the
-test set cannot be touched by habit. Implement in B3/B4.
+### `receipt`
 
-## `run_acceptance`
+The scalar summary of one receipt under `artifacts/`.
 
-The release gate. Run every acceptance check and emit a signed-off receipt.
+    in:  name (a filename under artifacts/, and nothing that escapes it)
+    out: the receipt's scalar fields, the size of each collection it holds, and
+         the file size, never the whole file
 
-    in:  commit_sha, strict
-    out: per-check pass/fail, artifact hashes, model checksum, and a receipt path
+---
 
-Checks: clean-clone reproduction, offline replay, claim drift, secret scan,
-licence attribution, failure injection coverage, accessibility, and every kill
-gate's recorded status.
+## Specified and not implemented
 
-**This tool produces the artifact that proves Bob owned the release.** Bob's final
-task runs it against the release commit, repairs what fails, and signs off.
-Implement in D6.
+The five tools below were specified before the build and **do not exist**. Each
+was written as a tool because the plan expected Bob to drive the pipeline through
+one; the work each describes was done by a script instead, and the script is named
+so the gap is visible rather than implied. Nothing in the repository claims these
+are callable, and no receipt depends on them.
+
+### `build_review_fixture`
+
+Build a frozen offline fixture from the snapshot. Done by `scripts/build_splits.py`
+for the splits and `scripts/dump_ocr_fixture.py` for the reader fixtures; the
+frozen files are committed under `tests/fixtures/`.
+
+### `overlay_doppler_track`
+
+Render one observation's waterfall with its expected corridor and residual. Done
+by `scripts/explainer_corridor.py` and `scripts/render_evidence_card.py`, and the
+two-hypothesis comparison that settled which corridor model matches reality is
+`scripts/a3_doppler_investigation.py`, whose output is under
+`artifacts/a3_overlays`.
+
+### `score_triage_queue`
+
+Rank observations by review value against baseline orderings. Done by
+`scripts/run_queue.py` and `scripts/run_baseline.py`, which share one ordering
+code path so the comparison is not two implementations.
+
+### `run_selective_evaluation`
+
+Calibrated probabilities with abstention, and grouped bootstrap intervals. Done by
+`scripts/run_fusion.py`, which writes `artifacts/FUSION_RECEIPT.json`.
+
+### `run_acceptance`
+
+The release gate. Done by `scripts/gate.py` and `scripts/audit_release.py`, which
+between them run the standing gates, the secret scan, the licence attribution
+check and the repository weight check.

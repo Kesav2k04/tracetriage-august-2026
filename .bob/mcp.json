@@ -1,15 +1,10 @@
 {
-  "$comment": "Project-local MCP server exposing TraceTriage's own test and evaluation tools to Bob. The server does not exist yet: Bob implements it (see .bob/TOOL_SPECS.md). Registering it here first means the wiring is one file edit rather than a discovery task. Every tool is READ-ONLY with respect to SatNOGS.",
+  "$comment": "The project's own MCP server, registered so any agent can read this repository's measured evidence and run its grounding checker as tools. Every tool is read-only: nothing here writes to disk, to the network, or upstream to SatNOGS. tests/test_mcp_server.py asserts that what is registered is the server that exists, that the key matches the name the server advertises, that the interpreter named is not a path that only resolves on one machine, and that every environment variable declared is one the server actually reads.",
   "mcpServers": {
-    "tracetriage": {
-      "command": ".venv/Scripts/python.exe",
-      "args": ["-m", "tracetriage.mcp_server"],
-      "env": {
-        "PYTHONPATH": "pipeline",
-        "TRACETRIAGE_DATA_DIR": "data",
-        "TRACETRIAGE_OFFLINE": "1"
-      },
-      "$comment": "TRACETRIAGE_OFFLINE=1 forces fixture-backed operation so a tool call can never depend on the live network."
+    "tracetriage-evidence": {
+      "command": "python",
+      "args": ["scripts/mcp_server.py"],
+      "$comment": "Launch with the repository root as the working directory. The server imports nothing outside the standard library, so any Python 3.11 or newer answers it; that is verified by running it with site-packages and the ambient environment switched off. There is no env block because the server reads no environment variable, and declaring one it ignores would be a false statement about it."
     }
   }
 }
