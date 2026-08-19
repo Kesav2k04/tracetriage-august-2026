@@ -56,16 +56,17 @@ directory hidden, which is a judge's case rather than this machine's, and they a
 count at that commit rather than at the tip of the branch.
 
 Two things about that run are worth knowing before it is trusted. The offline install into
-the clone did not succeed, for the reason its own output tail gives, so the suite ran on
-this machine's interpreter at `3.12.13` against the clone's source tree. The code under
-test is the clone's and the environment is not, which is a weaker claim than a cold-start
-install and is stated here rather than left to be inferred. And `apps/web/node_modules`
-was linked from the source clone rather than installed, because `npm ci` needs the
-registry this run refuses; the transcript records the lockfile's sha256 (`4a30b534f981`)
-so a reader can check that the borrowed tree belongs to this repository's pins. The socket
-refusal itself is a Python-level patch loaded through `PYTHONPATH`, so it reaches every
-Python child process and constrains nothing else: the Node steps are outside it, and that
-is a limit of the guard rather than a claim about them.
+the clone did not succeed, because the pinned set could not be resolved from the local
+cache alone, so the suite ran on this machine's interpreter at `3.12.13` against the
+clone's source tree. The code under test is the clone's and the environment is not, which
+is a weaker claim than a cold-start install and is stated here rather than left to be
+inferred. And `apps/web/node_modules` was linked from the source clone rather than
+installed, because `npm ci` needs the registry this run refuses; the transcript records
+the lockfile's sha256 (`4a30b534f981`) so a reader can check that the borrowed tree
+belongs to this repository's pins. The socket refusal itself is a Python-level patch
+loaded through `PYTHONPATH`, so it reaches every Python child process and constrains
+nothing else: the Node steps are outside it, and that is a limit of the guard rather than
+a claim about them.
 
 ## Where each submission requirement is answered
 
@@ -182,6 +183,7 @@ failed and not that it passed.
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
 - **Similarity stops carrying the outcome once the station is excluded.** Retrieval over 739 labelled passes agrees with the query's own label 0.6181 of the time when a neighbour may come from the same ground station, against a random arm measuring 0.5302 on the same pool, and the adjusted interval [0.0343, 0.1546] clears zero. Forbidding the query's own station and satellite drops it to 0.5608 against the random arm's 0.5210, and the adjusted interval [-0.0139, 0.1115] does not. `artifacts/PRECEDENT_RECEIPT.json` carries both conditions and the console shows them in one table.
+- **The queue's lift is partly guaranteed by how the queue was built.** The ranking score puts 90 percent of its weight on the same three quantities the conflict criteria threshold, so beating a random ordering is close to assured by construction. `scripts/run_circularity_check.py` bounds that from the queue receipt alone, with no snapshot and no model, and reproduces the published lift before computing anything. Three numbers come out. A budget of 50 over 87 observations holding 22 conflicts caps any ordering at 1.740x, so the whole distance between the 1.5x threshold and a perfect oracle is 0.240. Counting only the 19 conflicts flagged by the two criteria the model does not enter, the same ordering scores 1.557x with an interval of [1.268, 1.755], still NOT_ESTABLISHED. And a random ordering scores 0.999235 over 2,000 seeded permutations, which is the floor the whole comparison rests on. `artifacts/CIRCULARITY_RECEIPT.json` carries all of it.
 
 ## How IBM Bob was used
 

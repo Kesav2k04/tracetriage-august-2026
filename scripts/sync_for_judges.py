@@ -57,12 +57,45 @@ clone = _receipt("CLEAN_CLONE_TRANSCRIPT.json")
 gate4 = _receipt("GATE4_RECEIPT.json")
 agent = _receipt("AGENT_RECEIPT.json")
 precedent = _receipt("PRECEDENT_RECEIPT.json")
+circularity = _receipt("CIRCULARITY_RECEIPT.json")
 
 # The precedent study's cold condition is the negative result on this page that a reader is
 # most likely to be shown the flattering half of. Both halves are read from the receipt so
 # the sentence cannot keep the warm margin after a re-run moves it.
 _PRE_WARM = precedent["conditions"]["warm"]["comparisons"]["granite_text_vs_random"]
 _PRE_COLD = precedent["conditions"]["cold"]["comparisons"]["granite_text_vs_random"]
+# The queue's headline number is bounded by the way the queue was built, and this is the
+# bullet that says so. It belongs on the page a judge reads rather than only in the README,
+# because it is the strongest piece of self-criticism in the submission and a page that
+# omits it is a page that only publishes the parts that flatter.
+_CIRC_CEIL = circularity["ceiling"]
+_CIRC_FREE = circularity["targets"]["model_independent_only"]
+_CIRC_SHARED = circularity["shared_signals"][
+    "score_weight_on_quantities_the_target_is_defined_from"
+]
+CIRCULARITY_BULLET = (
+    "- **The queue's lift is partly guaranteed by how the queue was built.** The ranking "
+    f"score puts {_CIRC_SHARED * 100:.0f} percent of its weight on the same three "
+    "quantities the conflict criteria threshold, so beating a random ordering is close to "
+    "assured by construction. `scripts/run_circularity_check.py` bounds that from the "
+    "queue receipt alone, with no snapshot and no model, and reproduces the published "
+    "lift before computing anything. Three numbers come out. A budget of "
+    f"{circularity['reproduction']['budget']} over "
+    f"{circularity['reproduction']['n_population']} observations holding "
+    f"{circularity['reproduction']['n_conflicts']} conflicts caps any ordering at "
+    f"{_CIRC_CEIL['lift']:.3f}x, so the whole distance between the "
+    f"{_CIRC_CEIL['threshold']}x threshold and a perfect oracle is "
+    f"{_CIRC_CEIL['headroom_between_threshold_and_perfection']:.3f}. Counting only the "
+    f"{_CIRC_FREE['n_conflicts']} conflicts flagged by the two criteria the model does not "
+    f"enter, the same ordering scores {_CIRC_FREE['lift_point']:.3f}x with an interval of "
+    f"[{_CIRC_FREE['lift_ci95'][0]:.3f}, {_CIRC_FREE['lift_ci95'][1]:.3f}], still "
+    f"{_CIRC_FREE['verdict']}. And a random ordering scores "
+    f"{circularity['random_ordering_control']['mean_lift']} over "
+    f"{circularity['random_ordering_control']['n_permutations']:,} seeded permutations, "
+    "which is the floor the whole comparison rests on. "
+    "`artifacts/CIRCULARITY_RECEIPT.json` carries all of it."
+)
+
 PRECEDENT_BULLET = (
     "- **Similarity stops carrying the outcome once the station is excluded.** Retrieval "
     f"over {precedent['candidate_pool']['observations']} labelled passes agrees with the "
@@ -203,6 +236,32 @@ if CLONE_NODE is None:
         "the page cannot disclose it."
     )
 
+def _install_reason() -> str:
+    """What the failed offline install actually tripped on, read out of its own output tail.
+
+    "For the reason its own output tail gives" is true and asks the reader to go and get it.
+    The reason is one line in a receipt this page already loads, and it changes what the
+    failure means: a package whose wheel is not in the local cache is a cold-cache problem,
+    and a resolution that cannot be satisfied at all is a different one.
+    """
+    for step in clone["steps"]:
+        if not step.get("step", "").startswith("uv pip install"):
+            continue
+        tail = " ".join(step.get("output_tail", []))
+        missing = re.search(r"Failed to download `([^`]+)`", tail)
+        if missing:
+            return (
+                f", because the wheel for `{missing.group(1)}` is not in the local package "
+                "cache and the run refuses the index"
+            )
+        if "unsatisfiable" in tail:
+            return ", because the pinned set could not be resolved from the local cache alone"
+        return ""
+    return ""
+
+
+_INSTALL_REASON = _install_reason() if CLONE_ENV_CACHE is None else ""
+
 if CLONE_ENV_CACHE is not None:
     CLONE_ENV_SENTENCE = (
         "The clone built its own Python environment, inside itself, with the network refused, "
@@ -213,8 +272,8 @@ if CLONE_ENV_CACHE is not None:
     )
 else:
     CLONE_ENV_SENTENCE = (
-        "The offline install into the clone did not succeed, for the reason its own output "
-        "tail gives, so the suite ran on this machine's interpreter at "
+        f"The offline install into the clone did not succeed{_INSTALL_REASON}, so the suite "
+        "ran on this machine's interpreter at "
         f"`{CLONE_ENV_BORROWED['python_version']}` against the clone's source tree. The code "
         "under test is the clone's and the environment is not, which is a weaker claim than a "
         "cold-start install and is stated here rather than left to be inferred."
@@ -633,6 +692,7 @@ matching its receipt.
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
 {PRECEDENT_BULLET}
+{CIRCULARITY_BULLET}
 
 ## How IBM Bob was used
 

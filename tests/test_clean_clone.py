@@ -60,7 +60,31 @@ def test_the_counts_come_from_the_summary_line(clone_check) -> None:
     assert counts["passed"] == 1232
     assert counts["skipped"] == 6
     assert counts["deselected"] == 4
-    assert "failed" not in counts
+    # pytest omits an outcome whose count is zero. For `failed`, the omission is the
+    # measurement, and a consumer cannot tell an omission from a value nobody parsed, so
+    # the zero is written out. `deselected` is left as pytest reported it: nothing decides
+    # a release on it.
+    assert counts["failed"] == 0
+
+
+def test_a_clean_summary_line_publishes_its_zero_rather_than_omitting_it(clone_check) -> None:
+    """A green run has to be readable as green by something that requires the field.
+
+    `scripts/sync_for_judges.py` refuses to publish a suite count it cannot read in full,
+    which is right when the field is missing because nothing parsed it and wrong when it is
+    missing because the number is zero. Only the parser can tell those apart, so it decides.
+    """
+    green = "1285 passed, 4 deselected, 5 warnings in 240.87s (0:04:00)\n"
+    counts = clone_check._pytest_counts(green)
+    assert counts["failed"] == 0
+    assert counts["skipped"] == 0
+    assert counts["passed"] == 1285
+    assert not counts.get("unparsed")
+
+    # And an unparseable run still refuses rather than reporting a green zero.
+    nothing = clone_check._pytest_counts("no summary line here\n")
+    assert nothing["unparsed"] is True
+    assert "failed" not in nothing
 
 
 def test_a_failing_test_that_quotes_a_count_does_not_become_the_count(clone_check) -> None:

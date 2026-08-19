@@ -323,6 +323,15 @@ def _pytest_counts(text: str) -> dict[str, Any]:
         match = re.search(rf"(\d+) {key}", summary)
         if match:
             got[key] = int(match.group(1))
+
+    # pytest omits an outcome from the summary when its count is zero, and a reader of this
+    # receipt cannot tell an omission from a value nobody parsed. For the two that decide
+    # whether a run is green, the omission is a measurement: a summary line that parsed and
+    # carries no "failed" says zero failed. Written out rather than left absent, because
+    # `scripts/sync_for_judges.py` refuses to publish a suite count it cannot read in full,
+    # and refusing on a clean run would be the one outcome nobody wants a gate to punish.
+    for key in ("failed", "skipped"):
+        got.setdefault(key, 0)
     if len(got) == 1:
         return {
             "unparsed": True,

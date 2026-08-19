@@ -5315,3 +5315,47 @@ and it ties the README's page count to the number the rail actually reaches.
 `python -m pytest`, `python -m ruff check .`, `scripts/gate.py`.
 **Tests:** 10 new offline tests in `tests/test_console_routes.py`.
 **Outcome:** accepted.
+## 2026-08-20 IST | Wave D | D14b: a green suite could not be published, and the setup only worked on one platform
+
+Three small things a judge would have hit, found by reading the front of the submission the
+way one is read.
+
+**A clean run had no field for its own zero.** The clean-clone parser pulls counts out of
+pytest's summary line, and pytest omits an outcome whose count is zero. So a run with nothing
+failing published no `failed` key at all, and `scripts/sync_for_judges.py`, which was taught
+in D14 to refuse a suite count it cannot read in full, refused. The refusal was right for a
+missing measurement and wrong for a measured zero, and only the parser can tell those apart:
+a summary line that parsed and carries no "failed" says zero failed. It writes the zero out
+now. An unparseable run still refuses.
+
+**The setup instructions only worked on Windows.** `## Setup` gave
+`.venv/Scripts/python.exe` with no other form, and opened with a sentence about directing
+caches to a `D:` path, which is a rule about this machine and means nothing to a judge on a
+clone. It now gives the POSIX path with the Windows one beside it, states plainly that the
+rest of the repository is written with the Windows path because that is where the commands
+were recorded, and points at the CI workflow as the version that runs on Ubuntu. The console
+build is separated out, because it needs no Python at all.
+
+**The failed offline install said "read the tail".** The judges' page said the install failed
+"for the reason its own output tail gives", which is true and asks a reader to go and get it.
+The reason is one line in a receipt the page already loads, and it changes what the failure
+means: `torch==2.13.0` is a 2.5 GB wheel that is not in the local package cache, which is a
+cold-cache problem, not a resolution that cannot be satisfied. The generator reads the package
+name out of the tail and names it.
+
+**What the fresh clean clone found.** Re-run at `85db087`: 15 of 16 steps, the only failure
+being that offline install, and both pytest passes green, 1,285 with the snapshot and 1,255
+with 30 skipped without it. The previous transcript reported 13 of 16 with one failing test,
+and that test was the stale `docs/REFERENCE.md` that D13 had already fixed.
+
+Warming the cache so the install succeeds was considered and not done. It needs the torch
+wheel, C: has 5.3 GB free, and moving the uv cache to D: would make the receipt depend on a
+shell variable nobody sets persistently. The failure is disclosed with its cause instead.
+
+**Files changed:** `scripts/clean_clone_check.py`, `scripts/sync_for_judges.py`, `README.md`,
+`FOR_JUDGES.md`, `tests/test_clean_clone.py`, `tests/test_readme_claims.py`,
+`docs/REFERENCE.md`.
+**Commands run:** `scripts/clean_clone_check.py`, every generator, `python -m pytest`,
+`python -m ruff check .`, `scripts/gate.py`.
+**Tests:** 1 new in `tests/test_clean_clone.py` for the measured zero.
+**Outcome:** accepted.

@@ -3,12 +3,7 @@
 **A read-only, physics-conditioned review queue for public SatNOGS radio observations.**
 
 [![CI](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml)
-
-The badge is the offline replay: a clean clone on a GitHub runner builds the pinned
-environment, runs the suite with every network-marked test excluded, regenerates the README
-results table and the judges' page from the receipts and fails on any difference, then
-typechecks, tests and builds the console. `.github/workflows/ci.yml` is that claim written
-out.
+&nbsp;The badge runs the offline replay on a clean clone: see [Continuous integration](#continuous-integration).
 
 Submitted to the AI Builders Challenge with IBM Bob, August 2026 theme: **Advance Space Exploration with AI**.
 
@@ -418,13 +413,26 @@ presented as if it did.
 
 ## Setup
 
-Requires Python 3.12 and Node 22. All caches are directed to `D:\dev-cache`, never `C:\`.
+Requires Python 3.12 and Node 22, and [uv](https://docs.astral.sh/uv/). Nothing else: no
+service, no key, no model download for the judged path.
 
 ```bash
 uv venv --python 3.12 .venv
-uv pip install --python .venv/Scripts/python.exe -e ".[dev,onnx]"
-.venv/Scripts/python.exe -m pytest -q
+uv pip install --python .venv/bin/python -e ".[dev,onnx]"     # .venv/Scripts/python.exe on Windows
+.venv/bin/python -m pytest -m "not network and not ocr and not llm"
 ```
+
+The console is separate and needs no Python:
+
+```bash
+cd apps/web && npm ci && npm run build
+```
+
+Commands elsewhere in this repository are written with the Windows interpreter path
+`.venv/Scripts/python.exe`, because that is the machine they were run and recorded on.
+`.venv/bin/python` is the same interpreter everywhere else. `.github/workflows/ci.yml` runs
+the whole path on Ubuntu, which is the version to copy if the paths here do not match your
+shell.
 
 The offline replay path must work with networking disabled. The gate that proves it is
 `pytest -m "not network and not ocr and not llm"`: `ocr` needs a system binary and `llm`
@@ -435,6 +443,18 @@ publishes a number runs in that gate.
 The reviewer notes need the model only to be re-frozen. `scripts/run_explanations.py
 --freeze` is the step that talks to it; the default run publishes from the committed fixture
 and needs neither the model nor the network.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` is the offline replay written out as a claim a runner tests. On
+every push to `main` it builds the pinned environment on a clean Ubuntu clone, runs the suite
+with every network-marked test excluded, regenerates the README results table and the judges'
+page from the receipts and fails on any difference, scans for credential-shaped strings, then
+typechecks, unit-tests and builds the console. A second job runs the live SatNOGS API tests
+and is marked informational: an upstream API change should surface somewhere, and it must
+never block the offline gate.
+
+The badge at the top of this file reports the last run on `main`.
 
 ## Generated documentation
 

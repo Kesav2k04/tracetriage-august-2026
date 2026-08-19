@@ -84,11 +84,20 @@ def _readme_images() -> list[str]:
     return sorted(set(out))
 
 
+#: Paths the README names that git is not supposed to publish, each with its reason. The
+#: interpreter is built by the Setup section rather than committed, so requiring git to
+#: track it would be requiring the wrong thing, and requiring it to exist would fail on
+#: whichever platform the reader is not on.
+_BUILT_NOT_PUBLISHED = (".venv/", "apps/web/node_modules")
+
+
 def _readme_paths() -> list[str]:
     text = (REPO / "README.md").read_text(encoding="utf-8")
     out: list[str] = []
     for token in _PATH_RE.findall(text):
         if token in _NOT_A_PATH or token.startswith(("http", "-", "--")):
+            continue
+        if token.startswith(_BUILT_NOT_PUBLISHED):
             continue
         looks_like_path = "/" in token or Path(token).suffix in _EXTENSIONS
         if not looks_like_path:
