@@ -137,13 +137,28 @@ def test_a_shot_list_over_the_target_refuses_to_generate(demo, monkeypatch) -> N
 
 
 def test_the_flow_is_one_flow_in_the_order_the_guidance_asks_for(demo) -> None:
-    """Pitch first, product in the middle, verdict last, and no shot out of order."""
+    """Pitch first, product before the caveats, and the caveats before the close.
+
+    The order was changed once and the reason is worth keeping. The first cut put the
+    inconclusive gate verdict third, at 36 seconds, before the queue had been shown. It is
+    the same information either way, and a judge who hears "not established" before seeing
+    the product hears that the project did not work. It sits after the product now, where
+    the same sentence reads as a bound on a thing that visibly works, and the close is what
+    makes any of it checkable rather than another verdict.
+    """
     ids = [s["id"] for s in demo.SHOTS]
     assert ids == sorted(ids)
     assert demo.SHOTS[0]["beat"] == "The pitch"
-    assert "verdict" in demo.SHOTS[-1]["beat"].lower()
-    # The inconclusive verdict is shown early, before the product, on purpose.
-    assert any("verdict" in s["beat"].lower() for s in demo.SHOTS[:3])
+
+    beats = [s["beat"].lower() for s in demo.SHOTS]
+    product = next(i for i, b in enumerate(beats) if "queue reorder" in b)
+    caveats = next(i for i, b in enumerate(beats) if "does not establish" in b)
+    assert product < caveats, (
+        "the inconclusive verdicts come before the product, so a judge hears the bound "
+        "before seeing the thing it bounds"
+    )
+    assert caveats < len(beats) - 1, "nothing follows the caveats, so the demo ends on them"
+    assert "check" in beats[-1]
 
 
 @pytest.mark.parametrize("index", range(7), ids=[f"shot{i + 1}" for i in range(7)])

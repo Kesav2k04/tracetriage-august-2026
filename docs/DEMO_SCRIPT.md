@@ -10,7 +10,7 @@ guidance rather than from taste: under three minutes, open with the pitch, show 
 running against real input and real output, follow one flow end to end, and do not
 narrate over slides.
 
-**Budget: 154 seconds of 180.** The target is 165 so a retake has somewhere to go. Times are cue lengths, not edit points.
+**Budget: 160 seconds of 180.** The target is 165 so a retake has somewhere to go. Times are cue lengths, not edit points.
 
 The two sequences are chosen rather than defaulted. The home page plate is the
 opening because it shows the measurement happening on a real image in one gesture.
@@ -24,57 +24,57 @@ is the product, and the verdict follows it because the verdict is the point.
 
 **On screen.** Home page, before scrolling. The plate is on screen and still: one real waterfall with its fitted corridor.
 
-**Says.** A volunteer network records more satellite passes than anyone can look at. This one holds 2,727 observations and only 739 carry a decisive human label. TraceTriage decides which of the rest are worth a reviewer's next hour, and every number it shows you comes from a receipt you can open.
+**Says.** A volunteer network records more satellite passes than anyone can look at. This snapshot holds 2,727 observations and only 739 carry a decisive human verdict. TraceTriage decides which of the rest are worth a reviewer's next hour, and every number it shows you comes from a receipt you can open.
 
 **Numbers from.** `artifacts/DATASET_MANIFEST.json`
 
-### 2. The plate, running (22s)
+### 2. The measurement, running (22s)
 
-**On screen.** The plate's reveal plays. The fitted corridor arrives among six null corridors drawn from the same observation's own Doppler values.
+**On screen.** The plate's reveal plays. The fitted corridor arrives among six null corridors built from the same observation's own Doppler values.
 
-**Says.** That curve is not drawn on. It is fitted to the image by a matched filter, and the faint ones are nulls: the same observation's own Doppler values, shuffled in time, so they keep every frequency and the whole swing and lose only the order. The fit beats all 200 of them. 0 nulls reach it, and the exact p is 0.005.
+**Says.** That curve is not drawn on. A matched filter fits it to the image, and the faint ones are nulls: this observation's own Doppler values shuffled in time, so they keep every frequency and the whole swing and lose only the order. The fit beats all 200 of them. 0 nulls reach it, and the exact p is 0.005.
 
 **Numbers from.** `artifacts/HERO_NULLS.json`
 
-### 3. The honest verdict, early (16s)
+### 3. One flow: four instruments, one clock (28s)
 
-**On screen.** Kill gate panel on the home page, gate 3's row in view.
+**On screen.** One observation page. Scrub the pass. The waterfall with its corridor, a polar sky track, a ground track with the horizon circle, and elevation and Doppler against time all move together.
 
-**Says.** And that is one observation. The gate asked for that behaviour on seventy percent of a sample, and only 3 of the corpus are testable at all, so the exact lower bound is 0.368 against a 0.70 bar. The gate reads NOT_ESTABLISHED. It says so on the page, in grey, with the arithmetic.
-
-**Numbers from.** `artifacts/GATE3_RECEIPT.json`
-
-### 4. One flow: the observation page (30s)
-
-**On screen.** One observation page. Scrub the pass. Four instruments move on one clock: waterfall with the corridor, polar sky track, ground track with the horizon circle, elevation and Doppler against time.
-
-**Says.** This is one pass on one clock. Scrub it and the Doppler zero crossing lands at the instant elevation peaks and the range is shortest, because both come from the same propagated orbit rather than from two drawings that were made to agree. A reviewer checks the physics against the image without leaving the row.
+**Says.** This is one pass on one clock. Scrub it and the Doppler zero crossing lands at the instant elevation peaks and the range is shortest, because both come from the same propagated orbit rather than from two drawings made to agree. A reviewer checks the physics against the image without leaving the row.
 
 **Numbers from.** No numbers in this shot.
 
-### 5. The model, and what it is allowed to say (22s)
+### 4. The model, and what it is not allowed to say (22s)
 
 **On screen.** The reviewer note on the same observation, then the provenance page's refusal counts.
 
-**Says.** A local IBM Granite model writes the first sentence from a closed packet of printed fields, and a checker refuses any sentence carrying a number that packet does not contain. It refused 14 of 25 drafts. The refusals ship on the page beside the notes, because a generator you cannot see refusing is a generator you cannot trust.
+**Says.** A local IBM Granite model writes the first sentence from a closed packet of printed fields, and a checker refuses any sentence carrying a number that packet does not contain. It refused 14 of 25 drafts, and the refusals ship on the page beside the notes. A generator you never see refusing is a generator you cannot trust.
 
 **Numbers from.** `artifacts/EXPLAIN_RECEIPT.json`
 
-### 6. The queue reorder (24s)
+### 5. The product: the queue reorder (30s)
 
-**On screen.** The queue page. Sort by review value, then toggle to the random-order control at the same budget.
+**On screen.** The queue page. Sort by review value, then toggle to the random-order control at the same budget. The conflict count moves.
 
-**Says.** Here is the whole point. At a fixed budget of 50 observations the ranked queue finds 20 conflicts where random ordering expects 12.6. That is 1.58 times as many.
+**Says.** Here is the whole point. Give a reviewer a fixed budget of 50 observations. Ranked by review value the queue puts 20 conflicts in front of them where random ordering expects 12.6. That is 1.58 times as many findings for the same hour. On the cold-station split, where every station is one the model never trained on, it is 2.25 times, with an interval from 1.92 up, clear of the threshold.
 
 **Numbers from.** `artifacts/QUEUE_RECEIPT.json`
 
-### 7. End on the honest verdict (26s)
+### 6. And here is what it does not establish (28s)
 
-**On screen.** The kill gate table, whole. Then the claim register scrolling under the cursor.
+**On screen.** The kill gate table, whole, with the three inconclusive rows in view.
 
-**Says.** And the interval on that lift runs from 1.35 to 1.75, which straddles the bar, so the gate reads NOT_ESTABLISHED rather than passed. Two of six gates are met. Retrieval over similar passes beats chance until you forbid the query's own ground station, and then its interval spans zero at 0.0342. Every one of those sentences is a row in a register that a test compares against its artifact. That is the submission: not that it works, but that you can check it.
+**Says.** Six gates were set before any of this was built, and this is the part most demos cut. The interval on that lift runs from 1.35 to 1.75, which straddles the threshold, so it reads NOT_ESTABLISHED rather than passed. The corridor gate has only 3 testable observations, all three discriminate, and three of three still bound the rate at 0.368 against a 0.70 bar. Retrieval over similar passes beats chance until you forbid the query's own ground station, and then the margin is 0.0342 with an interval that spans zero.
 
-**Numbers from.** `artifacts/QUEUE_RECEIPT.json, artifacts/PRECEDENT_RECEIPT.json`
+**Numbers from.** `artifacts/QUEUE_RECEIPT.json, artifacts/GATE3_RECEIPT.json, artifacts/PRECEDENT_RECEIPT.json`
+
+### 7. Why you can check every word of that (16s)
+
+**On screen.** The provenance page, then the claim register scrolling under the cursor, then the sign-off receipt.
+
+**Says.** Every number you have heard is generated from a committed receipt and carries a row in a register that a test compares against its artifact, so changing one of them turns the suite red. That is the submission: not a claim that it works, but a build you can check.
+
+**Numbers from.** No numbers in this shot.
 
 ## What is deliberately not in it
 

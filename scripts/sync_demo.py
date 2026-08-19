@@ -62,6 +62,7 @@ explain = _load("EXPLAIN_RECEIPT.json")
 _dist = hero["distribution"]
 _g6 = queue["gate6"]
 _chron6 = _g6["per_split"]["chronological"]
+_cold6 = _g6["per_split"]["cold_station"]
 _pre_cold = precedent["conditions"]["cold"]["comparisons"]["granite_text_vs_random"]
 
 
@@ -91,9 +92,9 @@ SHOTS: list[dict] = [
         ),
         "says": (
             "A volunteer network records more satellite passes than anyone can look at. "
-            "This one holds "
+            "This snapshot holds "
             f"{_n_obs():,} observations and only "
-            f"{_n_decisive():,} carry a decisive human label. TraceTriage decides which "
+            f"{_n_decisive():,} carry a decisive human verdict. TraceTriage decides which "
             "of the rest are worth a reviewer's next hour, and every number it shows you "
             "comes from a receipt you can open."
         ),
@@ -101,18 +102,17 @@ SHOTS: list[dict] = [
     },
     {
         "id": 2,
-        "beat": "The plate, running",
+        "beat": "The measurement, running",
         "seconds": 22,
         "screen": (
             "The plate's reveal plays. The fitted corridor arrives among six null "
-            "corridors drawn from the same observation's own Doppler values."
+            "corridors built from the same observation's own Doppler values."
         ),
         "says": (
-            "That curve is not drawn on. It is fitted to the image by a matched filter, "
-            "and the faint ones are nulls: the same observation's own Doppler values, "
-            "shuffled in time, so they keep every frequency and the whole swing and lose "
-            "only the order. The fit beats "
-            f"all {_dist['n_nulls']} of them. "
+            "That curve is not drawn on. A matched filter fits it to the image, and the "
+            "faint ones are nulls: this observation's own Doppler values shuffled in time, "
+            "so they keep every frequency and the whole swing and lose only the order. The "
+            f"fit beats all {_dist['n_nulls']} of them. "
             f"{_dist['n_at_least']} nulls reach it, and the exact p is "
             f"{_dist['p_value']:.3f}."
         ),
@@ -120,40 +120,24 @@ SHOTS: list[dict] = [
     },
     {
         "id": 3,
-        "beat": "The honest verdict, early",
-        "seconds": 16,
-        "screen": "Kill gate panel on the home page, gate 3's row in view.",
-        "says": (
-            "And that is one observation. The gate asked for that behaviour on seventy "
-            "percent of a sample, and only "
-            f"{gate3['observations_testable']} of the corpus are testable at all, so the "
-            f"exact lower bound is {gate3['rate_lower_bound_95']:.3f} against a "
-            f"{gate3['threshold']:.2f} bar. The gate reads "
-            f"{gate3['verdict']}. It says so on the page, in grey, with the arithmetic."
-        ),
-        "cites": "artifacts/GATE3_RECEIPT.json",
-    },
-    {
-        "id": 4,
-        "beat": "One flow: the observation page",
-        "seconds": 30,
+        "beat": "One flow: four instruments, one clock",
+        "seconds": 28,
         "screen": (
-            "One observation page. Scrub the pass. Four instruments move on one clock: "
-            "waterfall with the corridor, polar sky track, ground track with the horizon "
-            "circle, elevation and Doppler against time."
+            "One observation page. Scrub the pass. The waterfall with its corridor, a "
+            "polar sky track, a ground track with the horizon circle, and elevation and "
+            "Doppler against time all move together."
         ),
         "says": (
             "This is one pass on one clock. Scrub it and the Doppler zero crossing lands "
             "at the instant elevation peaks and the range is shortest, because both come "
-            "from the same propagated orbit rather than from two drawings that were made "
-            "to agree. A reviewer checks the physics against the image without leaving "
-            "the row."
+            "from the same propagated orbit rather than from two drawings made to agree. "
+            "A reviewer checks the physics against the image without leaving the row."
         ),
         "cites": None,
     },
     {
-        "id": 5,
-        "beat": "The model, and what it is allowed to say",
+        "id": 4,
+        "beat": "The model, and what it is not allowed to say",
         "seconds": 22,
         "screen": (
             "The reviewer note on the same observation, then the provenance page's "
@@ -163,49 +147,68 @@ SHOTS: list[dict] = [
             "A local IBM Granite model writes the first sentence from a closed packet of "
             "printed fields, and a checker refuses any sentence carrying a number that "
             f"packet does not contain. It refused {explain['counts']['refused']} of "
-            f"{explain['counts']['decided_by_the_checker']} drafts. The "
-            "refusals ship on the page beside the notes, because a generator you cannot "
-            "see refusing is a generator you cannot trust."
+            f"{explain['counts']['decided_by_the_checker']} drafts, and the refusals ship "
+            "on the page beside the notes. A generator you never see refusing is a "
+            "generator you cannot trust."
         ),
         "cites": "artifacts/EXPLAIN_RECEIPT.json",
     },
     {
-        "id": 6,
-        "beat": "The queue reorder",
-        "seconds": 24,
+        "id": 5,
+        "beat": "The product: the queue reorder",
+        "seconds": 30,
         "screen": (
-            "The queue page. Sort by review value, then toggle to the random-order "
-            "control at the same budget."
+            "The queue page. Sort by review value, then toggle to the random-order control "
+            "at the same budget. The conflict count moves."
         ),
         "says": (
-            "Here is the whole point. At a fixed budget of "
-            f"{_chron6['n_queue_examined']} observations the ranked queue finds "
-            f"{_chron6['n_queue_conflicts']} conflicts where random ordering expects "
-            f"{_chron6['n_random_conflicts']:.1f}. That is "
-            f"{_chron6['lift_point']:.2f} times as many."
+            "Here is the whole point. Give a reviewer a fixed budget of "
+            f"{_chron6['n_queue_examined']} observations. Ranked by review value the queue "
+            f"puts {_chron6['n_queue_conflicts']} conflicts in front of them where random "
+            f"ordering expects {_chron6['n_random_conflicts']:.1f}. That is "
+            f"{_chron6['lift_point']:.2f} times as many findings for the same hour. On the "
+            "cold-station split, where every station is one the model never trained on, it "
+            f"is {_cold6['lift_point']:.2f} times, with an interval from "
+            f"{_cold6['lift_ci95'][0]:.2f} up, clear of the threshold."
         ),
         "cites": "artifacts/QUEUE_RECEIPT.json",
     },
     {
+        "id": 6,
+        "beat": "And here is what it does not establish",
+        "seconds": 28,
+        "screen": "The kill gate table, whole, with the three inconclusive rows in view.",
+        "says": (
+            "Six gates were set before any of this was built, and this is the part most "
+            "demos cut. The interval on that lift runs from "
+            f"{_chron6['lift_ci95'][0]:.2f} to {_chron6['lift_ci95'][1]:.2f}, which "
+            f"straddles the threshold, so it reads {_g6['verdict']} rather than passed. "
+            "The corridor gate has only "
+            f"{gate3['observations_testable']} testable observations, all three "
+            f"discriminate, and three of three still bound the rate at "
+            f"{gate3['rate_lower_bound_95']:.3f} against a {gate3['threshold']:.2f} bar. "
+            "Retrieval over similar passes beats chance until you forbid the query's own "
+            f"ground station, and then the margin is {_pre_cold['margin']:.4f} with an "
+            "interval that spans zero."
+        ),
+        "cites": "artifacts/QUEUE_RECEIPT.json, artifacts/GATE3_RECEIPT.json, "
+        "artifacts/PRECEDENT_RECEIPT.json",
+    },
+    {
         "id": 7,
-        "beat": "End on the honest verdict",
-        "seconds": 26,
+        "beat": "Why you can check every word of that",
+        "seconds": 16,
         "screen": (
-            "The kill gate table, whole. Then the claim register scrolling under the "
-            "cursor."
+            "The provenance page, then the claim register scrolling under the cursor, then "
+            "the sign-off receipt."
         ),
         "says": (
-            "And the interval on that lift runs from "
-            f"{_chron6['lift_ci95'][0]:.2f} to "
-            f"{_chron6['lift_ci95'][1]:.2f}, which straddles the "
-            f"bar, so the gate reads {_g6['verdict']} rather than passed. Two of six "
-            "gates are met. Retrieval over similar passes beats chance until you forbid "
-            "the query's own ground station, and then its interval spans zero at "
-            f"{_pre_cold['margin']:.4f}. Every one of those sentences is a row in a "
-            "register that a test compares against its artifact. That is the submission: "
-            "not that it works, but that you can check it."
+            "Every number you have heard is generated from a committed receipt and carries "
+            "a row in a register that a test compares against its artifact, so changing one "
+            "of them turns the suite red. That is the submission: not a claim that it works, "
+            "but a build you can check."
         ),
-        "cites": "artifacts/QUEUE_RECEIPT.json, artifacts/PRECEDENT_RECEIPT.json",
+        "cites": None,
     },
 ]
 
