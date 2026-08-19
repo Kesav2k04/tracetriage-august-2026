@@ -126,6 +126,11 @@
    "bytes": 253883
   },
   {
+   "name": "SECOND_TRACE_SURVEY.json",
+   "sha256": "c6481e8dc7240be40352bc0e8a27d98a88b82e29d34d251222cb1d91100e3eb9",
+   "bytes": 345808
+  },
+  {
    "name": "SPLIT_MANIFEST.json",
    "sha256": "bdb159ca13ece61c923992976589fade050976e69e2b1a0564acb334b4574808",
    "bytes": 234971
