@@ -124,8 +124,9 @@ UNMEASURED: list[tuple[str, str]] = [
     ),
     (
         "Blinded human decidability rate",
-        "Same gate. The console reports it as OPEN rather than as a value, and the "
-        "gate tally counts it as not met.",
+        "Kill gate 4 again, and it is the gate itself rather than a derived quantity. "
+        "The console reports gate 4 as OPEN rather than as a value, and the gate tally "
+        "counts it as not met.",
     ),
 ]
 

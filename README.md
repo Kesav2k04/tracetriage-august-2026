@@ -185,7 +185,7 @@ never run; those rows say so rather than being left out.
 | Metric | Value | Why |
 |---|---|---|
 | Human minutes per confirmed finding | `[UNMEASURED]` | Kill gate 4, the blinded human decidability study, was never run. Any number here would be an estimate wearing a measurement's clothes. |
-| Blinded human decidability rate | `[UNMEASURED]` | Same gate. The console reports it as OPEN rather than as a value, and the gate tally counts it as not met. |
+| Blinded human decidability rate | `[UNMEASURED]` | Kill gate 4 again, and it is the gate itself rather than a derived quantity. The console reports gate 4 as OPEN rather than as a value, and the gate tally counts it as not met. |
 
 The queue's headline result is inconclusive, and that is the honest reading:
 1.582x is above the 1.5x threshold as a point estimate,

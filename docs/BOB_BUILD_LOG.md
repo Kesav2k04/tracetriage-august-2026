@@ -3956,3 +3956,51 @@ themselves, not by reading, which is the argument for asserting the value rather
 shape.
 **Outcome:** partial. Six of the twelve modes now have a test that names the reason, two of
 those needed the reason to exist first, and the multiple-trace mode is not built.
+
+---
+
+## 2026-08-19 IST | Wave D | D9: the [UNMEASURED] hatch pointed nowhere, and one row said "same gate"
+
+The claim-register unit's remaining sub-ask. `tests/test_claim_drift.py` skips any README
+row whose value is the literal `[UNMEASURED]` marker. That is right for a genuinely
+unmeasured metric, and it also means a README where every cell said `[UNMEASURED]` would
+pass the whole suite while telling a reader nothing had been measured. That is what the
+README did until C7, so the hatch needed a floor rather than removal.
+
+**Two tests, one in each direction.** The first requires every `[UNMEASURED]` row to name
+a gate, and requires that gate's verdict to be one that produced no number at all, OPEN or
+NOT_MEASURABLE. A row citing gate 3 would be hiding a measured result behind an absence,
+because gate 3 came back inconclusive with numbers attached. The second requires the
+reverse: every gate whose verdict says no number exists has to appear as an absence in the
+results tables. Without it, deleting the two gate-4 rows would leave a README that reads
+as though everything had been measured, and every remaining number would still match its
+receipt, so the suite would stay green.
+
+**The verdicts are read, not typed.** Both tests take them from
+`apps/web/public/data/provenance.json`, the console's own gate summary, which
+`build_console_data.py` builds from the receipts and refuses to write on an unrecognised
+verdict. A list of gate statuses typed into a test would be a second source of truth and
+would drift from the first.
+
+**The first test failed on the first run, which is why it exists.** The second
+`[UNMEASURED]` row read "Same gate. The console reports it as OPEN rather than as a
+value." It names no gate at all: it is correct only for a reader who happens to have read
+the row above it, and rows move when the table is regenerated. It now names gate 4
+explicitly. `scripts/sync_readme_results.py` was the fix site rather than the README,
+because the table is generated, and `--check` is clean after the regeneration.
+
+**Mutation check.** Rewriting the gate-4 citations to gate 3 fails the first test on the
+verdict. Deleting both `[UNMEASURED]` rows fails both, the first on its own guard against
+comparing nothing and the second on gate 4 no longer being named anywhere. The README was
+restored by running its generator, which is the third time this wave that a generated file
+was the right place to fix something and the file itself was the wrong one.
+
+**Files changed:** `tests/test_claim_drift.py` (2 tests added),
+`scripts/sync_readme_results.py`, `README.md` (regenerated).
+**Commands run:** `.venv\Scripts\python.exe scripts\sync_readme_results.py`,
+`.venv\Scripts\python.exe scripts\sync_readme_results.py --check`,
+`.venv\Scripts\python.exe -m pytest tests/test_claim_drift.py -q`.
+**Tests:** 9 of 9 in that file, up from 7.
+**Failures and repairs:** the "same gate" row, described above. No code defect.
+**Outcome:** accepted. The `[UNMEASURED]` marker can no longer be used without naming a
+gate that produced no number, and a gate that produced no number can no longer go unnamed.

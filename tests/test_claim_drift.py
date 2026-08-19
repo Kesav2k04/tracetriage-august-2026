@@ -416,3 +416,109 @@ def test_the_azimuth_agreement_is_measured_and_scaled():
     assert swapped["median_abs_deg"] > 50.0, swapped["median_abs_deg"]
     assert mirrored["median_abs_deg"] > 10.0, mirrored["median_abs_deg"]
     assert swapped["median_abs_deg"] > 100 * az["rise"]["median_abs_deg"]
+
+
+# ---------------------------------------------------------------------------
+# The [UNMEASURED] hatch, and what stops it from swallowing the README
+# ---------------------------------------------------------------------------
+
+
+_PROVENANCE = REPO / "apps" / "web" / "public" / "data" / "provenance.json"
+
+#: Verdicts that mean the gate produced no number at all. A gate that came back
+#: inconclusive did produce numbers, so a metric hiding behind [UNMEASURED] must not
+#: cite one: that would be a measured result wearing an absence's clothes.
+_NO_NUMBER_VERDICTS = frozenset({"OPEN", "NOT_MEASURABLE"})
+
+
+def _unmeasured_rows(readme: str) -> list[tuple[str, str]]:
+    """The (metric, reason) pairs whose value is the literal [UNMEASURED] marker."""
+    out: list[tuple[str, str]] = []
+    for line in readme.splitlines():
+        if "`[UNMEASURED]`" not in line or not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) >= 3:
+            out.append((cells[0], cells[2]))
+    return out
+
+
+def _gate_verdicts() -> dict[int, str]:
+    data = json.loads(_PROVENANCE.read_text(encoding="utf-8"))
+    return {int(g["gate"]): g["verdict"] for g in data["gate_summary"]["gates"]}
+
+
+def test_every_unmeasured_row_names_a_gate_that_produced_no_number():
+    """The hatch has to point somewhere.
+
+    ``test_readme_has_no_unbacked_numbers`` skips a row whose value is the literal
+    [UNMEASURED] marker, which is correct for a genuinely unmeasured metric and also
+    means a README where every cell said [UNMEASURED] would pass while telling a reader
+    nothing was measured. That is what the README did until C7. This closes the gap
+    without removing the hatch: a row may say [UNMEASURED], and it must name a gate,
+    and that gate must be one that produced no number.
+    """
+    readme = (REPO / "README.md").read_text(encoding="utf-8")
+    rows = _unmeasured_rows(readme)
+    verdicts = _gate_verdicts()
+
+    assert rows, (
+        "no [UNMEASURED] rows found in the README results tables. Either the marker "
+        "changed or the table stopped being generated; both need a look, because this "
+        "test and its counterpart divide the rows between them."
+    )
+
+    for metric, reason in rows:
+        # The pattern has one group per alternative, so each match is a pair with one
+        # side empty. Flatten and keep the digits.
+        cited = {
+            int(m)
+            for pair in re.findall(r"[Kk]ill gate (\d+)|[Gg]ate (\d+)", reason)
+            for m in pair
+            if m
+        }
+        assert cited, (
+            f"README row {metric!r} is marked [UNMEASURED] and its reason names no "
+            f"gate: {reason!r}. An absence with no cause attached is the shape that "
+            "let a scoped-out check hide real violations in Wave B."
+        )
+        for gate in cited:
+            assert gate in verdicts, (
+                f"README row {metric!r} cites gate {gate}, which the console's gate "
+                f"summary does not carry. Known gates: {sorted(verdicts)}."
+            )
+            assert verdicts[gate] in _NO_NUMBER_VERDICTS, (
+                f"README row {metric!r} is marked [UNMEASURED] and cites gate {gate}, "
+                f"whose verdict is {verdicts[gate]}. That gate produced numbers, so "
+                "either the metric is measurable and the marker is hiding a result, or "
+                "the row cites the wrong gate."
+            )
+
+
+def test_every_gate_that_produced_no_number_appears_in_the_readme():
+    """The other direction, which is the one that can go quiet.
+
+    A gate that was never run has to be visible as an absence in the results tables,
+    not merely absent from them. Without this, dropping the two gate-4 rows would leave
+    a README that reads as though every metric had been measured, and the suite would
+    stay green because every remaining number still matches its receipt.
+    """
+    readme = (REPO / "README.md").read_text(encoding="utf-8")
+    rows = _unmeasured_rows(readme)
+    verdicts = _gate_verdicts()
+
+    no_number = {g for g, v in verdicts.items() if v in _NO_NUMBER_VERDICTS}
+    named: set[int] = set()
+    for _metric, reason in rows:
+        for pair in re.findall(r"[Kk]ill gate (\d+)|[Gg]ate (\d+)", reason):
+            for m in pair:
+                if m:
+                    named.add(int(m))
+
+    missing = sorted(no_number - named)
+    assert not missing, (
+        f"gates {missing} produced no number and no README row says so. Their verdicts "
+        f"are {[verdicts[g] for g in missing]}. Add an [UNMEASURED] row naming the gate "
+        "in scripts/sync_readme_results.py, or the tables imply a measurement that "
+        "does not exist."
+    )
