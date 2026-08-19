@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -72,12 +73,18 @@ def _git(*args: str) -> str:
 
 def _run(cmd: list[str], cwd: Path | None = None) -> tuple[int, str, float]:
     started = time.monotonic()
+    # The standing gate checks that a signed receipt exists. This run is what writes it, so
+    # the gate omits that one row when it sees this flag and says so in its output. Without
+    # it the first sign-off in a repository could never be produced: the gate would fail on
+    # the absence of the file the run is about to create.
+    env = dict(os.environ, TRACETRIAGE_SIGNOFF_IN_PROGRESS="1")
     proc = subprocess.run(
         cmd,
         cwd=str(cwd or REPO),
         capture_output=True,
         text=True,
         errors="replace",
+        env=env,
     )
     return proc.returncode, (proc.stdout + proc.stderr), time.monotonic() - started
 
