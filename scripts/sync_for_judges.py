@@ -154,6 +154,7 @@ CLONE_FAILED_STEPS = ", ".join(clone["summary"]["steps_failed"])
 # What the clone had to borrow, read from the transcript rather than described. A run that
 # borrows an environment and a run that builds one are different claims, and this page said
 # neither until a review pointed out that its headline implied the stronger of the two.
+
 _PREREQ = clone["prerequisites_not_in_the_repository"]
 
 
@@ -295,6 +296,13 @@ CHECKS: list[tuple[str, ...]] = [
         "The standing gates, one line each",
     ),
 ]
+
+# The heading counted four while the table carried five, which is the same class of defect
+# as a typed number anywhere else here: it stayed right until a row was added.
+_NUMBER_WORDS = {
+    3: "Three", 4: "Four", 5: "Five", 6: "Six", 7: "Seven", 8: "Eight", 9: "Nine",
+}
+N_CHECKS_WORD = _NUMBER_WORDS.get(len(CHECKS), str(len(CHECKS)))
 
 REQUIREMENTS: list[tuple[str, ...]] = [
     ("Problem statement", "`README.md`, first section"),
@@ -498,7 +506,7 @@ observation's own measured fields.
 
 {INTRO}
 
-## Four checks worth running first
+## {N_CHECKS_WORD} checks worth running first
 
 | Question | Command | What it prints |
 |---|---|---|

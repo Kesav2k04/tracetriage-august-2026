@@ -11,7 +11,7 @@ beside its control arm, the precedent study with the condition that takes its re
 the offline replay, and the provenance of each number.
 
 **Judges start here: [`FOR_JUDGES.md`](FOR_JUDGES.md).** It maps each judged criterion to the
-file that carries it, gives four checks that can be run in under five minutes, and is
+file that carries it, opens with the checks a judge can run in a few minutes each, and is
 generated from the receipts by `scripts/sync_for_judges.py`, so it cannot drift from them.
 
 > **Status: six kill gates asked, two met, three inconclusive, one not run.** Every number in this README is generated from a frozen artifact under `artifacts/` and carries a row in `docs/CLAIM_REGISTER.md`; `tests/test_claim_drift.py` compares each quoted value against the artifact it came from, not merely the presence of a register row: editing the AUC row from 0.875 to 0.999 turns three tests red. `tests/test_readme_claims.py` does the same for the paths this file names, because an existence claim is as checkable as a number. The three inconclusive gates are reported as NOT_ESTABLISHED rather than rounded into a pass, and the gate that was never run is reported as OPEN rather than omitted. Gate 3 moved from PASSED to NOT_ESTABLISHED on 2026-08-18: every one of its three testable observations discriminates, and three successes in three trials cannot establish the 70 percent rate the gate asked for, because the exact one-sided 95 percent lower bound is 0.368.

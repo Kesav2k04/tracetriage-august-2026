@@ -14,7 +14,7 @@ evidence and, where it can, the command that regenerates it. Of the 6 kill gates
 before the build, 2 were met, 3 came back inconclusive and 1 was never run, and that tally
 is read from the receipts by the console rather than typed here.
 
-## Four checks worth running first
+## Five checks worth running first
 
 | Question | Command | What it prints |
 |---|---|---|
