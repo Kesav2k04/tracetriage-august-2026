@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-20T01:45:54+05:30",
- "commit": "347713f6ffa6d17d05fdfc698da97c87788e902d",
- "tracked_files": 305,
- "tracked_bytes": 34069684,
- "tracked_megabytes": 32.49,
+ "measured_at_commit_date": "2026-08-20T04:55:18+05:30",
+ "commit": "f35b005fe2fc22650da2b9fefedc9155595e3391",
+ "tracked_files": 309,
+ "tracked_bytes": 34192253,
+ "tracked_megabytes": 32.61,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,7 +13,7 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 4.68
+   "megabytes": 4.69
   },
   {
    "path": "tests/fixtures",
@@ -32,12 +32,12 @@
    "megabytes": 0.52
   },
   {
-   "path": "artifacts/SECOND_TRACE_SURVEY.json",
+   "path": "docs/BOB_BUILD_LOG.md",
    "megabytes": 0.33
   },
   {
-   "path": "docs/BOB_BUILD_LOG.md",
-   "megabytes": 0.32
+   "path": "artifacts/SECOND_TRACE_SURVEY.json",
+   "megabytes": 0.33
   },
   {
    "path": "artifacts/QUEUE_RECEIPT.json",
@@ -69,9 +69,9 @@
   }
  ],
  "by_directory_remainder": {
-  "groups": 133,
-  "bytes": 2298497,
-  "megabytes": 2.19,
+  "groups": 138,
+  "bytes": 2398868,
+  "megabytes": 2.29,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
@@ -147,7 +147,7 @@
   {
    "path": "tests/fixtures/",
    "files": 8,
-   "bytes": 4448619,
+   "bytes": 4445107,
    "megabytes": 4.24,
    "keep_because": "inputs the offline suite needs. Removing any of it breaks the clean-clone claim."
   },
