@@ -230,7 +230,12 @@ Bob's work is recorded, not asserted:
 - `docs/BOB_HANDOFF.md` carries exact state across trial-account rotations
 - `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool contracts and MCP wiring each Bob task ran under, tracked so the conditions of the work are readable and not just its output. The specification separates the five tools that exist from the five that were specified and were not, naming for each of those the script that did its job instead, and a test fails if the registration ever points at a server that is not there
 - exported task transcripts are **not included**. An earlier draft of this section said they were, pointing at a directory that held nothing but a placeholder file, which git does not publish at all. The directory is gone and the build log is the record; a test now fails if this file names a path that is missing or empty
-- a final Bob task inspects the release commit, runs the acceptance suite, repairs failures and generates a sign-off receipt
+- a final Bob task inspects the release commit, runs the acceptance suite, repairs failures
+  and generates a sign-off receipt. `scripts/signoff.py` runs ten checks at one commit and
+  writes `artifacts/SIGNOFF_RECEIPT.json` naming each one, its command, its exit code and a
+  line of its output. It has three outcomes rather than two: a check that could not run in
+  that environment is `NOT_CHECKED` with a stated reason, and the verdict refuses to sign
+  while any check has failed
 
 `docs/PRE_BUILD_BASELINE.md` lists exactly what existed before Bob's first task, so the line between scaffolding and Bob's work is auditable rather than implied.
 

@@ -93,7 +93,7 @@
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "04eb16ecc286dda7b96dd8075d07e3b4181690ddc99a50244c225207d1a69aa4",
+   "sha256": "759cf8da09f81f942f8727af3dda1360f04ee039931e72f85a4c69683b279d21",
    "bytes": 81051
   },
   {
@@ -168,7 +168,7 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "4199eefc919dd88dc27b2b406b090575b3a8fd011bebe5b6bfa07b1fb1ed456c",
+   "sha256": "9b592b3da91abdfb2bac778f4026e1d7b6b8c923845216a265fc93d9c4125b6e",
    "bytes": 4272
   },
   {
@@ -178,8 +178,13 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "cc7e8130cce765f7ea68201454dd4b1c6c977a6f6af00e637b6d657739168d19",
+   "sha256": "18cfa647ac41f36b3a9bb16c6bee36586886d6c8d37dea279e7419ad57ad631b",
    "bytes": 1214
+  },
+  {
+   "name": "SIGNOFF_RECEIPT.json",
+   "sha256": "00647acbb03bda515e4a489adea161e90ee67b5809815874a0b38f980fe2363b",
+   "bytes": 3643
   },
   {
    "name": "SPLIT_MANIFEST.json",
