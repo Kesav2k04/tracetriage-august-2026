@@ -37,7 +37,6 @@ import json
 import re
 import subprocess
 import sys
-import time
 from pathlib import Path
 from typing import Any
 
@@ -101,6 +100,18 @@ def _git(args: list[str]) -> str:
 
 def _tracked_files() -> list[str]:
     return [f for f in _git(["ls-files"]).splitlines() if f.strip()]
+
+
+def _commit_stamp() -> str:
+    """The commit's own date, not the wall clock.
+
+    These receipts are recorded by digest on the console's provenance page. Stamping them
+    with the current time would make that page stale on every re-run, for a reason that is
+    not a change in anything measured, and would make the word "generated" false: a second
+    run has to write identical bytes.
+    """
+    iso = _git(["show", "-s", "--format=%cI", "HEAD"]).strip()
+    return iso or "unknown"
 
 
 def _allowed(path: str, rule: str) -> str | None:
@@ -221,7 +232,7 @@ def scan_secrets(skip_history: bool) -> dict[str, Any]:
     return {
         "schema": "SECRET_SCAN",
         "schema_version": "0.1.0",
-        "generated_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "measured_at_commit_date": _commit_stamp(),
         "commit": _git(["rev-parse", "HEAD"]).strip(),
         "rules": [name for name, _ in _SECRET_PATTERNS],
         "coverage": {
@@ -362,7 +373,7 @@ def audit_attribution() -> dict[str, Any]:
     return {
         "schema": "ATTRIBUTION_AUDIT",
         "schema_version": "0.1.0",
-        "generated_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "measured_at_commit_date": _commit_stamp(),
         "commit": _git(["rev-parse", "HEAD"]).strip(),
         "snapshot_id": manifest.get("snapshot_id"),
         "licence": {"name": manifest.get("license"), "url": manifest.get("license_url")},
@@ -412,6 +423,14 @@ _WEIGHT_NOTES: list[tuple[str, str]] = [
 
 
 def audit_weight() -> dict[str, Any]:
+    """Tracked size by directory and by file.
+
+    One self-reference worth knowing about: this measures the tracked tree, and the two
+    receipts written beside it are part of that tree. So the first run after their content
+    changes reports the old sizes and the second settles. Measured: runs two and three
+    write identical bytes. It is left as a real measurement of the whole tree rather than
+    excluding its own siblings, because a judge cloning the repository gets the whole tree.
+    """
     per_dir: dict[str, int] = {}
     per_file: list[tuple[int, str]] = []
     total = 0
@@ -444,7 +463,7 @@ def audit_weight() -> dict[str, Any]:
     return {
         "schema": "REPO_WEIGHT",
         "schema_version": "0.1.0",
-        "generated_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "measured_at_commit_date": _commit_stamp(),
         "commit": _git(["rev-parse", "HEAD"]).strip(),
         "tracked_files": len(per_file),
         "tracked_bytes": total,
