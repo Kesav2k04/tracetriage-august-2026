@@ -107,6 +107,32 @@ def _digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+#: The two halves of the precedent study. The warm half allows a neighbour from the query's
+#: own station and the cold half forbids it, and only the second says whether similarity
+#: carries an outcome across entities. Publishing one without the other would leave the
+#: flattering number standing alone.
+_PRECEDENT_CONDITIONS = ("warm", "cold")
+
+
+def _precedent_conditions(receipt: dict[str, Any]) -> dict[str, Any]:
+    """Fetch both study conditions, refusing a receipt that carries only one.
+
+    The console page reads ``conditions.warm`` and ``conditions.cold`` by name and its
+    types declare both, so a receipt missing one would render an empty column rather than
+    an absence: the same defect as publishing a null in place of a measurement.
+    """
+    conditions = _require(receipt, "conditions")
+    for name in _PRECEDENT_CONDITIONS:
+        if name not in conditions:
+            raise KeyError(
+                f"precedent receipt has no {name!r} condition; present are "
+                f"{sorted(conditions)}. The console declares both by name, so a missing "
+                "one would render as an empty column instead of as an absence."
+            )
+        _require(conditions, name)
+    return conditions
+
+
 def _require(doc: dict[str, Any], key: str) -> Any:
     """Fetch a receipt field, refusing to publish a null in place of a missing one.
 
@@ -736,6 +762,61 @@ def main(argv: list[str] | None = None) -> int:
                 "questions": questions,
                 "what_this_does_not_measure": agent["what_this_does_not_measure"],
                 "receipt_sha256": _digest(_ARTIFACTS / "AGENT_RECEIPT.json"),
+            },
+            indent=1,
+        ),
+        encoding="utf-8",
+    )
+
+    # ---- precedent -------------------------------------------------------
+    #
+    # Two things in one file, because they are two views of one study: the arm and condition
+    # table a reader checks, and the neighbour lists a reviewer looks at on an observation. The
+    # lists are read from the frozen retrievals rather than recomputed, so the console needs no
+    # index, no model and no snapshot, and the page cannot show a neighbour the receipt did not
+    # score.
+    precedent = _load("PRECEDENT_RECEIPT.json")
+    retrievals = json.loads(
+        (_REPO / "tests" / "fixtures" / "precedent_retrievals.json").read_text(encoding="utf-8")
+    )
+    console_precedent = retrievals.get("console_precedent") or {}
+    # The shipped ids come from the cards file on disk rather than from a local variable,
+    # because this block runs before the cards are rebuilt and does not run at all under
+    # --skip-images. Reading the committed file is the same set either way.
+    shipped_path = data_dir / "cards.json"
+    shipped = (
+        {
+            str(int(card["obs_id"]))
+            for card in json.loads(shipped_path.read_text(encoding="utf-8"))["cards"]
+        }
+        if shipped_path.exists()
+        else set(console_precedent)
+    )
+    missing = sorted(shipped - set(console_precedent))
+    conditions = _precedent_conditions(precedent)
+    (data_dir / "precedent.json").write_text(
+        json.dumps(
+            {
+                "question": _require(precedent, "question"),
+                "design": _require(precedent, "design"),
+                "embedding_model": _require(precedent, "embedding_model"),
+                "top_k": _require(precedent, "top_k"),
+                "feature_names": _require(precedent, "feature_names"),
+                "vector_index": _require(precedent, "vector_index"),
+                "candidate_pool": _require(precedent, "candidate_pool"),
+                "conditions": conditions,
+                "what_this_does_not_measure": _require(
+                    precedent, "what_this_does_not_measure"
+                ),
+                "neighbours": console_precedent,
+                "observations_without_neighbours": missing,
+                "why_some_have_none": (
+                    "A shipped observation only has neighbours here if the snapshot gave it a "
+                    "decisive network label, because the study measures agreement with that "
+                    "label and an unknown one cannot be agreed with. The ids are listed rather "
+                    "than dropped."
+                ),
+                "receipt_sha256": _digest(_ARTIFACTS / "PRECEDENT_RECEIPT.json"),
             },
             indent=1,
         ),

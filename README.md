@@ -140,6 +140,20 @@ sequence, and every step writes a file that the next one reads.
     on 20, which is an exact one-sided p of
     1e-06.
 
+12. **Precedent, and the condition that breaks it.** `pipeline/tracetriage/precedent.py`
+    retrieves the five most similar earlier passes for each of the
+    743 decisively labelled observations, under four arms over one
+    candidate pool: an IBM Granite embedding of the evidence card, seven standardised
+    numbers under Euclidean distance, the station's own recent passes, and a uniform draw.
+    Each arm runs twice. Warm allows any other observation. Cold forbids the query's own
+    station and its own satellite, because in this corpus the outcome is partly a property
+    of who recorded it. Warm, the embedding reaches **0.6175** agreement at 5 against a
+    chance level of **0.5314**, a margin of 0.0861 whose Bonferroni-adjusted interval
+    [0.0368, 0.1437] clears zero. Cold, the same arm reaches **0.5610** against
+    **0.5268**, and its adjusted interval [-0.0249, 0.1141] does not. The warm number is
+    the one a demo would show and the cold number is the one that answers the question, so
+    the console page carries both columns at the same weight.
+
 **Model ladder**, each rung compared against the last: centre-energy heuristic, HOG plus regularised logistic regression, a frozen MobileNetV3-Small or ResNet18 encoder, a physics-only residual model, then a fusion head over image plus metadata plus physics. Calibration by temperature or isotonic fitting on a later time period. Selective or conformal abstention on top.
 
 **Evaluation is grouped, never random.** Random image splits leak station, satellite and rendering patterns. Holdouts are chronological, cold-station, cold-transmitter, and combined cold-station-and-transmitter, with each transmitter and orbital revolution confined to a single split. Bootstrap intervals are computed over orbital episodes or days, not image rows.

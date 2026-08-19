@@ -15,6 +15,7 @@ import {
   isBuilt,
   noteById,
   notes,
+  precedentFor,
   showcaseIds,
 } from "@/lib/data";
 import WaterfallViewer from "@/components/WaterfallViewer";
@@ -50,6 +51,7 @@ export default async function ObservationPage({
   const obsId = Number(id);
   const card = cardById.get(obsId);
   const entry = entryById.get(obsId);
+  const neighbours = precedentFor(obsId);
 
   // isBuilt rather than `card.degraded`, because truthiness cannot narrow this union:
   // the degraded member types degraded as string and an empty string is falsy, so a
@@ -447,6 +449,59 @@ export default async function ObservationPage({
               </Cell>
             </tr>
           </Table>
+        </Section>
+      )}
+
+      {neighbours && (
+        <Section
+          title="Precedent"
+          description={
+            "The five nearest passes in the snapshot under the Granite embedding of a text " +
+            "card built from this pass's numbers. Two conditions: any station, and then a " +
+            "condition that excludes this station and this satellite so a neighbour cannot " +
+            "be a near-duplicate of the query. The measured agreement is on the precedent " +
+            "page, and under the second condition it does not beat chance."
+          }
+        >
+          <Table
+            head={["Condition", "Neighbour", "Station", "Satellite", "Start", "Network label"]}
+            headAlign={["left", "right", "right", "right", "left", "left"]}
+          >
+            {(["warm", "cold"] as const).flatMap((condition) =>
+              (neighbours[condition] ?? []).map((neighbour, index) => (
+                <tr key={`${condition}-${neighbour.obs_id}`}>
+                  <Cell align="left">
+                    {index === 0
+                      ? condition === "warm"
+                        ? "Any station"
+                        : "Other station, other satellite"
+                      : ""}
+                  </Cell>
+                  <Cell mono>
+                    <a
+                      href={`https://network.satnogs.org/observations/${neighbour.obs_id}/`}
+                    >
+                      {neighbour.obs_id}
+                    </a>
+                  </Cell>
+                  <Cell mono>{neighbour.station ?? "not recorded"}</Cell>
+                  <Cell mono>{neighbour.satellite ?? "not recorded"}</Cell>
+                  <Cell align="left" mono>
+                    {neighbour.start ?? "not recorded"}
+                  </Cell>
+                  <Cell align="left">{neighbour.label}</Cell>
+                </tr>
+              )),
+            )}
+          </Table>
+          <Note tone="limit">
+            This pass carries the network label <strong>{card.waterfall_status}</strong>,
+            station {card.ground_station ?? "not recorded"}, satellite{" "}
+            {card.norad_cat_id ?? "not recorded"}. Counting how many neighbours match that
+            label is one draw and settles nothing on its own. The neighbours link to the
+            network rather than to this console, because most of them are outside the
+            shipped set and the console carries no imagery for them.
+          </Note>
         </Section>
       )}
 

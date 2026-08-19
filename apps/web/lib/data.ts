@@ -15,6 +15,7 @@ import provenanceJson from "@/public/data/provenance.json";
 import notesJson from "@/public/data/notes.json";
 import queueJson from "@/public/data/queue.json";
 import agentJson from "@/public/data/agent.json";
+import precedentJson from "@/public/data/precedent.json";
 
 export {
   NON_ACTIONABLE,
@@ -724,3 +725,91 @@ export interface AgentStudy {
 }
 
 export const agent = agentJson as unknown as AgentStudy;
+
+/**
+ * Precedent retrieval.
+ *
+ * `precedent.json` carries both halves of one study: the arm and condition table a
+ * reader checks, and the per-observation neighbour lists a reviewer looks at. The
+ * lists come from the frozen retrievals the receipt was scored from, so this console
+ * cannot show a neighbour that was not measured.
+ */
+export interface PrecedentArm {
+  queries_scored: number;
+  queries_undefined: number;
+  agreement_at_k: number | null;
+  neighbours_per_query: number;
+  not_applicable?: string;
+}
+
+export interface PrecedentComparison {
+  measurable: boolean;
+  why?: string;
+  queries?: number;
+  challenger_agreement?: number;
+  reference_agreement?: number;
+  margin?: number;
+  ci95?: [number, number];
+  ci_adjusted?: [number, number];
+  adjusted_confidence?: number;
+  n_comparisons?: number;
+  survives_correction?: boolean;
+  n_groups?: number;
+  n_observations?: number;
+  direction?: string;
+}
+
+export interface PrecedentCondition {
+  arms: Record<string, PrecedentArm>;
+  chance_level: number;
+  comparisons: Record<string, PrecedentComparison>;
+}
+
+export interface PrecedentNeighbour {
+  obs_id: number;
+  label: string;
+  station: number | null;
+  satellite: number | null;
+  start: string | null;
+}
+
+export interface PrecedentStudy {
+  question: string;
+  design: string;
+  embedding_model: { name: string; parameter_size: string; quantization: string };
+  top_k: number;
+  feature_names: string[];
+  vector_index: {
+    backend: string;
+    recall_at_k_against_exact_search?: Record<string, number>;
+    queries_compared?: Record<string, number>;
+    reading: string;
+  };
+  candidate_pool: {
+    observations: number;
+    labels: Record<string, number>;
+    stations: number;
+    satellites: number;
+  };
+  /**
+   * Both conditions are named rather than indexed, because the page reads them by
+   * name and `scripts/build_console_data.py` refuses to write this file without both.
+   * A `Record` here would make every read optional and would let a missing cold column
+   * render as a blank cell instead of failing the build.
+   */
+  conditions: { warm: PrecedentCondition; cold: PrecedentCondition };
+  what_this_does_not_measure: string[];
+  neighbours: Record<string, Record<string, PrecedentNeighbour[]>>;
+  observations_without_neighbours: string[];
+  why_some_have_none: string;
+  receipt_sha256: string;
+}
+
+export const precedent = precedentJson as unknown as PrecedentStudy;
+
+/** The neighbour lists for one observation, or null when the study had no label for it. */
+export function precedentFor(
+  obsId: number,
+): Record<string, PrecedentNeighbour[]> | null {
+  return precedent.neighbours[String(obsId)] ?? null;
+}

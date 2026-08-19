@@ -171,6 +171,59 @@ def model_identity(endpoint: str = DEFAULT_ENDPOINT, model: str = MODEL) -> Mode
     )
 
 
+#: The embedding model, separate from the generator on purpose: a 278M embedding model and an
+#: 8B instruct model are different weights doing different jobs, and a receipt that named one
+#: for both would be wrong about whichever it was not.
+EMBED_MODEL = "granite-embedding:278m"
+
+
+def _post(path: str, payload: dict, *, endpoint: str, timeout: float) -> dict:
+    """The single HTTP write-verb call site in this repository.
+
+    Both the generator and the embedder go through here. Adding a second ``httpx.post``
+    elsewhere in this module would be the cheaper edit and it would also make the claim in
+    the claim register false: ``tests/test_annotate.py`` asserts that this file holds exactly
+    one write site, and an exemption whose size is asserted is the only kind that cannot widen
+    quietly. The loopback guard runs before the URL is built, once, for both callers.
+    """
+    base = resolve_model_endpoint(endpoint)
+    try:
+        response = httpx.post(
+            f"{base}{path}",
+            content=json.dumps(payload),
+            headers={"content-type": "application/json"},
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        return response.json()
+    except Exception as exc:
+        raise ModelUnavailable(f"{path} failed against {base}: {exc}") from exc
+
+
+def embed(
+    text: str,
+    *,
+    endpoint: str = DEFAULT_ENDPOINT,
+    model: str = EMBED_MODEL,
+) -> list[float]:
+    """One embedding vector for one string, from the local runtime.
+
+    Returns the raw vector rather than a normalised one. Normalisation belongs to whatever
+    computes a similarity, so that a caller reading these vectors back from a fixture cannot
+    accidentally compare a normalised vector against an unnormalised one.
+    """
+    body = _post(
+        "/api/embeddings", {"model": model, "prompt": text}, endpoint=endpoint, timeout=TIMEOUT_S
+    )
+    vector = body.get("embedding")
+    if not isinstance(vector, list) or not vector:
+        raise ModelUnavailable(
+            f"The runtime returned no embedding for a {len(text)}-character string. "
+            f"Keys present: {sorted(body)}."
+        )
+    return [float(x) for x in vector]
+
+
 def generate(
     prompt: str,
     *,
@@ -179,12 +232,7 @@ def generate(
     seed: int = SEED,
     max_tokens: int = MAX_TOKENS,
 ) -> str:
-    """One completion, greedy, from the local runtime.
-
-    This is the single write-verb call site in the repository. It is here, it is loopback,
-    and the guard above runs before the URL is built rather than after.
-    """
-    base = resolve_model_endpoint(endpoint)
+    """One completion, greedy, from the local runtime."""
     payload = {
         "model": model,
         "prompt": prompt,
@@ -196,17 +244,7 @@ def generate(
             "num_predict": max_tokens,
         },
     }
-    try:
-        response = httpx.post(
-            f"{base}/api/generate",
-            content=json.dumps(payload),
-            headers={"content-type": "application/json"},
-            timeout=TIMEOUT_S,
-        )
-        response.raise_for_status()
-        body = response.json()
-    except Exception as exc:
-        raise ModelUnavailable(f"Generation failed against {base}: {exc}") from exc
+    body = _post("/api/generate", payload, endpoint=endpoint, timeout=TIMEOUT_S)
 
     text = body.get("response")
     if not isinstance(text, str) or not text.strip():

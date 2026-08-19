@@ -174,6 +174,7 @@ failed and not that it passed.
   no rate because there is nothing to compute one from.
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
+- **Similarity stops carrying the outcome once the station is excluded.** Retrieval over 743 labelled passes agrees with the query's own label 0.6175 of the time when a neighbour may come from the same ground station, against a chance level of 0.5314, and the adjusted interval [0.0368, 0.1437] clears zero. Forbidding the query's own station and satellite drops it to 0.5610 against 0.5268, and the adjusted interval [-0.0249, 0.1141] does not. `artifacts/PRECEDENT_RECEIPT.json` carries both conditions and the console shows them in one table.
 
 ## How IBM Bob was used
 

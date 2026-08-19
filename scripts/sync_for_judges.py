@@ -56,6 +56,27 @@ weight = _receipt("REPO_WEIGHT.json")
 clone = _receipt("CLEAN_CLONE_TRANSCRIPT.json")
 gate4 = _receipt("GATE4_RECEIPT.json")
 agent = _receipt("AGENT_RECEIPT.json")
+precedent = _receipt("PRECEDENT_RECEIPT.json")
+
+# The precedent study's cold condition is the negative result on this page that a reader is
+# most likely to be shown the flattering half of. Both halves are read from the receipt so
+# the sentence cannot keep the warm margin after a re-run moves it.
+_PRE_WARM = precedent["conditions"]["warm"]["comparisons"]["granite_text_vs_random"]
+_PRE_COLD = precedent["conditions"]["cold"]["comparisons"]["granite_text_vs_random"]
+PRECEDENT_BULLET = (
+    "- **Similarity stops carrying the outcome once the station is excluded.** Retrieval "
+    f"over {precedent['candidate_pool']['observations']} labelled passes agrees with the "
+    f"query's own label {_PRE_WARM['challenger_agreement']:.4f} of the time when a "
+    f"neighbour may come from the same ground station, against a chance level of "
+    f"{_PRE_WARM['reference_agreement']:.4f}, and the adjusted interval "
+    f"[{_PRE_WARM['ci_adjusted'][0]:.4f}, {_PRE_WARM['ci_adjusted'][1]:.4f}] clears zero. "
+    f"Forbidding the query's own station and satellite drops it to "
+    f"{_PRE_COLD['challenger_agreement']:.4f} against "
+    f"{_PRE_COLD['reference_agreement']:.4f}, and the adjusted interval "
+    f"[{_PRE_COLD['ci_adjusted'][0]:.4f}, {_PRE_COLD['ci_adjusted'][1]:.4f}] does not. "
+    "`artifacts/PRECEDENT_RECEIPT.json` carries both conditions and the console shows "
+    "them in one table."
+)
 
 _AGENT_TOOLS = agent["arms"]["tools"]
 _AGENT_CONTROL = agent["arms"]["control"]
@@ -548,6 +569,7 @@ matching its receipt.
   no rate because there is nothing to compute one from.
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
+{PRECEDENT_BULLET}
 
 ## How IBM Bob was used
 

@@ -46,6 +46,13 @@ onnx = [
     "onnx>=1.17",
     "onnxruntime>=1.20",
 ]
+# The vector index for precedent retrieval. Optional on purpose: the measurement in
+# artifacts/PRECEDENT_RECEIPT.json is computed from exact cosine search, and chromadb is
+# what checks that a real approximate index returns the same neighbours. A clean clone
+# without this extra skips that one check and still reproduces every published number.
+vector = [
+    "chromadb>=1.0",
+]
 # Reading the waterfall axis labels. Kept out of the base dependencies on
 # purpose: it pulls a neural model whose weights are not in the repo, so a clean
 # clone must still be able to install, run the suite and reproduce the Hz/px

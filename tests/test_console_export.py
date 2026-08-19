@@ -462,3 +462,48 @@ def test_a_split_missing_degraded_entirely_is_a_failure() -> None:
     mod = _load_export_module()
     with pytest.raises(KeyError):
         mod._split_for_console({"split": "chronological", "counts": {"train": 1}})
+
+
+# ---------------------------------------------------------------------------
+# The precedent study ships both conditions or it does not ship
+# ---------------------------------------------------------------------------
+
+
+def test_both_precedent_conditions_are_required() -> None:
+    """The real receipt carries warm and cold, and dropping either fails the export.
+
+    The page reads both by name and its types declare both, so a receipt with only the
+    warm half would render an empty cold column: a blank cell where the study's whole
+    question is answered, with nothing saying it was never measured.
+    """
+    mod = _load_export_module()
+    receipt = json.loads(
+        (_REPO / "artifacts" / "PRECEDENT_RECEIPT.json").read_text(encoding="utf-8")
+    )
+
+    conditions = mod._precedent_conditions(receipt)
+    assert set(conditions) >= {"warm", "cold"}
+
+    for name in ("warm", "cold"):
+        mutated = dict(receipt)
+        mutated["conditions"] = {
+            k: v for k, v in receipt["conditions"].items() if k != name
+        }
+        with pytest.raises(KeyError, match=name):
+            mod._precedent_conditions(mutated)
+
+
+def test_an_empty_precedent_condition_is_not_a_measurement() -> None:
+    """Present and saying nothing is the shape the earlier defect took.
+
+    ``conditions.cold = {}`` passes a key check and publishes a column of blanks, so the
+    guard rejects it the same way ``_require`` rejects an empty container anywhere else.
+    """
+    mod = _load_export_module()
+    receipt = json.loads(
+        (_REPO / "artifacts" / "PRECEDENT_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    mutated = dict(receipt)
+    mutated["conditions"] = dict(receipt["conditions"], cold={})
+    with pytest.raises(ValueError):
+        mod._precedent_conditions(mutated)

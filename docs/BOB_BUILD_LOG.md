@@ -4798,3 +4798,81 @@ that now runs. 4 new register rows.
 model and no network, and it states what it does not measure: these are lookups with one correct
 token, one model, one seed, and every question is answerable from the five tools, so nothing here
 measures whether the policy knows when to stop.
+
+---
+
+## 2026-08-19 IST | Wave E | E8: precedent retrieval, and the condition that takes the result away
+
+The question is the one a reviewer asks before opening anything: do the passes most like this
+one carry the same recorded outcome? Four arms over one pool of
+743 decisively labelled observations, top 5 each: an IBM Granite embedding
+of the evidence card, seven standardised numbers under Euclidean distance, the station's own
+recent passes, and a uniform draw from the same pool. Every arm sees only what is knowable
+before the waterfall is opened, so none of them is a detector, and none of them is allowed to
+see a label field: a test walks the rendered card for every excluded name rather than trusting
+the builder.
+
+**The result is two numbers and only the second one answers the question.** Warm, where a
+neighbour may come from the query's own station, the embedding agrees 0.6175 of the time
+against a chance level of 0.5314, a margin of 0.0861 whose Bonferroni-adjusted interval
+[0.0368, 0.1437] clears zero over seven comparisons. Cold, which forbids the query's own
+station and its own satellite, the same arm reaches 0.5610 against 0.5268 and its adjusted
+interval [-0.0249, 0.1141] spans zero. In this corpus the outcome is partly a property of who
+recorded it, so the warm column measures the retriever plus the station and the cold column
+measures the retriever. The console page carries both at the same weight, with the chance level
+in the same table, because the warm number is the one a demo would show.
+
+**The embedding is not established as better than seven numbers.** Warm margin 0.0242 with an
+adjusted interval of [-0.0181, 0.0655], cold margin 0.0127 with [-0.0455, 0.0732]. A 278M
+embedding of a rendered card and `frequency_mhz, max_elevation_deg, pass_minutes,
+station_latitude, station_longitude` plus the local hour as a sine and cosine pair are
+indistinguishable at this sample size. That is a result about this corpus at n=743 rather than
+about embeddings, and it is published rather than dropped.
+
+**The arm with no cold definition is published as an absence rather than a zero.** The
+station's own recent passes cannot exist under a condition that excludes the station, so cold
+scores 0 queries and writes `agreement_at_k: null` beside a sentence naming why. Warm it scores
+686 of 743, with 57 queries whose station had fewer than five other passes counted as undefined
+rather than as disagreements. An arm that scored 0.0 there would have looked like a measured
+failure of the strongest warm baseline.
+
+**The index is checked rather than trusted.** The published numbers come from exact cosine
+search. chromadb is the second implementation: recall at 5 against exact search is 0.9989 in
+both conditions over all 743 queries, and the cold condition is answered by a metadata filter
+inside the index rather than by discarding neighbours afterwards, so the filter and the
+exclusion rule are checked against each other rather than assumed to agree. `chromadb` is an
+optional extra in `pyproject.toml`, so a clean clone without it skips that one check and still
+reproduces every published number.
+
+**One HTTP write site, still one.** The embedder needed a second `httpx.post` and the claim
+register says this repository has exactly one write verb at one asserted call site, checked by
+`tests/test_annotate.py`. Adding the second call would have been the cheaper edit and would
+have made a published claim false, so the generator and the embedder now share one `_post`
+helper and the loopback guard runs once, before the URL is built, for both callers.
+
+**Two defects found while wiring it to the console.** The page reads `conditions.warm` and
+`conditions.cold` by name while `lib/data.ts` typed them as `Record<string, PrecedentCondition>`,
+which made six reads possibly-undefined and would have rendered a missing cold column as blank
+cells rather than as an absence: the same defect as publishing a null in place of a
+measurement, wearing a type. The type names both conditions now and
+`scripts/build_console_data.py` refuses to write `precedent.json` without both, with an empty
+condition rejected the same way `_require` rejects any empty container. Two tests drop each
+condition in turn and assert the export goes red.
+
+**Files changed:** `pipeline/tracetriage/precedent.py`, `scripts/run_precedent_study.py`,
+`tests/test_precedent.py`, `tests/fixtures/precedent_retrievals.json`,
+`artifacts/PRECEDENT_RECEIPT.json`, `apps/web/app/precedent/page.tsx`,
+`apps/web/public/data/precedent.json` (all new), `pipeline/tracetriage/granite.py`,
+`scripts/build_console_data.py`, `tests/test_console_export.py`, `apps/web/lib/data.ts`,
+`apps/web/components/Nav.tsx`, `apps/web/app/observation/[id]/page.tsx`,
+`apps/web/public/data/provenance.json`, `pyproject.toml`, `README.md`, `FOR_JUDGES.md`,
+`scripts/sync_for_judges.py`, `docs/CLAIM_REGISTER.md`.
+**Commands run:** `scripts/run_precedent_study.py --freeze`, `scripts/build_console_data.py
+--skip-images`, `scripts/sync_for_judges.py`, `python -m ruff check .`, `python -m pytest -m
+"not network and not ocr and not llm"`, `npm run typecheck`, `npm run test`.
+**Tests:** 25 offline tests in `tests/test_precedent.py`, 2 in `tests/test_console_export.py`.
+5 new register rows.
+**Outcome:** accepted. The receipt regenerates from the frozen retrievals with no model, no
+index and no snapshot, and it states in its own text that it measures agreement with a silver
+network label rather than with the sky, that it says nothing about images, and that whether a
+reviewer shown these neighbours decides better is kill gate 4's territory and still open.
