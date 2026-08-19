@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 21 JSON artifacts, 8 contracts, 33 scripts, 17 package modules and 1055 test functions across 41 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 21 JSON artifacts, 8 contracts, 33 scripts, 17 package modules and 1065 test functions across 42 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -26,7 +26,7 @@ file that no longer exists in that form.
 | `AGENT_RECEIPT.json` | AGENT_RECEIPT | 1 | none | 30,114 | `cfc07bbcdac087d8` | `scripts/build_console_data.py`, `scripts/run_agent_study.py`, `scripts/sync_for_judges.py` | `test_agent.py` |
 | `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 81,051 | `10205efa0260e39a` | `scripts/audit_release.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `BASELINE_RECEIPT.json` | BASELINE_RECEIPT | 0.1.0 | none | 9,010 | `e0912b1454763c14` | `scripts/run_baseline.py`, `scripts/run_triage_slice.py` | `test_baseline.py` |
-| `CLEAN_CLONE_TRANSCRIPT.json` | CLEAN_CLONE_TRANSCRIPT | 0.1.0 | none | 16,430 | `27346ef8423d0dad` | `scripts/clean_clone_check.py`, `scripts/sync_for_judges.py` | `test_for_judges.py` |
+| `CLEAN_CLONE_TRANSCRIPT.json` | CLEAN_CLONE_TRANSCRIPT | 0.1.0 | none | 16,153 | `22f97293520e2054` | `scripts/clean_clone_check.py`, `scripts/sync_for_judges.py` | `test_clean_clone.py`, `test_for_judges.py` |
 | `corridor_features.json` | CORRIDOR_FEATURES | 0.1.0 | none | 543,929 | `dea323857f560cc8` | `pipeline/tracetriage/features.py`, `scripts/build_console_data.py`, `scripts/clean_clone_check.py`, `scripts/extract_corridor_features.py`, `scripts/run_queue.py`, `scripts/sync_docs.py` | `test_console_export.py`, `test_reference_sync.py` |
 | `DATASET_MANIFEST.json` | none declared | 0.2.1 | none | 2,359,254 | `9fb0c0a28175e7ef` | `pipeline/tracetriage/baseline.py`, `pipeline/tracetriage/snapshot.py`, `pipeline/tracetriage/splits.py`, `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/build_splits.py`, `scripts/run_baseline.py`, `scripts/run_triage_slice.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py` | `test_base_rates.py`, `test_baseline.py`, `test_contracts.py`, `test_snapshot.py`, `test_snapshot_isolation.py`, `test_splits.py` |
 | `EXPLAIN_RECEIPT.json` | none declared | n/a | none | 24,915 | `304b475a589cc2ec` | `scripts/run_agent_study.py`, `scripts/run_explanations.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py` | `test_explain_receipt.py` |
@@ -135,6 +135,7 @@ Receipts no test names: none.
 | `tests/test_baseline.py` | 47 | Tests for the A6 image-only baseline module. |
 | `tests/test_centre_energy_feature.py` | 14 | Guards on the centre-energy feature itself, not on the pipeline around it. |
 | `tests/test_claim_drift.py` | 9 | Every public number must come from a generated artifact, not a keyboard. |
+| `tests/test_clean_clone.py` | 10 | The clean-clone transcript, and the counts it publishes. |
 | `tests/test_console_export.py` | 22 | The console export, and the episode key the receipt now names (C5). |
 | `tests/test_contracts.py` | 60 | Contract-level tests. |
 | `tests/test_contrast.py` | 7 | Every rendered colour pair meets its WCAG floor, recomputed from the tokens. |

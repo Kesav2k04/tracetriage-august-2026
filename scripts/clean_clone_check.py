@@ -282,22 +282,53 @@ _OFFLINE_MARKERS = "not network and not ocr and not llm"
 
 
 def _pytest_counts(text: str) -> dict[str, Any]:
-    """Pull passed/skipped/failed out of pytest's summary line.
+    """Pull passed/skipped/failed out of pytest's own summary line, and only that line.
 
-    This read the last six lines of output and published whatever it found, which was
-    nothing: the project's pytest options already carry ``-q``, a second one suppresses the
-    summary line entirely, and warnings occupy the tail. The comparison of the suite with
-    and without the snapshot was therefore two empty objects under a paragraph explaining
-    how to read them. Searching the whole output and refusing to return an empty result is
-    the fix; an unparsed run now says so instead of looking like a run with no tests.
+    Two defects, both of which published a number that was not a measurement of this run.
+
+    The first version read the last six lines of output and found nothing: the project's
+    pytest options already carry ``-q``, a second one suppresses the summary entirely, and
+    warnings occupy the tail, so the comparison of the suite with and without the snapshot
+    was two empty objects under a paragraph explaining how to read them.
+
+    The fix for that searched the whole output for ``(\\d+) passed`` and took the first
+    match, which is worse, because a failing test prints its own assertion output first. A
+    run where ``tests/test_for_judges.py`` failed had the committed judges' page in its
+    traceback, that page carries the sentence "1116 passed, 30 skipped, from the clean
+    clone", and both columns of the transcript were published as 1116 and 30: numbers copied
+    out of the previous run's prose by way of a failure message, matching neither of the two
+    suites that had just run. The counts now come from the summary line and nowhere else.
     """
-    got: dict[str, Any] = {}
+    summary = None
+    for line in reversed(text.splitlines()):
+        stripped = line.strip()
+        # pytest's summary line always carries a duration and at least one outcome count.
+        if re.search(r"\bin \d+\.\d+s", stripped) and re.search(
+            r"\b\d+ (?:passed|failed|error|errors)\b", stripped
+        ):
+            summary = stripped
+            break
+    if summary is None:
+        return {
+            "unparsed": True,
+            "why": (
+                "no pytest summary line in the output. The counts are not guessed from "
+                "elsewhere in the log, because a failing test can print numbers that look "
+                "like a summary."
+            ),
+        }
+
+    got: dict[str, Any] = {"summary_line": summary}
     for key in ("passed", "skipped", "failed", "error", "xfailed", "deselected"):
-        match = re.search(rf"(\d+) {key}", text)
+        match = re.search(rf"(\d+) {key}", summary)
         if match:
             got[key] = int(match.group(1))
-    if not got:
-        return {"unparsed": True, "why": "no pytest summary line in the output"}
+    if len(got) == 1:
+        return {
+            "unparsed": True,
+            "summary_line": summary,
+            "why": "a line that looked like a summary carried no outcome count",
+        }
     return got
 
 

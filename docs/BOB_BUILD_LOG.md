@@ -5002,3 +5002,69 @@ tree.
 **Tests:** no new tests. Three existing checks did the work.
 **Outcome:** accepted. The secret scan is clean at zero findings over the working tree and the
 history, and the gate's grep returns nothing.
+
+---
+
+## 2026-08-19 IST | Wave D | D10: the clean clone published a number it had read off its own previous run
+
+The prompt's unit D3, the clean-clone reproduction with the network refused. The instrument
+was built in E4 and E6b; this closes the unit at the release commit and records what three
+runs of it found.
+
+**A parser that read the wrong line.** `_pytest_counts` searched the whole captured output
+for `(\d+) passed` and took the first match. That is fine while every test passes and wrong
+the moment one does not: a failing test prints its own assertion output before pytest's
+summary, and the test that failed was `tests/test_for_judges.py`, whose assertion prints the
+committed judges' page. That page carries the sentence "1116 passed, 30 skipped, from the
+clean clone". So the transcript published 1116 and 30 in **both** columns: numbers copied out
+of the previous run's prose by way of a failure message, matching neither of the two suites
+that had just run. The counts come from the summary line and nowhere else now, the line
+itself is published beside them so a reader can disagree, and output with no summary line is
+`unparsed` with a reason rather than a guess. Five tests feed the parser the exact shapes that
+produced each version of the defect, including the traceback that poisoned it.
+
+**The two columns are now checked against each other.** Identical columns are what the bug
+produced and also what a run that never hid the snapshot would produce, so
+`tests/test_clean_clone.py` asserts that hiding the snapshot skips strictly more tests than
+leaving it in place. With the snapshot: 1227 passed, 6 skipped. Without it: 1197 passed, 36
+skipped. The thirty tests that move are the snapshot-bound ones, which is what the column was
+always supposed to show.
+
+**A stale document the run found before the gate did.** The clone rebuilt
+`apps/web/public/data/provenance.json` and got different bytes, because the release audit had
+been re-run and its three receipts committed without rebuilding the console, so the committed
+provenance carried the previous digests. That is the artifact-freshness gate's own territory
+and it was caught here first, by a run that rebuilds rather than compares. The two FOR_JUDGES
+failures in the transcript above have the same single cause: the judges' page quotes the
+transcript's own suite counts, and it had not been regenerated after the transcript moved.
+
+**Which cache, not which variable.** The offline install failed on `torch` and then on
+`jsonschema`. The transcript recorded `UV_CACHE_DIR` or the words "uv's default location",
+which names a setting rather than the thing the run depended on. `UV_CACHE_DIR` is unset on
+this machine, uv's default resolves to the user profile on `C:`, and this project keeps its
+caches on `D:`, so the install was resolving against a cache that had never seen these wheels.
+Setting it to `D:/dev-cache/uv-cache` moved the failure to a different package rather than
+fixing it: neither cache on this machine holds the full pinned set offline. The transcript
+records the resolved path, whether it exists, and where the value came from, so the next
+reader can tell a missing cache from a wrong one. The prerequisite is unchanged and honest: a
+judge needs one networked install before this run reproduces.
+
+**What a clean clone can and cannot rebuild, unchanged and still named.** `README.md` and
+`docs/KILL_GATE.md` regenerate to identical bytes. Four artifacts are snapshot-bound and say
+so by name with their builder and what they need: `GATE3_RECEIPT.json`, `HERO_NULLS.json`,
+`corridor_features.json` and the HOG cache. The network is refused by a `sitecustomize.py` on
+`PYTHONPATH` that raises on any non-loopback `connect`, `connect_ex` or `getaddrinfo`; the
+Node steps get a dead proxy and telemetry off, which is weaker, and the transcript says so
+rather than implying parity.
+
+**Files changed:** `scripts/clean_clone_check.py`, `tests/test_clean_clone.py` (new),
+`artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `FOR_JUDGES.md`,
+`apps/web/public/data/provenance.json`, `apps/web/public/data/CLAIM_REGISTER.md`,
+`docs/REFERENCE.md`.
+**Commands run:** `scripts/clean_clone_check.py --clone-dir D:\_cleanclone` three times,
+`scripts/build_console_data.py --skip-images`, `scripts/sync_for_judges.py`,
+`scripts/sync_docs.py`, `python -m ruff check .`, `python -m pytest`.
+**Tests:** 10 new offline tests in `tests/test_clean_clone.py`.
+**Outcome:** accepted. The transcript in this commit describes the previous commit, which is
+inherent: the run reads a clone of a commit and its output is committed after. The run at the
+release commit is recorded in the entry that follows.

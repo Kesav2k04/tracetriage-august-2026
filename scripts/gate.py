@@ -214,6 +214,22 @@ def main() -> int:
     logged = "No Bob tasks have run yet" not in log
     results.append(check("build log has an entry", logged, "" if logged else "log still empty"))
 
+    # The sign-off receipt. Its content is asserted by tests/test_signoff.py, which skip when
+    # the file is absent, so presence is checked here instead: a deleted receipt has to fail
+    # something rather than quieting six tests. Freshness is not checked here on purpose. The
+    # receipt is written at one commit and committed at the next, so requiring it to name HEAD
+    # would fail on every commit after the one that published it. Re-running
+    # scripts/signoff.py at the release commit is what makes it current.
+    _signoff = REPO / "artifacts" / "SIGNOFF_RECEIPT.json"
+    if _signoff.exists():
+        _sd = json.loads(_signoff.read_text(encoding="utf-8"))
+        _sok = _sd.get("verdict") == "SIGNED" and _sd.get("counts", {}).get("FAILED") == 0
+        _sdetail = f"{_sd.get('verdict')} at {str(_sd.get('measured_at_commit'))[:8]}"
+    else:
+        _sok = False
+        _sdetail = "artifacts/SIGNOFF_RECEIPT.json is absent. Run scripts/signoff.py."
+    results.append(check("sign-off receipt present and signed", _sok, _sdetail))
+
     rc, out = run(["git", "log", "-1", "--format=%an <%ae>%n%b"])
     author_ok = out.startswith("Kesav2k04 <kesavk659@gmail.com>")
     trailer_ok = "Co-Authored-By" not in out and "Generated with" not in out
