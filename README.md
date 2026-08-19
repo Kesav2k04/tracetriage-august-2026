@@ -464,7 +464,7 @@ catch.
 
 | Document | Generator | What it is |
 |---|---|---|
-| `README.md` results tables | `scripts/sync_readme_results.py` | the measured rows, from the receipts |
+| `README.md` results tables and the gate status block at the top | `scripts/sync_readme_results.py` | the verdicts and the measured rows, from the receipts |
 | `docs/KILL_GATE.md` | `scripts/sync_kill_gate.py` | the gate summary and the failure log |
 | `FOR_JUDGES.md` | `scripts/sync_for_judges.py` | the submission page, from the receipts |
 | `docs/REFERENCE.md` | `scripts/sync_docs.py` | what writes each artifact, what validates it, what tests name it |
@@ -472,6 +472,14 @@ catch.
 
 Each takes `--check`, which regenerates into memory and exits non-zero on any difference
 without writing. `scripts/gate.py` runs all five.
+
+Two more things are generated and checked the same way without being documents.
+`apps/web/public/data/` is written in its entirety by `scripts/build_console_data.py`, so the
+console cannot show a number the receipts do not carry, and `scripts/check_artifact_freshness.py`
+rebuilds every published payload into a scratch directory and diffs it. And
+`artifacts/CIRCULARITY_RECEIPT.json` is recomputed from `artifacts/QUEUE_RECEIPT.json` by
+`scripts/run_circularity_check.py --check`, because a bound on a measurement goes stale the
+moment the measurement is re-run.
 
 ## Prior art and honest scope
 

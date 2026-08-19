@@ -18,7 +18,7 @@ is read from the receipts by the console rather than typed here.
 
 | Question | Command | What it prints |
 |---|---|---|
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1 failed, 1208 passed, 36 skipped, measured in a clean clone with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1256 passed, 30 skipped, none failed, measured in a clean clone with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 11 emitted, 14 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake and 5 read-only tools, one of which is the grounding checker |
@@ -29,11 +29,9 @@ this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest optio
 `-q`, so a second `-q` suppresses the summary line: that is worth knowing before reading a
 run as having collected nothing.
 
-The first row prints a failure, and it is named here rather than left in the transcript:
-`tests/test_reference_sync.py::test_the_committed_page_is_what_the_tree_produces`. The
-transcript is the record of commit `79243ea` and of nothing later, so what this page can
-honestly say about the current tip is only that the command in the table is the way to see
-it. A run of that command on a fresh clone of this commit reproduces the count exactly.
+No test failed in that run. The count is published with its zero rather than as a pass,
+because a summary that prints only what went right cannot be read as a summary of what
+happened.
 
 The agent layer is measured against a control rather than demonstrated.
 `scripts/run_agent_study.py` puts 24 questions to the same local model twice, once with
@@ -47,26 +45,25 @@ graded, each question was proved answerable in a single tool call, because a que
 tools cannot serve would otherwise be scored as a failure of the policy.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `79243ea` with every non-loopback socket refused: 13 of 16 steps
+fresh clone of commit `cc6c8f9` with every non-loopback socket refused: 15 of 16 steps
 succeeded. What did not: uv pip install --offline -e .[dev,onnx] into the clone's
-environment, offline test suite, snapshot present, offline test suite, snapshot HIDDEN.
-The transcript carries each step's exit code and the tail of its output, so the reason is
-readable rather than summarised. The test counts above are from the pass with the snapshot
-directory hidden, which is a judge's case rather than this machine's, and they are the
-count at that commit rather than at the tip of the branch.
+environment. The transcript carries each step's exit code and the tail of its output, so
+the reason is readable rather than summarised. The test counts above are from the pass
+with the snapshot directory hidden, which is a judge's case rather than this machine's,
+and they are the count at that commit rather than at the tip of the branch.
 
 Two things about that run are worth knowing before it is trusted. The offline install into
-the clone did not succeed, because the pinned set could not be resolved from the local
-cache alone, so the suite ran on this machine's interpreter at `3.12.13` against the
-clone's source tree. The code under test is the clone's and the environment is not, which
-is a weaker claim than a cold-start install and is stated here rather than left to be
-inferred. And `apps/web/node_modules` was linked from the source clone rather than
-installed, because `npm ci` needs the registry this run refuses; the transcript records
-the lockfile's sha256 (`4a30b534f981`) so a reader can check that the borrowed tree
-belongs to this repository's pins. The socket refusal itself is a Python-level patch
-loaded through `PYTHONPATH`, so it reaches every Python child process and constrains
-nothing else: the Node steps are outside it, and that is a limit of the guard rather than
-a claim about them.
+the clone did not succeed, because the wheel for `pyarrow==25.0.1` is not in the local
+package cache and the run refuses the index, so the suite ran on this machine's
+interpreter at `3.12.13` against the clone's source tree. The code under test is the
+clone's and the environment is not, which is a weaker claim than a cold-start install and
+is stated here rather than left to be inferred. And `apps/web/node_modules` was linked
+from the source clone rather than installed, because `npm ci` needs the registry this run
+refuses; the transcript records the lockfile's sha256 (`4a30b534f981`) so a reader can
+check that the borrowed tree belongs to this repository's pins. The socket refusal itself
+is a Python-level patch loaded through `PYTHONPATH`, so it reaches every Python child
+process and constrains nothing else: the Node steps are outside it, and that is a limit of
+the guard rather than a claim about them.
 
 ## Where each submission requirement is answered
 

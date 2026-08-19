@@ -5359,3 +5359,32 @@ shell variable nobody sets persistently. The failure is disclosed with its cause
 `python -m ruff check .`, `scripts/gate.py`.
 **Tests:** 1 new in `tests/test_clean_clone.py` for the measured zero.
 **Outcome:** accepted.
+## 2026-08-20 IST | Wave D | D14c: the clean clone re-run at the release commit
+
+The transcript a judge reads was measured at `79243ea`, several commits back, and it reported
+one failing test and 13 of 16 steps. That test was the stale `docs/REFERENCE.md` D13 had
+already fixed, so the page was carrying a repaired failure as a current one.
+
+Re-run at `cc6c8f9`: **15 of 16 steps**, both pytest passes green, 1,286 with the snapshot
+present and 1,256 with 30 skipped when it is hidden. The only failing step is still the
+offline `uv pip install`, and it fails because a wheel is missing from the local package
+cache and the run refuses the index. The judges' page names the package the run reached
+first. D14b recorded that as `torch==2.13.0` from a diagnostic run; this run names
+`pyarrow==25.0.1`, because uv reports whichever download it gets to first and the order is
+not fixed. The cause is the same and the page reads it from the receipt rather than from a
+sentence, so it stays right whichever package it is.
+
+The README's generated-documentation section listed five documents and stopped there. It now
+also names the two things generated and checked the same way without being documents:
+`apps/web/public/data/`, written in full by `scripts/build_console_data.py` and diffed by
+`scripts/check_artifact_freshness.py`, and `artifacts/CIRCULARITY_RECEIPT.json`, recomputed
+from the queue receipt because a bound on a measurement goes stale the moment the measurement
+is re-run.
+
+**Files changed:** `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `FOR_JUDGES.md`, `README.md`,
+`docs/REFERENCE.md`, `apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/clean_clone_check.py`, every generator,
+`scripts/build_console_data.py --skip-images`, `scripts/gate.py`.
+**Tests:** none new. 1,288 offline tests pass here and 1,256 in the clone with the snapshot
+hidden.
+**Outcome:** accepted.
