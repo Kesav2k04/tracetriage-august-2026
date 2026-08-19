@@ -8,16 +8,25 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-20, IST, after D14, the judge-seat review pass |
+| **Handoff written** | 2026-08-20, IST, after D14d and the sign-off |
 | **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h), **D** (D0 to D14), **E** (E0 to E8) |
-| **Current wave** | **None. Wave D is closed.** Every unit the D prompt asked for is committed: the review-closing work (D0, D0b, D0c and the passes named D1 to D7), failure injection (D8, D8b), the `[UNMEASURED]` accounting (D9), the clean-clone reproduction (D10), secrets and attribution (D11), generated documentation and the demo script (D12, D12a), final acceptance with a sign-off receipt (D13, D13a, D13b), and a review pass from a judge's seat that closed ten findings (D14). |
+| **Current wave** | **None. Wave D is closed.** Every unit the D prompt asked for is committed: the review-closing work (D0, D0b, D0c and the passes named D1 to D7), failure injection (D8, D8b), the `[UNMEASURED]` accounting (D9), the clean-clone reproduction (D10), secrets and attribution (D11), generated documentation and the demo script (D12, D12a), final acceptance with a sign-off receipt (D13, D13a, D13b), and a review pass from a judge's seat (D14 to D14d) that closed ten findings, put two unreachable console pages back in the navigation and re-ran the clean clone at the release commit. |
 | **What remains** | Two things outside the repository: record the demo video against `docs/DEMO_SCRIPT.md`, and make the repository public on 25 August. One thing that needs a single look once it is public: the CI badge at the top of `README.md` reports the last run of `.github/workflows/ci.yml` on `main`, and no session here can query the Actions API to see what it says. Nothing in the tree is waiting on any of the three. |
 | **Numbering** | The committed entries named D1 to D7 are review-closing passes and are **not** the prompt's units D1 to D6. The prompt's units are numbered from D8 onward in the build log: D8 is its D1 (failure injection), D9 its D2, D10 its D3, D11 its D4, D12 its D5, D13 its D6. |
-| **Open failures** | none. **1,275** offline tests collected and all pass, 4 deselected, no expected failures. Lint clean. **103** console tests pass under vitest across 6 files. `npx tsc --noEmit` clean. `npx next build` emits **32** `index.html` files. `scripts/gate.py` green on **18 of 18** standing gates. |
+| **Open failures** | none. **1,288** offline tests collected and all pass, 4 deselected, no expected failures. Lint clean. **103** console tests pass under vitest across 6 files. `npx tsc --noEmit` clean. `npx next build` emits **32** `index.html` files. `scripts/gate.py` green on **18 of 18** standing gates. |
 | **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 **OPEN and never run**, with its instrument built in E6: `scripts/build_gate4_worksheet.py` produces a blinded 72-item bundle committed to in advance, and `artifacts/GATE4_RECEIPT.json` reads `NOT_RUN` with no rate. |
 | **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app. Six pages: queue, evaluation, agent, precedent, replay, provenance. |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, **2,727** observations, 2,500 waterfalls, **739** decisive labels. The API pages on disk hold 2,750 rows, 23 more than the dataset, because the ingest stopped at its waterfall target part-way through a page it had already written whole. **Every count in this repository is over the 2,727.** Two scripts read the pages unfiltered and published 2,750 and 743; both filter against `artifacts/DATASET_MANIFEST.json` since D14. |
 | **Last commit** | see `git log -1`. `artifacts/SIGNOFF_RECEIPT.json` names the commit the final acceptance measured. |
+
+**The clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`.** Measured at
+`f35b005`: **15 of 16 steps**, both pytest passes green, 1,286 with the snapshot present and
+1,256 with 30 skipped when it is hidden. The one failing step is the offline `uv pip install`,
+which fails because a wheel is not in the local package cache and the run refuses the index.
+Making it pass needs the full pinned set warmed into a cache the run can reach; C: has 5.3 GB
+free and moving the cache to D: would make the receipt depend on a shell variable nobody sets
+persistently, so the failure is disclosed with its cause instead. `scripts/sync_for_judges.py`
+reads the missing package name out of the step's own output tail.
 
 ### Five documents are generated. Do not hand-edit any of them.
 
