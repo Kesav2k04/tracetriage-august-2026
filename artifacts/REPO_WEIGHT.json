@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-19T22:35:24+05:30",
- "commit": "7ef964aeef0050e8a95e39f7a824ee736742620b",
- "tracked_files": 302,
- "tracked_bytes": 34014902,
- "tracked_megabytes": 32.44,
+ "measured_at_commit_date": "2026-08-20T01:22:04+05:30",
+ "commit": "c1ee1f29425f33a7da2405ef71470f3093c3319c",
+ "tracked_files": 305,
+ "tracked_bytes": 34069684,
+ "tracked_megabytes": 32.49,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -37,7 +37,7 @@
   },
   {
    "path": "docs/BOB_BUILD_LOG.md",
-   "megabytes": 0.31
+   "megabytes": 0.32
   },
   {
    "path": "artifacts/QUEUE_RECEIPT.json",
@@ -69,9 +69,9 @@
   }
  ],
  "by_directory_remainder": {
-  "groups": 130,
-  "bytes": 2254076,
-  "megabytes": 2.15,
+  "groups": 133,
+  "bytes": 2298497,
+  "megabytes": 2.19,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
