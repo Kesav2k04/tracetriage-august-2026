@@ -30,6 +30,41 @@ export const metadata = {
 const chronological = requireQueueSplit("chronological");
 const gate6 = evaluation.gate6;
 const primary = requireGate6Split("chronological");
+const coldStation = requireGate6Split("cold_station");
+
+/** The two splits the lede prints, in the order a reader should weigh them.
+ *
+ * The pre-registered split first, because it is the one that decides the gate. The
+ * held-out split second, because a landing screen that showed only the verdict that
+ * failed would be as one-sided as one that showed only the verdict that passed.
+ */
+const LEDE_SPLITS = [
+  {
+    name: "chronological",
+    label: "Chronological",
+    role: "pre-registered, decides the gate",
+    split: primary,
+    reading: "against a 1.5× threshold, so the gate is not met",
+  },
+  {
+    name: "cold_station",
+    label: "Cold station",
+    role: "held out, every station unseen in training",
+    split: coldStation,
+    reading: "the whole interval clears 1.5× on stations the model never saw",
+  },
+];
+
+/** What the kicker can say about how much was examined, without averaging two splits.
+ *
+ * The two cards are measured at the same budget today. If a future run changes one of
+ * them, the kicker names both rather than quietly printing one split's count over a
+ * pair of cards.
+ */
+const LEDE_EXAMINED =
+  primary.n_queue_examined === coldStation.n_queue_examined
+    ? `${primary.n_queue_examined}`
+    : `${primary.n_queue_examined} and ${coldStation.n_queue_examined}`;
 
 export default function QueuePage() {
   const caps = chronological.concentration?.caps ?? {};
@@ -40,41 +75,69 @@ export default function QueuePage() {
           The figure is the queue's measured lift, and the interval is set at the
           same weight as the figure rather than under it. A hero that showed 1.58
           alone would be making the claim the gate declined to make, and this page
-          would be the first place a reader met that claim. */}
+          would be the first place a reader met that claim.
+
+          Both splits are shown at one size. An earlier cut printed the
+          pre-registered split's NOT_ESTABLISHED alone on the first screen, and the
+          held-out split, where the same queue passes, was four sections down. That
+          is a defensible order and a misleading screen: a reader who left after the
+          lede left believing the queue had not worked anywhere. Neither number is
+          the headline now. Which one decides the gate is stated on the card rather
+          than implied by its size. */}
       <header className="lede">
         <p className="lede-kicker">
-          SatNOGS waterfall triage · chronological split ·{" "}
-          {primary.n_queue_examined} observations examined
+          SatNOGS waterfall triage · kill gate {gate6.gate} ·{" "}
+          {LEDE_EXAMINED} observations examined
+        </p>
+        <p className="lede-product">
+          The product is a ranked review queue: {queue.entries.length} observations
+          ordered by how much a reviewer would learn from opening each, with the top{" "}
+          {queue.review_budget.n_observations} as the budget a volunteer actually has.{" "}
+          <Link href="#queue">Open the queue</Link>.
         </p>
         <div className="lede-figure">
-          <p style={{ margin: 0 }}>
-            <span className="lede-number">
-              {fmt(primary.lift_point, 2)}
-              <sup>&times;</sup>
-            </span>
-            <span
-              style={{
-                display: "block",
-                marginTop: "var(--sp-05)",
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--type-body)",
-                color: "var(--text-02)",
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              95% CI {fmtInterval(primary.lift_ci95, 3)}
-            </span>
-            <span
-              style={{
-                display: "block",
-                marginTop: "var(--sp-02)",
-                fontSize: "var(--type-caption)",
-                color: "var(--text-03)",
-              }}
-            >
-              against a 1.5&times; threshold, so the gate is not met
-            </span>
-          </p>
+          <div className="lede-verdicts">
+            {LEDE_SPLITS.map((entry) => (
+              <div className="lede-verdict" key={entry.name}>
+                <p className="lede-verdict-label">
+                  {entry.label}
+                  <span>{entry.role}</span>
+                </p>
+                <p style={{ margin: 0 }}>
+                  <span className="lede-number">
+                    {fmt(entry.split.lift_point, 2)}
+                    <sup>&times;</sup>
+                  </span>
+                </p>
+                <div style={{ marginTop: "var(--sp-04)" }}>
+                  <VerdictBadge verdict={entry.split.verdict} />
+                </div>
+                <span
+                  style={{
+                    display: "block",
+                    marginTop: "var(--sp-04)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--type-body)",
+                    color: "var(--text-02)",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  95% CI {fmtInterval(entry.split.lift_ci95, 3)}
+                </span>
+                <span
+                  style={{
+                    display: "block",
+                    marginTop: "var(--sp-02)",
+                    fontSize: "var(--type-caption)",
+                    color: "var(--text-03)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {entry.reading}
+                </span>
+              </div>
+            ))}
+          </div>
           <div>
             <h1 className="lede-headline">
               A review queue, and the measurement that says how much it is worth.
@@ -84,6 +147,12 @@ export default function QueuePage() {
               This ranks them by how likely a human is to find something wrong, then
               measures whether that ranking beats picking at random. The measurement
               is the point. A queue nobody tested is a preference.
+            </p>
+            <p className="lede-body" style={{ marginTop: "var(--sp-05)" }}>
+              The split that decides the gate is the chronological one, because it was
+              named in advance. The cold-station split holds out every station the
+              model never trained on, and there the same queue clears the threshold.
+              One split passing is not the gate passing, and it is not nothing either.
             </p>
           </div>
         </div>
@@ -350,6 +419,7 @@ export default function QueuePage() {
       </Section>
 
       <Section
+        id="queue"
         title="The queue"
         description={
           <>

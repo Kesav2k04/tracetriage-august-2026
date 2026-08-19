@@ -1,0 +1,161 @@
+{
+ "schema": "tracetriage/circularity/v1",
+ "schema_version": "1.0.0",
+ "generated_at": "2026-08-19T21:23:12.682456+00:00",
+ "question": "How much of gate 6's lift is guaranteed by the queue being ranked on the same quantities the conflict criteria threshold?",
+ "source": {
+  "receipt": "artifacts/QUEUE_RECEIPT.json",
+  "sha256": "94dca2ed61434bd7b2222ca0fa0839e903657e55c1dee55c81fe77e32a564047",
+  "split": "chronological",
+  "needs_the_snapshot": false
+ },
+ "reproduction": {
+  "n_population": 87,
+  "n_conflicts": 22,
+  "budget": 50,
+  "n_at_budget": 20,
+  "random_expected": 12.64367816091954,
+  "lift_point": 1.5818181818181818,
+  "published_lift_point": 1.5818181818181816,
+  "matches_the_queue_receipt": true
+ },
+ "shared_signals": {
+  "criteria": {
+   "MODEL_LABEL_DISAGREE": {
+    "thresholds": "model_prob",
+    "score_signal": "disagreement",
+    "score_weight": 0.4,
+    "uses_the_model": true
+   },
+   "STALE_CATALOGUE_FREQ": {
+    "thresholds": "fitted_offset_ppm",
+    "score_signal": "offset_safe",
+    "score_weight": 0.35,
+    "uses_the_model": false
+   },
+   "DEAD_CAPTURE": {
+    "thresholds": "flat_row_frac",
+    "score_signal": "flat_row_frac",
+    "score_weight": 0.15,
+    "uses_the_model": false
+   }
+  },
+  "unshared": {
+   "score_signal": "ensemble_uncertainty",
+   "score_weight": 0.1
+  },
+  "score_weight_on_quantities_the_target_is_defined_from": 0.9,
+  "score_weight_independent_of_the_target": 0.1,
+  "reading": "Every criterion's defining quantity is also a weighted term in the score, so no restriction of the target makes this measurement independent of its own construction. What the restrictions below separate is the model's contribution, not the score's."
+ },
+ "ceiling": {
+  "max_findable_at_budget": 22,
+  "lift": 1.74,
+  "threshold": 1.5,
+  "headroom_between_threshold_and_perfection": 0.24,
+  "queue_share_of_the_ceiling": 0.9090909090909091,
+  "reading": "A budget of 50 over 87 observations holding 22 conflicts caps any ordering at 1.740x. The gate asked for 1.5x, so the entire distance between the bar and a perfect oracle is 0.240. The queue found 20 of the 22 an oracle would have."
+ },
+ "targets": {
+  "all_three_criteria": {
+   "criteria": [
+    "MODEL_LABEL_DISAGREE",
+    "STALE_CATALOGUE_FREQ",
+    "DEAD_CAPTURE"
+   ],
+   "measurable": true,
+   "not_measurable_reason": null,
+   "saturated": false,
+   "saturation_note": null,
+   "n_conflicts": 22,
+   "n_at_budget": 20,
+   "random_expected": 12.643678160919542,
+   "lift_point": 1.5818181818181816,
+   "lift_ci95": [
+    1.3533333333333333,
+    1.7547169811320753
+   ],
+   "lift_ci95_episode": [
+    1.3533333333333333,
+    1.7400000000000002
+   ],
+   "lift_ci95_station": [
+    1.3744213554987212,
+    1.7547169811320753
+   ],
+   "governing_interval": "union_of_episode_and_station",
+   "n_boot_effective": 4000,
+   "direction": "spans_threshold",
+   "verdict": "NOT_ESTABLISHED"
+  },
+  "model_dependent_only": {
+   "criteria": [
+    "MODEL_LABEL_DISAGREE"
+   ],
+   "measurable": true,
+   "not_measurable_reason": null,
+   "saturated": true,
+   "saturation_note": "The queue found all 3 of them inside the budget, so this lift is n_population / budget = 1.740 whatever the count had been. It says the finds are near the top and says nothing about how near, and no verdict about the 1.5 threshold can be read off it.",
+   "n_conflicts": 3,
+   "n_at_budget": 3,
+   "random_expected": 1.7241379310344827,
+   "lift_point": 1.7400000000000002,
+   "lift_ci95": [
+    1.7209302325581393,
+    1.7560975609756098
+   ],
+   "lift_ci95_episode": [
+    1.7400000000000002,
+    1.7400000000000002
+   ],
+   "lift_ci95_station": [
+    1.7209302325581393,
+    1.7560975609756098
+   ],
+   "governing_interval": "union_of_episode_and_station",
+   "n_boot_effective": 3795,
+   "direction": "saturated",
+   "verdict": "NOT_INFORMATIVE"
+  },
+  "model_independent_only": {
+   "criteria": [
+    "STALE_CATALOGUE_FREQ",
+    "DEAD_CAPTURE"
+   ],
+   "measurable": true,
+   "not_measurable_reason": null,
+   "saturated": false,
+   "saturation_note": null,
+   "n_conflicts": 19,
+   "n_at_budget": 17,
+   "random_expected": 10.919540229885058,
+   "lift_point": 1.5568421052631578,
+   "lift_ci95": [
+    1.2682869975552902,
+    1.7547169811320753
+   ],
+   "lift_ci95_episode": [
+    1.3046491935483873,
+    1.7400000000000002
+   ],
+   "lift_ci95_station": [
+    1.2682869975552902,
+    1.7547169811320753
+   ],
+   "governing_interval": "union_of_episode_and_station",
+   "n_boot_effective": 4000,
+   "direction": "spans_threshold",
+   "verdict": "NOT_ESTABLISHED"
+  }
+ },
+ "random_ordering_control": {
+  "n_permutations": 2000,
+  "seed": 42,
+  "mean_lift": 0.999235,
+  "p5": 0.711818,
+  "p95": 1.265455,
+  "expected_mean": 1.0,
+  "abs_error": 0.000765
+ },
+ "what_this_does_not_establish": "That the queue generalises. Restricting the target to the two criteria the model does not enter removes one loop and leaves another: the score still weights the offset magnitude at 0.35 and the flat-row fraction at 0.15, and those are the quantities those two criteria threshold. The honest reading is that this measurement is a check on internal consistency and on the size of the space the gate was set in, not an independent test of the ranking."
+}

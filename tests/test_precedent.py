@@ -220,7 +220,16 @@ def test_agreement_is_none_for_an_empty_retrieval_rather_than_zero():
 
 
 def test_the_chance_level_is_the_label_mix_and_the_random_arm_lands_on_it(receipt):
-    labels = ["with-signal"] * 464 + ["without-signal"] * 279
+    """The label mix comes from the receipt's own pool, not from a count typed here.
+
+    It was typed, as 464 and 279. Restricting the pool to the observations the dataset
+    manifest stores moved it to 462 and 277, and the typed version failed on the fourth
+    decimal of a chance level rather than on anything about the study. A count written
+    beside a corpus that can change is a count that will disagree with it.
+    """
+    pool = receipt["candidate_pool"]["labels"]
+    labels = ["with-signal"] * pool["with-signal"] + ["without-signal"] * pool["without-signal"]
+    assert len(labels) == receipt["candidate_pool"]["observations"]
     expected = chance_level(labels)
     assert round(expected, 4) == receipt["conditions"]["warm"]["chance_level"]
     measured = receipt["conditions"]["warm"]["arms"]["random"]["agreement_at_k"]

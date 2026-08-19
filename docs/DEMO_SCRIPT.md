@@ -64,7 +64,7 @@ is the product, and the verdict follows it because the verdict is the point.
 
 **On screen.** The kill gate table, whole, with the three inconclusive rows in view.
 
-**Says.** Six gates were set before any of this was built, and this is the part most demos cut. The interval on that lift runs from 1.35 to 1.75, which straddles the threshold, so it reads NOT_ESTABLISHED rather than passed. The corridor gate has only 3 testable observations, all three discriminate, and three of three still bound the rate at 0.368 against a 0.70 bar. Retrieval over similar passes beats chance until you forbid the query's own ground station, and then the margin is 0.0342 with an interval that spans zero.
+**Says.** Six gates were set before any of this was built, and this is the part most demos cut. The interval on that lift runs from 1.35 to 1.75, which straddles the threshold, so it reads NOT_ESTABLISHED rather than passed. The corridor gate has only 3 testable observations, all three discriminate, and three of three still bound the rate at 0.368 against a 0.70 bar. Retrieval over similar passes beats chance until you forbid the query's own ground station, and then the margin is 0.0398 with an interval that spans zero.
 
 **Numbers from.** `artifacts/QUEUE_RECEIPT.json, artifacts/GATE3_RECEIPT.json, artifacts/PRECEDENT_RECEIPT.json`
 
@@ -83,9 +83,10 @@ is the product, and the verdict follows it because the verdict is the point.
 - No feature tour. One flow, start to finish, is the constraint.
 - No claim that is not in `docs/CLAIM_REGISTER.md`. The video is public and
   unversioned, so a number in it cannot be corrected later.
-- No passed gate that is not passed. Shot 3 gives the inconclusive verdict sixteen
-  seconds, early, before the product is shown, because a demo that hides it and a
-  console that publishes it are not the same submission.
+- No passed gate that is not passed. Shot 6 gives the inconclusive verdicts twenty-eight
+  seconds, straight after the product in shot 5, because a demo that hides them and a
+  console that publishes them are not the same submission. The first cut put them before
+  the product and it read as a project that had not worked.
 
 ## Recording notes
 
@@ -93,9 +94,8 @@ is the product, and the verdict follows it because the verdict is the point.
   server, so what is recorded is what a judge opens.
 - The plate's reveal is CSS `stroke-dashoffset` against `pathLength=1` and costs no
   client JavaScript, so it replays on reload rather than needing a scripted trigger.
-- Shot 4 needs the scrub handle moved by hand at a readable speed. The instruments
-  are driven by one time value, so a fast drag reads as a glitch rather than as
-  agreement.
+- Shot 3 needs the scrub handle moved by hand at a readable speed. The instruments are
+  driven by one time value, so a fast drag reads as a glitch rather than as agreement.
 - Record at the width the console was measured at. The queue table hides columns
   below the breakpoint, and four Playwright failures in D0c were tests clicking
   controls that were hidden at the width they ran at.

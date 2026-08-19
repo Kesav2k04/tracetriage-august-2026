@@ -101,12 +101,26 @@ def test_every_path_the_page_cites_exists_and_is_published(page: str):
         and ("/" in token or token.endswith(suffixes))
     }
     assert len(candidates) >= 10, f"the extractor found {len(candidates)} paths, so it broke"
-    missing = sorted(c for c in candidates if not (REPO / c).exists())
-    unpublished = sorted(
-        c for c in candidates if (REPO / c).exists() and not _tracked(REPO / c)
-    )
+
+    # A pytest node id is a path plus a selector. Splitting on `::` rather than excluding
+    # the token, because the file half is still a path claim and the selector half is a
+    # claim of its own: the page names a specific test, and a reader who runs it and gets
+    # "no tests ran" has been sent somewhere as surely as by a missing file.
+    files = {c.split("::", 1)[0] for c in candidates}
+    nodes = {c for c in candidates if "::" in c}
+    missing = sorted(c for c in files if not (REPO / c).exists())
+    unpublished = sorted(c for c in files if (REPO / c).exists() and not _tracked(REPO / c))
     assert not missing, f"the page cites paths that do not exist: {missing}"
     assert not unpublished, f"the page cites paths git does not publish: {unpublished}"
+
+    unfound = []
+    for node in sorted(nodes):
+        rel, selector = node.split("::", 1)
+        name = selector.split("::")[-1].split("[", 1)[0]
+        body = (REPO / rel).read_text(encoding="utf-8")
+        if f"def {name}(" not in body and f"class {name}" not in body:
+            unfound.append(node)
+    assert not unfound, f"the page names tests that are not in the files it names: {unfound}"
 
 
 def test_the_test_count_is_the_one_a_judge_can_reproduce(page: str):

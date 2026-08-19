@@ -18,7 +18,7 @@ is read from the receipts by the console rather than typed here.
 
 | Question | Command | What it prints |
 |---|---|---|
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1208 passed, 36 skipped, measured in a clean clone with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1 failed, 1208 passed, 36 skipped, measured in a clean clone with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 11 emitted, 14 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake and 5 read-only tools, one of which is the grounding checker |
@@ -28,6 +28,12 @@ is read from the receipts by the console rather than typed here.
 this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest options include
 `-q`, so a second `-q` suppresses the summary line: that is worth knowing before reading a
 run as having collected nothing.
+
+The first row prints a failure, and it is named here rather than left in the transcript:
+`tests/test_reference_sync.py::test_the_committed_page_is_what_the_tree_produces`. The
+transcript is the record of commit `79243ea` and of nothing later, so what this page can
+honestly say about the current tip is only that the command in the table is the way to see
+it. A run of that command on a fresh clone of this commit reproduces the count exactly.
 
 The agent layer is measured against a control rather than demonstrated.
 `scripts/run_agent_study.py` puts 24 questions to the same local model twice, once with
@@ -175,7 +181,7 @@ failed and not that it passed.
   no rate because there is nothing to compute one from.
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
-- **Similarity stops carrying the outcome once the station is excluded.** Retrieval over 743 labelled passes agrees with the query's own label 0.6175 of the time when a neighbour may come from the same ground station, against a chance level of 0.5314, and the adjusted interval [0.0368, 0.1437] clears zero. Forbidding the query's own station and satellite drops it to 0.5610 against 0.5268, and the adjusted interval [-0.0249, 0.1141] does not. `artifacts/PRECEDENT_RECEIPT.json` carries both conditions and the console shows them in one table.
+- **Similarity stops carrying the outcome once the station is excluded.** Retrieval over 739 labelled passes agrees with the query's own label 0.6181 of the time when a neighbour may come from the same ground station, against a random arm measuring 0.5302 on the same pool, and the adjusted interval [0.0343, 0.1546] clears zero. Forbidding the query's own station and satellite drops it to 0.5608 against the random arm's 0.5210, and the adjusted interval [-0.0139, 0.1115] does not. `artifacts/PRECEDENT_RECEIPT.json` carries both conditions and the console shows them in one table.
 
 ## How IBM Bob was used
 

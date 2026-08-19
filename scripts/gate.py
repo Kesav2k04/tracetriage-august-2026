@@ -158,6 +158,19 @@ def main() -> int:
         )
     )
 
+    # The circularity bound is computed from QUEUE_RECEIPT.json alone, so it goes stale the
+    # moment the queue is re-run. It is the one analysis in the repository whose whole value
+    # is that it describes the same measurement the gate reports, and a stale copy would
+    # describe a different one under the same heading.
+    rc, out = run([str(PY), str(REPO / "scripts" / "run_circularity_check.py"), "--check"])
+    results.append(
+        check(
+            "circularity bound matches the queue receipt",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
     # Artifact freshness. Every other check here can pass while a committed artifact
     # disagrees with the code that produced it, which is exactly what happened in D0:
     # LEAKAGE_AUDIT.json kept a PASS the builder could no longer emit, and a test was

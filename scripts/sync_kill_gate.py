@@ -50,18 +50,37 @@ GATE6_CLOSER = "Receipt: `artifacts/QUEUE_RECEIPT.json`."
 # probes before the snapshot existed and their evidence is the prose below the table;
 # gate 4 was never run. They are literals here, and that is stated rather than hidden,
 # because a literal that looks generated is worse than one that admits it is typed.
+#: What each gate was asked, and the threshold it was asked against, both fixed before
+#: any of them was measured. Named here rather than inside the row strings because
+#: `scripts/sync_readme_results.py` prints the same six gates in the README and a second
+#: copy of a threshold is a second thing to keep in step.
+TITLES: dict[int, str] = {
+    1: "Dataset volume and entity spread",
+    2: "Metadata coverage for the corridor",
+    3: "Corridor intersects a visible trace",
+    4: "Blinded human decidability",
+    5: "Physics beats image-only on Brier",
+    6: "Queue lift over random",
+}
+
+THRESHOLDS: dict[int, str] = {
+    1: "≥2,000 mature waterfalls, ≥12 transmitters, ≥30 stations",
+    2: "≥80% of the sample computable",
+    3: "≥70% of reviewed positives",
+    4: "≥80% of a balanced sample decidable",
+    5: "strict improvement, chronological split",
+    6: "≥1.5x actionable conflicts at equal budget",
+}
+
 _STATIC_ROWS = {
     1: (
-        "| 1 | Dataset volume and entity spread | ≥2,000 mature waterfalls, "
-        "≥12 transmitters, ≥30 stations | **PRE-PASSED on feasibility** |"
+        f"| 1 | {TITLES[1]} | {THRESHOLDS[1]} | **PRE-PASSED on feasibility** |"
     ),
     2: (
-        "| 2 | Metadata coverage for the corridor | ≥80% of the sample "
-        "computable | **PRE-PASSED** |"
+        f"| 2 | {TITLES[2]} | {THRESHOLDS[2]} | **PRE-PASSED** |"
     ),
     4: (
-        "| 4 | Blinded human decidability | ≥80% of a balanced sample decidable "
-        "| **OPEN** |"
+        f"| 4 | {TITLES[4]} | {THRESHOLDS[4]} | **OPEN** |"
     ),
 }
 
@@ -96,7 +115,7 @@ def _n_nulls(g3: dict) -> int:
 def _gate3_row(g3: dict) -> str:
     grouping = g3["entity_grouping"]
     return (
-        "| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives "
+        f"| 3 | {TITLES[3]} | {THRESHOLDS[3]} "
         f"| **{g3['verdict']}. {_n_discriminating(g3)}/"
         f"{g3['observations_scored']} testable discriminate "
         f"({g3['discriminating_rate'] * 100:.0f}%), but the exact one-sided 95% lower "
@@ -156,8 +175,8 @@ def _narrow_arm_clause(brier: dict | None, aurc: dict | None) -> str:
 
 def _gate5_row(g5: dict, brier: dict | None, aurc: dict | None) -> str:
     return (
-        "| 5 | Physics beats image-only on Brier | strict improvement, chronological "
-        f"split | **NOT ESTABLISHED. Margin +{g5['margin']:.5f}, 95% CI "
+        f"| 5 | {TITLES[5]} | {THRESHOLDS[5]} "
+        f"| **NOT ESTABLISHED. Margin +{g5['margin']:.5f}, 95% CI "
         f"{g5['ci95'][0]:+.5f} to {g5['ci95'][1]:+.5f} on {g5['n_observations']} test "
         f"observations across {g5['n_groups']} episodes, on the union of the "
         "episode-grouped and station-clustered intervals. "
@@ -168,8 +187,8 @@ def _gate5_row(g5: dict, brier: dict | None, aurc: dict | None) -> str:
 def _gate6_row(chron: dict, station: dict, decisive: int) -> str:
     ci = chron["lift_ci95"]
     return (
-        "| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal "
-        f"budget | **NOT_ESTABLISHED. Point lift {chron['lift_point']:.3f}×, 95% "
+        f"| 6 | {TITLES[6]} | {THRESHOLDS[6]} "
+        f"| **NOT_ESTABLISHED. Point lift {chron['lift_point']:.3f}×, 95% "
         f"CI [{ci[0]:.3f}, {ci[1]:.3f}] on {decisive} decisive test observations "
         f"across {chron['n_groups']} episodes (chronological split, budget "
         f"{chron['n_queue_examined']}). The interval contains the 1.5× threshold; "

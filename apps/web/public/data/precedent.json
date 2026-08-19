@@ -21,139 +21,139 @@
  "vector_index": {
   "backend": "chromadb 1.5.9, cosine, in memory",
   "recall_at_k_against_exact_search": {
-   "warm": 0.9989,
-   "cold": 0.9989
+   "warm": 0.9978,
+   "cold": 0.9997
   },
   "queries_compared": {
-   "warm": 743,
-   "cold": 743
+   "warm": 739,
+   "cold": 739
   },
   "reading": "The share of the exact top-5 that the index also returned, per query, averaged. The cold condition is answered by a metadata filter on station and satellite inside the index rather than by filtering afterwards, so this also checks that the filter and the exclusion rule agree."
  },
  "candidate_pool": {
-  "observations": 743,
+  "observations": 739,
   "labels": {
-   "with-signal": 464,
-   "without-signal": 279
+   "with-signal": 462,
+   "without-signal": 277
   },
-  "stations": 117,
+  "stations": 116,
   "satellites": 295
  },
  "conditions": {
   "warm": {
    "arms": {
     "granite_text": {
-     "queries_scored": 743,
+     "queries_scored": 739,
      "queries_undefined": 0,
-     "agreement_at_k": 0.6175,
+     "agreement_at_k": 0.6181,
      "neighbours_per_query": 5
     },
     "numeric_knn": {
-     "queries_scored": 743,
+     "queries_scored": 739,
      "queries_undefined": 0,
-     "agreement_at_k": 0.5933,
+     "agreement_at_k": 0.5922,
      "neighbours_per_query": 5
     },
     "same_station": {
-     "queries_scored": 686,
+     "queries_scored": 682,
      "queries_undefined": 57,
-     "agreement_at_k": 0.6028,
+     "agreement_at_k": 0.6052,
      "neighbours_per_query": 5
     },
     "random": {
-     "queries_scored": 743,
+     "queries_scored": 739,
      "queries_undefined": 0,
-     "agreement_at_k": 0.5314,
+     "agreement_at_k": 0.5302,
      "neighbours_per_query": 5
     }
    },
-   "chance_level": 0.531,
+   "chance_level": 0.5313,
    "comparisons": {
     "granite_text_vs_random": {
      "measurable": true,
-     "queries": 743,
-     "challenger_agreement": 0.6175,
-     "reference_agreement": 0.5314,
-     "margin": 0.0861,
+     "queries": 739,
+     "challenger_agreement": 0.6181,
+     "reference_agreement": 0.5302,
+     "margin": 0.088,
      "ci95": [
-      0.0494,
-      0.1255
+      0.0465,
+      0.1344
      ],
      "ci_adjusted": [
-      0.0368,
-      0.1437
+      0.0343,
+      0.1546
      ],
      "adjusted_confidence": 0.9929,
      "n_comparisons": 7,
      "survives_correction": true,
-     "n_groups": 117,
-     "n_observations": 743,
+     "n_groups": 116,
+     "n_observations": 739,
      "degenerate_resamples": 0,
      "direction": "challenger_better"
     },
     "numeric_knn_vs_random": {
      "measurable": true,
-     "queries": 743,
-     "challenger_agreement": 0.5933,
-     "reference_agreement": 0.5314,
-     "margin": 0.0619,
+     "queries": 739,
+     "challenger_agreement": 0.5922,
+     "reference_agreement": 0.5302,
+     "margin": 0.062,
      "ci95": [
-      0.0339,
-      0.0969
+      0.0279,
+      0.1046
      ],
      "ci_adjusted": [
-      0.0254,
-      0.1124
+      0.0187,
+      0.1209
      ],
      "adjusted_confidence": 0.9929,
      "n_comparisons": 7,
      "survives_correction": true,
-     "n_groups": 117,
-     "n_observations": 743,
+     "n_groups": 116,
+     "n_observations": 739,
      "degenerate_resamples": 0,
      "direction": "challenger_better"
     },
     "same_station_vs_random": {
      "measurable": true,
-     "queries": 686,
-     "challenger_agreement": 0.6028,
-     "reference_agreement": 0.5312,
-     "margin": 0.0716,
+     "queries": 682,
+     "challenger_agreement": 0.6052,
+     "reference_agreement": 0.5252,
+     "margin": 0.08,
      "ci95": [
-      0.0281,
-      0.1222
+      0.029,
+      0.1409
      ],
      "ci_adjusted": [
-      0.0121,
-      0.1436
+      0.0124,
+      0.1648
      ],
      "adjusted_confidence": 0.9929,
      "n_comparisons": 7,
      "survives_correction": true,
-     "n_groups": 60,
-     "n_observations": 686,
+     "n_groups": 59,
+     "n_observations": 682,
      "degenerate_resamples": 0,
      "direction": "challenger_better"
     },
     "granite_text_vs_numeric_knn": {
      "measurable": true,
-     "queries": 743,
-     "challenger_agreement": 0.6175,
-     "reference_agreement": 0.5933,
-     "margin": 0.0242,
+     "queries": 739,
+     "challenger_agreement": 0.6181,
+     "reference_agreement": 0.5922,
+     "margin": 0.026,
      "ci95": [
-      -0.0057,
-      0.0535
+      -0.0044,
+      0.0557
      ],
      "ci_adjusted": [
-      -0.0181,
-      0.0655
+      -0.0164,
+      0.0653
      ],
      "adjusted_confidence": 0.9929,
      "n_comparisons": 7,
      "survives_correction": false,
-     "n_groups": 117,
-     "n_observations": 743,
+     "n_groups": 116,
+     "n_observations": 739,
      "degenerate_resamples": 0,
      "direction": "indistinguishable"
     }
@@ -162,96 +162,96 @@
   "cold": {
    "arms": {
     "granite_text": {
-     "queries_scored": 743,
+     "queries_scored": 739,
      "queries_undefined": 0,
-     "agreement_at_k": 0.561,
+     "agreement_at_k": 0.5608,
      "neighbours_per_query": 5
     },
     "numeric_knn": {
-     "queries_scored": 743,
+     "queries_scored": 739,
      "queries_undefined": 0,
-     "agreement_at_k": 0.5483,
+     "agreement_at_k": 0.5467,
      "neighbours_per_query": 5
     },
     "same_station": {
      "queries_scored": 0,
-     "queries_undefined": 743,
+     "queries_undefined": 739,
      "agreement_at_k": null,
      "neighbours_per_query": 5,
      "not_applicable": "The cold condition excludes candidates from the query's own station, so this arm has no definition here. Reported as null rather than as zero agreement, which would be a measurement nobody made."
     },
     "random": {
-     "queries_scored": 743,
+     "queries_scored": 739,
      "queries_undefined": 0,
-     "agreement_at_k": 0.5268,
+     "agreement_at_k": 0.521,
      "neighbours_per_query": 5
     }
    },
-   "chance_level": 0.531,
+   "chance_level": 0.5313,
    "comparisons": {
     "granite_text_vs_random": {
      "measurable": true,
-     "queries": 743,
-     "challenger_agreement": 0.561,
-     "reference_agreement": 0.5268,
-     "margin": 0.0342,
+     "queries": 739,
+     "challenger_agreement": 0.5608,
+     "reference_agreement": 0.521,
+     "margin": 0.0398,
      "ci95": [
-      -0.0113,
-      0.09
+      -0.0024,
+      0.0911
      ],
      "ci_adjusted": [
-      -0.0249,
-      0.1141
+      -0.0139,
+      0.1115
      ],
      "adjusted_confidence": 0.9929,
      "n_comparisons": 7,
      "survives_correction": false,
-     "n_groups": 117,
-     "n_observations": 743,
+     "n_groups": 116,
+     "n_observations": 739,
      "degenerate_resamples": 0,
      "direction": "indistinguishable"
     },
     "numeric_knn_vs_random": {
      "measurable": true,
-     "queries": 743,
-     "challenger_agreement": 0.5483,
-     "reference_agreement": 0.5268,
-     "margin": 0.0215,
+     "queries": 739,
+     "challenger_agreement": 0.5467,
+     "reference_agreement": 0.521,
+     "margin": 0.0257,
      "ci95": [
-      -0.0075,
-      0.0555
+      0.0029,
+      0.0507
      ],
      "ci_adjusted": [
-      -0.0163,
-      0.0705
+      -0.0058,
+      0.0606
      ],
      "adjusted_confidence": 0.9929,
      "n_comparisons": 7,
      "survives_correction": false,
-     "n_groups": 117,
-     "n_observations": 743,
+     "n_groups": 116,
+     "n_observations": 739,
      "degenerate_resamples": 0,
-     "direction": "indistinguishable"
+     "direction": "challenger_better"
     },
     "granite_text_vs_numeric_knn": {
      "measurable": true,
-     "queries": 743,
-     "challenger_agreement": 0.561,
-     "reference_agreement": 0.5483,
-     "margin": 0.0127,
+     "queries": 739,
+     "challenger_agreement": 0.5608,
+     "reference_agreement": 0.5467,
+     "margin": 0.0141,
      "ci95": [
-      -0.0301,
-      0.0552
+      -0.0303,
+      0.0583
      ],
      "ci_adjusted": [
-      -0.0455,
-      0.0732
+      -0.0435,
+      0.0762
      ],
      "adjusted_confidence": 0.9929,
      "n_comparisons": 7,
      "survives_correction": false,
-     "n_groups": 117,
-     "n_observations": 743,
+     "n_groups": 116,
+     "n_observations": 739,
      "degenerate_resamples": 0,
      "direction": "indistinguishable"
     }
@@ -318,13 +318,6 @@
      "start": "2026-08-09T23:42:17Z"
     },
     {
-     "obs_id": 14729651,
-     "label": "without-signal",
-     "station": 4923,
-     "satellite": 67683,
-     "start": "2026-08-09T14:28:17Z"
-    },
-    {
      "obs_id": 14736394,
      "label": "with-signal",
      "station": 4743,
@@ -337,6 +330,13 @@
      "station": 4702,
      "satellite": 69015,
      "start": "2026-08-09T22:08:24Z"
+    },
+    {
+     "obs_id": 14736480,
+     "label": "without-signal",
+     "station": 5017,
+     "satellite": 67683,
+     "start": "2026-08-09T21:13:00Z"
     }
    ]
   },
@@ -850,13 +850,6 @@
      "start": "2026-08-09T23:28:19Z"
     },
     {
-     "obs_id": 14743817,
-     "label": "with-signal",
-     "station": 4655,
-     "satellite": 40908,
-     "start": "2026-08-09T14:29:33Z"
-    },
-    {
      "obs_id": 14742958,
      "label": "with-signal",
      "station": 5078,
@@ -869,6 +862,13 @@
      "station": 4702,
      "satellite": 69015,
      "start": "2026-08-09T23:42:17Z"
+    },
+    {
+     "obs_id": 14737498,
+     "label": "with-signal",
+     "station": 4702,
+     "satellite": 69015,
+     "start": "2026-08-09T22:08:24Z"
     }
    ]
   },
@@ -2167,5 +2167,5 @@
  },
  "observations_without_neighbours": [],
  "why_some_have_none": "A shipped observation only has neighbours here if the snapshot gave it a decisive network label, because the study measures agreement with that label and an unknown one cannot be agreed with. The ids are listed rather than dropped.",
- "receipt_sha256": "2022347ed3180ee29cff0cc994c29c4a02c039c859f23af79d69f84d8d71b362"
+ "receipt_sha256": "41cd9c755ef3b36dbe48fa924d3d9723d99ed48915dc440518fcec38c77e371d"
 }

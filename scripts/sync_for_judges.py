@@ -67,11 +67,16 @@ PRECEDENT_BULLET = (
     "- **Similarity stops carrying the outcome once the station is excluded.** Retrieval "
     f"over {precedent['candidate_pool']['observations']} labelled passes agrees with the "
     f"query's own label {_PRE_WARM['challenger_agreement']:.4f} of the time when a "
-    f"neighbour may come from the same ground station, against a chance level of "
-    f"{_PRE_WARM['reference_agreement']:.4f}, and the adjusted interval "
+    # "chance level" was the wrong name for this number. The receipt carries both: a
+    # chance level derived from the label mix, and the random arm's measured agreement.
+    # This is the second, which is what the margin is computed against, and calling it the
+    # first put a 0.5302 where a 0.5313 belonged in the one document a judge is certain to
+    # read.
+    f"neighbour may come from the same ground station, against a random arm measuring "
+    f"{_PRE_WARM['reference_agreement']:.4f} on the same pool, and the adjusted interval "
     f"[{_PRE_WARM['ci_adjusted'][0]:.4f}, {_PRE_WARM['ci_adjusted'][1]:.4f}] clears zero. "
     f"Forbidding the query's own station and satellite drops it to "
-    f"{_PRE_COLD['challenger_agreement']:.4f} against "
+    f"{_PRE_COLD['challenger_agreement']:.4f} against the random arm's "
     f"{_PRE_COLD['reference_agreement']:.4f}, and the adjusted interval "
     f"[{_PRE_COLD['ci_adjusted'][0]:.4f}, {_PRE_COLD['ci_adjusted'][1]:.4f}] does not. "
     "`artifacts/PRECEDENT_RECEIPT.json` carries both conditions and the console shows "
@@ -145,6 +150,24 @@ model = explain["model"]
 _pytest = clone["suite_with_and_without_the_snapshot"]["without"] or {}
 N_PASSED = _pytest.get("passed")
 N_SKIPPED = _pytest.get("skipped")
+N_FAILED = _pytest.get("failed")
+
+
+def _failed_test_names() -> list[str]:
+    """The node ids pytest printed, read back out of the step this row quotes.
+
+    A row that prints passed and skipped and drops failed would be a summary that cannot
+    report the one outcome a reader cares about most. The names come from the transcript's
+    own output tail rather than from a list kept here, so a different failure renames itself.
+    """
+    for step in clone["steps"]:
+        if step.get("step", "").startswith("offline test suite, snapshot HIDDEN"):
+            return [
+                line.split()[1]
+                for line in step.get("output_tail", [])
+                if line.startswith("FAILED ") and len(line.split()) > 1
+            ]
+    return []
 CLONE_TOTAL = clone["summary"]["steps_run"]
 CLONE_FAILED = len(clone["summary"]["steps_failed"])
 CLONE_OK = CLONE_TOTAL - CLONE_FAILED
@@ -197,11 +220,26 @@ else:
         "cold-start install and is stated here rather than left to be inferred."
     )
 
-if N_PASSED is None or N_SKIPPED is None:
+if N_PASSED is None or N_SKIPPED is None or N_FAILED is None:
     raise SystemExit(
         "the clean-clone transcript carries no parsed pytest count for the hidden-snapshot "
         f"pass ({_pytest}), so the number of tests cannot be quoted from it. Re-run "
         "scripts/clean_clone_check.py."
+    )
+
+# Failures are named first, before the passes, because that is the order a reader who is
+# checking rather than skimming reads them in.
+SUITE_RESULT = (
+    f"{N_FAILED} failed, {N_PASSED} passed, {N_SKIPPED} skipped"
+    if N_FAILED
+    else f"{N_PASSED} passed, {N_SKIPPED} skipped, none failed"
+)
+_FAILED_NAMES = _failed_test_names()
+if N_FAILED and not _FAILED_NAMES:
+    raise SystemExit(
+        f"the clean-clone transcript counts {N_FAILED} failed test(s) in the hidden-snapshot "
+        "pass and its output tail names none of them, so this page cannot say which failed. "
+        "Re-run scripts/clean_clone_check.py."
     )
 
 
@@ -265,8 +303,7 @@ CHECKS: list[tuple[str, ...]] = [
     (
         "Do the tests pass offline?",
         '`pytest -m "not network and not ocr and not llm" -q`',
-        f"{N_PASSED} passed, {N_SKIPPED} skipped, measured in a clean clone with "
-        f"every non-loopback socket refused",
+        f"{SUITE_RESULT}, measured in a clean clone with every non-loopback socket refused",
     ),
     (
         "Do the tools change what the agent gets right?",
@@ -372,6 +409,22 @@ GATE4_PARA = _para(
     bounds gate 3 reads. `artifacts/GATE4_RECEIPT.json` currently says `{gate4["verdict"]}`,
     with no rate in it, because nobody has filled the form in. That is a person's afternoon
     rather than a code change, and it is reported as OPEN rather than estimated."""
+)
+
+SUITE_FAILURE_PARA = (
+    _para(
+        f"""The first row prints a failure, and it is named here rather than left in the
+        transcript: {", ".join(f"`{name}`" for name in _FAILED_NAMES)}. The transcript is the
+        record of commit `{CLONE_COMMIT}` and of nothing later, so what this page can honestly
+        say about the current tip is only that the command in the table is the way to see it.
+        A run of that command on a fresh clone of this commit reproduces the count exactly."""
+    )
+    if N_FAILED
+    else _para(
+        """No test failed in that run. The count is published with its zero rather than as a
+        pass, because a summary that prints only what went right cannot be read as a summary of
+        what happened."""
+    )
 )
 
 CLONE_PARA = _para(
@@ -517,6 +570,8 @@ this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest optio
 `-q`, so a second `-q` suppresses the summary line: that is worth knowing before reading a
 run as having collected nothing.
 
+{SUITE_FAILURE_PARA}
+
 {AGENT_PARA}
 
 {CLONE_PARA}
@@ -632,7 +687,7 @@ def main(argv: list[str] | None = None) -> int:
     OUT.write_text(PAGE, encoding="utf-8")
     print(f"FOR_JUDGES.md written: {len(PAGE.splitlines())} lines")
     print(f"  gates {N_MET}/{N_GATES} met, {N_INCONCLUSIVE} inconclusive, {N_OPEN} open")
-    print(f"  offline suite {N_PASSED} passed, {N_SKIPPED} skipped, from the clean clone")
+    print(f"  offline suite {SUITE_RESULT}, from the clean clone")
     print(f"  notes {counts['emitted']} emitted, {counts['refused']} refused")
     return 0
 

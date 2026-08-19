@@ -632,7 +632,11 @@ code,
   font-family: var(--font-sans);
   font-weight: 600;
   font-variant-numeric: tabular-nums lining-nums;
-  font-size: var(--type-display-03);
+  /* One step down from --type-display-03. The figure was set for a single hero
+     number; two of them at that size put the headline below the fold at 1280 by
+     140px, measured. This clamp keeps the pair on the first screen and still sets
+     them larger than any heading on the page. */
+  font-size: clamp(3rem, 6.5vw, 5.25rem);
   line-height: 0.82;
   letter-spacing: -0.03em;
   color: var(--text-01);
@@ -654,6 +658,51 @@ code,
   letter-spacing: 0;
   color: var(--text-03);
   margin-left: 0.15em;
+}
+
+/* The product line, above the figures. A judge who lands here and reads one line
+   should know what the thing is and where to click. It sits above the numbers
+   because the numbers are the measurement of a product the reader has not been
+   told about yet. */
+.lede-product {
+  margin: var(--sp-04) 0 0;
+  max-width: 58ch;
+  color: var(--text-02);
+  font-size: var(--type-body-long);
+  line-height: 1.6;
+}
+
+/* Two verdicts, one size. Stacked on narrow viewports and stacked again inside the
+   figure column at width, so the pair reads top to bottom in the order they should
+   be weighed rather than left to right by whichever is larger. */
+.lede-verdicts {
+  display: grid;
+  gap: var(--sp-06);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lede-verdict {
+  border-left: 2px solid var(--border-strong);
+  padding-left: var(--sp-05);
+}
+
+.lede-verdict-label {
+  margin: 0 0 var(--sp-04);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  font-family: var(--font-label);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-02);
+}
+
+.lede-verdict-label span {
+  display: block;
+  margin-top: var(--sp-02);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-03);
 }
 
 .lede-headline {

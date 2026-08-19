@@ -71,10 +71,41 @@ N_COMPARISONS = 7
 SEED = 11
 
 
+MANIFEST = REPO / "artifacts" / "DATASET_MANIFEST.json"
+
+
 def _load_snapshot(snapshot: Path) -> list[dict[str, Any]]:
+    """The API rows for the observations the dataset actually stores.
+
+    The pages on disk hold more rows than the dataset does. The ingest fetched whole pages
+    and stopped at its 2,500-waterfall target part-way through the last one, so the final
+    page was written complete and 23 of its rows were never stored. Reading the pages
+    unfiltered put 4 extra decisive observations into this study's pool, and the submission
+    ended up quoting 743 labelled passes here beside 739 everywhere else: two populations,
+    one corpus, and no sentence anywhere saying which was which.
+
+    Filtering against the manifest rather than adjusting the sentence, because every other
+    number in this repository is over the stored dataset and a study on a different
+    population is not comparable with them even when the difference is small.
+    """
+    stored = {
+        int(obs["id"])
+        for obs in json.loads(MANIFEST.read_text(encoding="utf-8"))["observations"]
+        if "id" in obs
+    }
     rows: list[dict[str, Any]] = []
+    on_disk = 0
     for page in sorted((snapshot / "pages").glob("*.json")):
-        rows.extend(json.loads(page.read_text(encoding="utf-8")))
+        for row in json.loads(page.read_text(encoding="utf-8")):
+            on_disk += 1
+            if isinstance(row, dict) and int(row.get("id", -1)) in stored:
+                rows.append(row)
+    if len(rows) != len(stored):
+        raise SystemExit(
+            f"{MANIFEST.name} records {len(stored)} observations and the snapshot pages "
+            f"carry {len(rows)} of them, out of {on_disk} rows on disk. The pool would not "
+            "be the corpus the rest of this repository measures."
+        )
     return rows
 
 

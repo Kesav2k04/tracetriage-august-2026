@@ -105,15 +105,29 @@ def _geometry_of(image_path: Path, obs_id: int, rx_freq_hz: float | None, durati
 
 
 def _axis_sign_scope(snapshot_dir: Path) -> dict[str, Any]:
-    """Census the client families in the snapshot the gate draws from.
+    """Census the client families across the dataset the gate draws from.
 
     SPACE-S5: AXIS_SIGN_CONVENTION is a property of the renderer, measured on 3
     observations from 2 client families. This counts how much of the corpus those 2
     families actually cover, so the reach of the assumption is a published number
     rather than a sentence. Nothing here changes a verdict; it is scope.
+
+    The corpus is the one `artifacts/DATASET_MANIFEST.json` records, not every row on
+    disk. The two differ, and the first version of this census counted the rows: the API
+    pages hold 2,750 observations and the dataset holds 2,727, because the ingest stopped
+    at its 2,500-waterfall target part-way through the last page it had already written
+    whole. So the README quoted a denominator of 2,750 for a scope statement about a
+    corpus of 2,727, next to a demo script quoting 2,727 for the same corpus. Both counts
+    are published here with the difference named, because the honest fix for two numbers
+    that disagree is to say which is which, not to pick one.
     """
+    manifest_path = REPO_ROOT / "artifacts" / "DATASET_MANIFEST.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    in_the_dataset = {obs["id"] for obs in manifest["observations"] if "id" in obs}
+
     families: dict[str, int] = {}
     n = 0
+    rows_on_disk = 0
     pages_dir = snapshot_dir / "pages"
     for page_file in sorted(pages_dir.glob("*.json")):
         try:
@@ -124,15 +138,32 @@ def _axis_sign_scope(snapshot_dir: Path) -> dict[str, Any]:
         for obs in rows:
             if not isinstance(obs, dict) or "id" not in obs:
                 continue
+            rows_on_disk += 1
+            if obs["id"] not in in_the_dataset:
+                continue
             n += 1
             fam = client_family(obs)
             families[fam] = families.get(fam, 0) + 1
+    if n != len(in_the_dataset):
+        raise SystemExit(
+            f"the dataset manifest records {len(in_the_dataset)} observations and the "
+            f"snapshot pages carry {n} of them. The census would be computed over a "
+            "corpus that is not the one every other number in this repository is about."
+        )
     covered = sum(v for k, v in families.items() if k in AXIS_SIGN_MEASURED_FAMILIES)
     return {
         "axis_sign_applied": AXIS_SIGN_CONVENTION,
         "measured_families": sorted(AXIS_SIGN_MEASURED_FAMILIES),
         "measured_on_observations": 3,
         "observations_in_snapshot": n,
+        "rows_in_the_api_pages_on_disk": rows_on_disk,
+        "rows_on_disk_not_in_the_dataset": rows_on_disk - n,
+        "why_those_rows_are_not_in_the_dataset": (
+            "The ingest fetched whole API pages and stopped at its 2,500-waterfall "
+            "target part-way through the last one, so the final page was written to disk "
+            "complete and only part of it was stored. Every count in this repository is "
+            "over the stored dataset, which artifacts/DATASET_MANIFEST.json defines."
+        ),
         "distinct_families_in_snapshot": len(families),
         "observations_from_a_measured_family": covered,
         "observations_inheriting_the_constant": n - covered,

@@ -204,3 +204,54 @@ def test_a_number_moved_in_a_receipt_moves_the_script(demo) -> None:
     # And the reload against the restored file gives the committed page back, so this test
     # cannot leave the generator holding a mutated number for whatever runs next.
     assert _load_generator().render() == before
+
+
+def test_the_notes_name_the_shots_the_running_order_actually_has(demo, page: str) -> None:
+    """Two notes name a shot by number, and both were wrong for a session.
+
+    D12b moved the inconclusive verdicts from third to sixth so a judge would see the
+    product before the bound. The caveat bullet kept saying "Shot 3 gives the inconclusive
+    verdict sixteen seconds, early, before the product is shown", which by then described
+    neither the position nor the length nor the order. The recording note pointed the
+    scrub-handle instruction at the model shot for the same reason.
+
+    They are looked up now rather than typed. This checks the lookup lands where the shot
+    list says it does, so the next reorder either updates the notes or fails here.
+    """
+    caveat = demo._shot_where("does not establish")
+    product = demo._shot_where("queue reorder")
+    instruments = demo._shot_where("four instruments")
+
+    assert product["id"] < caveat["id"], (
+        "the caveat bullet claims the verdicts come straight after the product, and they "
+        "no longer do"
+    )
+    # The notes are wrapped, so a phrase can straddle a line break. Matching against the
+    # collapsed text asks about the sentence rather than about where the wrapper put it.
+    flat = " ".join(page.split())
+    assert (
+        f"Shot {caveat['id']} gives the inconclusive verdicts "
+        f"{demo._spell(caveat['seconds'])} seconds" in flat
+    )
+    assert f"straight after the product in shot {product['id']}" in flat
+    assert f"Shot {instruments['id']} needs the scrub handle" in flat
+
+    # And no note names a shot that does not exist.
+    ids = {s["id"] for s in demo.SHOTS}
+    for named in re.findall(r"[Ss]hot (\d+)", flat):
+        assert int(named) in ids, f"a note names shot {named}, which is not in the list"
+
+
+def test_a_reordered_shot_list_moves_the_notes(demo, monkeypatch) -> None:
+    """The property, checked by mutation rather than by reading the current output.
+
+    Swapping the product and caveat beats has to change what the notes say. If it does not,
+    the numbers are typed again and the D12b defect is back.
+    """
+    swapped = [dict(s) for s in demo.SHOTS]
+    product = next(i for i, s in enumerate(swapped) if "queue reorder" in s["beat"].lower())
+    swapped[product]["beat"] = "The product: the queue reorder, moved"
+    swapped[product]["id"] = 99
+    monkeypatch.setattr(demo, "SHOTS", swapped)
+    monkeypatch.setattr(demo, "_PRODUCT_SHOT", demo._shot_where("queue reorder"))
+    assert "straight after the product in shot 99" in " ".join(demo.render().split())

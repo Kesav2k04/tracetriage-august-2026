@@ -102,6 +102,11 @@
    "bytes": 9010
   },
   {
+   "name": "CIRCULARITY_RECEIPT.json",
+   "sha256": "cba1fd7c773074f8ca1f82ecad3fffa26de7afe5901c94048098d08038f29b8b",
+   "bytes": 5384
+  },
+  {
    "name": "CLEAN_CLONE_TRANSCRIPT.json",
    "sha256": "017c99dffd79da49ef9b335e5407f7333a5dbcb8c9c078d012495e00860b4760",
    "bytes": 17158
@@ -128,8 +133,8 @@
   },
   {
    "name": "GATE3_RECEIPT.json",
-   "sha256": "766543ffb36cd88fc755c3e89fbe9f9e08fc06e71bbb3a962ab56dce57d9dfe2",
-   "bytes": 52145
+   "sha256": "dd70269875cbb80f27684691fcdb08c4f149d2b5b091e12f0d66aae343445530",
+   "bytes": 52575
   },
   {
    "name": "GATE4_RECEIPT.json",
@@ -158,8 +163,8 @@
   },
   {
    "name": "PRECEDENT_RECEIPT.json",
-   "sha256": "2022347ed3180ee29cff0cc994c29c4a02c039c859f23af79d69f84d8d71b362",
-   "bytes": 7849
+   "sha256": "41cd9c755ef3b36dbe48fa924d3d9723d99ed48915dc440518fcec38c77e371d",
+   "bytes": 7846
   },
   {
    "name": "QUEUE_RECEIPT.json",

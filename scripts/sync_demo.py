@@ -28,6 +28,7 @@ import argparse
 import json
 import pathlib
 import sys
+import textwrap
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 ARTIFACTS = REPO / "artifacts"
@@ -213,6 +214,49 @@ SHOTS: list[dict] = [
 ]
 
 
+def _bullet(text: str) -> str:
+    """One list item, wrapped once. A bullet whose text depends on the shot list cannot be
+    hand-wrapped: the wrap goes ragged the first time a shot is renumbered."""
+    return textwrap.fill(text, width=88, initial_indent="- ", subsequent_indent="  ")
+
+
+def _shot_where(fragment: str) -> dict:
+    """The shot whose beat contains a phrase, or a refusal.
+
+    Two notes below name a shot by number. They were typed, the running order changed in
+    D12b, and both went silently wrong: the caveat bullet said shot 3 showed the
+    inconclusive verdict early when shot 6 shows it late, and the recording note pointed the
+    scrub instruction at the model shot. A number typed beside a list that can be reordered
+    is a number that will be wrong, so both are looked up.
+    """
+    found = [s for s in SHOTS if fragment in s["beat"].lower()]
+    if len(found) != 1:
+        raise SystemExit(
+            f"{len(found)} shots have {fragment!r} in their beat, and the notes name one. "
+            "Either the running order changed or two shots now describe the same thing."
+        )
+    return found[0]
+
+
+_NUMBER_WORDS = {
+    14: "fourteen",
+    16: "sixteen",
+    22: "twenty-two",
+    28: "twenty-eight",
+    30: "thirty",
+}
+
+
+def _spell(seconds: int) -> str:
+    """Seconds as a word in prose, as a digit when the word is not on hand."""
+    return _NUMBER_WORDS.get(seconds, str(seconds))
+
+
+_CAVEAT_SHOT = _shot_where("does not establish")
+_PRODUCT_SHOT = _shot_where("queue reorder")
+_INSTRUMENT_SHOT = _shot_where("four instruments")
+
+
 def budget() -> int:
     return sum(int(s["seconds"]) for s in SHOTS)
 
@@ -268,9 +312,13 @@ def render() -> str:
         "- No feature tour. One flow, start to finish, is the constraint.",
         "- No claim that is not in `docs/CLAIM_REGISTER.md`. The video is public and",
         "  unversioned, so a number in it cannot be corrected later.",
-        "- No passed gate that is not passed. Shot 3 gives the inconclusive verdict sixteen",
-        "  seconds, early, before the product is shown, because a demo that hides it and a",
-        "  console that publishes it are not the same submission.",
+        _bullet(
+            f"No passed gate that is not passed. Shot {_CAVEAT_SHOT['id']} gives the "
+            f"inconclusive verdicts {_spell(_CAVEAT_SHOT['seconds'])} seconds, straight "
+            f"after the product in shot {_PRODUCT_SHOT['id']}, because a demo that hides "
+            "them and a console that publishes them are not the same submission. The first "
+            "cut put them before the product and it read as a project that had not worked."
+        ),
         "",
         "## Recording notes",
         "",
@@ -278,9 +326,11 @@ def render() -> str:
         "  server, so what is recorded is what a judge opens.",
         "- The plate's reveal is CSS `stroke-dashoffset` against `pathLength=1` and costs no",
         "  client JavaScript, so it replays on reload rather than needing a scripted trigger.",
-        "- Shot 4 needs the scrub handle moved by hand at a readable speed. The instruments",
-        "  are driven by one time value, so a fast drag reads as a glitch rather than as",
-        "  agreement.",
+        _bullet(
+            f"Shot {_INSTRUMENT_SHOT['id']} needs the scrub handle moved by hand at a "
+            "readable speed. The instruments are driven by one time value, so a fast drag "
+            "reads as a glitch rather than as agreement."
+        ),
         "- Record at the width the console was measured at. The queue table hides columns",
         "  below the breakpoint, and four Playwright failures in D0c were tests clicking",
         "  controls that were hidden at the width they ran at.",

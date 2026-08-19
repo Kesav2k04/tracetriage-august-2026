@@ -30,6 +30,7 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 # evidence table. The insert makes the import work whichever directory it is run from.
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from build_console_data import build_gate_summary  # noqa: E402
+from sync_kill_gate import THRESHOLDS, TITLES  # noqa: E402
 
 fusion = json.loads((REPO / "artifacts/FUSION_RECEIPT.json").read_text(encoding="utf-8"))
 queue = json.loads((REPO / "artifacts/QUEUE_RECEIPT.json").read_text(encoding="utf-8"))
@@ -78,6 +79,38 @@ INTRO = textwrap.fill(
 
 FUSION_REF = "`artifacts/FUSION_RECEIPT.json`"
 QUEUE_REF = "`artifacts/QUEUE_RECEIPT.json`"
+
+
+CIRCULARITY_REF = "`artifacts/CIRCULARITY_RECEIPT.json`"
+
+_circ = json.loads(
+    (REPO / "artifacts/CIRCULARITY_RECEIPT.json").read_text(encoding="utf-8")
+)
+_ceiling = _circ["ceiling"]
+_shared = _circ["shared_signals"]
+_all_three = _circ["targets"]["all_three_criteria"]
+_model_free = _circ["targets"]["model_independent_only"]
+_model_only = _circ["targets"]["model_dependent_only"]
+_control = _circ["random_ordering_control"]
+
+PRECEDENT_REF = "`artifacts/PRECEDENT_RECEIPT.json`"
+
+# The two results the table did not carry. Both are findings against the project's own
+# preferred answer, and a results table that lists only the comparisons that went the
+# right way is a selection of the evidence rather than the evidence.
+_ablation = fusion["ablation_conclusion"]["shipped_arm_vs_recommendation"]
+_precedent = json.loads(
+    (REPO / "artifacts/PRECEDENT_RECEIPT.json").read_text(encoding="utf-8")
+)
+_knn_warm = _precedent["conditions"]["warm"]["comparisons"]["granite_text_vs_numeric_knn"]
+_knn_cold = _precedent["conditions"]["cold"]["comparisons"]["granite_text_vs_numeric_knn"]
+for _name, _comp in (("warm", _knn_warm), ("cold", _knn_cold)):
+    if not _comp.get("measurable"):
+        raise SystemExit(
+            f"the precedent receipt's {_name} head-to-head against the numeric baseline "
+            "is not measurable, so the README cannot quote its margin. "
+            f"Reason: {_comp.get('not_measurable_reason')}"
+        )
 
 
 def lift(name: str) -> str:
@@ -147,6 +180,30 @@ ROWS: list[tuple[str, str, str]] = [
         f"**NOT ESTABLISHED**. Margin +{g5['margin']:.5f}, interval spans zero",
         f"{FUSION_REF} gate5",
     ),
+    (
+        "Shipped ranker against what the ablation recommends",
+        f"They disagree. The queue ranks with `{_ablation['ships']}` and the corrected "
+        f"rule recommends `{_ablation['corrected_recommends']}`. The block without "
+        f"corrected support is "
+        f"{', '.join(f'`{b}`' for b in _ablation['shipped_blocks_without_corrected_support'])}"
+        f", kept because the same arm's risk-coverage margin is "
+        f"{_ablation['selective_evidence_for_the_shipped_arm']['margin']:+.5f} with a "
+        f"corrected interval of "
+        f"{_ablation['selective_evidence_for_the_shipped_arm']['ci_adjusted'][0]:+.5f} to "
+        f"{_ablation['selective_evidence_for_the_shipped_arm']['ci_adjusted'][1]:+.5f}, "
+        f"which does clear zero",
+        f"{FUSION_REF} ablation_conclusion",
+    ),
+    (
+        "Granite text embedding against seven standardised numbers",
+        f"Indistinguishable in both conditions. Warm margin {_knn_warm['margin']:+.4f}, "
+        f"adjusted interval [{_knn_warm['ci_adjusted'][0]:+.4f}, "
+        f"{_knn_warm['ci_adjusted'][1]:+.4f}]; cold margin {_knn_cold['margin']:+.4f}, "
+        f"[{_knn_cold['ci_adjusted'][0]:+.4f}, {_knn_cold['ci_adjusted'][1]:+.4f}]. Both "
+        f"span zero over {_knn_warm['queries']} queries resampled by "
+        f"{_knn_warm['n_groups']} ground stations",
+        PRECEDENT_REF,
+    ),
 ]
 
 TABLE = "\n".join(f"| {metric} | {value} | {ref} |" for metric, value, ref in ROWS)
@@ -172,6 +229,237 @@ UNMEASURED_TABLE = "\n".join(
     f"| {metric} | `[UNMEASURED]` | {why} |" for metric, why in UNMEASURED
 )
 
+# ---------------------------------------------------------------------------------
+# The status block at the top of the README.
+#
+# It was a 154-word blockquote. Every fact in it was true and a judge with a minute to
+# spend could not find any of them: the verdicts, the tally, the reason gate 3 was
+# downgraded and the description of how drift is caught were one paragraph. The two
+# feasibility gates were also counted in the same breath as the four that test whether
+# the idea works, which flatters the tally, because "two of six met" reads better than
+# "none of the four that matter, yet".
+# ---------------------------------------------------------------------------------
+
+_GATE_VERDICT = {g["gate"]: g["verdict"] for g in _summary["gates"]}
+
+_FEASIBILITY = (1, 2)
+_SUBSTANTIVE = (3, 4, 5, 6)
+
+_g3 = json.loads((REPO / "artifacts/GATE3_RECEIPT.json").read_text(encoding="utf-8"))
+_g4 = json.loads((REPO / "artifacts/GATE4_RECEIPT.json").read_text(encoding="utf-8"))
+_g3_scored = _g3["observations_scored"]
+_g3_discriminating = round(_g3["discriminating_rate"] * _g3_scored)
+
+#: One line per substantive gate saying what the measurement came back as. Short enough
+#: to read in a table cell; `docs/KILL_GATE.md` carries the same number with its
+#: qualifications, and the receipt carries the rest.
+_MEASURED = {
+    3: (
+        f"{_g3_discriminating} of {_g3_scored} testable observations discriminate, and "
+        f"the exact one-sided 95% lower bound on that rate is "
+        f"{_g3['rate_lower_bound_95']:.3f}"
+    ),
+    4: (
+        f"never run, so it carries no rate. The instrument exists: "
+        f"`scripts/build_gate4_worksheet.py` builds the blinded bundle and "
+        f"`artifacts/GATE4_RECEIPT.json` reads `{_g4['verdict']}`"
+    ),
+    5: (
+        f"margin {g5['margin']:+.5f} on the shipped arm, 95% CI {g5['ci95'][0]:+.5f} to "
+        f"{g5['ci95'][1]:+.5f}, which contains zero"
+    ),
+    6: (
+        f"{g6['chronological']['lift_point']:.3f}x, 95% CI "
+        f"[{g6['chronological']['lift_ci95'][0]:.3f}, "
+        f"{g6['chronological']['lift_ci95'][1]:.3f}], which contains the threshold. On "
+        f"the held-out cold-station split the same queue **PASSED** at "
+        f"{g6['cold_station']['lift_point']:.3f}x"
+    ),
+}
+
+_N_SUBSTANTIVE_PASSED = sum(
+    1 for n in _SUBSTANTIVE if _GATE_VERDICT[n] in {"PASSED", "PRE_PASSED"}
+)
+_N_SUBSTANTIVE_INCONCLUSIVE = sum(
+    1 for n in _SUBSTANTIVE if _GATE_VERDICT[n] == "NOT_ESTABLISHED"
+)
+_N_SUBSTANTIVE_OPEN = sum(1 for n in _SUBSTANTIVE if _GATE_VERDICT[n] == "OPEN")
+
+
+#: Small counts read as words in a sentence and as digits in a table. The sentence is
+#: what a judge skims, so it gets the words.
+_WORDS = {0: "none", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
+
+
+def _word(n: int) -> str:
+    return _WORDS.get(n, str(n))
+
+
+def _verdict_cell(n: int) -> str:
+    """The verdict token as written, not prettified.
+
+    `PRE_PASSED` and `NOT_ESTABLISHED` are the strings the receipts carry and the strings
+    `docs/CLAIM_REGISTER.md` is grepped for. Rendering them with the underscore replaced
+    made two different verdicts, one for a reader and one for a search.
+    """
+    return f"**{_GATE_VERDICT[n]}**"
+
+
+_FEASIBILITY_TABLE = "\n".join(
+    f"| {n} | {TITLES[n]} | {THRESHOLDS[n]} | {_verdict_cell(n)} |" for n in _FEASIBILITY
+)
+_SUBSTANTIVE_TABLE = "\n".join(
+    f"| {n} | {TITLES[n]} | {THRESHOLDS[n]} | {_verdict_cell(n)} | {_MEASURED[n]} |"
+    for n in _SUBSTANTIVE
+)
+
+_SUBSTANTIVE_HEADLINE = (
+    f"{_word(_N_SUBSTANTIVE_PASSED)} passed on the split that decides them, "
+    f"{_word(_N_SUBSTANTIVE_INCONCLUSIVE)} came back inconclusive and "
+    f"{_word(_N_SUBSTANTIVE_OPEN)} {_were(_N_SUBSTANTIVE_OPEN)} never run"
+)
+
+# The one substantive gate that clears its threshold somewhere is named in the headline
+# rather than left for a reader to find in the last column, because a summary that
+# reports only the verdicts that failed is as partial as one that reports only the pass.
+_HELD_OUT_PASS = (
+    f"Gate 6 does clear its threshold on the held-out cold-station split, at "
+    f"{g6['cold_station']['lift_point']:.3f}x. That is reported, and it is not "
+    f"substituted for the split the gate was pre-registered on."
+    if g6["cold_station"]["verdict"] == "PASSED"
+    else ""
+)
+
+_STATUS_HEADLINE = textwrap.fill(
+    f"**Status: {_word(N_GATES)} kill gates were written down before any of them was "
+    f"measured. {_word(len(_FEASIBILITY)).capitalize()} asked whether the project was "
+    "feasible at all and were answered before the first line of pipeline code. Of the "
+    f"{_word(len(_SUBSTANTIVE))} that ask whether the idea works, "
+    f"{_SUBSTANTIVE_HEADLINE}.** {_HELD_OUT_PASS}".strip(),
+    width=90,
+)
+
+#: The fence around the status block. A comment pair rather than a heading, because the
+#: block sits above the first heading in the file.
+STATUS_OPEN = "<!-- generated by scripts/sync_readme_results.py: gate status, do not edit -->"
+STATUS_CLOSE = "<!-- end gate status -->"
+
+STATUS_BLOCK = f"""{_STATUS_HEADLINE}
+
+**Feasibility, decided in advance.**
+
+| # | Gate | Threshold | Verdict |
+|---|---|---|---|
+{_FEASIBILITY_TABLE}
+
+**Substantive, and the reason the rest of this file is worth reading.**
+
+| # | Gate | Threshold | Verdict | What came back |
+|---|---|---|---|---|
+{_SUBSTANTIVE_TABLE}
+
+Inconclusive is reported as `NOT_ESTABLISHED` rather than rounded into a pass, and the gate
+that was never run is reported as `OPEN` rather than omitted. Gate 3 was `PASSED` until
+2026-08-18, when the rate it claimed was re-derived with an exact interval and moved to
+`NOT_ESTABLISHED`; `docs/KILL_GATE.md` carries the entry rather than the history being
+quietly rewritten.
+
+Every number in this README is generated from a frozen artifact under `artifacts/` and
+carries a row in `docs/CLAIM_REGISTER.md`. `tests/test_claim_drift.py` compares each quoted
+value against the artifact it came from rather than merely checking a register row exists:
+editing the AUC row from 0.875 to 0.999 turns three tests red. `tests/test_readme_claims.py`
+does the same for the paths and images this file names, because an existence claim is as
+checkable as a number."""
+
+# Bound outside the template, because a nine-cell table inside an f-string with dotted
+# lookups reads as punctuation.
+shared_line = (
+    "0.40 x disagreement + 0.35 x safe offset magnitude + 0.15 x flat-row fraction "
+    "+ 0.10 x ensemble uncertainty"
+)
+shared_pct = _shared["score_weight_on_quantities_the_target_is_defined_from"] * 100
+repro = _circ["reproduction"]["lift_point"]
+ceiling = _ceiling["lift"]
+budget = _circ["reproduction"]["budget"]
+population = _circ["reproduction"]["n_population"]
+n_conflicts = _circ["reproduction"]["n_conflicts"]
+threshold = _ceiling["threshold"]
+headroom = _ceiling["headroom_between_threshold_and_perfection"]
+n_at_budget = _circ["reproduction"]["n_at_budget"]
+max_findable = _ceiling["max_findable_at_budget"]
+share = _ceiling["queue_share_of_the_ceiling"]
+model_free_lift = _model_free["lift_point"]
+mf_lo, mf_hi = _model_free["lift_ci95"]
+model_free_verdict = _model_free["verdict"]
+mf_n = _model_free["n_conflicts"]
+model_only_lift = _model_only["lift_point"]
+mo_n = _model_only["n_conflicts"]
+model_only_verdict = _model_only["verdict"]
+control_mean = _control["mean_lift"]
+control_n = _control["n_permutations"]
+control_p5 = _control["p5"]
+control_p95 = _control["p95"]
+
+# Rows as data for the same reason the results table is: a markdown cell carrying four
+# interpolated values does not fit in a hundred columns.
+_CIRCULARITY_ROWS: list[tuple[str, str]] = [
+    (
+        "What is the most any ordering could score here?",
+        f"{ceiling:.3f}x. A budget of {budget} over {population} observations holding "
+        f"{n_conflicts} conflicts caps a perfect oracle there, so the whole distance "
+        f"between the {threshold}x threshold and perfection is {headroom:.3f}",
+    ),
+    (
+        "How much of that did the queue get?",
+        f"{n_at_budget} of the {max_findable} an oracle would have found, which is "
+        f"{share:.0%} of the ceiling",
+    ),
+    (
+        "What happens with the model taken out of the target?",
+        f"{model_free_lift:.3f}x, 95% CI [{mf_lo:.3f}, {mf_hi:.3f}], "
+        f"**{model_free_verdict}**, counting only the {mf_n} conflicts flagged by the two "
+        "criteria the model does not enter",
+    ),
+    (
+        "And with only the model's own disagreement?",
+        f"{model_only_lift:.3f}x over {mo_n} conflicts, reported as "
+        f"**{model_only_verdict}** rather than as a pass: the queue found all {mo_n} "
+        "inside the budget, and a saturated lift equals population over budget whatever "
+        "the count was",
+    ),
+    (
+        "Does the statistic score a shuffle at 1.0?",
+        f"{control_mean:.4f} over {control_n:,} seeded permutations, 5th to 95th "
+        f"percentile {control_p5:.3f} to {control_p95:.3f}",
+    ),
+]
+
+CIRCULARITY_TABLE = "\n".join(
+    ["| Question | Answer |", "|---|---|"]
+    + [f"| {q} | {a} |" for q, a in _CIRCULARITY_ROWS]
+)
+
+CIRCULARITY_INTRO = textwrap.fill(
+    "The ranking score and the definition of a conflict are not independent, and the size "
+    f"of that problem is measured rather than described. The score is {shared_line}, and "
+    "the three conflict criteria threshold the first three of those same quantities. "
+    f"{shared_pct:.0f}% of the score's weight sits on quantities the target is defined "
+    "from, so a lift above 1.0 is close to guaranteed by construction. "
+    f"`scripts/run_circularity_check.py` bounds it from {CIRCULARITY_REF}, reading the "
+    "queue receipt and nothing else: no snapshot, no network, no model. It reproduces the "
+    f"published {repro:.4f}x from that file before computing anything.",
+    width=90,
+)
+
+CIRCULARITY_CODA = textwrap.fill(
+    "Taking the model out of the target removes one loop and leaves another: the score "
+    "still weights the fitted offset at 0.35 and the flat-row fraction at 0.15, and those "
+    "are the two quantities the remaining criteria threshold. No restriction of the target "
+    "makes this measurement independent of its own construction, which is why the gate "
+    "reads NOT_ESTABLISHED and why nothing here changes that.",
+    width=90,
+)
+
 SECTION = f"""### Measured, with receipts
 
 {INTRO}
@@ -185,6 +473,14 @@ SECTION = f"""### Measured, with receipts
 | Metric | Value | Why |
 |---|---|---|
 {UNMEASURED_TABLE}
+
+### What the queue's own construction guarantees
+
+{CIRCULARITY_INTRO}
+
+{CIRCULARITY_TABLE}
+
+{CIRCULARITY_CODA}
 
 The queue's headline result is inconclusive, and that is the honest reading:
 {g6['chronological']['lift_point']:.3f}x is above the 1.5x threshold as a point estimate,
@@ -229,16 +525,31 @@ def main(argv: list[str] | None = None) -> int:
     end = text.index(end_marker)
     rendered = text[:start] + SECTION + text[end + 1 :]
 
+    # The status block is fenced by comments rather than by headings, because it sits
+    # above the first heading in the file and has no next heading to stop at.
+    if STATUS_OPEN not in rendered or STATUS_CLOSE not in rendered:
+        raise SystemExit(
+            f"README.md has no {STATUS_OPEN} ... {STATUS_CLOSE} region, so the gate "
+            "status block has nowhere to go. Add the two comment markers where the "
+            "status paragraph belongs."
+        )
+    head, rest = rendered.split(STATUS_OPEN, 1)
+    _, tail = rest.split(STATUS_CLOSE, 1)
+    rendered = f"{head}{STATUS_OPEN}\n{STATUS_BLOCK}\n{STATUS_CLOSE}{tail}"
+
     # --check exists because this script was referenced by nothing: not by the gate,
     # not by CI, and not by any test. The table it generates stayed correct only for
     # as long as someone remembered to run it, and the drift test beside it compared
     # metric names rather than values, so an edited number passed the whole suite.
     if args.check:
         if rendered == text:
-            print(f"README results are current: {len(ROWS)} measured rows")
+            print(
+                f"README results are current: {len(ROWS)} measured rows and "
+                f"{N_GATES} gate rows"
+            )
             return 0
-        current = text[start:end].splitlines()
-        expected = SECTION.splitlines()
+        current = text.splitlines()
+        expected = rendered.splitlines()
         first = next(
             (
                 (i, c, e)
@@ -250,12 +561,12 @@ def main(argv: list[str] | None = None) -> int:
         print("README results are stale. Run scripts/sync_readme_results.py.")
         if first is not None:
             i, c, e = first
-            print(f"  first difference, line {i + 1} of the section:")
+            print(f"  first difference, line {i + 1} of the file:")
             print(f"    README:   {c.strip()[:120]}")
             print(f"    receipts: {e.strip()[:120]}")
         elif len(current) != len(expected):
             print(
-                f"  the section has {len(current)} lines and the receipts "
+                f"  the file has {len(current)} lines and the receipts "
                 f"produce {len(expected)}"
             )
         return 1
@@ -263,6 +574,7 @@ def main(argv: list[str] | None = None) -> int:
     readme.write_text(rendered, encoding="utf-8")
 
     print(f"README results synced: {len(ROWS)} measured rows, 2 marked unmeasured")
+    print(f"  gate status block: {N_GATES} gates, {N_MET} met")
     print(f"  shipped arm brier {shipped['brier']:.4f}, auc {shipped['auc']:.3f}")
     print(
         f"  selective risk {near80['risk']:.4f} "
