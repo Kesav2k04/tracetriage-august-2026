@@ -60,6 +60,15 @@ SCHEMA_VERSION = "0.1.0"
 #: with the network down and mixing the two would make one failure look like the other.
 LIVE_URL = "https://tracetriage.vercel.app"
 
+#: The receipts this run writes. Everything else being dirty is a failure, and the list is
+#: explicit so a new receipt has to be added here on purpose rather than covered by a glob.
+_WRITTEN_BY_THIS_RUN = (
+    "SIGNOFF_RECEIPT.json",
+    "SECRET_SCAN.json",
+    "ATTRIBUTION_AUDIT.json",
+    "REPO_WEIGHT.json",
+)
+
 PASSED = "PASSED"
 FAILED = "FAILED"
 NOT_CHECKED = "NOT_CHECKED"
@@ -303,14 +312,21 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     dirty = [line for line in _git("status", "--porcelain").splitlines() if line.strip()]
-    # The receipt this run is about to write is the one file allowed to be dirty here, and it
-    # is named rather than filtered by pattern, because a filter would hide its neighbours.
-    unexpected = [d for d in dirty if "SIGNOFF_RECEIPT.json" not in d]
+    # The four receipts this run writes are the only files allowed to be dirty here. They are
+    # named one by one rather than matched by a pattern: a pattern over `artifacts/` would
+    # hide a receipt the run did not write, which is the thing this check is for. The first
+    # version named only the sign-off and failed on the three the release audit had just
+    # rewritten, which is the check being right about a question asked in the wrong order.
+    unexpected = [d for d in dirty if not any(name in d for name in _WRITTEN_BY_THIS_RUN)]
     sheet.record(
         "working tree committed",
         ["git", "status", "--porcelain"],
         PASSED if not unexpected else FAILED,
-        f"{len(unexpected)} uncommitted apart from this receipt",
+        (
+            f"{len(unexpected)} uncommitted apart from the {len(_WRITTEN_BY_THIS_RUN)} "
+            "receipts this run writes"
+            + (f": {', '.join(d.strip()[:60] for d in unexpected[:4])}" if unexpected else "")
+        ),
     )
 
     _check_live(sheet, args.check_live)
