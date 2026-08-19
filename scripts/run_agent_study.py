@@ -429,6 +429,7 @@ def grade(run: dict[str, Any], task: dict[str, Any]) -> dict[str, Any]:
     return {
         "task_id": task["id"],
         "arm": run["arm"],
+        "question": run["question"],
         "answer": answer,
         "expected": task["expected"],
         "correct": correct,

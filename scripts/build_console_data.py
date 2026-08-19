@@ -690,6 +690,58 @@ def main(argv: list[str] | None = None) -> int:
         encoding="utf-8",
     )
 
+    # ---- agent study -----------------------------------------------------
+    #
+    # The pairing is joined here rather than in the console. A page that matched the two arms
+    # by index, or by re-sorting them, would be a second implementation of the study's own
+    # design, and the receipt already did it: every question carries both answers and the
+    # grades that go with them.
+    agent = _load("AGENT_RECEIPT.json")
+    agent_by_arm: dict[str, dict[str, Any]] = {"tools": {}, "control": {}}
+    for row in agent["per_run"]:
+        agent_by_arm[row["arm"]][row["task_id"]] = row
+    if set(agent_by_arm["tools"]) != set(agent_by_arm["control"]):
+        raise SystemExit(
+            "the agent receipt has a question in one arm and not the other, so the pairing it "
+            "reports cannot be published"
+        )
+    questions = []
+    for task in sorted(agent_by_arm["tools"]):
+        tools_row = agent_by_arm["tools"][task]
+        control_row = agent_by_arm["control"][task]
+        questions.append(
+            {
+                "task_id": task,
+                "question": tools_row["question"],
+                "expected": tools_row["expected"],
+                "tools_answer": tools_row["answer"],
+                "tools_correct": tools_row["correct"],
+                "tools_grounded": tools_row["grounded"],
+                "tools_calls": tools_row["tool_calls"],
+                "tools_fetched_the_answer": tools_row["answer_was_in_what_it_read"],
+                "control_answer": control_row["answer"],
+                "control_correct": control_row["correct"],
+                "control_grounded": control_row["grounded"],
+            }
+        )
+    (data_dir / "agent.json").write_text(
+        json.dumps(
+            {
+                "design": agent["design"],
+                "model": agent["model"],
+                "tasks": agent["tasks"],
+                "max_steps": agent["max_steps"],
+                "arms": agent["arms"],
+                "paired": agent["paired"],
+                "questions": questions,
+                "what_this_does_not_measure": agent["what_this_does_not_measure"],
+                "receipt_sha256": _digest(_ARTIFACTS / "AGENT_RECEIPT.json"),
+            },
+            indent=1,
+        ),
+        encoding="utf-8",
+    )
+
     # ---- provenance ------------------------------------------------------
     split_counts = [
         {

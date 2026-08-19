@@ -14,6 +14,7 @@ import evaluationJson from "@/public/data/evaluation.json";
 import provenanceJson from "@/public/data/provenance.json";
 import notesJson from "@/public/data/notes.json";
 import queueJson from "@/public/data/queue.json";
+import agentJson from "@/public/data/agent.json";
 
 export {
   NON_ACTIONABLE,
@@ -642,3 +643,84 @@ export function requireQueueSplit(name: string) {
   return summary;
 }
 
+
+/**
+ * The agent study.
+ *
+ * Read from `agent.json`, which scripts/build_console_data.py joins per question
+ * from the receipt: both arms' answers on one row. The pairing is not reconstructed
+ * here, because a console that re-pairs the arms by index is a second
+ * implementation of the study's design and nothing tests it.
+ */
+export interface AgentRate {
+  successes: number;
+  trials: number;
+  rate: number | null;
+  lower_95: number;
+  upper_95: number;
+}
+
+export interface AgentArm {
+  correct: AgentRate;
+  grounded: AgentRate;
+  answered: number;
+  declined_unknown: number;
+  unparseable_steps: number;
+}
+
+export interface AgentToolArm extends AgentArm {
+  expected_tool_called: AgentRate;
+  tool_calls: number;
+  repeated_calls: number;
+  server_refusals: number;
+  hit_the_step_cap: number;
+  fetched_the_answer: AgentRate;
+  wrong_with_the_answer_in_front_of_it: string[];
+  wrong_and_never_fetched_it: string[];
+  reading: string;
+}
+
+export interface AgentQuestion {
+  task_id: string;
+  question: string;
+  expected: string;
+  tools_answer: string | null;
+  tools_correct: boolean;
+  tools_grounded: boolean;
+  tools_calls: number;
+  tools_fetched_the_answer: boolean;
+  control_answer: string | null;
+  control_correct: boolean;
+  control_grounded: boolean;
+}
+
+export interface AgentStudy {
+  design: string;
+  model: {
+    name: string;
+    digest: string;
+    parameter_size: string;
+    quantization: string;
+    seed: number;
+    temperature: number;
+  };
+  tasks: number;
+  max_steps: number;
+  arms: { tools: AgentToolArm; control: AgentArm };
+  paired: {
+    tasks: number;
+    both_correct: number;
+    neither_correct: number;
+    tools_only: string[];
+    control_only: string[];
+    discordant_pairs: number;
+    exact_p_one_sided: number | null;
+    method: string;
+    reading: string;
+  };
+  questions: AgentQuestion[];
+  what_this_does_not_measure: string[];
+  receipt_sha256: string;
+}
+
+export const agent = agentJson as unknown as AgentStudy;

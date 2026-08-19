@@ -5,7 +5,9 @@
 Submitted to the AI Builders Challenge with IBM Bob, August 2026 theme: **Advance Space Exploration with AI**.
 
 **Live console: <https://tracetriage.vercel.app/>.** A static export, no server and no
-credentials. `FOR_JUDGES.md` is the shortest path through the evidence: it maps each judged
+credentials. Five pages: the review queue, the evaluation with every gate including the ones
+that did not pass, the agent study with its control arm, the offline replay, and the
+provenance of each number. `FOR_JUDGES.md` is the shortest path through the evidence: it maps each judged
 criterion to the file that carries it, and it is generated from the receipts by
 `scripts/sync_for_judges.py`, so it cannot drift from them.
 

@@ -88,8 +88,8 @@
  "receipts": [
   {
    "name": "AGENT_RECEIPT.json",
-   "sha256": "312396289f9680fcecb786994dfaa7330ca84ada03edbfe784ca9a36b1e2487c",
-   "bytes": 25976
+   "sha256": "cfc07bbcdac087d874bb76414af8ecaf8d887dd62613b41b411eea6bbd0d8b50",
+   "bytes": 30114
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",

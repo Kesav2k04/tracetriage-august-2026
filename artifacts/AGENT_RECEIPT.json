@@ -119,6 +119,7 @@
   {
    "task_id": "queue-rank-1",
    "arm": "tools",
+   "question": "Which observation id is ranked first in the review queue?",
    "answer": "14746092",
    "expected": "14746092",
    "correct": true,
@@ -136,6 +137,7 @@
   {
    "task_id": "queue-rank-1-score",
    "arm": "tools",
+   "question": "What is the queue score of the top-ranked observation, as the queue reports it?",
    "answer": "0.879634",
    "expected": "0.879634",
    "correct": true,
@@ -153,6 +155,7 @@
   {
    "task_id": "queue-total",
    "arm": "tools",
+   "question": "How many observations does the review queue rank in total?",
    "answer": "50",
    "expected": "407",
    "correct": false,
@@ -170,6 +173,7 @@
   {
    "task_id": "queue-packets-top-10",
    "arm": "tools",
+   "question": "Of the ten highest-ranked queue rows, how many have an evidence packet?",
    "answer": "10",
    "expected": "10",
    "correct": true,
@@ -187,6 +191,7 @@
   {
    "task_id": "queue-reason-rank-1",
    "arm": "tools",
+   "question": "What single reason code does the top-ranked observation carry in the queue?",
    "answer": "MODEL_LABEL_DISAGREE",
    "expected": "MODEL_LABEL_DISAGREE",
    "correct": true,
@@ -204,6 +209,7 @@
   {
    "task_id": "obs-station-name",
    "arm": "tools",
+   "question": "What is the ground station name for observation 14746092?",
    "answer": "dm43",
    "expected": "dm43",
    "correct": true,
@@ -221,6 +227,7 @@
   {
    "task_id": "obs-fitted-offset",
    "arm": "tools",
+   "question": "What is the fitted offset in Hz for observation 14746092?",
    "answer": "6904",
    "expected": "6904",
    "correct": true,
@@ -238,6 +245,7 @@
   {
    "task_id": "obs-hz-per-pixel",
    "arm": "tools",
+   "question": "How many Hz does one pixel span for observation 14735140?",
    "answer": "79.8",
    "expected": "79.8",
    "correct": true,
@@ -255,6 +263,7 @@
   {
    "task_id": "obs-network-label",
    "arm": "tools",
+   "question": "What network label does observation 14735140 carry?",
    "answer": "with-signal",
    "expected": "with-signal",
    "correct": true,
@@ -272,6 +281,7 @@
   {
    "task_id": "obs-transmitter-mode",
    "arm": "tools",
+   "question": "What is the transmitter mode for observation 14732518?",
    "answer": "BPSK",
    "expected": "BPSK",
    "correct": true,
@@ -289,6 +299,7 @@
   {
    "task_id": "obs-axis-derivation",
    "arm": "tools",
+   "question": "How was the frequency axis derived for observation 14732518?",
    "answer": "The frequency axis for observation 14732518 was derived from the data itself, as indicated by the GROUNDED verdict from check_claim.",
    "expected": "axis_ticks_ocr",
    "correct": false,
@@ -306,6 +317,7 @@
   {
    "task_id": "obs-max-elevation",
    "arm": "tools",
+   "question": "What was the maximum elevation in degrees for observation 14745718?",
    "answer": "38.4",
    "expected": "38.4",
    "correct": true,
@@ -323,6 +335,7 @@
   {
    "task_id": "claim-refused",
    "arm": "tools",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 999 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
    "answer": "REFUSED",
    "expected": "REFUSED",
    "correct": true,
@@ -340,6 +353,7 @@
   {
    "task_id": "claim-refused-code",
    "arm": "tools",
+   "question": "For observation 14746092, which single violation code does the sentence \"The fitted offset is 999 Hz.\" produce?",
    "answer": "UNGROUNDED_NUMBER",
    "expected": "UNGROUNDED_NUMBER",
    "correct": true,
@@ -357,6 +371,7 @@
   {
    "task_id": "claim-grounded",
    "arm": "tools",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 6904 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
    "answer": "GROUNDED",
    "expected": "GROUNDED",
    "correct": true,
@@ -374,6 +389,7 @@
   {
    "task_id": "gates-met",
    "arm": "tools",
+   "question": "How many of this project's kill gates are met?",
    "answer": "2",
    "expected": "2",
    "correct": true,
@@ -391,6 +407,7 @@
   {
    "task_id": "gates-total",
    "arm": "tools",
+   "question": "How many kill gates does this project define?",
    "answer": "6",
    "expected": "6",
    "correct": true,
@@ -408,6 +425,7 @@
   {
    "task_id": "gate-6-verdict",
    "arm": "tools",
+   "question": "What is the verdict of kill gate 6?",
    "answer": "NOT_ESTABLISHED",
    "expected": "NOT_ESTABLISHED",
    "correct": true,
@@ -425,6 +443,7 @@
   {
    "task_id": "gate-4-verdict",
    "arm": "tools",
+   "question": "What is the verdict of kill gate 4?",
    "answer": "OPEN",
    "expected": "OPEN",
    "correct": true,
@@ -442,6 +461,7 @@
   {
    "task_id": "receipt-queue-schema-version",
    "arm": "tools",
+   "question": "What schema version does the receipt QUEUE_RECEIPT.json carry?",
    "answer": "0.3.0",
    "expected": "0.3.0",
    "correct": true,
@@ -459,6 +479,7 @@
   {
    "task_id": "receipt-gate3-verdict",
    "arm": "tools",
+   "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
    "answer": "NOT_ESTABLISHED",
    "expected": "NOT_ESTABLISHED",
    "correct": true,
@@ -476,6 +497,7 @@
   {
    "task_id": "receipt-gate4-verdict",
    "arm": "tools",
+   "question": "What verdict does the receipt GATE4_RECEIPT.json record?",
    "answer": "NOT_RUN",
    "expected": "NOT_RUN",
    "correct": true,
@@ -493,6 +515,7 @@
   {
    "task_id": "receipt-explain-unit",
    "arm": "tools",
+   "question": "Which unit produced the receipt EXPLAIN_RECEIPT.json?",
    "answer": "E1",
    "expected": "E1",
    "correct": true,
@@ -510,6 +533,7 @@
   {
    "task_id": "receipt-explain-per-observation",
    "arm": "tools",
+   "question": "How many per-observation rows does the receipt EXPLAIN_RECEIPT.json carry?",
    "answer": "25",
    "expected": "25",
    "correct": true,
@@ -527,6 +551,7 @@
   {
    "task_id": "queue-rank-1",
    "arm": "control",
+   "question": "Which observation id is ranked first in the review queue?",
    "answer": "unknown",
    "expected": "14746092",
    "correct": false,
@@ -544,6 +569,7 @@
   {
    "task_id": "queue-rank-1-score",
    "arm": "control",
+   "question": "What is the queue score of the top-ranked observation, as the queue reports it?",
    "answer": "unknown",
    "expected": "0.879634",
    "correct": false,
@@ -561,6 +587,7 @@
   {
    "task_id": "queue-total",
    "arm": "control",
+   "question": "How many observations does the review queue rank in total?",
    "answer": "unknown",
    "expected": "407",
    "correct": false,
@@ -578,6 +605,7 @@
   {
    "task_id": "queue-packets-top-10",
    "arm": "control",
+   "question": "Of the ten highest-ranked queue rows, how many have an evidence packet?",
    "answer": "10",
    "expected": "10",
    "correct": true,
@@ -597,6 +625,7 @@
   {
    "task_id": "queue-reason-rank-1",
    "arm": "control",
+   "question": "What single reason code does the top-ranked observation carry in the queue?",
    "answer": "unknown",
    "expected": "MODEL_LABEL_DISAGREE",
    "correct": false,
@@ -614,6 +643,7 @@
   {
    "task_id": "obs-station-name",
    "arm": "control",
+   "question": "What is the ground station name for observation 14746092?",
    "answer": "unknown",
    "expected": "dm43",
    "correct": false,
@@ -631,6 +661,7 @@
   {
    "task_id": "obs-fitted-offset",
    "arm": "control",
+   "question": "What is the fitted offset in Hz for observation 14746092?",
    "answer": "unknown",
    "expected": "6904",
    "correct": false,
@@ -648,6 +679,7 @@
   {
    "task_id": "obs-hz-per-pixel",
    "arm": "control",
+   "question": "How many Hz does one pixel span for observation 14735140?",
    "answer": "unknown",
    "expected": "79.8",
    "correct": false,
@@ -665,6 +697,7 @@
   {
    "task_id": "obs-network-label",
    "arm": "control",
+   "question": "What network label does observation 14735140 carry?",
    "answer": "unknown",
    "expected": "with-signal",
    "correct": false,
@@ -682,6 +715,7 @@
   {
    "task_id": "obs-transmitter-mode",
    "arm": "control",
+   "question": "What is the transmitter mode for observation 14732518?",
    "answer": "unknown",
    "expected": "BPSK",
    "correct": false,
@@ -699,6 +733,7 @@
   {
    "task_id": "obs-axis-derivation",
    "arm": "control",
+   "question": "How was the frequency axis derived for observation 14732518?",
    "answer": "unknown",
    "expected": "axis_ticks_ocr",
    "correct": false,
@@ -716,6 +751,7 @@
   {
    "task_id": "obs-max-elevation",
    "arm": "control",
+   "question": "What was the maximum elevation in degrees for observation 14745718?",
    "answer": "unknown",
    "expected": "38.4",
    "correct": false,
@@ -733,6 +769,7 @@
   {
    "task_id": "claim-refused",
    "arm": "control",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 999 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
    "answer": "REFUSED",
    "expected": "REFUSED",
    "correct": true,
@@ -750,6 +787,7 @@
   {
    "task_id": "claim-refused-code",
    "arm": "control",
+   "question": "For observation 14746092, which single violation code does the sentence \"The fitted offset is 999 Hz.\" produce?",
    "answer": "999",
    "expected": "UNGROUNDED_NUMBER",
    "correct": false,
@@ -767,6 +805,7 @@
   {
    "task_id": "claim-grounded",
    "arm": "control",
+   "question": "For observation 14746092, is the sentence \"The fitted offset is 6904 Hz.\" grounded in the evidence packet? Answer GROUNDED or REFUSED.",
    "answer": "REFUSED",
    "expected": "GROUNDED",
    "correct": false,
@@ -784,6 +823,7 @@
   {
    "task_id": "gates-met",
    "arm": "control",
+   "question": "How many of this project's kill gates are met?",
    "answer": "unknown",
    "expected": "2",
    "correct": false,
@@ -801,6 +841,7 @@
   {
    "task_id": "gates-total",
    "arm": "control",
+   "question": "How many kill gates does this project define?",
    "answer": "unknown",
    "expected": "6",
    "correct": false,
@@ -818,6 +859,7 @@
   {
    "task_id": "gate-6-verdict",
    "arm": "control",
+   "question": "What is the verdict of kill gate 6?",
    "answer": "unknown",
    "expected": "NOT_ESTABLISHED",
    "correct": false,
@@ -835,6 +877,7 @@
   {
    "task_id": "gate-4-verdict",
    "arm": "control",
+   "question": "What is the verdict of kill gate 4?",
    "answer": "unknown",
    "expected": "OPEN",
    "correct": false,
@@ -852,6 +895,7 @@
   {
    "task_id": "receipt-queue-schema-version",
    "arm": "control",
+   "question": "What schema version does the receipt QUEUE_RECEIPT.json carry?",
    "answer": "1.0",
    "expected": "0.3.0",
    "correct": false,
@@ -871,6 +915,7 @@
   {
    "task_id": "receipt-gate3-verdict",
    "arm": "control",
+   "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
    "answer": "unknown",
    "expected": "NOT_ESTABLISHED",
    "correct": false,
@@ -888,6 +933,7 @@
   {
    "task_id": "receipt-gate4-verdict",
    "arm": "control",
+   "question": "What verdict does the receipt GATE4_RECEIPT.json record?",
    "answer": "unknown",
    "expected": "NOT_RUN",
    "correct": false,
@@ -905,6 +951,7 @@
   {
    "task_id": "receipt-explain-unit",
    "arm": "control",
+   "question": "Which unit produced the receipt EXPLAIN_RECEIPT.json?",
    "answer": "unknown",
    "expected": "E1",
    "correct": false,
@@ -922,6 +969,7 @@
   {
    "task_id": "receipt-explain-per-observation",
    "arm": "control",
+   "question": "How many per-observation rows does the receipt EXPLAIN_RECEIPT.json carry?",
    "answer": "1",
    "expected": "25",
    "correct": false,
