@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -76,7 +78,26 @@ def clone(tmp_path: Path) -> Path:
             shutil.copy2(path, repo / "artifacts" / path.name)
 
     shutil.copy2(_REFERENCE, repo / "docs" / "REFERENCE.md")
+
+    # The generator asks git what is published, so the copy has to be a repository. A
+    # plain directory would make it refuse, which is correct behaviour and would test
+    # nothing about rendering.
+    _git_init(repo)
     return repo
+
+
+def _git_init(repo: Path) -> None:
+    """Initialise and stage, so `git ls-files` in the copy answers about the copy."""
+    for args in (
+        ["init", "-q"],
+        ["-c", "user.email=t@example.invalid", "-c", "user.name=t", "add", "-A"],
+    ):
+        subprocess.run(["git", *args], cwd=str(repo), check=True, capture_output=True)
+
+
+def _stage(repo: Path) -> None:
+    """Publish whatever has just been written into the copy."""
+    subprocess.run(["git", "add", "-A"], cwd=str(repo), check=True, capture_output=True)
 
 
 def test_the_committed_page_is_what_the_tree_produces(sync_docs) -> None:
@@ -98,6 +119,7 @@ def test_a_new_script_changes_the_page(clone: Path) -> None:
         '"""A script added in a later wave and mentioned nowhere else."""\n',
         encoding="utf-8",
     )
+    _stage(clone)
     after = module.render()
     assert after != before
     assert "run_something_new.py" in after
@@ -112,6 +134,7 @@ def test_a_rebuilt_receipt_changes_the_page(clone: Path) -> None:
     doc = json.loads(receipt.read_text(encoding="utf-8"))
     doc["a_field_that_was_not_there"] = True
     receipt.write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    _stage(clone)
     assert module.render() != before
 
 
@@ -119,6 +142,7 @@ def test_a_module_with_no_docstring_is_named_rather_than_blank(clone: Path) -> N
     """An empty cell reads as "nothing to say". This has to read as "nobody wrote one"."""
     module = _load(clone)
     (clone / "scripts" / "run_undocumented.py").write_text("x = 1\n", encoding="utf-8")
+    _stage(clone)
     page = module.render()
     row = next(line for line in page.splitlines() if "run_undocumented.py" in line)
     assert "**no module docstring**" in row
@@ -130,6 +154,7 @@ def test_an_artifact_no_module_names_is_reported_as_having_no_builder(clone: Pat
     (clone / "artifacts" / "ORPHAN_RECEIPT.json").write_text(
         json.dumps({"schema": "ORPHAN", "schema_version": "0.1.0"}), encoding="utf-8"
     )
+    _stage(clone)
     page = module.render()
     row = next(line for line in page.splitlines() if "ORPHAN_RECEIPT.json" in line)
     assert "**nothing names it**" in row
@@ -145,3 +170,61 @@ def test_a_receipt_whose_schema_no_contract_declares_shows_as_none(sync_docs) ->
     page = sync_docs.render()
     row = next(line for line in page.splitlines() if "`SECRET_SCAN.json`" in line)
     assert "| none |" in row
+
+
+def test_the_page_names_no_file_a_clone_would_not_have(sync_docs) -> None:
+    """The defect a clean clone found, as a check that does not need a clone.
+
+    The first version walked the working tree, so it listed the pickled model, three build
+    logs, a rendered evidence card and `corridor_features.json`: six files that exist here
+    because they were built once and are not published. A judge's clone regenerated the page
+    without them and the committed one no longer matched.
+    """
+    tracked = sync_docs._tracked()
+    page = sync_docs.render()
+    named = set(re.findall(r"`([^`]+)`", page))
+    candidates = {
+        n
+        for n in named
+        if not n.endswith("/")
+        and (
+            n.startswith(("artifacts/", "scripts/", "tests/", "pipeline/", "contracts/"))
+            or n.endswith((".json", ".py", ".pkl", ".log", ".html"))
+        )
+    }
+    resolved = {n if "/" in n else f"artifacts/{n}" for n in candidates}
+    unpublished = sorted(
+        n
+        for n in resolved
+        if (_REPO / n).exists() and n not in tracked and not n.endswith(".schema.json")
+    )
+    assert not unpublished, f"the page names files git does not publish: {unpublished}"
+
+
+def test_a_working_tree_only_file_stays_off_the_page(clone: Path) -> None:
+    """And the mutation, because the check above passes on any page that names nothing."""
+    module = _load(clone)
+    (clone / "artifacts" / "LOCAL_ONLY.json").write_text(
+        json.dumps({"schema": "LOCAL_ONLY", "schema_version": "0.1.0"}), encoding="utf-8"
+    )
+    page = module.render()
+    assert "LOCAL_ONLY" not in page
+    _stage(clone)
+    assert "LOCAL_ONLY" in module.render()
+
+
+def test_a_tree_git_cannot_answer_about_is_refused(tmp_path: Path) -> None:
+    """Falling back to the working tree is the defect, so absence of git is a failure.
+
+    A generator that quietly walked the directory when `git ls-files` failed would put
+    the six unpublished files back on the page in exactly the environment least able to
+    notice.
+    """
+    bare = tmp_path / "nogit"
+    for name in ("scripts", "contracts", "artifacts", "tests", "docs"):
+        (bare / name).mkdir(parents=True)
+    (bare / "pipeline" / "tracetriage").mkdir(parents=True)
+    shutil.copy2(_REPO / "scripts" / "sync_docs.py", bare / "scripts" / "sync_docs.py")
+    module = _load(bare)
+    with pytest.raises(SystemExit, match="git ls-files failed"):
+        module.render()

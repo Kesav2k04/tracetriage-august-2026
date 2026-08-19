@@ -51,6 +51,34 @@ from typing import Any
 
 _REPO = Path(__file__).resolve().parents[1]
 
+def _resolve_uv_cache(uv: str | None) -> dict:
+    """Where the offline install would look, as a path rather than as a variable name.
+
+    The earlier transcript recorded `UV_CACHE_DIR` or the words "uv's default location",
+    which names the setting rather than the thing the run depended on. `UV_CACHE_DIR` is
+    unset on this machine and uv's default sits under the user profile on C:, while this
+    project keeps its caches on D:, so the offline install resolved against a cache that
+    had never seen these wheels and failed on torch. That is a prerequisite not being
+    met rather than a defect in the repository, and it is only readable if the path is
+    written down.
+    """
+    if not uv:
+        return {"resolved": None, "why": "uv is not on PATH, so nothing resolves it"}
+    proc = subprocess.run([uv, "cache", "dir"], capture_output=True, text=True)
+    resolved = proc.stdout.strip() or None
+    exists = bool(resolved) and Path(resolved).is_dir()
+    return {
+        "resolved": resolved,
+        "exists": exists,
+        "from_env": os.environ.get("UV_CACHE_DIR"),
+        "why": (
+            "the directory --offline resolves wheels from. It is recorded as a path "
+            "because the variable name alone does not say which cache a run used, and "
+            "two caches on this machine hold different wheel sets."
+        ),
+    }
+
+
 _SITECUSTOMIZE = '''\
 """Refuse every outbound socket that is not loopback, and optionally hide the snapshot.
 
@@ -337,6 +365,7 @@ def main(argv: list[str] | None = None) -> int:
     # interpreter explicitly is the whole fix.
     uv = shutil.which("uv")
     source_py = str(_REPO / ".venv" / "Scripts" / "python.exe")
+    uv_cache = _resolve_uv_cache(uv)
     clone_py = str(
         clone / ".venv" / ("Scripts" if _IS_WINDOWS else "bin") / (
             "python.exe" if _IS_WINDOWS else "python"
@@ -390,7 +419,7 @@ def main(argv: list[str] | None = None) -> int:
                     "wheels came from the local cache rather than from an index. A judge "
                     "with no cache needs one network install before this run reproduces."
                 ),
-                "uv_cache_dir": os.environ.get("UV_CACHE_DIR", "uv's default location"),
+                "uv_cache": uv_cache,
                 "interpreter": py,
                 "python_version": platform.python_version(),
             }
@@ -413,7 +442,7 @@ def main(argv: list[str] | None = None) -> int:
                 "install_exit_code": (
                     None if offline_install is None else offline_install["exit_code"]
                 ),
-                "uv_cache_dir": os.environ.get("UV_CACHE_DIR", "uv's default location"),
+                "uv_cache": uv_cache,
             }
         )
 

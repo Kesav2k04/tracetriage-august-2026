@@ -36,6 +36,7 @@ import hashlib
 import json
 import pathlib
 import re
+import subprocess
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
@@ -79,25 +80,61 @@ def _docstring(path: pathlib.Path) -> str:
     return _first_sentence(ast.get_docstring(tree))
 
 
-def _modules(root: pathlib.Path) -> list[pathlib.Path]:
+def _modules(root: pathlib.Path, tracked: set[str]) -> list[pathlib.Path]:
     return sorted(
         p
         for p in root.glob("*.py")
-        if p.name not in _SKIP_SCRIPT_NAMES and not p.name.startswith("__")
+        if p.name not in _SKIP_SCRIPT_NAMES
+        and not p.name.startswith("__")
+        and _rel(p) in tracked
     )
 
 
-def _sources() -> dict[pathlib.Path, str]:
-    """Every Python source under scripts/, the package and tests/, read once."""
+def _sources(tracked: set[str]) -> dict[pathlib.Path, str]:
+    """Every published Python source under scripts/, the package and tests/, read once."""
     out: dict[pathlib.Path, str] = {}
     for root in (SCRIPTS, PACKAGE, TESTS):
         for path in sorted(root.rglob("*.py")):
-            out[path] = path.read_text(encoding="utf-8")
+            if _rel(path) in tracked:
+                out[path] = path.read_text(encoding="utf-8")
     return out
 
 
 def _rel(path: pathlib.Path) -> str:
     return path.relative_to(REPO).as_posix()
+
+
+def _tracked() -> set[str]:
+    """Every path git publishes, as repo-relative posix strings.
+
+    The page describes what a judge gets, and a judge gets the tracked tree. The first
+    version walked the working tree instead and listed the pickled model, three build
+    logs, a rendered evidence card and corridor_features.json: six files that exist only
+    because they were built here once. A clean clone regenerated the page without them,
+    the committed one no longer matched, and that is how it was found.
+
+    Git being unavailable is a named failure rather than a fallback to the working tree,
+    because the fallback is exactly the defect.
+    """
+    proc = subprocess.run(["git", "ls-files"], cwd=str(REPO), capture_output=True, text=True)
+    if proc.returncode != 0:
+        raise SystemExit(
+            "git ls-files failed, so this cannot tell a published file from a local one. "
+            "It refuses rather than describing the working tree, because a page listing "
+            "files a clone does not have is worse than no page."
+        )
+    return {line.strip() for line in proc.stdout.splitlines() if line.strip()}
+
+
+def _untracked_under(roots: tuple[pathlib.Path, ...]) -> list[str]:
+    """Present here and not published. Printed for the local reader, never rendered."""
+    proc = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", *(str(r) for r in roots)],
+        cwd=str(REPO),
+        capture_output=True,
+        text=True,
+    )
+    return sorted(line.strip() for line in proc.stdout.splitlines() if line.strip())
 
 
 def _writers(name: str, sources: dict[pathlib.Path, str]) -> list[str]:
@@ -117,18 +154,22 @@ def _tests_naming(name: str, sources: dict[pathlib.Path, str]) -> list[str]:
     return sorted(p.name for p, text in sources.items() if TESTS in p.parents and name in text)
 
 
-def _contracts() -> list[dict]:
+def _contracts(tracked: set[str]) -> list[dict]:
     out = []
     for path in sorted(CONTRACTS.glob("*.schema.json")):
+        if _rel(path) not in tracked:
+            continue
         doc = json.loads(path.read_text(encoding="utf-8"))
         out.append({"path": path, "doc": doc, "id": str(doc.get("$id", path.stem))})
     return out
 
 
-def _artifact_rows(sources: dict[pathlib.Path, str]) -> list[dict]:
+def _artifact_rows(sources: dict[pathlib.Path, str], tracked: set[str]) -> list[dict]:
     rows = []
-    contracts = _contracts()
+    contracts = _contracts(tracked)
     for path in sorted(ARTIFACTS.glob("*.json")):
+        if _rel(path) not in tracked:
+            continue
         raw = path.read_bytes()
         try:
             doc = json.loads(raw.decode("utf-8"))
@@ -159,9 +200,11 @@ def _artifact_rows(sources: dict[pathlib.Path, str]) -> list[dict]:
     return rows
 
 
-def _test_rows() -> list[dict]:
+def _test_rows(tracked: set[str]) -> list[dict]:
     rows = []
     for path in sorted(TESTS.glob("test_*.py")):
+        if _rel(path) not in tracked:
+            continue
         text = path.read_text(encoding="utf-8")
         rows.append(
             {
@@ -185,12 +228,17 @@ def _listing(names: list[str]) -> str:
 
 def render() -> str:
     """The whole page, as a string. Writing it is a separate step so --check can compare."""
-    sources = _sources()
-    artifacts = _artifact_rows(sources)
-    tests = _test_rows()
-    contracts = _contracts()
+    tracked = _tracked()
+    sources = _sources(tracked)
+    artifacts = _artifact_rows(sources, tracked)
+    tests = _test_rows(tracked)
+    contracts = _contracts(tracked)
     n_tests = sum(r["n"] for r in tests)
-    other = sorted(p.name for p in ARTIFACTS.iterdir() if p.is_file() and p.suffix in _NOT_RECEIPTS)
+    other = sorted(
+        p.name
+        for p in ARTIFACTS.iterdir()
+        if p.is_file() and p.suffix in _NOT_RECEIPTS and _rel(p) in tracked
+    )
     unbuilt = [r["name"] for r in artifacts if not r["writers"]]
     untested = [r["name"] for r in artifacts if not r["tests"]]
 
@@ -206,9 +254,14 @@ def render() -> str:
         "builder column is the module whose source names the file, and the contract column is",
         "matched by identifier against the receipt's own `schema` field.",
         "",
+        "It describes the **tracked** tree, which is what a clone gets. A file present in",
+        "a working copy and not published does not appear here, because a page listing",
+        "files a judge does not have is worse than no page.",
+        "",
         (
             f"At this commit: {len(artifacts)} JSON artifacts, {len(contracts)} contracts, "
-            f"{len(_modules(SCRIPTS))} scripts, {len(_modules(PACKAGE))} package modules and "
+            f"{len(_modules(SCRIPTS, tracked))} scripts, "
+            f"{len(_modules(PACKAGE, tracked))} package modules and "
             f"{n_tests} test functions across {len(tests)} test modules. Parametrised "
             "functions collect as more than one case, so pytest's collected count is higher."
         ),
@@ -272,14 +325,14 @@ def render() -> str:
         "",
         _table(
             ["Module", "What it is"],
-            [[f"`{_rel(p)}`", _docstring(p)] for p in _modules(PACKAGE)],
+            [[f"`{_rel(p)}`", _docstring(p)] for p in _modules(PACKAGE, tracked)],
         ),
         "",
         "## Scripts",
         "",
         _table(
             ["Script", "What it does"],
-            [[f"`{_rel(p)}`", _docstring(p)] for p in _modules(SCRIPTS)],
+            [[f"`{_rel(p)}`", _docstring(p)] for p in _modules(SCRIPTS, tracked)],
         ),
         "",
         "## Tests",
@@ -329,6 +382,12 @@ def main(argv: list[str] | None = None) -> int:
 
     REFERENCE.write_text(rendered, encoding="utf-8")
     print(f"docs/REFERENCE.md synced: {len(rendered.splitlines())} lines")
+    loose = _untracked_under((ARTIFACTS, SCRIPTS, PACKAGE, TESTS, CONTRACTS))
+    if loose:
+        print(
+            f"  {len(loose)} file(s) present here and not published, so absent from the "
+            "page: " + ", ".join(loose[:8]) + (" ..." if len(loose) > 8 else "")
+        )
     return 0
 
 
