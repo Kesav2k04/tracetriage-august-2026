@@ -79,7 +79,8 @@ from __future__ import annotations
 
 import json
 import math
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
@@ -129,8 +130,46 @@ CORRECTED_CORRIDOR_HZ: float = 1_200.0
 # observation behind it.
 UNCORRECTED_CORRIDOR_HZ: float = 2_000.0
 
-# TLE epoch staleness threshold.  If |epoch - pass_midpoint| > this, emit STALE_TLE.
-TLE_MAX_EPOCH_AGE_DAYS: float = 14.0
+# Peak Doppler slope, measured rather than assumed. On obs 14740031, the strongest
+# uncorrected observation in A3, |dDoppler/dt| peaks at 119.4 Hz/s over a 241 s pass
+# with a 17,290 Hz swing. This is what converts a timing error into a corridor
+# displacement, and it is the steepest case in hand.
+PEAK_DOPPLER_SLOPE_HZ_PER_S: float = 119.4
+
+# How much of a corridor half-width an along-track timing error is allowed to consume
+# before the corridor is called stale. A quarter leaves the trace comfortably inside a
+# corridor that is already 16 times the measured residual, and it is small enough that
+# two independent errors of this size still do not move the trace out.
+TLE_AGE_TOLERANCE_HALF_WIDTHS: float = 0.25
+
+# TLE epoch staleness threshold. If |epoch - pass_midpoint| > this, emit STALE_TLE.
+#
+# Derived, because this was the only constant in this file with no derivation behind
+# it, and a threshold with no derivation cannot be argued with. The chain:
+#
+#   0.25 half-widths of 2,000 Hz          =   500 Hz of allowed displacement
+#   500 Hz at 119.4 Hz/s                  =   4.2 s of along-track timing error
+#   4.2 s at 7.5 km/s                     =    31 km of along-track position error
+#   31 km at 1 to 3 km/day of growth      =  10.5 to 31 days
+#
+# So the tolerance is met out to 10.5 days even for the faster ordinary LEO, and 10
+# days is the bound that holds across that whole band. The previous value of 14 days
+# corresponds to 1.9 to 5.6 s, which is 0.11 to 0.33 half-widths: inside the tolerance
+# for a slowly drifting object and outside it for a faster one.
+#
+# What this bound cannot see: a high-drag object during a geomagnetic storm drifts an
+# order of magnitude faster, and can exceed the budget well inside 10 days. Catching
+# that needs the TLE's own drag term rather than a single number for every object, and
+# there is no data here to calibrate that against, so it is named rather than guessed.
+#
+# The threshold is currently inert, which is measured and worth saying: over the 200
+# validation records the maximum epoch age is 3.837 days and the median is 0.743, and
+# over the 2,750-record snapshot 38 records exceed 4 days while 37 exceed 14, so the
+# entire band between 4 and 14 days holds exactly one record. Moving 14 to 10 changes
+# no artifact in this repository, which was checked before it was changed. The
+# distribution is published in artifacts/PHYSICS_VALIDATION.json so a reader can see
+# that for themselves rather than taking this comment's word for it.
+TLE_MAX_EPOCH_AGE_DAYS: float = 10.0
 
 # Maximum fraction of N_SAMPLES that may fail with a non-zero SGP4 error code before
 # the corridor is considered untrustworthy.  A corridor built on fewer than
@@ -147,10 +186,135 @@ SGP4_MAX_MISSING_FRACTION: float = 0.5
 # up at snapshot scale.
 FREQ_OFFSET_SEARCH_HZ: float = 20_000.0
 
+# SPACE-S4: elevation floor for a scorable image row, in degrees.
+#
+# Below the local horizon the line of sight passes through the Earth, so a corridor
+# drawn across that row cannot contain a real trace. Whatever intensity sits there is
+# noise, and averaging it into a path score dilutes the statistic with rows that had
+# no chance of carrying signal. Zero is the geometric horizon and the weakest floor
+# that can be defended: a real station is masked well above it by terrain and
+# buildings, and SatNOGS does not publish a per-station mask, so a larger floor would
+# be a number this project cannot source.
+#
+# Measured need. A SatNOGS observation window is scheduled around a pass rather than
+# clipped to it, so windows routinely open below the horizon. Over the 150 records the
+# console builds from, propagated at 512 samples: 26 (17.3 percent) contain at least
+# one below-horizon sample, the mean below-horizon fraction is 0.257 percent of the
+# window and the worst single window is 16.60 percent. Over the 200 records of the A4
+# validation corpus the same figures are 38 of 199 propagated (19.1 percent) and a
+# worst case of 16.6 percent, with elevation at window start averaging 13.01 degrees
+# (sd 13.19, minimum -5.87).
+#
+# Measured effect on what currently ships. At real image heights, 1 of the 25 console
+# cards carries a below-horizon row and it carries exactly one, 1 row of 1549. All
+# seven gate-3 decisive observations and the hero observation carry none, so the mask
+# is inert on every published statistic today and the receipts do not move. It is not
+# inert on the corpus: the worst window would lose about 256 rows of 1540.
+HORIZON_MASK_ELEVATION_DEG: float = 0.0
+
 # Axis sign convention: the plotted frequency axis runs AGAINST the Doppler sign.
-# positive Doppler (approaching) → LEFT on the rendered image.
+# positive Doppler (approaching) -> LEFT on the rendered image.
 # The caller must multiply physics doppler_hz by this before mapping to pixels.
+#
+# SPACE-S5: THE EVIDENCE BASE, because this is a property of the renderer that drew
+# the image and not of the pass, and it is applied here as one global constant.
+#
+# A3 fitted the sign per observation, as the argmax of `sigma_curved_by_sign` in
+# artifacts/a3_overlays/summary.json. Over the 7 decisive observations it is only
+# measurable on the 3 UNCORRECTED ones, and there it is decisive:
+#
+#   obs        family   station  sigma at +1  sigma at -1  ratio
+#   14740031   1.6      91             1.986       25.102  12.6x
+#   14745664   2.1.2    1696           1.184       15.142  12.8x
+#   14745929   2.1.2    1696           1.407       15.943  11.3x
+#
+# On the 4 CORRECTED observations the corrected corridor is identically 0 Hz across
+# the pass, so there is no shape to mirror and the two signs tie to within 0 to 18
+# percent (ratios 1.02, 1.00, 1.07, 1.18). A3's argmax still returned a winner there
+# and returned +1 twice, which is noise being reported as a measurement, not evidence
+# against the constant.
+#
+# So the scope of the evidence is 3 observations, one UTC night (2026-08-09, 23:32 to
+# 23:50 UTC), 2 stations (91 and 1696), one downlink frequency (436.4 MHz) and 2 of
+# the 4 client families in the vetted set. Families 1.8.1 (5 observations, 0 decisive)
+# and 1.9.3 (6 observations, 2 decisive but both CORRECTED, so both unmeasurable) have
+# no observation on which the sign can be measured at all. A renderer that changed the
+# axis direction between client versions is the specific risk, and it is untested on
+# half the families already in hand.
+#
+# Wider than the vetted set, the same count is worse. The 150-record corpus the console
+# builds from carries 16 distinct client families, and 2 of them have a sign measurement
+# behind them: 1.6 (6 records) and 2.1.2 (46 records), so 52 of 150 observations come
+# from a renderer version the sign was measured on and 98 do not.
+#
+# The guard, rather than a comment alone: `axis_sign_evidence` below reports per
+# observation whether the family it came from has a measurement behind it, and
+# `corridor_fit.measure_axis_sign` re-measures the sign from the image whenever the
+# corridor has enough swing to make it measurable. run_gate3 publishes both per
+# observation, so a family with no evidence is visible in the receipt instead of
+# inheriting the constant silently.
 AXIS_SIGN_CONVENTION: int = -1
+
+#: Client families with at least one observation on which the sign was measurable.
+#: Normalised by :func:`client_family`, so a build suffix does not create a new
+#: family. Widening this set means a new measurement, not a new assumption.
+AXIS_SIGN_MEASURED_FAMILIES: frozenset[str] = frozenset({"1.6", "2.1.2"})
+
+#: Ratio of the better sigma to the worse one, above which the sign counts as
+#: measured on that image. The measured separation is wide: the three measurable
+#: observations sit at 11.3x and above, and the four unmeasurable ones at 1.18x and
+#: below, so any threshold between about 1.3 and 11 classifies the shipped set
+#: identically and this value is not tuned to it.
+AXIS_SIGN_MEASURABLE_RATIO: float = 2.0
+
+_CLIENT_BUILD_SUFFIX = re.compile(
+    r"[+.][0-9]+\.g[0-9a-f]{6,}(\.dirty)?$|\.dirty$"
+)
+
+
+def client_family(obs: dict) -> str:
+    """Normalised satnogs-client version, for example ``2.1.2+1.gcded8f6`` -> ``2.1.2``.
+
+    The renderer that drew the waterfall is the client, so its version is the unit
+    the axis sign has to be reasoned about in. A git build suffix is the same
+    renderer, so it is stripped; an absent version falls back to the radio version
+    inside ``client_metadata`` and then to ``"unknown"``, which is a family name a
+    reader can see rather than a silent grouping with a real one.
+    """
+    raw = obs.get("client_version") or ""
+    if not raw:
+        try:
+            meta = json.loads(obs.get("client_metadata") or "{}")
+            raw = (meta.get("radio") or {}).get("version") or ""
+        except (ValueError, TypeError, AttributeError):
+            raw = ""
+    if not raw:
+        return "unknown"
+    return _CLIENT_BUILD_SUFFIX.sub("", raw.strip()) or "unknown"
+
+
+def axis_sign_evidence(obs: dict) -> dict[str, object]:
+    """What backs :data:`AXIS_SIGN_CONVENTION` for THIS observation's renderer.
+
+    ``status`` is ``"MEASURED_ON_FAMILY"`` when the sign was measurable on at least
+    one observation from the same client family, and ``"ASSUMED_FROM_OTHER_FAMILIES"``
+    when it was not. The second is not a failure and does not degrade anything: it is
+    the honest label for a constant travelling to a renderer version nothing measured
+    it on. Two of the seven gate-3 observations carry it today.
+    """
+    family = client_family(obs)
+    measured = family in AXIS_SIGN_MEASURED_FAMILIES
+    return {
+        "client_family": family,
+        "axis_sign_applied": AXIS_SIGN_CONVENTION,
+        "status": "MEASURED_ON_FAMILY" if measured else "ASSUMED_FROM_OTHER_FAMILIES",
+        "measured_families": sorted(AXIS_SIGN_MEASURED_FAMILIES),
+        "note": (
+            "The sign was measured on 3 observations from families 1.6 and 2.1.2, "
+            "one UTC night, 2 stations, 436.4 MHz. It is not measurable on a "
+            "corrected pass, because a flat corridor has no shape to mirror."
+        ),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -168,6 +332,13 @@ class Corridor:
                     the satellite is approaching (higher received frequency, but
                     that is to the LEFT on the axis — see AXIS_SIGN_CONVENTION).
     ``half_width_hz``  corridor half-width in Hz; apply ±this around each sample.
+    ``elevation_deg``  elevation at each sample in ``fracs`` (degrees), measured
+                    from the station's geodetic normal. Negative where the
+                    satellite is below the local horizon, which happens because a
+                    SatNOGS observation window is scheduled around a pass rather
+                    than clipped to it. Carried here so a consumer can mask those
+                    rows: without it a scorer has no way to know which rows cannot
+                    hold a trace, and no way to report how many it dropped.
     ``max_elevation_deg``  peak elevation reached in this pass (degrees).
     ``tca_frac``    pass-time fraction of the highest elevation sample.
     """
@@ -177,6 +348,7 @@ class Corridor:
     half_width_hz: float
     max_elevation_deg: float
     tca_frac: float
+    elevation_deg: list[float] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -715,6 +887,7 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
         half_width_hz=UNCORRECTED_CORRIDOR_HZ,
         max_elevation_deg=max_el,
         tca_frac=tca_frac,
+        elevation_deg=els,
     )
 
     # The corrected corridor: a near-vertical band.  The Doppler values are all
@@ -726,6 +899,7 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
         half_width_hz=CORRECTED_CORRIDOR_HZ,
         max_elevation_deg=max_el,
         tca_frac=tca_frac,
+        elevation_deg=els,
     )
 
     return PhysicsResult(
@@ -744,6 +918,58 @@ def corridor_for_obs(obs: dict) -> PhysicsResult:
 # ---------------------------------------------------------------------------
 # Convenience: image-row → corridor pixel column
 # ---------------------------------------------------------------------------
+
+
+def image_row_fracs(image_height: int) -> np.ndarray:
+    """Pass-time fraction at the centre of each image row, top row first.
+
+    Time runs bottom to top on a SatNOGS waterfall, so row 0 is the END of the pass
+    and the last row is the start. Defined once and used by both the column map and
+    the elevation map below: two copies of this inversion are two chances for a mask
+    to land on different rows than the corridor was drawn on.
+    """
+    rows = np.arange(image_height)
+    return 1.0 - (rows + 0.5) / image_height
+
+
+def corridor_row_elevation(corridor: Corridor, image_height: int) -> np.ndarray:
+    """Elevation in degrees at each image row, interpolated from the pass samples.
+
+    All-NaN when the corridor carries no elevation series, so a caller that cannot
+    tell a visible row from an invisible one gets nothing rather than a plausible
+    zero. :func:`visible_rows` is the caller that decides what to do about it.
+    """
+    if not corridor.elevation_deg:
+        return np.full(image_height, np.nan)
+    return np.interp(
+        image_row_fracs(image_height),
+        np.asarray(corridor.fracs, dtype=float),
+        np.asarray(corridor.elevation_deg, dtype=float),
+    )
+
+
+def visible_rows(
+    corridor: Corridor,
+    image_height: int,
+    floor_deg: float = HORIZON_MASK_ELEVATION_DEG,
+) -> np.ndarray:
+    """Boolean mask of image rows where the satellite is above the horizon floor.
+
+    Every row is marked visible when the corridor carries no elevation series. That
+    is the only safe answer for a corridor built without one: masking everything
+    would turn a missing field into a total absence of signal, and the callers report
+    the masked count, so "no elevation series" and "nothing masked" both surface as
+    zero and can be told apart from the corridor itself.
+
+    Note for callers scoring a candidate curve against nulls: build this mask once
+    from the TRUE corridor and pass it to every scored curve. The mask is a property
+    of the observation window, not of the curve under test, and a null scored on more
+    rows than the truth is not the same measurement.
+    """
+    elevation = corridor_row_elevation(corridor, image_height)
+    if not np.any(np.isfinite(elevation)):
+        return np.ones(image_height, dtype=bool)
+    return elevation >= floor_deg
 
 
 def corridor_columns(
@@ -786,9 +1012,7 @@ def corridor_columns(
         positive Doppler (approaching) → LEFT = lower pixel column
         AXIS_SIGN_CONVENTION = -1 is applied here.
     """
-    rows = np.arange(image_height)
-    # row_frac is the pass-time fraction 0–1; 0=bottom, 1=top → invert row index
-    row_fracs = 1.0 - (rows + 0.5) / image_height
+    row_fracs = image_row_fracs(image_height)
     interp_hz = np.interp(
         row_fracs,
         np.asarray(corridor.fracs),

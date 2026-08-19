@@ -62,6 +62,7 @@ from pipeline.tracetriage.physics import (  # noqa: E402
     corridor_columns,
     corridor_for_obs,
     rx_freq_of,
+    visible_rows,
 )
 from scripts.run_gate3 import _geometry_of, _load_raw_obs  # noqa: E402
 
@@ -254,9 +255,15 @@ def main() -> int:
     bound_px = int(math.floor(bound_hz / hz_per_px))
     smoothed = smooth_columns(zs, thresholds.filter_width)
     n_rows = zs.shape[0]
+    # SPACE-S4: the same horizon mask the gate uses, built once from the true
+    # corridor and applied to every curve. The panel has to be scored by the rules
+    # the receipt was scored by, or the drawn nulls are not the measured ones. This
+    # observation has no below-horizon rows, so the mask is all-True here and every
+    # published sigma is unchanged; the agreement checks below prove it.
+    row_mask = visible_rows(corridor, int(n_rows))
 
     true_sigma, true_off = _best_over_offsets(
-        smoothed, zs, corridor, hz_per_px, origin, bound_px
+        smoothed, zs, corridor, hz_per_px, origin, bound_px, row_mask=row_mask
     )
     if true_off is None:
         raise SystemExit("the true corridor has no admissible offset")
@@ -265,7 +272,7 @@ def main() -> int:
     for i in range(thresholds.n_nulls):
         null_c = scramble_corridor(corridor, thresholds.seed + i)
         sigma, off = _best_over_offsets(
-            smoothed, zs, null_c, hz_per_px, origin, bound_px
+            smoothed, zs, null_c, hz_per_px, origin, bound_px, row_mask=row_mask
         )
         if off is not None and math.isfinite(sigma):
             nulls.append({"i": i, "sigma": float(sigma), "off_px": int(off),

@@ -48,10 +48,18 @@ from pipeline.tracetriage.corridor_fit import (  # noqa: E402
     CorridorFit,
     calibrate_against_nulls,
     fit_corridor,
+    measure_axis_sign,
     normalised_rows,
     run_null_controls,
 )
-from pipeline.tracetriage.physics import corridor_for_obs, rx_freq_of  # noqa: E402
+from pipeline.tracetriage.physics import (  # noqa: E402
+    AXIS_SIGN_CONVENTION,
+    AXIS_SIGN_MEASURED_FAMILIES,
+    axis_sign_evidence,
+    client_family,
+    corridor_for_obs,
+    rx_freq_of,
+)
 
 logger = logging.getLogger("gate3")
 
@@ -94,6 +102,49 @@ def _geometry_of(image_path: Path, obs_id: int, rx_freq_hz: float | None, durati
         pass_duration_s=duration_s,
         rx_freq_hz=rx_freq_hz,
     )
+
+
+def _axis_sign_scope(snapshot_dir: Path) -> dict[str, Any]:
+    """Census the client families in the snapshot the gate draws from.
+
+    SPACE-S5: AXIS_SIGN_CONVENTION is a property of the renderer, measured on 3
+    observations from 2 client families. This counts how much of the corpus those 2
+    families actually cover, so the reach of the assumption is a published number
+    rather than a sentence. Nothing here changes a verdict; it is scope.
+    """
+    families: dict[str, int] = {}
+    n = 0
+    pages_dir = snapshot_dir / "pages"
+    for page_file in sorted(pages_dir.glob("*.json")):
+        try:
+            page = json.loads(page_file.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        rows = page if isinstance(page, list) else page.get("results", [])
+        for obs in rows:
+            if not isinstance(obs, dict) or "id" not in obs:
+                continue
+            n += 1
+            fam = client_family(obs)
+            families[fam] = families.get(fam, 0) + 1
+    covered = sum(v for k, v in families.items() if k in AXIS_SIGN_MEASURED_FAMILIES)
+    return {
+        "axis_sign_applied": AXIS_SIGN_CONVENTION,
+        "measured_families": sorted(AXIS_SIGN_MEASURED_FAMILIES),
+        "measured_on_observations": 3,
+        "observations_in_snapshot": n,
+        "distinct_families_in_snapshot": len(families),
+        "observations_from_a_measured_family": covered,
+        "observations_inheriting_the_constant": n - covered,
+        "family_counts": dict(sorted(families.items(), key=lambda kv: (-kv[1], kv[0]))),
+        "note": (
+            "The sign was measured on 3 observations, one UTC night, 2 stations, "
+            "436.4 MHz, families 1.6 and 2.1.2. Every other family inherits it. A "
+            "renderer that flipped its frequency axis between client versions is the "
+            "untested risk, and each scored observation carries its own remeasurement "
+            "under observations[].axis_sign.remeasured."
+        ),
+    }
 
 
 def _fit_row(fit: CorridorFit) -> dict[str, Any]:
@@ -198,6 +249,7 @@ def main() -> int:
 
         prepared.append({
             "obs_id": obs_id,
+            "client_family": client_family(raw),
             "verdict": verdict,
             "station_id": raw.get("ground_station"),
             "norad_cat_id": raw.get("norad_cat_id"),
@@ -280,6 +332,18 @@ def main() -> int:
                 "predicted_swing_hz": p["predicted_swing_hz"],
             },
             "fit": _fit_row(fit),
+            # SPACE-S5: the axis sign is a property of the client that rendered this
+            # image, applied here as a global constant measured on 3 observations from
+            # 2 client families. Published per observation so a renderer with no
+            # measurement behind it is visible, and re-measured from the image itself
+            # wherever the corridor has the swing to make that possible.
+            "axis_sign": {
+                **axis_sign_evidence({"client_version": p.get("client_family") or ""}),
+                "remeasured": measure_axis_sign(
+                    p["zs"], p["corridor"], p["hz_per_px"], p["centre_px"],
+                    p["rx_freq_hz"],
+                ),
+            },
             "null_calibration": cal.summary(),
             "null_controls": [
                 {"name": c.name, "rationale": c.rationale, "fit": _fit_row(c.fit)}
@@ -387,6 +451,7 @@ def main() -> int:
         "clears_point_estimate": clears_point,
         "clears_threshold": clears_threshold,
         "entity_grouping": grouping,
+        "axis_sign_scope": _axis_sign_scope(args.snapshot),
         "not_testable_note": (
             "A corrected corridor is identically 0 Hz across the pass, so it is a "
             "vertical line with a free horizontal offset and predicts no shape. "

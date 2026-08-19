@@ -3359,3 +3359,190 @@ the azimuth agreement measured against its counterfactuals.
 
 854 passed, ruff clean, and the deep freshness check confirms all six artifacts match
 their builders, including the regenerated physics validation and an unchanged gate 3.
+
+---
+
+## 2026-08-19 IST | Wave D | D6: a threshold that was a round number, rows nobody could see, and a global constant measured on three observations
+
+SPACE-S3, SPACE-S4 and SPACE-S5, the last three SERIOUS findings in the space review's
+first half.
+
+**SPACE-S3. `TLE_MAX_EPOCH_AGE_DAYS` was 14 because two weeks is a fortnight.** The
+comment beside it described a tolerance it did not compute. It is now derived, and the
+derivation is written where the number lives: a 500 Hz share of the 1200 Hz corrected
+corridor half-width, divided by the measured peak Doppler slope of 119.4 Hz/s, is 4.2
+seconds of timing error, which at orbital velocity is 31 km along track. Published SGP4
+along-track growth of 1 to 3 km per day puts the bound between 10.5 and 31 days, so 10 is
+the conservative end of its own interval rather than the middle of nothing. Two new
+constants carry the intermediate quantities so neither can drift silently:
+`PEAK_DOPPLER_SLOPE_HZ_PER_S = 119.4` and `TLE_AGE_TOLERANCE_HALF_WIDTHS = 0.25`.
+
+Changing 14 to 10 is inert on the data in hand, and the artifact says so rather than
+leaving it implied. `PHYSICS_VALIDATION.json` now publishes
+`distribution.tle_epoch_age`: over 199 propagated records the epoch age runs from 0.42 to
+3.837 days with a median of 0.743, and 0 records sit above the threshold at either value.
+A bound nothing has approached is a bound and not a filter, which is the honest reading.
+
+`test_stale_tle_threshold_reasonable` asserted `3 <= threshold <= 30`. Every plausible
+value satisfies that, so the test could not fail; three tests replace it, covering the
+derived bound, the 0.33 half-widths the previous value would have allowed, and the
+published inertness.
+
+**SPACE-S4. The scorer averaged rows where the satellite had not risen.** A SatNOGS
+observation window is scheduled around a pass rather than clipped to it, so windows open
+and close below the local horizon. Measured over the 150 records the console builds from,
+propagated at 512 samples: 26 windows (17.3 percent) contain at least one below-horizon
+sample, the mean below-horizon fraction is 0.257 percent and the worst window spends
+16.60 percent of its rows there. Over the 200 records of the A4 validation corpus, 38 of
+199 (19.1 percent), with elevation at window start averaging 13.01 degrees (sd 13.19,
+minimum -5.87). Those rows cannot hold a trace: the line of sight passes through the
+Earth. They were entering `path_score`, `rows_detected`, the residual percentiles and the
+`detect_frac` denominator.
+
+`Corridor` now carries `elevation_deg`, and `visible_rows` turns it into a per-row mask
+against a stated floor of 0 degrees. Zero is the geometric horizon and the weakest floor
+that can be defended, because SatNOGS publishes no per-station mask and a real station is
+masked well above it by terrain.
+
+**Four details decide whether the fix is a fix.**
+
+*One row-to-fraction map.* `corridor_columns` had the inversion inline. It is now
+`image_row_fracs`, used by the column map and the elevation map both. Two copies are two
+chances to mask the opposite end of the image from the curve being masked, and an
+inverted mask is invisible in every summary: the count of dropped rows comes out
+identical either way. A test paints an asymmetric window and asserts the mask lands on
+the bottom rows, which is where the pass starts.
+
+*The mask is built once from the true corridor and handed to every null.* The null
+builders construct fresh corridors, so a mask derived inside the scorer would have given
+each null the whole image while the truth was masked. A margin measured over two
+different row sets is not a margin, and both versions produce plausible sigmas. All five
+same-window builders now carry the elevation series through, including the mismatched
+control, which borrows the donor's curve and keeps this image's rows.
+
+*`min_valid` is measured against the masked rows.* Charging a horizon mask against the
+same 80 percent budget that catches a corridor running off the plot edge would turn every
+low window into a NaN, which is how a fix comes to look like a regression.
+
+*The denominator is the visible rows, and the count is published.*
+`rows_masked_below_horizon` is a required field on `CorridorFit`, so every writer has to
+state it, and `detect_frac` divides by `rows_total` minus that count. A new
+`MOSTLY_BELOW_HORIZON` degradation covers a window with fewer than 8 visible rows; it is
+inert on both corpora, since the worst window still leaves 1284 rows of 1540.
+
+**What ships is unchanged, and that was checked rather than assumed.** At real image
+heights, 1 of the 25 console cards carries a below-horizon row and it carries exactly
+one, 1 row of 1549. Of the 24 A3 observations, the same one, 1 row of 1603. All seven
+gate-3 decisive observations and the hero observation carry none. Rerunning gate 3
+produced 24 differences against the committed receipt and every one of them is the new
+field arriving with the value 0. `HERO_NULLS.json` came out byte-identical, and the hero
+exporter's seven agreement checks against the receipt still pass at sigma 2.024118.
+
+The first attempt to measure the A3 exposure returned "0 of 24" because the A3 summary
+carries no image height and every row was skipped. That is an unmeasurable quantity
+reading as a clean result, so the heights came from the cached waterfall PNGs instead and
+all 24 were measured.
+
+**SPACE-S5. `AXIS_SIGN_CONVENTION` sat under a heading reading "do not re-derive".** The
+axis direction is a property of the client that rendered the image, not of the pass, and
+it is applied as one global constant. A3 fitted it per observation, and it is only
+measurable on the 3 uncorrected passes of the 7 decisive ones:
+
+| obs | family | station | sigma at +1 | sigma at -1 | ratio |
+| --- | --- | --- | --- | --- | --- |
+| 14740031 | 1.6 | 91 | 1.986 | 25.102 | 12.6x |
+| 14745664 | 2.1.2 | 1696 | 1.184 | 15.142 | 12.8x |
+| 14745929 | 2.1.2 | 1696 | 1.407 | 15.943 | 11.3x |
+
+On the 4 corrected observations the corridor is identically 0 Hz across the pass, so it
+mirrors onto itself and the two signs tie within 1.18x. A3 took the argmax there anyway
+and it returned +1 twice, which is noise published as a measurement rather than evidence
+against the constant. The scope of the real evidence is 3 observations, one UTC night
+(2026-08-09, 23:32 to 23:50 UTC), 2 stations, one downlink frequency (436.4 MHz) and 2
+client families. Every figure above was re-read from the artifact before being used.
+
+**The evidence base is now stated beside the constant, and the reach of the assumption is
+a published number.** `run_gate3` writes `axis_sign_scope` into the receipt: the snapshot
+holds 2750 observations across 20 distinct client families, 1032 come from a family the
+sign was measured on, and 1718 inherit it. The README row cites those numbers because the
+claim register test refused the ones it could not find in the artifact, which is the test
+working: the first version of the row quoted a corpus count that lived only in a shell
+command.
+
+**And the constant is re-measured per observation rather than asserted.**
+`measure_axis_sign` scores the shipped orientation against its mirror under identical
+rules, with the same horizon mask and the same bounded offset search, and reports
+`measurable: false` with a named reason when the corridor has too little swing to tell
+the two apart. Gate 3 and the triage slice both publish it. On the three measurable
+observations it agrees with the constant at 3.43x, 3.87x and 4.01x. Those ratios are
+smaller than A3's because the estimator is different: A3 searched offsets across the whole
+image width with its own normalisation, while this is bounded at 50 ppm and masked. Only
+the direction is comparable between the two, and the direction agrees.
+
+`client_family` moved from the A3 script into `physics.py`, beside the constant it
+qualifies, because the evidence base and the grouping rule drifting apart is the failure
+this is meant to prevent. Verified identical to the version it replaced on all 150
+records of the corpus, zero disagreements, including the build-suffix and
+`client_metadata` fallback paths.
+
+**Tests added: 27.** Fifteen for the horizon mask, twelve for the axis sign. Every one of
+them was checked against the defect it describes: nine mutations were applied to the
+sources and each was caught by the test that names the property.
+
+| mutation | caught by |
+| --- | --- |
+| the mask is always all-True | the mask lands on the pass-start rows |
+| the elevation row map is inverted | the mask lands on the pass-start rows |
+| `min_valid` charged over the whole image | the mask is not charged as leaving the plot |
+| `detect_frac` divides by the image height | the denominator is the rows that could hold a trace |
+| null builders drop the elevation series | the null builders carry the window elevation |
+| nulls derive their own mask | every null is scored on the same rows as the truth |
+| a family claims evidence it does not have | the evidence base is derived from the artifact |
+| the measurability threshold raised past the evidence | the threshold is not tuned to the data |
+| the sign is reported as the constant regardless | the measurement can disagree with the constant |
+
+**One defect in this unit's own work, caught before it ran.** The first version of the
+gate-3 axis-sign call passed `geom.hz_per_px` and `rx_hz`, which are loop variables from
+the earlier prepare loop rather than the observation being scored. Every observation would
+have been measured against the last prepared geometry. The scoring loop reads everything
+from its own entry; so does this now.
+
+**What changed:**
+- `pipeline/tracetriage/physics.py`: the derived epoch-age bound with its two intermediate
+  constants, `HORIZON_MASK_ELEVATION_DEG`, `image_row_fracs`, `corridor_row_elevation`,
+  `visible_rows`, `elevation_deg` on `Corridor`, `client_family`,
+  `axis_sign_evidence`, `AXIS_SIGN_MEASURED_FAMILIES`, `AXIS_SIGN_MEASURABLE_RATIO`, and
+  the evidence base written into the axis-sign comment.
+- `pipeline/tracetriage/corridor_fit.py`: `row_mask` through `path_score` and
+  `_best_over_offsets`, the mask built once in `fit_offset` and `calibrate_against_nulls`,
+  masking in `measure_residuals`, the visible denominator and `MIN_VISIBLE_ROWS` in
+  `fit_corridor`, `rows_masked_below_horizon` on `CorridorFit` and in `summary()`,
+  `invert_corridor` and `measure_axis_sign`.
+- `scripts/run_gate3.py`: the per-observation `axis_sign` block and the `axis_sign_scope`
+  census.
+- `scripts/run_triage_slice.py`: the same per-observation block.
+- `scripts/export_hero_nulls.py`: the same mask the gate uses, so the drawn nulls stay the
+  measured ones.
+- `scripts/a3_doppler_investigation.py`: imports `client_family` instead of duplicating it.
+- `scripts/validate_physics.py`: the epoch-age distribution block.
+- `artifacts/GATE3_RECEIPT.json`, `artifacts/TRIAGE_RECEIPT.json`,
+  `artifacts/PHYSICS_VALIDATION.json`, `apps/web/public/data/provenance.json` and the
+  console's register copy: regenerated.
+- `README.md` and `docs/CLAIM_REGISTER.md`: the axis-sign row and four register rows.
+- `tests/test_physics.py`, `tests/test_corridor_fit.py`: 27 tests.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\run_gate3.py
+.venv\Scripts\python.exe scripts\run_triage_slice.py --obs-id 14740031
+.venv\Scripts\python.exe scripts\export_hero_nulls.py
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+.venv\Scripts\python.exe scripts\check_artifact_freshness.py --deep
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr"
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+883 passed, ruff clean, the deep freshness check passes all eight artifacts including the
+gate-3 and physics rebuilds, and the standing gate reports 12 of 13 with only the
+uncommitted working tree outstanding.

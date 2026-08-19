@@ -68,8 +68,10 @@ import numpy as np
 
 from pipeline.tracetriage.physics import (
     AXIS_SIGN_CONVENTION,
+    AXIS_SIGN_MEASURABLE_RATIO,
     Corridor,
     corridor_columns,
+    visible_rows,
 )
 
 __all__ = [
@@ -92,6 +94,8 @@ __all__ = [
     "scramble_corridor",
     "scale_corridor",
     "flatten_corridor",
+    "invert_corridor",
+    "measure_axis_sign",
 ]
 
 
@@ -340,18 +344,52 @@ def smooth_columns(z: np.ndarray, width: int) -> np.ndarray:
     return out
 
 
-def path_score(zs: np.ndarray, cols: np.ndarray, min_valid: float = 0.8) -> float:
+# SPACE-S4: fewest visible rows a fit is allowed to run on. A window almost
+# entirely below the horizon has no pass in it to measure, and a detect_frac over a
+# handful of rows is noise with a denominator. Eight matches the IMAGE_TOO_SMALL
+# floor above, so the same minimum applies whether rows are missing because the
+# image is small or because the satellite had not risen.
+#
+# Inert on both corpora as of this commit: the worst window in the 150-record
+# working corpus is 16.60 percent below the horizon, which leaves 1284 of 1540 rows,
+# and no observation comes within two orders of magnitude of this floor. It exists
+# so that a future corpus with a badly scheduled window degrades with a named reason
+# instead of publishing a detect_frac over four rows.
+MIN_VISIBLE_ROWS: int = 8
+
+
+def path_score(
+    zs: np.ndarray,
+    cols: np.ndarray,
+    min_valid: float = 0.8,
+    row_mask: np.ndarray | None = None,
+) -> float:
     """Mean normalised intensity along one path through the image.
 
     NaN when the path leaves the plot for more than 20 percent of the pass,
     because a shorter path is a noisier statistic and would win a scan for the
     wrong reason.
+
+    ``row_mask`` is an optional per-row boolean of rows that may carry signal at
+    all; rows outside it are excluded from the mean. ``min_valid`` is then measured
+    against the masked rows rather than the whole image, because a horizon mask is
+    not the path leaving the plot and must not be charged as if it were. Callers
+    scoring several curves on one image must pass the SAME mask to each: see
+    :func:`physics.visible_rows`.
     """
-    rows = np.arange(zs.shape[0])
-    valid = (cols >= 0) & (cols < zs.shape[1])
-    if valid.mean() < min_valid:
+    in_plot = (cols >= 0) & (cols < zs.shape[1])
+    if row_mask is None:
+        usable = in_plot
+        denom = in_plot.size
+    else:
+        usable = in_plot & row_mask
+        denom = int(row_mask.sum())
+    if denom == 0:
         return float("nan")
-    return float(zs[rows[valid], cols[valid]].mean())
+    if usable.sum() / denom < min_valid:
+        return float("nan")
+    rows = np.arange(zs.shape[0])
+    return float(zs[rows[usable], cols[usable]].mean())
 
 
 # ---------------------------------------------------------------------------
@@ -379,6 +417,11 @@ class CorridorFit:
 
     rows_total: int
     rows_detected: int
+    # Rows excluded because the satellite was below the station's horizon floor.
+    # detect_frac is measured against rows_total minus this, because a masked row
+    # was never a chance to detect and charging it as a miss would penalise the
+    # corridor for the schedule of the observation window.
+    rows_masked_below_horizon: int
     detect_frac: float
 
     residual_p50_hz: float | None
@@ -403,6 +446,7 @@ class CorridorFit:
             "offset_at_bound": self.offset_at_bound,
             "rows_total": self.rows_total,
             "rows_detected": self.rows_detected,
+            "rows_masked_below_horizon": self.rows_masked_below_horizon,
             "detect_frac": self.detect_frac,
             "residual_p50_hz": self.residual_p50_hz,
             "residual_p95_hz": self.residual_p95_hz,
@@ -449,9 +493,10 @@ def fit_offset(
     bound_px = int(math.floor(bound_hz / hz_per_px))
     smoothed = smooth_columns(zs, thresholds.filter_width)
     origin = centre_px - EDGE_MARGIN_PX
+    row_mask = visible_rows(corridor, int(zs.shape[0]))
 
     best_sigma, best_off_px = _best_over_offsets(
-        smoothed, zs, corridor, hz_per_px, origin, bound_px
+        smoothed, zs, corridor, hz_per_px, origin, bound_px, row_mask=row_mask
     )
     if best_off_px is None:
         return None, None, False, bound_hz
@@ -500,6 +545,7 @@ def _best_over_offsets(
     hz_per_px: float,
     origin: float,
     bound_px: int,
+    row_mask: np.ndarray | None = None,
 ) -> tuple[float, int | None]:
     """Best path sigma over every whole-pixel offset inside the bound.
 
@@ -516,7 +562,7 @@ def _best_over_offsets(
     best_off_px: int | None = None
     for off_px in range(-bound_px, bound_px + 1):
         cols = np.rint(base + off_px).astype(int)
-        s = path_score(smoothed, cols)
+        s = path_score(smoothed, cols, row_mask=row_mask)
         if math.isnan(s):
             continue
         sigma = (s - baseline) / spread
@@ -619,8 +665,15 @@ def calibrate_against_nulls(
     smoothed = smooth_columns(zs, thresholds.filter_width)
     origin = centre_px - EDGE_MARGIN_PX
 
+    # SPACE-S4: the horizon mask belongs to the observation window, so it is built
+    # once from the true corridor and handed to every scored curve below. Letting
+    # each null derive its own would score the nulls on more rows than the truth,
+    # because the null builders do not carry an elevation series, and a margin
+    # measured over two different row sets is not a margin.
+    row_mask = visible_rows(corridor, int(zs.shape[0]))
+
     true_sigma, true_off = _best_over_offsets(
-        smoothed, zs, corridor, hz_per_px, origin, bound_px
+        smoothed, zs, corridor, hz_per_px, origin, bound_px, row_mask=row_mask
     )
     if true_off is None:
         return NullCalibration(0, None, [], None, None, None, None, None)
@@ -655,7 +708,7 @@ def calibrate_against_nulls(
     for i in range(thresholds.n_nulls):
         null_c = scramble_corridor(corridor, thresholds.seed + i)
         s, off = _best_over_offsets(
-            smoothed, zs, null_c, hz_per_px, origin, bound_px
+            smoothed, zs, null_c, hz_per_px, origin, bound_px, row_mask=row_mask
         )
         if off is not None and math.isfinite(s):
             sigmas.append(float(s))
@@ -671,7 +724,7 @@ def calibrate_against_nulls(
     for factor in thresholds.swing_scale_factors:
         s, off = _best_over_offsets(
             smoothed, zs, scale_corridor(corridor, factor),
-            hz_per_px, origin, bound_px,
+            hz_per_px, origin, bound_px, row_mask=row_mask,
         )
         if off is not None and math.isfinite(s):
             scaled[f"{factor:g}x"] = float(s)
@@ -679,7 +732,8 @@ def calibrate_against_nulls(
     # SPACE-B5: the reversal control, restored. One extra scored fit.
     rev_sigma: float | None = None
     s_rev, off_rev = _best_over_offsets(
-        smoothed, zs, reverse_corridor(corridor), hz_per_px, origin, bound_px
+        smoothed, zs, reverse_corridor(corridor), hz_per_px, origin, bound_px,
+        row_mask=row_mask,
     )
     if off_rev is not None and math.isfinite(s_rev):
         rev_sigma = float(s_rev)
@@ -777,9 +831,16 @@ def measure_residuals(
     half_px = corridor.half_width_hz / hz_per_px
     window_px = max(2.0, thresholds.search_window_factor * half_px)
 
+    # SPACE-S4: a row below the local horizon cannot hold a trace, so the brightest
+    # pixel in its window is noise. Detecting there inflates rows_detected and pulls
+    # a spurious residual into the percentiles.
+    visible = visible_rows(corridor, n_rows)
+
     rows_out: list[int] = []
     resid_out: list[float] = []
     for r in range(n_rows):
+        if not visible[r]:
+            continue
         lo = int(math.floor(predicted[r] - window_px))
         hi = int(math.ceil(predicted[r] + window_px)) + 1
         lo_c = max(0, lo)
@@ -826,6 +887,7 @@ def fit_corridor(
             offset_at_bound=False,
             rows_total=int(zs.shape[0]) if zs is not None and zs.ndim == 2 else 0,
             rows_detected=0,
+            rows_masked_below_horizon=0,
             detect_frac=0.0,
             residual_p50_hz=None,
             residual_p95_hz=None,
@@ -854,7 +916,15 @@ def fit_corridor(
     )
 
     n_rows = int(zs.shape[0])
-    detect_frac = len(rows) / n_rows if n_rows else 0.0
+    # SPACE-S4: measure the detected fraction against the rows that could have held
+    # a trace. Using the full image height instead would push a window that opens
+    # below the horizon towards TRACE_NOT_MEASURABLE for a reason that has nothing
+    # to do with the trace.
+    n_visible = int(visible_rows(corridor, n_rows).sum())
+    n_masked = n_rows - n_visible
+    if n_visible < MIN_VISIBLE_ROWS:
+        return _degraded("MOSTLY_BELOW_HORIZON")
+    detect_frac = len(rows) / n_visible if n_visible else 0.0
 
     if len(rows) == 0 or detect_frac < thresholds.min_detect_frac:
         out = _degraded("TRACE_NOT_MEASURABLE")
@@ -868,6 +938,7 @@ def fit_corridor(
             offset_at_bound=at_bound,
             rows_total=n_rows,
             rows_detected=len(rows),
+            rows_masked_below_horizon=n_masked,
             detect_frac=detect_frac,
             residual_p50_hz=None,
             residual_p95_hz=None,
@@ -890,6 +961,7 @@ def fit_corridor(
         offset_at_bound=at_bound,
         rows_total=n_rows,
         rows_detected=len(rows),
+        rows_masked_below_horizon=n_masked,
         detect_frac=detect_frac,
         residual_p50_hz=float(np.percentile(a, 50)),
         residual_p95_hz=float(np.percentile(a, 95)),
@@ -905,6 +977,118 @@ def fit_corridor(
 # ---------------------------------------------------------------------------
 # Null controls
 # ---------------------------------------------------------------------------
+
+
+def invert_corridor(corridor: Corridor) -> Corridor:
+    """Mirror the Doppler about zero, which is the opposite axis sign.
+
+    ``corridor_columns`` multiplies by AXIS_SIGN_CONVENTION on its way to pixels, so
+    negating the Doppler here draws the curve the other renderer convention would
+    produce. Same window, same swing, same smoothness: only the direction changes.
+    """
+    return Corridor(
+        fracs=list(corridor.fracs),
+        doppler_hz=[-float(v) for v in corridor.doppler_hz],
+        half_width_hz=corridor.half_width_hz,
+        max_elevation_deg=corridor.max_elevation_deg,
+        tca_frac=corridor.tca_frac,
+        elevation_deg=list(corridor.elevation_deg),
+    )
+
+
+def measure_axis_sign(
+    zs: np.ndarray,
+    corridor: Corridor,
+    hz_per_px: float,
+    centre_px: float,
+    rx_freq_hz: float,
+    thresholds: GateThresholds = DEFAULT_THRESHOLDS,
+) -> dict[str, Any]:
+    """Re-measure the frequency axis direction from this image.
+
+    SPACE-S5: AXIS_SIGN_CONVENTION is a property of the client that rendered the
+    waterfall, and it is applied as one global constant measured on 3 observations
+    from 2 client families. This scores the shipped convention against its mirror
+    under identical rules, so an observation from a renderer nobody measured either
+    confirms the constant or shows up in the receipt disagreeing with it.
+
+    Returns a block that always states whether the measurement could be made.
+    ``measurable`` is False when the corridor has too little swing for the two signs
+    to differ, which is every corrected corridor: a flat line mirrors onto itself, so
+    the argmax there is noise. A3 took that argmax anyway and it came out +1 on two of
+    four corrected observations, which is how an unmeasurable quantity gets published
+    as a measurement.
+    """
+    bound_hz = thresholds.offset_ppm_limit * rx_freq_hz / 1e6
+    bound_px = int(math.floor(bound_hz / hz_per_px))
+    smoothed = smooth_columns(zs, thresholds.filter_width)
+    origin = centre_px - EDGE_MARGIN_PX
+    row_mask = visible_rows(corridor, int(zs.shape[0]))
+
+    span = float(np.ptp(np.asarray(corridor.doppler_hz, dtype=float)))
+    out: dict[str, Any] = {
+        "axis_sign_applied": AXIS_SIGN_CONVENTION,
+        "corridor_span_hz": span,
+        "sigma_as_shipped": None,
+        "sigma_mirrored": None,
+        "ratio": None,
+        "measurable": False,
+        "sign_implied": None,
+        "agrees_with_constant": None,
+        "not_measurable_reason": None,
+    }
+
+    if span < thresholds.min_swing_hz:
+        out["not_measurable_reason"] = (
+            f"corridor swing {span:.0f} Hz is below the {thresholds.min_swing_hz:.0f} "
+            "Hz floor, so the mirrored curve is nearly the same path and the two "
+            "signs cannot be told apart"
+        )
+        return out
+
+    shipped, off_shipped = _best_over_offsets(
+        smoothed, zs, corridor, hz_per_px, origin, bound_px, row_mask=row_mask
+    )
+    mirrored, off_mirrored = _best_over_offsets(
+        smoothed, zs, invert_corridor(corridor), hz_per_px, origin, bound_px,
+        row_mask=row_mask,
+    )
+    if off_shipped is None or off_mirrored is None:
+        out["not_measurable_reason"] = (
+            "one of the two orientations has no admissible offset inside the bound, "
+            "so the pair was not scored under the same rules"
+        )
+        return out
+
+    out["sigma_as_shipped"] = float(shipped)
+    out["sigma_mirrored"] = float(mirrored)
+
+    # Both sigmas can be negative (a path darker than the image median), so the ratio
+    # is taken over the distance from zero of the better one to the worse one and only
+    # when the winner is positive. A ratio of two negatives is not a strength.
+    better, worse = max(shipped, mirrored), min(shipped, mirrored)
+    if better <= 0.0:
+        out["not_measurable_reason"] = (
+            f"neither orientation scores above the image baseline (best "
+            f"{better:.3f} sigma), so there is no trace here to orient"
+        )
+        return out
+    ratio = better / worse if worse > 0.0 else float("inf")
+    out["ratio"] = None if ratio == float("inf") else float(ratio)
+
+    if ratio < AXIS_SIGN_MEASURABLE_RATIO:
+        out["not_measurable_reason"] = (
+            f"the two orientations score within {ratio:.2f}x of each other, under the "
+            f"{AXIS_SIGN_MEASURABLE_RATIO:.1f}x separation this treats as decisive"
+        )
+        return out
+
+    out["measurable"] = True
+    out["sign_implied"] = (
+        AXIS_SIGN_CONVENTION if shipped >= mirrored else -AXIS_SIGN_CONVENTION
+    )
+    out["agrees_with_constant"] = bool(out["sign_implied"] == AXIS_SIGN_CONVENTION)
+    return out
 
 
 def scramble_corridor(corridor: Corridor, seed: int = 42) -> Corridor:
@@ -924,6 +1108,12 @@ def scramble_corridor(corridor: Corridor, seed: int = 42) -> Corridor:
         half_width_hz=corridor.half_width_hz,
         max_elevation_deg=corridor.max_elevation_deg,
         tca_frac=corridor.tca_frac,
+        # SPACE-S4: the window's elevation series, carried through unchanged and
+        # unreversed. A null is a wrong curve over the SAME observation window, so it
+        # must be masked on the same rows. run_null_controls fits these through
+        # fit_corridor, which derives the mask from the corridor it is handed, so
+        # dropping this would score a control over more rows than the truth.
+        elevation_deg=list(corridor.elevation_deg),
     )
 
 
@@ -941,6 +1131,12 @@ def scale_corridor(corridor: Corridor, factor: float) -> Corridor:
         half_width_hz=corridor.half_width_hz,
         max_elevation_deg=corridor.max_elevation_deg,
         tca_frac=corridor.tca_frac,
+        # SPACE-S4: the window's elevation series, carried through unchanged and
+        # unreversed. A null is a wrong curve over the SAME observation window, so it
+        # must be masked on the same rows. run_null_controls fits these through
+        # fit_corridor, which derives the mask from the corridor it is handed, so
+        # dropping this would score a control over more rows than the truth.
+        elevation_deg=list(corridor.elevation_deg),
     )
 
 
@@ -958,6 +1154,12 @@ def reverse_corridor(corridor: Corridor) -> Corridor:
         half_width_hz=corridor.half_width_hz,
         max_elevation_deg=corridor.max_elevation_deg,
         tca_frac=corridor.tca_frac,
+        # SPACE-S4: the window's elevation series, carried through unchanged and
+        # unreversed. A null is a wrong curve over the SAME observation window, so it
+        # must be masked on the same rows. run_null_controls fits these through
+        # fit_corridor, which derives the mask from the corridor it is handed, so
+        # dropping this would score a control over more rows than the truth.
+        elevation_deg=list(corridor.elevation_deg),
     )
 
 
@@ -992,6 +1194,12 @@ def flatten_corridor(corridor: Corridor) -> Corridor:
         half_width_hz=corridor.half_width_hz,
         max_elevation_deg=corridor.max_elevation_deg,
         tca_frac=corridor.tca_frac,
+        # SPACE-S4: the window's elevation series, carried through unchanged and
+        # unreversed. A null is a wrong curve over the SAME observation window, so it
+        # must be masked on the same rows. run_null_controls fits these through
+        # fit_corridor, which derives the mask from the corridor it is handed, so
+        # dropping this would score a control over more rows than the truth.
+        elevation_deg=list(corridor.elevation_deg),
     )
 
 
@@ -1049,6 +1257,10 @@ def run_null_controls(
                 half_width_hz=corridor.half_width_hz,
                 max_elevation_deg=donor_corridor.max_elevation_deg,
                 tca_frac=donor_corridor.tca_frac,
+                # THIS window's elevation, not the donor's. The control borrows the
+                # donor's curve shape; the rows that can hold a trace belong to the
+                # image being scored.
+                elevation_deg=list(corridor.elevation_deg),
             ),
         ))
 

@@ -39,7 +39,6 @@ import json
 import logging
 import math
 import os
-import re
 import sys
 import time
 from collections import defaultdict
@@ -54,6 +53,7 @@ from PIL import Image, ImageDraw, ImageFont
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
+from pipeline.tracetriage.physics import client_family  # noqa: E402
 from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: E402
 
 logging.basicConfig(level=logging.WARNING)
@@ -770,18 +770,11 @@ def download_all(selected: list[dict]) -> dict[int, bytes]:
     return images
 
 
-def client_family(obs: dict) -> str:
-    raw = obs.get("client_version") or ""
-    if not raw:
-        try:
-            meta = json.loads(obs.get("client_metadata") or "{}")
-            raw = meta.get("radio", {}).get("version") or ""
-        except Exception:
-            raw = ""
-    if not raw:
-        return "unknown"
-    clean = re.sub(r"[+.][0-9]+\.g[0-9a-f]{6,}(\.dirty)?$|\.dirty$", "", raw.strip())
-    return clean or "unknown"
+# SPACE-S5: the normalisation moved to physics.py, where AXIS_SIGN_CONVENTION lives,
+# because the axis sign is reasoned about per client family and two copies of the
+# family rule would let the evidence base and the grouping drift apart. Verified
+# identical to the version this replaced on all 150 records of the corpus: zero
+# disagreements, including the build-suffix and client_metadata fallback paths.
 
 
 def select_diverse(candidates: list[dict], target: int) -> list[dict]:

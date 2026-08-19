@@ -26,31 +26,42 @@ import json
 import math
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 from pipeline.tracetriage.physics import (
     AXIS_SIGN_CONVENTION,
+    AXIS_SIGN_MEASURABLE_RATIO,
+    AXIS_SIGN_MEASURED_FAMILIES,
     C_M_PER_S,
     CORRECTED_CORRIDOR_HZ,
     FREQ_OFFSET_SEARCH_HZ,
+    HORIZON_MASK_ELEVATION_DEG,
     N_SAMPLES,
+    PEAK_DOPPLER_SLOPE_HZ_PER_S,
     SGP4_MAX_MISSING_FRACTION,
+    TLE_AGE_TOLERANCE_HALF_WIDTHS,
     TLE_MAX_EPOCH_AGE_DAYS,
     UNCORRECTED_CORRIDOR_HZ,
     Corridor,
+    axis_sign_evidence,
+    client_family,
     corridor_columns,
     corridor_for_obs,
+    corridor_row_elevation,
     ecef_to_geodetic,
     eci_to_ecef,
     geodetic_normal,
     gmst,
+    image_row_fracs,
     pass_geometry,
     propagate_pass,
     rx_freq_of,
     station_ecef,
     tle_epoch_datetime,
+    visible_rows,
 )
 
 # ---------------------------------------------------------------------------
@@ -778,8 +789,67 @@ class TestConstants:
     def test_n_samples_reasonable(self):
         assert 100 <= N_SAMPLES <= 2000
 
-    def test_stale_tle_threshold_reasonable(self):
-        assert 3 <= TLE_MAX_EPOCH_AGE_DAYS <= 30
+    def test_stale_tle_threshold_is_the_bound_its_comment_derives(self):
+        """The threshold must follow from the tolerance, not from a range check.
+
+        This test asserted 3 <= threshold <= 30, which every plausible value satisfies
+        and which therefore could not fail. The constant was also the only one in the
+        module with no derivation behind it. Both are fixed together: the arithmetic
+        below is the comment beside the constant, executed.
+        """
+        budget_hz = TLE_AGE_TOLERANCE_HALF_WIDTHS * UNCORRECTED_CORRIDOR_HZ
+        assert budget_hz == pytest.approx(500.0)
+
+        timing_s = budget_hz / PEAK_DOPPLER_SLOPE_HZ_PER_S
+        assert timing_s == pytest.approx(4.19, abs=0.01)
+
+        # Along-track position error at orbital speed, and the days of drift that
+        # produce it at the faster end of ordinary LEO growth.
+        orbital_speed_km_per_s = 7.5
+        fastest_ordinary_growth_km_per_day = 3.0
+        along_track_km = timing_s * orbital_speed_km_per_s
+        days_at_fastest = along_track_km / fastest_ordinary_growth_km_per_day
+        assert days_at_fastest == pytest.approx(10.5, abs=0.1)
+
+        assert days_at_fastest >= TLE_MAX_EPOCH_AGE_DAYS, (
+            f"the threshold ({TLE_MAX_EPOCH_AGE_DAYS} days) exceeds the age its own "
+            f"tolerance allows ({days_at_fastest:.1f} days), so a corridor can be "
+            f"displaced by more than {TLE_AGE_TOLERANCE_HALF_WIDTHS} half-widths and "
+            "still be reported as fresh"
+        )
+
+    def test_the_previous_threshold_did_not_meet_that_tolerance(self):
+        """14 days spends 0.33 half-widths at the faster end, which is the reason it moved.
+
+        Kept as a test rather than only as a comment so that raising the constant back
+        to 14 fails here with the arithmetic attached.
+        """
+        previous = 14.0
+        timing_s = previous * 3.0 / 7.5
+        half_widths = timing_s * PEAK_DOPPLER_SLOPE_HZ_PER_S / UNCORRECTED_CORRIDOR_HZ
+        assert half_widths == pytest.approx(0.33, abs=0.01)
+        assert half_widths > TLE_AGE_TOLERANCE_HALF_WIDTHS
+
+    def test_the_threshold_is_inert_on_the_corpus_and_the_receipt_says_so(self):
+        """A threshold nothing has ever been near is a bound, not a filter.
+
+        Over the validation corpus the maximum epoch age is 3.837 days, so nothing in
+        it is anywhere near either the old or the new value. That is worth publishing
+        rather than leaving for a reader to assume the threshold is doing work.
+        """
+        receipt = json.loads(
+            (Path(__file__).resolve().parents[1] / "artifacts" / "PHYSICS_VALIDATION.json")
+            .read_text(encoding="utf-8")
+        )
+        block = receipt["distribution"].get("tle_epoch_age")
+        assert block, "PHYSICS_VALIDATION.json does not publish the epoch-age distribution"
+        assert block["n"] >= 199
+        assert block["max_days"] < TLE_MAX_EPOCH_AGE_DAYS, (
+            "an observation now sits above the threshold, so it is no longer inert and "
+            "the receipt's note has to be rewritten rather than reasserted"
+        )
+        assert block["threshold_days"] == TLE_MAX_EPOCH_AGE_DAYS
+        assert block["n_over_threshold"] == 0
 
 
 class TestCorridorWidthsAreMeasured:
@@ -1078,3 +1148,234 @@ class TestSgp4ErrorSurfacing:
         )
         assert r.n_sgp4_errors == n_errors
         assert r.n_samples_propagated == n_good
+
+
+# ---------------------------------------------------------------------------
+# SPACE-S4: one row-to-fraction map, and the elevation series that rides on it
+# ---------------------------------------------------------------------------
+
+
+class TestHorizonMask:
+    """The mask has to agree with the corridor about which row is which.
+
+    corridor_columns and corridor_row_elevation both invert the row index to a
+    pass-time fraction. While each carried its own copy of that inversion, a mask
+    could be applied to the opposite end of the image from the curve it was masking
+    and every summary statistic would come out the same: the same number of rows
+    dropped, from the wrong end.
+    """
+
+    def _ramp(self, n: int = 64) -> Corridor:
+        """A corridor whose Doppler and elevation are both the pass fraction.
+
+        Same series in both fields, so the two maps can be compared row by row
+        without a scale factor in between.
+        """
+        fracs = [i / (n - 1) for i in range(n)]
+        return Corridor(
+            fracs=fracs,
+            doppler_hz=[1000.0 * f for f in fracs],
+            half_width_hz=500.0,
+            max_elevation_deg=1.0,
+            tca_frac=1.0,
+            elevation_deg=[1000.0 * f for f in fracs],
+        )
+
+    def test_the_elevation_map_and_the_column_map_read_the_same_rows(self):
+        c = self._ramp()
+        height = 97                       # odd, and not a multiple of the samples
+        elevation = corridor_row_elevation(c, height)
+        # The columns for the same corridor, with the axis sign and centre removed
+        # so what is left is the Doppler value each row was drawn at.
+        cols = corridor_columns(
+            c, hz_per_px=1.0, centre_px=0.0, image_height=height, freq_offset_hz=0.0
+        )
+        doppler_at_row = np.asarray(cols) / AXIS_SIGN_CONVENTION
+        assert np.allclose(elevation, doppler_at_row, atol=1e-9), (
+            "the elevation map and the column map disagree about which row is "
+            "which point of the pass"
+        )
+
+    def test_row_zero_is_the_end_of_the_pass(self):
+        """Time runs bottom to top, so the highest fraction is at row 0."""
+        fracs = image_row_fracs(10)
+        assert fracs[0] > fracs[-1]
+        assert fracs[0] == pytest.approx(0.95)
+        assert fracs[-1] == pytest.approx(0.05)
+
+    def test_the_floor_is_the_geometric_horizon(self):
+        """Stated, because a station's real mask sits above it and is not known.
+
+        SatNOGS publishes no per-station horizon mask, so zero degrees is the
+        strongest floor this project can source. Raising it would mask real signal
+        on stations with a clear view.
+        """
+        assert HORIZON_MASK_ELEVATION_DEG == 0.0
+
+    def test_a_real_pass_carries_one_elevation_per_sample(self):
+        """The mask is only as long as the series behind it."""
+        r = corridor_for_obs(_FROZEN_OBS)
+        assert r.degraded is None
+        for corridor in (r.uncorrected, r.corrected):
+            assert len(corridor.elevation_deg) == len(corridor.fracs)
+            assert max(corridor.elevation_deg) == pytest.approx(
+                corridor.max_elevation_deg
+            )
+
+    def test_the_masked_fraction_of_a_real_pass_is_measured_not_assumed(self):
+        """A SatNOGS window is scheduled around a pass, not clipped to it.
+
+        Over the 150 records the console builds from, 26 windows (17.3 percent)
+        open or close below the horizon and the worst spends 16.60 percent of its
+        rows there. This frozen record is one of the ordinary ones: it stays above
+        the horizon throughout, which is why the shipped receipts do not move.
+        """
+        r = corridor_for_obs(_FROZEN_OBS)
+        mask = visible_rows(r.uncorrected, 1000)
+        assert mask.all(), (
+            "the frozen record now has below-horizon rows, so any receipt claiming "
+            "zero masked rows for it needs regenerating"
+        )
+        assert min(r.uncorrected.elevation_deg) >= 0.0
+
+
+# ---------------------------------------------------------------------------
+# SPACE-S5: the evidence base behind AXIS_SIGN_CONVENTION
+# ---------------------------------------------------------------------------
+
+_A3_SUMMARY_PATH = (
+    Path(__file__).resolve().parents[1] / "artifacts" / "a3_overlays" / "summary.json"
+)
+
+
+class TestClientFamily:
+    """The renderer version is the unit the axis sign has to be grouped by."""
+
+    def test_a_build_suffix_is_the_same_renderer(self):
+        assert client_family({"client_version": "2.1.2+1.gcded8f6"}) == "2.1.2"
+        assert client_family({"client_version": "1.9.2+sa2kng"}) == "1.9.2+sa2kng"
+        assert client_family({"client_version": "1.8.1.dirty"}) == "1.8.1"
+        assert client_family({"client_version": "  2.1.2  "}) == "2.1.2"
+
+    def test_a_missing_version_falls_back_then_names_itself_unknown(self):
+        meta = json.dumps({"radio": {"version": "1.9.3"}})
+        assert client_family({"client_metadata": meta}) == "1.9.3"
+        assert client_family({}) == "unknown"
+        assert client_family({"client_version": ""}) == "unknown"
+        assert client_family({"client_metadata": "not json at all"}) == "unknown"
+        assert client_family({"client_metadata": json.dumps({"radio": None})}) == "unknown"
+
+    def test_unknown_is_not_grouped_with_a_real_family(self):
+        """An absent version must not inherit another renderer's evidence."""
+        ev = axis_sign_evidence({})
+        assert ev["client_family"] == "unknown"
+        assert ev["status"] == "ASSUMED_FROM_OTHER_FAMILIES"
+
+
+class TestAxisSignEvidence:
+    def test_the_families_with_a_measurement_are_the_ones_that_claim_one(self):
+        for family in ("1.6", "2.1.2"):
+            ev = axis_sign_evidence({"client_version": family})
+            assert ev["status"] == "MEASURED_ON_FAMILY", family
+        for family in ("1.8.1", "1.9.3", "2.1.1", "1.4"):
+            ev = axis_sign_evidence({"client_version": family})
+            assert ev["status"] == "ASSUMED_FROM_OTHER_FAMILIES", family
+
+    def test_the_evidence_base_is_derived_from_the_a3_artifact(self):
+        """Recompute which observations can measure the sign, and from which families.
+
+        This is the test that keeps AXIS_SIGN_MEASURED_FAMILIES honest. Widening it
+        without a measurable observation behind the new family fails here, and so does
+        a change to the artifact that removes the evidence for a family already
+        claimed. The constant itself is checked the same way: every observation where
+        the sign is measurable has to choose it.
+        """
+        a3 = json.loads(_A3_SUMMARY_PATH.read_text(encoding="utf-8"))
+        decisive = [r for r in a3 if r.get("verdict") in ("CORRECTED", "UNCORRECTED")]
+        assert len(decisive) == 7, f"the decisive pool changed: {len(decisive)}"
+
+        measurable, unmeasurable = [], []
+        for r in decisive:
+            by_sign = r["sigma_curved_by_sign"]
+            plus, minus = float(by_sign["1"]), float(by_sign["-1"])
+            better, worse = max(plus, minus), min(plus, minus)
+            ratio = better / worse if worse > 0 else float("inf")
+            (measurable if ratio >= AXIS_SIGN_MEASURABLE_RATIO else unmeasurable).append(
+                (r["obs_id"], client_family({"client_version": r["family"]}), plus, minus, ratio)
+            )
+
+        assert len(measurable) == 3, f"measurable pool changed: {measurable}"
+        for obs_id, _family, plus, minus, _ratio in measurable:
+            implied = -1 if minus > plus else 1
+            assert implied == AXIS_SIGN_CONVENTION, (
+                f"obs {obs_id} measures the axis sign as {implied}, and the constant "
+                f"is {AXIS_SIGN_CONVENTION}"
+            )
+
+        assert {f for _, f, *_ in measurable} == set(AXIS_SIGN_MEASURED_FAMILIES), (
+            "AXIS_SIGN_MEASURED_FAMILIES no longer names exactly the families with a "
+            f"measurable observation: artifact says {sorted({f for _, f, *_ in measurable})}"
+        )
+
+        # The four excluded observations are the corrected ones, where the corridor is
+        # flat and has no shape to mirror. A3's argmax still returned a sign there and
+        # returned +1 twice, which is why they are excluded by the ratio rather than
+        # counted as disagreement.
+        assert len(unmeasurable) == 4
+        assert all(r["verdict"] == "CORRECTED" for r in decisive
+                   if r["obs_id"] in {o for o, *_ in unmeasurable})
+
+    def test_the_measurability_threshold_is_not_tuned_to_the_data(self):
+        """A threshold anywhere in a wide band classifies the shipped set identically.
+
+        The measurable observations separate at 11.3x and above, the unmeasurable ones
+        at 1.18x and below. Reporting that gap is what makes 2.0x a choice rather than
+        a fit: any value between them gives the same three observations.
+        """
+        a3 = json.loads(_A3_SUMMARY_PATH.read_text(encoding="utf-8"))
+        ratios = []
+        for r in a3:
+            if r.get("verdict") not in ("CORRECTED", "UNCORRECTED"):
+                continue
+            plus, minus = (float(r["sigma_curved_by_sign"][k]) for k in ("1", "-1"))
+            better, worse = max(plus, minus), min(plus, minus)
+            ratios.append((better / worse if worse > 0 else float("inf"), r["verdict"]))
+        strong = min(x for x, v in ratios if v == "UNCORRECTED")
+        weak = max(x for x, v in ratios if v == "CORRECTED")
+        assert weak < AXIS_SIGN_MEASURABLE_RATIO < strong
+        assert strong / weak > 5.0, (
+            f"the separation has narrowed to {strong / weak:.1f}x, so the threshold now "
+            "decides the answer and has to be justified rather than reported"
+        )
+
+    def test_the_shipped_gate3_receipt_states_its_axis_sign_evidence(self):
+        """Both halves per observation: the family's status and this image's answer.
+
+        Two of the seven decisive observations come from family 1.9.3, which has no
+        measurable observation behind it, so the assumed branch is exercised by
+        shipped data rather than only by a unit test.
+        """
+        receipt = json.loads(
+            (Path(__file__).resolve().parents[1] / "artifacts" / "GATE3_RECEIPT.json")
+            .read_text(encoding="utf-8")
+        )
+        statuses, agreements = [], []
+        for obs in receipt["observations"]:
+            block = obs.get("axis_sign")
+            assert block, f"obs {obs['obs_id']} publishes no axis sign evidence"
+            assert block["axis_sign_applied"] == AXIS_SIGN_CONVENTION
+            statuses.append(block["status"])
+            re_m = block["remeasured"]
+            assert (re_m["measurable"] is True) == (re_m["sign_implied"] is not None)
+            if re_m["measurable"]:
+                agreements.append(re_m["agrees_with_constant"])
+            else:
+                assert re_m["not_measurable_reason"], (
+                    f"obs {obs['obs_id']} is not measurable for no stated reason"
+                )
+        assert "ASSUMED_FROM_OTHER_FAMILIES" in statuses, (
+            "no shipped observation exercises the assumed branch, so it is untested"
+        )
+        assert agreements and all(agreements), (
+            f"an observation now disagrees with the constant: {agreements}"
+        )

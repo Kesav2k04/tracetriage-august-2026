@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T21:42:04.379032+00:00",
+  "generated_at": "2026-08-18T22:03:51.519927+00:00",
   "end_date_filter": "2026-08-10T00:00:00Z",
   "n_observations_fetched": 200,
   "distribution": {
@@ -26,6 +26,16 @@
       "uniform_rounding_mean_abs_deg": 0.25,
       "uniform_rounding_sd_deg": 0.2887,
       "implication": "The reference is quantised to one degree, so this comparison bounds the elevation error at roughly half a degree and cannot resolve anything finer. The measured mean absolute error is close to the 0.250 a pure rounding error would give on its own, so agreement here is evidence against a gross error and not evidence of tenth-of-a-degree accuracy. The azimuth comparison beside it is the unrounded one."
+    },
+    "tle_epoch_age": {
+      "n": 199,
+      "min_days": 0.42,
+      "median_days": 0.743,
+      "max_days": 3.837,
+      "n_over_1_day": 26,
+      "threshold_days": 10.0,
+      "n_over_threshold": 0,
+      "note": "The threshold is derived from the corridor half-width and the measured peak Doppler slope, and on this corpus it is inert: the oldest epoch here is far inside it. A threshold nothing has been near is a bound rather than a filter, and it has never been exercised on real data at its own boundary."
     }
   },
   "azimuth_agreement": {

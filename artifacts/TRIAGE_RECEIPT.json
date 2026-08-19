@@ -4,7 +4,7 @@
   "snapshot_id": "snap-20260817-stage1",
   "model_checksum": "e669ebca7ddaefd6461100d62b0a697dc4bb0ca5712abba4fc8f314a07681995",
   "model_checksum_source": "artifacts/hoglr_model.pkl",
-  "generated_at": "2026-08-18T20:46:33.028084+00:00",
+  "generated_at": "2026-08-19T00:31:40.986070+00:00",
   "evidence": {
     "artifact_usable": true,
     "physics_available": true,
@@ -23,6 +23,7 @@
         "offset_at_bound": false,
         "rows_total": 1532,
         "rows_detected": 32,
+        "rows_masked_below_horizon": 0,
         "detect_frac": 0.020887728459530026,
         "residual_p50_hz": null,
         "residual_p95_hz": null,
@@ -57,7 +58,28 @@
         "odd_symmetry_residual_frac": 0.001107471044099025,
         "discriminates": true
       },
-      "corridor_span_hz": 17289.651679120747
+      "corridor_span_hz": 17289.651679120747,
+      "axis_sign": {
+        "client_family": "1.6",
+        "axis_sign_applied": -1,
+        "status": "MEASURED_ON_FAMILY",
+        "measured_families": [
+          "1.6",
+          "2.1.2"
+        ],
+        "note": "The sign was measured on 3 observations from families 1.6 and 2.1.2, one UTC night, 2 stations, 436.4 MHz. It is not measurable on a corrected pass, because a flat corridor has no shape to mirror.",
+        "remeasured": {
+          "axis_sign_applied": -1,
+          "corridor_span_hz": 17289.651679120747,
+          "sigma_as_shipped": 2.024118067271594,
+          "sigma_mirrored": 0.5898902171784769,
+          "ratio": 3.43134706819384,
+          "measurable": true,
+          "sign_implied": -1,
+          "agrees_with_constant": true,
+          "not_measurable_reason": null
+        }
+      }
     },
     "waterfall_geometry_version": "0.2.2"
   },

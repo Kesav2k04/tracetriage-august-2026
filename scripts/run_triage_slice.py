@@ -225,8 +225,10 @@ def _measure_corridor(
     from pipeline.tracetriage.corridor_fit import (  # noqa: PLC0415
         calibrate_against_nulls,
         fit_corridor,
+        measure_axis_sign,
         normalised_rows,
     )
+    from pipeline.tracetriage.physics import axis_sign_evidence  # noqa: PLC0415
 
     if physics_result.degraded is not None:
         return None, None, f"physics_degraded:{physics_result.degraded}", None
@@ -262,6 +264,16 @@ def _measure_corridor(
         "corridor_span_hz": float(
             np.ptp(np.asarray(corridor.doppler_hz, dtype=float))
         ),
+        # SPACE-S5: which client rendered this waterfall, whether the axis sign was
+        # ever measured on that family, and what this image says about it. The family
+        # comes from the A3 entry, normalised by the same rule physics.client_family
+        # applies.
+        "axis_sign": {
+            **axis_sign_evidence({"client_version": a3_entry.get("family") or ""}),
+            "remeasured": measure_axis_sign(
+                zs, corridor, geom.hz_per_px, geom.centre_px, rx_freq_hz,
+            ),
+        },
     }
 
     # The gate-3 answer for one observation is the null-calibrated verdict, not

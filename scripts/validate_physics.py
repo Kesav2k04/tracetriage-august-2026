@@ -69,7 +69,10 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
-from pipeline.tracetriage.physics import corridor_for_obs  # noqa: E402
+from pipeline.tracetriage.physics import (  # noqa: E402
+    TLE_MAX_EPOCH_AGE_DAYS,
+    corridor_for_obs,
+)
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -436,6 +439,34 @@ def validate(observations: list[dict]) -> dict:
             "The azimuth comparison beside it is the unrounded one."
         ),
     }
+
+    # The epoch-age distribution, so a reader can see whether the staleness threshold
+    # is doing any work. It is not: the threshold is a bound on how wrong a corridor
+    # may be, and nothing in this corpus is near it. Publishing the distribution is
+    # what stops that being an assumption.
+    ages = [
+        r["tle_epoch_age_days"]
+        for r in records
+        if r.get("tle_epoch_age_days") is not None
+    ]
+    if ages:
+        age_arr = np.asarray(ages, dtype=float)
+        dist["tle_epoch_age"] = {
+            "n": int(age_arr.size),
+            "min_days": float(age_arr.min()),
+            "median_days": float(np.median(age_arr)),
+            "max_days": float(age_arr.max()),
+            "n_over_1_day": int((age_arr > 1.0).sum()),
+            "threshold_days": TLE_MAX_EPOCH_AGE_DAYS,
+            "n_over_threshold": int((age_arr > TLE_MAX_EPOCH_AGE_DAYS).sum()),
+            "note": (
+                "The threshold is derived from the corridor half-width and the "
+                "measured peak Doppler slope, and on this corpus it is inert: the "
+                "oldest epoch here is far inside it. A threshold nothing has been "
+                "near is a bound rather than a filter, and it has never been "
+                "exercised on real data at its own boundary."
+            ),
+        }
 
     return {
         "generated_at": datetime.now(UTC).isoformat(),

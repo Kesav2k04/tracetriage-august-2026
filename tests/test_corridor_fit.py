@@ -11,8 +11,10 @@ needed.
 
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -25,8 +27,11 @@ from pipeline.tracetriage.corridor_fit import (
     fit_corridor,
     fit_offset,
     flatten_corridor,
+    invert_corridor,
+    measure_axis_sign,
     measure_residuals,
     odd_symmetry_residual_frac,
+    path_score,
     px_to_offset_hz,
     reverse_corridor,
     scale_corridor,
@@ -34,9 +39,13 @@ from pipeline.tracetriage.corridor_fit import (
 )
 from pipeline.tracetriage.physics import (
     AXIS_SIGN_CONVENTION,
+    AXIS_SIGN_MEASURABLE_RATIO,
     Corridor,
     corridor_columns,
+    visible_rows,
 )
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 N_ROWS = 400
 N_COLS = 300
@@ -643,3 +652,347 @@ class TestOddSymmetryPremise:
         assert sorted(rev.doppler_hz) == sorted(c.doppler_hz)
         assert rev.fracs == c.fracs
         assert rev.half_width_hz == c.half_width_hz
+
+
+# ---------------------------------------------------------------------------
+# SPACE-S4: a row below the local horizon cannot hold a trace
+#
+# The scorer used to average every row of the image, including rows where the
+# satellite had not risen. Those rows are noise by geometry, not by chance, and
+# they entered path_score, rows_detected, the residual percentiles and the
+# detect_frac denominator. SkyPlot.tsx already broke its path at negative
+# elevation rather than clamping it; the scorer now agrees with the plot.
+# ---------------------------------------------------------------------------
+
+BELOW_START_FRAC = 0.25
+
+
+def s_curve_below_horizon(
+    below_frac: float = BELOW_START_FRAC, n: int = 64, floor_deg: float = -8.0
+) -> Corridor:
+    """An s_curve whose window opens below the station's horizon.
+
+    Deliberately asymmetric: only the START of the pass is below the horizon, so
+    a mask applied to the wrong end of the image fails a test rather than passing
+    one by symmetry. The start of the pass is the BOTTOM of the waterfall.
+    """
+    c = s_curve(n=n)
+    els: list[float] = []
+    for f in c.fracs:
+        if f < below_frac:
+            els.append(floor_deg * (1.0 - f / below_frac))
+        else:
+            els.append(45.0 * (f - below_frac) / (1.0 - below_frac))
+    return replace(c, elevation_deg=els)
+
+
+def paint_band(
+    corridor: Corridor,
+    row_lo: int,
+    row_hi: int,
+    amplitude: float = 30.0,
+    seed: int = 11,
+) -> np.ndarray:
+    """Noise everywhere, a bright trace on the corridor only inside [lo, hi)."""
+    rng = np.random.default_rng(seed)
+    zs = rng.normal(0.0, 1.0, size=(N_ROWS, N_COLS)).astype(np.float32)
+    cols = corridor_columns(
+        corridor, hz_per_px=HZ_PER_PX, centre_px=CENTRE_PX - EDGE_MARGIN_PX,
+        image_height=N_ROWS, freq_offset_hz=0.0,
+    )
+    for r in range(row_lo, row_hi):
+        c = int(round(cols[r]))
+        for d in (-1, 0, 1):
+            if 0 <= c + d < N_COLS:
+                zs[r, c + d] += amplitude
+    return zs
+
+
+def _corridor_cols(corridor: Corridor) -> np.ndarray:
+    return np.rint(
+        corridor_columns(
+            corridor, hz_per_px=HZ_PER_PX, centre_px=CENTRE_PX - EDGE_MARGIN_PX,
+            image_height=N_ROWS, freq_offset_hz=0.0,
+        )
+    ).astype(int)
+
+
+def test_the_horizon_mask_lands_on_the_rows_the_pass_starts_on():
+    """Row 0 is the END of the pass, so a late-rising pass masks the BOTTOM rows.
+
+    Two definitions of the row-to-fraction map are two chances to mask the wrong
+    end of the image, and an inverted mask is invisible in every summary statistic:
+    the count of masked rows comes out identical either way.
+    """
+    c = s_curve_below_horizon()
+    mask = visible_rows(c, N_ROWS)
+    hidden = np.flatnonzero(~mask)
+    assert hidden.size > 0
+    # Contiguous, and at the high-index end of the image.
+    assert hidden.max() == N_ROWS - 1, (
+        f"the mask reaches row {hidden.max()} of {N_ROWS - 1}, so it is on the "
+        "wrong end of the image: the pass starts at the BOTTOM"
+    )
+    assert np.array_equal(hidden, np.arange(hidden.min(), N_ROWS))
+    assert hidden.size == pytest.approx(BELOW_START_FRAC * N_ROWS, abs=2)
+
+
+def test_a_corridor_without_an_elevation_series_masks_nothing():
+    """A missing field must not read as "no signal anywhere".
+
+    Marking every row invisible would be the arithmetically tidy answer and would
+    silently zero the whole measurement, so the absent series means "cannot mask"
+    and the reported count of masked rows stays zero.
+    """
+    c = s_curve()
+    assert c.elevation_deg == []
+    assert visible_rows(c, N_ROWS).all()
+    fit = fit_corridor(zs_full := paint(c), c, "uncorrected", HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ)
+    assert fit.degraded is None
+    assert fit.rows_masked_below_horizon == 0
+    assert fit.detect_frac == pytest.approx(fit.rows_detected / zs_full.shape[0])
+
+
+def test_path_score_ignores_intensity_below_the_horizon():
+    """The defect, measured: brightness on rows that cannot hold a trace scores.
+
+    The trace here is painted ONLY across the below-horizon band, which is what
+    an interfering carrier or a hot pixel column looks like. Unmasked, it lifts
+    the path score; masked, the path sees only the noise it should.
+    """
+    c = s_curve_below_horizon()
+    mask = visible_rows(c, N_ROWS)
+    hidden = np.flatnonzero(~mask)
+    zs = paint_band(c, int(hidden.min()), N_ROWS)
+    cols = _corridor_cols(c)
+
+    unmasked = path_score(zs, cols)
+    masked = path_score(zs, cols, row_mask=mask)
+    assert unmasked > 5.0, f"the fixture painted nothing detectable: {unmasked}"
+    assert abs(masked) < 0.5, f"masked rows still reach the score: {masked}"
+    assert unmasked > 10 * abs(masked)
+
+
+def test_the_horizon_mask_is_not_charged_as_the_path_leaving_the_plot():
+    """min_valid is measured over the masked rows, not the whole image.
+
+    Charging a horizon mask against the same 80 percent budget that catches a
+    corridor running off the edge would turn every window that opens low into a
+    NaN, which is a way to make a fix look like a regression. The fixture puts the
+    only out-of-plot columns on rows that are masked anyway.
+    """
+    c = s_curve_below_horizon()
+    mask = visible_rows(c, N_ROWS)
+    zs = paint(c)
+    cols = _corridor_cols(c)
+    cols[~mask] = -5                      # off the left edge, on masked rows only
+
+    assert math.isnan(path_score(zs, cols)), (
+        "the fixture is not exercising the min_valid path"
+    )
+    scored = path_score(zs, cols, row_mask=mask)
+    assert not math.isnan(scored), "a horizon mask was charged as leaving the plot"
+    assert scored > 5.0
+
+
+def test_measure_residuals_does_not_detect_below_the_horizon():
+    """A bright row under the horizon is noise, however bright it is."""
+    c = s_curve_below_horizon()
+    hidden = np.flatnonzero(~visible_rows(c, N_ROWS))
+    lo = int(hidden.min())
+    zs = paint_band(c, lo, N_ROWS)
+
+    rows, _ = measure_residuals(zs, c, HZ_PER_PX, CENTRE_PX, offset_hz=0.0)
+    assert not set(rows.tolist()) & set(hidden.tolist()), (
+        "rows below the horizon carry detections"
+    )
+
+    # The premise of the test: the same paint IS detectable without the mask, so
+    # the assertion above is about the mask and not about the fixture being dim.
+    bare = replace(c, elevation_deg=[])
+    rows_bare, _ = measure_residuals(zs, bare, HZ_PER_PX, CENTRE_PX, offset_hz=0.0)
+    assert set(rows_bare.tolist()) & set(hidden.tolist()), (
+        "the fixture painted nothing the detector can find"
+    )
+
+
+def test_detect_frac_is_measured_over_the_rows_that_could_hold_a_trace():
+    """The denominator is the visible rows, and the masked count is published.
+
+    Dividing by the image height instead would drive a window that opens low
+    towards TRACE_NOT_MEASURABLE for a reason with nothing to do with the trace,
+    and there would be no field in the receipt to tell a reader that happened.
+    """
+    c = s_curve_below_horizon()
+    zs = paint(c)
+    fit = fit_corridor(zs, c, "uncorrected", HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ)
+
+    assert fit.degraded is None
+    assert fit.rows_masked_below_horizon > 0
+    assert fit.rows_total == N_ROWS
+    n_visible = fit.rows_total - fit.rows_masked_below_horizon
+    assert fit.detect_frac == pytest.approx(fit.rows_detected / n_visible)
+    assert fit.detect_frac > fit.rows_detected / fit.rows_total, (
+        "detect_frac still divides by the image height"
+    )
+    assert "rows_masked_below_horizon" in fit.summary()
+
+
+def test_a_window_almost_entirely_below_the_horizon_degrades_with_a_name():
+    """Too few visible rows is "could not measure", not a detect_frac of 0.02."""
+    c = s_curve()
+    els = [-20.0] * len(c.fracs)
+    els[-1] = 30.0                        # a sliver at the very start of the pass
+    fit = fit_corridor(
+        paint(c), replace(c, elevation_deg=els), "uncorrected",
+        HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ,
+    )
+    assert fit.degraded == "MOSTLY_BELOW_HORIZON"
+    assert fit.corridor_hit is None
+
+
+def test_every_null_is_scored_on_the_same_rows_as_the_truth():
+    """The mask belongs to the window, so truth and nulls share one of them.
+
+    Deriving it per corridor inside the scorer would hand every null the whole
+    image, because the null builders carry no Doppler curve of their own making
+    and nothing forces them to carry an elevation series either. A margin measured
+    over two different row sets is not a margin. This is the fairness property, and
+    it cannot be checked by reading the sigmas: both versions produce plausible
+    numbers.
+    """
+    import pipeline.tracetriage.corridor_fit as cf
+
+    c = s_curve_below_horizon()
+    zs = paint(c)
+    seen: set[bytes] = set()
+    real = cf.path_score
+
+    def recording(zs_, cols_, min_valid=0.8, row_mask=None):
+        seen.add(b"NONE" if row_mask is None else np.asarray(row_mask).tobytes())
+        return real(zs_, cols_, min_valid, row_mask)
+
+    thresholds = replace(DEFAULT_THRESHOLDS, n_nulls=3, offset_ppm_limit=2.0)
+    original, cf.path_score = cf.path_score, recording
+    try:
+        cal = calibrate_against_nulls(
+            zs, c, HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ, thresholds
+        )
+    finally:
+        cf.path_score = original
+
+    assert cal.true_sigma is not None
+    assert len(seen) == 1, f"{len(seen)} different row masks were scored"
+    only = next(iter(seen))
+    assert only != b"NONE", "the nulls were scored with no mask at all"
+    assert not np.frombuffer(only, dtype=bool).all(), (
+        "the fixture masks nothing, so this test cannot fail"
+    )
+
+
+def test_the_null_builders_carry_the_window_elevation():
+    """Same window, different curve: the elevation series survives unchanged."""
+    c = s_curve_below_horizon()
+    for name, null in (
+        ("scrambled", scramble_corridor(c, 1)),
+        ("scaled", scale_corridor(c, 2.0)),
+        ("reversed", reverse_corridor(c)),
+        ("flat", flatten_corridor(c)),
+    ):
+        assert null.elevation_deg == c.elevation_deg, f"{name} lost the elevation"
+        assert null.doppler_hz != [] and len(null.doppler_hz) == len(c.doppler_hz)
+
+
+def test_the_shipped_gate3_receipt_reports_its_masked_rows():
+    """A receipt written by the older scorer cannot pass as current.
+
+    Presence, not a value: the field is zero on every observation the gate scores
+    today (all seven decisive windows are above the horizon throughout), and that
+    zero is a measurement rather than a default.
+    """
+    receipt = json.loads(
+        (REPO_ROOT / "artifacts" / "GATE3_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    fits = []
+    for obs in receipt["observations"]:
+        if obs.get("fit"):
+            fits.append(obs["fit"])
+        for control in obs.get("null_controls") or []:
+            if control.get("fit"):
+                fits.append(control["fit"])
+    assert fits, "the receipt carries no fits, so this test checks nothing"
+    for f in fits:
+        assert "rows_masked_below_horizon" in f, (
+            f"obs {f.get('obs_id')} was scored before the horizon mask existed"
+        )
+        assert isinstance(f["rows_masked_below_horizon"], int)
+        assert 0 <= f["rows_masked_below_horizon"] <= (f["rows_total"] or 0)
+
+
+# ---------------------------------------------------------------------------
+# SPACE-S5: the axis sign is the renderer's property, so it gets re-measured
+# ---------------------------------------------------------------------------
+
+
+def test_measure_axis_sign_recovers_the_shipped_convention():
+    """A trace on the corridor confirms the sign the constant asserts."""
+    c = s_curve()
+    m = measure_axis_sign(paint(c), c, HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ)
+    assert m["measurable"] is True
+    assert m["sign_implied"] == AXIS_SIGN_CONVENTION
+    assert m["agrees_with_constant"] is True
+    assert m["ratio"] > AXIS_SIGN_MEASURABLE_RATIO
+    assert m["not_measurable_reason"] is None
+
+
+def test_measure_axis_sign_can_disagree_with_the_constant():
+    """The property that makes the measurement worth publishing.
+
+    A check that can only confirm is not a check. Here the trace is painted along
+    the mirrored curve, which is what a client that flipped its frequency axis
+    would produce, and the measurement has to report the other sign rather than
+    the constant it was handed.
+    """
+    c = s_curve()
+    m = measure_axis_sign(paint(invert_corridor(c)), c, HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ)
+    assert m["measurable"] is True
+    assert m["sign_implied"] == -AXIS_SIGN_CONVENTION
+    assert m["agrees_with_constant"] is False
+
+
+def test_a_flat_corridor_cannot_orient_the_axis():
+    """A corrected corridor mirrors onto itself, so its argmax is noise.
+
+    A3 published a per-observation sign for the corrected passes anyway, and it
+    came out +1 on two of the four. That is an unmeasurable quantity reported as a
+    measurement; this returns a named reason instead.
+    """
+    c = s_curve()
+    m = measure_axis_sign(paint(c), flatten_corridor(c), HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ)
+    assert m["measurable"] is False
+    assert m["sign_implied"] is None
+    assert m["agrees_with_constant"] is None
+    assert "swing" in m["not_measurable_reason"]
+
+
+def test_an_image_with_no_trace_cannot_orient_the_axis():
+    """Two orientations of noise score the same, and a tie is not a measurement."""
+    rng = np.random.default_rng(3)
+    noise = rng.normal(0.0, 1.0, size=(N_ROWS, N_COLS)).astype(np.float32)
+    m = measure_axis_sign(noise, s_curve(), HZ_PER_PX, CENTRE_PX, RX_FREQ_HZ)
+    assert m["measurable"] is False
+    assert m["not_measurable_reason"]
+    assert m["sigma_as_shipped"] is not None, (
+        "both orientations must still be reported, so a reader can see the tie"
+    )
+
+
+def test_inverting_a_corridor_changes_only_the_direction():
+    """Same swing, same window, opposite sign: the control has to be comparable."""
+    c = s_curve_below_horizon()
+    inv = invert_corridor(c)
+    assert np.ptp(inv.doppler_hz) == pytest.approx(np.ptp(c.doppler_hz))
+    assert inv.doppler_hz == [-v for v in c.doppler_hz]
+    assert inv.fracs == c.fracs
+    assert inv.elevation_deg == c.elevation_deg
+    assert inv.half_width_hz == c.half_width_hz
