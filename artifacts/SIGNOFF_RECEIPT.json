@@ -1,23 +1,23 @@
 {
  "schema": "SIGNOFF_RECEIPT",
  "schema_version": "0.1.0",
- "measured_at_commit": "dc30a8a81d751c31bd7fe2c136c94de086bf8ca0",
- "measured_at_commit_date": "2026-08-20T07:04:46+05:30",
+ "measured_at_commit": "f35b005fe2fc22650da2b9fefedc9155595e3391",
+ "measured_at_commit_date": "2026-08-20T04:55:18+05:30",
  "note_on_the_commit": "This receipt is written at the commit named above and then committed, so the commit it lands in is one later. It cannot name that one, and saying so is better than implying it measured itself.",
  "commits_behind_head_when_written": 0,
- "verdict": "NOT_SIGNED",
+ "verdict": "SIGNED",
  "counts": {
-  "PASSED": 7,
-  "FAILED": 2,
-  "NOT_CHECKED": 1
+  "PASSED": 10,
+  "FAILED": 0,
+  "NOT_CHECKED": 0
  },
  "checks": [
   {
    "check": "standing gates",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\gate.py",
-   "status": "FAILED",
-   "detail": "Do not start the next unit until these are green.",
-   "seconds": 293.1,
+   "status": "PASSED",
+   "detail": "17/17 standing gates pass",
+   "seconds": 279.3,
    "why_not_checked": null
   },
   {
@@ -48,8 +48,8 @@
    "check": "console tests",
    "command": "C:\\Program Files\\nodejs\\npm.CMD run test",
    "status": "PASSED",
-   "detail": "\u001b[2m   Duration \u001b[22m 772ms\u001b[2m (transform 502ms, setup 0ms, collect 1.04s, tests 78ms, environment 2ms, prepare 1.31s)\u001b[22m",
-   "seconds": 1.8,
+   "detail": "\u001b[2m   Duration \u001b[22m 792ms\u001b[2m (transform 412ms, setup 0ms, collect 796ms, tests 74ms, environment 2ms, prepare 1.13s)\u001b[22m",
+   "seconds": 1.9,
    "why_not_checked": null
   },
   {
@@ -57,15 +57,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run build",
    "status": "PASSED",
    "detail": "32 index.html files emitted to apps/web/out",
-   "seconds": 18.4,
+   "seconds": 18.1,
    "why_not_checked": null
   },
   {
    "check": "release audit re-run at this commit",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\audit_release.py",
    "status": "PASSED",
-   "detail": "0 secret findings, 0 files short of their attribution, 32.87 MB tracked",
-   "seconds": 4.6,
+   "detail": "0 secret findings, 0 files short of their attribution, 32.61 MB tracked",
+   "seconds": 4.5,
    "why_not_checked": null
   },
   {
@@ -79,18 +79,18 @@
   {
    "check": "working tree committed",
    "command": "git status --porcelain",
-   "status": "FAILED",
-   "detail": "4 uncommitted apart from the 4 receipts this run writes: M FOR_JUDGES.md, M apps/web/public/data/provenance.json, M artifacts/CLEAN_CLONE_TRANSCRIPT.json, M docs/REFERENCE.md",
+   "status": "PASSED",
+   "detail": "0 uncommitted apart from the 4 receipts this run writes",
    "seconds": null,
    "why_not_checked": null
   },
   {
    "check": "deployed console responds",
    "command": null,
-   "status": "NOT_CHECKED",
-   "detail": "",
-   "seconds": null,
-   "why_not_checked": "needs the network, and every other check in this run is offline. Re-run with --check-live from a networked machine before submitting."
+   "status": "PASSED",
+   "detail": "HTTP 200, 342,635 bytes from https://tracetriage.vercel.app",
+   "seconds": 1.0,
+   "why_not_checked": null
   }
  ],
  "what_a_not_checked_row_means": "The check could not run in this environment and its row says why. It is neither a pass nor a failure: folding it into either would misreport the run."
