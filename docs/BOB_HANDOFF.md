@@ -8,20 +8,20 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-20, IST, after D14d and the sign-off |
-| **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h), **D** (D0 to D14), **E** (E0 to E8) |
-| **Current wave** | **None. Wave D is closed.** Every unit the D prompt asked for is committed: the review-closing work (D0, D0b, D0c and the passes named D1 to D7), failure injection (D8, D8b), the `[UNMEASURED]` accounting (D9), the clean-clone reproduction (D10), secrets and attribution (D11), generated documentation and the demo script (D12, D12a), final acceptance with a sign-off receipt (D13, D13a, D13b), and a review pass from a judge's seat (D14 to D14d) that closed ten findings, put two unreachable console pages back in the navigation and re-ran the clean clone at the release commit. |
+| **Handoff written** | 2026-08-20, IST, after D15e and the signed final acceptance |
+| **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h), **D** (D0 to D15e), **E** (E0 to E8) |
+| **Current wave** | **None. Wave D is closed.** Every unit the D prompt asked for is committed: the review-closing work (D0, D0b, D0c and the passes named D1 to D7), failure injection (D8, D8b), the `[UNMEASURED]` accounting (D9), the clean-clone reproduction (D10), secrets and attribution (D11), generated documentation and the demo script (D12, D12a), final acceptance with a sign-off receipt (D13, D13a, D13b), and two review passes from a judge's seat: D14 to D14e closed ten findings and put two unreachable console pages back in the navigation, and D15 to D15e closed twenty-two more from three independent reviews of the documents, the live console and the statistics. |
 | **What remains** | Two things outside the repository: record the demo video against `docs/DEMO_SCRIPT.md`, and make the repository public on 25 August. One thing that needs a single look once it is public: the CI badge at the top of `README.md` reports the last run of `.github/workflows/ci.yml` on `main`, and no session here can query the Actions API to see what it says. Nothing in the tree is waiting on any of the three. |
 | **Numbering** | The committed entries named D1 to D7 are review-closing passes and are **not** the prompt's units D1 to D6. The prompt's units are numbered from D8 onward in the build log: D8 is its D1 (failure injection), D9 its D2, D10 its D3, D11 its D4, D12 its D5, D13 its D6. |
-| **Open failures** | none. **1,288** offline tests collected and all pass, 4 deselected, no expected failures. Lint clean. **103** console tests pass under vitest across 6 files. `npx tsc --noEmit` clean. `npx next build` emits **32** `index.html` files. `scripts/gate.py` green on **18 of 18** standing gates. |
+| **Open failures** | none. **1,315** offline tests collected and all pass, 4 deselected, no expected failures. Lint clean. **107** console tests pass under vitest across 7 files. `npx tsc --noEmit` clean. `npx next build` emits **32** `index.html` files plus a 404 and an icon. `scripts/gate.py` green on **19 of 19** standing gates. |
 | **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 **OPEN and never run**, with its instrument built in E6: `scripts/build_gate4_worksheet.py` produces a blinded 72-item bundle committed to in advance, and `artifacts/GATE4_RECEIPT.json` reads `NOT_RUN` with no rate. |
-| **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app. Six pages: queue, evaluation, agent, precedent, replay, provenance. |
+| **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app. Six pages: queue, evaluation, agent, precedent, baselines, provenance, plus 25 observation pages, a custom 404 and a generated link-preview card at `/og.png`. |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, **2,727** observations, 2,500 waterfalls, **739** decisive labels. The API pages on disk hold 2,750 rows, 23 more than the dataset, because the ingest stopped at its waterfall target part-way through a page it had already written whole. **Every count in this repository is over the 2,727.** Two scripts read the pages unfiltered and published 2,750 and 743; both filter against `artifacts/DATASET_MANIFEST.json` since D14. |
 | **Last commit** | see `git log -1`. `artifacts/SIGNOFF_RECEIPT.json` names the commit the final acceptance measured. |
 
 **The clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`.** Measured at
-`f35b005`: **15 of 16 steps**, both pytest passes green, 1,286 with the snapshot present and
-1,256 with 30 skipped when it is hidden. The one failing step is the offline `uv pip install`,
+`dc30a8a`: **15 of 16 steps**, both pytest passes green, 1,313 with the snapshot present and
+1,283 with 30 skipped when it is hidden. The one failing step is the offline `uv pip install`,
 which fails because a wheel is not in the local package cache and the run refuses the index.
 Making it pass needs the full pinned set warmed into a cache the run can reach; C: has 5.3 GB
 free and moving the cache to D: would make the receipt depend on a shell variable nobody sets
@@ -37,6 +37,13 @@ reads the missing package name out of the step's own output tail.
 | `FOR_JUDGES.md` | `scripts/sync_for_judges.py` | yes |
 | `docs/REFERENCE.md` | `scripts/sync_docs.py` | yes |
 | `docs/DEMO_SCRIPT.md` | `scripts/sync_demo.py` | yes |
+
+Three more things are generated the same way without being documents:
+`apps/web/public/data/`, written whole by `scripts/build_console_data.py` and diffed by
+`scripts/check_artifact_freshness.py`; `artifacts/CIRCULARITY_RECEIPT.json`, recomputed from
+the queue receipt by `scripts/run_circularity_check.py --check`; and `apps/web/public/og.png`,
+drawn from the queue and circularity receipts by `scripts/build_og_image.py --check`. All
+three are standing gates.
 
 `apps/web/public/data/` is generated in its entirety by `scripts/build_console_data.py`, and
 `artifacts/HERO_NULLS.json` by `scripts/export_hero_nulls.py`. `scripts/check_artifact_freshness.py`
@@ -424,3 +431,61 @@ file and line, and to the test that asserts it. Read it before touching this. As
   numbers behind gates 5 and 6.
 - Eleven reason constants can be emitted with nothing asserting them, listed in the recon
   document. A rename or a lost branch on any of those passes the suite today.
+
+---
+
+## What D15 changed that a reader of an older handoff will not expect
+
+Three independent reviews ran against `13bc4ae` from a judge's seat, one on the documents,
+one on the live console, one on the code and the statistics. Twenty-two findings survived,
+and closing them moved published numbers. If you are holding a figure from before
+`880ea04`, check it against the receipt.
+
+**Gate 6's intervals are narrower and every verdict is the same.** The bootstrap gave each
+draw a budget of `round(budget / n * drawn_n)`, so a draw could be more selective than the
+measurement it stands in for, and 7.92% of chronological draws scored above the 87/50 = 1.740
+ceiling. The published upper bound was 1.7547, which is 93/53. It is now exactly 1.7400. Use
+the exact integer ceiling, `-(-budget * drawn_n // n)`: `math.ceil` on the float returns 51 at
+`drawn_n == n`, because the product is 50.000000000000007.
+
+**There is a fifth baseline, and it ties.** Sorting on `abs(fitted_offset_ppm)` alone
+reproduces the queue's 1.5818 exactly, because `STALE_CATALOGUE_FREQ` accounts for 19 of the
+22 conflicts. It is declared, so the Bonferroni family on the baselines page is 5 rather
+than 4 and every interval there is wider, including the ones the queue wins.
+
+**The strongest single number in the submission is new.** 0 of 2,000 seeded shuffles of the
+same population found as many conflicts inside the budget as the shipped queue did, a
+permutation p of 0.0005. It exists because the random-ordering control was rewritten to go
+through `compute_lift`; the previous one computed `found / expected` inline, which is 1.0 by
+identity, and returned 1.0 with the queue reversed and with `compute_lift` replaced by a
+function that raises.
+
+**`DEAD_CAPTURE` fires on nothing in this corpus.** The highest `flat_row_frac` in the queue
+is 0.1371 against its 0.15 threshold. `conflict_definition.criteria_fired` in the queue
+receipt carries the count per criterion, and any prose about "the two criteria the model does
+not enter" has to be generated from it, because it describes one.
+
+**The precedent study was re-frozen.** The cold condition now excludes the query's physical
+site as well as its station id, because nine sites in the pool run two to four station ids
+from identical coordinates and 22.76% of Granite's cold neighbours were coming from the
+query's own site. Cold agreement moves 0.5608 to 0.5543 and the cold margin 0.0398 to 0.0260.
+`N_COMPARISONS` is 8 and derived from the pair lists, because the warm-versus-cold drop is
+now measured as a paired difference instead of asserted from two intervals: 0.0639, adjusted
+[0.0160, 0.1182], which excludes zero.
+
+**Gate 3's scope census reads the manifest.** It filters on `waterfall_sha256`, so the
+constant's reach is 1,496 rather than 1,704, and it no longer needs the 4 GB snapshot to
+regenerate `artifacts/GATE3_RECEIPT.json`.
+
+**The sign-off has a lifecycle that will trip you.** `scripts/signoff.py` runs
+`scripts/gate.py` first and writes its receipt afterwards, and the gate reads the committed
+receipt. Staging a `NOT_SIGNED` receipt makes `tests/test_signoff.py` fail, which fails the
+offline suite, which fails the standing gates, which is the one input a fresh sign-off cannot
+survive. The receipt is written at one commit and committed at the next. If you have staged a
+failed one, restore the last signed receipt (`git checkout <commit> -- artifacts/SIGNOFF_RECEIPT.json`),
+commit, and run the sign-off again. Its three audit receipts also carry the commit they were
+measured at, so they change on every run and `docs/REFERENCE.md` goes stale with them:
+regenerate and commit both together.
+
+Pass `--check-live` when the machine has a network. Without it the deployed-console check is
+recorded as NOT_CHECKED with its reason, which is correct and is not a pass.
