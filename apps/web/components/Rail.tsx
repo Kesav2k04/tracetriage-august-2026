@@ -28,6 +28,11 @@ import Icon, { type IconName } from "./Icon";
  */
 const LINKS: { href: string; label: string; icon: IconName }[] = [
   { href: "/", label: "Queue", icon: "queue" },
+  // Second, not last. This is the only page on the console that measures rather than
+  // reports, and it was the answer to the fair criticism of everything else here: a
+  // queue over a frozen corpus is an exhibit. A reader who never scrolls the rail
+  // would never find it, and a route nobody can reach does not exist for them.
+  { href: "/live/", label: "Live", icon: "live" },
   { href: "/evaluation/", label: "Evaluation", icon: "evaluation" },
   { href: "/agent/", label: "Agent", icon: "agent" },
   { href: "/precedent/", label: "Precedent", icon: "precedent" },
@@ -53,7 +58,59 @@ export default function Rail({ status }: { status: RailStatus }) {
     <div className="rail">
       <div className="rail-inner">
         <Link href="/" className="rail-mark">
-          <span>Trace</span>Triage
+          {/* The mark, inline rather than an asset: 500 bytes in the document costs no
+              request and cannot arrive after the wordmark it belongs to. It is the same
+              figure as app/icon.svg and the same figure the whole project is about, which
+              is the reason it is a diagram and not a monogram. Time runs down, frequency
+              runs across; the dashed line is the frequency the station was commanded to
+              receive on, the curve is where an uncorrected capture actually lands, and the
+              gap between them is what every number on this site measures.
+
+              currentColor for the commanded line, so the mark inherits the rail's ink and
+              the two never disagree. The trace keeps the accent, because it is the thing
+              being measured rather than part of the interface. */}
+          <svg
+            className="rail-glyph"
+            viewBox="0 0 32 32"
+            width="24"
+            height="24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <rect
+              x="0.6"
+              y="0.6"
+              width="30.8"
+              height="30.8"
+              rx="5"
+              fill="var(--surface-raised)"
+              stroke="var(--border-subtle)"
+            />
+            <path
+              d="M19.8 6 C 19 12.6, 9.8 19.4, 9 26 L 14.2 26 C 15 19.4, 24.2 12.6, 25 6 Z"
+              fill="var(--ui-02)"
+            />
+            <line
+              x1="16"
+              y1="5"
+              x2="16"
+              y2="27"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeDasharray="2.6 2.4"
+              opacity="0.62"
+            />
+            <path
+              d="M22.4 6 C 21.6 12.6, 12.4 19.4, 11.6 26"
+              fill="none"
+              stroke="var(--interactive-04)"
+              strokeWidth="3.1"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="rail-wordmark">
+            <span>Trace</span>Triage
+          </span>
         </Link>
 
         <nav className="rail-nav" aria-label="Sections">

@@ -1,0 +1,80 @@
+{
+ "schema": "LIVE_SHELF_RECEIPT",
+ "schema_version": 1,
+ "unit": "operator",
+ "question": "Does the measurement path work on observations recorded after the corpus was frozen, and at what rate?",
+ "built_at_utc": "2026-08-20T21:56:15.843009+00:00",
+ "snapshot_cutoff_utc": "2026-08-16T21:36:32.792753+00:00",
+ "n_nulls": 99,
+ "counts": {
+  "listed": 6,
+  "measured": 6,
+  "decisive": 3,
+  "unresolved": 3,
+  "refused": 0,
+  "skipped_in_snapshot": 0
+ },
+ "attempts": [
+  {
+   "observation_id": 14837614,
+   "outcome": "MEASURED",
+   "start": "2026-08-20T21:52:04Z",
+   "mode": "UNRESOLVED",
+   "offset_ppm": null,
+   "p_value": null,
+   "waterfall_sha256": "b7d660de294b16904f5c64933329e5e27184bc355621afc1341edb0f73194f17",
+   "measured_at_utc": "2026-08-20T21:56:21+00:00"
+  },
+  {
+   "observation_id": 14837563,
+   "outcome": "MEASURED",
+   "start": "2026-08-20T21:51:20Z",
+   "mode": "CORRECTED",
+   "offset_ppm": -1.9883107682053565,
+   "p_value": null,
+   "waterfall_sha256": "8f036b69fc4877af82535fde0cdc979f346ea941ec5a45682371356470a6078a",
+   "measured_at_utc": "2026-08-20T21:56:23+00:00"
+  },
+  {
+   "observation_id": 14821532,
+   "outcome": "MEASURED",
+   "start": "2026-08-20T21:50:48Z",
+   "mode": "UNRESOLVED",
+   "offset_ppm": null,
+   "p_value": null,
+   "waterfall_sha256": "bbe0f542241506cbfd97457994ed2064653241b4eaa373d6b2a0a9b4861636d8",
+   "measured_at_utc": "2026-08-20T21:56:25+00:00"
+  },
+  {
+   "observation_id": 14829364,
+   "outcome": "MEASURED",
+   "start": "2026-08-20T21:50:33Z",
+   "mode": "UNCORRECTED",
+   "offset_ppm": 0.5476042563638766,
+   "p_value": 0.01,
+   "waterfall_sha256": "0115abd7fa5397efcb5afbc2665873906ce92a08043e48bcf2419975dda19bbb",
+   "measured_at_utc": "2026-08-20T21:56:32+00:00"
+  },
+  {
+   "observation_id": 14833622,
+   "outcome": "MEASURED",
+   "start": "2026-08-20T21:49:42Z",
+   "mode": "UNRESOLVED",
+   "offset_ppm": null,
+   "p_value": null,
+   "waterfall_sha256": "e6e201abb971f6671ab93f188b443447eef4cf01965ac27a70c3054e570893d2",
+   "measured_at_utc": "2026-08-20T21:56:35+00:00"
+  },
+  {
+   "observation_id": 14827804,
+   "outcome": "MEASURED",
+   "start": "2026-08-20T21:48:43Z",
+   "mode": "CORRECTED",
+   "offset_ppm": 0.19908649713623178,
+   "p_value": null,
+   "waterfall_sha256": "a18e4bc6ef3368c5b345e7e65a45df8efbd821a6dc158dd8774f09c6ffebc1f4",
+   "measured_at_utc": "2026-08-20T21:56:37+00:00"
+  }
+ ],
+ "what_this_does_not_measure": "Whether the offsets are correct. A measurement on a post-snapshot pass shows the path runs end to end on data nothing here was fitted to; it is not a second validation of the estimator, which kill gate 3 owns and which is still unbound."
+}

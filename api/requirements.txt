@@ -1,0 +1,39 @@
+# What one live measurement needs on Vercel, and nothing else.
+#
+# Verified by import rather than copied from pyproject.toml. `api/live.py` was imported and
+# then `live.triage(14836679)` was run against the real API, and the set of distributions
+# in sys.modules afterwards was read back:
+#
+#   numpy scipy pillow sgp4 httpx jsonschema
+#   + their own transitive deps (anyio certifi h11 httpcore idna attrs referencing
+#     rpds-py jsonschema-specifications typing_extensions), which pip resolves
+#
+# Two absences are deliberate and both were measured, not assumed:
+#
+#   tenacity  pyproject.toml declares it. Nothing under pipeline/tracetriage imports it,
+#             so it is not in the runtime graph of a measurement and is not shipped here.
+#   scipy     is in the graph even though `import live` does not pull it. It is imported
+#             inside `glyph_axis` at call time, and the measurement above did reach it:
+#             the axis reader that ran was `glyph_templates`. Omitting it would deploy an
+#             endpoint that imports cleanly and then fails on the first request.
+#
+# No easyocr, and therefore no torch. easyocr declares torch, torchvision, opencv and
+# scikit-image as its own dependencies, which is 4.6 GB against a 250 MB function ceiling.
+# `label_reader="auto"` reads the frequency axis with the numpy and scipy template matcher
+# in glyph_axis.py and only falls back to easyocr when too few tick labels fit an axis. On
+# this platform that fallback is unavailable, and an axis that cannot be read is already a
+# named refusal rather than a wrong number.
+#
+# Sizes, measured as Linux wheels unpacked (uv, x86_64-manylinux_2_28, cp312):
+#   scipy 110 MB, numpy 58 MB, pillow 20 MB, sgp4 + httpx + jsonschema and deps ~4 MB
+#   187 MB total against Vercel's 250 MB uncompressed function limit.
+#
+# Pinned exactly, not floored. These are the versions the numbers in
+# artifacts/LIVE_SHELF_RECEIPT.json were produced with, so a redeploy cannot quietly
+# change a published measurement by picking up a new scipy.
+numpy==2.5.2
+scipy==1.18.0
+pillow==12.3.0
+sgp4==2.27
+httpx==0.28.1
+jsonschema==4.26.0

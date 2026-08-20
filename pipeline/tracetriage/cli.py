@@ -297,13 +297,10 @@ def cmd_station(args: argparse.Namespace) -> int:
         return EXIT_USAGE
 
     rows = _measure_recent(args, live)
-    decided = [
-        r for r in rows
-        if "measurement" in r
-        and r["mode"]["verdict"] in ("UNCORRECTED", "CORRECTED")
-        and r["measurement"]["offset_ppm"] is not None
-        and not r["measurement"]["at_search_bound"]
-    ]
+    # `live.is_decisive` rather than the four conditions inline, because the `live_station`
+    # MCP tool asks the same question and a second copy of this predicate would be two
+    # definitions of "decisive" drifting under one published ppm.
+    decided = [r for r in rows if live.is_decisive(r)]
     ppms = sorted(r["measurement"]["offset_ppm"] for r in decided)
     sats = sorted({r["observation"]["norad_cat_id"] for r in decided})
 
@@ -320,16 +317,10 @@ def cmd_station(args: argparse.Namespace) -> int:
         "min_offset_ppm": ppms[0] if ppms else None,
         "max_offset_ppm": ppms[-1] if ppms else None,
         "all_offsets_ppm": ppms,
-        "confounds": [
-            "Each offset carries the TLE's own propagation error, which this cannot "
-            "separate from a receiver error on a single observation.",
-            "The frequency axis is read from rendered tick labels, so every offset is "
-            "quantised to whole pixels: two observations from one station can return the "
-            "same value to the digit for that reason alone.",
-            "A corrected capture's offset is a residual after the station's own Doppler "
-            "correction; an uncorrected one's is not. Both are in this median, and mixing "
-            "them is only sound if the correction is unbiased, which is not measured here.",
-        ],
+        # Named in live.py rather than written out here, because the live_station MCP tool
+        # publishes a median over the same measurements and two copies of a confound is one
+        # of them going quiet.
+        "confounds": [*live.STATION_CONFOUNDS, live.MIXED_MODE_CONFOUND],
         "reading": (
             "A receiver's frequency error is common to every satellite it hears and an "
             "orbit's error is not, so a median over several DISTINCT satellites is the part "

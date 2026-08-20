@@ -65,7 +65,7 @@ from pipeline.tracetriage.selective import (  # noqa: E402
 from pipeline.tracetriage.splits import (  # noqa: E402
     _A3_SUMMARY_PATH,
     _MANIFEST_PATH,
-    _PAGES_DIR,
+    _default_pages_dir,
     _load_a3_verdicts,
     _load_raw_pages,
 )
@@ -625,7 +625,7 @@ def main(argv: list[str] | None = None) -> int:
     admissibility = admissible_source_fields()
     print(f"feature admissibility: {admissibility['n_fields']} source fields, all observation-time")
 
-    raw = _load_raw_pages(_PAGES_DIR)
+    raw = _load_raw_pages(_default_pages_dir())
     corridor_cache = load_corridor_cache()
     verdicts = _load_a3_verdicts(_A3_SUMMARY_PATH)
     hog = load_hog()

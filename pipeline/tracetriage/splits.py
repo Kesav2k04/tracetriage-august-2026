@@ -48,6 +48,7 @@ import datetime
 import hashlib
 import json
 import math
+import os
 import random
 from pathlib import Path
 from typing import Any
@@ -59,7 +60,45 @@ from typing import Any
 _REPO = Path(__file__).resolve().parents[2]
 _MANIFEST_PATH = _REPO / "artifacts" / "DATASET_MANIFEST.json"
 _A3_SUMMARY_PATH = _REPO / "artifacts" / "a3_overlays" / "summary.json"
-_PAGES_DIR = Path("D:/tracetriage_data/snap-stage1/pages")
+#: Where the snapshot's raw API pages live, if the caller does not say.
+#:
+#: This was ``Path("D:/tracetriage_data/snap-stage1/pages")``: one machine's drive
+#: letter, compiled into an importable module. On any other checkout the default
+#: resolves to a directory that does not exist, and the failure surfaces as "loaded 0
+#: records", which reads like an empty snapshot rather than like a wrong path. The
+#: snapshot is 20 GB and deliberately outside the repository, so there is no honest
+#: in-tree default; the honest behaviour is to require the path and to name the
+#: environment variable that supplies it.
+_PAGES_DIR_ENV = "TRACETRIAGE_PAGES_DIR"
+
+
+def _default_pages_dir() -> Path:
+    """The pages directory from the environment, or a refusal that says what to set.
+
+    Raising here rather than returning a guess. A caller that reaches this function has
+    not passed ``--pages-dir`` and has not set the variable, and the two outcomes are a
+    stated requirement or a silent zero-record run against a path from another machine.
+    """
+    raw = os.environ.get(_PAGES_DIR_ENV)
+    if not raw:
+        raise SplitsPathNotConfigured(
+            f"no pages directory was given. Pass pages_dir (the CLI flag is "
+            f"--pages-dir) or set {_PAGES_DIR_ENV} to the snapshot's pages folder, for "
+            f"example D:/tracetriage_data/snap-stage1/pages. This module used to "
+            f"default to that literal path, which meant every other checkout got a "
+            f"zero-record run that read like an empty snapshot."
+        )
+    path = Path(raw)
+    if not path.is_dir():
+        raise SplitsPathNotConfigured(
+            f"{_PAGES_DIR_ENV} is set to {raw!r}, which is not a directory. A split "
+            f"built from no pages would claim guarantees it never measured."
+        )
+    return path
+
+
+class SplitsPathNotConfigured(RuntimeError):
+    """Raised when the snapshot's pages directory is neither passed nor configured."""
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -1015,7 +1054,7 @@ def build_splits(
     All paths are resolved from the repository root unless overridden.
     """
     manifest_path = manifest_path or _MANIFEST_PATH
-    pages_dir = pages_dir or _PAGES_DIR
+    pages_dir = pages_dir or _default_pages_dir()
     a3_summary_path = a3_summary_path or _A3_SUMMARY_PATH
 
     rows = _build_obs_table(manifest_path, pages_dir, a3_summary_path)
@@ -1331,7 +1370,7 @@ def build_leakage_audit(
     transmitter_map: dict[int, str],
     combined_map: dict[int, str],
     *,
-    pages_dir: Path = _PAGES_DIR,
+    pages_dir: Path | None = None,
 ) -> list[dict[str, Any]]:
     """Build the leakage audit: every check measured on every split.
 
@@ -1394,7 +1433,9 @@ def build_leakage_audit(
 
     # check_field_classification raises RuntimeError when pages_dir loads no records,
     # so a missing snapshot path produces a loud failure rather than a silent pass.
-    field_check = check_field_classification(pages_dir)
+    # The default is resolved here rather than in the signature: a default evaluated at
+    # import time froze one machine's drive letter into the module.
+    field_check = check_field_classification(pages_dir or _default_pages_dir())
     audit.append(
         {
             "check": "no_future_feature_in_train",

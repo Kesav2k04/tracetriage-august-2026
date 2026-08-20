@@ -1,10 +1,31 @@
 {
-  "$comment": "The project's own MCP server, registered so any agent can read this repository's measured evidence and run its grounding checker as tools. Every tool is read-only: nothing here writes to disk, to the network, or upstream to SatNOGS. tests/test_mcp_server.py asserts that what is registered is the server that exists, that the key matches the name the server advertises, that the interpreter named is not a path that only resolves on one machine, and that every environment variable declared is one the server actually reads.",
   "mcpServers": {
     "tracetriage-evidence": {
-      "command": "python",
-      "args": ["scripts/mcp_server.py"],
-      "$comment": "Launch with the repository root as the working directory. The server imports nothing outside the standard library, so any Python 3.11 or newer answers it; that is verified by running it with site-packages and the ambient environment switched off. There is no env block because the server reads no environment variable, and declaring one it ignores would be a false statement about it."
+      "command": "cmd",
+      "args": ["/c", ".bob\\run-evidence.cmd"],
+      "cwd": ".",
+      "alwaysAllow": [
+        "queue_top",
+        "queue_size",
+        "observation",
+        "check_claim",
+        "gate_status",
+        "receipt"
+      ],
+      "timeout": 60000,
+      "disabled": false
+    },
+    "tracetriage-live": {
+      "command": "cmd",
+      "args": ["/c", ".bob\\run-live.cmd"],
+      "cwd": ".",
+      "alwaysAllow": [
+        "live_list_observations",
+        "live_triage_observation",
+        "live_check_claim"
+      ],
+      "timeout": 180000,
+      "disabled": false
     }
   }
 }

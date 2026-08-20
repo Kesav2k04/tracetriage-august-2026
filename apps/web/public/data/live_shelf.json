@@ -1,0 +1,663 @@
+{
+ "schema": "LIVE_SHELF",
+ "schema_version": 1,
+ "built_at_utc": "2026-08-20T21:56:15.843009+00:00",
+ "snapshot_cutoff_utc": "2026-08-16T21:36:32.792753+00:00",
+ "engine": {
+  "function": "pipeline.tracetriage.live.triage",
+  "n_nulls": 99,
+  "reading": "The same function the CLI and the live endpoint call. A shelf entry and a fresh measurement of the same id differ only in when they were taken."
+ },
+ "reading": "Every observation here was recorded after the frozen snapshot, so none of it was available to anything in this repository when the models were fitted. The numbers were measured at the time each entry records and are served without a network call. Typing an id on the live page measures it now instead.",
+ "n_observations": 6,
+ "n_decisive": 3,
+ "observations": [
+  {
+   "schema": "LIVE_MEASUREMENT",
+   "schema_version": 1,
+   "observation": {
+    "id": 14837614,
+    "norad_cat_id": 32791,
+    "satellite": "0 SEEDS",
+    "station": 4186,
+    "station_name": "IAR-GS",
+    "start": "2026-08-20T21:52:04Z",
+    "end": "2026-08-20T21:55:04Z",
+    "status": "unknown",
+    "waterfall_status": "unknown",
+    "client_family": "1.9.3"
+   },
+   "pass": {
+    "rx_freq_hz": 437485700.0,
+    "max_elevation_deg": 89.2267784569849,
+    "tle_epoch_age_days": 0.3848423040740741,
+    "duration_s": 180.0,
+    "doppler_swing_hz": 16978.616422325875,
+    "swing_reading": "The pass's own predicted Doppler swing, 5th to 95th percentile so one propagation outlier at the horizon cannot make a grazing pass look testable. Below 3,000 Hz the two shapes are not distinguishable and the verdict above is UNRESOLVED for that reason alone. Always the uncorrected curve's swing, whichever corridor was scored: this describes the pass, not the hypothesis."
+   },
+   "axis": {
+    "hz_per_px": 77.26983242447159,
+    "derivation": "axis_ticks_ocr",
+    "reader": "glyph_templates",
+    "confidence": 0.9423357268003414
+   },
+   "mode": {
+    "verdict": "UNRESOLVED",
+    "why": "no signal stands out: best path is 2.1 sigma against a 8 sigma floor",
+    "sigma_curved": 2.14525644390218,
+    "sigma_vertical": 1.2888675649811234,
+    "frequency_axis_sign": -1,
+    "corridor_scored": null,
+    "reading": "Whether this station Doppler-corrected the capture, measured rather than looked up. An uncorrected capture draws the pass's whole S-curve and a corrected one draws a near-vertical line, so the two shapes are scored against each other at three filter widths and a verdict is only given when all three agree and one leads by 3 sigma. UNRESOLVED means the image does not settle it, which on a real queue is the common case and is the answer that says skip this one."
+   },
+   "measurement": {
+    "offset_hz": null,
+    "offset_ppm": null,
+    "offset_px": null,
+    "at_search_bound": null,
+    "search_bound_hz": null,
+    "sigma": null,
+    "fit": null,
+    "reading": "How far the trace sits from where this satellite's orbit says it should be. The sigma is in units of this estimator's own null spread and is comparable only against the null figures below."
+   },
+   "nulls": {
+    "n": null,
+    "median": null,
+    "p95": null,
+    "max": null,
+    "n_at_least_true": null,
+    "p_value": null,
+    "not_tested": "mode_unresolved",
+    "detail": null,
+    "reading": "No null test was reached. The corrected and uncorrected hypotheses were not separated by the required margin, so no corridor was selected to test, and fitting one of them anyway would be choosing the answer before measuring it."
+   },
+   "second_trace": null,
+   "provenance": {
+    "measured_at_utc": "2026-08-20T21:56:21+00:00",
+    "observation_api": "https://network.satnogs.org/api/observations/?format=json&id=14837614",
+    "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/20/21/14837614/waterfall_14837614_2026-08-20T21-52-04.png",
+    "waterfall_sha256": "b7d660de294b16904f5c64933329e5e27184bc355621afc1341edb0f73194f17",
+    "waterfall_bytes": 1737962,
+    "tle_source": "Space-Track.org",
+    "tle1": "1 32791U 08021J   26232.52735677  .00016360  00000-0  48765-3 0  9999",
+    "tle2": "2 32791  97.7554 233.6097 0004882  88.1758 272.0043 15.34744206997155",
+    "code": {
+     "physics": "pipeline/tracetriage/physics.py:corridor_for_obs",
+     "axis": "pipeline/tracetriage/waterfall.py:parse_waterfall",
+     "mode": "pipeline/tracetriage/doppler_mode.py:verdict_from_scores",
+     "fit": "pipeline/tracetriage/corridor_fit.py:fit_offset",
+     "nulls": "pipeline/tracetriage/corridor_fit.py:calibrate_against_nulls"
+    },
+    "reading": "Every input is named so this can be recomputed by someone who does not trust it: the record comes from the URL above, the image hashes to the digest above, the orbit is the two lines above, and the five functions are the ones gate 3 is scored with rather than a second copy of them.",
+    "licence": "Observation metadata and waterfall imagery are SatNOGS community data, CC BY-SA 4.0. Attribution and obligations: see DATA_LICENSE.md."
+   },
+   "notes": []
+  },
+  {
+   "schema": "LIVE_MEASUREMENT",
+   "schema_version": 1,
+   "observation": {
+    "id": 14837563,
+    "norad_cat_id": 55051,
+    "satellite": "0 ION SCV-008",
+    "station": 1864,
+    "station_name": "SA2KNG Omni UHF/VHF",
+    "start": "2026-08-20T21:51:20Z",
+    "end": "2026-08-20T21:54:20Z",
+    "status": "unknown",
+    "waterfall_status": "unknown",
+    "client_family": "2.1.1"
+   },
+   "pass": {
+    "rx_freq_hz": 401415000.0,
+    "max_elevation_deg": 72.86471970086201,
+    "tle_epoch_age_days": 0.6005937148148148,
+    "duration_s": 180.0,
+    "doppler_swing_hz": 15141.12329082892,
+    "swing_reading": "The pass's own predicted Doppler swing, 5th to 95th percentile so one propagation outlier at the horizon cannot make a grazing pass look testable. Below 3,000 Hz the two shapes are not distinguishable and the verdict above is UNRESOLVED for that reason alone. Always the uncorrected curve's swing, whichever corridor was scored: this describes the pass, not the hypothesis."
+   },
+   "axis": {
+    "hz_per_px": 79.81377670191532,
+    "derivation": "axis_ticks_ocr",
+    "reader": "glyph_templates",
+    "confidence": 0.9413040216917499
+   },
+   "mode": {
+    "verdict": "CORRECTED",
+    "why": "energy follows a vertical line +798 Hz off axis zero: 18.7 sigma against 5.2 for the predicted curve",
+    "sigma_curved": 5.237490162724628,
+    "sigma_vertical": 18.700722700361887,
+    "frequency_axis_sign": 1,
+    "corridor_scored": "corrected",
+    "reading": "Whether this station Doppler-corrected the capture, measured rather than looked up. An uncorrected capture draws the pass's whole S-curve and a corrected one draws a near-vertical line, so the two shapes are scored against each other at three filter widths and a verdict is only given when all three agree and one leads by 3 sigma. UNRESOLVED means the image does not settle it, which on a real queue is the common case and is the answer that says skip this one."
+   },
+   "measurement": {
+    "offset_hz": -798.1377670191532,
+    "offset_ppm": -1.9883107682053565,
+    "offset_px": -10.0,
+    "at_search_bound": false,
+    "search_bound_hz": 20070.75,
+    "sigma": 1.2823767234311536,
+    "fit": {
+     "obs_id": 14837563,
+     "corridor_type": "corrected",
+     "degraded": "TRACE_NOT_MEASURABLE",
+     "fitted_offset_hz": -798.1377670191532,
+     "fitted_offset_ppm": -1.9883107682053565,
+     "offset_bound_hz": 20070.75,
+     "offset_at_bound": false,
+     "rows_total": 1541,
+     "rows_detected": 172,
+     "rows_masked_below_horizon": 0,
+     "detect_frac": 0.11161583387410773,
+     "residual_p50_hz": null,
+     "residual_p95_hz": null,
+     "residual_max_hz": null,
+     "half_width_hz": 1200.0,
+     "coverage": null,
+     "corridor_hit": null,
+     "sigma_at_fit": 1.2823767234311536
+    },
+    "reading": "How far the trace sits from where this satellite's orbit says it should be. The sigma is in units of this estimator's own null spread and is comparable only against the null figures below."
+   },
+   "nulls": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "max": null,
+    "n_at_least_true": null,
+    "p_value": null,
+    "not_tested": "flat_corridor",
+    "detail": {
+     "n_nulls": 0,
+     "true_sigma": 1.2823767234311536,
+     "null_median": null,
+     "null_p95": null,
+     "null_max": null,
+     "n_at_least": null,
+     "p_value": null,
+     "margin_over_best_null": null,
+     "scaled_swing_sigmas": {},
+     "beats_scaled_swing": null,
+     "offset_at_bound": null,
+     "corridor_span_hz": null,
+     "null_sigma_sd": null,
+     "margin_in_null_sd": null,
+     "reversed_sigma": null,
+     "beats_reversed": null,
+     "odd_symmetry_residual_frac": null,
+     "discriminates": null
+    },
+    "reading": "No null test is possible here and none is missing. The station Doppler-corrected this capture, so the predicted corridor is 0 Hz across the whole pass, and permuting a flat curve in time reproduces it exactly: every null would equal the hypothesis. The offset is still measured, and for a station operator it is the more useful number, because the orbit is already taken out of it."
+   },
+   "second_trace": {
+    "measurable": true,
+    "why_not": null,
+    "n_rows": 1541,
+    "n_rows_primary_detected": 172,
+    "n_rows_second_detected": 0,
+    "second_frac_of_primary_rows": 0.0,
+    "median_jump_px": null,
+    "max_jump_px_allowed": 1.673839135067455,
+    "coherent": false,
+    "reason": null
+   },
+   "provenance": {
+    "measured_at_utc": "2026-08-20T21:56:23+00:00",
+    "observation_api": "https://network.satnogs.org/api/observations/?format=json&id=14837563",
+    "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/20/21/14837563/waterfall_14837563_2026-08-20T21-51-20.png",
+    "waterfall_sha256": "8f036b69fc4877af82535fde0cdc979f346ea941ec5a45682371356470a6078a",
+    "waterfall_bytes": 1716838,
+    "tle_source": "Space-Track.org",
+    "tle1": "1 55051U 23001AU  26232.31109610  .00006415  00000-0  22806-3 0  9995",
+    "tle2": "2 55051  97.5708 329.7345 0015690 141.8947 218.3406 15.29245694201130",
+    "code": {
+     "physics": "pipeline/tracetriage/physics.py:corridor_for_obs",
+     "axis": "pipeline/tracetriage/waterfall.py:parse_waterfall",
+     "mode": "pipeline/tracetriage/doppler_mode.py:verdict_from_scores",
+     "fit": "pipeline/tracetriage/corridor_fit.py:fit_offset",
+     "nulls": "pipeline/tracetriage/corridor_fit.py:calibrate_against_nulls"
+    },
+    "reading": "Every input is named so this can be recomputed by someone who does not trust it: the record comes from the URL above, the image hashes to the digest above, the orbit is the two lines above, and the five functions are the ones gate 3 is scored with rather than a second copy of them.",
+    "licence": "Observation metadata and waterfall imagery are SatNOGS community data, CC BY-SA 4.0. Attribution and obligations: see DATA_LICENSE.md."
+   },
+   "notes": [
+    "The fit is flagged TRACE_NOT_MEASURABLE: 172 of 1541 rows carried a pixel above the detection floor (11.2 percent). The offset and any p-value below still stand, because both score a whole path's mean brightness rather than counting detected pixels, but a residual spread cannot be measured from rows that were never detected and is reported as null.",
+    "This capture was Doppler-corrected at the station, so the trace is a near-vertical line and there is no curve shape to test. The offset is the line's distance from axis zero. No p-value is reported and none is available: a flat corridor is unchanged by permuting it in time, so every null reproduces the hypothesis and the comparison would be vacuous.",
+    "Scored against 99 nulls rather than the gate's 200, so the smallest p-value reachable here is 0.010."
+   ]
+  },
+  {
+   "schema": "LIVE_MEASUREMENT",
+   "schema_version": 1,
+   "observation": {
+    "id": 14821532,
+    "norad_cat_id": 60469,
+    "satellite": "0 WARATAH SEED-1",
+    "station": 91,
+    "station_name": "M0EYT / 2E0NOG",
+    "start": "2026-08-20T21:50:48Z",
+    "end": "2026-08-20T21:54:18Z",
+    "status": "unknown",
+    "waterfall_status": "unknown",
+    "client_family": "1.6"
+   },
+   "pass": {
+    "rx_freq_hz": 400651000.0,
+    "max_elevation_deg": 32.5804771125809,
+    "tle_epoch_age_days": 0.7255395655555555,
+    "duration_s": 210.0,
+    "doppler_swing_hz": 13222.431964846586,
+    "swing_reading": "The pass's own predicted Doppler swing, 5th to 95th percentile so one propagation outlier at the horizon cannot make a grazing pass look testable. Below 3,000 Hz the two shapes are not distinguishable and the verdict above is UNRESOLVED for that reason alone. Always the uncorrected curve's swing, whichever corridor was scored: this describes the pass, not the hypothesis."
+   },
+   "axis": {
+    "hz_per_px": 77.26983242447159,
+    "derivation": "axis_ticks_ocr",
+    "reader": "glyph_templates",
+    "confidence": 0.9423357268003414
+   },
+   "mode": {
+    "verdict": "UNRESOLVED",
+    "why": "no signal stands out: best path is 2.0 sigma against a 8 sigma floor",
+    "sigma_curved": 1.1464776665641032,
+    "sigma_vertical": 2.0015195030206017,
+    "frequency_axis_sign": -1,
+    "corridor_scored": null,
+    "reading": "Whether this station Doppler-corrected the capture, measured rather than looked up. An uncorrected capture draws the pass's whole S-curve and a corrected one draws a near-vertical line, so the two shapes are scored against each other at three filter widths and a verdict is only given when all three agree and one leads by 3 sigma. UNRESOLVED means the image does not settle it, which on a real queue is the common case and is the answer that says skip this one."
+   },
+   "measurement": {
+    "offset_hz": null,
+    "offset_ppm": null,
+    "offset_px": null,
+    "at_search_bound": null,
+    "search_bound_hz": null,
+    "sigma": null,
+    "fit": null,
+    "reading": "How far the trace sits from where this satellite's orbit says it should be. The sigma is in units of this estimator's own null spread and is comparable only against the null figures below."
+   },
+   "nulls": {
+    "n": null,
+    "median": null,
+    "p95": null,
+    "max": null,
+    "n_at_least_true": null,
+    "p_value": null,
+    "not_tested": "mode_unresolved",
+    "detail": null,
+    "reading": "No null test was reached. The corrected and uncorrected hypotheses were not separated by the required margin, so no corridor was selected to test, and fitting one of them anyway would be choosing the answer before measuring it."
+   },
+   "second_trace": null,
+   "provenance": {
+    "measured_at_utc": "2026-08-20T21:56:25+00:00",
+    "observation_api": "https://network.satnogs.org/api/observations/?format=json&id=14821532",
+    "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/20/21/14821532/waterfall_14821532_2026-08-20T21-50-48.png",
+    "waterfall_sha256": "bbe0f542241506cbfd97457994ed2064653241b4eaa373d6b2a0a9b4861636d8",
+    "waterfall_bytes": 1945352,
+    "tle_source": "Space-Track.org",
+    "tle1": "1 60469U 24149B   26232.18595349  .00013130  00000-0  36022-3 0  9998",
+    "tle2": "2 60469  97.3652 312.8762 0002084  50.7545 309.3884 15.37393553111943",
+    "code": {
+     "physics": "pipeline/tracetriage/physics.py:corridor_for_obs",
+     "axis": "pipeline/tracetriage/waterfall.py:parse_waterfall",
+     "mode": "pipeline/tracetriage/doppler_mode.py:verdict_from_scores",
+     "fit": "pipeline/tracetriage/corridor_fit.py:fit_offset",
+     "nulls": "pipeline/tracetriage/corridor_fit.py:calibrate_against_nulls"
+    },
+    "reading": "Every input is named so this can be recomputed by someone who does not trust it: the record comes from the URL above, the image hashes to the digest above, the orbit is the two lines above, and the five functions are the ones gate 3 is scored with rather than a second copy of them.",
+    "licence": "Observation metadata and waterfall imagery are SatNOGS community data, CC BY-SA 4.0. Attribution and obligations: see DATA_LICENSE.md."
+   },
+   "notes": []
+  },
+  {
+   "schema": "LIVE_MEASUREMENT",
+   "schema_version": 1,
+   "observation": {
+    "id": 14829364,
+    "norad_cat_id": 39430,
+    "satellite": "0 GOMX 1",
+    "station": 5042,
+    "station_name": "LU3ARN",
+    "start": "2026-08-20T21:50:33Z",
+    "end": "2026-08-20T21:54:44Z",
+    "status": "unknown",
+    "waterfall_status": "unknown",
+    "client_family": "2.1.2"
+   },
+   "pass": {
+    "rx_freq_hz": 437252500.0,
+    "max_elevation_deg": 48.72307046986396,
+    "tle_epoch_age_days": 0.31338090296296295,
+    "duration_s": 251.0,
+    "doppler_swing_hz": 15850.572678721695,
+    "swing_reading": "The pass's own predicted Doppler swing, 5th to 95th percentile so one propagation outlier at the horizon cannot make a grazing pass look testable. Below 3,000 Hz the two shapes are not distinguishable and the verdict above is UNRESOLVED for that reason alone. Always the uncorrected curve's swing, whichever corridor was scored: this describes the pass, not the hypothesis."
+   },
+   "axis": {
+    "hz_per_px": 79.81377670191532,
+    "derivation": "axis_ticks_ocr",
+    "reader": "glyph_templates",
+    "confidence": 0.9413040216917499
+   },
+   "mode": {
+    "verdict": "UNCORRECTED",
+    "why": "energy follows the predicted Doppler curve: 15.8 sigma against 1.4 for the best vertical line",
+    "sigma_curved": 15.834869419447646,
+    "sigma_vertical": 1.3797781087097971,
+    "frequency_axis_sign": -1,
+    "corridor_scored": "uncorrected",
+    "reading": "Whether this station Doppler-corrected the capture, measured rather than looked up. An uncorrected capture draws the pass's whole S-curve and a corrected one draws a near-vertical line, so the two shapes are scored against each other at three filter widths and a verdict is only given when all three agree and one leads by 3 sigma. UNRESOLVED means the image does not settle it, which on a real queue is the common case and is the answer that says skip this one."
+   },
+   "measurement": {
+    "offset_hz": 239.44133010574595,
+    "offset_ppm": 0.5476042563638766,
+    "offset_px": 3.0,
+    "at_search_bound": false,
+    "search_bound_hz": 21862.625,
+    "sigma": 1.162639210381461,
+    "fit": {
+     "obs_id": 14829364,
+     "corridor_type": "uncorrected",
+     "degraded": "TRACE_NOT_MEASURABLE",
+     "fitted_offset_hz": 239.44133010574595,
+     "fitted_offset_ppm": 0.5476042563638766,
+     "offset_bound_hz": 21862.625,
+     "offset_at_bound": false,
+     "rows_total": 1541,
+     "rows_detected": 0,
+     "rows_masked_below_horizon": 0,
+     "detect_frac": 0.0,
+     "residual_p50_hz": null,
+     "residual_p95_hz": null,
+     "residual_max_hz": null,
+     "half_width_hz": 2000.0,
+     "coverage": null,
+     "corridor_hit": null,
+     "sigma_at_fit": 1.162639210381461
+    },
+    "reading": "How far the trace sits from where this satellite's orbit says it should be. The sigma is in units of this estimator's own null spread and is comparable only against the null figures below."
+   },
+   "nulls": {
+    "n": 99,
+    "median": 0.3322365183971237,
+    "p95": 0.3429033930840131,
+    "max": 0.3478721587581729,
+    "n_at_least_true": 0,
+    "p_value": 0.01,
+    "not_tested": null,
+    "detail": {
+     "n_nulls": 99,
+     "true_sigma": 1.162639210381461,
+     "null_median": 0.3322365183971237,
+     "null_p95": 0.3429033930840131,
+     "null_max": 0.3478721587581729,
+     "n_at_least": 0,
+     "p_value": 0.01,
+     "margin_over_best_null": 0.814767051623288,
+     "scaled_swing_sigmas": {
+      "0.25x": 0.3682341497083992,
+      "0.5x": 0.3748514577657853,
+      "2x": 0.27014021695495943
+     },
+     "beats_scaled_swing": true,
+     "offset_at_bound": false,
+     "corridor_span_hz": 16573.74451548762,
+     "null_sigma_sd": 0.005239412191456995,
+     "margin_in_null_sd": 155.50733972635098,
+     "reversed_sigma": 0.3438664581696068,
+     "beats_reversed": true,
+     "odd_symmetry_residual_frac": 0.004352311173897894,
+     "discriminates": true
+    },
+    "reading": "Each null keeps every Doppler value and the whole swing of this pass and destroys only the time order, then gets the same bounded offset search the true corridor gets. So the margin is over curves built from this observation's own physics, not over noise."
+   },
+   "second_trace": {
+    "measurable": false,
+    "why_not": "TOO_FEW_DETECTED_ROWS",
+    "n_rows": 1541,
+    "n_rows_primary_detected": 0,
+    "n_rows_second_detected": 0,
+    "second_frac_of_primary_rows": null,
+    "median_jump_px": null,
+    "max_jump_px_allowed": 1.7424090161218402,
+    "coherent": null,
+    "reason": null
+   },
+   "provenance": {
+    "measured_at_utc": "2026-08-20T21:56:32+00:00",
+    "observation_api": "https://network.satnogs.org/api/observations/?format=json&id=14829364",
+    "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/20/21/14829364/waterfall_14829364_2026-08-20T21-50-33.png",
+    "waterfall_sha256": "0115abd7fa5397efcb5afbc2665873906ce92a08043e48bcf2419975dda19bbb",
+    "waterfall_bytes": 1706294,
+    "tle_source": "Space-Track.org",
+    "tle1": "1 39430U 13066Q   26232.59817581  .00001521  00000-0  23397-3 0  9990",
+    "tle2": "2 39430  97.6455  69.0007 0126940 230.1534 128.8451 14.69616681679378",
+    "code": {
+     "physics": "pipeline/tracetriage/physics.py:corridor_for_obs",
+     "axis": "pipeline/tracetriage/waterfall.py:parse_waterfall",
+     "mode": "pipeline/tracetriage/doppler_mode.py:verdict_from_scores",
+     "fit": "pipeline/tracetriage/corridor_fit.py:fit_offset",
+     "nulls": "pipeline/tracetriage/corridor_fit.py:calibrate_against_nulls"
+    },
+    "reading": "Every input is named so this can be recomputed by someone who does not trust it: the record comes from the URL above, the image hashes to the digest above, the orbit is the two lines above, and the five functions are the ones gate 3 is scored with rather than a second copy of them.",
+    "licence": "Observation metadata and waterfall imagery are SatNOGS community data, CC BY-SA 4.0. Attribution and obligations: see DATA_LICENSE.md."
+   },
+   "notes": [
+    "The fit is flagged TRACE_NOT_MEASURABLE: 0 of 1541 rows carried a pixel above the detection floor (0.0 percent). The offset and any p-value below still stand, because both score a whole path's mean brightness rather than counting detected pixels, but a residual spread cannot be measured from rows that were never detected and is reported as null.",
+    "Scored against 99 nulls rather than the gate's 200, so the smallest p-value reachable here is 0.010."
+   ]
+  },
+  {
+   "schema": "LIVE_MEASUREMENT",
+   "schema_version": 1,
+   "observation": {
+    "id": 14833622,
+    "norad_cat_id": 62402,
+    "satellite": "0 DJIBOUTI-1B",
+    "station": 4451,
+    "station_name": "(\u00af`\u00b7._.\u00b7(\u00af`\u00b7._.\u00b7 I LOVE BALI \u00b7._.\u00b7\u00b4\u00af)\u00b7._.\u00b7\u00b4\u00af)",
+    "start": "2026-08-20T21:49:42Z",
+    "end": "2026-08-20T21:52:42Z",
+    "status": "unknown",
+    "waterfall_status": "unknown",
+    "client_family": "2.1.2"
+   },
+   "pass": {
+    "rx_freq_hz": 401800000.0,
+    "max_elevation_deg": 23.705768509205424,
+    "tle_epoch_age_days": 0.6080570855555555,
+    "duration_s": 180.0,
+    "doppler_swing_hz": 10752.875102341231,
+    "swing_reading": "The pass's own predicted Doppler swing, 5th to 95th percentile so one propagation outlier at the horizon cannot make a grazing pass look testable. Below 3,000 Hz the two shapes are not distinguishable and the verdict above is UNRESOLVED for that reason alone. Always the uncorrected curve's swing, whichever corridor was scored: this describes the pass, not the hypothesis."
+   },
+   "axis": {
+    "hz_per_px": 79.81377670191532,
+    "derivation": "axis_ticks_ocr",
+    "reader": "glyph_templates",
+    "confidence": 0.9413040216917499
+   },
+   "mode": {
+    "verdict": "UNRESOLVED",
+    "why": "no signal stands out: best path is 3.5 sigma against a 8 sigma floor",
+    "sigma_curved": 3.4935948391934883,
+    "sigma_vertical": 2.1214540876993113,
+    "frequency_axis_sign": -1,
+    "corridor_scored": null,
+    "reading": "Whether this station Doppler-corrected the capture, measured rather than looked up. An uncorrected capture draws the pass's whole S-curve and a corrected one draws a near-vertical line, so the two shapes are scored against each other at three filter widths and a verdict is only given when all three agree and one leads by 3 sigma. UNRESOLVED means the image does not settle it, which on a real queue is the common case and is the answer that says skip this one."
+   },
+   "measurement": {
+    "offset_hz": null,
+    "offset_ppm": null,
+    "offset_px": null,
+    "at_search_bound": null,
+    "search_bound_hz": null,
+    "sigma": null,
+    "fit": null,
+    "reading": "How far the trace sits from where this satellite's orbit says it should be. The sigma is in units of this estimator's own null spread and is comparable only against the null figures below."
+   },
+   "nulls": {
+    "n": null,
+    "median": null,
+    "p95": null,
+    "max": null,
+    "n_at_least_true": null,
+    "p_value": null,
+    "not_tested": "mode_unresolved",
+    "detail": null,
+    "reading": "No null test was reached. The corrected and uncorrected hypotheses were not separated by the required margin, so no corridor was selected to test, and fitting one of them anyway would be choosing the answer before measuring it."
+   },
+   "second_trace": null,
+   "provenance": {
+    "measured_at_utc": "2026-08-20T21:56:35+00:00",
+    "observation_api": "https://network.satnogs.org/api/observations/?format=json&id=14833622",
+    "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/20/21/14833622/waterfall_14833622_2026-08-20T21-49-42.png",
+    "waterfall_sha256": "e6e201abb971f6671ab93f188b443447eef4cf01965ac27a70c3054e570893d2",
+    "waterfall_bytes": 1701862,
+    "tle_source": "Space-Track.org",
+    "tle1": "1 62402U 24247AB  26232.30249847  .00077308  00000-0  81687-3 0  9993",
+    "tle2": "2 62402  44.9669 236.3101 0007817  48.2035 311.9528 15.63275699 93548",
+    "code": {
+     "physics": "pipeline/tracetriage/physics.py:corridor_for_obs",
+     "axis": "pipeline/tracetriage/waterfall.py:parse_waterfall",
+     "mode": "pipeline/tracetriage/doppler_mode.py:verdict_from_scores",
+     "fit": "pipeline/tracetriage/corridor_fit.py:fit_offset",
+     "nulls": "pipeline/tracetriage/corridor_fit.py:calibrate_against_nulls"
+    },
+    "reading": "Every input is named so this can be recomputed by someone who does not trust it: the record comes from the URL above, the image hashes to the digest above, the orbit is the two lines above, and the five functions are the ones gate 3 is scored with rather than a second copy of them.",
+    "licence": "Observation metadata and waterfall imagery are SatNOGS community data, CC BY-SA 4.0. Attribution and obligations: see DATA_LICENSE.md."
+   },
+   "notes": []
+  },
+  {
+   "schema": "LIVE_MEASUREMENT",
+   "schema_version": 1,
+   "observation": {
+    "id": 14827804,
+    "norad_cat_id": 44351,
+    "satellite": "0 FORMOSAT7-2/COSMIC2-2",
+    "station": 4632,
+    "station_name": "KH6DAD-UHF EggNOG",
+    "start": "2026-08-20T21:48:43Z",
+    "end": "2026-08-20T21:51:43Z",
+    "status": "unknown",
+    "waterfall_status": "unknown",
+    "client_family": "2.1.2"
+   },
+   "pass": {
+    "rx_freq_hz": 400900000.0,
+    "max_elevation_deg": 78.93483935430051,
+    "tle_epoch_age_days": 0.2792583951851852,
+    "duration_s": 180.0,
+    "doppler_swing_hz": 12489.207283607557,
+    "swing_reading": "The pass's own predicted Doppler swing, 5th to 95th percentile so one propagation outlier at the horizon cannot make a grazing pass look testable. Below 3,000 Hz the two shapes are not distinguishable and the verdict above is UNRESOLVED for that reason alone. Always the uncorrected curve's swing, whichever corridor was scored: this describes the pass, not the hypothesis."
+   },
+   "axis": {
+    "hz_per_px": 79.81377670191532,
+    "derivation": "axis_ticks_ocr",
+    "reader": "glyph_templates",
+    "confidence": 0.9413040216917499
+   },
+   "mode": {
+    "verdict": "CORRECTED",
+    "why": "energy follows a vertical line -80 Hz off axis zero: 111.1 sigma against 7.4 for the predicted curve",
+    "sigma_curved": 7.429040944316919,
+    "sigma_vertical": 111.09089277191295,
+    "frequency_axis_sign": 1,
+    "corridor_scored": "corrected",
+    "reading": "Whether this station Doppler-corrected the capture, measured rather than looked up. An uncorrected capture draws the pass's whole S-curve and a corrected one draws a near-vertical line, so the two shapes are scored against each other at three filter widths and a verdict is only given when all three agree and one leads by 3 sigma. UNRESOLVED means the image does not settle it, which on a real queue is the common case and is the answer that says skip this one."
+   },
+   "measurement": {
+    "offset_hz": 79.81377670191532,
+    "offset_ppm": 0.19908649713623178,
+    "offset_px": 1.0,
+    "at_search_bound": false,
+    "search_bound_hz": 20045.0,
+    "sigma": 5.743131979890584,
+    "fit": {
+     "obs_id": 14827804,
+     "corridor_type": "corrected",
+     "degraded": null,
+     "fitted_offset_hz": 79.81377670191532,
+     "fitted_offset_ppm": 0.19908649713623178,
+     "offset_bound_hz": 20045.0,
+     "offset_at_bound": false,
+     "rows_total": 1541,
+     "rows_detected": 1246,
+     "rows_masked_below_horizon": 0,
+     "detect_frac": 0.808565866320571,
+     "residual_p50_hz": 0.0,
+     "residual_p95_hz": 79.81377670191532,
+     "residual_max_hz": 79.81377670191532,
+     "half_width_hz": 1200.0,
+     "coverage": 1.0,
+     "corridor_hit": true,
+     "sigma_at_fit": 5.743131979890584
+    },
+    "reading": "How far the trace sits from where this satellite's orbit says it should be. The sigma is in units of this estimator's own null spread and is comparable only against the null figures below."
+   },
+   "nulls": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "max": null,
+    "n_at_least_true": null,
+    "p_value": null,
+    "not_tested": "flat_corridor",
+    "detail": {
+     "n_nulls": 0,
+     "true_sigma": 5.743131979890584,
+     "null_median": null,
+     "null_p95": null,
+     "null_max": null,
+     "n_at_least": null,
+     "p_value": null,
+     "margin_over_best_null": null,
+     "scaled_swing_sigmas": {},
+     "beats_scaled_swing": null,
+     "offset_at_bound": null,
+     "corridor_span_hz": null,
+     "null_sigma_sd": null,
+     "margin_in_null_sd": null,
+     "reversed_sigma": null,
+     "beats_reversed": null,
+     "odd_symmetry_residual_frac": null,
+     "discriminates": null
+    },
+    "reading": "No null test is possible here and none is missing. The station Doppler-corrected this capture, so the predicted corridor is 0 Hz across the whole pass, and permuting a flat curve in time reproduces it exactly: every null would equal the hypothesis. The offset is still measured, and for a station operator it is the more useful number, because the orbit is already taken out of it."
+   },
+   "second_trace": {
+    "measurable": true,
+    "why_not": null,
+    "n_rows": 1541,
+    "n_rows_primary_detected": 1246,
+    "n_rows_second_detected": 0,
+    "second_frac_of_primary_rows": 0.0,
+    "median_jump_px": null,
+    "max_jump_px_allowed": 1.673839135067455,
+    "coherent": false,
+    "reason": null
+   },
+   "provenance": {
+    "measured_at_utc": "2026-08-20T21:56:37+00:00",
+    "observation_api": "https://network.satnogs.org/api/observations/?format=json&id=14827804",
+    "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/20/21/14827804/waterfall_14827804_2026-08-20T21-48-43.png",
+    "waterfall_sha256": "a18e4bc6ef3368c5b345e7e65a45df8efbd821a6dc158dd8774f09c6ffebc1f4",
+    "waterfall_bytes": 1715273,
+    "tle_source": "Space-Track.org",
+    "tle1": "1 44351U 19036N   26232.63061429  .00002229  00000-0  16450-3 0  9996",
+    "tle2": "2 44351  23.9986  74.2782 0000441 202.6748 157.3734 14.96726539393258",
+    "code": {
+     "physics": "pipeline/tracetriage/physics.py:corridor_for_obs",
+     "axis": "pipeline/tracetriage/waterfall.py:parse_waterfall",
+     "mode": "pipeline/tracetriage/doppler_mode.py:verdict_from_scores",
+     "fit": "pipeline/tracetriage/corridor_fit.py:fit_offset",
+     "nulls": "pipeline/tracetriage/corridor_fit.py:calibrate_against_nulls"
+    },
+    "reading": "Every input is named so this can be recomputed by someone who does not trust it: the record comes from the URL above, the image hashes to the digest above, the orbit is the two lines above, and the five functions are the ones gate 3 is scored with rather than a second copy of them.",
+    "licence": "Observation metadata and waterfall imagery are SatNOGS community data, CC BY-SA 4.0. Attribution and obligations: see DATA_LICENSE.md."
+   },
+   "notes": [
+    "This capture was Doppler-corrected at the station, so the trace is a near-vertical line and there is no curve shape to test. The offset is the line's distance from axis zero. No p-value is reported and none is available: a flat corridor is unchanged by permuting it in time, so every null reproduces the hypothesis and the comparison would be vacuous.",
+    "Scored against 99 nulls rather than the gate's 200, so the smallest p-value reachable here is 0.010."
+   ]
+  }
+ ]
+}

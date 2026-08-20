@@ -55,7 +55,7 @@ from pipeline.tracetriage.physics import (  # noqa: E402
     station_ecef,
 )
 from pipeline.tracetriage.splits import (  # noqa: E402
-    _PAGES_DIR,
+    _default_pages_dir,
     _load_raw_pages,
 )
 from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: E402
@@ -969,7 +969,7 @@ def main(argv: list[str] | None = None) -> int:
         print("skipping imagery and cards.json (it needs the waterfall PNGs)")
         return 0
 
-    raw = _load_raw_pages(_PAGES_DIR)
+    raw = _load_raw_pages(_default_pages_dir())
     wanted: list[int] = []
     for entry in entries:
         if len(wanted) >= args.showcase:

@@ -19,6 +19,7 @@ import { describe, expect, it } from "vitest";
 import {
   indexOfFirstSignChange,
   indexOfPeakElevation,
+  passTimeSeriesCaption,
   passTimeSeriesLabel,
 } from "@/components/PassTimeSeries";
 
@@ -127,6 +128,74 @@ describe("passTimeSeriesLabel", () => {
     for (const series of [ONE_SIDED, CROSSES_AT_PEAK, CROSSES_AWAY_FROM_PEAK]) {
       expect(passTimeSeriesLabel(series)).toMatch(
         /^Elevation and Doppler shift against pass time over \d+ seconds\. Elevation rises to [\d.]+ degrees and falls back\./,
+      );
+    }
+  });
+});
+
+/**
+ * The sighted caption under the same figure.
+ *
+ * The aria label above was fixed one release before the caption, so the page printed
+ * "the Doppler zero crossing and the elevation peak align because they happen at the
+ * same instant" under a figure whose own aria-label said the window never crosses
+ * zero. On 14744250 the elevation peak is the first sample of the recording
+ * (tca_frac 0.0 in cards.json) and the Doppler curve runs -5870.4 Hz to -7227.6 Hz
+ * without a sign change, so there is no crossing and no coincidence to report.
+ */
+describe("passTimeSeriesCaption", () => {
+  // The real series shape for 14744250: elevation is highest at index 0, which is
+  // what tca_frac 0.0 means, so the caption has to place the peak at the start.
+  const REAL_14744250 = {
+    durationS: 284,
+    fracs: [0, 0.25, 0.5, 0.75, 1],
+    els: [37.07, 30.1, 22.4, 15.2, 10.06],
+    dops: [-5870.4, -6200.1, -6700.9, -7000.2, -7227.6],
+  };
+
+  it("refuses the alignment claim on a window that never crosses zero", () => {
+    const caption = passTimeSeriesCaption(REAL_14744250);
+
+    expect(caption).toContain("lies entirely on one side of closest approach");
+    expect(caption).toContain("stays below zero throughout");
+    expect(caption).toContain("no crossing to");
+    expect(caption).not.toContain("at the same instant");
+    expect(caption).not.toContain("align because");
+  });
+
+  it("says where the elevation peak actually is on that pass", () => {
+    // tca_frac 0.0: the pass was already past its highest point when recording
+    // started, so a note telling a reviewer to look at the end is backwards.
+    expect(passTimeSeriesCaption(REAL_14744250)).toContain(
+      "which is at the first sample of the recording",
+    );
+  });
+
+  it("keeps the coincidence claim when the figure shows it", () => {
+    const caption = passTimeSeriesCaption(CROSSES_AT_PEAK);
+
+    expect(caption).toContain("spans closest approach");
+    expect(caption).toContain("lands on the sample where elevation peaks");
+  });
+
+  it("gives the separation when the crossing is not at the peak", () => {
+    const caption = passTimeSeriesCaption(CROSSES_AWAY_FROM_PEAK);
+
+    expect(caption).toContain("The crossing falls 120 s from the elevation peak");
+    expect(caption).not.toContain("at the same instant");
+  });
+
+  it("names an absent Doppler series rather than describing one", () => {
+    const caption = passTimeSeriesCaption({ ...REAL_14744250, dops: null });
+
+    expect(caption).toContain("not measurable for this record");
+    expect(caption).toContain("elevation only");
+  });
+
+  it("carries the same preamble on every branch", () => {
+    for (const series of [REAL_14744250, CROSSES_AT_PEAK, CROSSES_AWAY_FROM_PEAK]) {
+      expect(passTimeSeriesCaption(series)).toContain(
+        "Two stacked panels rather than one panel with two vertical scales",
       );
     }
   });

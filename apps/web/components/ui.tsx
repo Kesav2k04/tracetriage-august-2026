@@ -128,13 +128,16 @@ export function Tag({
   title,
 }: {
   children: ReactNode;
-  tone?: "neutral" | "action" | "muted";
+  tone?: "neutral" | "action" | "muted" | "warn";
   title?: string;
 }) {
   const palette = {
     neutral: { fg: "var(--text-02)", bd: "var(--border-strong)" },
     action: { fg: "var(--interactive-04)", bd: "var(--interactive-04)" },
     muted: { fg: "var(--text-03)", bd: "var(--border-subtle)" },
+    // A refusal code has to read as a refusal. The same amber the gate ledger uses for a
+    // gate that did not pass, so one colour means one thing across the console.
+    warn: { fg: "var(--support-03)", bd: "var(--support-03)" },
   }[tone];
 
   return (

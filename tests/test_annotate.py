@@ -129,12 +129,20 @@ def test_annotation_import_closure_has_no_network_capability():
     assert len(imports) >= 4, f"only {len(imports)} imports examined: {sorted(imports)}"
 
 
-#: The one file allowed an HTTP write verb, and the number of call sites it may hold.
-#: Running a local model needs a POST because that is the shape of the runtime's API. The
+#: The files allowed an HTTP write verb, and the number of call sites each may hold.
+#: Running a model needs a POST because that is the shape of both runtimes' APIs. The
 #: exemption is a path and a count rather than a pattern, so it cannot widen quietly: an
 #: exemption with no measured size outlives its reason.
-_WRITE_VERB_EXEMPTION = "pipeline/tracetriage/granite.py"
-_WRITE_VERB_EXEMPTION_SITES = 1
+#:
+#: Two entries, not one, and the second one is why this is a mapping. ``granite.py`` is
+#: loopback-only and proves it before building a URL; the watsonx module talks to IBM Cloud
+#: and cannot make that promise. Widening ``granite.py``'s exemption to cover a cloud call
+#: would have deleted the guard that made the first exemption defensible, so the cloud
+#: backend lives in its own file with its own asserted count and ``granite.py`` is unchanged.
+_WRITE_VERB_EXEMPTIONS = {
+    "pipeline/tracetriage/granite.py": 1,
+    "pipeline/tracetriage/watsonx.py": 1,
+}
 
 #: Method names that write, and the same methods spelled as a string. The second set
 #: exists because the first one is not the rule: `httpx.request("POST", url)`,
@@ -155,7 +163,7 @@ def test_the_only_http_write_verb_is_the_local_model_call():
     exemption is one line" are different claims and only the second one is checkable.
     """
     offenders: list[str] = []
-    exempted: list[str] = []
+    exempted: dict[str, list[str]] = {path: [] for path in _WRITE_VERB_EXEMPTIONS}
     for path in sorted((_REPO / "pipeline").rglob("*.py")) + sorted(
         (_REPO / "scripts").rglob("*.py")
     ):
@@ -180,25 +188,35 @@ def test_the_only_http_write_verb_is_the_local_model_call():
                 site = f"{rel}:{node.lineno} {node.value!r}"
             if site is None:
                 continue
-            (exempted if rel == _WRITE_VERB_EXEMPTION else offenders).append(site)
+            if rel in exempted:
+                exempted[rel].append(site)
+            else:
+                offenders.append(site)
 
     assert not offenders, f"HTTP write verbs outside the exemption: {offenders}"
-    assert len(exempted) == _WRITE_VERB_EXEMPTION_SITES, (
-        f"{_WRITE_VERB_EXEMPTION} holds {len(exempted)} write-verb call sites and the "
-        f"exemption is for {_WRITE_VERB_EXEMPTION_SITES}: {exempted}. Either the new one "
-        f"belongs somewhere else or the exemption needs re-arguing at its new size."
-    )
+    for rel, allowed in _WRITE_VERB_EXEMPTIONS.items():
+        found = exempted[rel]
+        assert len(found) == allowed, (
+            f"{rel} holds {len(found)} write-verb call sites and the exemption is for "
+            f"{allowed}: {found}. Either the new one belongs somewhere else or the "
+            f"exemption needs re-arguing at its new size."
+        )
 
 
 def test_the_annotation_store_cannot_reach_the_model_runtime():
-    """The exempted module must stay outside this module's closure.
+    """The exempted modules must stay outside this module's closure.
 
     The exemption is only safe while the code that holds a reviewer's private notes has no
     path to the code that can POST. That is a property of the import graph, so it is
     walked rather than assumed.
+
+    ``watsonx`` is named here as well as ``granite``, and it is the stricter half of the
+    check: the local runtime can only leak a note to this machine, and a cloud backend
+    would leak it to IBM Cloud. A reviewer's private annotation has no business in either
+    request, so neither module may become reachable from the store.
     """
     imports, _ = _import_closure(_ANNOTATE)
-    reachable = sorted(m for m in imports if "granite" in m)
+    reachable = sorted(m for m in imports if "granite" in m or "watsonx" in m)
     assert not reachable, (
         f"annotate.py's import closure reaches {reachable}. The write-verb exemption was "
         f"argued on the basis that it cannot."

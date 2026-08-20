@@ -23,6 +23,7 @@ import "@fontsource/ibm-plex-sans/latin-600.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "./globals.css";
 import Rail from "@/components/Rail";
+import SmoothScroll from "@/components/SmoothScroll";
 import Colophon from "@/components/Colophon";
 import { cards, provenance } from "@/lib/data";
 
@@ -124,6 +125,10 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {/* Renders nothing. It normalises the wheel step so a plot stays trackable while
+            the page moves, and it removes itself for a reader who has asked for reduced
+            motion, for every key the platform owns, and for in-page links. */}
+        <SmoothScroll />
         <a className="skip-link" href="#main">
           Skip to main content
         </a>

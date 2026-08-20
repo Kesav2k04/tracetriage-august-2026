@@ -64,7 +64,7 @@ from pipeline.tracetriage.queue import (  # noqa: E402
 )
 from pipeline.tracetriage.splits import (  # noqa: E402
     _A3_SUMMARY_PATH,
-    _PAGES_DIR,
+    _default_pages_dir,
     _load_a3_verdicts,
     _load_raw_pages,
     orbital_revolution_index,
@@ -803,7 +803,7 @@ def main() -> None:
     print(f"run_queue: seed={seed} n_boot={n_boot} splits={split_names}")
 
     # ---------- Load data ----------
-    raw = _load_raw_pages(_PAGES_DIR)
+    raw = _load_raw_pages(_default_pages_dir())
     verdicts = _load_a3_verdicts(_A3_SUMMARY_PATH)
     corridor_cache = load_corridor_cache(_CORRIDOR_CACHE)
     split_manifest = json.loads(_SPLIT_MANIFEST.read_text(encoding="utf-8"))

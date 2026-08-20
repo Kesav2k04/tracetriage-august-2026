@@ -157,6 +157,75 @@ export function passTimeSeriesLabel({
   );
 }
 
+/**
+ * The sighted caption for the same instrument, derived from the same series as the
+ * accessible label.
+ *
+ * The aria branch was fixed first and the caption under the figure was not, so for
+ * one release the console asserted in print what its own aria-label denied: that the
+ * Doppler zero crossing and the elevation peak align on this pass. On 14744250 the
+ * curve never changes sign and the elevation peak is the first sample, so there is
+ * nothing to align. A caption that states a general physical fact is fine; a caption
+ * that states it about the figure beside it has to read the figure.
+ */
+export function passTimeSeriesCaption({
+  durationS,
+  fracs,
+  els,
+  dops,
+}: {
+  durationS: number;
+  fracs: readonly number[];
+  els: readonly number[];
+  dops: readonly number[] | null;
+}): string {
+  const preamble =
+    "The same pass on a time axis. Two stacked panels rather than one panel with"
+    + " two vertical scales, because a twin-axis chart lets the author choose where"
+    + " two curves appear to cross.";
+
+  if (!dops || dops.length === 0) {
+    return (
+      `${preamble} The Doppler shift is not measurable for this record, so this`
+      + " figure carries elevation only."
+    );
+  }
+
+  const iTca = indexOfPeakElevation(els);
+  const iCross = indexOfFirstSignChange(dops);
+  const crossesZero = iCross > 0;
+
+  if (!crossesZero) {
+    const side = (dops[0] ?? 0) >= 0 ? "above" : "below";
+    const peakFrac = fracs[iTca] ?? 0;
+    const where =
+      peakFrac <= 0.02
+        ? "the first sample of the recording"
+        : peakFrac >= 0.98
+          ? "the last sample of the recording"
+          : `${(peakFrac * durationS).toFixed(0)} s into the recording`;
+    return (
+      `${preamble} This window lies entirely on one side of closest approach: the`
+      + ` Doppler curve stays ${side} zero throughout, so there is no crossing to`
+      + ` align with the elevation peak, which is at ${where}.`
+    );
+  }
+
+  const gapS = Math.abs(((fracs[iCross] ?? 0) - (fracs[iTca] ?? 0)) * durationS);
+  if (Math.abs(iCross - iTca) <= 1) {
+    return (
+      `${preamble} This window spans closest approach, and the Doppler zero`
+      + " crossing lands on the sample where elevation peaks, because both happen"
+      + " at the same instant."
+    );
+  }
+  return (
+    `${preamble} This window spans closest approach. The crossing falls`
+    + ` ${gapS.toFixed(0)} s from the elevation peak in the propagated series`
+    + " rather than on it, so read the two panels separately."
+  );
+}
+
 export default function PassTimeSeries({
   geometry,
   durationS,

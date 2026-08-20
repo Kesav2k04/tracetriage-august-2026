@@ -32,7 +32,10 @@ _REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO))
 
 from pipeline.tracetriage.baseline import _hog_features  # noqa: E402
-from pipeline.tracetriage.splits import _PAGES_DIR, _load_raw_pages  # noqa: E402
+from pipeline.tracetriage.splits import (  # noqa: E402
+    _default_pages_dir,
+    _load_raw_pages,
+)
 
 _WATERFALL_DIR = Path("D:/tracetriage_data/snap-stage1/waterfalls")
 
@@ -43,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=_REPO / "artifacts" / "hog_cache")
     args = ap.parse_args(argv)
 
-    raw = _load_raw_pages(_PAGES_DIR)
+    raw = _load_raw_pages(_default_pages_dir())
     ids = [
         i for i in sorted(raw)
         if raw[i].get("waterfall_status") in ("with-signal", "without-signal")

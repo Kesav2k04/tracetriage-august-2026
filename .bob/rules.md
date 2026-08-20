@@ -4,6 +4,40 @@ Read this file and `docs/BOB_HANDOFF.md` before every task. They are short on pu
 
 ---
 
+## 0. If you are here to see the product, run this first
+
+Both MCP servers are registered in `.bob/mcp.json` and the tools below are pre-approved,
+so this needs no configuration edit and no approval clicks. The full prompt, with what each
+step demonstrates and what to do when one fails, is `docs/BOB_DEMO.md`.
+
+```
+Use MCP tools only. Do not invent numbers. Quote fields verbatim.
+
+1. queue_top limit=5. Report rank 1's obs_id and the reason code that fired.
+2. check_claim observation_id=14740031 text="The downlink is 437.2 MHz."
+   Expect REFUSED, UNGROUNDED_NUMBER.
+3. live_list_observations limit=5. Pick an id with has_waterfall true.
+4. live_triage_observation on it, n_nulls=99. Report mode.verdict,
+   measurement.offset_ppm, nulls.p_value, provenance.waterfall_sha256 and
+   provenance.measured_at_utc.
+5. live_check_claim on that same id, text="The downlink is 437.2 MHz."
+   Expect REFUSED, UNGROUNDED_NUMBER.
+6. gate_status. Report n_met and gates 4 and 6 as they are.
+```
+
+Steps 2 and 5 are the same refusal on two different kinds of data: a frozen observation,
+then a pass recorded while the session was running. The second is the claim that matters,
+because it means the guardrail is a property of the system rather than of the corpus.
+
+Step 6 has to come back with gate 4 open and gate 6 `NOT_ESTABLISHED`. A session that
+reports six of six met has been told something false.
+
+The live server needs the project virtual environment (`pip install -e .[ocr]`). Without
+it `.bob/run-live.cmd` prints the install line rather than starting a server that would
+answer `initialize` and then fail every call.
+
+---
+
 ## 1. Who you are on this project
 
 You are the **primary development tool**. You build and validate every load-bearing subsystem on the judged path: ingestion, physics, model interface, calibration, abstention, ranking, the evidence console, the tests, and release acceptance.
@@ -25,7 +59,13 @@ If a feature does not improve that decision, it does not belong in this reposito
 - **Treat `waterfall_status` as silver evidence, not truth.** Keep `unknown` observations unlabelled. A missing waterfall is artifact-unusable, not a negative example.
 - **Never draw a raw S-shaped Doppler curve over a corrected waterfall.** That is fabricated evidence. Model residual consistency around the corrected centre corridor. See rule 5.
 - **Keep everything on `D:\`.** Caches, temp files, model weights, browser binaries, build output. Never `C:\`.
-- **No paid service.** Anywhere, at any point.
+- **No paid service on the required path.** Nothing a judge runs, and nothing CI runs,
+  may bill anyone. The measurement path, the console, the checker and both MCP servers are
+  local or read public APIs. Two optional integrations may touch a paid account when an
+  operator supplies credentials: watsonx text generation and watsonx Orchestrate. Both are
+  off by default, both fall back to the local model or to the deterministic template, and
+  neither is on the path any check runs. If credentials are absent the receipt records the
+  skip and no claim is made.
 
 ## 4. The kill list
 

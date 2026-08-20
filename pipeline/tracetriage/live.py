@@ -332,6 +332,76 @@ def fetch_waterfall(url: str, client) -> bytes:
     return resp.content
 
 
+def _ended_before(rec: dict, cutoff: datetime) -> bool:
+    """Has this pass finished by `cutoff`? Checked locally as well as asked for.
+
+    A record with no readable `end` is dropped rather than kept. The whole point of the
+    bound is that a scheduled pass is not an observation, and a record that cannot say when
+    it ends cannot be shown to have happened.
+    """
+    raw = rec.get("end")
+    if not raw:
+        return False
+    try:
+        ended = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if ended.tzinfo is None:
+        ended = ended.replace(tzinfo=UTC)
+    return ended <= cutoff
+
+
+#: The two confounds that apply to any station-level ppm figure, whichever caller printed
+#: it. Named here rather than written out twice: `cli.cmd_station` and the `live_station` MCP
+#: tool both publish a median over these measurements, and a confound wording that drifts
+#: between two callers is a confound one of them stops stating correctly.
+STATION_CONFOUNDS: tuple[str, ...] = (
+    "Each offset carries the TLE's own propagation error, which this cannot "
+    "separate from a receiver error on a single observation.",
+    "The frequency axis is read from rendered tick labels, so every offset is "
+    "quantised to whole pixels: two observations from one station can return the "
+    "same value to the digit for that reason alone.",
+)
+
+#: The third confound, which is a confound only for a caller that pools the two modes. The
+#: `live_station` tool refuses the pooled median instead of printing it with this warning
+#: attached, so it states the refusal rather than this sentence.
+MIXED_MODE_CONFOUND = (
+    "A corrected capture's offset is a residual after the station's own Doppler "
+    "correction; an uncorrected one's is not. Both are in this median, and mixing "
+    "them is only sound if the correction is unbiased, which is not measured here."
+)
+
+
+def is_decisive(row: dict[str, Any]) -> bool:
+    """Does this measurement carry an offset a calibration may average?
+
+    One predicate, two callers: `cli.cmd_station` and the `live_station` MCP tool. It was
+    written inline in the CLI, and a second copy in the tool would have been two definitions
+    of "decisive" drifting under one published number.
+
+    Four conditions and each excludes a different thing. No `measurement` block at all means
+    the row is a refusal. A verdict that is not one of the two settled shapes means the image
+    never said which hypothesis it holds. A null `offset_ppm` means the fit did not converge.
+    `at_search_bound` means the search ran into its own ceiling, so the value is a bound and
+    not a measurement, and averaging a bound with measurements is how a ceiling becomes a
+    result.
+
+    Takes the `to_dict()` shape rather than a `LiveMeasurement`, because that is what both
+    callers already hold.
+    """
+    if "measurement" not in row:
+        return False
+    mode = row.get("mode") or {}
+    if not isinstance(mode, dict) or mode.get("verdict") not in ("UNCORRECTED", "CORRECTED"):
+        return False
+    measurement = row["measurement"]
+    return (
+        measurement.get("offset_ppm") is not None
+        and not measurement.get("at_search_bound")
+    )
+
+
 def list_observations(
     client,
     *,
@@ -339,6 +409,7 @@ def list_observations(
     ground_station: int | None = None,
     status: str | None = None,
     start_after: datetime | None = None,
+    end_before: datetime | None = None,
     limit: int = 50,
     require_waterfall: bool = False,
     max_pages: int = 12,
@@ -361,6 +432,16 @@ def list_observations(
 
     `max_pages` bounds that walk. Without it a filter matching only scheduled passes would
     page through a volunteer-run API until it ran out of observations.
+
+    **`end_before` is what makes an unfiltered listing usable at all.** Measured on
+    2026-08-20: an unfiltered `require_waterfall` walk returned zero rows across all twelve
+    pages, because the network schedules far enough ahead that three hundred consecutive
+    newest-first records were `status: future` with no image. A bare `end=` bound at the
+    caller's clock puts twenty-one measurable records on page one, and it does that without
+    naming a status, which matters: selecting `status=good` would have filtered the list by
+    SatNOGS's own vetting flag, and this project treats that flag as silver evidence rather
+    than as truth. `end__lte=` is silently ignored by the API and returns unfiltered data,
+    so the parameter is spelled bare (`docs/SATNOGS_API_RECON.md`).
     """
     params = ["format=json"]
     if norad_cat_id is not None:
@@ -371,6 +452,8 @@ def list_observations(
         params.append(f"status={status}")
     if start_after is not None:
         params.append(f"start={start_after.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+    if end_before is not None:
+        params.append(f"end={end_before.strftime('%Y-%m-%dT%H:%M:%SZ')}")
 
     # `extract_next_cursor` returns the cursor VALUE and not a URL, deliberately, so that a
     # stale parameter in the Link header cannot be followed blindly. The next URL therefore
@@ -395,6 +478,8 @@ def list_observations(
             if ground_station is not None and rec.get("ground_station") != ground_station:
                 continue
             if status is not None and rec.get("status") != status:
+                continue
+            if end_before is not None and not _ended_before(rec, end_before):
                 continue
             if require_waterfall and not rec.get("waterfall"):
                 continue

@@ -1,7 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="TraceTriage">
-  <rect width="32" height="32" fill="#161616"/>
-  <!-- The commanded receive frequency: where a corrected capture would sit. -->
-  <line x1="16" y1="3" x2="16" y2="29" stroke="#6f6f6f" stroke-width="1" stroke-dasharray="2 2"/>
+  <!-- The mark is the measurement, drawn as a plate rather than as a monogram.
+
+       Read it as a waterfall. Time runs down, frequency runs across. The dashed line is the
+       frequency the station was commanded to receive on, so a capture corrected for Doppler
+       sits on it. The gold curve is where an uncorrected capture actually lands, and the
+       darker band behind it is the corridor the fit is allowed. The gap between the line and
+       the curve is what every number on this site measures.
+
+       It is bounded on purpose. An unbounded S curve at 16 pixels reads as a stray tick
+       beside a wordmark rather than as a mark, which is exactly what the first version did.
+
+       The trace is a sigmoid, not a diagonal. An uncorrected capture starts above the
+       commanded frequency, crosses it once near closest approach and ends below it, and the
+       first version of this mark drew a slight arc from corner to corner, which is a line and
+       not a Doppler curve. The crossing sits a little right of the dashed line on purpose:
+       that displacement is the fitted offset.
+
+       Colours are the console's own tokens: ground #050d21, plate #121c2e, commanded line in
+       Gray 50, trace in inferno 0.85, which is the accent every interactive number uses. -->
+  <rect width="32" height="32" rx="6" fill="#050d21"/>
+  <rect x="2.5" y="2.5" width="27" height="27" rx="4" fill="#121c2e" stroke="#2b3444"/>
+  <!-- The corridor: the tolerance the fit is allowed, under everything else. -->
+  <path d="M19.8 6 C 19 12.6, 9.8 19.4, 9 26 L 14.2 26 C 15 19.4, 24.2 12.6, 25 6 Z"
+        fill="#1d2942"/>
+  <!-- The commanded receive frequency. -->
+  <line x1="16" y1="5" x2="16" y2="27" stroke="#888b90" stroke-width="1.2" stroke-dasharray="2.6 2.4"/>
   <!-- The Doppler curve, offset from it. That gap is the whole project. -->
-  <path d="M9 3 C 13 10, 14 22, 21 29" fill="none" stroke="#4589ff" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M22.4 6 C 21.6 12.6, 12.4 19.4, 11.6 26"
+        fill="none" stroke="#fbbe23" stroke-width="3.1" stroke-linecap="round"/>
 </svg>

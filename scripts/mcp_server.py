@@ -19,14 +19,26 @@ which returns the grounding checker's verdict on that sentence. An agent writing
 observation can have its own prose checked against the evidence packet before a human sees
 it, using the same checker that refused fourteen of twenty-five of the model's own drafts.
 
+The four measured kill gates are also published as MCP **resources**, ``receipt://GATE3``
+through ``receipt://GATE6``, so a client that offers an ``@``-mention can pull a gate's
+verdict and its receipt's scalars into a conversation without a tool call. Both resource
+methods answered ``-32601`` until an IBM Bob operator tried it.
+
 Five hard properties, each of which is a test in ``tests/test_mcp_server.py``.
 
 **Read-only.** No tool writes, and the import closure of this file reaches no HTTP write
-verb and no annotation store.
+verb and no annotation store. One stated exception, because a claim with a hidden exception
+is worth less than a narrower one: ``run_acceptance`` spawns ``scripts/gate.py``, which
+calls every generator with ``--check`` and therefore rewrites no receipt, but which does run
+``npm run build`` and so writes ``apps/web/.next``. That tool is read-only with respect to
+SatNOGS and to every committed measurement, and it is not read-only with respect to the
+working tree. It is the one tool left out of ``alwaysAllow`` in ``.bob/mcp.json``.
 
-**Offline.** Every answer comes from a committed file. There is no network call, and the
-server refuses to start if a file it advertises is missing rather than returning an empty
-result that reads like an answer.
+**Offline.** Every answer comes from a committed file. This file makes no network call, and
+the server refuses to start if a file it advertises is missing rather than returning an empty
+result that reads like an answer. ``run_acceptance`` is offline too but for a different
+reason: it runs the offline test selection and the console build, neither of which reaches
+out, rather than being a read of a committed file.
 
 **No invented numbers.** Values are copied from the receipts, never recomputed here. A
 second implementation of a published number is a second thing to keep in step.
@@ -42,6 +54,8 @@ use twice.
 from __future__ import annotations
 
 import json
+import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -50,7 +64,11 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from pipeline.tracetriage import mcp_transport as _transport  # noqa: E402
-from pipeline.tracetriage.explain import build_packet, verify_note  # noqa: E402
+from pipeline.tracetriage.explain import (  # noqa: E402
+    MeasurementMissing,
+    build_packet,
+    verify_note,
+)
 from pipeline.tracetriage.mcp_transport import (  # noqa: E402
     ToolError,
 )
@@ -75,7 +93,13 @@ INSTRUCTIONS = (
     "Read-only evidence from a physics-conditioned SatNOGS review queue. Every value "
     "is copied from a committed receipt. check_claim is the tool worth knowing about: "
     "it tells you whether a sentence you wrote about an observation is supported by "
-    "that observation's own measured fields."
+    "that observation's own measured fields. For a sentence about an observation you "
+    "measured just now rather than one from this checkout, use live_check_claim on the "
+    "tracetriage-live server: check_claim answers UNKNOWN_OBSERVATION for an id that is "
+    "not in the committed data, and that is correct rather than a gap. The four measured "
+    "kill gates are also readable as resources, receipt://GATE3 to receipt://GATE6. "
+    "NOT_ESTABLISHED and OPEN are verdicts, not gaps to fill in: do not report either as "
+    "met."
 )
 
 
@@ -133,13 +157,35 @@ def _load(path: Path) -> dict[str, Any]:
 
 
 def _packets() -> dict[int, Any]:
+    """Every observation an agent can ask about, which is every card with a fit.
+
+    Cards shipped with a named degrade have no corridor and therefore no packet. They
+    are absent from this map rather than present with zeros, so a tool that answers
+    from it cannot report an unmeasured observation as measured. :func:`_unmeasured`
+    carries the reason so the tool can say which of the two it is.
+    """
     cards = _load(_data_dir() / "cards.json")["cards"]
     entries = _load(_data_dir() / "queue.json")["entries"]
     by_id = {int(e["obs_id"]): e for e in entries}
+    out: dict[int, Any] = {}
+    for c in cards:
+        obs_id = int(c["obs_id"])
+        if obs_id not in by_id:
+            continue
+        try:
+            out[obs_id] = build_packet(c, by_id[obs_id])
+        except MeasurementMissing:
+            continue
+    return out
+
+
+def _unmeasured() -> dict[int, str]:
+    """Shipped observations with no fit, mapped to the reason the console prints."""
+    cards = _load(_data_dir() / "cards.json")["cards"]
     return {
-        int(c["obs_id"]): build_packet(c, by_id[int(c["obs_id"])])
+        int(c["obs_id"]): str(c.get("degraded") or "no corridor fit was recorded")
         for c in cards
-        if int(c["obs_id"]) in by_id
+        if not (c.get("corridor") or {}).get("fitted_offset_hz")
     }
 
 
@@ -188,11 +234,43 @@ def tool_queue_top(limit: int = DEFAULT_QUEUE_LIMIT) -> dict[str, Any]:
             for r in rows
         ],
         "reading": (
-            "Rank is the order a reviewer should spend a fixed budget in. A row with "
-            "has_evidence_packet false is ranked but carries no imagery in this checkout, "
-            "so observation and check_claim refuse it. The queue's headline lift over "
-            "random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is "
-            "above it and the interval contains it. See gate_status."
+            f"Three counts here are different numbers and answering the wrong one is the "
+            f"mistake this string exists to stop. `available` is how many observations the "
+            f"queue ranks in total, which is the answer to 'how long is the queue'. `cap` "
+            f"is the most rows one call may return ({MAX_QUEUE_LIMIT}) and is a property of "
+            f"this tool, not of the queue. `review_budget.n_observations` is the budget the "
+            f"ranking was scored against and happens to equal the cap, which is exactly why "
+            f"it gets misread. `returned` is how many rows are in this response. Use "
+            f"queue_size if the total is all you want. "
+            f"Rank is the order a reviewer should spend a fixed budget in. A row with "
+            f"has_evidence_packet false is ranked but carries no imagery in this checkout, "
+            f"so observation and check_claim refuse it. The queue's headline lift over "
+            f"random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is "
+            f"above it and the interval contains it. See gate_status."
+        ),
+    }
+
+
+def tool_queue_size() -> dict[str, Any]:
+    """The three counts `queue_top` reports, with nothing else to confuse them with.
+
+    An agent asked how many rows the queue ranks answered 50, which is the review budget
+    and the per-call cap, not the queue length. It had read `queue_top`'s payload correctly
+    and picked the wrong field out of it. A caller that wants only the total should not have
+    to fetch fifty rows and then choose between three integers, and asking for 407 rows was
+    refused with BAD_LIMIT, which reads like the number is unavailable.
+    """
+    queue = _load(_data_dir() / "queue.json")
+    return {
+        "available": len(queue["entries"]),
+        "cap": MAX_QUEUE_LIMIT,
+        "review_budget": queue["review_budget"],
+        "reading": (
+            "`available` is the queue length: how many observations the ranking covers. "
+            "`cap` is how many rows queue_top will return in one call. "
+            "`review_budget.n_observations` is the fixed budget the ranking was scored "
+            "against. If the question was how many ranked rows there are, the answer is "
+            "`available`."
         ),
     }
 
@@ -353,6 +431,205 @@ def tool_receipt(name: str) -> dict[str, Any]:
     }
 
 
+# ---------------------------------------------------------------------------
+# The acceptance gate, as a tool
+# ---------------------------------------------------------------------------
+
+#: Where the standing gates live, and the interpreter they were written for. `gate.py`
+#: hardcodes `.venv/Scripts/python.exe` for the checks it spawns, so running it under a
+#: different interpreter would report on an environment nobody uses.
+_GATE = REPO / "scripts" / "gate.py"
+_GATE_PY = REPO / ".venv" / "Scripts" / "python.exe"
+
+#: How long one acceptance run may take. `gate.py` runs the offline suite, ruff, three npm
+#: commands and nine `--check` regenerations, and the measured wall time on the build machine
+#: is minutes rather than seconds. A tool that hangs a client forever is worse than one that
+#: says it ran out of time, so the cap is stated and the timeout is a named reason.
+GATE_TIMEOUT_S = 900
+
+#: `gate.py` prints one line per check in exactly this shape. Parsed rather than re-derived,
+#: because re-deriving the verdicts here would be a second acceptance script.
+_GATE_LINE = re.compile(r"^\s*\[(PASS|FAIL| -- )\]\s+(.+?)(?:\s\s+(.*))?$")
+_GATE_TALLY = re.compile(r"^(\d+)/(\d+) standing gates pass$", re.M)
+
+
+def summarise_gate_output(stdout: str, returncode: int) -> dict[str, Any]:
+    """`gate.py`'s printed report as structured rows, and nothing else from it.
+
+    Bounded on purpose: the gate's own output carries the tail of a pytest run and of three
+    npm commands, and returning all of it would spend a client's context on lines it did not
+    ask for. What comes back is the verdict per check and the tally, which is what "do the
+    standing gates pass" actually means.
+
+    An omitted row (`[ -- ]`) is kept as OMITTED rather than folded into either side. The
+    gate prints one when a check cannot be asked in the current context, and a "could not
+    measure" counted as a failure manufactures a regression.
+    """
+    checks: list[dict[str, str]] = []
+    for line in stdout.splitlines():
+        found = _GATE_LINE.match(line)
+        if not found:
+            continue
+        verdict, name, detail = found.groups()
+        checks.append(
+            {
+                "check": name.strip(),
+                "verdict": {"PASS": "PASS", "FAIL": "FAIL", " -- ": "OMITTED"}[verdict],
+                "detail": (detail or "").strip(),
+            }
+        )
+    tally = _GATE_TALLY.search(stdout)
+    return {
+        "exit_code": returncode,
+        "all_gates_pass": returncode == 0,
+        "n_pass": sum(1 for c in checks if c["verdict"] == "PASS"),
+        "n_fail": sum(1 for c in checks if c["verdict"] == "FAIL"),
+        "n_omitted": sum(1 for c in checks if c["verdict"] == "OMITTED"),
+        "reported_tally": tally.group(0) if tally else None,
+        "checks": checks,
+    }
+
+
+def tool_run_acceptance() -> dict[str, Any]:
+    """Run this repository's own standing gates and report the verdict per check.
+
+    The one tool here that computes rather than reads. It exists because "are the standing
+    gates green" is the question an agent operating this repository asks first, and the
+    honest answer is a run rather than a receipt: a receipt says what was true when someone
+    last ran it.
+
+    Read-only with one stated exception, because a claim with a hidden exception is worse
+    than a narrower claim. Nothing in this file writes. `gate.py` calls every generator with
+    `--check`, so no receipt under `artifacts/` is rewritten. What it does do is run
+    `npm run build` in `apps/web`, and that writes the console's build output under
+    `apps/web/.next`. So this tool is read-only with respect to SatNOGS and to every
+    committed measurement, and it is not read-only with respect to the working tree. It is
+    the one tool left out of `alwaysAllow` in `.bob/mcp.json` for that reason.
+    """
+    if not _GATE_PY.exists():
+        raise ToolError(
+            "NO_INTERPRETER",
+            f"{_relative(_GATE_PY)} is not in this checkout, and scripts/gate.py spawns "
+            f"every check with it by name. Create the environment first "
+            f"(py -m venv .venv, then .venv\\Scripts\\python.exe -m pip install -e "
+            f'".[full,dev]"). Reporting a gate result from a different interpreter would '
+            f"describe an environment nobody runs.",
+        )
+    try:
+        finished = subprocess.run(  # noqa: S603
+            [str(_GATE_PY), str(_GATE)],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=GATE_TIMEOUT_S,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise ToolError(
+            "GATE_TIMED_OUT",
+            f"scripts/gate.py did not finish within {GATE_TIMEOUT_S} s. A partial gate is "
+            f"not a verdict, so nothing is reported. Run it in a terminal to see where it "
+            f"stopped: {_relative(_GATE_PY)} scripts/gate.py",
+        ) from exc
+
+    summary = summarise_gate_output(finished.stdout or "", finished.returncode)
+    if not summary["checks"]:
+        raise ToolError(
+            "GATE_UNREADABLE",
+            f"scripts/gate.py exited {finished.returncode} and printed no check line this "
+            f"tool could read, so there is no verdict to report. An empty pass would be the "
+            f"worst answer available here. Last stderr line: "
+            f"{(finished.stderr or '').strip().splitlines()[-1:] or ['(none)']}",
+        )
+    summary["command"] = f"{_relative(_GATE_PY)} scripts/gate.py"
+    summary["reading"] = (
+        "One row per standing gate, as scripts/gate.py printed it. all_gates_pass is that "
+        "script's own exit code and not a tally computed here. OMITTED is a check the gate "
+        "declined to ask in this context and is neither a pass nor a failure. This tool "
+        "runs the gate rather than reading a receipt, so it also writes apps/web/.next by "
+        "way of the console build; nothing under artifacts/ is rewritten, because every "
+        "generator the gate calls runs with --check."
+    )
+    return summary
+
+
+# ---------------------------------------------------------------------------
+# The gate receipts, as readable resources
+# ---------------------------------------------------------------------------
+
+
+def _gate_rows() -> list[dict[str, Any]]:
+    return _load(_data_dir() / "provenance.json")["gate_summary"]["gates"]
+
+
+def gate_resource_text(gate: int) -> str:
+    """One gate as a short block: its title, its verdict, and its receipt's scalars.
+
+    Bounded for the same reason `receipt` is bounded. GATE6's own receipt is 250 kB and a
+    client that `@`-mentioned it would spend its context on bootstrap draws.
+
+    Everything here is read from the receipt or from the gate summary. Nothing is typed,
+    including the verdict, so this cannot be the place a `NOT_ESTABLISHED` quietly becomes
+    something else.
+    """
+    rows = {int(row["gate"]): row for row in _gate_rows()}
+    row = rows.get(gate)
+    if row is None:
+        raise ToolError(
+            "UNKNOWN_GATE",
+            f"gate {gate} is not one of the {len(rows)} this project defines: "
+            f"{sorted(rows)}.",
+        )
+    lines = [
+        f"gate {row['gate']}: {row['title']}",
+        f"verdict   {row['verdict']}",
+        f"decided in {row['decided_in']}",
+    ]
+    decided_in = str(row["decided_in"])
+    if decided_in.startswith("artifacts/") and decided_in.endswith(".json"):
+        summary = tool_receipt(Path(decided_in).name)
+        lines.append(f"receipt   {summary['path']}  {summary['bytes']} bytes")
+        for key, value in summary["scalars"].items():
+            lines.append(f"  {key}: {value}")
+        for key, size in summary["collection_sizes"].items():
+            lines.append(f"  {key}: {size} entries")
+    else:
+        lines.append(
+            f"receipt   none. This gate was decided in {decided_in}, which is a document "
+            f"rather than a generated receipt."
+        )
+    lines.append(
+        "reading   NOT_ESTABLISHED is a measurement that came back inconclusive: not a "
+        "pass, not a failure. OPEN is a study that was never run. Neither may be reported "
+        "as met."
+    )
+    return "\n".join(lines)
+
+
+def _gate_resource(gate: int) -> dict[str, Any]:
+    return {
+        "name": f"GATE{gate}",
+        "description": (
+            f"Kill gate {gate}: its title, its verdict and the scalar summary of the "
+            f"receipt it was decided in. Bounded, never the whole receipt."
+        ),
+        "mimeType": "text/plain",
+        "handler": lambda gate=gate: gate_resource_text(gate),
+    }
+
+
+#: The four gates this project decided by measurement. Gates 1 and 2 were pre-passed in
+#: `docs/KILL_GATE.md` and have no receipt, so a URI for them would resolve to a document
+#: this server does not publish and `gate_status` already reports them.
+RESOURCE_GATES = (3, 4, 5, 6)
+
+RESOURCES: dict[str, dict[str, Any]] = {
+    f"receipt://GATE{gate}": _gate_resource(gate) for gate in RESOURCE_GATES
+}
+
+
 TOOLS: dict[str, dict[str, Any]] = {
     "queue_top": {
         "handler": tool_queue_top,
@@ -426,6 +703,26 @@ TOOLS: dict[str, dict[str, Any]] = {
             "additionalProperties": False,
         },
     },
+    "queue_size": {
+        "handler": tool_queue_size,
+        "description": (
+            "How many observations the queue ranks in total, named apart from the per-call "
+            "cap and the review budget. Ask this rather than queue_top when the total is "
+            "the whole question: the three numbers are different and two of them are 50."
+        ),
+        "schema": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
+    "run_acceptance": {
+        "handler": tool_run_acceptance,
+        "description": (
+            "Run this repository's standing gates (scripts/gate.py) and report the verdict "
+            "per check plus the tally. The one tool here that computes rather than reads, "
+            "so it takes minutes, and the one that is not read-only with respect to the "
+            "working tree: the gate builds the console. Nothing under artifacts/ is "
+            "rewritten, because every generator the gate calls runs with --check."
+        ),
+        "schema": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
 }
 
 
@@ -497,7 +794,7 @@ def _offline_preflight() -> list[str]:
 def handle(request: Any) -> dict[str, Any] | None:
     """This server's registry, over the shared transport."""
     return _handle(request, TOOLS, {"name": SERVER_NAME, "version": SERVER_VERSION},
-                   INSTRUCTIONS)
+                   INSTRUCTIONS, RESOURCES)
 
 
 def serve(stdin: Any = None, stdout: Any = None) -> int:
@@ -513,6 +810,7 @@ def serve(stdin: Any = None, stdout: Any = None) -> int:
         server_info={"name": SERVER_NAME, "version": SERVER_VERSION},
         instructions=INSTRUCTIONS,
         preflight=_offline_preflight,
+        resources=RESOURCES,
     )
 
 

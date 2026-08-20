@@ -1,10 +1,21 @@
 /* Hallmark · macrostructure: Stat-Led (/) + Map-Diagram (/observation)
- * tone: technical, austere · genre: modern-minimal · nav: N3 side-rail · footer: Ft4 dense colophon
- * theme: IBM Carbon Gray 100 structure, deep-plum neutrals oklch(L 0.030..0.004 305)
- * accent: matplotlib inferno, sampled at named stops
- * axes: paper-band dark / display grotesk-sans / accent warm-ordinal
- * enrichment: E-data (sky plot, ground track, Manim explainer), every mark carries a receipt value
- * pre-emit critique: P5 H5 E4 S5 R5 V4
+ * tone: technical, austere · genre: instrument panel · nav: N3 side-rail · footer: Ft4 dense colophon
+ * style axes, one owner each (styles named from the 50-style vocabulary):
+ *   structure  Utilitarian. Function, no expression: a 76rem measure, a side rail, an
+ *              8px step. One contained region borrows Bento for the stat grid, because
+ *              two structural styles may never negotiate over the same box.
+ *   palette    Tenebrism. Emission out of a void: IBM Carbon Gray 100's lightness ramp
+ *              re-tinted to oklch(L, 0.044..0.002, 262), gold accents sampled off
+ *              matplotlib inferno, and one cyan that means "measured just now".
+ *   finish     Glassmorphism on floating chrome only, over a low-chroma Aurora
+ *              atmosphere behind the hero. Aurora is held near Ethereal chroma on
+ *              purpose so it stays atmosphere and does not become a second palette.
+ *   ornament   none. An instrument has no motifs.
+ * axes: void ground / display grotesk-sans / accent warm-ordinal / live cool-categorical
+ * enrichment: E-data (sky plot, ground track, GPU waterfall, Manim explainer), every
+ *             mark carries a receipt value
+ * motion: instrumental only. Every animated pixel draws a measurement, and the whole
+ *         motion layer is off under prefers-reduced-motion.
  */
 /*
  * Design foundation.
@@ -41,33 +52,40 @@
  * being applied by the console rather than found in the data. The rationale rested
  * on a false premise about the input and is recorded here rather than deleted.
  *
- * THE NEUTRALS ARE CARBON'S LIGHTNESS, RE-TINTED DEEP PLUM, AND THE TINT IS FREE.
+ * THE NEUTRALS ARE CARBON'S LIGHTNESS, RE-TINTED DEEP SPACE BLUE, AND IT IS FREE.
  *
- * Carbon Gray 100 is achromatic. Every neutral below is its Carbon original
- * converted to OKLCH, held at exactly its Carbon lightness, given a chroma that
- * falls as lightness rises (0.030 in the darkest steps, 0.004 in the lightest) at
- * hue 305, and converted back. Because OKLCH lightness is perceptually uniform and
- * the chroma is small, the WCAG ratios do not move: text-01 on the page ground is
- * 16.45:1 as Carbon ships it and 17.11:1 here, text-03 on a rule is 3.49:1 and
- * 3.50:1, ui-04 as a component boundary is 3.60:1 and 3.73:1. The largest movement
- * attributable to the hue rotation alone is 0.026 across the whole ramp, which is
- * rounding; the rest of the gain is the one lightness that did change, the page
- * ground, from Carbon's L 0.200 to L 0.182, and a darker ground can only raise a
- * ratio measured against it. The tint was done this way, rather than by picking
- * colours that looked right, so that no accessibility result measured on the built
- * site had to be re-argued.
+ * Carbon Gray 100 is achromatic. Every neutral below is generated, not typed:
+ * `scripts/derive_palette.py` holds each step at its Carbon lightness, applies a
+ * chroma that falls as lightness rises (0.044 in the void to 0.002 in the brightest
+ * ink) at hue 262, and converts back to sRGB. `--check` on that script fails the
+ * suite if the stylesheet and the specification disagree, so nobody has to trust a
+ * comment that says which Carbon token a hex came from.
+ *
+ * Because OKLCH lightness is perceptually uniform and the chroma is small, the WCAG
+ * ratios do not fall. Measured across the 26 pairs the interface renders, every one
+ * of them rose or held: text-01 on the page ground is 16.45:1 as Carbon ships it,
+ * 17.11:1 under the previous plum cast and 17.25:1 here; ui-04 as a component
+ * boundary is 3.60:1, 3.73:1 and 3.89:1. The rotation itself is free, and the small
+ * gain is the one lightness that moved: the page ground, from Carbon's L 0.200 to
+ * L 0.165, and a darker ground can only raise a ratio measured against it.
+ * `scripts/check_contrast.py` recomputes all 26 rather than asserting this.
  *
  * The chroma falls with lightness on purpose. A tinted mid-grey is what makes a
  * dark theme look synthetic; a tinted black reads as a sky. So the void carries the
  * colour and the ink carries almost none, and text-04 carries none at all.
  *
- * Hue 305 is a deep plum, and it is the one hue on the page that is a preference
- * rather than a derivation. It is named as such. What it is chosen against is not a
- * preference: it sits roughly opposite the inferno accent ramp on the hue circle,
- * far from the red the failed verdict owns and far from blue, so the gold that means
- * something reads as emission against a void, and nothing else on the page competes
- * with it for meaning. It replaced hue 70, a warm graphite, which measured the same
- * and read as a slab of stone rather than as a sky.
+ * Hue 262 is a deep space blue, and it is the one hue on the page that is a
+ * preference rather than a derivation. It is named as such. What it is chosen
+ * against is not a preference: it sits nearly opposite the inferno accent ramp on
+ * the hue circle and far from the crimson the failed verdict owns, so the gold that
+ * means something reads as emission against a void and nothing else competes with it
+ * for meaning. It is also what a long-exposure deep-field frame actually is. The sky
+ * in one is not black: it is a very dark blue carrying almost no chroma.
+ *
+ * Two hues preceded it and both are recorded rather than deleted. Hue 70, a warm
+ * graphite, measured the same and read as a slab of stone. Hue 305, a deep plum,
+ * measured the same and read as aubergine under warm room light, which is the wrong
+ * association for a night sky and the reason this palette moved.
  *
  * THE ACCENTS ARE STOPS OFF THE COLOURMAP THE HERO USES.
  *
@@ -100,37 +118,49 @@
  */
 
 :root {
-  /* Backgrounds. Carbon Gray 100's own lightness values, re-tinted to deep plum.
-     Carbon original in brackets.
+  /* Backgrounds. Carbon Gray 100's own lightness values, re-tinted deep space blue.
+     Generated by `scripts/derive_palette.py`; the Carbon source and the exact OKLCH
+     coordinates are on each line, and `--check` fails the suite if a value here stops
+     matching the specification that produced it.
 
-     Two decisions are stacked here and only one of them is a preference. The
-     lightness ramp is Carbon's, unchanged, which is what keeps the contrast
-     measurements below true. The cast is a choice: OKLCH hue 305 at chroma 0.030
-     in the darkest steps, falling to 0.004 in the lightest, so the void carries
-     the colour and the ink almost none. A tinted mid-grey is what makes a dark
-     theme look cheap; a tinted black is what makes it look like a sky.
+     Two decisions are stacked and only one is a preference. The lightness ramp is
+     Carbon's, unchanged, which is what keeps the contrast table below true. The cast
+     is a choice: hue 262 at chroma 0.044 in the void falling to 0.002 in the
+     brightest ink, so the void carries the colour and the ink almost none. A tinted
+     mid-grey is what makes a dark theme look cheap. A tinted black is what makes it
+     look like a sky.
 
-     Rotating the hue at fixed lightness costs no contrast, and that is arithmetic
-     rather than a hope: the largest ratio drift across the whole ramp between the
-     previous warm cast and this one is 0.026, which is rounding. The one token
-     whose lightness did move is the page ground, from Carbon's L 0.200 to L 0.182,
-     and moving a ground darker raises every ratio measured against it.
+     Rotating hue at fixed lightness costs no contrast, and that is arithmetic rather
+     than a hope. Across the 26 pairs the interface renders, not one fell: the page
+     ground went from Carbon's L 0.200 to L 0.165, and a darker ground can only raise
+     a ratio measured against it.
 
-     Why plum. The accent ramp is not a preference either: it is sampled off
+     Why blue. The accent ramp is not a preference either: it is sampled off
      matplotlib's inferno, because inferno is the colormap every waterfall on this
-     console is rendered in, so gold and amber here mean the same thing they mean
-     inside the images. Hue 305 is roughly opposite that ramp on the hue circle and
-     far from both blue and the red the failed verdict owns, so gold on it reads as
-     emission against a void rather than as amber on mud, and the one hue with a
-     job keeps it. */
-  --ui-background: #150e1d;  /* Carbon #161616 */
-  --ui-01: #292232;          /* Carbon #262626 */
-  --ui-02: #3d3546;          /* Carbon #393939 */
-  --ui-03: #3d3546;          /* Carbon #393939 */
-  --ui-04: #716d76;          /* Carbon #6f6f6f */
-  --ui-05: #f5f3f6;          /* Carbon #f4f4f4 */
-  --field-01: #292232;       /* Carbon #262626 */
-  --hover-ui: #393142;       /* Carbon #353535 */
+     console is rendered in, so gold and amber here mean what they mean inside the
+     images. Hue 262 is nearly opposite that ramp on the hue circle and far from the
+     crimson the failed verdict owns, so gold on it reads as emission against a void
+     rather than as amber on mud, and the one hue with a job keeps it. */
+  --ui-background: #050d21;  /* Carbon #161616, L 0.165 C 0.044 */
+  --ui-01: #1b2434;          /* Carbon #262626, L 0.260 C 0.033 */
+  --ui-02: #313845;          /* Carbon #393939, L 0.340 C 0.025 */
+  --ui-03: #313845;          /* Carbon #393939, L 0.340 C 0.025 */
+  --ui-04: #6c7077;          /* Carbon #6f6f6f, L 0.545 C 0.012 */
+  --ui-05: #f1f2f3;          /* Carbon #f4f4f4, L 0.960 C 0.002 */
+  --field-01: #1b2434;       /* Carbon #262626, L 0.260 C 0.033 */
+  --hover-ui: #2b3342;       /* Carbon #353535, L 0.320 C 0.029 */
+
+  /* Elevation, which the ramp above does not carry.
+     A console with one ground and one tile has two planes and reads flat no matter
+     how good the type is. These are the planes a floating panel needs: the surface
+     it sits on, the well a plot or a code block is sunk into, and the hairline that
+     catches light along a raised edge. All three are derived at the same hue and a
+     stated lightness in `scripts/derive_palette.py`, so elevation moves with the
+     palette rather than drifting away from it the first time somebody picks a
+     slightly nicer grey for a card. */
+  --surface-raised: #121c2e;  /* L 0.225 C 0.038 */
+  --surface-sunken: #02081c;  /* L 0.140 C 0.046 */
+  --edge-highlight: #444d5e;  /* L 0.420 C 0.030 */
 
   /* Text.
      One deliberate departure from Carbon's naming, unchanged by the re-tint.
@@ -144,15 +174,15 @@
 
      --text-04 is the one neutral left at zero chroma. It is pure white because
      it is the strongest ink on the page and a tinted white is a dimmer white. */
-  --text-01: #f5f3f6;         /* Carbon #f4f4f4 */
-  --text-02: #c7c5ca;         /* Carbon #c6c6c6 */
-  --text-03: #8f8b94;         /* Carbon #8d8d8d, Gray 50 */
+  --text-01: #f1f2f3;         /* Carbon #f4f4f4, L 0.960 C 0.002 */
+  --text-02: #c3c4c7;         /* Carbon #c6c6c6, L 0.820 C 0.004 */
+  --text-03: #888b90;         /* Carbon #8d8d8d Gray 50, L 0.635 C 0.008 */
   --text-04: #ffffff;
-  --text-05: #8f8b94;
-  --text-placeholder: #716d76; /* Carbon #6f6f6f */
+  --text-05: #888b90;
+  --text-placeholder: #6c7077; /* Carbon #6f6f6f, L 0.545 C 0.012 */
 
   /* The ground behind a waterfall. True black rather than the theme's near-black:
-     the image is a measured intensity map, and letting the plum ground show
+     the image is a measured intensity map, and letting the blue ground show
      through the darkest rows would render a measured zero as brighter than zero. */
   --waterfall-ground: #000000;
 
@@ -161,13 +191,13 @@
      so any of them can be re-derived with
      `matplotlib.cm.inferno(t)` and checked. */
   --interactive-01: #fca50a;  /* inferno 0.80, corridor stroke and rail marker */
-  --interactive-02: #716d76;  /* neutral: a disabled control is not a value */
+  --interactive-02: #6c7077;  /* neutral: a disabled control is not a value */
   --interactive-04: #fbbe23;  /* inferno 0.85, interactive text */
   --link-01: #fca50a;         /* inferno 0.80, 9.09:1 on the ground, 7.62:1 on a tile */
   --support-01: #eb5e61;      /* inferno 0.55 lifted, see the header note */
-  --support-02: #f5f3f6;      /* the ramp has no green, and success is not a hue here */
+  --support-02: #f1f2f3;      /* the ramp has no green, and success is not a hue here */
   --support-03: #f37819;      /* inferno 0.70, caution, always paired with a glyph */
-  --support-04: #c7c5ca;      /* information is neutral: it reports, it does not rank */
+  --support-04: #c3c4c7;      /* information is neutral: it reports, it does not rank */
   --support-05: #f37819;      /* inferno 0.70 */
 
   /* Verdict colours.
@@ -203,10 +233,10 @@
      annunciation, not the colour of a link. The three curves in the waterfall
      overlay are a third axis again, three things rather than three severities, and
      they take three positions off the ramp. */
-  --verdict-passed: #f5f3f6;
-  --verdict-not-established: #c7c5ca;
+  --verdict-passed: #f1f2f3;
+  --verdict-not-established: #c3c4c7;
   --verdict-failed: #eb5e61;
-  --verdict-not-measurable: #8f8b94;
+  --verdict-not-measurable: #888b90;
 
   /* Spacing, Carbon's steps */
   --sp-01: 0.125rem;
@@ -247,9 +277,25 @@
   --dur-slow-01: 400ms;
   --dur-slow-02: 700ms;
 
-  --border-subtle: #3d3546;  /* Carbon #393939 */
-  --border-strong: #716d76;  /* Carbon #6f6f6f */
+  --border-subtle: #313845;  /* Carbon #393939, L 0.340 C 0.025 */
+  --border-strong: #6c7077;  /* Carbon #6f6f6f, L 0.545 C 0.012 */
   --focus: #ffffff;
+
+  /* The one hue on this page that is not a sample off the intensity ramp.
+     Everything gold here is a position on inferno, and position on inferno is
+     ordinal: higher is brighter is stronger. A measurement taken from the network a
+     moment ago is not a higher intensity, it is a different kind of fact, so
+     encoding it as a brighter gold would say something the data does not. It gets a
+     hue instead of a position: OKLCH hue 205, which is a cyan far enough from the
+     ramp that no reader has to decide whether it means "more".
+
+     A preference, named as one, with a job and a floor. It is never the only channel
+     carrying live-ness: the word LIVE and a measured-at timestamp are always beside
+     it, because a reader who cannot separate cyan from gold still has to be able to
+     tell a measurement taken now from one baked into the build. */
+  --live-01: #56d9e7;  /* L 0.820 C 0.115 H 205, live text and stroke */
+  --live-02: #2f939d;  /* L 0.610 C 0.090 H 205, live chrome */
+  --live-glow: #56d9e729;  /* the same hue at 16 percent, for a halo */
 
   --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
@@ -290,13 +336,102 @@
   --max-width: 76rem;
   --rail-width: 13rem;
 
+  /* THE FINISH LAYER.
+     Everything above is structure and palette. These are the three properties that
+     decide whether a dark interface reads as an instrument or as a slide: how light
+     falls on an edge, how far a surface floats, and how the void behind it is lit.
+
+     Radii are small and they are a scale, not a style. An instrument panel has
+     machined corners: 2px on a control, 4px on a panel, 8px on a plate. Nothing here
+     is rounder than 8px, because a 24px radius on a data table is a card from a
+     marketing page and it takes the credibility of the numbers with it.
+
+     Shadows are two-part. A dark theme cannot lift a surface with a drop shadow
+     alone: the shadow is nearly the colour of the ground, so the eye reads no
+     separation. What separates them is the lit edge. Each level pairs a soft cast
+     below with a one-pixel highlight along the top, which is how a real bezel
+     catches room light, and it is why these are inset and outset in the same token.
+
+     The glow tokens are for one job each and they are alpha, not colour, so they
+     compose over whatever surface they land on. */
+  --radius-01: 2px;
+  --radius-02: 4px;
+  --radius-03: 8px;
+  --radius-round: 999px;
+
+  --elev-01:
+    0 1px 0 0 rgb(255 255 255 / 0.045) inset,
+    0 1px 2px rgb(0 0 0 / 0.40);
+  --elev-02:
+    0 1px 0 0 rgb(255 255 255 / 0.055) inset,
+    0 2px 6px rgb(0 0 0 / 0.45),
+    0 8px 24px -8px rgb(0 0 0 / 0.55);
+  --elev-03:
+    0 1px 0 0 rgb(255 255 255 / 0.07) inset,
+    0 4px 14px rgb(0 0 0 / 0.5),
+    0 24px 60px -20px rgb(0 0 0 / 0.65);
+
+  /* The gold halo, for the one mark on a screen that is the answer. Alpha so it
+     reads as emission from the mark rather than as a second mark behind it. */
+  --glow-gold: 0 0 0 1px rgb(252 165 10 / 0.28), 0 0 24px -6px rgb(252 165 10 / 0.35);
+  --glow-live: 0 0 0 1px rgb(79 202 226 / 0.30), 0 0 22px -6px rgb(79 202 226 / 0.38);
+
+  /* Frosted chrome, used on floating chrome only and never behind a text run that
+     has to clear a contrast floor. The tint is the raised surface at 72 percent, so
+     the blur cannot drag a panel's effective background lighter than the token the
+     contrast table was computed against. */
+  --glass-tint: rgb(18 28 46 / 0.72);
+  --glass-blur: 14px;
+  --glass-edge: rgb(255 255 255 / 0.06);
+
+  /* Atmosphere. A deep-field frame is not flat black: it is darkest at the corners
+     and carries a faint gradient where the galactic plane crosses it. Two radial
+     washes at very low alpha do that, and they are tokens rather than a background
+     image so a page can place them and the reduced-data path can drop them. */
+  --atmos-core: radial-gradient(
+    120% 90% at 50% -10%,
+    rgb(79 202 226 / 0.055) 0%,
+    rgb(79 202 226 / 0) 55%
+  );
+  --atmos-limb: radial-gradient(
+    90% 70% at 85% 110%,
+    rgb(252 165 10 / 0.05) 0%,
+    rgb(252 165 10 / 0) 60%
+  );
+
+  /* Tracking, as a scale. Optical tracking is the difference between type that was
+     set and type that was typed: a display line at 8rem needs negative tracking or
+     it falls apart into letters, and a 0.75rem uppercase label needs positive
+     tracking or it reads as a smear. */
+  --tracking-tight: -0.014em;
+  --tracking-flat: 0;
+  --tracking-wide: 0.04em;
+
+  /* Motion, beyond Carbon's productive curves.
+     Carbon's curves are correct for a control that responds to a click. They are
+     wrong for a mark that draws itself, which wants a longer tail, and for anything
+     that has to feel physical. These three are the ones the instruments use. */
+  --ease-draw: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --dur-draw-01: 900ms;
+  --dur-draw-02: 1600ms;
+
   /* Display scale. Steps are ratio 1.5 from the body scale rather than Carbon's
      productive scale, because a stat-led hero needs a figure that dominates and
      Carbon tops out at 2.625rem. Clamped in vw so the figure is zoom-stable. */
-  --type-display-02: clamp(2.75rem, 5vw, 4.25rem);
-  --type-display-03: clamp(4rem, 9vw, 8.5rem);
-  --tracking-display: -0.022em;
-  --tracking-label: 0.08em;
+  --type-display-02: clamp(3rem, 5.6vw, 5rem);
+  --type-display-03: clamp(4.5rem, 10.5vw, 10.5rem);
+  --tracking-display: -0.028em;
+  --tracking-label: 0.09em;
+
+  /* Reading sizes. The body step stays at Carbon's productive 0.875rem for tables
+     and chrome, where density is the point. Prose gets its own step: a paragraph a
+     judge is expected to read in twelve minutes is not a table cell, and 14px prose
+     on a 76rem measure is why a dense console reads as a spreadsheet. Both are in
+     rem so the reader's own font size still governs, and the display steps stay in
+     vw so they are stable under browser zoom. */
+  --type-prose: 1.0625rem;
+  --line-prose: 1.62;
 }
 
 *,
@@ -349,8 +484,8 @@ body {
     180deg,
     var(--ui-background) 0%,
     var(--ui-background) 22%,
-    #0f0718 62%,
-    #080310 100%
+    #040b1b 62%,
+    #010513 100%
   );
   color: var(--text-01);
   font-family: var(--font-sans);
@@ -430,7 +565,7 @@ code,
 /* The skip link's ink follows its own background rather than the page's. On the
    Carbon blue this was white on #4589ff at 3.34:1, already under the floor and
    unnoticed because the link is invisible until focused, and on the amber it would
-   have been 2.00:1. Amber on the plum ground measures 9.46:1, so the same pair inverted is
+   have been 2.00:1. Amber on the void ground measures 9.69:1, so the same pair inverted is
    the fix: the accent carries the plate's ground as its ink. */
 .skip-link {
   position: absolute;
@@ -534,6 +669,9 @@ code,
 }
 
 .rail-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-03);
   font-family: var(--font-display);
   font-size: 1.0625rem;
   /* 500, matching h1, and the reason is bytes rather than taste. A second weight
@@ -550,10 +688,17 @@ code,
   text-decoration: none;
 }
 
+.rail-glyph {
+  flex: 0 0 auto;
+  /* The mark reads as part of the wordmark, not as an icon beside it, so it takes the
+     cap height rather than the line box. */
+  margin-top: -1px;
+}
+
 /* The wordmark carries a hairline rule under the first half. It is drawn from
    the same token as every other rule on the site rather than being a graphic, so
    there is no asset to load and it follows the accent if the accent changes. */
-.rail-mark span {
+.rail-wordmark span {
   border-bottom: 2px solid var(--interactive-04);
   padding-bottom: 1px;
 }
@@ -688,8 +833,92 @@ code,
    went to nothing before the first word, above the fold, where it is most expensive.
    1.5rem at the base and 3rem from 52rem up. */
 .lede {
+  /* A stacking context of its own, so the field behind the hero cannot escape it. A
+     negative z-index without a local context paints behind the page ground, and on five
+     pages of this console that read as white on white before anyone noticed. */
+  position: relative;
+  isolation: isolate;
   padding: var(--sp-06) 0 var(--sp-07);
   border-bottom: 1px solid var(--border-subtle);
+}
+
+/* The queue, drawn on the GPU behind the first screen. `components/DeepField.tsx` says
+   what each point is. Two rules here do the work that keeps it a background:
+
+   The mask. Text sits in the middle of this band, so the field is faded out of the middle
+   and left at the edges. Without it the brightest points land under the headline and the
+   contrast probe reports what a reader would already have noticed.
+
+   The ceiling on opacity. Additive blending over the page ground means overlapping points
+   brighten without bound, so the layer itself is held at 0.5 and the shader's own alpha
+   does the rest. */
+.deep-field {
+  position: absolute;
+  inset: -1px 0 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.72;
+  pointer-events: none;
+  /* A vignette, brightest where the hero is empty.
+     The first version of this mask was inverted: it cleared the middle and kept the
+     edges, on the reasoning that the text is in the middle. The text is not in the
+     middle. The hero is a two-column grid with a column of prose on the left, the gate
+     ledger on the right and a gap between them, so the empty region a field can occupy
+     is exactly the region that mask was hiding, and the result read as a canvas that
+     had failed to draw. Opaque black is visible in a mask; transparent is hidden. */
+  mask-image: radial-gradient(
+    124% 104% at 56% 24%,
+    rgb(0 0 0 / 0.96) 0%,
+    rgb(0 0 0 / 0.78) 46%,
+    rgb(0 0 0 / 0.34) 74%,
+    transparent 96%
+  );
+}
+
+/* Everything the reader is meant to read sits above it. */
+.lede-open,
+.lede-figure,
+.lede-field-note {
+  position: relative;
+  z-index: 1;
+}
+
+.lede-field-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-02) var(--sp-05);
+  margin: var(--sp-07) 0 0;
+  font-size: var(--type-caption);
+  line-height: 1.6;
+  color: var(--text-03);
+}
+
+.lede-field-key {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-02);
+  font-family: var(--font-mono);
+  font-size: var(--type-helper);
+  letter-spacing: var(--tracking-flat);
+}
+
+.lede-field-key::before {
+  content: "";
+  align-self: center;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-round);
+  background: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The canvas draws one frame and stops on its own. This is the second half of the same
+     promise: no transition on the layer either, so nothing about the hero moves. */
+  .deep-field {
+    transition: none;
+  }
 }
 
 @media (min-width: 52rem) {
@@ -1462,6 +1691,47 @@ code,
     animation-delay: 1.05s;
     animation-timing-function: var(--ease-expressive-standard);
   }
+
+  /* Where the draw is driven from, given a browser that can do it.
+     The plate sits below the first screen on every viewport this console was measured
+     at, so a draw on a timer runs while nobody is looking at it and a reader who
+     scrolls down at their own pace arrives to a finished plot. Bound to the scroll
+     position instead, the sixteen nulls appear as the plate comes up and the corridor
+     lands over them, which is the order the argument is in.
+
+     The timeline is declared on the frame and named, rather than taken with `view()` on
+     each path. A path's own view timeline resolves against its box inside the SVG
+     coordinate system, which is not the box the reader is scrolling past. */
+  .hero-plate {
+    timeline-scope: --hero-plate;
+  }
+
+  @supports (animation-timeline: --hero-plate) {
+    .hero-plate-frame {
+      view-timeline-name: --hero-plate;
+      view-timeline-axis: block;
+    }
+
+    .hero-null,
+    .hero-corridor,
+    .hero-corridor-casing {
+      animation-timeline: --hero-plate;
+      /* A range replaces the delay. A delay on a progress-based timeline is an offset in
+         progress, not in seconds, and mixing the two is how a draw ends up finished
+         before it starts. */
+      animation-delay: 0s;
+      animation-duration: auto;
+    }
+
+    .hero-null {
+      animation-range: entry 6% cover 32%;
+    }
+
+    .hero-corridor,
+    .hero-corridor-casing {
+      animation-range: entry 28% cover 60%;
+    }
+  }
 }
 
 @keyframes hero-draw {
@@ -1910,5 +2180,832 @@ main .shell > section > h2::before {
     background-repeat: no-repeat;
     background-position: right top;
     background-size: 4px 100%;
+  }
+}
+
+/* ==========================================================================
+   The live page.
+
+   This is the first surface built in the finish layer, and it is where the three
+   tokens that carry the new depth get their first job: a raised glass panel over the
+   void, a lit top edge, and the cyan that means "measured just now" rather than
+   "measured more".
+
+   One rule governs the whole file below. Glass never sits behind a text run that has
+   to clear a contrast floor: the tint is the raised surface at 72 percent, so the
+   blur cannot drag a panel's effective background lighter than the token the contrast
+   table was computed against, and every ink on these panels is a token that was
+   measured against ui-01 or darker.
+   ========================================================================== */
+
+.live-shell {
+  padding-top: var(--sp-08);
+  padding-bottom: var(--sp-12);
+  max-width: 68rem;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-03);
+  font-family: var(--font-label);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--live-01);
+  margin: 0 0 var(--sp-04);
+}
+
+/* The one animated mark on the page that is not data: a carrier that is present.
+   It is seven pixels of colour and it is here because a page whose claim is "this is
+   happening now" should not be entirely still. Off under reduced motion, where it
+   holds at full opacity rather than disappearing, because the dot is also the only
+   thing distinguishing this eyebrow from a heading. */
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-round);
+  background: var(--live-01);
+  box-shadow: var(--glow-live);
+  animation: live-pulse 2.4s var(--ease-expressive-standard) infinite;
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+.live-head {
+  margin-bottom: var(--sp-08);
+}
+
+.live-title {
+  font-family: var(--font-display);
+  font-size: var(--type-display-02);
+  font-weight: 500;
+  letter-spacing: var(--tracking-display);
+  line-height: 1.02;
+  margin: 0 0 var(--sp-05);
+  color: var(--text-04);
+  text-wrap: balance;
+}
+
+/* The emphasis in the headline is the claim, so it carries the live hue rather than
+   an italic. Neue Haas Display has no italic in this kit, and a browser-synthesised
+   oblique on a display face at 5rem is visibly sheared. */
+.live-title em {
+  font-style: normal;
+  color: var(--live-01);
+}
+
+.live-lede {
+  max-width: 60ch;
+  font-size: var(--type-prose);
+  line-height: var(--line-prose);
+  color: var(--text-02);
+  margin: 0 0 var(--sp-05);
+}
+
+.live-lede-quiet {
+  color: var(--text-03);
+  font-size: var(--type-body);
+}
+
+.live-panel {
+  position: relative;
+  margin-bottom: var(--sp-06);
+  padding: var(--sp-06);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-03);
+  background: var(--glass-tint);
+  box-shadow: var(--elev-02);
+  /* Progressive: a browser without backdrop-filter gets the tint, which is opaque
+     enough on its own that nothing below becomes unreadable. */
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+/* The lit edge. A drop shadow alone cannot separate two dark surfaces, because the
+   shadow is nearly the colour of the ground. What the eye reads as elevation is the
+   one-pixel highlight along the top, which is what a real bezel does with room light.
+   Drawn as a pseudo-element gradient rather than a border so it can fade at both ends
+   instead of ringing the whole box. */
+.live-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  border-radius: var(--radius-03) var(--radius-03) 0 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--glass-edge) 18%,
+    var(--glass-edge) 82%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.live-panel-working {
+  border-color: color-mix(in oklab, var(--live-02) 55%, var(--border-subtle));
+}
+
+.live-panel-refused {
+  border-color: color-mix(in oklab, var(--support-01) 45%, var(--border-subtle));
+}
+
+.live-panel-result {
+  border-color: color-mix(in oklab, var(--live-02) 40%, var(--border-subtle));
+  box-shadow: var(--elev-03);
+}
+
+.panel-heading {
+  font-family: var(--font-label);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+  margin: 0 0 var(--sp-05);
+}
+
+.live-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--sp-04);
+}
+
+.live-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-03);
+  flex: 1 1 16rem;
+}
+
+.live-field-label {
+  font-family: var(--font-label);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+
+.live-input {
+  width: 100%;
+  padding: var(--sp-04) var(--sp-05);
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+  color: var(--text-04);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-02);
+  /* A field is a well, not a card: the inner shadow is what says "type here" without
+     a placeholder doing all the work. */
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.45);
+}
+
+.live-input:focus-visible {
+  outline: 2px solid var(--live-01);
+  outline-offset: 1px;
+  border-color: var(--live-01);
+}
+
+.live-submit {
+  padding: var(--sp-04) var(--sp-06);
+  font-family: var(--font-label);
+  font-size: var(--type-body);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  /* Ink is the void, not white. Cyan at L 0.82 against white is 2.0:1; against the
+     page ground it is 11.6:1, so the accent carries the plate's own ground as its
+     ink. The same inversion the skip link documents. */
+  color: var(--ui-background);
+  background: var(--live-01);
+  border: 1px solid var(--live-01);
+  border-radius: var(--radius-02);
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast-02) var(--ease-productive-standard),
+    box-shadow var(--dur-moderate-01) var(--ease-productive-standard),
+    filter var(--dur-fast-02) linear;
+}
+
+.live-submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: var(--glow-live);
+  transform: translateY(-1px);
+}
+
+.live-submit:disabled {
+  cursor: progress;
+  background: var(--live-02);
+  border-color: var(--live-02);
+  color: var(--surface-sunken);
+}
+
+.live-help {
+  margin: var(--sp-05) 0 0;
+  max-width: 62ch;
+  font-size: var(--type-body);
+  line-height: 1.55;
+  color: var(--text-03);
+}
+
+.live-steps {
+  margin: 0;
+  padding-left: var(--sp-06);
+  color: var(--text-02);
+  font-size: var(--type-body);
+  line-height: 1.9;
+}
+
+.live-steps li::marker {
+  color: var(--live-02);
+  font-family: var(--font-mono);
+}
+
+.live-elapsed {
+  margin: var(--sp-05) 0 0;
+  color: var(--live-01);
+  font-size: var(--type-heading-03);
+}
+
+.live-code {
+  margin: 0 0 var(--sp-04);
+  font-size: var(--type-heading-03);
+  color: var(--support-01);
+  letter-spacing: 0.01em;
+}
+
+.live-refusal-detail {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--text-02);
+  font-size: var(--type-body);
+  line-height: 1.6;
+}
+
+.live-result-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-05);
+  margin-bottom: var(--sp-05);
+}
+
+.live-result-title {
+  margin: 0 0 var(--sp-03);
+  font-family: var(--font-display);
+  font-size: var(--type-heading-05);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-04);
+}
+
+.live-result-sat {
+  color: var(--text-02);
+}
+
+.live-result-sub {
+  margin: 0;
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  line-height: 1.7;
+}
+
+/* The verdict is set in the label face at display size, which is what an instrument
+   panel does with a state word: the annunciator is the largest thing on the module.
+   Hue is never the only channel: the word itself is the state. */
+.live-verdict {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: var(--type-heading-04);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.live-verdict-uncorrected {
+  color: var(--live-01);
+}
+
+.live-verdict-corrected {
+  color: var(--interactive-04);
+}
+
+.live-verdict-unresolved {
+  color: var(--text-03);
+}
+
+.live-why {
+  margin: 0 0 var(--sp-06);
+  padding-left: var(--sp-05);
+  border-left: 2px solid var(--live-02);
+  max-width: 72ch;
+  font-size: var(--type-prose);
+  line-height: 1.55;
+  color: var(--text-01);
+}
+
+.live-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1px;
+  /* One-pixel gaps over a rule colour: the grid's own background draws every divider,
+     so four figures read as one module rather than as four cards. */
+  background: var(--border-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-02);
+  overflow: hidden;
+}
+
+.live-figure {
+  padding: var(--sp-05);
+  background: var(--ui-01);
+}
+
+.live-figure-label {
+  margin: 0 0 var(--sp-03);
+  font-family: var(--font-label);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+
+.live-figure-value {
+  margin: 0 0 var(--sp-03);
+  font-size: var(--type-heading-04);
+  line-height: 1;
+  color: var(--text-04);
+  /* Tabular figures so a value changing between two measurements cannot reflow the
+     row it sits in. */
+  font-variant-numeric: tabular-nums;
+}
+
+.live-figure-unit {
+  margin-left: 0.35em;
+  font-family: var(--font-label);
+  font-size: var(--type-caption);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+
+.live-figure-note {
+  margin: 0;
+  font-size: var(--type-caption);
+  line-height: 1.5;
+  color: var(--text-03);
+}
+
+.live-degraded {
+  margin: var(--sp-05) 0 0;
+  padding: var(--sp-04) var(--sp-05);
+  border-left: 2px solid var(--support-03);
+  background: var(--surface-sunken);
+  font-size: var(--type-body);
+  line-height: 1.6;
+  color: var(--text-02);
+}
+
+.live-provenance {
+  margin-top: var(--sp-06);
+  padding-top: var(--sp-05);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.live-provenance-heading {
+  margin: 0 0 var(--sp-05);
+  font-family: var(--font-label);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+
+.live-provenance dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--sp-05);
+  margin: 0;
+}
+
+.live-provenance dt {
+  font-family: var(--font-label);
+  font-size: var(--type-caption);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+  margin-bottom: var(--sp-02);
+}
+
+.live-provenance dd {
+  margin: 0;
+  font-size: var(--type-body);
+  color: var(--text-01);
+  overflow-wrap: anywhere;
+}
+
+.live-tle {
+  margin: var(--sp-05) 0 0;
+  padding: var(--sp-04);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-02);
+  font-size: var(--type-caption);
+  line-height: 1.6;
+  color: var(--text-02);
+  overflow-x: auto;
+}
+
+.live-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--sp-04);
+  margin: var(--sp-05) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-shelf-button {
+  display: grid;
+  gap: var(--sp-02);
+  width: 100%;
+  padding: var(--sp-04) var(--sp-05);
+  text-align: left;
+  color: var(--text-01);
+  background: var(--ui-01);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-02);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast-02) linear,
+    transform var(--dur-fast-02) var(--ease-productive-standard),
+    box-shadow var(--dur-moderate-01) var(--ease-productive-standard);
+}
+
+.live-shelf-button:hover {
+  border-color: var(--live-02);
+  transform: translateY(-2px);
+  box-shadow: var(--elev-02);
+}
+
+.live-shelf-button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.live-shelf-id {
+  font-size: var(--type-heading-02);
+  color: var(--text-04);
+}
+
+.live-shelf-verdict {
+  font-family: var(--font-label);
+  font-size: var(--type-caption);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.live-shelf-ppm {
+  font-size: var(--type-caption);
+  color: var(--text-02);
+}
+
+.live-shelf-when {
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  font-family: var(--font-mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+    opacity: 1;
+  }
+
+  .live-submit:hover:not(:disabled),
+  .live-shelf-button:hover {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------------------------
+   The claim checker
+   ------------------------------------------------------------------------------------
+   A live rule set on a static page. The panel is styled as an instrument rather than a
+   form: the ground is sunken because the reader types into it, the verdict is a plate
+   with its own edge, and the two verdict states differ in hue as well as in the word,
+   because a reader glancing at it should be able to tell REFUSED from GROUNDED without
+   reading either.
+
+   Nothing here animates on a timer. The only motion is the verdict edge, and it is a
+   transition on a state change the reader caused, which is the one kind of motion a
+   measurement display is allowed.
+   ------------------------------------------------------------------------------------ */
+
+.claim {
+  margin-top: var(--sp-05);
+}
+
+.claim-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-03);
+  margin-bottom: var(--sp-05);
+}
+
+.claim-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  padding: var(--sp-03) var(--sp-04);
+  text-align: left;
+  color: var(--text-02);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-02);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast-02) var(--ease-productive-standard),
+    color var(--dur-fast-02) var(--ease-productive-standard),
+    transform var(--dur-fast-02) var(--ease-productive-standard);
+}
+
+.claim-preset:hover {
+  color: var(--text-04);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.claim-preset[aria-pressed="true"] {
+  color: var(--text-04);
+  border-color: var(--live-02);
+  box-shadow: inset 0 0 0 1px var(--live-02);
+}
+
+.claim-preset-label {
+  font-size: var(--type-caption);
+  line-height: 1.3;
+}
+
+.claim-preset-hint {
+  font-family: var(--font-mono);
+  font-size: var(--type-helper);
+  letter-spacing: var(--tracking-flat);
+  color: var(--text-03);
+}
+
+.claim-label {
+  display: block;
+  margin-bottom: var(--sp-03);
+  font-family: var(--font-label);
+  font-size: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+
+.claim-input {
+  display: block;
+  width: 100%;
+  padding: var(--sp-04) var(--sp-05);
+  font-family: var(--font-sans);
+  font-size: var(--type-prose);
+  line-height: 1.6;
+  color: var(--text-04);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-02);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.45);
+  resize: vertical;
+}
+
+.claim-input:focus-visible {
+  outline: 2px solid var(--live-01);
+  outline-offset: 1px;
+  border-color: var(--live-01);
+}
+
+.claim-count {
+  margin: var(--sp-03) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--type-helper);
+  color: var(--text-03);
+}
+
+.claim-verdict {
+  position: relative;
+  margin-top: var(--sp-05);
+  padding: var(--sp-05) var(--sp-06);
+  background: var(--ui-01);
+  border: 1px solid var(--border-subtle);
+  border-left-width: 3px;
+  border-radius: var(--radius-02);
+  transition:
+    border-color var(--dur-moderate-01) var(--ease-productive-standard),
+    background-color var(--dur-moderate-01) var(--ease-productive-standard);
+}
+
+.claim-verdict.is-ok {
+  border-left-color: var(--verdict-passed);
+}
+
+.claim-verdict.is-refused {
+  border-left-color: var(--support-03);
+}
+
+.claim-verdict-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-04);
+  margin: 0;
+}
+
+.claim-verdict-word {
+  font-family: var(--font-label);
+  /* The one word a reader is looking for. At heading-01 it was the same weight as the
+     violation codes beside it, and the verdict has to be readable from further away than
+     the reason for it. */
+  font-size: var(--type-heading-03);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.claim-verdict.is-ok .claim-verdict-word {
+  color: var(--verdict-passed);
+}
+
+.claim-verdict.is-refused .claim-verdict-word {
+  color: var(--support-03);
+}
+
+.claim-verdict-codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-03);
+}
+
+.claim-verdict-body {
+  margin: var(--sp-04) 0 0;
+  max-width: var(--line-prose);
+  font-size: var(--type-body);
+  line-height: 1.6;
+  color: var(--text-02);
+}
+
+.claim-violations {
+  margin: var(--sp-04) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--sp-03);
+}
+
+.claim-violations li {
+  display: grid;
+  grid-template-columns: minmax(11rem, max-content) 1fr;
+  gap: var(--sp-04);
+  align-items: baseline;
+  font-size: var(--type-body);
+  line-height: 1.5;
+}
+
+.claim-code {
+  font-family: var(--font-mono);
+  font-size: var(--type-helper);
+  letter-spacing: var(--tracking-flat);
+  color: var(--support-03);
+}
+
+.claim-detail {
+  color: var(--text-02);
+}
+
+.claim-packet {
+  margin-top: var(--sp-05);
+  padding: var(--sp-04) var(--sp-05);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-02);
+}
+
+.claim-packet > summary {
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  cursor: pointer;
+}
+
+.claim-packet > summary:hover {
+  color: var(--text-04);
+}
+
+.claim-packet-text {
+  margin: var(--sp-04) 0 0;
+  padding: var(--sp-04);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: var(--type-helper);
+  line-height: 1.7;
+  color: var(--text-02);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-01);
+}
+
+.claim-packet-note {
+  margin: var(--sp-04) 0 0;
+  max-width: var(--line-prose);
+  font-size: var(--type-caption);
+  line-height: 1.6;
+  color: var(--text-03);
+}
+
+@media (max-width: 44rem) {
+  .claim-violations li {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* ------------------------------------------------------------------------------------
+   The hero on arrival
+   ------------------------------------------------------------------------------------
+   The scroll reveal above covers every section and figure on every page. It cannot cover
+   the first screen, because the first screen is already on screen: a view timeline for an
+   element that starts inside the viewport is past its entry range before the first frame,
+   which is the correct behaviour and leaves the hero arriving all at once.
+
+   So this one sequence runs on the clock. Six steps over 320 ms, ordered the way the hero
+   is meant to be read: what this is, then the claim, then the two verdicts, then the
+   paragraphs, then the legend for the field behind it. It reuses `reveal-in` rather than
+   declaring a second set of keyframes that says the same thing.
+
+   It is short on purpose. A reader who starts reading the headline at 150 ms is reading a
+   headline that is still 40 percent of the way through arriving, and the only thing that
+   makes that acceptable is that it is nearly over.
+   ------------------------------------------------------------------------------------ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lede-kicker,
+  .lede-product,
+  .lede-stack,
+  .lede-verdict,
+  .lede-headline {
+    animation: reveal-in var(--dur-moderate-02) var(--ease-productive-entrance) both;
+  }
+
+  .lede-headline {
+    animation-delay: 40ms;
+  }
+
+  .lede-verdict {
+    animation-delay: 90ms;
+  }
+
+  .lede-verdict:nth-child(2) {
+    animation-delay: 140ms;
+  }
+
+  .lede-product {
+    animation-delay: 170ms;
+  }
+
+  .lede-stack {
+    animation-delay: 220ms;
+  }
+
+  /* The legend fades rather than rises, and last. It explains the field behind the hero,
+     so it should arrive after the thing it explains is already moving. */
+  .lede-field-note {
+    animation: fade-in var(--dur-slow-01) var(--ease-productive-entrance) 320ms both;
+  }
+}
+
+/* The page transition. See `app/template.tsx` for why it is a template and not a layout,
+   and why it fades rather than moves. 220 ms: long enough to read as a change of page,
+   short enough that a reader clicking through the rail is never waiting on it. */
+@media (prefers-reduced-motion: no-preference) {
+  .route-enter {
+    animation: fade-in 220ms var(--ease-productive-entrance) both;
   }
 }

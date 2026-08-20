@@ -45,7 +45,10 @@ from pipeline.tracetriage.corridor_fit import (  # noqa: E402
     second_trace_evidence,
 )
 from pipeline.tracetriage.physics import corridor_for_obs  # noqa: E402
-from pipeline.tracetriage.splits import _PAGES_DIR, _load_raw_pages  # noqa: E402
+from pipeline.tracetriage.splits import (  # noqa: E402
+    _default_pages_dir,
+    _load_raw_pages,
+)
 from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: E402
 
 _WATERFALL_DIR = Path("D:/tracetriage_data/snap-stage1/waterfalls")
@@ -162,7 +165,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = ap.parse_args(argv)
 
-    raw = _load_raw_pages(_PAGES_DIR)
+    raw = _load_raw_pages(_default_pages_dir())
     ids = sorted(raw)
     if args.decisive_only:
         ids = [

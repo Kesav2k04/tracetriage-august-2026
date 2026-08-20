@@ -48,7 +48,7 @@ is the product, and the verdict follows it because the verdict is the point.
 
 **On screen.** The reviewer note on the same observation, then the provenance page's refusal counts.
 
-**Says.** A local IBM Granite model writes the first sentence from a closed packet of printed fields, and a checker refuses any sentence carrying a number that packet does not contain. It refused 14 of 25 drafts, and the refusals ship on the page beside the notes. A generator you never see refusing is a generator you cannot trust.
+**Says.** A local IBM Granite model writes the first sentence from a closed packet of printed fields, and a checker refuses any sentence carrying a number that packet does not contain. It refused 15 of 25 drafts, and the refusals ship on the page beside the notes. A generator you never see refusing is a generator you cannot trust.
 
 **Numbers from.** `artifacts/EXPLAIN_RECEIPT.json`
 

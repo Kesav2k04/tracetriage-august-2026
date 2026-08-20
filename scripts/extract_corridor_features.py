@@ -61,7 +61,7 @@ from pipeline.tracetriage.corridor_fit import (  # noqa: E402
 )
 from pipeline.tracetriage.physics import corridor_for_obs  # noqa: E402
 from pipeline.tracetriage.splits import (  # noqa: E402
-    _PAGES_DIR,
+    _default_pages_dir,
     _load_raw_pages,
 )
 from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: E402
@@ -205,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = ap.parse_args(argv)
 
-    raw = _load_raw_pages(_PAGES_DIR)
+    raw = _load_raw_pages(_default_pages_dir())
     ids = sorted(raw)
     if args.decisive_only:
         ids = [

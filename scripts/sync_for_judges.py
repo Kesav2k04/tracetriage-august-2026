@@ -30,9 +30,11 @@ from build_console_data import build_gate_summary  # noqa: E402
 
 OUT = REPO / "FOR_JUDGES.md"
 
+from mcp_server import RESOURCES as _MCP_RESOURCES  # noqa: E402
 from mcp_server import TOOLS as _MCP_TOOLS  # noqa: E402
 
 TOOL_NAMES = sorted(_MCP_TOOLS)
+RESOURCE_URIS = sorted(_MCP_RESOURCES)
 
 
 def _receipt(name: str) -> dict:
@@ -169,6 +171,20 @@ PRECEDENT_BULLET = (
     "them in one table."
 )
 
+_PRE_GRANITE = precedent["conditions"]["warm"]["arms"]["granite_text"]["agreement_at_k"]
+_PRE_KNN = precedent["conditions"]["warm"]["arms"]["numeric_knn"]["agreement_at_k"]
+_PRE_MARGIN = precedent["conditions"]["warm"]["comparisons"][
+    "granite_text_vs_numeric_knn"
+]
+_INDEX_RECALL = precedent["vector_index"]["recall_at_k_against_exact_search"]
+#: The shared answer key for the two grounding checkers. Read for its counts rather than
+#: for its rows: the page says how much the parity test covers, not what it decided.
+_GOLDEN = json.loads(
+    (REPO / "apps" / "web" / "public" / "data" / "grounding_golden.json").read_text(
+        encoding="utf-8"
+    )
+)
+_LANGCHAIN = _receipt("LANGCHAIN_RECEIPT.json")
 _AGENT_TOOLS = agent["arms"]["tools"]
 _AGENT_CONTROL = agent["arms"]["control"]
 _AGENT_PAIRED = agent["paired"]
@@ -394,23 +410,38 @@ def _para(text: str, indent: str = "") -> str:
     )
 
 
-#: How many tools the specification records as built and as specified-and-not-built. The
-#: page said five and five, which are the numbers today and are typed.
+#: How many tools the specification records as built and as specified-and-not-built. Both
+#: numbers are read out of the specification rather than typed, and the implemented count
+#: is now the sum of two sections, because the project registers two MCP servers and the
+#: specification has one section each. The evidence section is checked against the registry
+#: this script already imports; the live registry is not imported here, because it needs
+#: numpy and scipy and this generator runs inside the offline gate.
+#: `tests/test_mcp_server.py` checks the live section against the live registry.
 _SPEC = (REPO / ".bob" / "TOOL_SPECS.md").read_text(encoding="utf-8")
-_SPEC_SECTIONS: dict[str, int] = {}
+_SPEC_SECTIONS: dict[str, list[str]] = {}
 _heading = None
 for _line in _SPEC.splitlines():
     if _line.startswith("## "):
         _heading = _line[3:].strip()
-        _SPEC_SECTIONS[_heading] = 0
+        _SPEC_SECTIONS[_heading] = []
     elif _line.startswith("### ") and _heading is not None:
-        _SPEC_SECTIONS[_heading] += 1
-N_TOOLS_BUILT = _SPEC_SECTIONS.get("Implemented tools", 0)
-N_TOOLS_UNBUILT = _SPEC_SECTIONS.get("Specified and not implemented", 0)
-if len(TOOL_NAMES) != N_TOOLS_BUILT:
+        _SPEC_SECTIONS[_heading].extend(re.findall(r"`([^`]+)`", _line))
+# `Resources` is a subsection of the evidence server, and it names URIs, not tools.
+_SPEC_EVIDENCE = set(
+    _SPEC_SECTIONS.get("Implemented: `tracetriage-evidence`", [])
+) - {"Resources"}
+_SPEC_LIVE = set(_SPEC_SECTIONS.get("Implemented: `tracetriage-live`", []))
+N_TOOLS_BUILT = len(_SPEC_EVIDENCE) + len(_SPEC_LIVE)
+N_TOOLS_UNBUILT = len(set(_SPEC_SECTIONS.get("Specified and not implemented", [])))
+if _SPEC_EVIDENCE != set(TOOL_NAMES):
     raise SystemExit(
-        f".bob/TOOL_SPECS.md documents {N_TOOLS_BUILT} implemented tools and the server "
-        f"advertises {len(TOOL_NAMES)}. tests/test_mcp_server.py says which."
+        f".bob/TOOL_SPECS.md documents {sorted(_SPEC_EVIDENCE)} for the evidence server "
+        f"and it advertises {TOOL_NAMES}. tests/test_mcp_server.py says which."
+    )
+if not _SPEC_LIVE:
+    raise SystemExit(
+        ".bob/TOOL_SPECS.md has no `Implemented: `tracetriage-live`` section, so this "
+        "page would report the tool count of one server as the count of both."
     )
 
 
@@ -438,15 +469,16 @@ CHECKS: list[tuple[str, ...]] = [
     ),
     (
         "Can an agent measure something new?",
-        "`tracetriage triage <id>`, or `live_triage_observation` over MCP",
-        "A measurement of an observation recorded today, from the public SatNOGS API "
-        "with no credential. `docs/USE_WITH_YOUR_AGENT.md` has the config block",
+        "`live_triage_observation` over MCP, or `tracetriage triage <id>`",
+        "A measurement of an observation recorded today, from the public SatNOGS API with "
+        "no credential, and `live_check_claim` refuses an invented frequency about that "
+        "measurement. `docs/BOB_DEMO.md` is the prompt",
     ),
     (
         "Can an agent query the evidence?",
         "`python scripts/mcp_server.py` on stdio",
-        f"An MCP handshake and {len(TOOL_NAMES)} read-only tools, one of which is the "
-        f"grounding checker",
+        f"An MCP handshake, {len(TOOL_NAMES)} tools over committed receipts and "
+        f"{len(RESOURCE_URIS)} receipt resources. One tool is the grounding checker",
     ),
     (
         "Does the repository hold together?",
@@ -644,26 +676,89 @@ CLONE_LIMITS = _para(
 # section 100 lines below it, so a judge scoring the criterion read past the answer. The
 # count comes from the file because an entry count that is typed is the first thing to go
 # stale, and this file gains an entry per accepted unit.
-_BUILD_LOG_STRUCTURAL_HEADINGS = frozenset({"## Format", "## Entries"})
-N_BUILD_LOG_ENTRIES = sum(
+#: A dated unit heading in the build log: a date, the actor, and a unit id.
+#:
+#: The count this replaces was ``line.startswith("## ")`` minus two structural titles,
+#: which is a markdown accident rather than a measurement. It counted "## A3. Doppler
+#: correction status resolver" and "## Operator-side hardening", which are undated
+#: section titles, and it missed every unit written at "### " depth, which is where the
+#: Bob-account units actually live. The number it produced, 60, was neither the number
+#: of Bob units nor the number of units: it was the number of second-level headings.
+#: Quoting it under "Best Technical Use of IBM Bob" put a heading-level artefact in the
+#: one place a judge is asked to score how the tool was used.
+_BUILD_LOG_UNIT_RE = re.compile(
+    r"^#{2,3}\s+"
+    r"(?:\d{4}-\d{2}-\d{2}|\d{1,2}\s+\w{3,9}\s+\d{4})"  # 2026-08-17 or 17 Aug 2026
+    r"\s+IST\s*\|\s*(?P<actor>[^|]+?)\s*\|\s*(?P<unit>[A-Za-z]+\d[\w.-]*)"
+)
+
+#: The actor slot when the work ran inside IBM Bob, which is "Account 1" to "Account 3".
+#: Anything else in that slot is operator-side: "Operator side, no Bob account",
+#: "operator", or a review wave run from Cursor or Claude Code. The distinction is the
+#: whole point of the field, and collapsing it would credit Bob with diffs it did not
+#: author.
+_BOB_ACCOUNT_RE = re.compile(r"^account\s+\d+$", re.I)
+
+
+def _build_log_units() -> tuple[list[str], list[str]]:
+    """The dated units in the build log, split by whether Bob authored them.
+
+    Returns two lists of unit ids. Both are printed: a Bob-primary claim that hides the
+    operator-side waves is the same defect in the other direction, and a judge who
+    counts the headings themselves must arrive at these two numbers.
+    """
+    bob: list[str] = []
+    operator: list[str] = []
+    for line in (
+        (REPO / "docs/BOB_BUILD_LOG.md").read_text(encoding="utf-8").splitlines()
+    ):
+        match = _BUILD_LOG_UNIT_RE.match(line)
+        if not match:
+            continue
+        unit = match.group("unit")
+        if _BOB_ACCOUNT_RE.match(match.group("actor").strip()):
+            bob.append(unit)
+        else:
+            operator.append(unit)
+    return bob, operator
+
+
+_BOB_UNITS, _OPERATOR_UNITS = _build_log_units()
+N_BUILD_LOG_ENTRIES = len(_BOB_UNITS)
+N_OPERATOR_UNITS = len(_OPERATOR_UNITS)
+_BOB_UNIT_LIST = ", ".join(_BOB_UNITS)
+
+#: What the old counter reported, kept so the correction is stated rather than quietly
+#: applied. A number that moves from 60 to 10 with no explanation reads as a retreat; the
+#: same number with its cause reads as a fix.
+_OLD_HEADING_COUNT = sum(
     1
     for line in (REPO / "docs/BOB_BUILD_LOG.md").read_text(encoding="utf-8").splitlines()
-    if line.startswith("## ") and line.strip() not in _BUILD_LOG_STRUCTURAL_HEADINGS
+    if line.startswith("## ") and line.strip() not in {"## Format", "## Entries"}
 )
 
 BOB_TECHNICAL = _para(
-    f"""IBM Bob is the primary development tool and built every load-bearing subsystem:
-    ingestion, physics, the model interface, calibration, abstention, ranking, the console,
-    the test suite and the release sign-off. `docs/BOB_BUILD_LOG.md` carries
-    {N_BUILD_LOG_ENTRIES} dated entries, one per accepted unit, each naming the files it
-    changed, the commands that were run and what failed before it was accepted.
+    f"""IBM Bob built the load-bearing pipeline, and the log names which units those were
+    rather than asserting a total. `docs/BOB_BUILD_LOG.md` carries
+    {N_BUILD_LOG_ENTRIES} dated Bob-account units, {_BOB_UNIT_LIST}: the data contracts,
+    the immutable snapshot, the waterfall artifact parser, the physics corridor, label
+    provenance, the image-only baselines, the end-to-end triage slice, the grouped splits
+    with their leakage audit, and the review-value queue with kill gate 6. Each names the
+    files it changed, the commands that were run, the Bob task id and what failed before it
+    was accepted. A further {N_OPERATOR_UNITS} dated units in the same file are
+    operator-side, run from Cursor and Claude Code, and are labelled that way in the actor
+    field of their own headings: the console, the calibration and abstention blocks, the
+    fusion ladder and the review waves are theirs, not Bob's. That distinction is published
+    because the number here used to be {_OLD_HEADING_COUNT}, which was the count of
+    second-level markdown headings in the file and not the count of anything anyone did.
+    Bob also operates the product: `.bob/mcp.json` registers the evidence server and the
+    live measurement server, so a Bob session can measure a pass recorded today and have
+    the same grounding checker refuse a sentence about it.
     `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions,
     tool contracts and MCP registration each task ran under, tracked so the conditions of
     the work are readable and not only its output. `docs/PRE_BUILD_BASELINE.md` records what
     existed before the first Bob task, so the line between scaffolding and built work is
-    auditable rather than asserted. The additional technologies are named with their files
-    in the README's IBM stack table: two Granite models running locally, Carbon and Plex on
-    the console, MCP over stdio JSON-RPC, and a Next.js static export."""
+    auditable rather than asserted."""
 )
 
 TECHNICAL = _para(
@@ -782,6 +877,128 @@ INCONCLUSIVE_BULLET = _para(
     exclude the null, not that it failed and not that it passed."""
 )
 
+def _n_console_pages() -> int:
+    """How many pages the console's own navigation reaches.
+
+    Counted from the rail rather than from the file tree, because the tree holds routes the
+    rail does not link and a page nobody can navigate to is not a page a reader has.
+    `tests/test_console_routes.py` holds the README's word for this number to the same
+    count, so the three cannot drift apart.
+    """
+    rail = (REPO / "apps" / "web" / "components" / "Rail.tsx").read_text(encoding="utf-8")
+    hrefs = re.findall(r'href:\s*"([^"]+)"', rail)
+    if not hrefs:
+        raise SystemExit(
+            "no rail links found in apps/web/components/Rail.tsx, so this page would "
+            "report zero reachable pages as a fact rather than as a broken read."
+        )
+    return len(hrefs)
+
+
+#: The technologies this project runs on, each with the measurement that says it is doing
+#: something rather than being present. Every number is read from a receipt, including the
+#: unflattering ones, because a stack list is the easiest place on a submission page to
+#: write a claim nobody checks.
+STACK: list[tuple[str, ...]] = [
+    (
+        "IBM Granite (text)",
+        f"`{agent['model']['name']}`, local Ollama",
+        f"The agent study. {_AGENT_TOOLS['correct']['successes']}/"
+        f"{_AGENT_TOOLS['correct']['trials']} correct with this project's MCP tools "
+        f"against {_AGENT_CONTROL['correct']['successes']}/"
+        f"{_AGENT_CONTROL['correct']['trials']} without, paired p = "
+        f"{_AGENT_PAIRED['exact_p_one_sided']}. `artifacts/AGENT_RECEIPT.json`",
+    ),
+    (
+        "IBM Granite (embeddings)",
+        f"`{precedent['embedding_model']['name']}`, local Ollama",
+        f"Precedent retrieval, reported the way its receipt reports it: "
+        f"{_PRE_GRANITE:.3f} agreement warm against {_PRE_KNN:.3f} for a plain numeric "
+        f"nearest-neighbour baseline on the same pool, a margin of "
+        f"{_PRE_MARGIN['margin']:.3f} that does not survive the correction for "
+        f"{_PRE_MARGIN['n_comparisons']} comparisons",
+    ),
+    (
+        "Vector database",
+        f"{precedent['vector_index']['backend']}",
+        f"Holds the Granite vectors with station, site and satellite metadata and answers "
+        f"the cold condition with a filtered query inside the index. Recall of the exact "
+        f"top-{precedent['top_k']} is {_INDEX_RECALL['warm']:.4f} warm and "
+        f"{_INDEX_RECALL['cold']:.4f} cold over "
+        f"{precedent['vector_index']['queries_compared']['warm']} queries each",
+    ),
+    (
+        "IBM Bob",
+        "The build, and then the product",
+        f"{N_BUILD_LOG_ENTRIES} dated units in `docs/BOB_BUILD_LOG.md`, each with what "
+        f"failed before it was accepted. Bob also operates the finished system: "
+        f"`docs/BOB_DEMO.md` is one paste that ranks the queue, refuses an invented "
+        f"frequency, measures a pass recorded in the last hour and then refuses a "
+        f"sentence about that measurement",
+    ),
+    (
+        "Model Context Protocol",
+        "Two stdio servers, registered in `.bob/mcp.json`",
+        f"{len(TOOL_NAMES)} tools over committed receipts, {len(_SPEC_LIVE)} that measure "
+        f"live, and {len(RESOURCE_URIS)} receipt resources. Read-only, enforced by a walk "
+        f"over each server's own source in `tests/test_mcp_server.py`",
+    ),
+    (
+        "The grounding checker, twice",
+        "`pipeline/tracetriage/explain.py`, `apps/web/lib/grounding.ts`",
+        f"One rule set in Python and in the browser, held to {_GOLDEN['n_rows']} recorded "
+        f"decisions over {_GOLDEN['n_observations']} observations by "
+        f"`tests/test_grounding_parity.py` and `apps/web/tests/grounding.test.ts`. On any "
+        f"observation page a reader can change one digit and watch the refusal appear, "
+        f"with no request leaving the page",
+    ),
+    (
+        "SatNOGS API",
+        "The corpus, and the live path",
+        f"{dataset['counts']['observations_stored']} observations and "
+        f"{dataset['counts']['waterfalls_stored']} waterfalls in the frozen snapshot, "
+        f"keyless. The live page (`apps/web/app/live/page.tsx`) and the MCP tool "
+        f"`live_triage_observation` both measure a pass recorded after that snapshot "
+        f"closed, from the same public API, through `api/live.py`",
+    ),
+    (
+        "SGP4 propagation",
+        "`pipeline/tracetriage/physics.py`",
+        "Every corridor is propagated from the two-line elements in the observation's own "
+        "record rather than from today's, so a measurement carries the elements it was "
+        "made with and can be redone from the receipt",
+    ),
+    (
+        "IBM Carbon and IBM Plex",
+        "`apps/web/app/globals.css`",
+        "The palette is generated from Carbon's gray ramp rather than typed: "
+        "`scripts/derive_palette.py --check` recomputes every token and every contrast "
+        "ratio in it. Plex Sans and Plex Mono are self-hosted, so nothing carrying a "
+        "number waits on a third-party request",
+    ),
+    (
+        "LangChain",
+        "`pipeline/tracetriage/langchain_tools.py`",
+        f"{_LANGCHAIN['n_offered']} of the "
+        f"{_LANGCHAIN['n_registered_by_the_mcp_server']} evidence tools, adapted for an "
+        f"agent that does not speak MCP. An adapter and not a second implementation: each "
+        f"tool calls the function object the MCP server registered, asserted on identity "
+        f"in `tests/test_langchain_tools.py`. Through it, `check_claim` came back "
+        f"{_LANGCHAIN['exercised']['refusal_through_the_adapter']['verdict']} with "
+        f"{_LANGCHAIN['exercised']['refusal_through_the_adapter']['codes'][0]}. "
+        f"`artifacts/LANGCHAIN_RECEIPT.json`",
+    ),
+    (
+        "Next.js, Vercel, WebGL",
+        "`apps/web`, static export",
+        f"{_n_console_pages()} pages, no server, no database and no credential, with a "
+        f"content security policy whose `connect-src` is `'self'`. The field behind the "
+        f"first screen is the ranked queue drawn on the GPU: one point per observation, "
+        f"placed by rank, lit by review value, coloured by the criterion that raised it",
+    ),
+]
+
+
 PAGE = f"""# For judges
 
 <!-- Generated by scripts/sync_for_judges.py from the receipts under artifacts/.
@@ -825,6 +1042,15 @@ run as having collected nothing.
 | Requirement | Where |
 |---|---|
 {_table(REQUIREMENTS)}
+
+## The stack, and what each piece is measured doing
+
+Every number in this table is read from a receipt by the generator, including the ones that
+weaken a claim. A technology is listed here only if something measures it working.
+
+| Technology | Where it runs | What it is measured doing |
+|---|---|---|
+{_table(STACK)}
 
 ## The judged criteria, and what to look at
 

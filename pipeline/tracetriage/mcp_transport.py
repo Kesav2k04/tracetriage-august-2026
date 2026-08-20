@@ -19,9 +19,16 @@ directory, a notification answered when it should not have been. That history is
 this is one implementation rather than one per server.
 
 A caller supplies a tool registry mapping name to ``{"handler", "description", "schema"}``,
-its own `serverInfo`, its own instructions, and optionally a `preflight` returning a list of
-reasons it cannot start. What it must not supply is a guarantee: read-only and offline are
-properties of which handlers get registered, not of this file.
+its own `serverInfo`, its own instructions, optionally a `resources` registry, and optionally
+a `preflight` returning a list of reasons it cannot start. What it must not supply is a
+guarantee: read-only and offline are properties of which handlers get registered, not of this
+file.
+
+Resources are the second half of MCP and this file answered ``-32601`` to both of their
+methods until an IBM Bob operator tried to ``@``-mention a gate receipt and got a protocol
+error. They are registered per server rather than built in here, and a server that registers
+none still answers ``-32601``, because advertising the capability and then refusing every
+read is the empty answer that reads like a measurement.
 """
 
 from __future__ import annotations
@@ -74,6 +81,7 @@ def handle(
     tools: dict[str, Any] | None = None,
     server_info: dict[str, str] | None = None,
     instructions: str | None = None,
+    resources: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """One JSON-RPC request to one response, or None for a notification.
 
@@ -95,20 +103,83 @@ def handle(
     for elsewhere.
     """
     tools = tools or {}
+    resources = resources or {}
     if not isinstance(request, dict):
         return _invalid_request(f"a JSON-RPC request is an object, got {type(request).__name__}")
     method = request.get("method")
     request_id = request.get("id")
 
     if method == "initialize":
+        # The resources capability is advertised only by a server that registered some. A
+        # client reads this to decide whether to offer an `@`-mention at all, so declaring
+        # it on a server with nothing to read would put an empty picker in front of a user.
+        capabilities: dict[str, Any] = {"tools": {}}
+        if resources:
+            capabilities["resources"] = {}
         result: dict[str, Any] = {
             "protocolVersion": PROTOCOL_VERSION,
-            "capabilities": {"tools": {}},
+            "capabilities": capabilities,
             "serverInfo": server_info or {"name": "mcp", "version": "0"},
             "instructions": instructions or "",
         }
     elif method == "notifications/initialized":
         return None
+    elif method == "resources/list" and resources:
+        result = {
+            "resources": [
+                {
+                    "uri": uri,
+                    "name": spec["name"],
+                    "description": spec["description"],
+                    "mimeType": spec.get("mimeType", "text/plain"),
+                }
+                for uri, spec in resources.items()
+            ]
+        }
+    elif method == "resources/read" and resources:
+        params = request.get("params") or {}
+        uri = params.get("uri") if isinstance(params, dict) else None
+        spec = resources.get(uri) if isinstance(uri, str) else None
+        if spec is None:
+            # A protocol error rather than this file's isError envelope, because
+            # `resources/read` has no result shape that can carry a refusal: a client that
+            # got `contents` back would render the reason as the resource's own text. The
+            # reason code still travels, in the message, so a reader of the wire sees the
+            # same vocabulary the tools use.
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "error": {
+                    "code": -32002,
+                    "message": (
+                        f"UNKNOWN_RESOURCE: {uri!r} is not published by this server. "
+                        f"Available: {sorted(resources)}."
+                    ),
+                },
+            }
+        try:
+            text = spec["handler"]()
+        except ToolError as exc:
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "error": {"code": -32002, "message": f"{exc.code}: {exc}"},
+            }
+        except Exception as exc:  # noqa: BLE001
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "error": {"code": -32002, "message": f"RESOURCE_FAILED: {_scrubbed(exc)}"},
+            }
+        result = {
+            "contents": [
+                {
+                    "uri": uri,
+                    "mimeType": spec.get("mimeType", "text/plain"),
+                    "text": text,
+                }
+            ]
+        }
     elif method == "tools/list":
         result = {
             "tools": [
@@ -199,6 +270,7 @@ def serve(
     server_info: dict[str, str] | None = None,
     instructions: str | None = None,
     preflight: Any = None,
+    resources: dict[str, Any] | None = None,
 ) -> int:
     """Read newline-delimited JSON-RPC from stdin, write responses to stdout.
 
@@ -211,6 +283,10 @@ def serve(
     a list of human-readable problems, empty when there are none. The live server's
     preflight cannot be this one: it advertises no committed file and its own precondition
     is an import that may not be installed.
+
+    ``resources`` is optional for the same reason: the offline server publishes the gate
+    receipts as readable resources and the live server publishes none, because a live
+    measurement is not a committed file and there is nothing stable to name with a URI.
     """
     source = stdin if stdin is not None else sys.stdin
     sink = stdout if stdout is not None else sys.stdout
@@ -250,7 +326,8 @@ def serve(
             replies = [
                 r
                 for r in (
-                    handle(item, tools, server_info, instructions) for item in request
+                    handle(item, tools, server_info, instructions, resources)
+                    for item in request
                 )
                 if r is not None
             ]
@@ -258,7 +335,7 @@ def serve(
                 _write(sink, replies)
             continue
 
-        response = handle(request, tools, server_info, instructions)
+        response = handle(request, tools, server_info, instructions, resources)
         if response is not None:
             _write(sink, response)
     return 0

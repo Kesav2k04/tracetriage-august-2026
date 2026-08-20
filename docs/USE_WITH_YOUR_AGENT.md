@@ -8,6 +8,23 @@ Everything here reads public data. No account, no API key, no credential of any 
 SatNOGS read API is open, this project holds no token, and nothing in it can write to
 SatNOGS even if you asked it to.
 
+## In IBM Bob, which is what this project was built with
+
+Clone it, open the folder in Bob, and paste the prompt in `docs/BOB_DEMO.md`. Nothing else.
+`.bob/mcp.json` registers both servers and pre-approves the read-only tools, so a session
+can rank the queue, refuse an invented downlink frequency, measure a pass recorded in the
+last hour and refuse a sentence about that measurement too.
+
+That file is the one to copy. The root `.mcp.json` is the same two servers in the shape
+Cursor, Claude Code and Windsurf read, and Bob never loads it: a judge who follows the wrong
+file gets a project that looks like it has no tools.
+
+| Client | File it reads |
+|---|---|
+| IBM Bob | `.bob/mcp.json` |
+| Cursor, Claude Code, Windsurf | `.mcp.json` |
+| watsonx Orchestrate | `orchestrate/toolkits/*.yaml` |
+
 ## The one-minute version
 
 ```bash
@@ -241,6 +258,37 @@ The confounds are printed with the number, every time, and they are real: each o
 carries that TLE's propagation error, the axis is read from rendered tick labels so every
 offset is quantised to whole pixels, and a corrected capture's residual is not the same
 quantity as an uncorrected capture's offset.
+
+## In LangChain, without the protocol
+
+Not everything that wants these tools speaks MCP. A LangChain agent wants Python callables
+with a JSON schema, so `pipeline/tracetriage/langchain_tools.py` adapts the six read-only
+evidence tools into `StructuredTool`s. It is an adapter and not a second implementation:
+every tool it returns calls the same function object `scripts/mcp_server.py` registered, and
+`tests/test_langchain_tools.py` asserts that on object identity, per tool.
+
+```python
+from langchain_ollama import ChatOllama
+from pipeline.tracetriage.langchain_tools import tools
+
+agent = ChatOllama(model="granite3.1-dense:8b", temperature=0).bind_tools(tools())
+agent.invoke("Which observation is at the top of the review queue, and why?")
+```
+
+`pip install -e .[agent]` for the adapter. The chat model is your choice and no part of this
+project depends on which one: the same six tools bind to watsonx, to an OpenAI-compatible
+endpoint or to anything else LangChain can talk to.
+
+Two things are not offered, and the reason is the same one the auto-approve list in
+`.bob/mcp.json` is drawn on. `run_acceptance` runs the repository's gate and writes a build,
+which is minutes of CPU. The five `live_*` tools each download a waterfall from a volunteer
+network. Both are reachable over MCP, where a human approves the call;
+`artifacts/LANGCHAIN_RECEIPT.json` records what was offered, what was withheld and why, and
+the fully qualified name of the callable behind each one.
+
+There is no LangFlow graph in this repository. The adapter is what a graph would call, and a
+flow file this project has never imported would be a screenshot of an integration rather
+than an integration.
 
 ## Install sizes, and the one honest limit
 

@@ -22,8 +22,11 @@ import WaterfallViewer from "@/components/WaterfallViewer";
 import SkyPlot from "@/components/SkyPlot";
 import GroundTrack, { boundsForPass } from "@/components/GroundTrack";
 import PassReplay from "@/components/PassReplay";
-import PassTimeSeries from "@/components/PassTimeSeries";
+import PassTimeSeries, {
+  passTimeSeriesCaption,
+} from "@/components/PassTimeSeries";
 import ReviewerNote from "@/components/ReviewerNote";
+import ClaimChecker from "@/components/ClaimChecker";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export function generateStaticParams() {
@@ -81,6 +84,13 @@ export default async function ObservationPage({
 
   // Read after the guard, so the type carries it rather than an optional chain.
   const geometry = card.geometry;
+
+  // One derivation of the recorded span, used by the time-series figure and by its
+  // caption, so the caption cannot describe a different pass length than the plot.
+  const passDurationS =
+    card.start && card.end
+      ? (Date.parse(card.end) - Date.parse(card.start)) / 1000
+      : 0;
 
   return (
     <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
@@ -144,6 +154,17 @@ export default async function ObservationPage({
           and the fact that a checker accepted it, or the codes a draft was refused for and
           the template that shipped in its place. */}
       <ReviewerNote record={noteById.get(obsId)} model={notes.model} />
+
+      {/* The checker itself, not a description of it.
+          The note above says a checker accepted or refused a draft, and that is a claim
+          about a program a reader cannot see. This is the program: the same rule set,
+          ported to TypeScript, running over the same packet, in the page. Editing one
+          digit is the whole argument, and it costs no request. */}
+      <ClaimChecker
+        card={card}
+        entry={entry}
+        shipped={noteById.get(obsId)?.note ?? null}
+      />
 
       {/* The geometry behind the trace.
           Two plots of the same propagation the corridor was scored against, laid
@@ -234,21 +255,15 @@ export default async function ObservationPage({
             <figcaption>
               <h3 className="instrument-title">Elevation and Doppler against time</h3>
               <p className="instrument-note">
-                The same pass on a time axis. Two stacked panels rather than one
-                panel with two vertical scales, because a twin-axis chart lets the
-                author choose where two curves appear to cross. When the recording
-                window spans closest approach, the Doppler zero crossing and the
-                elevation peak align because they happen at the same instant.
+                {passTimeSeriesCaption({
+                  durationS: passDurationS,
+                  fracs: geometry.fracs,
+                  els: geometry.elevation_deg,
+                  dops: geometry.doppler_hz,
+                })}
               </p>
             </figcaption>
-            <PassTimeSeries
-              geometry={geometry}
-              durationS={
-                card.start && card.end
-                  ? (Date.parse(card.end) - Date.parse(card.start)) / 1000
-                  : 0
-              }
-            />
+            <PassTimeSeries geometry={geometry} durationS={passDurationS} />
           </figure>
 
 

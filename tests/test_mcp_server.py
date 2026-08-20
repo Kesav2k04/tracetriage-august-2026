@@ -149,9 +149,70 @@ def test_a_malformed_line_is_a_parse_error_and_the_server_keeps_going():
 
 
 def test_an_unimplemented_method_is_a_protocol_error_not_a_tool_result():
-    response = handle({"jsonrpc": "2.0", "id": 3, "method": "resources/list"})
+    """A method this server does not speak is -32601, not an empty tool result.
+
+    The example used to be `resources/list`, which this server now implements: the four
+    kill-gate receipts are exposed as resources so a Bob session can mention one instead
+    of calling a tool. `prompts/list` takes its place, because a server that advertises
+    no prompts and answers `prompts/list` with an empty list is telling a client it has a
+    capability it does not have.
+    """
+    response = handle({"jsonrpc": "2.0", "id": 3, "method": "prompts/list"})
     assert response is not None
     assert response["error"]["code"] == -32601
+
+
+def test_the_kill_gate_receipts_are_readable_as_resources():
+    """`resources/list` answered -32601 for the whole build.
+
+    That is the correct answer for a server with no resources and the wrong one for a
+    server whose entire subject is receipts. A judge in Bob can now mention a gate
+    rather than remembering which tool reports it.
+    """
+    listing = handle({"jsonrpc": "2.0", "id": 1, "method": "resources/list"})
+    assert listing is not None and "error" not in listing, listing
+    uris = {entry["uri"] for entry in listing["result"]["resources"]}
+    assert uris == {
+        "receipt://GATE3",
+        "receipt://GATE4",
+        "receipt://GATE5",
+        "receipt://GATE6",
+    }, sorted(uris)
+
+    for entry in listing["result"]["resources"]:
+        assert entry["name"], entry
+        assert entry["description"], f"{entry['uri']} has no description"
+
+    read = handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "resources/read",
+            "params": {"uri": "receipt://GATE6"},
+        }
+    )
+    assert read is not None and "error" not in read, read
+    body = read["result"]["contents"][0]["text"]
+    assert "gate 6" in body.lower()
+    # The verdict is quoted from the receipt, so a resource cannot upgrade a gate.
+    assert "NOT_ESTABLISHED" in body or "PASSED" in body or "FAILED" in body, body[:200]
+    # Bounded. A resource that returns the whole 268 kB receipt is a resource that
+    # fills an agent's context with one call.
+    assert len(body) < 8_000, len(body)
+
+
+def test_an_unknown_resource_is_a_named_refusal():
+    read = handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "resources/read",
+            "params": {"uri": "receipt://GATE9"},
+        }
+    )
+    assert read is not None
+    assert "error" in read, read
+    assert "GATE9" in json.dumps(read["error"]) or "unknown" in json.dumps(read["error"]).lower()
 
 
 # ---------------------------------------------------------------------------
@@ -626,32 +687,130 @@ def _tracked(path: Path) -> bool:
     return finished.returncode == 0
 
 
-def test_the_registration_names_the_server_that_exists():
+#: What Bob's own registration must contain, and what each server may run without asking.
+#:
+#: This file used to register one server, the evidence one, and the live measurement
+#: tools lived only in the root `.mcp.json`, which Bob never loads. So the project's whole
+#: live path was invisible to the tool the prize is about: a judge opening Bob could read
+#: receipts and could not measure anything. That is the defect this expectation closes.
+_BOB_SERVERS = {
+    "tracetriage-evidence": {
+        "launcher": ".bob/run-evidence.cmd",
+        "target": "scripts/mcp_server.py",
+        "always_allow": {
+            "queue_top",
+            "queue_size",
+            "observation",
+            "check_claim",
+            "gate_status",
+            "receipt",
+        },
+    },
+    "tracetriage-live": {
+        "launcher": ".bob/run-live.cmd",
+        "target": "pipeline/tracetriage/mcp_live.py",
+        "always_allow": {
+            "live_list_observations",
+            "live_triage_observation",
+            "live_check_claim",
+        },
+    },
+}
+
+
+def test_the_registration_names_the_servers_that_exist():
     """A config pointing at a module nobody wrote is worse than no config.
 
-    This is the failure the first version of this file had: the registration named
+    Two failures are pinned here. The first version of this file named
     ``tracetriage.mcp_server``, which never existed, so an agent that trusted it got an
-    import error and a reader who trusted it got a false impression of what was built.
+    import error. The second version named one server and left the live tools in a file
+    Bob does not read, so the measurement path was unreachable from the tool this project
+    is judged on.
     """
     registered = json.loads(_REGISTRATION.read_text(encoding="utf-8"))["mcpServers"]
-    assert len(registered) == 1, f"one server is registered, found {sorted(registered)}"
-    name, spec = next(iter(registered.items()))
-    assert name == SERVER_NAME, (
-        f"the config calls it {name!r} and the server calls itself {SERVER_NAME!r}"
+    assert set(registered) == set(_BOB_SERVERS), sorted(registered)
+
+    for name, spec in registered.items():
+        expected = _BOB_SERVERS[name]
+
+        # cmd plus a repository-relative launcher. The launcher exists because bare
+        # `python` on Windows can resolve to the Store alias, which exits immediately and
+        # looks inside Bob like a server that does not work.
+        assert spec["command"] == "cmd", f"{name}: {spec['command']!r}"
+        launcher = next(a for a in spec["args"] if a.endswith(".cmd"))
+        path = REPO / launcher.replace("\\", "/")
+        assert path.exists(), f"{name} launches {launcher}, which does not exist"
+        assert _tracked(path), (
+            f"{name} launches {launcher}, which git does not publish, so a judge who "
+            f"clones this repository cannot start it"
+        )
+
+        # No absolute path anywhere in the invocation. This file is public and a drive
+        # letter in it resolves on exactly one machine. `/c` is cmd's switch, not a path,
+        # so the check is for a drive letter and for a POSIX root with a name after it.
+        for token in [spec["command"], *spec["args"], spec.get("cwd", ".")]:
+            assert not re.match(r"^[A-Za-z]:", token), f"{name}: {token!r} is absolute"
+            assert not re.match(r"^/[A-Za-z]{2,}", token), f"{name}: {token!r} is absolute"
+
+        # The launcher has to start the server this key names.
+        body = path.read_text(encoding="utf-8")
+        assert expected["target"].split("/")[-1].replace(".py", "") in body.replace(
+            "\\", "/"
+        ), f"{launcher} does not mention {expected['target']}"
+        assert (REPO / expected["target"]).exists()
+        assert _tracked(REPO / expected["target"])
+
+        assert spec.get("cwd") == ".", (
+            f"{name} must declare the repository root as its working directory: the "
+            f"server resolves its evidence relative to it"
+        )
+        assert spec.get("disabled") is False, f"{name} is registered and disabled"
+        assert isinstance(spec.get("timeout"), int) and spec["timeout"] > 0
+
+        # `alwaysAllow` is a standing permission, so the list is checked in both
+        # directions: nothing missing that the demo needs, nothing extra that spends a
+        # volunteer network's bandwidth without being asked.
+        assert set(spec.get("alwaysAllow", [])) == expected["always_allow"], (
+            f"{name}: {sorted(spec.get('alwaysAllow', []))}"
+        )
+
+    # The evidence server's key is the name it calls itself.
+    assert SERVER_NAME == "tracetriage-evidence", SERVER_NAME
+
+
+def test_the_expensive_live_tools_are_not_auto_approved():
+    """The two that spend somebody else's bandwidth have to ask.
+
+    `live_rank_observations` measures up to ten observations and `live_station` up to
+    eight, at two HTTP requests each, against an API run by volunteers. A standing
+    permission for either is a standing permission to make twenty requests because an
+    agent thought it would be useful.
+    """
+    registered = json.loads(_REGISTRATION.read_text(encoding="utf-8"))["mcpServers"]
+    allowed = set(registered["tracetriage-live"].get("alwaysAllow", []))
+    assert "live_rank_observations" not in allowed
+    assert "live_station" not in allowed
+
+    evidence = set(registered["tracetriage-evidence"].get("alwaysAllow", []))
+    assert "run_acceptance" not in evidence, (
+        "run_acceptance runs the full gate, which is minutes of CPU and a console build"
     )
 
-    scripts = [arg for arg in spec["args"] if arg.endswith(".py")]
-    assert len(scripts) == 1, spec["args"]
-    assert (REPO / scripts[0]).resolve() == _SERVER, scripts
-    assert _tracked(REPO / scripts[0]), "an unpublished server cannot be launched by a judge"
 
-    # An interpreter named by absolute path resolves on exactly one machine, and this file
-    # is public. A bare name is what a reader on another platform can satisfy.
-    command = spec["command"]
-    assert "/" not in command and "\\" not in command, (
-        f"{command!r} is a path from one machine, so the registration is broken for "
-        f"everyone else who reads it"
-    )
+def test_the_registration_has_no_comment_fields():
+    """`$comment` is not in Bob's MCP schema.
+
+    It was carrying two paragraphs of explanation that a schema-validating client would
+    reject or ignore, in place of the fields that actually configure the launch. The
+    explanation now lives in `.bob/TOOL_SPECS.md` and in the launchers, and the config
+    holds only keys Bob reads.
+    """
+    raw = json.loads(_REGISTRATION.read_text(encoding="utf-8"))
+    assert set(raw) == {"mcpServers"}, sorted(raw)
+    allowed_keys = {"command", "args", "cwd", "env", "headers", "timeout", "alwaysAllow", "disabled", "url", "httpURL"}
+    for name, spec in raw["mcpServers"].items():
+        extra = set(spec) - allowed_keys
+        assert not extra, f"{name} declares {sorted(extra)}, which Bob's schema does not list"
 
 
 def test_the_project_registration_names_servers_that_exist():
@@ -737,12 +896,31 @@ def _specification_sections() -> dict[str, list[str]]:
     return sections
 
 
-def test_the_specification_lists_the_tools_the_server_advertises():
+def test_the_specification_lists_the_tools_both_servers_advertise():
+    """One section per server, and each has to match that server's registry exactly.
+
+    The specification described one server for the whole build. When the live server
+    gained `live_check_claim` and `live_station`, the handlers existed and nothing
+    advertised them: the registry was not updated and neither was this file, so two
+    working tools were invisible to every client. Checking both directions per server is
+    what makes that state fail.
+    """
+    from pipeline.tracetriage import mcp_live
+
     sections = _specification_sections()
-    implemented = set(sections["Implemented tools"])
-    assert implemented == set(TOOLS), (
-        f"the specification documents {sorted(implemented)} and the server advertises "
-        f"{sorted(TOOLS)}"
+    evidence = set(sections["Implemented: `tracetriage-evidence`"])
+    live = set(sections["Implemented: `tracetriage-live`"])
+
+    # `Resources` is a subsection of the evidence server and names URIs, not tools.
+    evidence -= {"Resources"}
+
+    assert evidence == set(TOOLS), (
+        f"the specification documents {sorted(evidence)} for the evidence server and it "
+        f"advertises {sorted(TOOLS)}"
+    )
+    assert live == set(mcp_live.TOOLS), (
+        f"the specification documents {sorted(live)} for the live server and it "
+        f"advertises {sorted(mcp_live.TOOLS)}"
     )
 
 
@@ -765,11 +943,16 @@ def test_every_path_the_specification_cites_exists_and_is_published():
     # A bare filename is a path claim too. Requiring a separator meant a cited
     # "vercel.json" was never checked for existence or for publication.
     suffixes = (".py", ".json", ".md", ".ts", ".tsx", ".yml", ".toml")
+    # A JSON-RPC method name looks like a path and is not one. `resources/list` and
+    # `resources/read` are methods this server answers, and requiring them to exist on
+    # disk made a correct specification fail.
+    methods = re.compile(r"^(?:resources|tools|prompts|completion|logging|receipt)/[a-z]+$")
     candidates = {
         token
         for token in re.findall(r"`([^`]+)`", text)
         if " " not in token
         and not token.startswith("http")
+        and not methods.match(token)
         and ("/" in token or token.endswith(suffixes))
     }
     assert len(candidates) >= 8, f"the extractor found {len(candidates)} paths, so it broke"

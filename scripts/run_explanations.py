@@ -42,6 +42,7 @@ from pipeline.tracetriage.explain import (  # noqa: E402
     PROMPT_VERSION,
     EvidencePacket,
     adversarial_drafts,
+    MeasurementMissing,
     build_packet,
     build_prompt,
     control_drafts,
@@ -82,14 +83,31 @@ def _sha(text: str) -> str:
 
 
 def _packets() -> list[EvidencePacket]:
+    """One packet per card that carries a fit.
+
+    A card with no corridor is shipped on purpose: the console names the reason it
+    could not be measured and draws no overlay. There is nothing for a note to be
+    grounded in, so it gets no packet and no draft. Counted rather than dropped
+    silently, because "no note here" and "the note was refused" are different
+    findings and the receipt prints both.
+    """
     cards = json.loads((_DATA / "cards.json").read_text(encoding="utf-8"))["cards"]
     entries = json.loads((_DATA / "queue.json").read_text(encoding="utf-8"))["entries"]
     by_id = {int(e["obs_id"]): e for e in entries}
-    return [
-        build_packet(card, by_id[int(card["obs_id"])])
-        for card in cards
-        if int(card["obs_id"]) in by_id
-    ]
+    out: list[EvidencePacket] = []
+    for card in cards:
+        obs_id = int(card["obs_id"])
+        if obs_id not in by_id:
+            continue
+        try:
+            out.append(build_packet(card, by_id[obs_id]))
+        except MeasurementMissing:
+            _UNMEASURED.append(obs_id)
+    return out
+
+
+#: Observations the last call to :func:`_packets` refused to build a packet for.
+_UNMEASURED: list[int] = []
 
 
 def _checker_sensitivity(packets: list[EvidencePacket]) -> dict[str, Any]:
@@ -582,6 +600,11 @@ def publish() -> int:
         "drafts_frozen_at_commit": fixture["frozen_at_commit"],
         "counts": {
             "observations": len(rows),
+            # Cards the console ships with a named degrade instead of a fit. They are
+            # not refusals: the checker never saw a sentence about them, because the
+            # packet builder will not invent a 0 Hz offset to write one from.
+            "cards_without_a_fit": sorted(set(_UNMEASURED)),
+            "n_cards_without_a_fit": len(set(_UNMEASURED)),
             "decided_by_the_checker": decided,
             "emitted": emitted,
             "refused": refused,

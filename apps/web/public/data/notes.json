@@ -52,10 +52,12 @@
   },
   {
    "obs_id": 14744250,
-   "note": "The observed receiver frequency of 387174755 Hz does not align with the NORAD catalogue's expected frequency for ID 46487. To confirm, focus on the waterfall image around the 284-second mark, where the signal should be strongest at an elevation of approximately 37 degrees. A definitive observation would be a clear, unambiguous signal within the corridor half-width of \u00b12000 Hz from the fitted offset of 9737 Hz.",
-   "source": "generated",
-   "refused_codes": [],
-   "why": null
+   "note": "Ranked 6 with score 0.593, flagged STALE_CATALOGUE_FREQ. The network label is without-signal and the model probability is 0.688. The corridor sits 9737 Hz from the catalogue centre, 25.1 ppm, with a half width of 2000 Hz; the curved fit scores 0.4 against 0.4 for a vertical line. Peak elevation was 37.1 degrees at 0.00 of the pass.",
+   "source": "deterministic",
+   "refused_codes": [
+    "MISLOCATED_TIME_CLAIM"
+   ],
+   "why": "GROUNDING_CHECK_REFUSED"
   },
   {
    "obs_id": 14746054,
@@ -71,6 +73,7 @@
    "note": "Ranked 8 with score 0.584, flagged STALE_CATALOGUE_FREQ. The network label is with-signal and the model probability is 0.438. The corridor sits 11460 Hz from the catalogue centre, 26.2 ppm, with a half width of 2000 Hz; the curved fit scores 0.7 against 0.5 for a vertical line. Peak elevation was 85.5 degrees at 0.50 of the pass.",
    "source": "deterministic",
    "refused_codes": [
+    "MISLOCATED_TIME_CLAIM",
     "UNGROUNDED_NUMBER"
    ],
    "why": "GROUNDING_CHECK_REFUSED"

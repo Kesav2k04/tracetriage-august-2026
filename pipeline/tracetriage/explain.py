@@ -161,6 +161,39 @@ _CODE_RE = re.compile(r"\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b")
 _SENTENCE_RE = re.compile(r"[.!?](?:\s|$)")
 
 
+#: The corridor fields a note is allowed to talk about, and therefore the fields whose
+#: absence makes a note impossible rather than shorter.
+#:
+#: The console export refused a missing fit already: ``build_console_data.py`` writes
+#: ``corridor: null`` and the card renders as degraded. The packet builder did not. It
+#: read the same block with ``corridor.get(name, 0.0)``, so an observation with no fit
+#: produced a packet claiming a fitted offset of 0 Hz, a half width of 0 Hz, a peak
+#: elevation of 0 degrees and closest approach at the first sample. Every one of those
+#: is a measurement the pipeline never took, and because they were in the packet the
+#: grounding checker would have accepted a note quoting them. Two exporters disagreeing
+#: about what absence means is how a default becomes a published number.
+_REQUIRED_CORRIDOR_FIELDS: tuple[str, ...] = (
+    "max_elevation_deg",
+    "tca_frac",
+    "fitted_offset_hz",
+    "fitted_offset_ppm",
+    "half_width_hz",
+    "sigma_curved",
+    "sigma_vertical",
+)
+
+
+class MeasurementMissing(ValueError):
+    """Raised when a card carries no fit, so no packet can be built from it.
+
+    A named exception rather than a ``KeyError`` because every caller has to make the
+    same decision and the decision is not "crash": the console, the MCP server and the
+    explanation runner all iterate every card, and degraded cards are shipped on
+    purpose. They catch this and record the observation as unexplainable, which is a
+    different receipt line from an observation whose note was refused by the checker.
+    """
+
+
 @dataclass(frozen=True)
 class EvidencePacket:
     """Every fact a note may use, and nothing else.
@@ -216,6 +249,14 @@ def build_packet(card: dict[str, Any], entry: dict[str, Any]) -> EvidencePacket:
         )
 
     corridor = card.get("corridor") or {}
+    missing = [name for name in _REQUIRED_CORRIDOR_FIELDS if corridor.get(name) is None]
+    if missing:
+        raise MeasurementMissing(
+            f"observation {card['obs_id']} has no {', '.join(missing)} in its corridor "
+            f"block, so there is no fit to write a note about. The packet is a closed "
+            f"world: a default of 0.0 here would print 'the corridor sits 0 Hz from the "
+            f"catalogue centre' as a measurement, and the checker would ground it."
+        )
     start = datetime.fromisoformat(str(card["start"]).replace("Z", "+00:00"))
     end = datetime.fromisoformat(str(card["end"]).replace("Z", "+00:00"))
     duration_s = (end - start).total_seconds()
@@ -227,13 +268,16 @@ def build_packet(card: dict[str, Any], entry: dict[str, Any]) -> EvidencePacket:
         "ensemble_uncertainty": float(entry["ensemble_uncertainty"]),
         "flat_row_fraction": float(entry["flat_row_frac"]),
         "pass_duration_s": duration_s,
-        "max_elevation_deg": float(corridor.get("max_elevation_deg", 0.0)),
-        "closest_approach_fraction": float(corridor.get("tca_frac", 0.0)),
-        "fitted_offset_hz": float(corridor.get("fitted_offset_hz", 0.0)),
-        "fitted_offset_ppm": float(corridor.get("fitted_offset_ppm", 0.0)),
-        "corridor_half_width_hz": float(corridor.get("half_width_hz", 0.0)),
-        "sigma_curved": float(corridor.get("sigma_curved", 0.0)),
-        "sigma_vertical": float(corridor.get("sigma_vertical", 0.0)),
+        # Indexed, not defaulted. The guard above has already refused a card that is
+        # missing any of these, so a KeyError here would be a bug in the guard rather
+        # than a missing measurement.
+        "max_elevation_deg": float(corridor["max_elevation_deg"]),
+        "closest_approach_fraction": float(corridor["tca_frac"]),
+        "fitted_offset_hz": float(corridor["fitted_offset_hz"]),
+        "fitted_offset_ppm": float(corridor["fitted_offset_ppm"]),
+        "corridor_half_width_hz": float(corridor["half_width_hz"]),
+        "sigma_curved": float(corridor["sigma_curved"]),
+        "sigma_vertical": float(corridor["sigma_vertical"]),
         "hz_per_pixel": float(card["hz_per_px"]),
         "seconds_per_pixel": float(card["seconds_per_px"]),
         "axis_derivation_confidence": float(card["derivation_confidence"]),
@@ -441,6 +485,164 @@ def _grounded_number(literal: str, suffix: str, packet: EvidencePacket) -> bool:
     return False
 
 
+#: A number a draft offers as a position in time, in seconds.
+#:
+#: Three phrasings, all seen in the shipped drafts: "the 284-second mark", "284 seconds
+#: into the pass", "at t = 284 s". The number is captured; the phrasing is what marks it
+#: as a position rather than a duration, because "the pass lasted 284 seconds" is a fact
+#: from the packet and points nowhere.
+_TIME_POSITION_RES: tuple[re.Pattern[str], ...] = (
+    re.compile(
+        r"(?:around|near|at|by)?\s*the\s+([\d.,]+)[-\s]*(?:second|sec|s)\b[-\s]*mark",
+        re.I,
+    ),
+    re.compile(
+        r"([\d.,]+)\s*(?:second|sec|s)s?\b\s*(?:in)?to\s+the\s+(?:pass|recording|observation)",
+        re.I,
+    ),
+    re.compile(r"\bt\s*=\s*([\d.,]+)\s*(?:second|sec|s)?\b", re.I),
+    re.compile(
+        r"(?:around|near|at|by)\s+([\d.,]+)\s*(?:second|sec|s)s?\b\s+(?:in|into|of)\s+the\s+(?:pass|recording)",
+        re.I,
+    ),
+)
+
+#: A fraction of the pass offered as a position: "at 0.50 of the pass". The deterministic
+#: template writes closest approach this way, so this pattern also keeps the template
+#: honest against its own packet.
+_TIME_FRACTION_RE = re.compile(
+    r"\bat\s+([01](?:\.\d+)?)\s+of\s+the\s+(?:pass|recording)", re.I
+)
+
+#: Words that place a claim in the pass without a number, and the interval of
+#: ``closest_approach_fraction`` each one is true for.
+#:
+#: The bands are wide on purpose. This rule exists to catch a note that sends a reviewer
+#: to the wrong end of a recording, not to arbitrate whether 0.34 is "halfway". A note
+#: that says "halfway through the pass" about a pass whose closest approach is at 0.50
+#: is right; the same sentence about closest approach at 0.0 sends the reviewer to the
+#: wrong 140 seconds of a 284-second image.
+_TIME_WORD_BANDS: tuple[tuple[str, float, float, str], ...] = (
+    (r"\b(?:half\s?way|midway)\s+(?:through|into)\b", 0.30, 0.70, "halfway through"),
+    (
+        r"\b(?:the\s+)?(?:cent|mid)(?:re|er|dle)\s+of\s+the\s+(?:pass|recording)(?:\s+duration)?\b",
+        0.30,
+        0.70,
+        "the middle of the pass",
+    ),
+    (
+        r"\b(?:the\s+)?(?:end|close|final\s+(?:seconds|moments|third|part))\s+of\s+the\s+(?:pass|recording)\b",
+        0.70,
+        1.0,
+        "the end of the pass",
+    ),
+    (r"\blate\s+in\s+the\s+(?:pass|recording)\b", 0.70, 1.0, "late in the pass"),
+    (
+        r"\b(?:the\s+)?(?:start|beginning|opening\s+(?:seconds|moments))\s+of\s+the\s+(?:pass|recording)\b",
+        0.0,
+        0.30,
+        "the start of the pass",
+    ),
+    (r"\bearly\s+in\s+the\s+(?:pass|recording)\b", 0.0, 0.30, "early in the pass"),
+)
+
+#: How far a stated time may sit from closest approach before the claim is refused, as a
+#: share of the recorded pass length, with a floor for short passes.
+#:
+#: A tenth of the recording. The number is a policy, not a measurement, and it lives here
+#: rather than inline so a test can quote it. On the 284-second pass this rule was written
+#: for, it is 28.4 seconds, and the draft was off by 284.
+TIME_TOLERANCE_FRACTION = 0.10
+TIME_TOLERANCE_FLOOR_S = 5.0
+
+
+def time_claim_violations(text: str, packet: EvidencePacket) -> list[dict[str, str]]:
+    """Every place in a draft that points at a time the geometry does not support.
+
+    Grounding by token membership is not grounding of a claim. The draft shipped for
+    observation 14744250 told a reviewer to look "around the 284-second mark, where the
+    signal should be strongest": 284 is ``pass_duration_s`` and 37 is
+    ``max_elevation_deg``, so every number in the sentence was in the packet and the
+    checker passed it. That pass has ``closest_approach_fraction`` 0.0. The strongest
+    part of the recording is its first sample and the sentence sent the reviewer to the
+    last one. A closed world of numbers is not a closed world of statements, and this
+    function is that difference.
+
+    What the rule can check is narrow, and worth stating plainly: the packet holds one
+    time, closest approach, and one elevation, the peak that happens there. So a draft
+    may place a claim at closest approach and nowhere else. It may still say the pass
+    lasted 284 seconds, because a duration is not a position.
+    """
+    out: list[dict[str, str]] = []
+    duration = packet.exact.get("pass_duration_s")
+    frac = packet.exact.get("closest_approach_fraction")
+    if duration is None or frac is None or duration <= 0:
+        return out
+    tca_s = frac * duration
+    tolerance = max(TIME_TOLERANCE_FRACTION * duration, TIME_TOLERANCE_FLOOR_S)
+
+    seen: set[str] = set()
+    for pattern in _TIME_POSITION_RES:
+        for match in pattern.finditer(text):
+            literal = match.group(1)
+            try:
+                value = float(literal.replace(",", ""))
+            except ValueError:
+                continue
+            key = f"s:{value}"
+            if key in seen:
+                continue
+            seen.add(key)
+            if abs(value - tca_s) > tolerance:
+                out.append(
+                    {
+                        "code": "MISLOCATED_TIME_CLAIM",
+                        "detail": (
+                            f"points at {value:.0f} s of a {duration:.0f} s recording, "
+                            f"but closest approach is at {tca_s:.0f} s (fraction "
+                            f"{frac:.2f}), outside the {tolerance:.0f} s tolerance. The "
+                            f"packet holds no other time to look at."
+                        ),
+                        "literal": literal,
+                        "unit": "s",
+                    }
+                )
+
+    for match in _TIME_FRACTION_RE.finditer(text):
+        try:
+            value = float(match.group(1))
+        except ValueError:
+            continue
+        if abs(value - frac) > TIME_TOLERANCE_FRACTION:
+            out.append(
+                {
+                    "code": "MISLOCATED_TIME_CLAIM",
+                    "detail": (
+                        f"places the claim at {value:.2f} of the pass, but closest "
+                        f"approach is at {frac:.2f}."
+                    ),
+                    "literal": match.group(1),
+                    "unit": "fraction",
+                }
+            )
+
+    for pattern, low, high, name in _TIME_WORD_BANDS:
+        if re.search(pattern, text, re.I) and not (low <= frac <= high):
+            out.append(
+                {
+                    "code": "MISLOCATED_TIME_CLAIM",
+                    "detail": (
+                        f"says {name}, which needs closest approach between {low:.2f} "
+                        f"and {high:.2f} of the recording; this pass has it at "
+                        f"{frac:.2f}."
+                    ),
+                    "literal": name,
+                    "unit": "",
+                }
+            )
+    return out
+
+
 def verify_note(text: str, packet: EvidencePacket) -> Verification:
     """Decide whether a draft may ship, and record every reason it may not.
 
@@ -481,6 +683,10 @@ def verify_note(text: str, packet: EvidencePacket) -> Verification:
                     "unit": unit or "",
                 }
             )
+
+    # Where a draft tells the reviewer to look, checked against the geometry
+    # rather than against the set of numbers the packet happens to print.
+    violations.extend(time_claim_violations(stripped, packet))
 
     for code in _CODE_RE.findall(stripped):
         if code not in packet.vocabulary and code not in packet.as_text():

@@ -77,6 +77,13 @@ onnx = [
     "onnx>=1.17",
     "onnxruntime>=1.20",
 ]
+# The LangChain adapter in pipeline/tracetriage/langchain_tools.py. Optional on purpose,
+# for the same reason as the vector index: it adapts tools that already exist and reach the
+# same handlers, so a clean clone without it installs, runs the suite and reproduces every
+# published number. tests/test_langchain_tools.py skips and says why.
+agent = [
+    "langchain-core>=0.3",
+]
 # The vector index for precedent retrieval. Optional on purpose: the measurement in
 # artifacts/PRECEDENT_RECEIPT.json is computed from exact cosine search, and chromadb is
 # what checks that a real approximate index returns the same neighbours. A clean clone

@@ -24,11 +24,14 @@
  "drafts_frozen_at_commit": "2026-08-19T13:41:46+05:30",
  "counts": {
   "observations": 25,
+  "cards_without_a_fit": [],
+  "n_cards_without_a_fit": 0,
   "decided_by_the_checker": 25,
-  "emitted": 11,
-  "refused": 14,
-  "refusal_rate": 0.56,
+  "emitted": 10,
+  "refused": 15,
+  "refusal_rate": 0.6,
   "violations_by_code": {
+   "MISLOCATED_TIME_CLAIM": 2,
    "OVERCLAIM": 1,
    "UNGROUNDED_NUMBER": 14
   }
@@ -542,12 +545,21 @@
    "obs_id": 14744250,
    "packet_sha256": "76f972bfe09764f365a677ab7b12b563ba879c967d3d203fa8788b07547f0647",
    "packet_fields": 26,
-   "verdict": "EMITTED",
-   "violations": [],
-   "codes": [],
+   "verdict": "REFUSED",
+   "violations": [
+    {
+     "code": "MISLOCATED_TIME_CLAIM",
+     "detail": "points at 284 s of a 284 s recording, but closest approach is at 0 s (fraction 0.00), outside the 28 s tolerance. The packet holds no other time to look at.",
+     "literal": "284",
+     "unit": "s"
+    }
+   ],
+   "codes": [
+    "MISLOCATED_TIME_CLAIM"
+   ],
    "draft_chars": 413,
    "draft_sha256": "a622c41723394bd25313df6e787d96c05f9fb19706e87ac1b35d2897b68957cc",
-   "shipped": "generated"
+   "shipped": "deterministic"
   },
   {
    "obs_id": 14746054,
@@ -586,9 +598,16 @@
      "detail": "'27' is not in the evidence packet",
      "literal": "27",
      "unit": ""
+    },
+    {
+     "code": "MISLOCATED_TIME_CLAIM",
+     "detail": "points at 27 s of a 414 s recording, but closest approach is at 208 s (fraction 0.50), outside the 41 s tolerance. The packet holds no other time to look at.",
+     "literal": "27",
+     "unit": "s"
     }
    ],
    "codes": [
+    "MISLOCATED_TIME_CLAIM",
     "UNGROUNDED_NUMBER"
    ],
    "draft_chars": 315,

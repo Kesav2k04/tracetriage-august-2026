@@ -8,7 +8,6 @@
 import Link from "next/link";
 
 import {
-  agent,
   cards,
   evaluation,
   fmt,
@@ -16,14 +15,17 @@ import {
   precedent,
   queue,
   requirePrecedentArm,
+  requirePrecedentComparison,
   requireGate6Split,
   requireQueueSplit,
   showcaseIds,
 } from "@/lib/data";
 import CorridorHero from "@/components/CorridorHero";
+import DeepField from "@/components/DeepField";
 import GateLedger from "@/components/GateLedger";
 import QueueTable from "@/components/QueueTable";
 import { Cell, IntervalBar, Note, Section, Stat, Table, VerdictBadge } from "@/components/ui";
+import { FIELD_REASONS, FIELD_REASON_TOKENS, fieldPoints } from "@/lib/field";
 
 export const metadata = {
   // The template only applies to child segments, so the home page states the
@@ -37,16 +39,30 @@ const primary = requireGate6Split("chronological");
 const coldStation = requireGate6Split("cold_station");
 const circularity = evaluation.circularity;
 
-/** The two Granite results the landing page points at, read rather than retyped.
+/** The Granite retrieval result the landing page points at, read rather than retyped.
  *
- * Both are measured elsewhere in this console and neither was reachable from the
- * first screen. Reading them here means the lede cannot drift from the pages it
- * links to: if the agent study is re-run, the sentence moves with it.
+ * Reading it here means the lede cannot drift from the page it links to: if the
+ * precedent study is re-run, the sentence moves with it.
  */
-const GRANITE_AGENT = agent.arms.tools.correct;
-const GRANITE_AGENT_CONTROL = agent.arms.control.correct;
 const GRANITE_RETRIEVAL = requirePrecedentArm("warm", "granite_text").agreement_at_k;
-const RANDOM_RETRIEVAL = requirePrecedentArm("warm", "random").agreement_at_k;
+/** The comparison the first screen used to omit.
+ *
+ * The lede called the Granite embedding "the strongest arm at finding a pass's
+ * precedents" and printed it against a random draw. Against a random draw it does win
+ * warm. Against the numeric nearest-neighbour baseline on the same pool the margin is
+ * 0.026 and does not survive the 8-comparison correction, and in the cold condition,
+ * where the query may not retrieve its own station, its own site or its own satellite,
+ * it is indistinguishable from random. Printing vs-random alone made an honest number
+ * carry a claim the receipt refuses, so the sentence now names the baseline it ties
+ * with and the condition where the effect disappears. Read from the receipt, not
+ * retyped, so a re-run moves the sentence.
+ */
+const GRANITE_VS_KNN = requirePrecedentComparison(
+  "warm",
+  "granite_text_vs_numeric_knn",
+);
+const NUMERIC_RETRIEVAL = requirePrecedentArm("warm", "numeric_knn").agreement_at_k;
+const GRANITE_COLD = requirePrecedentComparison("cold", "granite_text_vs_random");
 
 /** The two splits the lede prints, in the order a reader should weigh them.
  *
@@ -82,6 +98,11 @@ const LEDE_EXAMINED =
     ? `${primary.n_queue_examined}`
     : `${primary.n_queue_examined} and ${coldStation.n_queue_examined}`;
 
+/** The whole queue, encoded for the field behind the hero. Built at build time. */
+const FIELD = fieldPoints(queue.entries);
+/** How many of the 407 carry a corridor fit, for the caption that explains the field. */
+const FIELD_FITTED = FIELD.filter((point) => point.fitted).length;
+
 export default function QueuePage() {
   const caps = chronological.concentration?.caps ?? {};
 
@@ -101,6 +122,15 @@ export default function QueuePage() {
           the headline now. Which one decides the gate is stated on the card rather
           than implied by its size. */}
       <header className="lede">
+        {/* The field is the queue, not an atmosphere.
+            Every point is one of the ranked observations: rank sets where it sits, review
+            value sets how bright it is, the criterion that raised it sets its colour, and
+            a measured Doppler offset is what makes it drift. It is masked out from under
+            the text and it carries nothing the page does not also say in words, so a
+            reader with no GPU, no JavaScript or no patience for moving pixels loses
+            nothing at all. The caption below names every channel, because a background
+            that encodes data and does not say so is worse than one that encodes nothing. */}
+        <DeepField points={FIELD} />
         <div className="lede-open">
         <div className="lede-open-text">
         <p className="lede-kicker">
@@ -113,30 +143,35 @@ export default function QueuePage() {
           {queue.review_budget.n_observations} as the budget a volunteer actually has.{" "}
           <Link href="#queue">Open the queue</Link>.
         </p>
-        {/* The IBM stack, named on the first screen.
-            Granite carries two measured results in this console and neither of them
-            was reachable from the landing page: the agent study is 22 of 24 with
-            tools against 2 of 24 without, and the Granite embedding is the strongest
-            retrieval arm on the precedent page. A judge reading one screen should
-            know the models are here and where they were measured, rather than
-            finding the only IBM string on the page in a footer note about a
-            typeface. */}
+        {/* The IBM stack, named on the first screen, with the retrieval result stated
+            the way its own receipt states it.
+            What this paragraph used to say: the Granite embedding "is the strongest
+            arm at finding a pass's precedents", printed against a random draw. The
+            receipt does not support that. Warm, the embedding is 0.618 and the plain
+            numeric nearest-neighbour arm is 0.592: a margin of 0.026 that does not
+            survive the correction for eight comparisons, so those two arms are
+            indistinguishable. Cold, where a query may not retrieve its own station,
+            its own physical site or its own satellite, the embedding is
+            indistinguishable from random. The agent study moved off this screen for
+            the same reason: 22 of 24 is a lookup score over receipts, and a first
+            screen that leads with it invites a judge to read it as reasoning. Both
+            numbers stay one click away with their conditions attached. */}
         <p className="lede-stack">
-          Built on IBM Granite, running locally.{" "}
-          <span className="num">{agent.model.name}</span> answers questions about this
-          repository from its own receipts:{" "}
-          <Link href="/agent/">
-            {GRANITE_AGENT.successes} of {GRANITE_AGENT.trials} correct with tools
-            against {GRANITE_AGENT_CONTROL.successes} of{" "}
-            {GRANITE_AGENT_CONTROL.trials} without
-          </Link>
-          . <span className="num">{precedent.embedding_model.name}</span> is the
-          strongest arm at finding a pass{"’"}s precedents:{" "}
-          <Link href="/precedent/">
-            {fmt(GRANITE_RETRIEVAL, 3)} agreement against {fmt(RANDOM_RETRIEVAL, 3)} for
-            a random draw
-          </Link>
-          . No hosted inference and no paid service: both models run on one machine.
+          Built on IBM Granite, running locally, and reported the way the receipt
+          reports it. <span className="num">{precedent.embedding_model.name}</span>{" "}
+          retrieves a pass{"’"}s precedents at{" "}
+          <span className="num">{fmt(GRANITE_RETRIEVAL, 3)}</span> agreement against{" "}
+          <span className="num">{fmt(NUMERIC_RETRIEVAL, 3)}</span> for a numeric
+          nearest-neighbour baseline on the same pool. That margin of{" "}
+          <span className="num">{fmt(GRANITE_VS_KNN.margin, 3)}</span> does not survive
+          the correction for{" "}
+          <span className="num">{GRANITE_VS_KNN.n_comparisons}</span> comparisons, and
+          in the cold condition it beats a random draw by{" "}
+          <span className="num">{fmt(GRANITE_COLD.margin, 3)}</span>, which is
+          indistinguishable from no effect at all:{" "}
+          <Link href="/precedent/">both conditions, all four arms</Link>. The models
+          here are a guardrail on what a sentence may claim, not the ranker. No hosted
+          inference and no paid service: everything runs on one machine.
         </p>
         </div>
         <GateLedger />
@@ -238,6 +273,22 @@ export default function QueuePage() {
             </p>
           </div>
         </div>
+        <p className="lede-field-note">
+          <span>
+            Behind this screen: all {queue.entries.length} ranked observations, rank 1 at
+            the centre. Brightness is review value; {FIELD_FITTED} carry a fitted Doppler
+            offset and drift at a rate set by its size.
+          </span>
+          {FIELD_REASONS.map((reason, index) => (
+            <span
+              className="lede-field-key"
+              key={reason}
+              style={{ color: `var(${FIELD_REASON_TOKENS[index]})` }}
+            >
+              {reason}
+            </span>
+          ))}
+        </p>
       </header>
 
       {/* The instrument, immediately after the verdict.

@@ -1,0 +1,149 @@
+{
+ "schema": "tracetriage/langchain",
+ "schema_version": "0.1.0",
+ "unit": "the project's evidence tools, adapted to LangChain",
+ "adapter": "pipeline/tracetriage/langchain_tools.py",
+ "source_of_truth": "scripts/mcp_server.py TOOLS",
+ "n_offered": 6,
+ "n_registered_by_the_mcp_server": 7,
+ "offered": [
+  {
+   "name": "queue_top",
+   "callable": "mcp_server.tool_queue_top",
+   "description": "The top of the physics-conditioned review queue, in rank order, with the reason code that flagged each observation."
+  },
+  {
+   "name": "queue_size",
+   "callable": "mcp_server.tool_queue_size",
+   "description": "How many observations the queue ranks in total, named apart from the per-call cap and the review budget. Ask this rather than queue_top when the total is the whole question: the three numbers are different and two of them are 50."
+  },
+  {
+   "name": "observation",
+   "callable": "mcp_server.tool_observation",
+   "description": "Every measured field for one observation, and the reviewer note that shipped for it, including whether a generated draft was refused and why."
+  },
+  {
+   "name": "check_claim",
+   "callable": "mcp_server.tool_check_claim",
+   "description": "Check a sentence about one observation against its evidence packet. Returns GROUNDED or REFUSED with a violation code per problem. This is the same checker that decides whether this project's own generated notes ship."
+  },
+  {
+   "name": "gate_status",
+   "callable": "mcp_server.tool_gate_status",
+   "description": "The kill gates and their verdicts, each read from the receipt rather than typed here, because a tally in a description is a number that can go stale."
+  },
+  {
+   "name": "receipt",
+   "callable": "mcp_server.tool_receipt",
+   "description": "The scalar summary of one receipt under artifacts/, with the size of each collection it holds. Never the whole file."
+  }
+ ],
+ "withheld": [
+  {
+   "name": "run_acceptance",
+   "why": "runs the repository's gate, writes the console build, and takes minutes of CPU"
+  }
+ ],
+ "live_tools_not_offered": {
+  "n": 5,
+  "why": "each downloads a waterfall from a volunteer network. They are reachable over MCP, where a human approves the call."
+ },
+ "reading": "Every tool listed above calls the function object the MCP server registered, not a copy of it. tests/test_langchain_tools.py asserts identity per tool, so a second implementation of the grounding checker cannot appear behind this adapter.",
+ "exercised": {
+  "n_called": 6,
+  "calls": [
+   {
+    "tool": "queue_top",
+    "arguments": {
+     "limit": 3
+    },
+    "returned_keys": [
+     "available",
+     "cap",
+     "entries",
+     "reading",
+     "returned",
+     "review_budget",
+     "with_evidence_packet"
+    ],
+    "bytes": 1962
+   },
+   {
+    "tool": "queue_size",
+    "arguments": {},
+    "returned_keys": [
+     "available",
+     "cap",
+     "reading",
+     "review_budget"
+    ],
+    "bytes": 682
+   },
+   {
+    "tool": "observation",
+    "arguments": {
+     "observation_id": 14740031
+    },
+    "returned_keys": [
+     "evidence_packet",
+     "evidence_packet_sha256",
+     "note",
+     "observation_id",
+     "reading"
+    ],
+    "bytes": 1598
+   },
+   {
+    "tool": "check_claim",
+    "arguments": {
+     "observation_id": 14740031,
+     "text": "The downlink is 437.2 MHz."
+    },
+    "returned_keys": [
+     "codes",
+     "observation_id",
+     "reading",
+     "verdict",
+     "violations"
+    ],
+    "bytes": 446
+   },
+   {
+    "tool": "gate_status",
+    "arguments": {},
+    "returned_keys": [
+     "gates",
+     "n_gates",
+     "n_met",
+     "note",
+     "reading"
+    ],
+    "bytes": 1242
+   },
+   {
+    "tool": "receipt",
+    "arguments": {
+     "name": "QUEUE_RECEIPT.json"
+    },
+    "returned_keys": [
+     "bytes",
+     "collection_sizes",
+     "path",
+     "receipt",
+     "root",
+     "scalars"
+    ],
+    "bytes": 576
+   }
+  ],
+  "refusal_through_the_adapter": {
+   "text": "The downlink is 437.2 MHz.",
+   "observation_id": 14740031,
+   "verdict": "REFUSED",
+   "codes": [
+    "UNGROUNDED_NUMBER"
+   ]
+  }
+ },
+ "langchain": "installed"
+}

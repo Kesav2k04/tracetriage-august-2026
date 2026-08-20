@@ -23,7 +23,7 @@ sys.path.insert(0, str(_REPO))
 from pipeline.tracetriage.splits import (  # noqa: E402
     _A3_SUMMARY_PATH,
     _MANIFEST_PATH,
-    _PAGES_DIR,
+    _default_pages_dir,
     ASSERTED_NOT_MEASURABLE_HERE,
     _build_obs_table,
     _extract_partition_maps,
@@ -50,8 +50,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--pages-dir",
         type=Path,
-        default=_PAGES_DIR,
-        help="Directory containing raw observation page JSONs.",
+        default=None,
+        help=(
+            "Directory containing raw observation page JSONs. Required, either here or "
+            "as TRACETRIAGE_PAGES_DIR. There is no in-tree default: the snapshot is 20 "
+            "GB and lives outside the repository, and the old default was one machine's "
+            "drive letter, which turned a wrong path into a zero-record run."
+        ),
     )
     parser.add_argument(
         "--a3-summary",
@@ -76,7 +81,9 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"Building splits with seed={args.seed} ...")
     print(f"  Manifest:   {args.manifest}")
-    print(f"  Pages dir:  {args.pages_dir}")
+    # Resolved once, so the printed path is the path that gets read.
+    pages_dir = args.pages_dir or _default_pages_dir()
+    print(f"  Pages dir:  {pages_dir}")
     print(f"  A3 summary: {args.a3_summary}")
     if args.frozen_at:
         print(f"  frozen_at:  {args.frozen_at} (pinned, this is a rebuild)")
@@ -86,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:
         split_manifest = build_splits(
             seed=args.seed,
             manifest_path=args.manifest,
-            pages_dir=args.pages_dir,
+            pages_dir=pages_dir,
             a3_summary_path=args.a3_summary,
             frozen_at=args.frozen_at,
         )
@@ -95,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     # Build the leakage audit (needs rows + partition maps)
-    rows = _build_obs_table(args.manifest, args.pages_dir, args.a3_summary)
+    rows = _build_obs_table(args.manifest, pages_dir, args.a3_summary)
     partition_maps = _extract_partition_maps(rows, split_manifest)
     leakage_audit = build_leakage_audit(
         rows,
@@ -103,7 +110,7 @@ def main(argv: list[str] | None = None) -> int:
         partition_maps["cold_station"],
         partition_maps["cold_transmitter"],
         partition_maps["cold_combined"],
-        pages_dir=args.pages_dir,
+        pages_dir=pages_dir,
     )
 
     # Emit artifacts

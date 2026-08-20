@@ -28,6 +28,7 @@
 
 export type IconName =
   | "queue"
+  | "live"
   | "evaluation"
   | "agent"
   | "precedent"
@@ -36,6 +37,18 @@ export type IconName =
   | "corridor";
 
 const PATHS: Record<IconName, React.ReactNode> = {
+  // live: a carrier at the centre of a band, with the band's two edges. A signal
+  // arriving now, drawn as the one thing the live page reports: a line inside a
+  // corridor. Not a lightning bolt or a clock, because neither is what happens.
+  live: (
+    <>
+      <path d="M8 1.5v13" className="icon-mark" />
+      <path d="M4.5 4.5v7" />
+      <path d="M11.5 4.5v7" />
+      <path d="M1.5 8h1.5" className="icon-faint" />
+      <path d="M13 8h1.5" className="icon-faint" />
+    </>
+  ),
   queue: (
     <>
       <path d="M2.5 3.5h11" className="icon-mark" />

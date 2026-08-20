@@ -18,10 +18,11 @@ and nothing that carries a number depends on it: the console's
 [provenance page](https://tracetriage.vercel.app/provenance/) names the host, measures
 the bytes it costs, measures what it costs the first paint (956 ms against 152 ms with
 the host blocked, because the kit sets `font-display: auto`) and lists both hosts in the
-content security policy. Six pages: the review
-queue, the evaluation with every gate including the ones that did not pass, the agent study
-beside its control arm, the precedent study with the condition that takes its result away,
-the baseline orderings the queue has to beat, and the provenance of each number.
+content security policy. Seven pages: the review
+queue, a live console that measures an observation recorded in the last few hours, the
+evaluation with every gate including the ones that did not pass, the agent study beside its
+control arm, the precedent study with the condition that takes its result away, the baseline
+orderings the queue has to beat, and the provenance of each number.
 
 **Judges start here: [`FOR_JUDGES.md`](FOR_JUDGES.md).** It maps each judged criterion to the
 file that carries it, opens with the checks a judge can run in a few minutes each, and is
@@ -42,8 +43,8 @@ block, so none of it can drift from the study it came from.
   running locally at Q4_K_M and temperature 0, answers 22 of 24 correctly with five
   read-only tools and 2 of 24 with none. One-sided exact p = 1e-06 over 20 discordant
   pairs. The control arm is the point: the tools are measured, not demonstrated.
-- **A grounding checker that refuses most of what the model writes.** Of 25 drafts, 11
-  were emitted and 14 refused. Against 525 adversarial drafts it caught 525, and against
+- **A grounding checker that refuses most of what the model writes.** Of 25 drafts, 10
+  were emitted and 15 refused. Against 525 adversarial drafts it caught 525, and against
   175 clean ones it refused 0. A published sentence is one no rule could fault, not one
   the model was confident about.
 - **A precedent search on `granite-embedding:278m`**, put head to head against seven

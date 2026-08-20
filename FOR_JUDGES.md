@@ -22,9 +22,9 @@ the PRE_PASSED feasibility checks answered before any pipeline code was written,
 |---|---|---|
 | Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1353 passed, 32 skipped, none failed, measured in a clean clone with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
-| Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 11 emitted, 14 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
-| Can an agent measure something new? | `tracetriage triage <id>`, or `live_triage_observation` over MCP | A measurement of an observation recorded today, from the public SatNOGS API with no credential. `docs/USE_WITH_YOUR_AGENT.md` has the config block |
-| Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake and 5 read-only tools, one of which is the grounding checker |
+| Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 10 emitted, 15 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
+| Can an agent measure something new? | `live_triage_observation` over MCP, or `tracetriage triage <id>` | A measurement of an observation recorded today, from the public SatNOGS API with no credential, and `live_check_claim` refuses an invented frequency about that measurement. `docs/BOB_DEMO.md` is the prompt |
+| Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake, 7 tools over committed receipts and 4 receipt resources. One tool is the grounding checker |
 | Does the repository hold together? | `python scripts/gate.py` | The standing gates, one line each |
 
 **None of the five needs a GPU, a model runtime or a network connection.** The two that
@@ -86,6 +86,25 @@ the guard rather than a claim about them.
 | Working prototype | The static console under `apps/web`, deployed from this repository |
 | Public repository | This one |
 
+## The stack, and what each piece is measured doing
+
+Every number in this table is read from a receipt by the generator, including the ones that
+weaken a claim. A technology is listed here only if something measures it working.
+
+| Technology | Where it runs | What it is measured doing |
+|---|---|---|
+| IBM Granite (text) | `granite3.1-dense:8b`, local Ollama | The agent study. 22/24 correct with this project's MCP tools against 2/24 without, paired p = 1e-06. `artifacts/AGENT_RECEIPT.json` |
+| IBM Granite (embeddings) | `granite-embedding:278m`, local Ollama | Precedent retrieval, reported the way its receipt reports it: 0.618 agreement warm against 0.592 for a plain numeric nearest-neighbour baseline on the same pool, a margin of 0.026 that does not survive the correction for 8 comparisons |
+| Vector database | chromadb 1.5.9, cosine, in memory | Holds the Granite vectors with station, site and satellite metadata and answers the cold condition with a filtered query inside the index. Recall of the exact top-5 is 0.9992 warm and 0.9995 cold over 739 queries each |
+| IBM Bob | The build, and then the product | 10 dated units in `docs/BOB_BUILD_LOG.md`, each with what failed before it was accepted. Bob also operates the finished system: `docs/BOB_DEMO.md` is one paste that ranks the queue, refuses an invented frequency, measures a pass recorded in the last hour and then refuses a sentence about that measurement |
+| Model Context Protocol | Two stdio servers, registered in `.bob/mcp.json` | 7 tools over committed receipts, 5 that measure live, and 4 receipt resources. Read-only, enforced by a walk over each server's own source in `tests/test_mcp_server.py` |
+| The grounding checker, twice | `pipeline/tracetriage/explain.py`, `apps/web/lib/grounding.ts` | One rule set in Python and in the browser, held to 1275 recorded decisions over 25 observations by `tests/test_grounding_parity.py` and `apps/web/tests/grounding.test.ts`. On any observation page a reader can change one digit and watch the refusal appear, with no request leaving the page |
+| SatNOGS API | The corpus, and the live path | 2727 observations and 2500 waterfalls in the frozen snapshot, keyless. The live page (`apps/web/app/live/page.tsx`) and the MCP tool `live_triage_observation` both measure a pass recorded after that snapshot closed, from the same public API, through `api/live.py` |
+| SGP4 propagation | `pipeline/tracetriage/physics.py` | Every corridor is propagated from the two-line elements in the observation's own record rather than from today's, so a measurement carries the elements it was made with and can be redone from the receipt |
+| IBM Carbon and IBM Plex | `apps/web/app/globals.css` | The palette is generated from Carbon's gray ramp rather than typed: `scripts/derive_palette.py --check` recomputes every token and every contrast ratio in it. Plex Sans and Plex Mono are self-hosted, so nothing carrying a number waits on a third-party request |
+| LangChain | `pipeline/tracetriage/langchain_tools.py` | 6 of the 7 evidence tools, adapted for an agent that does not speak MCP. An adapter and not a second implementation: each tool calls the function object the MCP server registered, asserted on identity in `tests/test_langchain_tools.py`. Through it, `check_claim` came back REFUSED with UNGROUNDED_NUMBER. `artifacts/LANGCHAIN_RECEIPT.json` |
+| Next.js, Vercel, WebGL | `apps/web`, static export | 7 pages, no server, no database and no credential, with a content security policy whose `connect-src` is `'self'`. The field behind the first screen is the ranked queue drawn on the GPU: one point per observation, placed by rank, lit by review value, coloured by the criterion that raised it |
+
 ## The judged criteria, and what to look at
 
 Four criteria, each scored 1 to 5. The heading is the criterion as the Official Rules write
@@ -97,18 +116,25 @@ the same order.
 > Effective use of IBM Bob and additional technologies, functional and well-structured
 > solution.
 
-IBM Bob is the primary development tool and built every load-bearing subsystem: ingestion,
-physics, the model interface, calibration, abstention, ranking, the console, the test
-suite and the release sign-off. `docs/BOB_BUILD_LOG.md` carries 60 dated entries, one per
-accepted unit, each naming the files it changed, the commands that were run and what
-failed before it was accepted. `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json`
-are the standing instructions, tool contracts and MCP registration each task ran under,
-tracked so the conditions of the work are readable and not only its output.
-`docs/PRE_BUILD_BASELINE.md` records what existed before the first Bob task, so the line
-between scaffolding and built work is auditable rather than asserted. The additional
-technologies are named with their files in the README's IBM stack table: two Granite
-models running locally, Carbon and Plex on the console, MCP over stdio JSON-RPC, and a
-Next.js static export.
+IBM Bob built the load-bearing pipeline, and the log names which units those were rather
+than asserting a total. `docs/BOB_BUILD_LOG.md` carries 10 dated Bob-account units, A7,
+A6, A5, A0, A0b-INT, A1, A2, A4, B1, C1: the data contracts, the immutable snapshot, the
+waterfall artifact parser, the physics corridor, label provenance, the image-only
+baselines, the end-to-end triage slice, the grouped splits with their leakage audit, and
+the review-value queue with kill gate 6. Each names the files it changed, the commands
+that were run, the Bob task id and what failed before it was accepted. A further 46 dated
+units in the same file are operator-side, run from Cursor and Claude Code, and are
+labelled that way in the actor field of their own headings: the console, the calibration
+and abstention blocks, the fusion ladder and the review waves are theirs, not Bob's. That
+distinction is published because the number here used to be 60, which was the count of
+second-level markdown headings in the file and not the count of anything anyone did. Bob
+also operates the product: `.bob/mcp.json` registers the evidence server and the live
+measurement server, so a Bob session can measure a pass recorded today and have the same
+grounding checker refuse a sentence about it. `.bob/rules.md`, `.bob/TOOL_SPECS.md` and
+`.bob/mcp.json` are the standing instructions, tool contracts and MCP registration each
+task ran under, tracked so the conditions of the work are readable and not only its
+output. `docs/PRE_BUILD_BASELINE.md` records what existed before the first Bob task, so
+the line between scaffolding and built work is auditable rather than asserted.
 
 The pipeline is measured rather than demonstrated. 2727 observations from snapshot
 `snap-20260817-stage1`, 4 splits of which 3 hold out stations or transmitters the model
@@ -129,7 +155,7 @@ The interesting part is not that a model writes the note. It is that the note is
 A closed evidence packet of the observation's own fields goes in, and a checker requires
 every numeric token in the draft to be one of the packet's own printed tokens, or to equal
 a packet value at the precision it was printed to, under three unit conversions each of
-which has to carry the unit it produces. 14 of 25 drafts the checker decided on were
+which has to carry the unit it produces. 15 of 25 drafts the checker decided on were
 refused and the deterministic template shipped in their place, with the refusal codes on
 the card.
 
@@ -221,8 +247,8 @@ carries no rate because there is nothing to compute one from.
 
 `docs/BOB_BUILD_LOG.md` has an entry per unit: what was asked, what came back, what failed and
 what repaired it. `.bob/rules.md` is the standing instruction set Bob worked to, and
-`.bob/TOOL_SPECS.md` specifies the project's own MCP tools, with the 5 that
-were built separated from the 5 that were specified and were not, each of
+`.bob/TOOL_SPECS.md` specifies the project's own MCP tools, with the 12 that
+were built separated from the 4 that were specified and were not, each of
 those naming the script that did its job instead.
 
 ## The one thing to read if there is time for one thing
