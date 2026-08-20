@@ -16,7 +16,9 @@ database, no credentials, and no measurement fetched from another origin. The si
 exactly one third-party request, the Adobe Fonts stylesheet for two licensed display faces,
 and nothing that carries a number depends on it: the console's
 [provenance page](https://tracetriage.vercel.app/provenance/) names the host, measures
-the bytes it costs and lists both hosts in the content security policy. Six pages: the review
+the bytes it costs, measures what it costs the first paint (956 ms against 152 ms with
+the host blocked, because the kit sets `font-display: auto`) and lists both hosts in the
+content security policy. Six pages: the review
 queue, the evaluation with every gate including the ones that did not pass, the agent study
 beside its control arm, the precedent study with the condition that takes its result away,
 the baseline orderings the queue has to beat, and the provenance of each number.
