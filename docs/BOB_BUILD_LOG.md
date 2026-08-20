@@ -5640,3 +5640,23 @@ column is 354px against the roughly 728px two cards would need.
 `scripts/build_og_image.py`, `scripts/gate.py`.
 **Tests:** 4 new under vitest, 107 pass across 7 files. 35 pages build.
 **Outcome:** accepted.
+
+## 2026-08-20 IST | Wave D | D15b: the clean clone re-run at the D15 head
+
+The transcript a judge reads was measured at `cc6c8f9`, before the twenty-seven tests D15
+added and before the receipts it re-froze, so the page reported counts for a tree three
+commits back.
+
+Re-run at `dc30a8a`: **15 of 16 steps**, both pytest passes green, **1,313** with the
+snapshot present and **1,283** with 30 skipped when it is hidden. The only failing step is
+still the offline `uv pip install`, and the package it names moved from `pyarrow==25.0.1`
+to `torch==2.13.0` between runs. That is not a different failure: uv reports whichever
+download it reaches first and the order is not fixed. The judges' page reads the name out
+of the step's own output tail, so it stays right whichever wheel it is.
+
+**Files changed:** `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `FOR_JUDGES.md`,
+`docs/REFERENCE.md`, `apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/clean_clone_check.py`, every generator,
+`scripts/build_console_data.py --skip-images`.
+**Tests:** none new.
+**Outcome:** accepted.

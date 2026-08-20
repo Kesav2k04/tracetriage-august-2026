@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-20T04:55:18+05:30",
- "commit": "f35b005fe2fc22650da2b9fefedc9155595e3391",
+ "measured_at_commit_date": "2026-08-20T07:04:46+05:30",
+ "commit": "dc30a8a81d751c31bd7fe2c136c94de086bf8ca0",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -26,9 +26,9 @@
   "console_ui_links_the_licence": true
  },
  "counts": {
-  "media_files_tracked": 78,
+  "media_files_tracked": 79,
   "satnogs_derived": 74,
-  "not_satnogs_derived": 4,
+  "not_satnogs_derived": 5,
   "distinct_observations": 43,
   "distinct_ground_stations": 22,
   "incomplete": 0
@@ -53,6 +53,18 @@
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
+   },
+   "complete": true
+  },
+  {
+   "file": "apps/web/public/og.png",
+   "bytes": 40994,
+   "observation_id": null,
+   "in_dataset_manifest": false,
+   "modification_notice": null,
    "satnogs_derived": false,
    "obligations": {
     "not_applicable": "not resolvable to a SatNOGS observation"

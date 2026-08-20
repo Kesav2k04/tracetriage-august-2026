@@ -18,7 +18,7 @@ is read from the receipts by the console rather than typed here.
 
 | Question | Command | What it prints |
 |---|---|---|
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1256 passed, 30 skipped, none failed, measured in a clean clone with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1283 passed, 30 skipped, none failed, measured in a clean clone with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 11 emitted, 14 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake and 5 read-only tools, one of which is the grounding checker |
@@ -45,7 +45,7 @@ graded, each question was proved answerable in a single tool call, because a que
 tools cannot serve would otherwise be scored as a failure of the policy.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `cc6c8f9` with every non-loopback socket refused: 15 of 16 steps
+fresh clone of commit `dc30a8a` with every non-loopback socket refused: 15 of 16 steps
 succeeded. What did not: uv pip install --offline -e .[dev,onnx] into the clone's
 environment. The transcript carries each step's exit code and the tail of its output, so
 the reason is readable rather than summarised. The test counts above are from the pass
@@ -53,7 +53,7 @@ with the snapshot directory hidden, which is a judge's case rather than this mac
 and they are the count at that commit rather than at the tip of the branch.
 
 Two things about that run are worth knowing before it is trusted. The offline install into
-the clone did not succeed, because the wheel for `pyarrow==25.0.1` is not in the local
+the clone did not succeed, because the wheel for `torch==2.13.0` is not in the local
 package cache and the run refuses the index, so the suite ran on this machine's
 interpreter at `3.12.13` against the clone's source tree. The code under test is the
 clone's and the environment is not, which is a weaker claim than a cold-start install and
