@@ -15,7 +15,8 @@ turn it back into a TrueType file `Pillow` will load. Without `apps/web/node_mod
 script refuses rather than falling back to a substitute face, because a card set in a
 different family is a card that contradicts the colophon.
 
-Colours are the same Carbon Gray 100 tokens `apps/web/app/globals.css` defines.
+Colours are read out of `apps/web/app/globals.css` at run time rather than copied,
+so the card cannot render an older palette than the site does.
 
     .venv/Scripts/python.exe scripts/build_og_image.py [--check]
 
@@ -45,16 +46,61 @@ MONO_DIR = (
 WIDTH, HEIGHT = 1200, 630
 MARGIN = 72
 
-#: Carbon Gray 100, the same values globals.css sets.
-BACKGROUND = (13, 22, 39)
-UI_01 = (28, 38, 58)
-TEXT_01 = (244, 246, 250)
-TEXT_02 = (185, 194, 209)
-TEXT_03 = (139, 150, 168)
-BORDER = (60, 74, 99)
-PASSED = (66, 190, 101)
-NOT_ESTABLISHED = (196, 160, 71)
-ACCENT = (79, 155, 233)
+CSS = REPO / "apps/web/app/globals.css"
+
+
+def _tokens() -> dict[str, tuple[int, int, int]]:
+    """The palette, read out of the stylesheet the console ships.
+
+    These were ten hardcoded RGB tuples under a comment saying they were "the same
+    values globals.css sets". They were, once. The palette then moved from a
+    Carbon-blue-accented navy to a warm graphite with an inferno accent ramp, the
+    stylesheet moved with it and this file did not, so the card a pasted link renders
+    was still the old design and the comment asserting otherwise was false. A second
+    copy of a palette is one palette and one lie waiting, which is the same reason the
+    architecture diagram reads its colours from here too.
+    """
+    import re
+
+    text = CSS.read_text(encoding="utf-8")
+    start = text.index(":root {")
+    end = text.index("\n}", start)
+    found = dict(re.findall(r"--([a-z0-9-]+):\s*#([0-9a-fA-F]{6})", text[start:end]))
+
+    wanted = {
+        "BACKGROUND": "ui-background",
+        "UI_01": "ui-01",
+        "TEXT_01": "text-01",
+        "TEXT_02": "text-02",
+        "TEXT_03": "text-03",
+        "BORDER": "border-subtle",
+        "PASSED": "verdict-passed",
+        "NOT_ESTABLISHED": "verdict-not-established",
+        "ACCENT": "interactive-01",
+    }
+    missing = sorted(t for t in wanted.values() if t not in found)
+    if missing:
+        raise SystemExit(
+            f"globals.css no longer defines {', '.join('--' + m for m in missing)}. "
+            f"The preview card reads its palette from the stylesheet so the two cannot "
+            f"drift; a renamed token has to be renamed here too."
+        )
+    return {
+        key: tuple(int(found[token][i : i + 2], 16) for i in (0, 2, 4))
+        for key, token in wanted.items()
+    }
+
+
+_PALETTE = _tokens()
+BACKGROUND = _PALETTE["BACKGROUND"]
+UI_01 = _PALETTE["UI_01"]
+TEXT_01 = _PALETTE["TEXT_01"]
+TEXT_02 = _PALETTE["TEXT_02"]
+TEXT_03 = _PALETTE["TEXT_03"]
+BORDER = _PALETTE["BORDER"]
+PASSED = _PALETTE["PASSED"]
+NOT_ESTABLISHED = _PALETTE["NOT_ESTABLISHED"]
+ACCENT = _PALETTE["ACCENT"]
 
 
 def _font(weight: int, size: int, mono: bool = False):

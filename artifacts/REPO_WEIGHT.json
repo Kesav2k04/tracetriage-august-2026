@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-20T09:54:08+05:30",
- "commit": "4d380b48c0c7b01491e2252a7eadfb5ba9293a30",
- "tracked_files": 314,
- "tracked_bytes": 34528580,
- "tracked_megabytes": 32.93,
+ "measured_at_commit_date": "2026-08-20T13:44:51+05:30",
+ "commit": "68b7839c124f389b69afc3d3840e8b951aaf8e00",
+ "tracked_files": 322,
+ "tracked_bytes": 34654872,
+ "tracked_megabytes": 33.05,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,7 +13,7 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 4.8
+   "megabytes": 4.82
   },
   {
    "path": "tests/fixtures",
@@ -33,7 +33,7 @@
   },
   {
    "path": "docs/BOB_BUILD_LOG.md",
-   "megabytes": 0.37
+   "megabytes": 0.38
   },
   {
    "path": "artifacts/SECOND_TRACE_SURVEY.json",
@@ -69,9 +69,9 @@
   }
  ],
  "by_directory_remainder": {
-  "groups": 139,
-  "bytes": 2525830,
-  "megabytes": 2.41,
+  "groups": 145,
+  "bytes": 2616693,
+  "megabytes": 2.5,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
@@ -89,7 +89,7 @@
   },
   {
    "path": "apps/web/public/media/corridor-explainer.mp4",
-   "megabytes": 1.57
+   "megabytes": 1.539
   },
   {
    "path": "artifacts/a3_overlays/overlay_14737186.png",

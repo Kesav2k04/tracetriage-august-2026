@@ -91,13 +91,58 @@ PLOT_W, PLOT_H = 4.6, 5.4
 EXAGGERATION = (PLOT_W / (X_MAX - X_MIN)) / (PLOT_H / IMG_H)
 
 # The console's own tokens, so the video and the page it sits on are one artefact.
-INK = "#f4f4f4"
-DIM = "#8d8d8d"
-GRID = "#393939"
-BLUE = "#4589ff"
-AMBER = "#f1c21b"
-PAPER = "#161616"
-PANEL = "#262626"
+# The palette, read out of the console's stylesheet rather than copied into this file.
+#
+# These were seven hardcoded hex strings. They matched the site when they were written
+# and then the site's palette moved from a Carbon-blue-accented navy to a warm graphite
+# with an inferno accent ramp, and this scene did not, so the clip embedded halfway down
+# the landing page rendered in a colour scheme the rest of the page had abandoned. Read
+# here, it cannot happen twice.
+#
+# Two names changed meaning with the palette, and the mapping is deliberate rather than
+# nearest-hue. FITTED is the answer the scene is about, so it takes the page's strongest
+# ink, which is what the hero plate and the observation overlay both do with the same
+# curve. PREDICTED keeps the accent, because it is the computed comparison arm. Drawing
+# both off the inferno ramp would have put them one stop apart, and the whole scene is
+# the gap between them.
+def _palette() -> dict[str, str]:
+    import re
+
+    css = (
+        Path(__file__).resolve().parents[1] / "apps/web/app/globals.css"
+    ).read_text(encoding="utf-8")
+    start = css.index(":root {")
+    end = css.index("\n}", start)
+    found = dict(
+        re.findall(r"--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})", css[start:end])
+    )
+    wanted = {
+        "INK": "text-01",
+        "DIM": "text-03",
+        "GRID": "ui-02",
+        "FITTED": "text-04",
+        "PREDICTED": "interactive-01",
+        "PAPER": "ui-background",
+        "PANEL": "ui-01",
+    }
+    missing = sorted(t for t in wanted.values() if t not in found)
+    if missing:
+        raise SystemExit(
+            f"globals.css no longer defines {', '.join('--' + m for m in missing)}. This "
+            f"scene reads its palette from the stylesheet so the clip cannot render in an "
+            f"older one than the page around it."
+        )
+    return {key: found[token] for key, token in wanted.items()}
+
+
+_P = _palette()
+INK = _P["INK"]
+DIM = _P["DIM"]
+GRID = _P["GRID"]
+FITTED = _P["FITTED"]
+PREDICTED = _P["PREDICTED"]
+PAPER = _P["PAPER"]
+PANEL = _P["PANEL"]
 
 
 def to_point(col: float, row: float, dx: float = 0.0) -> np.ndarray:
@@ -160,7 +205,7 @@ class CorridorExplainer(Scene):
         self.wait(1.6)
 
         # ---- 2. What the geometry says ----------------------------------------
-        predicted = VMobject(color=AMBER, stroke_width=4)
+        predicted = VMobject(color=PREDICTED, stroke_width=4)
         predicted.set_points_as_corners([to_point(col, row) for row, col in PRED])
 
         step2 = Text(
@@ -177,12 +222,12 @@ class CorridorExplainer(Scene):
         self.wait(1.8)
 
         # ---- 3. Sliding it to the best match ----------------------------------
-        fitted = VMobject(color=BLUE, stroke_width=4.5)
+        fitted = VMobject(color=FITTED, stroke_width=4.5)
         fitted.set_points_as_corners(
             [to_point(col, row, dx=OFFSET_PX) for row, col in PRED]
         )
 
-        band = VMobject(color=BLUE, fill_opacity=0.12, stroke_width=0)
+        band = VMobject(color=FITTED, fill_opacity=0.12, stroke_width=0)
         upper = [
             to_point(col, row, dx=OFFSET_PX + HALF_WIDTH_PX) for row, col in PRED
         ]
@@ -225,7 +270,7 @@ class CorridorExplainer(Scene):
         gap_label = VGroup(
             Text(f"{abs(OFFSET_PX):.0f} px", font_size=26, color=INK, font=MONO),
             Text(f"{abs(OFFSET_HZ):,.0f} Hz", font_size=26, color=INK, font=MONO),
-            Text(f"{abs(OFFSET_PPM):.1f} ppm", font_size=26, color=BLUE, font=MONO),
+            Text(f"{abs(OFFSET_PPM):.1f} ppm", font_size=26, color=FITTED, font=MONO),
         ).arrange(DOWN, aligned_edge=LEFT, buff=0.12)
         gap_label.next_to(frame, RIGHT, buff=0.5).shift(DOWN * 1.9)
 
