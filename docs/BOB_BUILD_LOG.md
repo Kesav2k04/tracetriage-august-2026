@@ -5523,7 +5523,7 @@ absent count is named rather than defaulted.
 verified to fail on the old rounding before the fix landed; the alignment of the register's
 two weight figures, the inert-criterion census, the per-split ceilings, the permutation
 control, the forced station failure, the site exclusion, the derived comparison count and the
-warm-cold difference each have one. 1,315 offline tests pass, none skipped.
+warm-cold difference each have one. 1,315 offline tests pass, none skipped. [Corrected in D15g: the count is 1,313 selected of 1,317 collected with 4 deselected. Nothing under `tests/` changed between this commit and D15g, so 1,315 was a misread of the summary line rather than a different tree.]
 **Outcome:** accepted. Nine of the ten findings were real; the tenth, that the lede's verdict
 cards render stacked rather than side by side, is what `apps/web/app/globals.css:676`
 documents as deliberate and is not a defect.
@@ -5660,3 +5660,166 @@ of the step's own output tail, so it stays right whichever wheel it is.
 `scripts/build_console_data.py --skip-images`.
 **Tests:** none new.
 **Outcome:** accepted.
+
+## 2026-08-20 IST | Wave D | D15g: the council check, and the number the landing page got wrong
+
+`docs/SUBMISSION_CHECKLIST.md` item 1b is a release gate: two blind internal judges score
+at least 18 of 20 against the four criteria the Official Rules define in section 6, with no
+criterion below 4. D14 and D15 ran three reviews that hunted for defects and closed
+thirty-two. None of them scored. This one scores.
+
+Four seats, each given the repository from `README.md` inward, the live console at its six
+routes, and the demo video treated as absent because it is. None was told the target, none
+saw another's report, none was told what the earlier reviews had found, and each was asked
+to verify claims by opening the file the claim names rather than reading the prose around
+it. Two were briefed as ordinary judges and two as sceptics.
+
+### The gate is not met
+
+| Seat | Technical Execution | Innovation | Challenge Fit | Implementation & Feasibility | Total |
+|---|---|---|---|---|---|
+| 1 | 4 | 4 | 4 | 4 | **16** |
+| 2 | 4 | 4 | 4 | 3 | **15** |
+| 3 | 4 | 4 | 5 | 3 | **16** |
+| 4 | 4 | 4 | 4 | 3 | **15** |
+
+Mean 15.5 of 20 against a bar of 18, and three of four seats put Implementation &
+Feasibility at 3 against a floor of 4. **Item 1b fails on both conditions.** It is recorded
+as failing rather than re-run until it passes, which is the same rule every gate in this
+project is held to.
+
+The agreement is more useful than the mean. Every seat scored Technical Execution 4 and
+Innovation 4, and every seat named the same two ceilings: the AI's actual job is small,
+and the thing the project would most want to claim has not been measured. Three of the four
+named running kill gate 4 as the single change that would buy the most, one called it
+"an afternoon that converts the weakest criterion into the strongest", and the fourth
+asked for a throughput figure instead. Nobody asked for more code.
+
+On the question the sceptic seats were told to press, whether publishing mostly
+NOT_ESTABLISHED reads as rigour or as failure, both said rigour, and one wrote it down as
+"projects that failed do not build the instrument that would have caught them". The
+qualification both attached is the tally: two gates met sounds like a third of the work
+succeeded, and both met gates are feasibility checks pre-passed before any pipeline code.
+
+### The landing page printed a number that could not be true
+
+Three of the four seats found it independently, and two named it as the one change to make
+before submitting. `apps/web/app/page.tsx` bound the permutation sentence's population to
+`primary.n_queue_examined`, which is the review budget, so the first screen of the console
+read "random orderings of the same 50 observations" and then "a budget of 50 over 50 caps
+every possible ordering at 1.740x". Fifty conflicts in fifty observations at a budget of
+fifty caps at 1.0, so the sentence contradicted itself in its own next clause, in the
+paragraph whose code comment says it exists to put the strongest evidence on the first
+screen.
+
+The reachable-wrong-field part is the real defect. `scripts/build_console_data.py` did not
+publish the circularity receipt's `reproduction` block at all, so the payload held no field
+carrying 87 and the only population-shaped number in scope was the budget. It publishes the
+block now, `apps/web/lib/data.ts` types it, and the sentence reads its population, its
+budget and its conflict count from it. The README always had this right, which is why no
+generator check caught it: the console and the document are written by different paths.
+
+### Four wrong intervals in the file that exists to stop wrong numbers
+
+One seat read `docs/CLAIM_REGISTER.md` against the receipts it cites and found `[1.920,
+3.896]` in two rows whose source is `artifacts/QUEUE_RECEIPT.json`, where the cold_station
+bound is 3.858769. The string `3.89` appears nowhere in that receipt. Adding the register's
+own check found three more nobody had looked for: the chronological upper bound still read
+1.755 in two rows after D15's ceiling fix moved it to 1.740, cold_transmitter read [1.340,
+1.913] against a receipt holding [1.336, 1.894], and gate 5's Brier margin read [-0.01268,
+0.05029] against [-0.01301, 0.05036]. The README had gate 5 right and the register did not.
+
+`docs/KILL_GATE.md` carried the same rot in a per-split table typed in C2 and never
+re-derived: eight cells across four splits, including both of cold_station's upper bounds
+and two `n_decisive` counts that were gate 5's population rather than the queue's. That
+table is generated now, between markers, from `gate6.per_split` and
+`per_split_summaries`. The C2 measurement blockquote above it keeps its 1.755 with the
+correction stated underneath, because a dated record that is quietly edited is not a
+record.
+
+`tests/test_claim_drift.py` gains the check that would have caught all of it:
+`test_every_registered_interval_is_in_the_artifact_its_row_cites` pulls every bracketed
+pair out of the register's value column and requires both endpoints to be in the artifact
+that row cites, at the precision quoted. 10 rows and 13 intervals today, with floors, a
+named exemption for the row that records what a superseded document said, and a named
+unresolvable for the row whose artifact cell is prose rather than a path. Putting 3.896
+back turns it red, verified before the fix landed. The existing checks all read the
+README's tables; nothing had ever read the register against itself.
+
+### Five things the first two minutes did not say
+
+**The first screen named IBM once and Granite not at all.** The README opened with the
+submission line, the console URL, a pointer to the judges' page, and then a gate table
+whose headline reads "none passed". The first mention of Granite was 160 lines down and the
+IBM stack table 290 lines down. That is the defect D15a fixed on the console's landing page,
+still live on the document a judge opens first. A generated `What it produced` block now
+sits above the status block: the queue over 407 observations, the agent study at 22 of 24
+against 2 of 24 with its exact p, the checker's 11 emitted and 14 refused with 525 of 525
+adversarial drafts caught and 0 of 175 clean ones refused, and the precedent search on the
+Granite embedding reported indistinguishable. Every figure is read from a receipt by the
+script that writes the block, and the status follows it unchanged.
+
+**The judges' page did not use the judges' vocabulary.** Five headings, none of them the
+four the Official Rules name, with the fourth criterion split across two sections and no
+note that both score into one box. The headings are the criteria now, each quoting the
+rules' own sentence. Technical Execution also says something about IBM Bob for the first
+time: the section scored against "effective use of IBM Bob" had its Bob evidence a hundred
+lines below it, and it now opens with the build log's 50 dated entries, the three `.bob/`
+files and the pre-build baseline, with the entry count read from the log rather than typed.
+The page's own tally sentence stopped rounding up: it said two gates were met and left out
+that both are PRE_PASSED feasibility checks, which is what `README.md` says plainly two
+screens away and what a seat named as the one place the judges' page is softer than the
+README. Both generators also stopped wrapping on hyphens, which was rendering `cold-station`
+as `cold- station`.
+
+**Two of the five checks worth running first looked like they needed a model.** They do not:
+`scripts/run_agent_study.py` and `scripts/run_explanations.py` publish from committed
+fixtures and only talk to the local runtime under `--freeze`. Nothing said so, and a judge
+whose command fails concludes the project does not run.
+
+**The console had no signposted way to the page written for judges.** A judge who arrives at
+the deployed URL rather than the repository, which is the review path the June retrospective
+in `docs/SUBMISSION_CHECKLIST.md` describes, had a repository link in the footer and nothing
+pointing at `FOR_JUDGES.md`. It is the first link in that row now.
+
+**A test count no run produces.** The handoff, the submission checklist and the D15 entry
+carried 1,315. The suite collects 1,317, deselects 4 by the marker expression and passes
+1,313, and nothing under `tests/` changed between D15 and here, so it was a misread. All
+three numbers are published together, because one count of a run with a deselection in it
+does not say which of the three it is.
+
+### What was corrected in the paperwork
+
+`docs/SUBMISSION_CHECKLIST.md` still described wave A as the current state, still listed
+`bob_sessions/` as evidence Bob was primary after E0 deleted it, still called the README's
+Bob section a skeleton, and gave two different dates for making the repository public. The
+handoff named two remaining items when there are four, and the one it omitted is the
+eligibility condition: without the IBM SkillsBuild certificate the entry is not scored at
+all. The two procedure documents that still told a future builder to export task history
+into the deleted directory say what happened to it instead.
+
+### What the seats asked for and this unit did not do
+
+Kill gate 4, named by three of four as the change that would buy the most. It is a
+person's afternoon with a blinded 72-item worksheet that already exists and commits to its
+sample in advance, and it is the reason Implementation & Feasibility scores 3. A throughput
+figure, so scale has a number rather than an architecture argument. The demo video, which is
+scored zero and cannot be recovered by reading the repository. Making the repository public,
+without which every link in every document 404s for a judge. None of the four is a code
+change and all four are outside what this session can do.
+
+**Files changed:** `README.md`, `FOR_JUDGES.md`, `docs/KILL_GATE.md`,
+`docs/CLAIM_REGISTER.md`, `docs/SUBMISSION_CHECKLIST.md`, `docs/REFERENCE.md`,
+`docs/BOB_HANDOFF.md`, `docs/BUILD_BUDGET.md`, `docs/BOB_BUILD_LOG.md`, `.bob/rules.md`,
+`apps/web/app/page.tsx`, `apps/web/lib/data.ts`, `apps/web/components/Colophon.tsx`,
+`apps/web/public/data/`, `scripts/build_console_data.py`, `scripts/sync_kill_gate.py`,
+`scripts/sync_for_judges.py`, `scripts/sync_readme_results.py`,
+`tests/test_claim_drift.py`.
+**Commands run:** every generator with and without `--check`,
+`scripts/build_console_data.py --skip-images`, `npx tsc --noEmit`, `npx vitest run`,
+`npx next build`, `ruff check`, `python -m pytest`, `scripts/gate.py`.
+**Tests:** 2 new. The register-interval check was verified to fail on the 3.896 it was
+built for before the fix landed, and it found three drifts on its first run that no reader
+had reported. 1,315 offline tests collected of 1,319, 4 deselected, all passing.
+**Outcome:** accepted, and the release gate it measured is recorded as **not met** at 15.5
+of 20 against a bar of 18.

@@ -47,7 +47,7 @@ Run in order. Do not skip step 2 because the code "obviously works".
 2. **Run the full test and acceptance suite.** Record exactly what passes and what does not. A known failure written down is useful; a hidden one poisons the next account.
 3. **Update `docs/BOB_HANDOFF.md`:** completed work, open failures, the *exact* next unit, changed files, test commands, dataset and model hashes, architectural decisions and why.
 4. **Update `docs/BOB_BUILD_LOG.md`:** genuine task history, commit SHAs, failures, repairs, actual credits spent per unit.
-5. **Export task history and screenshots to `bob_sessions/`,** secrets removed before writing.
+5. **Do not export task history into the repository.** `bob_sessions/` was deleted in E0: it held one `.gitkeep`, git does not publish an empty directory, and the README named it as evidence a reader could open. `docs/BOB_BUILD_LOG.md` is the record instead.
 6. **Commit** as `Kesav2k04 <kesavk659@gmail.com>`, no trailers.
 
 ## Starting a new account

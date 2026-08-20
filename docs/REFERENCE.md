@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 23 JSON artifacts, 8 contracts, 35 scripts, 17 package modules and 1106 test functions across 44 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 23 JSON artifacts, 8 contracts, 35 scripts, 17 package modules and 1108 test functions across 44 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -23,14 +23,14 @@ file that no longer exists in that form.
 
 | Artifact | Schema | Version | Contract | Bytes | sha256 | Named by | Named in tests |
 |---|---|---|---|---|---|---|---|
-| `AGENT_RECEIPT.json` | AGENT_RECEIPT | 1 | none | 30,114 | `cfc07bbcdac087d8` | `scripts/build_console_data.py`, `scripts/run_agent_study.py`, `scripts/sync_for_judges.py` | `test_agent.py` |
+| `AGENT_RECEIPT.json` | AGENT_RECEIPT | 1 | none | 30,114 | `cfc07bbcdac087d8` | `scripts/build_console_data.py`, `scripts/run_agent_study.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_agent.py` |
 | `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 81,359 | `959ef10a1b22f4a8` | `scripts/audit_release.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `BASELINE_RECEIPT.json` | BASELINE_RECEIPT | 0.1.0 | none | 9,010 | `e0912b1454763c14` | `scripts/run_baseline.py`, `scripts/run_triage_slice.py` | `test_baseline.py` |
 | `CIRCULARITY_RECEIPT.json` | tracetriage/circularity/v1 | 1.0.0 | none | 11,690 | `8dc893191f74d0cd` | `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/run_circularity_check.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_circularity.py` |
 | `CLEAN_CLONE_TRANSCRIPT.json` | CLEAN_CLONE_TRANSCRIPT | 0.1.0 | none | 17,067 | `a819866790a035f7` | `scripts/clean_clone_check.py`, `scripts/sync_for_judges.py` | `test_clean_clone.py`, `test_for_judges.py` |
 | `corridor_features.json` | CORRIDOR_FEATURES | 0.1.0 | none | 543,929 | `dea323857f560cc8` | `pipeline/tracetriage/features.py`, `scripts/build_console_data.py`, `scripts/clean_clone_check.py`, `scripts/extract_corridor_features.py`, `scripts/run_queue.py`, `scripts/sync_docs.py` | `test_console_export.py`, `test_reference_sync.py` |
 | `DATASET_MANIFEST.json` | none declared | 0.2.1 | none | 2,359,254 | `9fb0c0a28175e7ef` | `pipeline/tracetriage/baseline.py`, `pipeline/tracetriage/snapshot.py`, `pipeline/tracetriage/splits.py`, `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/build_splits.py`, `scripts/run_baseline.py`, `scripts/run_gate3.py`, `scripts/run_precedent_study.py`, `scripts/run_triage_slice.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py` | `test_base_rates.py`, `test_baseline.py`, `test_contracts.py`, `test_snapshot.py`, `test_snapshot_isolation.py`, `test_splits.py` |
-| `EXPLAIN_RECEIPT.json` | none declared | n/a | none | 24,915 | `304b475a589cc2ec` | `scripts/run_agent_study.py`, `scripts/run_explanations.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py` | `test_explain_receipt.py` |
+| `EXPLAIN_RECEIPT.json` | none declared | n/a | none | 24,915 | `304b475a589cc2ec` | `scripts/run_agent_study.py`, `scripts/run_explanations.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_explain_receipt.py` |
 | `FUSION_RECEIPT.json` | FUSION_RECEIPT | 0.1.0 | `contracts/fusion_receipt.schema.json` | 248,786 | `db61b08f973aa1ae` | `scripts/build_console_data.py`, `scripts/run_fusion.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_fusion.py`, `test_kill_gate_sync.py` |
 | `GATE3_RECEIPT.json` | none declared | n/a | none | 53,813 | `1b8f154b08eeb84b` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/run_agent_study.py`, `scripts/run_gate3.py`, `scripts/sync_demo.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_corridor_fit.py`, `test_gate3_bound.py`, `test_hero_nulls.py`, `test_kill_gate_sync.py`, `test_physics.py` |
 | `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 2,411 | `3a066d7784ecbdd0` | `scripts/build_gate4_worksheet.py`, `scripts/run_agent_study.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_gate4.py` |
@@ -139,7 +139,7 @@ Receipts no test names: none.
 | `tests/test_baseline.py` | 47 | Tests for the A6 image-only baseline module. |
 | `tests/test_centre_energy_feature.py` | 14 | Guards on the centre-energy feature itself, not on the pipeline around it. |
 | `tests/test_circularity.py` | 21 | The circularity analysis has to reproduce the gate before it is allowed to bound it. |
-| `tests/test_claim_drift.py` | 9 | Every public number must come from a generated artifact, not a keyboard. |
+| `tests/test_claim_drift.py` | 11 | Every public number must come from a generated artifact, not a keyboard. |
 | `tests/test_clean_clone.py` | 11 | The clean-clone transcript, and the counts it publishes. |
 | `tests/test_console_export.py` | 22 | The console export, and the episode key the receipt now names (C5). |
 | `tests/test_console_routes.py` | 4 | Every page the console builds has to be reachable from the console. |

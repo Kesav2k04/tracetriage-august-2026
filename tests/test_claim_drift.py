@@ -522,3 +522,146 @@ def test_every_gate_that_produced_no_number_appears_in_the_readme():
         "in scripts/sync_readme_results.py, or the tables imply a measurement that "
         "does not exist."
     )
+
+
+# --- The register's own intervals, against the artifacts the register cites. -------
+#
+# Everything above checks the README. Nothing checked the register itself, and the
+# register is the artifact this project points at when it says a number cannot drift.
+# A judge-seat review found `[1.920, 3.896]` in two rows citing QUEUE_RECEIPT.json,
+# whose cold_station bound is 3.858769: the string "3.89" appears nowhere in the
+# receipt. Two more rows still carried the chronological upper bound as 1.755 after
+# D15's ceiling fix moved it to 1.740. Four wrong bounds, in the file that exists to
+# stop exactly that, served to the console at /data/CLAIM_REGISTER.md.
+#
+# They survived because the checks above read the README's table cells and because
+# `_numbers_in` is applied per row rather than per interval, so nothing ever asked
+# whether a bracketed pair was in its own receipt.
+
+_REGISTER = REPO / "docs" / "CLAIM_REGISTER.md"
+
+#: `[1.353, 1.740]`, and the same with a leading sign or a percent inside.
+_INTERVAL = re.compile(r"\[\s*(-?\d[\d,]*\.?\d*)\s*,\s*(-?\d[\d,]*\.?\d*)\s*\]")
+
+# Rows whose interval is deliberately not the artifact's current value, by claim name,
+# each with the reason it cannot be compared. Closed and asserted by name below,
+# because an exemption with no measured count outlives its reason.
+_REGISTER_INTERVAL_EXEMPT = {
+    "Superseded: KILL_GATE.md published two different 95% intervals for gate 6": (
+        "the row records what a superseded document said, so its intervals are the "
+        "wrong ones on purpose"
+    ),
+}
+
+# Rows whose artifact cell names no JSON file, so there is nothing to compare against,
+# with the reason. Closed and asserted by name, for the same reason as the exemptions.
+_REGISTER_INTERVAL_UNRESOLVABLE = {
+    "Superseded: gate 6 CI published in C1": (
+        "the artifact cell is prose about a loop that no longer exists, not a path"
+    ),
+}
+
+# Measured on 2026-08-20 at D15g: 10 rows carrying 13 intervals. The floors sit just
+# below, so a row that stops being checked fails here rather than passing quietly.
+_MIN_REGISTER_INTERVAL_ROWS = 9
+_MIN_REGISTER_INTERVALS = 12
+
+
+def _register_rows() -> list[tuple[str, str, str]]:
+    """Claim, value and artifact cells of every data row in the register's tables."""
+    rows: list[tuple[str, str, str]] = []
+    for line in _REGISTER.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("|") or stripped.startswith("|---"):
+            continue
+        cells = [c.strip() for c in stripped.strip("|").split("|")]
+        if len(cells) < 4 or cells[0] in ("Claim", ""):
+            continue
+        rows.append((cells[0], cells[1], cells[3]))
+    return rows
+
+
+def compare_register_intervals() -> dict[str, object]:
+    """Every bracketed interval in the register, against the artifact its row cites."""
+    misses: list[str] = []
+    exempt_seen: set[str] = set()
+    rows_checked = 0
+    intervals_checked = 0
+    unresolvable: list[str] = []
+
+    for claim, value, artifact in _register_rows():
+        pairs = _INTERVAL.findall(value)
+        if not pairs:
+            continue
+        if claim in _REGISTER_INTERVAL_EXEMPT:
+            exempt_seen.add(claim)
+            continue
+        target = _resolve(artifact)
+        if target is None or target.suffix != ".json":
+            unresolvable.append(claim)
+            continue
+        pool: list[float] = []
+        _numeric_leaves(json.loads(target.read_text(encoding="utf-8")), pool)
+        rows_checked += 1
+        for low, high in pairs:
+            intervals_checked += 1
+            for bound, side in ((low, "lower"), (high, "upper")):
+                token = bound.replace(",", "")
+                if not _found(token, pool):
+                    misses.append(
+                        f"{claim!r}: the {side} bound {token} is not in "
+                        f"{target.relative_to(REPO).as_posix()}"
+                    )
+    return {
+        "misses": misses,
+        "rows": rows_checked,
+        "intervals": intervals_checked,
+        "exempt_seen": sorted(exempt_seen),
+        "unresolvable": sorted(set(unresolvable)),
+    }
+
+
+def test_every_registered_interval_is_in_the_artifact_its_row_cites():
+    """A bracketed pair in the register has to be the pair in the receipt."""
+    result = compare_register_intervals()
+
+    assert not result["misses"], (
+        "claim register intervals not found in their artifacts:\n  "
+        + "\n  ".join(result["misses"])  # type: ignore[arg-type]
+    )
+    assert result["rows"] >= _MIN_REGISTER_INTERVAL_ROWS, (
+        f"only {result['rows']} register rows with intervals were compared, below the "
+        f"{_MIN_REGISTER_INTERVAL_ROWS} measured at D15g. A row that stopped being "
+        "checkable has to be explained, not lost."
+    )
+    assert result["intervals"] >= _MIN_REGISTER_INTERVALS, (
+        f"only {result['intervals']} intervals were compared, below the "
+        f"{_MIN_REGISTER_INTERVALS} measured at D15g."
+    )
+    assert set(result["exempt_seen"]) == set(_REGISTER_INTERVAL_EXEMPT), (  # type: ignore[arg-type]
+        "the set of exempt register rows changed. Now: "
+        f"{sorted(set(result['exempt_seen']))}. Expected: "
+        f"{sorted(_REGISTER_INTERVAL_EXEMPT)}. Each one needs a reason, because an "
+        "exemption with no reason outlives the reason."
+    )
+    assert set(result["unresolvable"]) == set(_REGISTER_INTERVAL_UNRESOLVABLE), (  # type: ignore[arg-type]
+        "the set of register rows whose artifact cell names no file changed. Now: "
+        f"{sorted(set(result['unresolvable']))}. Expected: "
+        f"{sorted(_REGISTER_INTERVAL_UNRESOLVABLE)}. A row that stops resolving is a "
+        "row that stopped being checked."
+    )
+
+
+def test_the_register_interval_check_catches_a_drifted_bound():
+    """The check above fails on a wrong bound, verified rather than assumed.
+
+    Without this, a regex that stopped matching would report zero misses over zero
+    intervals and read as a pass.
+    """
+    pool = [1.9196153846153847, 3.858769135837697]
+    assert _found("3.859", pool)
+    assert _found("1.920", pool)
+    assert not _found("3.896", pool), (
+        "3.896 must not be findable in the cold_station bounds, or the check that "
+        "caught it at D15g would have passed over it"
+    )

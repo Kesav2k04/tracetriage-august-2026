@@ -383,11 +383,14 @@ def _para(text: str, indent: str = "") -> str:
     Wrapping in the template instead would go ragged the first time a receipt changed the
     width of a number, which is the same reason the README generator wraps its tally.
     """
+    # break_on_hyphens=False, because the default split "cold-station" and "read-only"
+    # across two lines, and markdown renders that as "cold- station".
     return textwrap.fill(
         " ".join(text.split()),
         width=90,
         initial_indent=indent,
         subsequent_indent=indent,
+        break_on_hyphens=False,
     )
 
 
@@ -479,13 +482,31 @@ REQUIREMENTS: list[tuple[str, ...]] = [
 ]
 
 
+# The tally, with what the met gates actually were.
+#
+# This page said "2 were met" and stopped. A judge-seat review named it as the one place
+# the submission rounds up: both met gates are PRE_PASSED feasibility checks about dataset
+# size and metadata coverage, answered before the first line of pipeline code, and README
+# says so plainly two screens away. The page written for judges was the softer one.
+_N_PRE_PASSED = sum(1 for g in gates["gates"] if g["verdict"] == "PRE_PASSED")
+_N_SUBSTANTIVE = N_GATES - _N_PRE_PASSED
+_MET_CLAUSE = (
+    f"""and the {N_MET} that {_plural(N_MET, "was", "were")} met
+    {_plural(N_MET, "is", "are")} {_plural(N_MET, "a", "the")} PRE_PASSED feasibility
+    {_plural(N_MET, "check", "checks")} answered before any pipeline code was written, so
+    of the {_N_SUBSTANTIVE} gates that ask whether the idea works, none passed on the split
+    that decides it"""
+    if _N_PRE_PASSED == N_MET and N_MET
+    else "and the receipts name which"
+)
+
 INTRO = _para(
     f"""This page is a map, not a summary. Each claim below names the file that carries the
     evidence and, where it can, the command that regenerates it. Of the {N_GATES} kill gates
     declared before the build, {N_MET} {_plural(N_MET, "was", "were")} met,
     {N_INCONCLUSIVE} came back inconclusive and {N_OPEN}
-    {_plural(N_OPEN, "was", "were")} never run, and that tally is read from the receipts by
-    the console rather than typed here."""
+    {_plural(N_OPEN, "was", "were")} never run. That tally is read from the receipts by
+    the console rather than typed here, {_MET_CLAUSE}."""
 )
 
 _FAILED_CLAUSE = "" if not CLONE_FAILED else f". What did not: {CLONE_FAILED_STEPS}"
@@ -558,6 +579,35 @@ CLONE_LIMITS = _para(
     is a Python-level patch loaded through `PYTHONPATH`, so it reaches every Python child
     process and constrains nothing else: the Node steps are outside it, and that is a limit of
     the guard rather than a claim about them."""
+)
+
+# The build log's entry count, read rather than typed.
+#
+# The criterion this page's Technical Execution section is scored against begins "Effective
+# use of IBM Bob", and that section said nothing about Bob: the evidence was in a separate
+# section 100 lines below it, so a judge scoring the criterion read past the answer. The
+# count comes from the file because an entry count that is typed is the first thing to go
+# stale, and this file gains an entry per accepted unit.
+_BUILD_LOG_STRUCTURAL_HEADINGS = frozenset({"## Format", "## Entries"})
+N_BUILD_LOG_ENTRIES = sum(
+    1
+    for line in (REPO / "docs/BOB_BUILD_LOG.md").read_text(encoding="utf-8").splitlines()
+    if line.startswith("## ") and line.strip() not in _BUILD_LOG_STRUCTURAL_HEADINGS
+)
+
+BOB_TECHNICAL = _para(
+    f"""IBM Bob is the primary development tool and built every load-bearing subsystem:
+    ingestion, physics, the model interface, calibration, abstention, ranking, the console,
+    the test suite and the release sign-off. `docs/BOB_BUILD_LOG.md` carries
+    {N_BUILD_LOG_ENTRIES} dated entries, one per accepted unit, each naming the files it
+    changed, the commands that were run and what failed before it was accepted.
+    `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions,
+    tool contracts and MCP registration each task ran under, tracked so the conditions of
+    the work are readable and not only its output. `docs/PRE_BUILD_BASELINE.md` records what
+    existed before the first Bob task, so the line between scaffolding and built work is
+    auditable rather than asserted. The additional technologies are named with their files
+    in the README's IBM stack table: two Granite models running locally, Carbon and Plex on
+    the console, MCP over stdio JSON-RPC, and a Next.js static export."""
 )
 
 TECHNICAL = _para(
@@ -677,6 +727,12 @@ observation's own measured fields.
 |---|---|---|
 {_table(CHECKS)}
 
+**None of the five needs a GPU, a model runtime or a network connection.** The two that
+name a model publish from a committed fixture and only talk to it under `--freeze`, which
+is a step for re-measuring rather than for reading, so a machine with no local runtime
+reproduces the same numbers this page prints. `scripts/gate.py` builds the console as one
+of its steps, so that one wants Node as well as Python.
+
 `python` above means the interpreter built by the Setup section of `README.md`, which on
 this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest options include
 `-q`, so a second `-q` suppresses the summary line: that is worth knowing before reading a
@@ -698,7 +754,16 @@ run as having collected nothing.
 
 ## The judged criteria, and what to look at
 
-### Technical execution
+Four criteria, each scored 1 to 5. The heading is the criterion as the Official Rules write
+it and the line under it is the rules' own wording, so a scoring sheet and this page read in
+the same order.
+
+### Technical Execution
+
+> Effective use of IBM Bob and additional technologies, functional and well-structured
+> solution.
+
+{BOB_TECHNICAL}
 
 {TECHNICAL}
 
@@ -709,25 +774,31 @@ matching its receipt.
 
 ### Innovation
 
+> Creativity, originality, and unique application of AI.
+
 {INNOVATION_ONE}
 
 {INNOVATION_TWO}
 
 {INNOVATION_THREE}
 
-### Challenge fit
+### Challenge Fit
+
+> Relevance to the challenge and ability to address real-world problems.
 
 {CHALLENGE_FIT}
 
 {LICENCE}
 
-### Feasibility
+### Implementation and Feasibility
+
+> Practicality, scalability, and potential for real-world use.
 
 {FEASIBILITY_ONE}
 
 {FEASIBILITY_TWO}
 
-### Real-world impact
+#### Real-world use, under the same criterion
 
 {IMPACT}
 

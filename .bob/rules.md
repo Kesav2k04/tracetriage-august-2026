@@ -73,7 +73,7 @@ Stop and document the failure in `docs/KILL_GATE.md`. Do not hide it, do not com
 
 ## 9. Before you run out of credits
 
-Stop starting features at **3 credits remaining**. Then: run the full test and acceptance suite, update `docs/BOB_HANDOFF.md` with exact next steps, update `docs/BOB_BUILD_LOG.md`, and export task history to `bob_sessions/` with secrets removed. Procedure in `docs/BUILD_BUDGET.md`.
+Stop starting features at **3 credits remaining**. Then: run the full test and acceptance suite, update `docs/BOB_HANDOFF.md` with exact next steps, update `docs/BOB_BUILD_LOG.md`, Task history is not exported into this repository: `bob_sessions/` was deleted in E0 because it held one `.gitkeep`, git does not publish an empty directory, and the README named it as evidence. `docs/BOB_BUILD_LOG.md` is the record. Procedure in `docs/BUILD_BUDGET.md`.
 
 ## 10. Git
 

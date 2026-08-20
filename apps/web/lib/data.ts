@@ -455,6 +455,25 @@ const evaluationData = evaluationJson as unknown as {
     per_split: Record<string, SplitGate6>;
   };
   circularity: {
+    /**
+     * The population the bound is computed over, not the budget spent on it.
+     *
+     * These were absent from the payload, so the lede bound its permutation
+     * sentence to the review budget and printed "a budget of 50 over 50 caps every
+     * possible ordering at 1.740x". Fifty conflicts in fifty observations at a
+     * budget of fifty caps at 1.0, so the sentence contradicted itself in its own
+     * next clause, on the page every reader lands on first.
+     */
+    reproduction: {
+      n_population: number;
+      n_conflicts: number;
+      budget: number;
+      n_at_budget: number;
+      random_expected: number;
+      lift_point: number;
+      published_lift_point: number;
+      matches_the_queue_receipt: boolean;
+    };
     ceiling: {
       max_findable_at_budget: number;
       lift: number;

@@ -101,6 +101,13 @@ export default function Colophon({
               rendered page is a second copy of a file this project checks byte for
               byte. */}
           <p>
+            {/* First in the row, because a judge who arrives at the deployed URL rather
+                than at the repository has no other signposted way into the page written
+                for them. It is the one link here that is navigation. */}
+            <a href={`${REPO}/blob/main/FOR_JUDGES.md`}>
+              <b>For judges</b>
+            </a>
+            {" · "}
             <a href={`${REPO}/blob/main/docs/KILL_GATE.md`}>Gates</a>{" "}
             <a href="/data/KILL_GATE.md" className="colophon-raw">
               (raw)

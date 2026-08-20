@@ -696,6 +696,12 @@ def main(argv: list[str] | None = None) -> int:
                 # the target needs its ceiling and its permutation test on the same
                 # page as the lift, or the page is publishing the flattering half.
                 "circularity": {
+                    # The population, the conflicts and the budget the bound is
+                    # computed over. Without them the console had no field holding 87
+                    # and the lede reached for the review budget instead, printing "a
+                    # budget of 50 over 50 caps every possible ordering at 1.740x",
+                    # which is arithmetically impossible and sat on the landing page.
+                    "reproduction": circularity["reproduction"],
                     "ceiling": circularity["ceiling"],
                     "ceilings_by_split": circularity["ceilings_by_split"],
                     "targets": circularity["targets"],

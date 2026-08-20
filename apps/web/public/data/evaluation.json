@@ -2064,6 +2064,16 @@
   }
  },
  "circularity": {
+  "reproduction": {
+   "n_population": 87,
+   "n_conflicts": 22,
+   "budget": 50,
+   "n_at_budget": 20,
+   "random_expected": 12.64367816091954,
+   "lift_point": 1.5818181818181818,
+   "published_lift_point": 1.5818181818181816,
+   "matches_the_queue_receipt": true
+  },
   "ceiling": {
    "max_findable_at_budget": 22,
    "lift": 1.74,

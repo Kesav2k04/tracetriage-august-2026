@@ -195,6 +195,14 @@ export default function QueuePage() {
               One split passing is not the gate passing, and it is not nothing either.
             </p>
             {/* The measured win, at the same weight as the failure.
+                Every number in this paragraph comes from the circularity receipt's
+                own reproduction block. It used to bind the population to
+                primary.n_queue_examined, which is the review budget, so the page
+                read "the same 50 observations" and then "a budget of 50 over 50 caps
+                every possible ordering at 1.740x". That is impossible on its face:
+                fifty conflicts in fifty observations at a budget of fifty caps at
+                1.0. The payload had no field holding the population, which is why
+                the wrong one was reachable, so build_console_data.py publishes it.
                 The first screen said GATES MET 2 of 6, NOT ESTABLISHED and "the gate
                 is not met", and the strongest evidence the ranking works at all was
                 1,600px further down. Both belong here. The bar the gate set was
@@ -206,14 +214,17 @@ export default function QueuePage() {
                 {circularity.random_ordering_control.n_permutations_at_or_above_observed}{" "}
                 of {circularity.random_ordering_control.n_permutations}
               </strong>{" "}
-              random orderings of the same {primary.n_queue_examined} observations found
-              as many conflicts inside the budget as this queue did (permutation p ={" "}
+              random orderings of the same {circularity.reproduction.n_population}{" "}
+              observations found as many conflicts inside the budget as this queue did
+              (permutation p ={" "}
               <span className="num">
                 {circularity.random_ordering_control.p_value_permutation.toFixed(4)}
               </span>
               ). The interval spans the threshold because a budget of{" "}
-              {queue.review_budget.n_observations} over{" "}
-              {primary.n_queue_examined} caps every possible ordering at{" "}
+              {circularity.reproduction.budget} over{" "}
+              {circularity.reproduction.n_population} observations holding{" "}
+              {circularity.reproduction.n_conflicts} conflicts caps every possible
+              ordering at{" "}
               <span className="num">{fmt(circularity.ceiling.lift, 3)}</span>
               <sup>&times;</sup>, so the whole distance between the bar and a perfect
               oracle is <span className="num">{fmt(circularity.ceiling.headroom_between_threshold_and_perfection, 3)}</span>.{" "}

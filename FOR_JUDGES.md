@@ -11,8 +11,10 @@ observation's own measured fields.
 
 This page is a map, not a summary. Each claim below names the file that carries the
 evidence and, where it can, the command that regenerates it. Of the 6 kill gates declared
-before the build, 2 were met, 3 came back inconclusive and 1 was never run, and that tally
-is read from the receipts by the console rather than typed here.
+before the build, 2 were met, 3 came back inconclusive and 1 was never run. That tally is
+read from the receipts by the console rather than typed here, and the 2 that were met are
+the PRE_PASSED feasibility checks answered before any pipeline code was written, so of the
+4 gates that ask whether the idea works, none passed on the split that decides it.
 
 ## Five checks worth running first
 
@@ -23,6 +25,12 @@ is read from the receipts by the console rather than typed here.
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 11 emitted, 14 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake and 5 read-only tools, one of which is the grounding checker |
 | Does the repository hold together? | `python scripts/gate.py` | The standing gates, one line each |
+
+**None of the five needs a GPU, a model runtime or a network connection.** The two that
+name a model publish from a committed fixture and only talk to it under `--freeze`, which
+is a step for re-measuring rather than for reading, so a machine with no local runtime
+reproduces the same numbers this page prints. `scripts/gate.py` builds the console as one
+of its steps, so that one wants Node as well as Python.
 
 `python` above means the interpreter built by the Setup section of `README.md`, which on
 this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest options include
@@ -79,7 +87,27 @@ the guard rather than a claim about them.
 
 ## The judged criteria, and what to look at
 
-### Technical execution
+Four criteria, each scored 1 to 5. The heading is the criterion as the Official Rules write
+it and the line under it is the rules' own wording, so a scoring sheet and this page read in
+the same order.
+
+### Technical Execution
+
+> Effective use of IBM Bob and additional technologies, functional and well-structured
+> solution.
+
+IBM Bob is the primary development tool and built every load-bearing subsystem: ingestion,
+physics, the model interface, calibration, abstention, ranking, the console, the test
+suite and the release sign-off. `docs/BOB_BUILD_LOG.md` carries 50 dated entries, one per
+accepted unit, each naming the files it changed, the commands that were run and what
+failed before it was accepted. `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json`
+are the standing instructions, tool contracts and MCP registration each task ran under,
+tracked so the conditions of the work are readable and not only its output.
+`docs/PRE_BUILD_BASELINE.md` records what existed before the first Bob task, so the line
+between scaffolding and built work is auditable rather than asserted. The additional
+technologies are named with their files in the README's IBM stack table: two Granite
+models running locally, Carbon and Plex on the console, MCP over stdio JSON-RPC, and a
+Next.js static export.
 
 The pipeline is measured rather than demonstrated. 2727 observations from snapshot
 `snap-20260817-stage1`, 4 splits of which 3 hold out stations or transmitters the model
@@ -93,6 +121,8 @@ published number and `tests/test_claim_drift.py` fails if a number in the README
 matching its receipt.
 
 ### Innovation
+
+> Creativity, originality, and unique application of AI.
 
 The interesting part is not that a model writes the note. It is that the note is refused.
 A closed evidence packet of the observation's own fields goes in, and a checker requires
@@ -116,7 +146,9 @@ refused for the reason they were built to trip, and 0 of 175 clean checks were r
 check is one draft against one observation's packet, so that is 21 adversarial drafts and
 7 clean ones against each of 25 packets.
 
-### Challenge fit
+### Challenge Fit
+
+> Relevance to the challenge and ability to address real-world problems.
 
 Space exploration, and specifically the part of it that is unglamorous: a volunteer ground
 station network produces more recordings than anyone can look at, and the labels that
@@ -129,7 +161,9 @@ visible instead of hidden.
 The data licence is honoured rather than mentioned: `artifacts/ATTRIBUTION_AUDIT.json`
 checks every one of the 79 tracked media files for attribution and reports 0 incomplete.
 
-### Feasibility
+### Implementation and Feasibility
+
+> Practicality, scalability, and potential for real-world use.
 
 Nothing here needs a paid service or a hosted model. The reviewer note is written by
 `granite3.1-dense:8b` at Q4_K_M, 8.2B parameters, running locally, and the notes are
@@ -141,14 +175,14 @@ The repository is 32.87 MB across 313 tracked files as of commit `7e2ae9e`,
 `artifacts/SECRET_SCAN.json` reports 0 credential-shaped values across the history it
 scanned, and the console is a static export, so hosting it costs nothing.
 
-### Real-world impact
+#### Real-world use, under the same criterion
 
 The honest claim is narrow. The queue's lift over random selection on the primary
 chronological split is 1.582x with a 95% interval of [1.353, 1.740], which is above the
 1.5x threshold as a point estimate and does not exclude it, so
-`artifacts/QUEUE_RECEIPT.json` records NOT_ESTABLISHED rather than a pass. On the cold-
-station split, where a reviewer meets ground stations the model never trained on, the lift
-is 2.253x with an interval of [1.920, 3.859], which does clear it.
+`artifacts/QUEUE_RECEIPT.json` records NOT_ESTABLISHED rather than a pass. On the
+cold-station split, where a reviewer meets ground stations the model never trained on, the
+lift is 2.253x with an interval of [1.920, 3.859], which does clear it.
 
 What has not been measured is whether a reviewer reads a generated note faster or better
 than the numbers alone. That is kill gate 4. The instrument for it exists now:

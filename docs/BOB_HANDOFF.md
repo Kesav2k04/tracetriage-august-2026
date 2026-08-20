@@ -8,12 +8,12 @@
 
 | | |
 |---|---|
-| **Handoff written** | 2026-08-20, IST, after D15e and the signed final acceptance |
-| **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h), **D** (D0 to D15e), **E** (E0 to E8) |
-| **Current wave** | **None. Wave D is closed.** Every unit the D prompt asked for is committed: the review-closing work (D0, D0b, D0c and the passes named D1 to D7), failure injection (D8, D8b), the `[UNMEASURED]` accounting (D9), the clean-clone reproduction (D10), secrets and attribution (D11), generated documentation and the demo script (D12, D12a), final acceptance with a sign-off receipt (D13, D13a, D13b), and two review passes from a judge's seat: D14 to D14e closed ten findings and put two unreachable console pages back in the navigation, and D15 to D15e closed twenty-two more from three independent reviews of the documents, the live console and the statistics. |
-| **What remains** | Two things outside the repository: record the demo video against `docs/DEMO_SCRIPT.md`, and make the repository public on 25 August. One thing that needs a single look once it is public: the CI badge at the top of `README.md` reports the last run of `.github/workflows/ci.yml` on `main`, and no session here can query the Actions API to see what it says. Nothing in the tree is waiting on any of the three. |
+| **Handoff written** | 2026-08-20, IST, after D15g, the council check that closes wave D. It scored the submission from four blind judge seats and the release gate in `docs/SUBMISSION_CHECKLIST.md` item 1b came back **not met** at a mean of 15.5 of 20 against a bar of 18. Every defect the seats found is closed; the score is recorded as it fell |
+| **Waves completed** | **A** (A0 to A7), **B** (B1 to B6), **C** (C1 to C7h), **D** (D0 to D15g), **E** (E0 to E8) |
+| **Current wave** | **None. Wave D is closed.** Every unit the D prompt asked for is committed: the review-closing work (D0, D0b, D0c and the passes named D1 to D7), failure injection (D8, D8b), the `[UNMEASURED]` accounting (D9), the clean-clone reproduction (D10), secrets and attribution (D11), generated documentation and the demo script (D12, D12a), final acceptance with a sign-off receipt (D13, D13a, D13b), and two review passes from a judge's seat: D14 to D14e closed ten findings and put two unreachable console pages back in the navigation, D15 to D15e closed twenty-two more from three independent reviews of the documents, the live console and the statistics, and D15g scored the result from a judge's seat against the four criteria the Official Rules define. |
+| **What remains** | Four things, none of them in the tree. Two are hard eligibility conditions: the **IBM SkillsBuild certificate**, which is not started and without which the entry is not judged at all, and making the **repository public on 25 August**. Two are submission steps: record the demo video against `docs/DEMO_SCRIPT.md`, and publish the challenge submission page, which needs the other three first. `docs/SUBMISSION_CHECKLIST.md` carries the running status of all of them. One thing needs a single look once the repository is public: the CI badge at the top of `README.md` reports the last run of `.github/workflows/ci.yml` on `main`, and no session here can query the Actions API to see what it says. Nothing in the tree is waiting on any of them. |
 | **Numbering** | The committed entries named D1 to D7 are review-closing passes and are **not** the prompt's units D1 to D6. The prompt's units are numbered from D8 onward in the build log: D8 is its D1 (failure injection), D9 its D2, D10 its D3, D11 its D4, D12 its D5, D13 its D6. |
-| **Open failures** | none. **1,315** offline tests collected and all pass, 4 deselected, no expected failures. Lint clean. **107** console tests pass under vitest across 7 files. `npx tsc --noEmit` clean. `npx next build` emits **32** `index.html` files plus a 404 and an icon. `scripts/gate.py` green on **19 of 19** standing gates. |
+| **Open failures** | none. **1,319** offline tests collected, 4 deselected by the marker expression, **1,315** selected and all passing, no expected failures. The three numbers are published together because a single count of a run with a deselection in it does not say which one it is. Lint clean. **107** console tests pass under vitest across 7 files. `npx tsc --noEmit` clean. `npx next build` emits **32** `index.html` files plus a 404 and an icon. `scripts/gate.py` green on **19 of 19** standing gates. |
 | **Kill gates** | 2 of 6 met. 1 and 2 PRE_PASSED, 3 and 5 and 6 NOT_ESTABLISHED, 4 **OPEN and never run**, with its instrument built in E6: `scripts/build_gate4_worksheet.py` produces a blinded 72-item bundle committed to in advance, and `artifacts/GATE4_RECEIPT.json` reads `NOT_RUN` with no rate. |
 | **Console** | Next.js 15 static export, deployed and live at https://tracetriage.vercel.app. Six pages: queue, evaluation, agent, precedent, baselines, provenance, plus 25 observation pages, a custom 404 and a generated link-preview card at `/og.png`. |
 | **Dataset** | stage 1 built and verified: `D:/tracetriage_data/snap-stage1`, **2,727** observations, 2,500 waterfalls, **739** decisive labels. The API pages on disk hold 2,750 rows, 23 more than the dataset, because the ingest stopped at its waterfall target part-way through a page it had already written whole. **Every count in this repository is over the 2,727.** Two scripts read the pages unfiltered and published 2,750 and 743; both filter against `artifacts/DATASET_MANIFEST.json` since D14. |
@@ -32,7 +32,7 @@ reads the missing package name out of the step's own output tail.
 
 | Document | Generator | `--check` in the gate |
 |---|---|---|
-| `README.md` results tables **and** the gate status block between its two `<!-- ... gate status -->` markers | `scripts/sync_readme_results.py` | yes |
+| `README.md` results tables, the gate status block between its two `<!-- ... gate status -->` markers, **and** the "What it produced" block between its two `<!-- ... what it produced -->` markers | `scripts/sync_readme_results.py` | yes |
 | `docs/KILL_GATE.md` | `scripts/sync_kill_gate.py` | yes |
 | `FOR_JUDGES.md` | `scripts/sync_for_judges.py` | yes |
 | `docs/REFERENCE.md` | `scripts/sync_docs.py` | yes |
@@ -407,7 +407,11 @@ Before the account runs dry, at **3 credits remaining**:
 2. Run the full test and acceptance suite. Record what passes and what does not.
 3. Update this file: completed work, open failures, **exact** next task, changed files, test commands, dataset and model hashes, architectural decisions taken.
 4. Update `docs/BOB_BUILD_LOG.md` with the genuine task history, commit SHAs, failures, repairs and actual credit use.
-5. Export task history and screenshots to `bob_sessions/`, secrets removed.
+5. Task history is not exported into this repository. `bob_sessions/` held one `.gitkeep`,
+   git does not publish an empty directory, and the README named it as evidence, so on
+   GitHub that sentence pointed at nothing. E0 deleted the directory and the claim. The
+   record a reader gets instead is `docs/BOB_BUILD_LOG.md`, one dated entry per accepted
+   unit with the files it changed and the commands that were run.
 6. Commit.
 
 The next account reads this file, reruns the tests, inspects the current code, and continues at the next unfinished unit. **It must not regenerate completed modules.**
