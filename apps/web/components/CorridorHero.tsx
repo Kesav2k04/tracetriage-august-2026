@@ -78,16 +78,25 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
               measurable cost: the human eye resolves far fewer steps of lightness
               than of hue, so a faint trace two or three levels above the noise
               floor is nearly invisible in grey and obvious in a perceptually
-              uniform map. This applies viridis, which is the map the observation
-              page already defaults to, so the plate and the instrument agree.
+              uniform map. This applies inferno, which is the map every accent
+              token in globals.css is sampled from, so the plate and the interface
+              are reading off one table rather than two.
 
               It is a colour map, not a contrast stretch: the greyscale value is
               first collapsed to luminance, then each channel is looked up in the
-              same 17-stop table matplotlib generates for viridis. No pixel is
+              same 17-stop table matplotlib generates for inferno. No pixel is
               brightened or darkened relative to another, so the ordering of the
               measured intensities is preserved exactly. Done as an SVG filter, it
-              costs no JavaScript and no second copy of the image. */}
-          <filter id="viridis-map" colorInterpolationFilters="sRGB">
+              costs no JavaScript and no second copy of the image.
+
+              Inferno rather than viridis for one measurable reason: viridis spends
+              its bottom third on blue-to-teal, where sRGB carries the least
+              luminance, so a faint trace lands in the part of the ramp a display
+              renders worst. Inferno's bottom third is a near-black plum and its
+              top two thirds are the red-to-yellow run, which is where the ramp has
+              room. The observation page still offers viridis and grey, so a reader
+              who wants the other map has it. */}
+          <filter id="inferno-map" colorInterpolationFilters="sRGB">
             <feColorMatrix
               type="matrix"
               values="0.2126 0.7152 0.0722 0 0
@@ -95,10 +104,48 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
                       0.2126 0.7152 0.0722 0 0
                       0      0      0      1 0"
             />
+            {/* The display window, and where its two ends come from.
+                This plate's intensities occupy a fifth of the range the file can
+                hold. Handed straight to a colour map, four fifths of the ramp is
+                spent on values that do not occur and every real value lands in one
+                narrow band of it, which is why the unwindowed plate reads as a
+                single flat colour rather than as a spectrogram.
+
+                The low end is the noise floor, and it is not a percentile choice.
+                Measured on the committed image, 23.3% of every pixel sits at exactly
+                level 51 of 255, which is 0.2000: the receiver's floor, quantised.
+                Nothing below a noise floor is a measurement, so that is where the
+                display starts. The floor maps to exactly zero, so it renders black
+                along with everything under it: 30.7% of the frame, which is the
+                23.3% sitting on the floor plus the 7.4% beneath it. A third of this
+                plate is receiver noise and the display says so rather than lifting
+                it into the ramp.
+
+                The high end is the 99.5th percentile, 0.4078. The brightest pixel in
+                the frame is 0.6431 and it is a handful of samples; windowing to the
+                maximum would spend a third of the ramp on them and flatten
+                everything else. 0.47% clamps to white.
+
+                slope = 1 / (0.4078 - 0.2000) = 4.8113 and
+                intercept = -0.2000 * 4.8113 = -0.9623. It is a linear transform, so
+                the ordering of the measured intensities is preserved exactly and no
+                pixel changes rank against another. This is what vmin and vmax do in
+                every spectrogram matplotlib has drawn, and what the SatNOGS renderer
+                already did once to produce the greyscale.
+
+                `tests/test_hero_window.py` recomputes the modal level and the
+                percentile from the committed image and fails if either constant
+                drifts from it, because a display constant that no longer matches its
+                image is a number in a document that nothing reads. */}
             <feComponentTransfer>
-              <feFuncR type="table" tableValues="0.267 0.282 0.279 0.259 0.230 0.199 0.173 0.149 0.128 0.121 0.158 0.246 0.369 0.516 0.678 0.846 0.993" />
-              <feFuncG type="table" tableValues="0.005 0.095 0.175 0.252 0.322 0.388 0.449 0.508 0.567 0.626 0.684 0.739 0.789 0.831 0.864 0.887 0.906" />
-              <feFuncB type="table" tableValues="0.329 0.417 0.483 0.525 0.546 0.555 0.558 0.557 0.551 0.533 0.502 0.452 0.383 0.294 0.190 0.100 0.144" />
+              <feFuncR type="linear" slope="4.8113" intercept="-0.9623" />
+              <feFuncG type="linear" slope="4.8113" intercept="-0.9623" />
+              <feFuncB type="linear" slope="4.8113" intercept="-0.9623" />
+            </feComponentTransfer>
+            <feComponentTransfer>
+              <feFuncR type="table" tableValues="0.001 0.042 0.129 0.238 0.342 0.441 0.541 0.640 0.736 0.822 0.894 0.947 0.978 0.988 0.975 0.948 0.988" />
+              <feFuncG type="table" tableValues="0.000 0.028 0.047 0.037 0.062 0.099 0.135 0.171 0.216 0.275 0.353 0.449 0.558 0.675 0.798 0.917 0.998" />
+              <feFuncB type="table" tableValues="0.014 0.141 0.291 0.396 0.429 0.432 0.415 0.381 0.330 0.266 0.194 0.115 0.035 0.065 0.206 0.411 0.645" />
             </feComponentTransfer>
           </filter>
           <image
@@ -108,7 +155,7 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
             width={width}
             height={height}
             className="hero-plate-image"
-            filter="url(#viridis-map)"
+            filter="url(#inferno-map)"
             preserveAspectRatio="none"
           />
           <g className="hero-plate-nulls">
@@ -125,10 +172,11 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
             ))}
           </g>
           {/* Drawn twice. The casing is a wider near-black stroke under the
-              corridor, because a thin blue line over a noisy greyscale
-              spectrogram loses its edge against the brighter pixels and reads as
-              part of the noise. The casing is under the corridor and the same
-              path, so it cannot displace it. */}
+              corridor, because a thin light line over a colour-mapped spectrogram
+              loses its edge wherever the map runs bright and reads as part of the
+              noise. Inferno's top third makes that worse than viridis did, so the
+              casing matters more now, not less. It is under the corridor and on the
+              same path, so it cannot displace it. */}
           <path
             d={polyline(data.rows, data.true.px)}
             pathLength={1}

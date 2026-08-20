@@ -13,6 +13,16 @@ export function verdictColour(verdict: Verdict | string): string {
   switch (verdict) {
     case "PASSED":
       return "var(--verdict-passed)";
+    // A pre-passed feasibility gate is decided and is counted as met by
+    // `provenance.json`'s own gate_summary, so it takes the passed ink. Leaving it
+    // on the default branch drew a met gate in the grey reserved for one that could
+    // not be measured, which is the opposite of what happened to it.
+    case "PRE_PASSED":
+      return "var(--verdict-passed)";
+    // A study that was never run is named explicitly rather than left to the
+    // default, so that adding a fifth state later cannot silently absorb it.
+    case "OPEN":
+      return "var(--verdict-not-measurable)";
     case "NOT_ESTABLISHED":
       return "var(--verdict-not-established)";
     case "FAILED":

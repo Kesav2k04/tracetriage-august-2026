@@ -147,6 +147,20 @@ def main() -> int:
         )
     )
 
+    # The architecture diagram names a module and a receipt per stage, and both are
+    # checked against the tree before it is drawn. An ASCII block could describe a
+    # pipeline that no longer existed; this cannot, but only if something re-runs it.
+    rc, out = run(
+        [str(PY), str(REPO / "scripts" / "build_architecture_diagram.py"), "--check"]
+    )
+    results.append(
+        check(
+            "architecture diagram matches the pipeline",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
     # The shot list quotes measured numbers into a public, unversioned video. It is the one
     # document here where a stale figure cannot be corrected after submission.
     rc, out = run([str(PY), str(REPO / "scripts" / "sync_demo.py"), "--check"])

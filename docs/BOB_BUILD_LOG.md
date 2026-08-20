@@ -5876,3 +5876,161 @@ every generator with `--check`, `npx tsc --noEmit`, `npx vitest run`, `npx next 
 verified to fail the new file before the entry was written.
 **Outcome:** accepted. The score stands at 15.5 of 20; these were defects the seats found,
 not a re-scoring.
+
+## 2026-08-20 IST | Wave D | D16: the palette derived from the data, and what the probe found
+
+**The console read as a generic dark dashboard, and the fix had to be a derivation.** The
+theme was Carbon Gray 100 with an indigo cast and Carbon Blue 50 as the accent, which is a
+defensible pair of choices and looked like every other dark analytics page. Changing it by
+taste would have replaced one preference with another, so the palette was worked out from the
+input instead.
+
+**The input has no colour in it.** Measured across the 25 committed waterfalls, the largest
+difference between any pixel's brightest and darkest channel is 1 part in 255 and the mean is
+0.01. The instrument records intensity and no hue. That gives the rule the whole design now
+runs on: grey is measured, colour is computed. The waterfall stays as published and every
+coloured mark on top of it is something the pipeline derived, so the observation and the
+inference never share a channel.
+`tests/test_hero_window.py::test_every_published_waterfall_is_achromatic` asserts it per
+image, because a future snapshot rendered through a colour map would make the claim false
+while every other test stayed green.
+
+**A documented rationale was resting on a false premise.** `globals.css` said
+`--verdict-passed` was chosen to sit in the same family as "the viridis ramp the waterfalls
+are rendered in". They are not rendered in viridis; they are grey, and the console was
+applying the ramp itself. The note is recorded in the stylesheet rather than deleted.
+
+**Carbon still owns the structure.** Every neutral is its Carbon Gray 100 original converted
+to OKLCH, held at exactly its Carbon lightness, given chroma 0.009 at hue 70 and converted
+back. No ratio moves: `text-01` on the ground is 16.45:1 as Carbon ships it and 16.46:1 here,
+`text-03` 5.45 and 5.45, `ui-04` 3.60 and 3.60, and the largest movement across seventeen
+neutrals is 0.01. The accents are samples off `inferno`, with the ramp position written beside
+each token, because the home plate is rendered through that same 17-stop matplotlib table.
+Inferno was picked for three properties rather than a look: monotonic in lightness, so a value
+encoded by hue is also encoded by contrast; safe under all three common colour-vision
+deficiencies; and the map matplotlib ships for spectrograms.
+
+**One verdict carries a hue and it is red.** Appendix F reserves red for a warning and amber
+for a caution, and Carbon assigns grey to unknown or pending, which together rule out drawing
+a cleared gate in the brightest thing the ramp has, since that is yellow. `PASSED` is the
+page's strongest neutral instead, and the four states are separated by the marker's form as
+well as its value. `OPEN` was drawing a filled disc, the shape reserved for a decided verdict,
+and now takes the dash: gate 4 has no measurement to be inconclusive about. `PRE_PASSED` was
+drawing in the grey reserved for something that could not be measured while
+`provenance.json` counts it as met, and now takes the passed ink.
+
+**The plate was a flat block until it was windowed.** Its intensities occupy a fifth of the
+range the file can hold, so handed straight to a colour map four fifths of the ramp went on
+values that do not occur. The window starts at the noise floor rather than at a percentile:
+the modal level is 51 of 255, exactly 0.2000, and it holds 23.3% of the frame, which is a
+receiver's floor quantised. From there to the 99.5th percentile at 0.4078 gives slope 4.8113
+and intercept -0.9623, with 30.7% of the frame rendering black and 0.47% white. It is linear,
+so no pixel changes rank against another. `tests/test_hero_window.py` re-derives both
+constants from the committed image.
+
+**The comment was wrong before the test was.** The clamped-black share went into the
+component's comment as 7.4%, computed with a strict `<` that excluded the modal level itself.
+The window maps that level to exactly zero, so it renders black too: 30.7%, wrong by a factor
+of four. The test was written first, it failed, and the comment was corrected rather than the
+bound loosened.
+
+**Motion, and it costs no JavaScript.** The reveal on scroll is `animation-timeline: view()`,
+the ledger stagger is an `animation-delay` multiplied by a row index, the digit reveal is a
+`clip-path` inset, the link underline is a gradient sized on one axis and the table row
+marker is a `scaleX` on a pseudo-element. Every one composites. Nothing animates a colour, a
+size or a custom property a descendant reads.
+
+**The reveal was dead on arrival and nothing could have caught it.** It was written
+`main > section` while every section is a child of `.shell`, so the selector matched zero
+elements: the stylesheet looked correct, the build passed, the type check passed and the page
+had no reveal. `apps/web/audit/motion-probe.js` is new and reports two things a build cannot
+see, the count the selector reached and every element that did not end fully opaque after a
+full scroll. A matched count of zero is a failure and not a clean run, which is the whole
+reason it reports the count at all.
+
+**The landing page had a third of its first screen empty.** `components/GateLedger.tsx` puts
+the six kill gates and their verdicts there, read from `provenance.json`'s `gate_summary`
+including the counts in its caption, so a gate that changes verdict changes the strip and the
+provenance page together or neither. It also teaches the verdict vocabulary before a reader
+reaches a table that depends on it, and it adds a link to `/evaluation/`.
+
+### The defect the accessibility probe was hiding
+
+`apps/web/audit/a11y-probe.js` reported 662 of 706 nodes on the landing page below their
+contrast floor, against a page that renders correctly. The cause was not the palette. The page
+ground had become a gradient set through the `background` shorthand, which resets
+`background-color` to transparent, so neither `body` nor `html` carried an opaque colour
+anywhere. The probe's walk for a background found none and fell back to inventing white, then
+compared bone-white body text against it.
+
+**The claim register was carrying a number that could not have been true.** "1,475 text nodes
+measured, 0 below requirement", dated 2026-08-18, was measured before the gradient existed.
+The gradient silently invalidated it and nothing re-ran the probe, which is the same shape as
+an exemption outliving its reason.
+
+Three fixes, and the middle one is the durable one:
+
+1. `body` now sets `background-color: var(--ui-background)` under the gradient. It is the
+   gradient's own first stop, so no pixel moves, and an engine that cannot parse the gradient
+   now paints the theme's ground rather than the canvas default.
+2. `backgroundOf` returns `null` instead of inventing white, and the probe reports
+   `unresolved_background` as a third outcome. Folding it into failures manufactures a
+   regression and folding it into passes hides a real one.
+3. A background layer sized to zero on an axis paints nothing and is not treated as an
+   obstruction. Without that, the new hover underline, a gradient held at `background-size:
+   0% 1px` until hover, made 41 links on one page unmeasurable.
+
+**Two real contrast failures came out of the same run**, the same mistake in two places.
+`.skip-link` was white on the accent: 3.34:1 on the old Carbon blue, already under its floor
+and unnoticed because the link is invisible until focused, and 2.00:1 on the amber. The
+queue's active filter chip and its count badge were the same pair. Both now carry the plate's
+ground as their ink at 9.09:1. The landing page's explainer video had no accessible name: the
+fallback paragraph inside it describes the clip, but a browser that can play the video never
+exposes that paragraph, so a screen reader announced "video".
+
+**Measured after the fixes, over seven page types on the built export at 1440x900:** 2,235
+text nodes, 0 below requirement, 0 with an unresolvable background, 193 focusable elements
+with 0 missing a focus ring, one `h1` per page, 0 skipped heading levels, 0 unlabelled media,
+0 console errors on any page. The reveal matched 7 elements on the landing page with 0
+unfinished after a full scroll, and the reduced-motion pass left 0 reveals, 0 staggers and 0
+digit wipes unfinished.
+
+### Gate 4, and why it is still open
+
+The instrument has been ready since 2026-08-19 and the gate stayed `OPEN`. The blocker was
+not the study, it was the form: 72 rows of CSV typed by hand beside an image viewer.
+`scripts/gate4_review.html` is that protocol with the friction removed, and it is constrained
+by what it must not do. It reads nothing but `images/G4-NNN.png` and makes no network request,
+so it cannot reveal a label. It gives `unsure` the same size, colour and distance as `yes` and
+`no`, because a form that makes the decisive answers easier to click measures the form. It has
+no back button, because the 12 repeated items only measure intra-rater agreement if the
+reviewer cannot look up the first answer. It writes every answer to localStorage as it is
+made. And it shows the plate at native resolution in a scrolling frame: fitting an
+832x1603 image into 82vh scaled it to 0.46, and a trace two or three levels above the noise
+floor does not survive that, so a fitted plate would have pushed answers toward `unsure` and
+biased the exact number the gate measures.
+
+The scorer was exercised end to end against a synthetic response set written outside the
+repository, which verified the commitments, the exact interval and all three reported numbers.
+The receipt was not touched: the real `artifacts/GATE4_RECEIPT.json` still reads `NOT_RUN`,
+because **no human has reviewed the bundle and writing anything else would manufacture the
+measurement this gate is missing.** The study needs a person, about 30 minutes, and it is the
+one thing standing between this gate and a verdict.
+
+**Files changed:** `apps/web/app/globals.css`, `apps/web/app/page.tsx`,
+`apps/web/audit/a11y-probe.js`, `apps/web/audit/motion-probe.js` (new),
+`apps/web/components/GateLedger.tsx` (new), `apps/web/components/CorridorHero.tsx`,
+`apps/web/components/Colophon.tsx`, `apps/web/components/QueueTable.tsx`,
+`apps/web/components/WaterfallViewer.tsx`, `apps/web/components/ui.tsx`,
+`apps/web/lib/format.ts`, `scripts/check_contrast.py`, `scripts/gate4_review.html` (new),
+`tests/test_hero_window.py` (new), `README.md`, `docs/CLAIM_REGISTER.md`.
+**Commands run:** `scripts/check_contrast.py -v`, `python -m pytest`, `ruff check`,
+`npx tsc --noEmit`, `npx vitest run`, `npx next build`, both audit probes over seven pages
+through a driver, `scripts/score_gate4.py` against a synthetic response set with `--out`
+pointed outside the repository, `scripts/sync_docs.py`, `scripts/gate.py`.
+**Tests:** 54 new under pytest in `tests/test_hero_window.py`. 26 of 26 contrast pairs meet
+their floor. The clamped-black assertion was written before the comment it checks and failed
+it.
+**Outcome:** the palette is a derivation with two checks behind it, the accessibility claim is
+measured again on a probe that can no longer invent a background, and gate 4 is one human
+review from a verdict.

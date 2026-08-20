@@ -51,6 +51,41 @@ function pathFrom(rows: number[], columns: number[]): string {
   return svgPolyline(rows, columns, 2);
 }
 
+/**
+ * A line sample drawn in the legend, in place of the name of a colour.
+ *
+ * The legend used to read "Solid blue is the fitted corridor" with the words tinted by
+ * a token. When the palette moved, the tokens moved and the words did not, so the page
+ * shipped the sentence "Solid blue" set in amber over a corridor drawn in amber. A
+ * colour word in prose is a second copy of a design decision and it goes stale exactly
+ * the way a hand-typed number does.
+ *
+ * Drawing the sample fixes more than the drift. A reader who cannot separate two hues
+ * could never use "yellow" and "blue" as identifiers at all, and the dash pattern is
+ * carried here too, so each series is identified by two channels rather than one.
+ */
+function Swatch({ stroke, dash }: { stroke: string; dash?: string }) {
+  return (
+    <svg
+      width="22"
+      height="8"
+      viewBox="0 0 22 8"
+      aria-hidden="true"
+      style={{ verticalAlign: "middle", marginRight: "0.25rem" }}
+    >
+      <line
+        x1="1"
+        y1="4"
+        x2="21"
+        y2="4"
+        stroke={stroke}
+        strokeWidth="2"
+        strokeDasharray={dash}
+      />
+    </svg>
+  );
+}
+
 export default function WaterfallViewer({
   src,
   width,
@@ -61,10 +96,27 @@ export default function WaterfallViewer({
   hzPerPx,
   secondsPerPx,
 }: WaterfallViewerProps) {
+  // The display window, and it is a starting point rather than a derivation. These
+  // two are absolute values handed to the shader, and one pair cannot be right for
+  // this corpus: measured across the 25 committed waterfalls, the noise floor runs
+  // from 0.2000 to 0.3843 and the 99.9th percentile from 0.3882 to 0.8980. Nineteen of
+  // the 25 have a floor above 0.05, so the default spends most of the ramp below the
+  // first real sample on most observations, which is why a weak pass opens looking
+  // flat until the black point is moved.
+  //
+  // The honest fix is per-observation and it belongs in generated data, not here:
+  // `scripts/build_console_data.py` already opens every image and could publish a
+  // window per card the way the hero plate carries one. It is not done, so the
+  // limitation is stated on the control rather than left for a reader to discover by
+  // wondering why the plate looks empty.
   const [black, setBlack] = useState(0.05);
   const [white, setWhite] = useState(0.85);
   const [gamma, setGamma] = useState(1);
-  const [palette, setPalette] = useState<Palette>("viridis");
+  // Inferno, matching the hero plate and the accent ramp, so a reader who arrives
+  // from the landing page is not handed a second colour map for the same instrument.
+  // Grey and viridis stay in the select: the point of offering them is that a reader
+  // who wants the data as SatNOGS published it, or the map they are used to, has it.
+  const [palette, setPalette] = useState<Palette>("inferno");
   const [overlay, setOverlay] = useState<OverlayMode>("all");
   const [fallbackReason, setFallbackReason] = useState<string | null>(null);
   const controlId = useId();
@@ -181,7 +233,7 @@ export default function WaterfallViewer({
                 <path
                   d={pathFrom(corridor.rows, corridor.predicted_px)}
                   fill="none"
-                  stroke="var(--support-03)"
+                  stroke="var(--interactive-01)"
                   strokeWidth={1.5}
                   strokeDasharray="4 5"
                   vectorEffect="non-scaling-stroke"
@@ -204,13 +256,38 @@ export default function WaterfallViewer({
                 ).replace("M", "L") +
                 "Z"
               }
-              fill="rgba(69, 137, 255, 0.16)"
+              fill="rgba(255, 255, 255, 0.14)"
               stroke="none"
+            />
+            {/* White, not an accent, and for the same reason the hero plate draws its
+                corridor in white: this is the answer the page is about, and it has to
+                separate from both of the other two curves and from every value the
+                colour map can produce underneath it. On the old palette the fitted
+                corridor was Carbon blue and the zero-offset geometry was amber, which
+                are opposites; drawn in interactive-04 and support-03 off the inferno
+                ramp they became amber and orange, one ramp step apart, and the two
+                curves the whole measurement is a comparison between stopped being
+                distinguishable. */}
+            {/* A near-black casing under the corridor, on the same path so it cannot
+                displace it. The hero plate has carried one since it was built and this
+                view did not, which was survivable while the default map was viridis
+                and its top end was yellow-green. Inferno's top end is near-white, and
+                a white corridor crossing a bright band on a strong signal would have
+                disappeared into exactly the observations a reviewer most needs to
+                read. The casing costs one path and makes the overlay legible on all
+                three maps, including grey. */}
+            <path
+              d={pathFrom(corridor.rows, corridor.fitted_px)}
+              fill="none"
+              stroke="var(--waterfall-ground)"
+              strokeWidth={4.5}
+              strokeOpacity={0.75}
+              vectorEffect="non-scaling-stroke"
             />
             <path
               d={pathFrom(corridor.rows, corridor.fitted_px)}
               fill="none"
-              stroke="var(--interactive-04)"
+              stroke="var(--text-04)"
               strokeWidth={2}
               vectorEffect="non-scaling-stroke"
             />
@@ -229,13 +306,13 @@ export default function WaterfallViewer({
       >
         {corridor ? (
           <>
-            <span style={{ color: "var(--interactive-04)" }}>Solid blue</span> is the fitted
-            corridor, the path the matched filter scored.{" "}
-            <span style={{ color: "var(--support-03)" }}>Dashed yellow</span> is the same
-            pass geometry at zero frequency offset.{" "}
-            <span style={{ color: "var(--text-03)" }}>Dashed grey</span> is the commanded
-            receive frequency, where a Doppler-corrected capture would sit. The
-            gap between yellow and blue is the measurement.
+            <Swatch stroke="var(--text-04)" /> the fitted corridor, the path the
+            matched filter scored, with its half width shaded.{" "}
+            <Swatch stroke="var(--interactive-01)" dash="4 5" /> the same pass geometry
+            at zero frequency offset.{" "}
+            <Swatch stroke="var(--text-03)" dash="6 6" /> the commanded receive
+            frequency, where a Doppler-corrected capture would sit. The gap between the
+            first two is the measurement.
           </>
         ) : (
           <>
@@ -333,6 +410,20 @@ export default function WaterfallViewer({
             />
           </label>
 
+          <p
+            style={{
+              margin: "0 0 var(--sp-04)",
+              fontSize: "var(--type-caption)",
+              color: "var(--text-03)",
+              lineHeight: 1.55,
+            }}
+          >
+            The black and white points open at a fixed pair, not one fitted to this
+            image. Across the 25 committed waterfalls the noise floor runs from 0.20 to
+            0.38, so on most observations the ramp starts well below the first real
+            sample and a weak pass reads flat until the black point is raised toward
+            the floor.
+          </p>
           <label htmlFor={`${controlId}-palette`} style={labelStyle}>
             Palette
             <select

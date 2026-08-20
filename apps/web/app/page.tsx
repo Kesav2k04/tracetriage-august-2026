@@ -21,6 +21,7 @@ import {
   showcaseIds,
 } from "@/lib/data";
 import CorridorHero from "@/components/CorridorHero";
+import GateLedger from "@/components/GateLedger";
 import QueueTable from "@/components/QueueTable";
 import { Cell, IntervalBar, Note, Section, Stat, Table, VerdictBadge } from "@/components/ui";
 
@@ -100,6 +101,8 @@ export default function QueuePage() {
           the headline now. Which one decides the gate is stated on the card rather
           than implied by its size. */}
       <header className="lede">
+        <div className="lede-open">
+        <div className="lede-open-text">
         <p className="lede-kicker">
           SatNOGS waterfall triage · kill gate {gate6.gate} ·{" "}
           {LEDE_EXAMINED} observations examined
@@ -135,6 +138,9 @@ export default function QueuePage() {
           </Link>
           . No hosted inference and no paid service: both models run on one machine.
         </p>
+        </div>
+        <GateLedger />
+        </div>
         <div className="lede-figure">
           <div className="lede-verdicts">
             {LEDE_SPLITS.map((entry) => (
@@ -321,10 +327,23 @@ export default function QueuePage() {
               so the still already shows the measurement. No autoplay: a page that
               starts moving on load takes the decision away from the reader, and this
               one is 24 seconds of someone else talking. */}
+          {/* An accessible name, because the element had none. `audit/a11y-probe.js`
+              reported the landing page's video as the one unlabelled media element on
+              the console: the fallback paragraph inside it describes the content, but
+              a browser that CAN play the video never exposes that paragraph, so a
+              screen reader announced "video" and nothing else. The label names what
+              the clip shows and the figcaption below carries the reasoning, which is
+              the split the two are for. */}
           <video
             controls
             preload="none"
             playsInline
+            aria-label={
+              "Twenty-four seconds, no narration: the predicted Doppler corridor " +
+              "for observation 14745984 slid across its waterfall to the best " +
+              "match, a shift of 61 pixels, which at 92.6 hertz per pixel is " +
+              "5,648 hertz, or 13.0 parts per million of the receive frequency."
+            }
             poster="/media/corridor-explainer-poster.jpg"
             width={1920}
             height={1080}

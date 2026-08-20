@@ -13,6 +13,14 @@
  *      that scores every page as perfect. Nodes with no rendered box, no visible
  *      text, or zero size are excluded and counted, so an empty result reads as
  *      "nothing was measured" instead of "everything passed".
+ *
+ *      Where no opaque colour exists anywhere up the tree the node is reported as
+ *      `unresolved_background` rather than scored. This used to fall back to white,
+ *      and the fallback was a real defect: once the page ground became a gradient
+ *      with no colour beneath it, the walk found nothing, bone-white body text was
+ *      compared against invented white, and the probe reported 662 of 706 nodes on
+ *      the landing page below their floor against a page that renders correctly.
+ *      Inventing a background is worse than declining to measure one.
  *   2. Whether every interactive element is reachable by keyboard and shows a
  *      focus ring, by focusing each one and reading the computed outline.
  *   3. Whether every image, canvas and SVG carries a text alternative.
@@ -54,25 +62,60 @@
     return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
   };
 
-  /** The first opaque background behind an element, compositing what is above it. */
+  /** The first opaque background behind an element, compositing what is above it.
+   *
+   * Returns `null` when no opaque background-color exists anywhere up the tree.
+   * That case used to fall back to white, and the fallback was the bug: the page's
+   * ground was a gradient with no colour under it, so the walk found nothing, every
+   * text node was compared against invented white, and the probe reported 662 of 706
+   * nodes on the landing page below their floor while the rendered page was fine.
+   *
+   * An unresolvable background is a third outcome, not a failure. Folding it into
+   * "fails" manufactures a regression, and folding it into "passes" hides a real
+   * one, which is why it is counted and named separately. A caller that sees a
+   * non-zero `unresolved_background` should give the page an opaque ground rather
+   * than reading the pass rate.
+   *
+   * The walk also stops at an ancestor carrying a background-image with no opaque
+   * colour of its own, for the same reason: the painted pixel there is a gradient or
+   * a bitmap and computed style cannot say what colour it is at this element's
+   * position. Guessing it is the one thing this function must not do.
+   */
   const backgroundOf = (element) => {
     const stack = [];
     let node = element;
-    while (node && node !== document.documentElement) {
-      const colour = parse(getComputedStyle(node).backgroundColor);
-      if (colour && colour.a > 0) {
-        stack.push(colour);
-        if (colour.a === 1) break;
+    let base = null;
+    while (node) {
+      const style = getComputedStyle(node);
+      const colour = parse(style.backgroundColor);
+      if (colour && colour.a === 1) {
+        base = colour;
+        break;
+      }
+      if (colour && colour.a > 0) stack.push(colour);
+      if (style.backgroundImage && style.backgroundImage !== "none") {
+        // A layer sized to zero on either axis paints nothing, so it is not a layer.
+        // The console draws its hover underline as a gradient held at
+        // `background-size: 0% 1px` until hover, and treating that as unreadable
+        // made every link on the page unmeasurable: 41 of them on the landing page,
+        // reported as unresolved while their contrast was perfectly determinable.
+        // An animated size is a state, not an obstruction.
+        const size = String(style.backgroundSize || "");
+        const paintsNothing = /(^|[\s,])0(%|px)?([\s,]|$)/.test(size);
+        if (!paintsNothing) {
+          // A layer we cannot read. Anything below it is irrelevant, because this
+          // one is what paints.
+          return null;
+        }
       }
       node = node.parentElement;
     }
-    let base = parse(getComputedStyle(document.documentElement).backgroundColor);
-    if (!base || base.a === 0) base = { r: 255, g: 255, b: 255, a: 1 };
+    if (!base) return null;
     for (let i = stack.length - 1; i >= 0; i -= 1) base = over(stack[i], base);
     return base;
   };
 
-  const contrast = { pass: 0, fail: [], skipped: 0 };
+  const contrast = { pass: 0, fail: [], skipped: 0, unresolved: [] };
 
   for (const element of document.querySelectorAll("body *")) {
     const text = [...element.childNodes]
@@ -103,6 +146,17 @@
       continue;
     }
     const bg = backgroundOf(element);
+    if (!bg) {
+      // Third outcome. The background behind this node is a gradient or an image
+      // with no opaque colour under it, so computed style cannot say what it is.
+      // Counted and listed rather than scored either way.
+      contrast.unresolved.push({
+        text: text.slice(0, 60),
+        tag: element.tagName.toLowerCase(),
+        colour: style.color,
+      });
+      continue;
+    }
     const value = ratio(over(fg, bg), bg);
 
     const size = parseFloat(style.fontSize);
@@ -184,6 +238,13 @@
       passed: contrast.pass,
       failed: contrast.fail.length,
       skipped_no_text_or_no_box: contrast.skipped,
+      // Nodes whose background could not be resolved from computed style. Not a
+      // pass and not a failure: see backgroundOf. A non-zero count here means the
+      // pass rate above is over a smaller population than the page has, and it
+      // should be read as an instruction to give the surface an opaque ground
+      // rather than as a result.
+      unresolved_background: contrast.unresolved.length,
+      unresolved: contrast.unresolved,
       failures: contrast.fail,
     },
     keyboard: {

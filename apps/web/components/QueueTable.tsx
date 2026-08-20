@@ -140,7 +140,14 @@ export default function QueueTable({
               style={{
                 padding: "var(--sp-02) var(--sp-04)",
                 background: active ? "var(--interactive-01)" : "transparent",
-                color: active ? "var(--text-04)" : "var(--text-02)",
+                // Ink on the accent is the plate's ground, not white. White on this
+                // amber measures 2.00:1 and on the Carbon blue it was 3.34:1, both
+                // under the floor for 12px text; the ground on the accent is the
+                // same pair inverted and measures 9.09:1. Caught by
+                // `audit/a11y-probe.js`, which reported this chip and its count
+                // badge as the only two contrast failures on the landing page.
+                color: active ? "var(--ui-background)" : "var(--text-02)",
+                fontWeight: active ? 600 : 400,
                 border: `1px solid ${
                   active ? "var(--interactive-01)" : "var(--border-strong)"
                 }`,
@@ -151,6 +158,9 @@ export default function QueueTable({
               }}
             >
               {chip.label}
+              {/* 0.8 opacity over the accent leaves the badge at 6.6:1 on the
+                  active chip and 8.1:1 on an inactive one, both over the 4.5:1
+                  floor for 12px text. */}
               <span className="num" style={{ marginLeft: "var(--sp-03)", opacity: 0.8 }}>
                 {n}
               </span>
@@ -300,7 +310,7 @@ export default function QueueTable({
             <tr
               key={entry.obs_id}
               style={{
-                background: inBudget ? "rgba(69,137,255,0.05)" : undefined,
+                background: inBudget ? "rgba(252,165,10,0.05)" : undefined,
               }}
             >
               <Cell align="left" mono>

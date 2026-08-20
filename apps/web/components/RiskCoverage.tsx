@@ -175,7 +175,14 @@ export default function RiskCoverage({
           marginTop: "var(--sp-03)",
         }}
       >
-        The yellow bar is the 95% interval on the error rate at that operating point.
+        {/* The caption used to say "the yellow bar", and the bar is drawn from
+            --support-03, which the palette change moved from #f1c21b to inferno's
+            0.70 stop. A colour word in prose is a second copy of a token: it went
+            stale the moment the token moved, and the page shipped a sentence naming a
+            colour it no longer drew. The mark is named by what it is instead, and the
+            label already on the chart carries the pointer. */}
+        The vertical bar through the marked point is the 95% interval on the error rate
+        at that operating point.
         Whether the ceiling held is decided on the top of that interval, not on the
         point estimate, because the promise to a reviewer is about the worst plausible
         error rate rather than the luckiest one.

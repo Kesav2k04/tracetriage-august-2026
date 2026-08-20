@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gate 4 blinded review</title>
+<!--
+  A reviewer front end for the gate 4 blinded bundle.
+
+  WHY THIS EXISTS. The instrument for gate 4 has been ready since 2026-08-19 and the
+  gate stayed OPEN. The reason was not the study, it was the form: 72 rows of CSV
+  typed by hand next to an image viewer, with no way to tell how far through you are
+  and every chance of pasting an answer onto the wrong row. This is the same protocol
+  with the friction removed. It changes nothing the pre-registration fixes.
+
+  WHAT IT MUST NOT DO, and how each is prevented:
+
+  * It must not reveal a label. This file reads nothing except `images/G4-NNN.png`.
+    It has no access to the key, the manifest, the snapshot or the network's
+    `waterfall_status`, and it makes no network request of any kind.
+  * It must not weight the answers. `unsure` is the answer this gate exists to
+    count, so it is the same size, the same colour and the same distance from the
+    cursor as `yes` and `no`. A form that makes the decisive answers easier to click
+    measures the form.
+  * It must not let a reviewer revise. `worksheet.md` says "judge each one on its own
+    and do not go back to change an earlier answer", so there is no back button and a
+    recorded item cannot be reopened. Intra-rater agreement on the 12 repeated items
+    is only a measurement if the reviewer could not look up what they said the first
+    time.
+  * It must not lose work. Every answer is written to localStorage as it is made, so
+    closing the tab halfway costs nothing and resuming does not restart the sample.
+
+  USAGE. Copy this file into the bundle directory beside `images/`, open it in a
+  browser, answer, then press "Download responses.csv" and put that file over
+  `responses.csv` in the bundle. Then:
+
+      .venv/Scripts/python.exe scripts/score_gate4.py --bundle D:/tracetriage_gate4
+
+  The scorer re-hashes every image, recomputes every commitment, and refuses to score
+  if one fails, so nothing about this front end can weaken the blinding: if it had
+  altered an image or an order, the scorer would stop.
+-->
+<style>
+  /* The console's own tokens, so the bundle and the site look like one project.
+     Deliberately no colour on any answer control: see the note above. */
+  :root {
+    --ground: #191512;
+    --tile: #292521;
+    --line: #3c3834;
+    --line-strong: #736e6a;
+    --ink: #f8f3ee;
+    --ink-2: #cac5c0;
+    --ink-3: #918c87;
+    --accent: #fca50a;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 14px; line-height: 1.5;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;
+    padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--ground); z-index: 2;
+  }
+  h1 { font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase;
+       color: var(--ink-3); margin: 0; font-weight: 600; }
+  .count { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink); }
+  .bar { flex: 1 1 12rem; height: 3px; background: var(--line); min-width: 8rem; }
+  .bar span { display: block; height: 100%; background: var(--accent); width: 0; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 22rem; gap: 1.5rem;
+         padding: 1.25rem; align-items: start; }
+  @media (max-width: 60rem) { main { grid-template-columns: minmax(0, 1fr); } }
+  /* The plate scrolls and the image is never scaled down.
+     `max-height: 82vh` on the image fitted a 832x1603 plate into about 740px, a
+     scale of 0.46, and the question this study asks is whether there is a trace
+     above the noise. A trace two or three levels above the floor does not survive
+     being resampled to under half size, so a fitted plate would have pushed answers
+     toward `unsure` and biased the exact number the gate measures. The frame scrolls
+     instead: every pixel the renderer wrote is a pixel the reviewer can see.
+     `image-rendering: pixelated` keeps it honest if a reviewer zooms the browser,
+     because a smoothed spectrogram invents intensities between samples. */
+  .plate { background: #000; border: 1px solid var(--line); max-height: 84vh;
+           display: block; overflow: auto; }
+  .plate img { display: block; margin: 0 auto; image-rendering: pixelated; }
+  .item { font-family: var(--mono); color: var(--ink-3); font-size: 0.75rem;
+          margin: 0 0 0.75rem; letter-spacing: 0.04em; }
+  fieldset { border: 0; border-top: 1px solid var(--line); margin: 0 0 1.25rem; padding: 1rem 0 0; }
+  legend { padding: 0; font-weight: 600; font-size: 0.8125rem; }
+  .q { color: var(--ink-2); font-size: 0.75rem; margin: 0.25rem 0 0.75rem; line-height: 1.5; }
+  .opts { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  /* Identical treatment for every option. The key hint is the only difference. */
+  button.opt {
+    font: inherit; font-size: 0.8125rem; color: var(--ink);
+    background: var(--tile); border: 1px solid var(--line-strong);
+    padding: 0.5rem 0.75rem; cursor: pointer; min-width: 4.5rem; text-align: left;
+  }
+  button.opt:hover { background: #383430; }
+  button.opt[aria-pressed="true"] { border-color: var(--accent); }
+  button.opt kbd { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-3);
+                   display: block; margin-top: 0.15rem; }
+  .actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;
+             border-top: 1px solid var(--line); padding-top: 1rem; }
+  button.primary {
+    font: inherit; font-weight: 600; color: var(--ground); background: var(--accent);
+    border: 1px solid var(--accent); padding: 0.6rem 1rem; cursor: pointer;
+  }
+  button.primary[disabled] { opacity: 0.4; cursor: not-allowed; }
+  button.ghost { font: inherit; color: var(--ink-2); background: transparent;
+                 border: 1px solid var(--line-strong); padding: 0.6rem 1rem; cursor: pointer; }
+  .note { color: var(--ink-3); font-size: 0.75rem; margin: 1rem 0 0; line-height: 1.6; }
+  .done { padding: 2rem 1.25rem; max-width: 46rem; }
+  .done h2 { font-size: 1.25rem; margin: 0 0 0.75rem; font-weight: 400; }
+  code { font-family: var(--mono); font-size: 0.8125rem; color: var(--accent); }
+  :focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Gate 4 blinded review</h1>
+  <span class="count" id="count">0 / 72</span>
+  <span class="bar" aria-hidden="true"><span id="fill"></span></span>
+  <span class="count" id="item-id" style="color:var(--ink-3)"></span>
+</header>
+
+<main id="app">
+  <div class="plate"><img id="plate" alt="Blinded waterfall for the current item" /></div>
+
+  <form id="form" autocomplete="off">
+    <p class="item" id="crumb"></p>
+
+    <fieldset data-axis="artifact_usable">
+      <legend>Artifact usable</legend>
+      <p class="q">Can this image be read? Are the axes present, is the frame complete, is
+        it free of the rendering faults that make a spectrogram undecidable?</p>
+      <div class="opts"></div>
+    </fieldset>
+
+    <fieldset data-axis="visible_signal">
+      <legend>Visible signal</legend>
+      <p class="q">Is there a trace above the noise anywhere in the frame?</p>
+      <div class="opts"></div>
+    </fieldset>
+
+    <fieldset data-axis="target_consistent">
+      <legend>Target consistent</legend>
+      <p class="q">Does any visible trace look like a satellite pass, meaning a smooth curve
+        drifting across frequency, rather than a straight vertical carrier or a horizontal
+        band?</p>
+      <div class="opts"></div>
+    </fieldset>
+
+    <div class="actions">
+      <button class="primary" id="record" type="button" disabled>Record and next</button>
+      <button class="ghost" id="download" type="button">Download responses.csv</button>
+    </div>
+    <p class="note">
+      <code>unsure</code> is a real answer and it is the point of the study. Do not guess to
+      be helpful: a guess inflates the exact number this gate measures. There is no back
+      button on purpose, because the 12 repeated items only measure agreement if you cannot
+      look up what you said the first time. Answers are saved as you make them.
+    </p>
+  </form>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const N = 72;
+  const KEY = "gate4-review-v1";
+  const AXES = [
+    ["artifact_usable", ["yes", "no", "unsure"]],
+    ["visible_signal", ["yes", "no", "unsure"]],
+    ["target_consistent", ["yes", "no", "na", "unsure"]],
+  ];
+  const ids = Array.from({ length: N }, (_, i) => "G4-" + String(i + 1).padStart(3, "0"));
+
+  const load = () => {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+  };
+  const save = (s) => localStorage.setItem(KEY, JSON.stringify(s));
+
+  let state = load();
+  let current = {};
+
+  const el = (id) => document.getElementById(id);
+  const nextIndex = () => ids.findIndex((id) => !state[id]);
+
+  function renderOptions() {
+    for (const [axis, options] of AXES) {
+      const box = document.querySelector(`fieldset[data-axis="${axis}"] .opts`);
+      box.textContent = "";
+      options.forEach((value, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "opt";
+        b.dataset.axis = axis;
+        b.dataset.value = value;
+        b.setAttribute("aria-pressed", "false");
+        b.innerHTML = value + "<kbd>" + (i + 1) + "</kbd>";
+        b.addEventListener("click", () => choose(axis, value));
+        box.appendChild(b);
+      });
+    }
+  }
+
+  function choose(axis, value) {
+    current[axis] = value;
+    document.querySelectorAll(`button.opt[data-axis="${axis}"]`).forEach((b) => {
+      b.setAttribute("aria-pressed", String(b.dataset.value === value));
+    });
+    // Complete means the scorer can read it: artifact_usable always, and when it is
+    // yes, at least one of the other two committed. The button follows the same rule
+    // the receipt's decisive_rule states, rather than a looser one.
+    el("record").disabled = !(
+      current.artifact_usable &&
+      current.visible_signal &&
+      current.target_consistent
+    );
+  }
+
+  function show() {
+    const i = nextIndex();
+    if (i === -1) return finish();
+    const id = ids[i];
+    current = {};
+    el("plate").src = "images/" + id + ".png";
+    el("plate").alt = "Blinded waterfall for item " + id;
+    el("crumb").textContent = id;
+    el("item-id").textContent = id;
+    el("count").textContent = Object.keys(state).length + " / " + N;
+    el("fill").style.width = (100 * Object.keys(state).length) / N + "%";
+    document.querySelectorAll("button.opt").forEach((b) =>
+      b.setAttribute("aria-pressed", "false")
+    );
+    el("record").disabled = true;
+    window.scrollTo(0, 0);
+  }
+
+  function record() {
+    const id = ids[nextIndex()];
+    state[id] = {
+      artifact_usable: current.artifact_usable,
+      visible_signal: current.visible_signal,
+      target_consistent: current.target_consistent,
+    };
+    save(state);
+    show();
+  }
+
+  function csv() {
+    const rows = [["item", "artifact_usable", "visible_signal", "target_consistent", "notes"]];
+    for (const id of ids) {
+      const r = state[id];
+      rows.push(
+        r ? [id, r.artifact_usable, r.visible_signal, r.target_consistent, ""] : [id, "", "", "", ""]
+      );
+    }
+    return rows.map((r) => r.join(",")).join("\r\n") + "\r\n";
+  }
+
+  function download() {
+    const blob = new Blob([csv()], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "responses.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function finish() {
+    const answered = Object.keys(state).length;
+    document.getElementById("app").outerHTML =
+      '<div class="done"><h2>' + answered + " of " + N + " items recorded.</h2>" +
+      "<p>Press the button, then put the downloaded file over <code>responses.csv</code> " +
+      "in this bundle and run:</p>" +
+      "<p><code>.venv/Scripts/python.exe scripts/score_gate4.py --bundle D:/tracetriage_gate4</code></p>" +
+      "<p class=\"note\">The scorer re-hashes every image and recomputes every commitment " +
+      "before it scores a single response. If anything about the sample or its order had " +
+      "moved, it would refuse rather than report.</p>" +
+      '<p><button class="primary" id="dl2" type="button">Download responses.csv</button></p></div>';
+    document.getElementById("dl2").addEventListener("click", download);
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !el("record").disabled) { record(); return; }
+    const n = Number(e.key);
+    if (!Number.isInteger(n) || n < 1 || n > 4) return;
+    // Number keys fill the first axis still unanswered, so a reviewer can key
+    // three digits in a row without reaching for the mouse.
+    for (const [axis, options] of AXES) {
+      if (!current[axis]) {
+        if (options[n - 1]) choose(axis, options[n - 1]);
+        return;
+      }
+    }
+  });
+
+  el("record").addEventListener("click", record);
+  el("download").addEventListener("click", download);
+  renderOptions();
+  show();
+})();
+</script>
+</body>
+</html>

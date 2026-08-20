@@ -102,9 +102,17 @@ export default function Colophon({
             security policy names two hosts. Nothing that carries a measurement
             depends on that request: both licensed faces sit in front of a Plex
             fallback, so a blocked kit costs the lettering and not the reading.
-            Colour from the IBM Carbon Gray 100 theme, with one documented
-            departure where Carbon&rsquo;s own token failed a contrast
-            requirement.
+            Colour is derived rather than chosen. Every waterfall this site
+            publishes is greyscale, measured at a largest channel spread of 1 part
+            in 255, so grey means measured and every coloured mark is something the
+            pipeline computed. The neutrals are IBM Carbon Gray 100&rsquo;s own
+            lightness values re-expressed in OKLCH with a small warm chroma, which
+            moves no contrast ratio by more than 0.01, and the accents are stops off{" "}
+            <span className="num">inferno</span>, the colourmap the plate above is
+            rendered through and the one matplotlib ships for spectrograms. One
+            documented departure in each: Carbon&rsquo;s own text token failed a
+            contrast requirement, and the ramp&rsquo;s crimson could not carry a word
+            on a tile until its lightness was raised.
           </p>
           {/* Both forms of each document.
               The served copy is markdown source, and a browser shows 54 KB of pipe

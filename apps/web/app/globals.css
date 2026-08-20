@@ -1,8 +1,9 @@
 /* Hallmark · macrostructure: Stat-Led (/) + Map-Diagram (/observation)
  * tone: technical, austere · genre: modern-minimal · nav: N3 side-rail · footer: Ft4 dense colophon
- * theme: IBM Carbon Gray 100, preserved · paper dark oklch(17% 0 0) · accent cool oklch(64% 0.16 258)
- * axes: paper-band dark / display grotesk-sans / accent cool
- * enrichment: E-data (sky plot, ground track, Manim explainer) — every mark carries a receipt value
+ * theme: IBM Carbon Gray 100 structure, warm-graphite neutrals oklch(L 0.009 70)
+ * accent: matplotlib inferno, sampled at named stops
+ * axes: paper-band dark / display grotesk-sans / accent warm-ordinal
+ * enrichment: E-data (sky plot, ground track, Manim explainer), every mark carries a receipt value
  * pre-emit critique: P5 H5 E4 S5 R5 V4
  */
 /*
@@ -16,109 +17,163 @@
  * work to do.
  *
  * Carbon is used because this is an IBM challenge and Carbon is IBM's design
- * system. Deviating from its structure would cost a point of alignment for no gain.
+ * system. Carbon owns the structure here and nothing below moves it.
  *
- * THE NEUTRALS ARE TINTED, AND THE TINT IS FREE.
+ * THE PALETTE IS DERIVED FROM THE DATA, AND THE DERIVATION IS CHECKABLE.
  *
- * Carbon Gray 100 is achromatic, and an achromatic console for a project about deep
- * space reads as an admin panel. Every neutral is therefore re-expressed in OKLCH at
- * the SAME LIGHTNESS as its Carbon original, with a small chroma at hue 264, a deep
- * indigo. Because OKLCH lightness is perceptually uniform and the chroma is small,
- * the WCAG contrast ratios are unchanged: text-01 on the page ground is 16.45:1
- * before and 16.42:1 after, text-03 is 5.45:1 before and 5.44:1 after, and text-03
- * on a tile is 4.56:1 before and 4.55:1 after. Every accessibility result C6
- * measured on the built site still holds, which is the reason the tint was done this
- * way instead of by picking colours that looked right.
+ * Start from the measurement. Every waterfall this site publishes is greyscale:
+ * across the 25 images under `apps/web/public/waterfalls/`, the largest difference
+ * between any pixel's brightest and darkest channel is 1 part in 255, and the mean
+ * is 0.01. `tests/test_waterfall_achromatic.py` asserts it, so the claim cannot
+ * quietly stop being true when the snapshot is refreshed. The instrument records
+ * intensity and nothing else.
+ *
+ * That decides the whole palette in one rule: GREY IS MEASURED, COLOUR IS COMPUTED.
+ * The waterfall is shown as published, in grey. Every coloured mark on the page is
+ * something the pipeline derived: a corridor predicted from an orbit, a fitted
+ * offset, a conflict between two labels. A reader can therefore tell the
+ * observation from the inference without reading a legend, because the two never
+ * share a channel.
+ *
+ * An earlier version of this file said `--verdict-passed` was chosen to sit "in the
+ * same family as the viridis ramp the waterfalls are rendered in". The waterfalls
+ * are not rendered in viridis. They are grey, as measured above, and the ramp was
+ * being applied by the console rather than found in the data. The rationale rested
+ * on a false premise about the input and is recorded here rather than deleted.
+ *
+ * THE NEUTRALS ARE CARBON'S LIGHTNESS, RE-TINTED WARM, AND THE TINT IS FREE.
+ *
+ * Carbon Gray 100 is achromatic. Every neutral below is its Carbon original
+ * converted to OKLCH, held at exactly its Carbon lightness, given chroma 0.009 at
+ * hue 70, and converted back. Because OKLCH lightness is perceptually uniform and
+ * the chroma is small, the WCAG ratios do not move: text-01 on the page ground is
+ * 16.45:1 as Carbon ships it and 16.46:1 here, text-03 is 5.45:1 and 5.45:1,
+ * ui-04 as a component boundary is 3.60:1 and 3.60:1. The largest movement across
+ * all seventeen neutrals is 0.01. The tint was done this way, rather than by
+ * picking colours that looked right, so that no accessibility result measured on
+ * the built site had to be re-argued.
+ *
+ * Hue 70 is a warm graphite. It reads as a photographic plate rather than as a
+ * screen, and it is the one hue on the page that is a preference rather than a
+ * derivation. It is named as such.
+ *
+ * THE ACCENTS ARE STOPS OFF THE COLOURMAP THE HERO USES.
+ *
+ * `components/CorridorHero.tsx` maps the greyscale plate through inferno with an
+ * SVG filter, using the same 17-stop table matplotlib generates, so the colour a
+ * reader sees over the plate is a documented function of a measured intensity.
+ * Every accent token below is a sample off that same table, and each one is
+ * labelled with the position it was taken from. Inferno was picked for three
+ * reasons that are properties rather than tastes: it is monotonic in lightness, so
+ * a value encoded by hue is also encoded by contrast; it is safe under all three
+ * common colour-vision deficiencies, which a blue-to-red ramp is not; and it is
+ * what matplotlib ships for spectrograms, which is what a waterfall is.
+ *
+ * Monotonic lightness has a consequence worth stating: position on this ramp is
+ * ordinal. Higher is brighter is stronger. Where the interface needs to say one
+ * thing is more than another, it moves along the ramp rather than changing family.
  *
  * `scripts/check_contrast.py` recomputes every pair from this file and
  * `tests/test_contrast.py` fails the suite if one drops below its floor, so the
- * next person to reach for a nicer blue finds out immediately rather than at an
+ * next person to reach for a nicer amber finds out immediately rather than at an
  * accessibility audit.
  *
- * The accents moved for contrast, not for taste. `--interactive-01` was Carbon
- * Blue 60 (#0f62fe), which measures 3.62:1 on this ground and cannot carry text. It
- * is now Blue 50 (#4589ff) at 5.41:1, still a Carbon ramp value. `--verdict-passed`
- * moved from Carbon green to #2fc48a, which is in the same family as the viridis
- * ramp the waterfalls are rendered in, so the interface and the instrument share a
- * palette rather than arguing.
- *
- * NOT_ESTABLISHED stays grey. The reasoning below the verdict tokens is unchanged
- * and was not weakened to make the page more colourful.
+ * `--verdict-failed` is the one accent that is not a table sample. Inferno's
+ * crimson, at the position where the ramp is unambiguously red rather than orange
+ * (0.55, #cc4248), measures 3.22:1 on a tile and cannot carry a word. Its OKLCH
+ * lightness is raised by 0.086 with hue and chroma held, which is the smallest lift
+ * that clears 4.5:1 on both surfaces. That is the same move `--text-03` already
+ * documents below: when a ramp value fails a contrast floor, the floor wins and the
+ * departure is written down.
  */
 
 :root {
-  /* Carbon Gray 100 backgrounds */
-  --ui-background: #0d1627;
-  --ui-01: #1c263a;
-  --ui-02: #2e394f;
-  --ui-03: #2e394f;
-  --ui-04: #656f84;
-  --ui-05: #f2f4f8;
-  --field-01: #1c263a;
-  --hover-ui: #2a354a;
+  /* Backgrounds. Carbon Gray 100's own lightness values, re-tinted warm.
+     Carbon original in brackets. */
+  --ui-background: #191512;  /* Carbon #161616 */
+  --ui-01: #292521;          /* Carbon #262626 */
+  --ui-02: #3c3834;          /* Carbon #393939 */
+  --ui-03: #3c3834;          /* Carbon #393939 */
+  --ui-04: #736e6a;          /* Carbon #6f6f6f */
+  --ui-05: #f8f3ee;          /* Carbon #f4f4f4 */
+  --field-01: #292521;       /* Carbon #262626 */
+  --hover-ui: #383430;       /* Carbon #353535 */
 
   /* Text.
-     One deliberate departure from Carbon's naming. Carbon's text-03 is Gray 60
-     (#6f6f6f) and is the placeholder colour, not a text colour: measured against
-     this theme's two surfaces it gives 3.60:1 on the page background and 3.01:1
-     on a tile, both under the 4.5:1 that small text needs. Every caption, table
-     label and axis tick on this console would have failed. --text-03 is
-     therefore Gray 50, which measures 5.46:1 and 4.56:1, and the placeholder
-     grey keeps its own token so a real placeholder can still use it. */
-  --text-01: #f2f4f8;
-  --text-02: #c3c6cd;
-  --text-03: #898d96;
+     One deliberate departure from Carbon's naming, unchanged by the re-tint.
+     Carbon's text-03 is Gray 60 (#6f6f6f) and is the placeholder colour, not a
+     text colour: measured against this theme's two surfaces it gives 3.60:1 on
+     the page background and 3.01:1 on a tile, both under the 4.5:1 that small
+     text needs. Every caption, table label and axis tick on this console would
+     have failed. --text-03 is therefore Gray 50 re-tinted, which measures
+     5.45:1 and 4.55:1, and the placeholder grey keeps its own token so a real
+     placeholder can still use it.
+
+     --text-04 is the one neutral left at zero chroma. It is pure white because
+     it is the strongest ink on the page and a tinted white is a dimmer white. */
+  --text-01: #f8f3ee;         /* Carbon #f4f4f4 */
+  --text-02: #cac5c0;         /* Carbon #c6c6c6 */
+  --text-03: #918c87;         /* Carbon #8d8d8d, Gray 50 */
   --text-04: #ffffff;
-  --text-05: #898d96;
-  --text-placeholder: #6a6f7a;
+  --text-05: #918c87;
+  --text-placeholder: #736e6a; /* Carbon #6f6f6f */
 
   /* The ground behind a waterfall. True black rather than the theme's near-black:
-     the image is a measured intensity map, and letting #161616 show through the
-     darkest rows would render a measured zero as brighter than zero. */
+     the image is a measured intensity map, and letting the warm graphite show
+     through the darkest rows would render a measured zero as brighter than zero. */
   --waterfall-ground: #000000;
 
-  /* Carbon interactive and status */
-  --interactive-01: #4589ff;
-  --interactive-02: #656f84;
-  --interactive-04: #78a9ff;
-  --link-01: #8ab4ff;
-  --support-01: #ff7b82; /* error red */
-  --support-02: #2fc48a; /* success teal */
-  --support-03: #f1c21b; /* warning yellow */
-  --support-04: #78a9ff; /* information blue */
-  --support-05: #ff832b; /* caution orange */
+  /* Interactive and status, sampled off the inferno table.
+     The comment after each value is the position on the ramp it was taken from,
+     so any of them can be re-derived with
+     `matplotlib.cm.inferno(t)` and checked. */
+  --interactive-01: #fca50a;  /* inferno 0.80, corridor stroke and rail marker */
+  --interactive-02: #736e6a;  /* neutral: a disabled control is not a value */
+  --interactive-04: #fbbe23;  /* inferno 0.85, interactive text */
+  --link-01: #fca50a;         /* inferno 0.80, 9.09:1 on the ground, 7.62:1 on a tile */
+  --support-01: #eb5e61;      /* inferno 0.55 lifted, see the header note */
+  --support-02: #f8f3ee;      /* the ramp has no green, and success is not a hue here */
+  --support-03: #f37819;      /* inferno 0.70, caution, always paired with a glyph */
+  --support-04: #cac5c0;      /* information is neutral: it reports, it does not rank */
+  --support-05: #f37819;      /* inferno 0.70 */
 
   /* Verdict colours.
-     Deliberately not a red/green pair: two of the four gate states are neither
-     pass nor fail, and colouring them as failures would say something the
-     measurements do not.
+     Deliberately not a red/green pair, and now not a hue scale either. Two of the
+     four substantive gate states are neither pass nor fail, and colouring them as
+     failures would say something the measurements do not.
 
-     NOT_ESTABLISHED was amber, and that was wrong. Two independent real-world
-     standards say so. Carbon's own data-visualisation guidance assigns grey to
-     "unknown or pending" and keeps it out of the yellow warning tier. NASA's
-     Appendix F display standard mandates that yellow means CAUTION, which is a
-     statement about the subject of the measurement. NOT_ESTABLISHED is a statement
-     about the measurement itself: the interval contained the threshold. Painting it
-     amber told a reader something was wrong with the satellite data when what was
-     actually true is that the evidence did not separate.
+     Only one verdict carries a hue, and it is red, which is the one assignment two
+     independent standards agree on. NASA's Appendix F display standard reserves red
+     for WARNING and amber for CAUTION, and Carbon's own data-visualisation guidance
+     assigns grey to "unknown or pending". Both rule out the obvious shortcut of
+     painting the strongest result in the brightest thing the ramp has, because the
+     brightest thing inferno has is yellow, and yellow under Appendix F is a
+     statement about the subject of the measurement rather than about the
+     measurement. A cleared gate is not a caution.
 
-     That leaves two neutral states to tell apart, and one grey between them, so the
-     distinction moved off hue and onto form: NOT_ESTABLISHED carries a hollow ring
-     (measured, inconclusive), NOT_MEASURABLE carries a dash (no measurement
-     exists). Reserving colour and encoding state in the marker's shape is what the
-     Appendix F standard does, and it is also what makes the two readable to a
-     reader who cannot separate two greys.
+     So PASSED is the page's strongest ink rather than a colour: the strongest
+     result set in the strongest neutral. That leaves three states to tell apart
+     with value alone, which is not enough, so the distinction also sits on form.
+     PASSED carries a filled disc, NOT_ESTABLISHED a hollow ring (measured,
+     inconclusive), NOT_MEASURABLE a dash (no measurement exists), FAILED a filled
+     disc in the lifted crimson. The verdict word is printed in capitals beside
+     every one of them, so hue is never the only channel carrying the state.
 
-     Amber keeps one job on this site, and it is a caution: an offset that ran into
-     the edge of its search range is a lower bound rather than a value. It is also
-     used as a categorical series colour in the waterfall overlay, which is a
-     different axis: Appendix F reserves yellow in status indication, not in plotted
-     series, and the overlay's three curves are three things rather than three
-     severities. */
-  --verdict-passed: #2fc48a;
-  --verdict-not-established: #c3c6cd;
-  --verdict-failed: #ff7b82;
-  --verdict-not-measurable: #898d96;
+     Reserving colour and encoding state in the marker's shape is what Appendix F
+     does. It is also what makes the four readable to a reader who cannot separate
+     two warm greys.
+
+     Amber keeps exactly one job in status, and it is a caution: an offset that ran
+     into the edge of its search range is a lower bound rather than a value, and it
+     is drawn with the caution token and a "greater than or equal to" glyph. Amber
+     is otherwise the interactive accent, which is not a status: Appendix F governs
+     annunciation, not the colour of a link. The three curves in the waterfall
+     overlay are a third axis again, three things rather than three severities, and
+     they take three positions off the ramp. */
+  --verdict-passed: #f8f3ee;
+  --verdict-not-established: #cac5c0;
+  --verdict-failed: #eb5e61;
+  --verdict-not-measurable: #918c87;
 
   /* Spacing, Carbon's steps */
   --sp-01: 0.125rem;
@@ -159,8 +214,8 @@
   --dur-slow-01: 400ms;
   --dur-slow-02: 700ms;
 
-  --border-subtle: #2e394f;
-  --border-strong: #656f84;
+  --border-subtle: #3c3834;  /* Carbon #393939 */
+  --border-strong: #736e6a;  /* Carbon #6f6f6f */
   --focus: #ffffff;
 
   --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto,
@@ -238,12 +293,31 @@ body {
      It also hung headless capture here twice before it was removed. Attached to the
      document, the gradient spans the whole page, so the descent through it happens
      once over the length of the article rather than on every screen. */
-  background: linear-gradient(
+  /* An opaque colour under the gradient, and it is load-bearing twice over.
+
+     A `background` shorthand carrying only a gradient resets background-color to
+     transparent, so this element had no opaque colour at all and neither did html.
+     Two things depended on one that nobody had:
+
+     1. `audit/a11y-probe.js` resolves the background behind a text node by walking
+        up for the first opaque background-color. With none anywhere it fell back to
+        white, compared bone-white body text against white, and reported 662 of 706
+        nodes on this page below their contrast floor. The page was never wrong; the
+        measurement was. CLAIM_REGISTER's "1,475 text nodes, 0 below requirement" was
+        measured before the gradient was added and the gradient silently invalidated
+        it, which is why the row now carries the date of the run that replaced it.
+     2. An engine that cannot parse the gradient paints the canvas default, which in
+        a dark colour-scheme is dark but is not this dark, and in a light one is
+        white. Bone-white text on white is not a degraded page, it is a blank one.
+
+     The colour is the gradient's own first stop, so no pixel moves. */
+  background-color: var(--ui-background);
+  background-image: linear-gradient(
     180deg,
     var(--ui-background) 0%,
     var(--ui-background) 22%,
-    #0a1120 62%,
-    #070c17 100%
+    #131009 62%,
+    #0e0c07 100%
   );
   color: var(--text-01);
   font-family: var(--font-sans);
@@ -320,6 +394,11 @@ code,
 }
 
 /* Skip link: visible only once focused, and it must land above everything. */
+/* The skip link's ink follows its own background rather than the page's. On the
+   Carbon blue this was white on #4589ff at 3.34:1, already under the floor and
+   unnoticed because the link is invisible until focused, and on the amber it would
+   have been 2.00:1. Amber on graphite measures 9.09:1, so the same pair inverted is
+   the fix: the accent carries the plate's ground as its ink. */
 .skip-link {
   position: absolute;
   left: var(--sp-05);
@@ -327,7 +406,8 @@ code,
   z-index: 100;
   padding: var(--sp-03) var(--sp-05);
   background: var(--interactive-01);
-  color: var(--text-04);
+  color: var(--ui-background);
+  font-weight: 600;
   transition: top var(--dur-fast-02) var(--ease-productive-standard);
 }
 
@@ -1275,10 +1355,10 @@ code,
 .hero-null {
   fill: none;
   /* Near-black rather than a theme grey. Once the plate is mapped through
-     viridis its low end IS indigo, so a light null sits inside the map's own
+     inferno its low end IS a near-black plum, so a light null sits inside the map's own
      range and a dark one does not. The nulls are the thing the corridor has to
      beat, and they have to be legible as separate paths to say so. */
-  stroke: #0a0f1c;
+  stroke: #140b2e;
   stroke-width: 1.1;
   /* Sixteen nulls at 0.4 accumulated into one white band: overlapping
      semi-transparent strokes compose towards opaque, so the count and the alpha
@@ -1294,7 +1374,7 @@ code,
 /* The closest null of the two hundred. It is marked rather than hidden, because
    the honest version of this frame shows the hardest case it beat. */
 .hero-null-best {
-  stroke: #05080f;
+  stroke: #07051b;
   opacity: 0.72;
   stroke-width: 1.3;
 }
@@ -1446,4 +1526,350 @@ code,
 .colophon-raw {
   font-size: var(--type-caption);
   color: var(--text-03);
+}
+
+/* ---------------------------------------------------------------------------
+ * The opening band, and the gate ledger that fills it.
+ *
+ * The lede's intro prose is capped at 58ch for a measure that reads, which on a
+ * 1440px viewport left about a third of the first screen empty to its right. The
+ * band below puts the six-gate ledger there. It is a two-column grid rather than a
+ * float so the ledger's own height cannot push the prose around, and it collapses to
+ * one column under 62rem, where the prose already fills the width and there is no
+ * space to fill.
+ * ------------------------------------------------------------------------- */
+
+.lede-open {
+  display: grid;
+  gap: var(--sp-07);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 62rem) {
+  .lede-open {
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem);
+    gap: var(--sp-10);
+    align-items: start;
+  }
+}
+
+.lede-open-text {
+  min-width: 0;
+}
+
+.ledger {
+  min-width: 0;
+  border-top: 2px solid var(--border-strong);
+  padding-top: var(--sp-05);
+}
+
+.ledger-title {
+  margin: 0 0 var(--sp-05);
+  font-family: var(--font-label);
+  font-size: var(--type-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-02);
+}
+
+.ledger-title span {
+  display: block;
+  margin-top: var(--sp-02);
+  font-family: var(--font-sans);
+  font-size: var(--type-caption);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-03);
+  line-height: 1.5;
+}
+
+.ledger-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+/* Three columns rather than two, and the reason is height rather than taste. With
+   the verdict wrapping under its title the strip ran 540px against 230px of intro
+   prose beside it, and the surplus pushed the stat band down into a gap larger than
+   the one this ledger was added to fill. On one line per gate it runs 290px, which
+   is within a row of the prose, so neither column drags the other. */
+.ledger-row {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  gap: var(--sp-03);
+  align-items: center;
+  padding: var(--sp-03) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* The index is plate furniture: zero-padded, monospaced, and dimmer than the
+   title it numbers, so it reads as a row number rather than as a value. */
+.ledger-index {
+  color: var(--text-03);
+  font-size: var(--type-caption);
+}
+
+.ledger-gate-title {
+  color: var(--text-02);
+  font-size: var(--type-caption);
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.ledger-foot {
+  margin: var(--sp-05) 0 0;
+  font-size: var(--type-caption);
+  line-height: 1.65;
+  color: var(--text-03);
+}
+
+/* The stagger. --row is set per row from the map index, so the delay is a
+   multiplication in CSS rather than six declarations, and adding a seventh gate
+   needs no CSS change at all.
+
+   Capped at six rows of 55ms, which is 330ms of sweep. Carbon's own motion guidance
+   puts a productive entrance at 110ms per element and says a list should finish
+   inside about 400ms; longer and the reader is waiting on the interface rather than
+   reading it. Transform and opacity only, so each row composites on its own layer
+   and the sweep costs no layout. */
+@media (prefers-reduced-motion: no-preference) {
+  .ledger-row {
+    opacity: 0;
+    transform: translateY(0.375rem);
+    animation: ledger-in var(--dur-moderate-02) var(--ease-productive-entrance)
+      forwards;
+    animation-delay: calc(120ms + var(--row) * 55ms);
+  }
+}
+
+@keyframes ledger-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ===========================================================================
+ * Motion, and the two rules it follows.
+ *
+ * FIRST: no motion costs JavaScript. Everything below is CSS. The reveal on scroll
+ * uses `animation-timeline: view()`, which runs on the compositor and needs no
+ * observer, no listener and no hydration, so a static export animates without
+ * shipping a frame of script. Where the property is unsupported the `@supports`
+ * block simply does not apply and every element renders at its final state, which
+ * is the correct fallback: the content is the information and the reveal is not.
+ *
+ * SECOND: only opacity and transform. Both composite, so a reveal costs no layout
+ * and no paint of the subtree. Nothing below animates a colour, a size, a shadow or
+ * a custom property that a descendant reads, because a per-frame custom property
+ * invalidates the whole subtree that reads it and that is a measured cost rather
+ * than a stylistic worry.
+ *
+ * `prefers-reduced-motion: reduce` already collapses every duration to 0.01ms in
+ * the block above, and each rule here is additionally scoped to `no-preference`, so
+ * a reduced-motion reader never has an element start at opacity 0 and then depend
+ * on an animation to arrive.
+ *
+ * `audit/motion-probe.js` scrolls the built page to the bottom and reports both the
+ * count the selector reached and every element that did not end fully opaque,
+ * because "the reveal never finished" and "the rule matched nothing" are the two
+ * ways a scroll-driven animation fails, and a build catches neither. A matched count
+ * of zero is reported as a failure rather than as a clean run.
+ * ------------------------------------------------------------------------- */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Sections, figures and the instruments inside them. The range ends at
+       `entry 55%`, so an element is fully arrived a little over halfway through
+       entering the viewport rather than at the moment it finishes entering: a
+       reveal that completes at the end of entry reads as lag, because the reader's
+       eye reaches the text before the animation does. */
+    /* `.shell` is the max-width container inside main, so a section is a grandchild
+       of main and never a child of it. Written as `main > section` this block matched
+       nothing at all and the reveal was dead while the CSS looked live.
+       `audit/motion-probe.js` now counts the elements the selector reaches, so a
+       rule that stops matching is reported instead of quietly doing nothing.
+
+       `.colophon` is excluded by the child combinator on `.shell`: the footer's four
+       columns are sections too, and revealing a footer column as it enters animates
+       the last thing on the page for no reader benefit. */
+    main .shell > section,
+    main .shell > figure,
+    .instrument {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * The big stat digits.
+ *
+ * A wipe rather than a fade, and the direction is the reason. These numbers are
+ * measurements with intervals under them, and a number that fades in reads as an
+ * assertion appearing. A number that wipes up from its own baseline reads as one
+ * being written, which is what a plotter does and what this console is about.
+ *
+ * clip-path animates on the compositor, so the wipe costs no layout even at 84px.
+ * The bottom inset lands at -0.15em rather than 0 because the digits are set with
+ * line-height 0.82 and a clip at exactly 0 shaved the descender off the interval
+ * that sits under them.
+ * ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .lede-number {
+    animation: digits-write var(--dur-slow-01) var(--ease-expressive-standard) both;
+    animation-delay: 90ms;
+  }
+
+  .lede-verdict:nth-child(2) .lede-number {
+    animation-delay: 200ms;
+  }
+}
+
+@keyframes digits-write {
+  from {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0.2;
+  }
+  to {
+    clip-path: inset(0 0 -0.15em 0);
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Links, and an underline that is drawn rather than switched on.
+ *
+ * `text-decoration` cannot be animated, so the hover underline was a hard on and
+ * off. A background gradient sized on one axis can be, and it grows from the left,
+ * so a link reads as being marked rather than as changing state. The gradient
+ * repaints the inline box only, which at this size is a few hundred pixels and not
+ * a layer.
+ *
+ * The rail and the queue button are excluded: both already carry their own state
+ * treatment, and a second underline on a nav item that is also the current page
+ * says the same thing twice.
+ * ------------------------------------------------------------------------- */
+
+main a:not(.rail-link):not(.rail-mark):not(.queue-more):not(.skip-link) {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 calc(100% - 0.04em);
+  background-size: 0% 1px;
+  transition: background-size var(--dur-moderate-01) var(--ease-productive-standard);
+}
+
+main a:not(.rail-link):not(.rail-mark):not(.queue-more):not(.skip-link):hover,
+main a:not(.rail-link):not(.rail-mark):not(.queue-more):not(.skip-link):focus-visible {
+  background-size: 100% 1px;
+  /* The drawn line replaces the browser's rather than sitting under a second copy
+     of it. */
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Table rows.
+ *
+ * A 60-row queue is scanned by moving down it, and the thing a reader loses is
+ * which row the eye is on. A hover tint alone is weak on a warm dark ground, so the
+ * row also grows a rule at its leading edge: a 2px amber bar that scales up from
+ * nothing. scaleX on a pseudo-element, so it composites and the row does not reflow.
+ *
+ * Applied to every table body on the console rather than the queue only, because
+ * every table here is a table of figures being read across.
+ * ------------------------------------------------------------------------- */
+
+main tbody tr {
+  position: relative;
+  transition: background-color var(--dur-fast-02) var(--ease-productive-standard);
+}
+
+main tbody tr::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--interactive-01);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-fast-02) var(--ease-productive-standard);
+}
+
+main tbody tr:hover {
+  background-color: var(--hover-ui);
+}
+
+main tbody tr:hover::before,
+main tbody tr:focus-within::before {
+  transform: scaleX(1);
+}
+
+/* ---------------------------------------------------------------------------
+ * Plate furniture.
+ *
+ * The tick to the left of every section heading. It is the one piece of pure
+ * ornament on the page and it is here to say what kind of document this is: a plate
+ * carries registration marks, a dashboard does not. Drawn as a pseudo-element on
+ * the heading, so it costs no markup and it leaves with the heading.
+ * ------------------------------------------------------------------------- */
+
+main .shell > section > h2 {
+  position: relative;
+}
+
+main .shell > section > h2::before {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 0.42em;
+  width: 3px;
+  height: 0.62em;
+  background: var(--interactive-01);
+}
+
+@media (max-width: 60rem) {
+  /* Under the rail breakpoint the shell padding is the whole left margin, so a
+     mark hung outside the heading would be clipped by the viewport. */
+  main .shell > section > h2::before {
+    display: none;
+  }
+}
+
+/* The rail's ruled edge. A hairline every 8px along its inner border, at the value
+   of plot furniture: it reads as a scale on the edge of a plate rather than as a
+   border with a pattern. Stepped in the same 8px the spacing tokens use, so it
+   lines up with everything measured against them. */
+@media (min-width: 60rem) {
+  .rail {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--ui-02) 0,
+      var(--ui-02) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+    background-repeat: no-repeat;
+    background-position: right top;
+    background-size: 4px 100%;
+  }
 }

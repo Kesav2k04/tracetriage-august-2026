@@ -69,10 +69,16 @@ export function VerdictBadge({
   // changed, so it decides nothing. A filled marker, which is what the default
   // branch gave it, would have drawn the least informative outcome in this
   // console with the shape reserved for a decided one.
+  // OPEN joins the dash for the same reason. Gate 4 was never run: there is no
+  // measurement to be inconclusive about, so a ring would overstate it and a filled
+  // disc would claim it was decided. The dash is the honest shape for the absence of
+  // a study, and it is the shape a reader has already learnt from NOT_MEASURABLE.
   const marker =
     normalised === "NOT_ESTABLISHED"
       ? "ring"
-      : normalised === "NOT_MEASURABLE" || normalised === "NOT_INFORMATIVE"
+      : normalised === "NOT_MEASURABLE" ||
+          normalised === "NOT_INFORMATIVE" ||
+          normalised === "OPEN"
         ? "dash"
         : "filled";
 
