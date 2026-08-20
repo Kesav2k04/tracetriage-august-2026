@@ -5823,3 +5823,56 @@ built for before the fix landed, and it found three drifts on its first run that
 had reported. 1,315 offline tests collected of 1,319, 4 deselected, all passing.
 **Outcome:** accepted, and the release gate it measured is recorded as **not met** at 15.5
 of 20 against a bar of 18.
+
+## 2026-08-20 IST | Wave D | D15i: the four findings the seats' full reports carried
+
+D15g scored the council check from the seats' score lines and the defects they named
+first. Their full reports arrived afterwards and carried four more, all real.
+
+**Two origin claims were false as written.** `README.md` said "no data fetched from another
+origin" in its opening block and "No font is requested from another origin" in the IBM stack
+table. The served HTML carries a stylesheet link and a preconnect to `use.typekit.net`,
+which delivers the two licensed display faces. The console has always disclosed this
+correctly: the colophon names Adobe Fonts as the one third-party origin and gives the reason,
+and `/provenance/` measures the bytes and lists both hosts in the content security policy.
+The site was honest and the README was not. Both sentences say what is true now: no
+measurement comes from another origin, exactly one third-party request exists, nothing
+carrying a number depends on it, and every face that carries a measurement is Plex served
+from here.
+
+**The console's tally rounded up the same way the judges' page did.** The colophon said "Two
+of the six gates it set itself were met" and stopped, while `README.md` says two screens away
+that both are feasibility gates answered before any pipeline code. A seat named the console
+and the judges' page as the two surfaces that flatter the result and the README as the one
+that does not. The colophon reads its counts from the gate summary now, including how many
+were PRE_PASSED, and says that of the four gates asking whether the idea works, none passed
+on the split that decides it.
+
+**Nothing tested the sentence that was wrong.** A seat asked for a console test asserting the
+lede's denominator is the population, because the binding D15g fixed had nothing holding it.
+`apps/web/tests/lede-population.test.ts` is six tests over both halves: the paragraph reads
+`n_population`, `budget` and `n_conflicts` from the reproduction block and does not name
+`n_queue_examined` at all, and the payload publishes that block with a budget strictly below
+its population, which is the assertion the defect could not have survived. Reverting the
+binding was checked to fail it.
+
+**A judge learned what SatNOGS is 90 lines in.** Two seats said the same thing: the README
+opens with a badge that cannot resolve while the repository is private, then a status block
+whose first sentence reads as a failed project, and the problem statement arrives after two
+tables of verdicts. The opening now says in six lines what the network is, how big the
+backlog is, what the queue does about it and that it writes nothing back. The bottleneck
+figure is the one every seat quoted independently, 426 of 600 sampled observations with no
+decisive verdict, and it has a register row now pointing at
+`docs/SATNOGS_API_RECON.md` section 5. The CI badge moved below the judges' pointer, because
+until 25 August it renders as a broken image and it was the first thing on the page.
+
+**Files changed:** `README.md`, `docs/CLAIM_REGISTER.md`, `docs/REFERENCE.md`,
+`apps/web/app/layout.tsx`, `apps/web/components/Colophon.tsx`,
+`apps/web/tests/lede-population.test.ts` (new), `apps/web/public/data/`.
+**Commands run:** `scripts/build_console_data.py --skip-images`, `scripts/sync_docs.py`,
+every generator with `--check`, `npx tsc --noEmit`, `npx vitest run`, `npx next build`,
+`ruff check`, `python -m pytest`, `scripts/gate.py`.
+**Tests:** 6 new under vitest, 113 pass across 8 files. Reverting the lede binding was
+verified to fail the new file before the entry was written.
+**Outcome:** accepted. The score stands at 15.5 of 20; these were defects the seats found,
+not a re-scoring.

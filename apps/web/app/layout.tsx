@@ -72,6 +72,11 @@ export const metadata: Metadata = {
 // a client component that imported this data would pull every receipt across the
 // bundle boundary with it.
 const gateSummary = provenance.gate_summary;
+// How many met gates were pre-passed, so the colophon can say which kind they are
+// rather than printing a tally that reads better than the result.
+const gatesPrePassed = gateSummary.gates.filter(
+  (gate) => gate.verdict === "PRE_PASSED",
+).length;
 const chronological = provenance.splits.find((s) => s.name === "chronological");
 const observationCount = chronological
   ? Object.values(chronological.counts).reduce((a, b) => a + b, 0)
@@ -121,6 +126,7 @@ export default function RootLayout({
               snapshot={provenance.snapshot_id}
               gatesMet={gateSummary.n_met}
               gatesTotal={gateSummary.n_gates}
+              gatesPrePassed={gatesPrePassed}
               receiptCount={provenance.receipts.length}
               receiptBytes={receiptBytes}
             />

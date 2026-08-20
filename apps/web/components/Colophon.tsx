@@ -20,6 +20,7 @@ export default function Colophon({
   snapshot,
   gatesMet,
   gatesTotal,
+  gatesPrePassed,
   receiptCount,
   receiptBytes,
 }: {
@@ -27,6 +28,15 @@ export default function Colophon({
   snapshot: string;
   gatesMet: number;
   gatesTotal: number;
+  /**
+   * How many of the met gates are PRE_PASSED feasibility checks.
+   *
+   * This paragraph said "two of the six gates were met" and stopped, which is the
+   * flattering reading: both met gates asked whether the project was feasible at all
+   * and were answered before the first line of pipeline code. A judge-seat review
+   * named it as the place the console rounds up while `README.md` says it plainly.
+   */
+  gatesPrePassed: number;
   receiptCount: number;
   receiptBytes: number;
 }) {
@@ -38,9 +48,12 @@ export default function Colophon({
             <h2>What this is</h2>
             <p>
               A review-value queue for SatNOGS waterfalls, and the measurements
-              that decide whether it is worth a reviewer&rsquo;s time. Two of the
-              six gates it set itself were met; three came back inconclusive and
-              one was never run. All six are on the record.
+              that decide whether it is worth a reviewer&rsquo;s time. {gatesMet} of
+              the {gatesTotal} gates it set itself were met, and{" "}
+              {gatesPrePassed === gatesMet ? "both are" : `${gatesPrePassed} of those are`}{" "}
+              feasibility checks answered before any pipeline code was written, so of the{" "}
+              {gatesTotal - gatesPrePassed} that ask whether the idea works, none passed on
+              the split that decides it. All {gatesTotal} are on the record.
             </p>
           </section>
 
@@ -51,7 +64,8 @@ export default function Colophon({
               <li>{receiptCount} receipts, {(receiptBytes / 1024 / 1024).toFixed(1)} MB, committed</li>
               <li>Snapshot <span className="mono">{snapshot}</span>, frozen before fitting</li>
               <li>
-                {gatesMet} of {gatesTotal} gates met, counted from the receipts
+                {gatesMet} of {gatesTotal} gates met, counted from the receipts, and{" "}
+                {gatesPrePassed} of them pre-passed
               </li>
             </ul>
           </section>

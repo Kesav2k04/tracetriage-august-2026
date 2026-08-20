@@ -30,6 +30,7 @@ receipt now fails in three places.
 
 | Claim | Value | Where it appears | Artifact | Commit | Verified |
 |---|---|---|---|---|---|
+| The reviewing bottleneck this project exists for | 426 of 600 consecutive observations sampled from the live API carry `waterfall_status: unknown`, so 29.0% have a decisive human verdict and the rest have none. Measured over 24 cursor pages ending 2026-07-15, with 0.4 s between requests and no throttling observed | README opening paragraph, `FOR_JUDGES.md` challenge fit | `docs/SATNOGS_API_RECON.md` section 5 | D15i | 2026-08-20 |
 | Corrected and uncorrected captures both occur | 4 corrected, 3 uncorrected of 24 | A3 finding, README, video | `artifacts/a3_overlays/summary.json` | `c7ca696` | 2026-08-16 |
 | Metadata cannot reveal correction status | `doppler-correction-per-sec` null and `rigctl-port` 4532 on 24/24 | A3 finding | `artifacts/a3_overlays/summary.json` | `c7ca696` | 2026-08-16 |
 | Strongest uncorrected match | 25.1 sigma curved against 2.8 sigma vertical, obs 14740031 | A3 finding | `artifacts/a3_overlays/summary.json` | `c7ca696` | 2026-08-16 |
