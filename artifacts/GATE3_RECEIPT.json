@@ -1,7 +1,7 @@
 {
   "gate": 3,
   "question": "Does the expected corridor intersect a visible target-like trace?",
-  "generated_at": "2026-08-19T21:54:50.374164+00:00",
+  "generated_at": "2026-08-20T00:40:37.891532+00:00",
   "verdict": "NOT_ESTABLISHED",
   "threshold": 0.7,
   "observations_decisive": 7,
@@ -33,13 +33,21 @@
       "2.1.2"
     ],
     "measured_on_observations": 3,
-    "observations_in_snapshot": 2727,
-    "rows_in_the_api_pages_on_disk": 2750,
-    "rows_on_disk_not_in_the_dataset": 23,
-    "why_those_rows_are_not_in_the_dataset": "The ingest fetched whole API pages and stopped at its 2,500-waterfall target part-way through the last one, so the final page was written to disk complete and only part of it was stored. Every count in this repository is over the stored dataset, which artifacts/DATASET_MANIFEST.json defines.",
-    "distinct_families_in_snapshot": 20,
-    "observations_from_a_measured_family": 1023,
-    "observations_inheriting_the_constant": 1704,
+    "source": "artifacts/DATASET_MANIFEST.json",
+    "needs_the_snapshot": false,
+    "observations_in_the_dataset": 2727,
+    "observations_with_a_waterfall": 2500,
+    "observations_without_a_waterfall": 227,
+    "denominator_used_for_reach": "observations_with_a_waterfall",
+    "why_that_denominator": "AXIS_SIGN_CONVENTION is a statement about how a renderer drew a waterfall, so it is applied only where a waterfall exists. The 227 stored observations with no image never inherit it, and counting them overstates the reach of the assumption.",
+    "distinct_families_in_the_dataset": 20,
+    "observations_from_a_measured_family": 1004,
+    "observations_inheriting_the_constant": 1496,
+    "over_the_whole_stored_dataset": {
+      "observations_from_a_measured_family": 1023,
+      "observations_inheriting_the_constant": 1704,
+      "note": "The same census over all stored rows, image or not. It is the number this block published before the denominator was corrected, kept so the two can be compared rather than silently replaced."
+    },
     "family_counts": {
       "2.1.2": 930,
       "1.8.1": 582,
@@ -62,7 +70,36 @@
       "1.5.1": 2,
       "1.5": 1
     },
-    "note": "The sign was measured on 3 observations, one UTC night, 2 stations, 436.4 MHz, families 1.6 and 2.1.2. Every other family inherits it. A renderer that flipped its frequency axis between client versions is the untested risk, and each scored observation carries its own remeasurement under observations[].axis_sign.remeasured."
+    "family_counts_with_a_waterfall": {
+      "2.1.2": 911,
+      "1.8.1": 579,
+      "1.9.3": 438,
+      "2.1.1": 296,
+      "1.6": 93,
+      "1.9.2+sa2kng": 42,
+      "1.4": 37,
+      "unknown": 37,
+      "2.0.1": 13,
+      "2.1": 12,
+      "1.9.2": 9,
+      "2.0": 9,
+      "0+untagged": 8,
+      "1.0": 3,
+      "1.3.4": 3,
+      "1.8.1+sa2kng_2": 3,
+      "0.9": 2,
+      "1.3.1": 2,
+      "1.5.1": 2,
+      "1.5": 1
+    },
+    "snapshot_cross_check": {
+      "checked": true,
+      "observations_matched_in_the_pages": 2727,
+      "agrees": true,
+      "families_that_disagree": [],
+      "why": "The manifest's client_version is a copy of the API row's. This reads the rows and recounts the families over the same observations."
+    },
+    "note": "The sign was measured on 3 observations, one UTC night, 2 stations, 436.4 MHz, families 1.6 and 2.1.2. Every other family with an image inherits it. A renderer that flipped its frequency axis between client versions is the untested risk, and each scored observation carries its own remeasurement under observations[].axis_sign.remeasured."
   },
   "not_testable_note": "A corrected corridor is identically 0 Hz across the pass, so it is a vertical line with a free horizontal offset and predicts no shape. Gate 3 can only be asked of uncorrected captures, where an S-curve is predicted and can be wrong. Excluding these is a limit on the gate's scope, not a pass.",
   "thresholds": {

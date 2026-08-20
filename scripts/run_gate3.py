@@ -104,76 +104,156 @@ def _geometry_of(image_path: Path, obs_id: int, rx_freq_hz: float | None, durati
     )
 
 
-def _axis_sign_scope(snapshot_dir: Path) -> dict[str, Any]:
-    """Census the client families across the dataset the gate draws from.
+def _axis_sign_scope(snapshot_dir: Path | None) -> dict[str, Any]:
+    """Census the client families across the observations the constant is applied to.
 
     SPACE-S5: AXIS_SIGN_CONVENTION is a property of the renderer, measured on 3
     observations from 2 client families. This counts how much of the corpus those 2
-    families actually cover, so the reach of the assumption is a published number
-    rather than a sentence. Nothing here changes a verdict; it is scope.
+    families actually cover, so the reach of the assumption is a published number rather
+    than a sentence. Nothing here changes a verdict; it is scope.
 
-    The corpus is the one `artifacts/DATASET_MANIFEST.json` records, not every row on
-    disk. The two differ, and the first version of this census counted the rows: the API
-    pages hold 2,750 observations and the dataset holds 2,727, because the ingest stopped
-    at its 2,500-waterfall target part-way through the last page it had already written
-    whole. So the README quoted a denominator of 2,750 for a scope statement about a
-    corpus of 2,727, next to a demo script quoting 2,727 for the same corpus. Both counts
-    are published here with the difference named, because the honest fix for two numbers
-    that disagree is to say which is which, not to pick one.
+    Two denominators, and picking the wrong one is how this block went wrong twice.
+
+    The first version counted every row on disk. The API pages hold 2,750 observations
+    and the dataset holds 2,727, because the ingest stopped at its 2,500-waterfall target
+    part-way through the last page it had already written whole, so a scope statement
+    about a corpus of 2,727 was published with a denominator of 2,750.
+
+    The second counted all 2,727 stored rows. AXIS_SIGN_CONVENTION applies when a
+    waterfall is rendered, and 227 of those rows have no waterfall, so 208 observations
+    were published as inheriting a constant that is never applied to them. The error was
+    conservative and it was still wrong. Both counts are reported, over the stored dataset
+    and over the rows with an image, with the difference named.
+
+    Reads `artifacts/DATASET_MANIFEST.json`, which carries the client version and the
+    waterfall digest per observation, so a judge without the 4 GB snapshot can regenerate
+    this. When the snapshot is present the page rows are read as well and the two family
+    censuses are compared, because the manifest recording a field and the field matching
+    the API row it came from are two different claims.
     """
     manifest_path = REPO_ROOT / "artifacts" / "DATASET_MANIFEST.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    in_the_dataset = {obs["id"] for obs in manifest["observations"] if "id" in obs}
+    rows = [obs for obs in manifest["observations"] if "id" in obs]
 
     families: dict[str, int] = {}
-    n = 0
-    rows_on_disk = 0
+    families_with_an_image: dict[str, int] = {}
+    n_with_an_image = 0
+    for obs in rows:
+        fam = client_family(obs)
+        families[fam] = families.get(fam, 0) + 1
+        if obs.get("waterfall_sha256"):
+            n_with_an_image += 1
+            families_with_an_image[fam] = families_with_an_image.get(fam, 0) + 1
+
+    n = len(rows)
+    stored = manifest.get("counts", {}).get("observations_stored")
+    if stored is not None and stored != n:
+        raise SystemExit(
+            f"the dataset manifest's own count says {stored} observations and its "
+            f"observations list holds {n}. The census would be computed over a corpus "
+            "that the manifest does not agree with itself about."
+        )
+
+    covered = sum(v for k, v in families.items() if k in AXIS_SIGN_MEASURED_FAMILIES)
+    covered_image = sum(
+        v for k, v in families_with_an_image.items() if k in AXIS_SIGN_MEASURED_FAMILIES
+    )
+
+    cross_check = _families_agree_with_the_snapshot(snapshot_dir, rows, families)
+
+    return {
+        "axis_sign_applied": AXIS_SIGN_CONVENTION,
+        "measured_families": sorted(AXIS_SIGN_MEASURED_FAMILIES),
+        "measured_on_observations": 3,
+        "source": "artifacts/DATASET_MANIFEST.json",
+        "needs_the_snapshot": False,
+        "observations_in_the_dataset": n,
+        "observations_with_a_waterfall": n_with_an_image,
+        "observations_without_a_waterfall": n - n_with_an_image,
+        "denominator_used_for_reach": "observations_with_a_waterfall",
+        "why_that_denominator": (
+            "AXIS_SIGN_CONVENTION is a statement about how a renderer drew a waterfall, so "
+            "it is applied only where a waterfall exists. The "
+            f"{n - n_with_an_image} stored observations with no image never inherit it, and "
+            "counting them overstates the reach of the assumption."
+        ),
+        "distinct_families_in_the_dataset": len(families),
+        "observations_from_a_measured_family": covered_image,
+        "observations_inheriting_the_constant": n_with_an_image - covered_image,
+        "over_the_whole_stored_dataset": {
+            "observations_from_a_measured_family": covered,
+            "observations_inheriting_the_constant": n - covered,
+            "note": (
+                "The same census over all stored rows, image or not. It is the number this "
+                "block published before the denominator was corrected, kept so the two can "
+                "be compared rather than silently replaced."
+            ),
+        },
+        "family_counts": dict(sorted(families.items(), key=lambda kv: (-kv[1], kv[0]))),
+        "family_counts_with_a_waterfall": dict(
+            sorted(families_with_an_image.items(), key=lambda kv: (-kv[1], kv[0]))
+        ),
+        "snapshot_cross_check": cross_check,
+        "note": (
+            "The sign was measured on 3 observations, one UTC night, 2 stations, "
+            "436.4 MHz, families 1.6 and 2.1.2. Every other family with an image inherits "
+            "it. A renderer that flipped its frequency axis between client versions is the "
+            "untested risk, and each scored observation carries its own remeasurement "
+            "under observations[].axis_sign.remeasured."
+        ),
+    }
+
+
+def _families_agree_with_the_snapshot(
+    snapshot_dir: Path | None,
+    rows: list[dict[str, Any]],
+    families: dict[str, int],
+) -> dict[str, Any]:
+    """Do the manifest's client versions match the API rows they were copied from.
+
+    The census is computed from the manifest so it runs without the snapshot. That makes
+    the manifest a second source for a field that came from somewhere else, and a copied
+    field can go stale. When the pages are on disk this reads them and compares the two
+    censuses over the observations the dataset stores. An absent snapshot is reported as
+    not checked with the path that was looked for, never as agreement.
+    """
+    if snapshot_dir is None:
+        return {
+            "checked": False,
+            "why": "no snapshot path was given, so the manifest could not be cross-checked",
+        }
     pages_dir = snapshot_dir / "pages"
+    if not pages_dir.is_dir():
+        return {
+            "checked": False,
+            "why": f"{pages_dir} is not on this machine, so the manifest was not cross-checked",
+        }
+    in_the_dataset = {obs["id"] for obs in rows}
+    from_pages: dict[str, int] = {}
+    seen = 0
     for page_file in sorted(pages_dir.glob("*.json")):
         try:
             page = json.loads(page_file.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue
-        rows = page if isinstance(page, list) else page.get("results", [])
-        for obs in rows:
-            if not isinstance(obs, dict) or "id" not in obs:
+        page_rows = page if isinstance(page, list) else page.get("results", [])
+        for obs in page_rows:
+            if not isinstance(obs, dict) or obs.get("id") not in in_the_dataset:
                 continue
-            rows_on_disk += 1
-            if obs["id"] not in in_the_dataset:
-                continue
-            n += 1
+            seen += 1
             fam = client_family(obs)
-            families[fam] = families.get(fam, 0) + 1
-    if n != len(in_the_dataset):
-        raise SystemExit(
-            f"the dataset manifest records {len(in_the_dataset)} observations and the "
-            f"snapshot pages carry {n} of them. The census would be computed over a "
-            "corpus that is not the one every other number in this repository is about."
-        )
-    covered = sum(v for k, v in families.items() if k in AXIS_SIGN_MEASURED_FAMILIES)
+            from_pages[fam] = from_pages.get(fam, 0) + 1
+    disagreements = sorted(
+        {k for k in set(families) | set(from_pages) if families.get(k) != from_pages.get(k)}
+    )
     return {
-        "axis_sign_applied": AXIS_SIGN_CONVENTION,
-        "measured_families": sorted(AXIS_SIGN_MEASURED_FAMILIES),
-        "measured_on_observations": 3,
-        "observations_in_snapshot": n,
-        "rows_in_the_api_pages_on_disk": rows_on_disk,
-        "rows_on_disk_not_in_the_dataset": rows_on_disk - n,
-        "why_those_rows_are_not_in_the_dataset": (
-            "The ingest fetched whole API pages and stopped at its 2,500-waterfall "
-            "target part-way through the last one, so the final page was written to disk "
-            "complete and only part of it was stored. Every count in this repository is "
-            "over the stored dataset, which artifacts/DATASET_MANIFEST.json defines."
-        ),
-        "distinct_families_in_snapshot": len(families),
-        "observations_from_a_measured_family": covered,
-        "observations_inheriting_the_constant": n - covered,
-        "family_counts": dict(sorted(families.items(), key=lambda kv: (-kv[1], kv[0]))),
-        "note": (
-            "The sign was measured on 3 observations, one UTC night, 2 stations, "
-            "436.4 MHz, families 1.6 and 2.1.2. Every other family inherits it. A "
-            "renderer that flipped its frequency axis between client versions is the "
-            "untested risk, and each scored observation carries its own remeasurement "
-            "under observations[].axis_sign.remeasured."
+        "checked": True,
+        "observations_matched_in_the_pages": seen,
+        "agrees": seen == len(in_the_dataset) and not disagreements,
+        "families_that_disagree": disagreements,
+        "why": (
+            "The manifest's client_version is a copy of the API row's. This reads the rows "
+            "and recounts the families over the same observations."
         ),
     }
 

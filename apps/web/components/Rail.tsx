@@ -31,7 +31,11 @@ const LINKS: { href: string; label: string; icon: IconName }[] = [
   { href: "/evaluation/", label: "Evaluation", icon: "evaluation" },
   { href: "/agent/", label: "Agent", icon: "agent" },
   { href: "/precedent/", label: "Precedent", icon: "precedent" },
-  { href: "/replay/", label: "Replay", icon: "replay" },
+  // "Replay" named this page after the statistical replay of one ordering against
+  // another, and pointed a reader at the wrong thing: the pass playback, the one
+  // control on the site that moves four instruments at once, is on an observation
+  // page and not here. This page is the baseline comparison, so it says so.
+  { href: "/replay/", label: "Baselines", icon: "replay" },
   { href: "/provenance/", label: "Provenance", icon: "provenance" },
 ];
 

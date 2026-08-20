@@ -63,10 +63,37 @@ FIXTURE = REPO / "tests" / "fixtures" / "precedent_retrievals.json"
 RECEIPT = REPO / "artifacts" / "PRECEDENT_RECEIPT.json"
 CONSOLE_IDS = REPO / "apps" / "web" / "public" / "data" / "cards.json"
 
-#: Comparisons this study makes against the random arm and between the two model arms, counted
-#: so the bootstrap can widen for them. Three arms against random in the warm condition, two in
-#: the cold one, and Granite against the numeric baseline in both.
-N_COMPARISONS = 7
+def _pairs(condition: str) -> list[tuple[str, str]]:
+    """The within-condition comparisons, built once and counted from the same list.
+
+    ``N_COMPARISONS`` used to be a hand-maintained 7 sitting 300 lines above the list it
+    was supposed to count. It was right, and nothing tied it to the list: adding one pair
+    would have left every published ``ci_adjusted`` too narrow and every
+    ``survives_correction`` computed at the wrong alpha, with the suite still green,
+    because the only guard asserted the count was at least 5.
+    """
+    pairs = [
+        ("granite_text", "random"),
+        ("numeric_knn", "random"),
+        ("granite_text", "numeric_knn"),
+    ]
+    if condition == "warm":
+        pairs.insert(2, ("same_station", "random"))
+    return pairs
+
+
+#: The cross-condition contrast: one arm's warm score against its own cold score, on the
+#: queries where both are defined. The register asserted this in prose ("similarity carries
+#: the outcome when the station is allowed, and stops carrying it when it is not") from two
+#: intervals, one excluding zero and one spanning it. That is not a test of the difference,
+#: and no interval for the difference was published. It is a comparison, so it is declared,
+#: measured, and counted in the family that corrects for it.
+CROSS_CONDITION_ARMS = ("granite_text",)
+
+#: Comparisons this study makes, counted from the lists that make them rather than recalled.
+#: Arms against random and Granite against the numeric baseline, in each condition, plus one
+#: warm-against-cold contrast per arm in ``CROSS_CONDITION_ARMS``.
+N_COMPARISONS = len(_pairs("warm")) + len(_pairs("cold")) + len(CROSS_CONDITION_ARMS)
 
 SEED = 11
 
@@ -212,6 +239,7 @@ def freeze(snapshot: Path, fixture: Path) -> dict[str, Any]:
         "cards_sha256": digest_of(obs.card for obs in pool),
         "vectors_sha256": digest_of_vectors(vectors[obs.obs_id] for obs in pool),
         "observations": [obs.as_json() for obs in pool],
+        "cold_condition": _cold_condition_census(pool),
         "retrievals": retrievals,
         "vector_index": index_check,
         "console_precedent": console,
@@ -220,6 +248,56 @@ def freeze(snapshot: Path, fixture: Path) -> dict[str, Any]:
     fixture.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
     print(f"froze {len(pool)} observations into {fixture}")
     return payload
+
+
+def _cold_condition_census(pool: list[Observation]) -> dict[str, Any]:
+    """What excluding on the site as well as the station id removes, counted.
+
+    The cold condition's stated reason is that a misconfigured station produces empty
+    waterfalls for weeks, which is a property of a physical site and its operator, and the
+    filter compared station integers. This block publishes the size of the gap that closed:
+    how many sites carry more than one station id, how many ids and observations they cover,
+    and how many query-candidate pairs the site rule excludes that the id rule did not.
+    """
+    by_site: dict[tuple[float, float], set[int]] = {}
+    obs_at_site: dict[tuple[float, float], int] = {}
+    for obs in pool:
+        if obs.site is None:
+            continue
+        if obs.station is not None:
+            by_site.setdefault(obs.site, set()).add(obs.station)
+        obs_at_site[obs.site] = obs_at_site.get(obs.site, 0) + 1
+    shared = {site: ids for site, ids in by_site.items() if len(ids) > 1}
+
+    newly_excluded = 0
+    for query in pool:
+        if query.site is None:
+            continue
+        for other in pool:
+            if other.obs_id == query.obs_id or other.site != query.site:
+                continue
+            if query.station is not None and other.station == query.station:
+                continue  # the id rule already excluded this pair
+            if query.satellite is not None and other.satellite == query.satellite:
+                continue  # the satellite rule already excluded it
+            newly_excluded += 1
+
+    return {
+        "excludes": ["same station id", "same site coordinates", "same satellite"],
+        "site_key": "station_lat and station_lng rounded to 3 decimals, about 100 m",
+        "n_observations_with_a_site": sum(1 for obs in pool if obs.site is not None),
+        "n_sites": len(obs_at_site),
+        "n_sites_with_more_than_one_station_id": len(shared),
+        "n_station_ids_at_those_sites": sum(len(ids) for ids in shared.values()),
+        "n_observations_at_those_sites": sum(obs_at_site[site] for site in shared),
+        "n_pairs_the_site_rule_excludes_that_the_id_rule_did_not": newly_excluded,
+        "note": (
+            "The cold condition excluded the query's own station id and not its physical "
+            "site. Sites hosting several ids let a query retrieve its own receiver under a "
+            "condition written to forbid it, and both the rendered card and the numeric "
+            "feature vector carry the coordinates, so both model arms could find them."
+        ),
+    }
 
 
 def _check_the_vector_index(
@@ -254,7 +332,14 @@ def _check_the_vector_index(
         ids=[str(obs.obs_id) for obs in pool],
         embeddings=[vectors[obs.obs_id] for obs in pool],
         metadatas=[
-            {"station": obs.station or -1, "satellite": obs.satellite or -1}
+            {
+                "station": obs.station or -1,
+                "satellite": obs.satellite or -1,
+                # Chroma metadata values are scalars, so the site travels as a string.
+                # A row with no position gets a value that cannot collide with a real
+                # one, so it is never excluded for sharing a site it does not have.
+                "site": "unknown" if obs.site is None else f"{obs.site[0]},{obs.site[1]}",
+            }
             for obs in pool
         ],
     )
@@ -268,6 +353,15 @@ def _check_the_vector_index(
                     "$and": [
                         {"station": {"$ne": obs.station or -1}},
                         {"satellite": {"$ne": obs.satellite or -1}},
+                        {
+                            "site": {
+                                "$ne": (
+                                    "unknown"
+                                    if obs.site is None
+                                    else f"{obs.site[0]},{obs.site[1]}"
+                                )
+                            }
+                        },
                     ]
                 }
             found = collection.query(
@@ -289,9 +383,11 @@ def _check_the_vector_index(
         "queries_compared": {condition: len(values) for condition, values in overlap.items()},
         "reading": (
             "The share of the exact top-5 that the index also returned, per query, averaged. "
-            "The cold condition is answered by a metadata filter on station and satellite "
-            "inside the index rather than by filtering afterwards, so this also checks that "
-            "the filter and the exclusion rule agree."
+            "The cold condition is answered by a metadata filter on station, site and "
+            "satellite inside the index rather than by filtering afterwards, so this also "
+            "checks that the filter and the exclusion rule agree. When the exclusion rule "
+            "gained the site and the filter did not, this number fell from 0.94 to 0.77 on "
+            "the cold condition, which is what it is here to do."
         ),
     }
 
@@ -314,6 +410,7 @@ def score(frozen: dict[str, Any]) -> dict[str, Any]:
     by_id = {obs.obs_id: obs for obs in observations}
 
     per_condition: dict[str, Any] = {}
+    per_query_by_condition: dict[str, dict[str, dict[int, float]]] = {}
     for condition in CONDITIONS:
         arms: dict[str, Any] = {}
         per_query: dict[str, dict[int, float]] = {}
@@ -350,9 +447,13 @@ def score(frozen: dict[str, Any]) -> dict[str, Any]:
             "chance_level": round(chance_level([obs.label for obs in observations]), 4),
             "comparisons": _compare(per_query, by_id, condition),
         }
+        per_query_by_condition[condition] = per_query
 
     return {
         "conditions": per_condition,
+        "cross_condition_comparisons": _compare_across_conditions(
+            per_query_by_condition, by_id
+        ),
         "candidate_pool": {
             "observations": len(observations),
             "labels": {
@@ -379,11 +480,7 @@ def _compare(
     made an earlier interval in this project too narrow.
     """
     out: dict[str, Any] = {}
-    pairs = [("granite_text", "random"), ("numeric_knn", "random"), ("granite_text", "numeric_knn")]
-    if condition == "warm":
-        pairs.insert(2, ("same_station", "random"))
-
-    for challenger, reference in pairs:
+    for challenger, reference in _pairs(condition):
         shared = sorted(set(per_query[challenger]) & set(per_query[reference]))
         if len(shared) < 30:
             out[f"{challenger}_vs_{reference}"] = {
@@ -438,6 +535,109 @@ def _compare(
     return out
 
 
+def _compare_across_conditions(
+    per_query_by_condition: dict[str, dict[str, dict[int, float]]],
+    by_id: dict[int, Observation],
+) -> dict[str, Any]:
+    """One arm's warm score against its own cold score, paired per query.
+
+    The claim this measures was published as prose: similarity carries the outcome when the
+    station is allowed, and stops carrying it when it is not. It was asserted from two
+    separate intervals, one excluding zero and one spanning it, which is not a test of the
+    difference between them. Two intervals can both be wide enough for that pattern to
+    appear with no real drop at all, and no interval for the drop itself existed.
+
+    The statistic is the mean per-query difference on the queries where both conditions are
+    defined, so it is paired: the same query contributes both numbers or neither. Groups are
+    the query's ground station, the same grouping every other comparison here uses, and the
+    correction is over the whole family this comparison now belongs to.
+    """
+    out: dict[str, Any] = {}
+    warm = per_query_by_condition.get("warm", {})
+    cold = per_query_by_condition.get("cold", {})
+    for arm in CROSS_CONDITION_ARMS:
+        key = f"{arm}_warm_vs_cold"
+        if arm not in warm or arm not in cold:
+            out[key] = {
+                "measurable": False,
+                "why": (
+                    f"{arm} is not scored in both conditions, so there is no paired "
+                    f"difference to measure. Present in: "
+                    f"{sorted(c for c, d in per_query_by_condition.items() if arm in d)}."
+                ),
+            }
+            continue
+        shared = sorted(set(warm[arm]) & set(cold[arm]))
+        if len(shared) < 30:
+            out[key] = {
+                "measurable": False,
+                "why": f"only {len(shared)} queries have {arm} defined in both conditions",
+            }
+            continue
+        warm_values = np.array([warm[arm][q] for q in shared], dtype=float)
+        cold_values = np.array([cold[arm][q] for q in shared], dtype=float)
+        groups = np.array(
+            [by_id[q].station if by_id[q].station is not None else -1 for q in shared]
+        )
+        labels = np.array([1 if by_id[q].label == DECISIVE_LABELS[0] else 0 for q in shared])
+
+        result = grouped_bootstrap_statistic_difference(
+            lambda values, _labels, _groups: float(np.mean(values)),
+            warm_values,
+            cold_values,
+            labels,
+            groups,
+            n_boot=10_000,
+            seed=SEED,
+            lower_is_better=False,
+            n_comparisons=N_COMPARISONS,
+        )
+        if result["ci95"] is None:
+            out[key] = {
+                "measurable": False,
+                "why": result["note"],
+                "queries": len(shared),
+                "usable_resamples": int(result["n_usable_resamples"]),
+            }
+            continue
+        survives = bool(result["survives_correction"])
+        out[key] = {
+            "measurable": True,
+            "arm": arm,
+            "queries": len(shared),
+            "warm_agreement": round(float(np.mean(warm_values)), 4),
+            "cold_agreement": round(float(np.mean(cold_values)), 4),
+            "margin": round(float(result["margin"]), 4),
+            "ci95": [round(float(v), 4) for v in result["ci95"]],
+            "ci_adjusted": [round(float(v), 4) for v in result["ci_adjusted"]],
+            "adjusted_confidence": round(float(result["adjusted_confidence"]), 4),
+            "n_comparisons": int(result["n_comparisons"]),
+            "survives_correction": survives,
+            "n_groups": int(result["n_groups"]),
+            "n_observations": int(result["n_observations"]),
+            "degenerate_resamples": int(result["n_degenerate_resamples"]),
+            "direction": result["direction"],
+            "reading": (
+                f"Allowing the query's own station raises {arm}'s agreement by "
+                f"{result['margin']:.4f}. Corrected over the {N_COMPARISONS} comparisons "
+                f"this study makes, the interval is "
+                f"[{result['ci_adjusted'][0]:.4f}, {result['ci_adjusted'][1]:.4f}], which "
+                + (
+                    "excludes zero: the drop between conditions is established at this "
+                    "correction level."
+                    if survives
+                    else (
+                        "spans zero. The drop between conditions is visible in the point "
+                        "estimates and is not established at this correction level, so no "
+                        "sentence in this project may claim the station is what carries "
+                        "the result."
+                    )
+                )
+            ),
+        }
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--freeze", action="store_true")
@@ -467,11 +667,18 @@ def main(argv: list[str] | None = None) -> int:
         ),
         "design": (
             "Four retrieval arms over the same candidate pool, under two conditions. Warm allows "
-            "any other observation. Cold requires a different ground station and a different "
-            "satellite, because in this corpus the outcome is partly a property of who recorded "
-            "it. Agreement at 5 is the mean over queries of the share of retrieved neighbours "
-            "carrying the query's own label."
+            "any other observation. Cold requires a different ground station, a different "
+            "physical site and a different satellite, because in this corpus the outcome is "
+            "partly a property of who recorded it. Agreement at 5 is the mean over queries of "
+            "the share of retrieved neighbours carrying the query's own label."
         ),
+        "cold_condition": frozen.get("cold_condition", {
+            "measurable": False,
+            "why": (
+                "This fixture was frozen before the site census existed, so the effect of "
+                "excluding co-located stations is not recorded in it. Re-freeze to publish it."
+            ),
+        }),
         "embedding_model": frozen["embedding_model"],
         "top_k": frozen["top_k"],
         "feature_names": frozen["feature_names"],

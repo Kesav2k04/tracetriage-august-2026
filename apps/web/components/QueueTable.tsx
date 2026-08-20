@@ -189,6 +189,35 @@ export default function QueueTable({
             }}
           />
         </label>
+
+        {/* One control that undoes both filters.
+            The empty state said "clear the filter to see them" and there was
+            nothing that did that: the search field's own x clears the search and
+            leaves the active chip, and the chip has to be found separately. A
+            reader who narrowed to an empty result had two things to undo and was
+            told about one. Rendered only when something is set, so the control bar
+            has no dead button in its resting state. */}
+        {(filter !== "all" || query.trim() !== "") && (
+          <button
+            type="button"
+            onClick={() => {
+              setFilter("all");
+              setQuery("");
+              setLimit(PAGE);
+            }}
+            style={{
+              padding: "var(--sp-02) var(--sp-04)",
+              background: "transparent",
+              color: "var(--text-02)",
+              border: "1px solid var(--border-subtle)",
+              font: "inherit",
+              fontSize: "var(--type-caption)",
+              cursor: "pointer",
+            }}
+          >
+            Clear filters
+          </button>
+        )}
       </div>
 
       <p
@@ -220,7 +249,27 @@ export default function QueueTable({
           No row matches{query.trim() ? ` observation ${query.trim()}` : " this filter"}.
           That is an empty result, not a failure: the queue holds{" "}
           <span className="num">{entries.length}</span> rows and none of them meet the
-          condition you asked for. Clear the filter to see them.
+          condition you asked for.{" "}
+          <button
+            type="button"
+            onClick={() => {
+              setFilter("all");
+              setQuery("");
+              setLimit(PAGE);
+            }}
+            style={{
+              font: "inherit",
+              color: "var(--link-01)",
+              background: "none",
+              border: "none",
+              padding: 0,
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+          >
+            Clear both filters
+          </button>{" "}
+          to see them.
         </p>
       )}
 
@@ -233,6 +282,15 @@ export default function QueueTable({
           "Label",
           "Model p(signal)",
           "Offset ppm",
+        ]}
+        headAlign={[
+          "left",
+          "left",
+          "right",
+          "left",
+          "left",
+          "right",
+          "right",
         ]}
         caption="The shipped chronological queue. A row inside the review budget is one a reviewer would actually reach."
       >

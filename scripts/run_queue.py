@@ -49,6 +49,7 @@ from pipeline.tracetriage.queue import (  # noqa: E402
     apply_concentration_caps,
     baseline_fifo,
     baseline_image_uncertainty,
+    baseline_offset_magnitude,
     baseline_physics_only,
     classify_reasons,
     combine_replays,
@@ -79,8 +80,11 @@ _CONTRACT = _REPO / "contracts" / "queue_receipt.schema.json"
 _DECISIVE = {"with-signal": 1, "without-signal": 0}
 
 #: Review budget: fixed before measuring, applied to all splits.
-#: 50 observations from the chronological test set of 88. Budget on cold splits
-#: is min(REVIEW_BUDGET, n_decisive_test_observations).
+#: 50 observations. Budget on cold splits is
+#: min(REVIEW_BUDGET, n_decisive_test_observations).
+#: The coverage it buys is not written down here, because it depends on how many
+#: of the split's test rows carry a decisive label, and that is a measurement.
+#: The receipt derives it from ``n_test_decisive`` at write time.
 REVIEW_BUDGET = 50
 
 #: Gate 6 lift threshold.
@@ -261,7 +265,7 @@ def fit_arm_for_split(
 
     # Image scores: train gets out-of-fold; cal and test get full-train model.
     # For the full corpus (including train), we use the in-sample model for scoring
-    # (ranking, not evaluation — so slight flattery here is acceptable and stated).
+    # (ranking, not evaluation, so slight flattery here is acceptable and stated).
     full_image_score = fit_predict(train_ids, y_train.tolist(), all_ids)
     for i, oid in enumerate(all_ids):
         feature_rows[oid] = {**feature_rows[oid], "image_score": float(full_image_score[i])}
@@ -407,6 +411,11 @@ def build_split_queue(
 
         uncertainty_vals.append(float(ensemble_stds.get(oid, 0.0)))
 
+    # The raw, un-normalised offset signal, kept per observation so the
+    # offset-magnitude baseline can sort on exactly the quantity the score's
+    # offset term is derived from rather than on a second reading of the cache.
+    offset_safe_of = dict(zip(candidate_ids, offset_safe_vals, strict=True))
+
     # Rank-normalise each signal
     norm_disagree = rank_normalise(disagreement_vals)
     norm_offset = rank_normalise(offset_safe_vals)
@@ -515,6 +524,10 @@ def build_split_queue(
         decisive_ranked,
         {oid: physics_probs.get(oid) for oid in decisive_ranked},
     )
+    offset_order = baseline_offset_magnitude(
+        decisive_ranked,
+        {oid: offset_safe_of.get(oid, 0.0) for oid in decisive_ranked},
+    )
     # Queue order restricted to decisive
     queue_decisive = [oid for oid in final_ranked_ids if oid in decisive_ids]
 
@@ -547,6 +560,7 @@ def build_split_queue(
             fifo_order,
             img_order,
             phys_order,
+            offset_order,
             station_of=decisive_station_of,
             n_boot=n_boot,
             seed=seed,
@@ -567,16 +581,20 @@ def build_split_queue(
             seed=seed,
             threshold=GATE6_THRESHOLD,
         )
-        # C4: the four-baseline replay, paired within each draw, under both
+        # C4: the five-baseline replay, paired within each draw, under both
         # groupings. Gate 6 asks only about random; a queue that beats random and
         # loses to FIFO has not earned a reviewer's attention, because FIFO is
-        # what a reviewer already does.
+        # what a reviewer already does. offset_magnitude is the harder test of the
+        # two: it is a one-line sort on the quantity most realised conflicts are
+        # defined from, so it asks whether the composite score's other three terms
+        # buy anything at all on this split.
         replay_orderings = {
             "queue": queue_decisive,
             "random": sorted(decisive_ranked),
             "fifo": fifo_order,
             "image_uncertainty": img_order,
             "physics_only": phys_order,
+            "offset_magnitude": offset_order,
         }
         # "random" as an ordering is obs-id order, which is FIFO by another name,
         # so it is dropped from the ordering set and handled by its expectation.
@@ -673,6 +691,100 @@ def build_split_queue(
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
+
+def _criteria_fired(queue_entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Per criterion, how many shipped rows it actually flagged.
+
+    Three criteria were fixed before measuring and all three are published as the
+    conflict definition. That is not the same as all three doing work. On this
+    corpus DEAD_CAPTURE fires on nothing: the highest flat_row_frac in the whole
+    queue is below its own threshold, so every sentence of the form "the two
+    criteria the model does not enter" was describing one criterion. A criterion
+    that fires zero times is named here as inert rather than left for a reader to
+    discover by counting, and the prose downstream is generated from these counts.
+
+    ``max_observed`` is the largest value of the quantity the criterion
+    thresholds, over the rows where that quantity was measurable. It is null when
+    no row carried it, which is an absence and not a zero.
+    """
+    quantity_of: dict[str, tuple[str, Any]] = {
+        "MODEL_LABEL_DISAGREE": ("model_prob", None),
+        "STALE_CATALOGUE_FREQ": ("fitted_offset_ppm", None),
+        "DEAD_CAPTURE": ("flat_row_frac", None),
+    }
+    out: list[dict[str, Any]] = []
+    for criterion in CONFLICT_CRITERIA:
+        code = criterion["reason_code"]
+        field = quantity_of.get(code, (None, None))[0]
+        n_flagged = sum(1 for e in queue_entries if code in (e.get("reasons") or []))
+        values: list[float] = []
+        for e in queue_entries:
+            v = e.get(field) if field else None
+            if v is None:
+                continue
+            if code == "STALE_CATALOGUE_FREQ":
+                # The criterion reads the magnitude and excludes at-bound fits, so
+                # the census has to read the same thing the criterion does.
+                if e.get("offset_at_bound") is True:
+                    continue
+                v = abs(float(v))
+            values.append(float(v))
+        out.append(
+            {
+                "reason_code": code,
+                "n_flagged": n_flagged,
+                "n_rows_the_quantity_was_measurable_on": len(values),
+                "max_observed": max(values) if values else None,
+                "inert_on_this_corpus": n_flagged == 0,
+                "note": (
+                    f"No row in the shipped queue meets this criterion. The highest "
+                    f"value of the quantity it thresholds is "
+                    f"{max(values):.4f} over {len(values)} measurable rows."
+                    if n_flagged == 0 and values
+                    else (
+                        "No row in the shipped queue meets this criterion, and the "
+                        "quantity it thresholds was not measurable on any row."
+                        if n_flagged == 0
+                        else (
+                            f"Fires on {n_flagged} of the {len(values)} rows where "
+                            f"the quantity it thresholds is measurable, out of "
+                            f"{len(queue_entries)} in the queue."
+                        )
+                    )
+                ),
+            }
+        )
+    return out
+
+
+def _budget_coverage_clause(primary_split: dict[str, Any] | None) -> str:
+    """The coverage sentence for the review budget, measured rather than recalled.
+
+    The published rationale said the chronological test set has 88 decisively
+    labelled observations and the budget is ~57% of it. The set has 87, and the
+    figure had been carried forward across several re-freezes of the corpus. A
+    count that changes when the dataset changes does not belong in a literal, so
+    it is read off the split that was actually measured. A missing count is named
+    rather than defaulted.
+    """
+    if primary_split is None:
+        return (
+            "The chronological split produced no result in this run, so the "
+            "coverage the budget buys is not stated here."
+        )
+    n = primary_split.get("n_test_decisive")
+    if not isinstance(n, int) or n <= 0:
+        return (
+            "The chronological split published no decisive test count, so the "
+            "coverage the budget buys is not stated here."
+        )
+    return (
+        f"The chronological test set has {n} decisively-labelled observations, so "
+        f"{REVIEW_BUDGET} is {REVIEW_BUDGET / n:.0%} coverage: large enough to "
+        f"measure lift with reasonable precision and small enough that "
+        f"{GATE6_THRESHOLD:g}x is non-trivial."
+    )
 
 
 def main() -> None:
@@ -786,7 +898,7 @@ def main() -> None:
             if _ci_lo <= 1.5 <= _ci_hi
             else (
                 f"lies entirely below 1.5 ({_ci_lo:.2f} to {_ci_hi:.2f}), "
-                f"despite the point estimate exceeding 1.5 — a known behaviour "
+                f"despite the point estimate exceeding 1.5. This is a known behaviour "
                 f"of percentile bootstrap CIs on ratio statistics with concentrated "
                 f"numerators"
             )
@@ -834,6 +946,7 @@ def main() -> None:
         "split_manifest_sha256": split_manifest_sha256,
         "conflict_definition": {
             "criteria": CONFLICT_CRITERIA,
+            "criteria_fired": _criteria_fired(primary_queue),
             "fixed_before_measuring": True,
             "caveats": [
                 (
@@ -861,10 +974,8 @@ def main() -> None:
             "n_observations": REVIEW_BUDGET,
             "rationale": (
                 f"Fixed at {REVIEW_BUDGET} before any results were seen. "
-                "The chronological test set has 88 decisively-labelled observations; "
-                "50 is ~57% coverage, large enough to measure lift with reasonable "
-                "precision and small enough that 1.5x is non-trivial. "
-                "For cold splits the budget is min(50, n_decisive_test)."
+                f"{_budget_coverage_clause(primary_split)} "
+                f"For cold splits the budget is min({REVIEW_BUDGET}, n_decisive_test)."
             ),
         },
         "deduplication": {

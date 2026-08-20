@@ -64,7 +64,7 @@ is the product, and the verdict follows it because the verdict is the point.
 
 **On screen.** The kill gate table, whole, with the three inconclusive rows in view.
 
-**Says.** Six gates were set before any of this was built, and this is the part most demos cut. The interval on that lift runs from 1.35 to 1.75, which straddles the threshold, so it reads NOT_ESTABLISHED rather than passed. The corridor gate has only 3 testable observations, all three discriminate, and three of three still bound the rate at 0.368 against a 0.70 bar. Retrieval over similar passes beats chance until you forbid the query's own ground station, and then the margin is 0.0398 with an interval that spans zero.
+**Says.** Six gates were set before any of this was built, and this is the part most demos cut. The interval on that lift runs from 1.35 to 1.74, which straddles the threshold, so it reads NOT_ESTABLISHED rather than passed. The corridor gate has only 3 testable observations, all three discriminate, and three of three still bound the rate at 0.368 against a 0.70 bar. Retrieval over similar passes beats chance until you forbid the query's own ground station, and then the margin is 0.0260 with an interval that spans zero.
 
 **Numbers from.** `artifacts/QUEUE_RECEIPT.json, artifacts/GATE3_RECEIPT.json, artifacts/PRECEDENT_RECEIPT.json`
 

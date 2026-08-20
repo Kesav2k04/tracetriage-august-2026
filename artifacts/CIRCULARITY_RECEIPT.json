@@ -1,11 +1,11 @@
 {
  "schema": "tracetriage/circularity/v1",
  "schema_version": "1.0.0",
- "generated_at": "2026-08-19T21:23:12.682456+00:00",
+ "generated_at": "2026-08-20T00:17:20.020339+00:00",
  "question": "How much of gate 6's lift is guaranteed by the queue being ranked on the same quantities the conflict criteria threshold?",
  "source": {
   "receipt": "artifacts/QUEUE_RECEIPT.json",
-  "sha256": "94dca2ed61434bd7b2222ca0fa0839e903657e55c1dee55c81fe77e32a564047",
+  "sha256": "bcd90fa8a2ada45af79bed2820c5c6d9da169d0e993dc37aefac0067d0451c38",
   "split": "chronological",
   "needs_the_snapshot": false
  },
@@ -44,9 +44,43 @@
    "score_signal": "ensemble_uncertainty",
    "score_weight": 0.1
   },
-  "score_weight_on_quantities_the_target_is_defined_from": 0.9,
+  "fired": {
+   "MODEL_LABEL_DISAGREE": {
+    "reason_code": "MODEL_LABEL_DISAGREE",
+    "n_flagged": 3,
+    "n_rows_the_quantity_was_measurable_on": 407,
+    "max_observed": 0.999999,
+    "inert_on_this_corpus": false,
+    "note": "Fires on 3 of the 407 rows where the quantity it thresholds is measurable, out of 407 in the queue."
+   },
+   "STALE_CATALOGUE_FREQ": {
+    "reason_code": "STALE_CATALOGUE_FREQ",
+    "n_flagged": 19,
+    "n_rows_the_quantity_was_measurable_on": 87,
+    "max_observed": 42.146972575163595,
+    "inert_on_this_corpus": false,
+    "note": "Fires on 19 of the 87 rows where the quantity it thresholds is measurable, out of 407 in the queue."
+   },
+   "DEAD_CAPTURE": {
+    "reason_code": "DEAD_CAPTURE",
+    "n_flagged": 0,
+    "n_rows_the_quantity_was_measurable_on": 87,
+    "max_observed": 0.1370757180156658,
+    "inert_on_this_corpus": true,
+    "note": "No row in the shipped queue meets this criterion. The highest value of the quantity it thresholds is 0.1371 over 87 measurable rows."
+   }
+  },
+  "active": [
+   "MODEL_LABEL_DISAGREE",
+   "STALE_CATALOGUE_FREQ"
+  ],
+  "inert": [
+   "DEAD_CAPTURE"
+  ],
+  "score_weight_on_quantities_the_definition_names": 0.9,
+  "score_weight_on_quantities_a_realised_conflict_is_defined_from": 0.75,
   "score_weight_independent_of_the_target": 0.1,
-  "reading": "Every criterion's defining quantity is also a weighted term in the score, so no restriction of the target makes this measurement independent of its own construction. What the restrictions below separate is the model's contribution, not the score's."
+  "reading": "Every criterion's defining quantity is also a weighted term in the score, so no restriction of the target makes this measurement independent of its own construction. What the restrictions below separate is the model's contribution, not the score's. Two weights are published because they are different numbers: 0.90 of the score sits on quantities the definition names, and 0.75 sits on quantities a conflict in this corpus is actually defined from. The gap is DEAD_CAPTURE, which fires on nothing here. No row in the shipped queue meets this criterion. The highest value of the quantity it thresholds is 0.1371 over 87 measurable rows."
  },
  "ceiling": {
   "max_findable_at_budget": 22,
@@ -55,6 +89,80 @@
   "headroom_between_threshold_and_perfection": 0.24,
   "queue_share_of_the_ceiling": 0.9090909090909091,
   "reading": "A budget of 50 over 87 observations holding 22 conflicts caps any ordering at 1.740x. The gate asked for 1.5x, so the entire distance between the bar and a perfect oracle is 0.240. The queue found 20 of the 22 an oracle would have."
+ },
+ "ceilings_by_split": {
+  "chronological": {
+   "measurable": true,
+   "not_measurable_reason": null,
+   "n_population": 87,
+   "n_conflicts": 22,
+   "budget": 50,
+   "ceiling": 1.74,
+   "threshold": 1.5,
+   "headroom_between_threshold_and_perfection": 0.24,
+   "published_lift_point": 1.5818181818181816,
+   "published_lift_ci95": [
+    1.3533333333333333,
+    1.7400000000000002
+   ],
+   "published_verdict": "NOT_ESTABLISHED",
+   "informative": true,
+   "note": "An oracle scores 1.740x here against a 1.5x bar, so there is 0.240 of room between the threshold and perfection for the measurement to land in."
+  },
+  "cold_combined": {
+   "measurable": true,
+   "not_measurable_reason": null,
+   "n_population": 76,
+   "n_conflicts": 20,
+   "budget": 50,
+   "ceiling": 1.52,
+   "threshold": 1.5,
+   "headroom_between_threshold_and_perfection": 0.020000000000000018,
+   "published_lift_point": 1.292,
+   "published_lift_ci95": [
+    1.0729411764705883,
+    1.52
+   ],
+   "published_verdict": "NOT_ESTABLISHED",
+   "informative": false,
+   "note": "An oracle scores 1.520x here against a 1.5x bar, so the whole scale this split's verdict is read on is 0.020 wide. A verdict of 'NOT_ESTABLISHED' on a scale that narrow is a fact about the budget more than about the ordering."
+  },
+  "cold_station": {
+   "measurable": true,
+   "not_measurable_reason": null,
+   "n_population": 217,
+   "n_conflicts": 52,
+   "budget": 50,
+   "ceiling": 4.1730769230769225,
+   "threshold": 1.5,
+   "headroom_between_threshold_and_perfection": 2.6730769230769225,
+   "published_lift_point": 2.2534615384615386,
+   "published_lift_ci95": [
+    1.9196153846153847,
+    3.858769135837697
+   ],
+   "published_verdict": "PASSED",
+   "informative": true,
+   "note": "An oracle scores 4.173x here against a 1.5x bar, so there is 2.673 of room between the threshold and perfection for the measurement to land in."
+  },
+  "cold_transmitter": {
+   "measurable": true,
+   "not_measurable_reason": null,
+   "n_population": 95,
+   "n_conflicts": 39,
+   "budget": 50,
+   "ceiling": 1.9,
+   "threshold": 1.5,
+   "headroom_between_threshold_and_perfection": 0.3999999999999999,
+   "published_lift_point": 1.6564102564102563,
+   "published_lift_ci95": [
+    1.3359628351188455,
+    1.8939593301435411
+   ],
+   "published_verdict": "NOT_ESTABLISHED",
+   "informative": true,
+   "note": "An oracle scores 1.900x here against a 1.5x bar, so there is 0.400 of room between the threshold and perfection for the measurement to land in."
+  }
  },
  "targets": {
   "all_three_criteria": {
@@ -73,16 +181,17 @@
    "lift_point": 1.5818181818181816,
    "lift_ci95": [
     1.3533333333333333,
-    1.7547169811320753
+    1.7400000000000002
    ],
    "lift_ci95_episode": [
     1.3533333333333333,
     1.7400000000000002
    ],
    "lift_ci95_station": [
-    1.3744213554987212,
-    1.7547169811320753
+    1.3676414884135473,
+    1.7346938775510203
    ],
+   "station_interval_note": null,
    "governing_interval": "union_of_episode_and_station",
    "n_boot_effective": 4000,
    "direction": "spans_threshold",
@@ -101,17 +210,18 @@
    "random_expected": 1.7241379310344827,
    "lift_point": 1.7400000000000002,
    "lift_ci95": [
-    1.7209302325581393,
-    1.7560975609756098
+    1.7045454545454546,
+    1.7400000000000002
    ],
    "lift_ci95_episode": [
     1.7400000000000002,
     1.7400000000000002
    ],
    "lift_ci95_station": [
-    1.7209302325581393,
-    1.7560975609756098
+    1.7045454545454546,
+    1.7400000000000002
    ],
+   "station_interval_note": null,
    "governing_interval": "union_of_episode_and_station",
    "n_boot_effective": 3795,
    "direction": "saturated",
@@ -131,31 +241,86 @@
    "random_expected": 10.919540229885058,
    "lift_point": 1.5568421052631578,
    "lift_ci95": [
-    1.2682869975552902,
-    1.7547169811320753
+    1.2638129899216126,
+    1.7400000000000002
    ],
    "lift_ci95_episode": [
     1.3046491935483873,
     1.7400000000000002
    ],
    "lift_ci95_station": [
-    1.2682869975552902,
-    1.7547169811320753
+    1.2638129899216126,
+    1.7346938775510203
    ],
+   "station_interval_note": null,
+   "governing_interval": "union_of_episode_and_station",
+   "n_boot_effective": 4000,
+   "direction": "spans_threshold",
+   "verdict": "NOT_ESTABLISHED"
+  },
+  "model_independent_and_firing": {
+   "criteria": [
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "measurable": true,
+   "not_measurable_reason": null,
+   "saturated": false,
+   "saturation_note": null,
+   "n_conflicts": 19,
+   "n_at_budget": 17,
+   "random_expected": 10.919540229885058,
+   "lift_point": 1.5568421052631578,
+   "lift_ci95": [
+    1.2638129899216126,
+    1.7400000000000002
+   ],
+   "lift_ci95_episode": [
+    1.3046491935483873,
+    1.7400000000000002
+   ],
+   "lift_ci95_station": [
+    1.2638129899216126,
+    1.7346938775510203
+   ],
+   "station_interval_note": null,
    "governing_interval": "union_of_episode_and_station",
    "n_boot_effective": 4000,
    "direction": "spans_threshold",
    "verdict": "NOT_ESTABLISHED"
   }
  },
+ "targets_note": "`model_independent_only` names 2 criteria and measures 1, because DEAD_CAPTURE fires on nothing here. `model_independent_and_firing` is the same restriction with the inert criteria dropped from the name, so the two rows carry identical numbers and only one of them can be misread.",
  "random_ordering_control": {
+  "computed_by": "pipeline.tracetriage.queue.compute_lift",
   "n_permutations": 2000,
+  "n_boot_per_permutation": 20,
   "seed": 42,
   "mean_lift": 0.999235,
   "p5": 0.711818,
   "p95": 1.265455,
   "expected_mean": 1.0,
-  "abs_error": 0.000765
+  "abs_error": 0.000765,
+  "distinct_conflict_counts_at_budget": [
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19
+  ],
+  "observed_lift": 1.5818181818181818,
+  "n_permutations_at_or_above_observed": 0,
+  "p_value_permutation": 0.0005,
+  "reading": "0 of 2000 random orderings of the same population found as many conflicts inside the budget as the shipped queue did, so a permutation p-value of 0.0005, which is the smallest this test can report at 2000 permutations. The mean of the same 2000 lifts is 0.9992 against an expected 1.0, which is the floor check: every number in this file is produced by the function that returned it."
  },
- "what_this_does_not_establish": "That the queue generalises. Restricting the target to the two criteria the model does not enter removes one loop and leaves another: the score still weights the offset magnitude at 0.35 and the flat-row fraction at 0.15, and those are the quantities those two criteria threshold. The honest reading is that this measurement is a check on internal consistency and on the size of the space the gate was set in, not an independent test of the ranking."
+ "what_this_does_not_establish": "That the queue generalises. Restricting the target to the criteria the model does not enter removes one loop and leaves another: on this corpus that restriction reduces to STALE_CATALOGUE_FREQ alone, whose defining quantity the score weights at 0.35. The other model-independent criterion, DEAD_CAPTURE, fires on nothing in this corpus, so a reader following its 0.15 weight is following a loop that does not exist in the data. The honest reading is that this measurement is a check on internal consistency and on the size of the space the gate was set in, not an independent test of the ranking."
 }

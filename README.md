@@ -39,7 +39,7 @@ substituted for the split the gate was pre-registered on.
 | 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **NOT_ESTABLISHED** | 3 of 3 testable observations discriminate, and the exact one-sided 95% lower bound on that rate is 0.368 |
 | 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** | never run, so it carries no rate. The instrument exists: `scripts/build_gate4_worksheet.py` builds the blinded bundle and `artifacts/GATE4_RECEIPT.json` reads `NOT_RUN` |
 | 5 | Physics beats image-only on Brier | strict improvement, chronological split | **NOT_ESTABLISHED** | margin +0.02079 on the shipped arm, 95% CI -0.01301 to +0.05036, which contains zero |
-| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **NOT_ESTABLISHED** | 1.582x, 95% CI [1.353, 1.755], which contains the threshold. On the held-out cold-station split the same queue **PASSED** at 2.253x |
+| 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **NOT_ESTABLISHED** | 1.582x, 95% CI [1.353, 1.740], which contains the threshold. On the held-out cold-station split the same queue **PASSED** at 2.253x |
 
 Inconclusive is reported as `NOT_ESTABLISHED` rather than rounded into a pass, and the gate
 that was never run is reported as `OPEN` rather than omitted. Gate 3 was `PASSED` until
@@ -192,13 +192,23 @@ sequence, and every step writes a file that the next one reads.
     candidate pool: an IBM Granite embedding of the evidence card, seven standardised
     numbers under Euclidean distance, the station's own recent passes, and a uniform draw.
     Each arm runs twice. Warm allows any other observation. Cold forbids the query's own
-    station and its own satellite, because in this corpus the outcome is partly a property
-    of who recorded it. Warm, the embedding reaches **0.6181** agreement at 5 against a
-    random arm at **0.5302**, a margin of 0.0880 whose Bonferroni-adjusted interval
-    [0.0343, 0.1546] clears zero. Cold, the same arm reaches **0.5608** against
-    **0.5210**, and its adjusted interval [-0.0139, 0.1115] does not. The warm number is
-    the one a demo would show and the cold number is the one that answers the question, so
-    the console page carries both columns at the same weight.
+    station, its own physical site and its own satellite, because in this corpus the
+    outcome is partly a property of who recorded it. Warm, the embedding reaches
+    **0.6181** agreement at 5 against a random arm at **0.5302**, a margin of 0.0880
+    whose Bonferroni-adjusted interval [0.0338, 0.1558] clears zero. Cold, the same arm
+    reaches **0.5543** against **0.5283**, and its adjusted interval [-0.0353, 0.0998]
+    does not. The drop between the two conditions is itself a comparison and is measured
+    as one, paired per query: 0.0639, adjusted interval [0.0160, 0.1182], which excludes
+    zero. The warm number is the one a demo would show and the cold number is the one
+    that answers the question, so the console page carries both columns at the same
+    weight.
+
+    The site clause is there because the station clause was not enough. Nine sites in
+    this pool run between two and four station ids from the same coordinates, so
+    "a different station" was satisfied by the same dish on the same roof, and 22.76% of
+    the embedding's cold neighbours came from the query's own site against 0.89% for a
+    random draw. Excluding the site removes 4,238 query-candidate pairs the id rule left
+    in, and it costs the cold result: the margin falls from 0.0398 to 0.0260.
 
 **Model ladder**, each rung compared against the last: centre-energy heuristic, HOG plus regularised logistic regression, a frozen MobileNetV3-Small or ResNet18 encoder, a physics-only residual model, then a fusion head over image plus metadata plus physics. Calibration by temperature or isotonic fitting on a later time period. Selective or conformal abstention on top.
 
@@ -315,7 +325,7 @@ These are generated from frozen artifacts and registered in `docs/CLAIM_REGISTER
 | Observations with no measurable narrowband trace | 17 of 24 vetted `with-signal`, scoring 0.7 to 3.5 sigma | `artifacts/a3_overlays/summary.json` |
 | Pass geometry against reported max_altitude | median 0.22 deg, p99 0.53 deg, 99.5% within 1 deg, 199 of 200. The reference is integer-valued on all 200 records, so this bounds the error near half a degree and resolves nothing finer | `artifacts/PHYSICS_VALIDATION.json` |
 | Pass azimuth against reported rise and set azimuth | median 0.27 deg at rise and 0.27 deg at set, max 1.96 deg, 100% within 3 deg, on an unrounded reference. Swapping the atan2 arguments gives 93.9 deg and mirroring the azimuth gives 27.0 deg | `artifacts/PHYSICS_VALIDATION.json` |
-| Frequency axis direction, re-measured per observation | the shipped convention wins on all 3 observations where it is measurable; the other 4 are corrected passes whose flat corridor cannot orient an axis at all. It was measured on 2 of the 20 client families in the dataset, so 1023 of the 2,727 stored observations come from a family it was measured on and 1704 inherit it | `artifacts/GATE3_RECEIPT.json` |
+| Frequency axis direction, re-measured per observation | the shipped convention wins on all 3 observations where it is measurable; the other 4 are corrected passes whose flat corridor cannot orient an axis at all. It was measured on 2 of the 20 client families in the dataset. The constant applies where a waterfall was rendered, which is 2,500 of the 2,727 stored observations: 1,004 of those come from a measured family and 1,496 inherit it. Over all 2,727 rows the figures are 1,023 and 1,704, and both pairs are published because the second counts 227 observations with no image | `artifacts/GATE3_RECEIPT.json` |
 
 The first two are the reason this project exists. A reviewer cannot tell from an
 observation record whether its waterfall was Doppler corrected, the two cases
@@ -360,15 +370,15 @@ left out.
 | AUC, chronological holdout | 0.875, against 0.842 image-only | `artifacts/FUSION_RECEIPT.json` |
 | Calibration slope and intercept | 1.483 and -0.246, ECE 0.0713 | `artifacts/FUSION_RECEIPT.json` |
 | Selective risk near 80% coverage | 0.0857 at 79.5% coverage | `artifacts/FUSION_RECEIPT.json` |
-| Queue lift over random, chronological | 1.582x, 95% CI [1.353, 1.755], **NOT_ESTABLISHED** against a 1.5x threshold | `artifacts/QUEUE_RECEIPT.json` |
+| Queue lift over random, chronological | 1.582x, 95% CI [1.353, 1.740], **NOT_ESTABLISHED** against a 1.5x threshold | `artifacts/QUEUE_RECEIPT.json` |
 | Queue lift over image-only uncertainty | 1.582x against 1.186x at the same budget | `artifacts/QUEUE_RECEIPT.json` |
 | Queue lift over first-in-first-out | 1.582x against 1.107x | `artifacts/QUEUE_RECEIPT.json` |
-| Cold-station holdout | **PASSED**, 2.253x, 95% CI [1.920, 3.896] | `artifacts/QUEUE_RECEIPT.json` |
-| Cold-transmitter holdout | 1.656x, 95% CI [1.340, 1.913], NOT_ESTABLISHED | `artifacts/QUEUE_RECEIPT.json` |
+| Cold-station holdout | **PASSED**, 2.253x, 95% CI [1.920, 3.859] | `artifacts/QUEUE_RECEIPT.json` |
+| Cold-transmitter holdout | 1.656x, 95% CI [1.336, 1.894], NOT_ESTABLISHED | `artifacts/QUEUE_RECEIPT.json` |
 | Cold station and transmitter together | 1.292x, 95% CI [1.073, 1.520], NOT_ESTABLISHED | `artifacts/QUEUE_RECEIPT.json` |
 | Physics beats image-only on Brier | **NOT ESTABLISHED**. Margin +0.02079, interval spans zero | `artifacts/FUSION_RECEIPT.json` gate5 |
 | Shipped ranker against what the ablation recommends | They disagree. The queue ranks with `image_corridor` and the corrected rule recommends `image_only`. The block without corrected support is `corridor`, kept because the same arm's risk-coverage margin is +0.05736 with a corrected interval of +0.01192 to +0.11887, which does clear zero | `artifacts/FUSION_RECEIPT.json` ablation_conclusion |
-| Granite text embedding against seven standardised numbers | Indistinguishable in both conditions. Warm margin +0.0260, adjusted interval [-0.0164, +0.0653]; cold margin +0.0141, [-0.0435, +0.0762]. Both span zero over 739 queries resampled by 116 ground stations | `artifacts/PRECEDENT_RECEIPT.json` |
+| Granite text embedding against seven standardised numbers | Indistinguishable in both conditions. Warm margin +0.0260, adjusted interval [-0.0169, +0.0660]; cold margin +0.0168, [-0.0406, +0.0783]. Both span zero over 739 queries resampled by 116 ground stations | `artifacts/PRECEDENT_RECEIPT.json` |
 
 ### Still unmeasured, and named as such
 
@@ -383,25 +393,30 @@ The ranking score and the definition of a conflict are not independent, and the 
 that problem is measured rather than described. The score is 0.40 x disagreement + 0.35 x
 safe offset magnitude + 0.15 x flat-row fraction + 0.10 x ensemble uncertainty, and the
 three conflict criteria threshold the first three of those same quantities. 90% of the
-score's weight sits on quantities the target is defined from, so a lift above 1.0 is close
-to guaranteed by construction. `scripts/run_circularity_check.py` bounds it from
-`artifacts/CIRCULARITY_RECEIPT.json`, reading the queue receipt and nothing else: no
-snapshot, no network, no model. It reproduces the published 1.5818x from that file before
-computing anything.
+score's weight sits on quantities the definition names and 75% on quantities a conflict in
+this corpus is actually defined from, the gap being DEAD_CAPTURE, which fires on nothing
+here. Either way a lift above 1.0 is close to guaranteed by construction.
+`scripts/run_circularity_check.py` bounds it from `artifacts/CIRCULARITY_RECEIPT.json`,
+reading the queue receipt and nothing else: no snapshot, no network, no model. It
+reproduces the published 1.5818x from that file before computing anything.
 
 | Question | Answer |
 |---|---|
 | What is the most any ordering could score here? | 1.740x. A budget of 50 over 87 observations holding 22 conflicts caps a perfect oracle there, so the whole distance between the 1.5x threshold and perfection is 0.240 |
 | How much of that did the queue get? | 20 of the 22 an oracle would have found, which is 91% of the ceiling |
-| What happens with the model taken out of the target? | 1.557x, 95% CI [1.268, 1.755], **NOT_ESTABLISHED**, counting only the 19 conflicts flagged by the two criteria the model does not enter |
+| What happens with the model taken out of the target? | 1.557x, 95% CI [1.264, 1.740], **NOT_ESTABLISHED**, counting only the 19 conflicts flagged by the two criteria the model does not enter, of which DEAD_CAPTURE flags nothing here, so the restriction reduces to one criterion |
 | And with only the model's own disagreement? | 1.740x over 3 conflicts, reported as **NOT_INFORMATIVE** rather than as a pass: the queue found all 3 inside the budget, and a saturated lift equals population over budget whatever the count was |
-| Does the statistic score a shuffle at 1.0? | 0.9992 over 2,000 seeded permutations, 5th to 95th percentile 0.712 to 1.265 |
+| How often does a random ordering match the queue? | 0 times in 2,000 seeded shuffles of the same population, a permutation p-value of 0.0005, which is the smallest this test can report at 2,000 permutations |
+| Does the statistic score a shuffle at 1.0? | 0.9992 over the same 2,000 permutations, 5th to 95th percentile 0.712 to 1.265. Each one is scored by `compute_lift`, the function gate 6 itself is measured with, so a defect in it moves this number |
+| Which split has the least room to be measured in? | `cold_combined`: 20 conflicts in 76 observations at a budget of 50 caps every ordering at 1.520x against a 1.5x bar. That is 0.020 of room and a published **NOT_ESTABLISHED**, so its verdict is a fact about the budget and the receipt marks it not informative |
 
-Taking the model out of the target removes one loop and leaves another: the score still
-weights the fitted offset at 0.35 and the flat-row fraction at 0.15, and those are the two
-quantities the remaining criteria threshold. No restriction of the target makes this
-measurement independent of its own construction, which is why the gate reads
-NOT_ESTABLISHED and why nothing here changes that.
+That the queue generalises. Restricting the target to the criteria the model does not
+enter removes one loop and leaves another: on this corpus that restriction reduces to
+STALE_CATALOGUE_FREQ alone, whose defining quantity the score weights at 0.35. The other
+model-independent criterion, DEAD_CAPTURE, fires on nothing in this corpus, so a reader
+following its 0.15 weight is following a loop that does not exist in the data. The honest
+reading is that this measurement is a check on internal consistency and on the size of the
+space the gate was set in, not an independent test of the ranking.
 
 The queue's headline result is inconclusive, and that is the honest reading:
 1.582x is above the 1.5x threshold as a point estimate,
@@ -473,13 +488,16 @@ catch.
 Each takes `--check`, which regenerates into memory and exits non-zero on any difference
 without writing. `scripts/gate.py` runs all five.
 
-Two more things are generated and checked the same way without being documents.
+Three more things are generated and checked the same way without being documents.
 `apps/web/public/data/` is written in its entirety by `scripts/build_console_data.py`, so the
 console cannot show a number the receipts do not carry, and `scripts/check_artifact_freshness.py`
-rebuilds every published payload into a scratch directory and diffs it. And
+rebuilds every published payload into a scratch directory and diffs it.
 `artifacts/CIRCULARITY_RECEIPT.json` is recomputed from `artifacts/QUEUE_RECEIPT.json` by
 `scripts/run_circularity_check.py --check`, because a bound on a measurement goes stale the
-moment the measurement is re-run.
+moment the measurement is re-run. And `apps/web/public/og.png`, the card a pasted link
+renders as, is drawn from the queue and circularity receipts by `scripts/build_og_image.py`,
+so the two verdicts on it are the two the console holds: it is the one published surface
+nobody looks at while working, which is exactly where a stale number survives.
 
 ## Prior art and honest scope
 

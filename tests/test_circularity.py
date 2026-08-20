@@ -119,15 +119,57 @@ def test_the_shared_weight_is_reported_and_is_most_of_the_score(receipt):
     circularity would be smaller and this test would fail, which is the correct outcome:
     the README sentence it supports would need rewriting.
     """
-    shared = receipt["shared_signals"][
-        "score_weight_on_quantities_the_target_is_defined_from"
-    ]
-    independent = receipt["shared_signals"]["score_weight_independent_of_the_target"]
-    assert shared + independent == pytest.approx(1.0)
-    assert shared >= 0.5, (
+    signals = receipt["shared_signals"]
+    named = signals["score_weight_on_quantities_the_definition_names"]
+    independent = signals["score_weight_independent_of_the_target"]
+    assert named + independent == pytest.approx(1.0)
+    assert named >= 0.5, (
         "most of the score no longer sits on quantities the conflict definition reads, so "
         "the README's circularity paragraph overstates the problem and needs rewriting"
     )
+
+
+def test_the_active_weight_is_published_separately_from_the_named_weight(receipt):
+    """A criterion that fires on nothing still carries its weight into the named total.
+
+    The two totals answer different questions and were one number until a review counted
+    the reason codes: 0.90 of the score sits on quantities the definition names, 0.75 on
+    quantities a conflict in this corpus is defined from, and the 0.15 gap is DEAD_CAPTURE,
+    which fires zero times here. Publishing only the first overstates the loop by the
+    weight of a criterion that never fires.
+    """
+    signals = receipt["shared_signals"]
+    named = signals["score_weight_on_quantities_the_definition_names"]
+    active = signals["score_weight_on_quantities_a_realised_conflict_is_defined_from"]
+    fired = signals["fired"]
+    assert active <= named
+    expected_gap = sum(
+        signals["criteria"][code]["score_weight"]
+        for code, row in fired.items()
+        if row["n_flagged"] == 0
+    )
+    assert named - active == pytest.approx(expected_gap, abs=1e-9)
+    assert set(signals["inert"]) == {c for c, r in fired.items() if r["n_flagged"] == 0}
+    assert set(signals["active"]) == {c for c, r in fired.items() if r["n_flagged"] > 0}
+
+
+def test_an_inert_criterion_is_named_with_the_value_that_makes_it_inert(receipt):
+    """"Fires zero times" is a claim, and the number behind it travels with it.
+
+    A reader who sees DEAD_CAPTURE in the definition and nowhere in the counts should not
+    have to guess whether the images were clean or the threshold was unreachable. The
+    receipt carries the highest value observed and the number of rows it was measurable on.
+    """
+    for code in receipt["shared_signals"]["inert"]:
+        row = receipt["shared_signals"]["fired"][code]
+        assert row["n_flagged"] == 0
+        assert row["inert_on_this_corpus"] is True
+        assert row["n_rows_the_quantity_was_measurable_on"] > 0, (
+            f"{code} is reported inert with nothing measured, which is an absence of "
+            "evidence rather than a criterion that did not fire"
+        )
+        assert row["max_observed"] is not None
+        assert f"{row['max_observed']:.4f}" in row["note"]
 
 
 def test_the_ceiling_is_the_population_over_the_budget(receipt):
@@ -189,6 +231,23 @@ def test_the_model_independent_target_is_measured_and_named(receipt):
     assert lo < block["lift_point"] < hi
 
 
+def test_the_firing_restriction_carries_the_same_numbers_under_a_truthful_name(receipt):
+    """`model_independent_only` names two criteria and one of them fires on nothing.
+
+    Dropping the inert criterion from the target cannot move a single number, because it
+    contributed no conflict. That is the point: the row exists so a reader is not told a
+    two-criterion restriction was measured when the data supports one. If the two rows ever
+    disagree, the inert criterion started firing and the prose around both is stale.
+    """
+    named = receipt["targets"]["model_independent_only"]
+    firing = receipt["targets"]["model_independent_and_firing"]
+    assert set(firing["criteria"]) <= set(named["criteria"])
+    assert firing["n_conflicts"] == named["n_conflicts"]
+    assert firing["lift_point"] == pytest.approx(named["lift_point"])
+    assert firing["lift_ci95"] == named["lift_ci95"]
+    assert str(len(firing["criteria"])) in receipt["targets_note"]
+
+
 def test_it_does_not_claim_the_loop_is_closed(receipt):
     """The sentence that keeps this honest has to be in the receipt, not only in a docstring.
 
@@ -204,3 +263,180 @@ def test_it_reads_no_snapshot(receipt):
     """A judge without the 4 GB snapshot has to be able to run this."""
     assert receipt["source"]["needs_the_snapshot"] is False
     assert receipt["source"]["receipt"] == "artifacts/QUEUE_RECEIPT.json"
+
+
+def test_the_random_control_is_produced_by_the_function_it_is_checking(receipt):
+    """The floor check has to be able to fail.
+
+    The first version computed ``found / expected`` inline, where ``expected`` is the mean
+    of ``found`` under a uniform shuffle, so its answer was 1.0 by identity. It returned 1.0
+    with the queue reversed, with every conflict flag inverted, and with ``compute_lift``
+    replaced by a function that raises. A control invariant under the framework being broken
+    is a measurement of the random number generator, and it was sold as the floor the whole
+    comparison rests on.
+
+    Two properties make it a check again: every permutation's lift comes back from the
+    shipped ``compute_lift``, and the permutations differ from each other. If every shuffle
+    found the same number of conflicts inside the budget, the shuffle is not shuffling.
+    """
+    control = receipt["random_ordering_control"]
+    assert control["computed_by"] == "pipeline.tracetriage.queue.compute_lift"
+    counts = control["distinct_conflict_counts_at_budget"]
+    assert len(counts) > 1, (
+        f"every one of {control['n_permutations']} shuffles found {counts} conflicts "
+        "inside the budget, so the permutations are not distinct populations"
+    )
+    assert control["abs_error"] < 0.01
+
+
+def test_the_permutation_test_answers_the_question_the_bootstrap_does_not(receipt):
+    """How often does a random ordering match the shipped queue.
+
+    The bootstrap interval says how far the lift moves when the population is resampled.
+    It does not say whether an ordering that knows nothing could have produced the same
+    result, which is the question circularity raises. The permutation p-value does, without
+    the threshold and without the bootstrap.
+    """
+    control = receipt["random_ordering_control"]
+    n = control["n_permutations"]
+    at_or_above = control["n_permutations_at_or_above_observed"]
+    assert 0 <= at_or_above <= n
+    assert control["p_value_permutation"] == pytest.approx(
+        round((1 + at_or_above) / (1 + n), 6)
+    )
+    assert control["observed_lift"] == pytest.approx(
+        receipt["reproduction"]["lift_point"]
+    )
+    assert control["p5"] < 1.0 < control["p95"]
+
+
+def _min_informative_headroom(receipt) -> float:
+    """The headroom threshold the receipt was written against, read back from it.
+
+    Recovered from the narrowest split marked informative and the widest marked not, so
+    the assertion cannot pass by importing the same constant the script decided with.
+    """
+    ok = [
+        b["headroom_between_threshold_and_perfection"]
+        for b in receipt["ceilings_by_split"].values()
+        if b["measurable"] and b["informative"]
+    ]
+    bad = [
+        b["headroom_between_threshold_and_perfection"]
+        for b in receipt["ceilings_by_split"].values()
+        if b["measurable"] and not b["informative"]
+    ]
+    if not bad:
+        return min(ok) if ok else 0.0
+    assert max(bad) < min(ok), "the informative flag is not a threshold on headroom"
+    return min(ok)
+
+
+def test_every_split_gets_a_ceiling_not_only_the_one_that_is_reproduced(receipt):
+    """The bound belongs where the scale is narrowest, not only where the analysis runs.
+
+    This file reproduces the chronological split because that is the only ordering the
+    receipt carries row by row, and for a while it published a ceiling for that split
+    alone. The split that most needs one is cold_combined: 76 observations, 20 conflicts,
+    budget 50, so every possible ordering including a perfect oracle caps at 1.520 against
+    a 1.500 threshold. Reading that split's NOT_ESTABLISHED as a finding about
+    generalisation, on a scale 0.02 wide, reports the budget rather than the queue.
+    """
+    ceilings = receipt["ceilings_by_split"]
+    assert len(ceilings) >= 2
+    floor = _min_informative_headroom(receipt)
+    for name, block in ceilings.items():
+        if not block["measurable"]:
+            assert block["not_measurable_reason"]
+            continue
+        expected = min(block["budget"], block["n_conflicts"]) / (
+            block["budget"] * block["n_conflicts"] / block["n_population"]
+        )
+        assert block["ceiling"] == pytest.approx(expected), name
+        assert block["headroom_between_threshold_and_perfection"] == pytest.approx(
+            block["ceiling"] - block["threshold"]
+        )
+        if block["published_lift_point"] is not None:
+            assert (
+                block["published_lift_point"] <= block["ceiling"] + 1e-9
+            ), f"{name} publishes a lift above its own ceiling"
+        assert block["informative"] is (
+            block["headroom_between_threshold_and_perfection"] >= floor
+        ), name
+
+
+def test_a_split_whose_oracle_barely_clears_the_bar_is_marked_not_informative(receipt):
+    """The specific case, named rather than left to the general rule above."""
+    narrow = [
+        (name, block)
+        for name, block in receipt["ceilings_by_split"].items()
+        if block["measurable"] and not block["informative"]
+    ]
+    assert narrow, (
+        "no split is marked uninformative. If the corpus changed so that every split has "
+        "room between its threshold and a perfect oracle, that is good news and this test "
+        "should be deleted with the reason recorded, not weakened"
+    )
+    for name, block in narrow:
+        assert block["ceiling"] < block["threshold"] + 0.10, name
+        assert "oracle" in block["note"]
+        assert f"{block['ceiling']:.3f}" in block["note"]
+
+
+def test_the_union_label_is_not_used_when_there_is_no_station_interval(script):
+    """min(1.35, nan) is 1.35, so a missing station interval vanishes into a union.
+
+    ``compute_lift`` returns [nan, nan] when the station bootstrap falls below its minimum
+    surviving resamples. Taking min and max across the two intervals silently discards it,
+    publishes the narrower episode-only interval, and labels it the union of two, which is
+    how a NOT_ESTABLISHED becomes a PASSED with nobody touching a threshold.
+    ``measure_gate6_split`` checks the station verdict and relabels; this file did not.
+    """
+    ranked = [
+        {
+            "obs_id": i,
+            "episode_key": f"{i % 3}:2:{i}",
+            "reasons": ["STALE_CATALOGUE_FREQ"] if i < 6 else ["NO_REASON"],
+        }
+        for i in range(30)
+    ]
+
+    real = script._lift
+    calls = {"n": 0}
+
+    def fake_lift(entries, flags, budget, *, group):
+        out = real(entries, flags, budget, group=group)
+        if group == "station":
+            calls["n"] += 1
+            return {
+                **out,
+                "verdict": "NOT_MEASURABLE",
+                "lift_ci95": [float("nan"), float("nan")],
+                "not_measurable_reason": "too few surviving resamples",
+            }
+        return out
+
+    script._lift = fake_lift
+    try:
+        block = script._target(ranked, ("STALE_CATALOGUE_FREQ",), 10)
+    finally:
+        script._lift = real
+
+    assert calls["n"] == 1
+    assert block["governing_interval"] == "episode_only"
+    assert block["lift_ci95_station"] is None
+    assert block["station_interval_note"]
+    assert all(v == v for v in block["lift_ci95"]), "a nan reached the governing interval"
+
+
+def test_the_shipped_receipt_governs_on_the_union(receipt):
+    """The branch above is the failure case. On this data both intervals exist."""
+    for name, block in receipt["targets"].items():
+        if not block.get("measurable"):
+            continue
+        if block["governing_interval"] == "union_of_episode_and_station":
+            assert block["lift_ci95_station"] is not None, name
+            assert block["station_interval_note"] is None, name
+        else:
+            assert block["lift_ci95_station"] is None, name
+            assert block["station_interval_note"], name

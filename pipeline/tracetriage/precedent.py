@@ -79,6 +79,10 @@ class Observation:
     start: str | None
     card: str
     features: tuple[float, ...]
+    #: The physical receiving site, as rounded coordinates, or None when the row carries
+    #: no position. Distinct from ``station``: one site can hold several station ids, and
+    #: the cold condition is about the site. See ``site_key``.
+    site: tuple[float, float] | None = None
 
     def as_json(self) -> dict[str, Any]:
         return {
@@ -87,6 +91,7 @@ class Observation:
             "station": self.station,
             "satellite": self.satellite,
             "start": self.start,
+            "site": None if self.site is None else list(self.site),
         }
 
 
@@ -215,6 +220,7 @@ def observations_from(rows: Iterable[dict[str, Any]]) -> list[Observation]:
                 start=row.get("start"),
                 card=render_card(row),
                 features=features_of(row),
+                site=site_key(row),
             )
         )
     out.sort(key=lambda obs: obs.obs_id)
@@ -253,8 +259,35 @@ def euclidean(a: Sequence[float], b: Sequence[float]) -> float:
     return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b, strict=True)))
 
 
+def site_key(row: dict[str, Any]) -> tuple[float, float] | None:
+    """The physical receiving site, as coordinates rounded to three decimals.
+
+    Three decimals is about 100 m, which is finer than the difference between two station
+    ids at one club and coarser than the noise in a self-reported position.
+    """
+    latitude = _number(row.get("station_lat"))
+    longitude = _number(row.get("station_lng"))
+    if latitude is None or longitude is None:
+        return None
+    return (round(float(latitude), 3), round(float(longitude), 3))
+
+
 def is_candidate(query: Observation, other: Observation, condition: str) -> bool:
-    """Who may be retrieved for whom, which is the whole design of the cold condition."""
+    """Who may be retrieved for whom, which is the whole design of the cold condition.
+
+    The cold condition excludes the query's own station. The reason written down for it is
+    that a misconfigured station produces empty waterfalls for weeks, and that is a property
+    of the physical site and its operator rather than of a row in the station table. Nine
+    sites in this pool carry two to four distinct station ids at identical coordinates, one
+    of them four ids at (49.2316, -121.7593), covering 22 ids and 210 observations. Matching
+    on the integer alone let 22.76% of Granite's cold neighbours come from the query's own
+    site, against 0.89% for a random draw: 25 times more often than chance, under a
+    condition whose entire purpose is to forbid it.
+
+    Both the rendered card and the numeric feature vector carry the coordinates, so both
+    model arms can find a co-located row trivially. Excluding on the site as well as the id
+    is the condition the design describes.
+    """
     if other.obs_id == query.obs_id:
         return False
     if condition == "warm":
@@ -262,6 +295,8 @@ def is_candidate(query: Observation, other: Observation, condition: str) -> bool
     if condition != "cold":
         raise ValueError(f"unknown condition {condition!r}")
     if query.station is not None and other.station == query.station:
+        return False
+    if query.site is not None and other.site == query.site:
         return False
     return not (query.satellite is not None and other.satellite == query.satellite)
 

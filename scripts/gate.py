@@ -171,6 +171,18 @@ def main() -> int:
         )
     )
 
+    # The link preview card carries two verdicts and a permutation count, drawn from the
+    # receipts. It is the one published surface nobody looks at while working, so a stale
+    # one would sit in every shared link showing a number the console no longer holds.
+    rc, out = run([str(PY), str(REPO / "scripts" / "build_og_image.py"), "--check"])
+    results.append(
+        check(
+            "link preview card matches the receipts",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
     # Artifact freshness. Every other check here can pass while a committed artifact
     # disagrees with the code that produced it, which is exactly what happened in D0:
     # LEAKAGE_AUDIT.json kept a PASS the builder could no longer emit, and a test was

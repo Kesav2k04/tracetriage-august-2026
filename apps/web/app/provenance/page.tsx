@@ -177,7 +177,10 @@ export default function ProvenancePage() {
         title="Receipts"
         description="Each one is the output of a stage, validated against its contract before it reached disk."
       >
-        <Table head={["File", "SHA-256", "Bytes"]}>
+        <Table
+          head={["File", "SHA-256", "Bytes"]}
+          headAlign={["left", "left", "right"]}
+        >
           {provenance.receipts.map((receipt) => (
             <tr key={receipt.name}>
               <Cell align="left" header>
@@ -209,7 +212,10 @@ export default function ProvenancePage() {
         title="Contracts"
         description="A schema is ratified before the script that writes against it runs. A receipt that violates its contract never reaches disk, so a malformed measurement cannot be published and then noticed later."
       >
-        <Table head={["Contract", "Version", "Status", "SHA-256"]}>
+        <Table
+          head={["Contract", "Version", "Status", "SHA-256"]}
+          headAlign={["left", "right", "left", "left"]}
+        >
           {provenance.contracts.map((contract) => (
             <tr key={contract.name}>
               <Cell align="left" header>
@@ -233,7 +239,7 @@ export default function ProvenancePage() {
         title="The documents these numbers were promised against"
         description="Each was written before the measurement it governs, and each is served here as the file itself rather than as a summary of it."
       >
-        <Table head={["Document", "What it fixes"]}>
+        <Table head={["Document", "What it fixes"]} headAlign={["left", "left"]}>
           <tr>
             <Cell align="left" header>
               <a href="/data/KILL_GATE.md">KILL_GATE.md</a>
@@ -328,6 +334,7 @@ export default function ProvenancePage() {
       >
         <Table
           head={["When", "What the console shows", "Shipped cards in this state"]}
+          headAlign={["left", "left", "right"]}
           caption={`Counted over the ${cards.n_built} observations with imagery. A zero means the path is covered by the offline suite and by a forced check, not by this corpus.`}
         >
           {DEGRADED_STATES.map((state) => (

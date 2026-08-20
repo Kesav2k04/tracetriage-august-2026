@@ -437,7 +437,7 @@ export default function PassReplay({
       </dl>
 
       <p className="replay-note">
-        One clock drives all four instruments above. Values between two propagated
+        One clock drives all four instruments below. Values between two propagated
         samples are linearly interpolated, the same interpolation the drawn tracks
         already perform between the same two points; there are{" "}
         {geometry.fracs.length} samples over {FMT.format(durationS)} seconds of

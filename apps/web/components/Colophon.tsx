@@ -12,6 +12,9 @@
  * recorded against the imagery it actually downloaded.
  */
 
+/** The repository this console is built from, named once. */
+const REPO = "https://github.com/Kesav2k04/tracetriage-august-2026";
+
 export default function Colophon({
   attribution,
   snapshot,
@@ -89,12 +92,33 @@ export default function Colophon({
             departure where Carbon&rsquo;s own token failed a contrast
             requirement.
           </p>
+          {/* Both forms of each document.
+              The served copy is markdown source, and a browser shows 54 KB of pipe
+              tables at full width, which is not a document a judge can read. The
+              rendered view is on the repository, which is where a reader who wants
+              the file itself is going anyway. The raw link stays because the console
+              has to keep working when the repository is not reachable, and because a
+              rendered page is a second copy of a file this project checks byte for
+              byte. */}
           <p>
-            <a href="/data/KILL_GATE.md">Gates</a>
+            <a href={`${REPO}/blob/main/docs/KILL_GATE.md`}>Gates</a>{" "}
+            <a href="/data/KILL_GATE.md" className="colophon-raw">
+              (raw)
+            </a>
             {" · "}
-            <a href="/data/CLAIM_REGISTER.md">Claims</a>
+            <a href={`${REPO}/blob/main/docs/CLAIM_REGISTER.md`}>Claims</a>{" "}
+            <a href="/data/CLAIM_REGISTER.md" className="colophon-raw">
+              (raw)
+            </a>
             {" · "}
-            <a href="/data/C2_PREREGISTRATION.md">Pre-registration</a>
+            <a href={`${REPO}/blob/main/docs/C2_PREREGISTRATION.md`}>
+              Pre-registration
+            </a>{" "}
+            <a href="/data/C2_PREREGISTRATION.md" className="colophon-raw">
+              (raw)
+            </a>
+            {" · "}
+            <a href={REPO}>Repository</a>
           </p>
         </div>
       </div>

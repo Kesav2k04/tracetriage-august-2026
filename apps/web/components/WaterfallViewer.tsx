@@ -275,7 +275,12 @@ export default function WaterfallViewer({
           style={{
             display: "grid",
             gap: "var(--sp-05)",
-            gridTemplateColumns: "repeat(auto-fit, minmax(9rem, 1fr))",
+            // 9rem truncated the overlay control to "Fitted, predicted and ce"
+            // at 1440 and to "Fitted, predicted a" at 390, on the one control
+            // that explains what the three lines over the flagship image are.
+            // 13.5rem fits the longest option at the body size, and auto-fit
+            // still collapses to one column on a narrow screen.
+            gridTemplateColumns: "repeat(auto-fit, minmax(13.5rem, 1fr))",
             marginTop: "var(--sp-05)",
             padding: "var(--sp-05)",
             background: "var(--ui-01)",
@@ -382,4 +387,10 @@ const selectStyle: React.CSSProperties = {
   padding: "var(--sp-02) var(--sp-03)",
   fontSize: "var(--type-body)",
   fontFamily: "inherit",
+  // A select in a grid column is sized by the column, not by its content, so
+  // without this it inherits whatever the track gives it and clips its own
+  // selected option. minWidth 0 keeps it from forcing the track wider than the
+  // figure on a narrow screen.
+  width: "100%",
+  minWidth: 0,
 };

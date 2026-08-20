@@ -41,6 +41,28 @@ export const metadata: Metadata = {
     description:
       "A review-value queue for SatNOGS waterfalls, and the gates it passed and failed.",
     type: "website",
+    // Drawn by scripts/build_og_image.py from the queue receipt, so the two
+    // verdicts on the card are the two the console holds and cannot drift from
+    // them. Without it a pasted link rendered as a bare text card, which is the
+    // first thing a reader sees when a submission is shared before it is opened.
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt:
+          "TraceTriage. A review queue, and the measurement that says how much it "
+          + "is worth. Pre-registered split 1.58 times random, not established. "
+          + "Held-out stations 2.25 times random, passed.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TraceTriage",
+    description:
+      "A review-value queue for SatNOGS waterfalls, and the gates it passed and failed.",
+    images: ["/og.png"],
   },
   robots: { index: true, follow: true },
 };

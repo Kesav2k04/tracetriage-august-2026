@@ -30,6 +30,15 @@ export const metadata = { title: "Evaluation" };
 const gate6 = evaluation.gate6;
 const gate5 = evaluation.gate5;
 const ablation = evaluation.ablation_conclusion;
+const circularity = evaluation.circularity;
+
+/** Names for the restricted targets, so the table reads as English rather than as keys. */
+const CIRCULARITY_TARGET_LABELS: Record<string, string> = {
+  all_three_criteria: "The shipped definition",
+  model_dependent_only: "Model-dependent criteria only",
+  model_independent_only: "Model-independent criteria only",
+  model_independent_and_firing: "Model-independent, and firing",
+};
 const chrono = evaluation.fusion_splits.find((s) => s.split === "chronological")!;
 const sizeMatched = evaluation.fusion_splits.find(
   (s) => s.split === "chronological_size_matched",
@@ -322,7 +331,11 @@ export default function EvaluationPage() {
           }}
         >
           Two gates decide whether this project earned its claims, and neither one
-          passed. Both are reported here with the intervals they were decided on,
+          passed. The sidebar says two of six gates are met: those two are the
+          feasibility gates, 1 and 2, which asked whether the data and the physics
+          could be obtained at all and were pre-passed before this work started. The
+          four substantive gates are 3 to 6, and the two measured here are the ones a
+          claim rests on. Both are reported with the intervals they were decided on,
           because a gate that only reports its wins is not a gate.
         </p>
       </header>
@@ -369,6 +382,133 @@ export default function EvaluationPage() {
       </Section>
 
       <Section
+        id="circularity"
+        title="How much of that lift is guaranteed by the way the queue was built"
+        description="The ranking score and the definition of a conflict read the same quantities, so part of the lift is true by construction. This bounds that part rather than arguing about it."
+      >
+        <p style={{ margin: "0 0 var(--sp-05)", lineHeight: 1.7, maxWidth: "62rem" }}>
+          {circularity.shared_signals.reading}
+        </p>
+
+        <div
+          style={{
+            display: "grid",
+            gap: "var(--sp-05)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 1fr))",
+            marginBottom: "var(--sp-06)",
+          }}
+        >
+          <Stat
+            label="Ceiling at this budget"
+            value={`${fmt(circularity.ceiling.lift, 3)}×`}
+            detail={`An oracle finds all ${circularity.ceiling.max_findable_at_budget} and scores this.`}
+          />
+          <Stat
+            label="Room between bar and oracle"
+            value={fmt(
+              circularity.ceiling.headroom_between_threshold_and_perfection,
+              3,
+            )}
+            detail={`The gate asked for ${circularity.ceiling.threshold}×.`}
+          />
+          <Stat
+            label="Share of the ceiling reached"
+            value={fmt(circularity.ceiling.queue_share_of_the_ceiling, 3)}
+            detail="Conflicts the queue found, over the most any ordering could."
+          />
+          <Stat
+            label="Permutation p"
+            value={circularity.random_ordering_control.p_value_permutation.toFixed(4)}
+            detail={`${circularity.random_ordering_control.n_permutations_at_or_above_observed} of ${circularity.random_ordering_control.n_permutations} random orderings matched it.`}
+          />
+        </div>
+
+        <Table
+          head={["Restricted target", "Criteria", "Conflicts", "Lift", "95% interval", "Verdict"]}
+          headAlign={["left", "left", "right", "right", "right", "left"]}
+          caption={circularity.targets_note}
+        >
+          {Object.entries(circularity.targets).map(([name, target]) => (
+            <tr key={name}>
+              <Cell align="left" header>
+                {CIRCULARITY_TARGET_LABELS[name] ?? name}
+              </Cell>
+              <Cell align="left">
+                <span
+                  style={{ display: "flex", gap: "var(--sp-02)", flexWrap: "wrap" }}
+                >
+                  {target.criteria.map((code) => (
+                    <Tag
+                      key={code}
+                      tone={
+                        circularity.shared_signals.inert.includes(code)
+                          ? "muted"
+                          : "neutral"
+                      }
+                    >
+                      {code}
+                      {circularity.shared_signals.inert.includes(code)
+                        ? " (fires on nothing)"
+                        : ""}
+                    </Tag>
+                  ))}
+                </span>
+              </Cell>
+              <Cell mono>{target.n_conflicts}</Cell>
+              <Cell mono>
+                {target.lift_point === null ? "—" : fmt(target.lift_point)}
+              </Cell>
+              <Cell mono>
+                {target.lift_ci95 === null ? "—" : fmtInterval(target.lift_ci95)}
+              </Cell>
+              <Cell align="left">
+                <VerdictBadge verdict={target.verdict} />
+              </Cell>
+            </tr>
+          ))}
+        </Table>
+
+        <Table
+          head={["Split", "Population", "Conflicts", "Budget", "Oracle scores", "Room above the bar"]}
+          headAlign={["left", "right", "right", "right", "right", "right"]}
+          caption="The scale each split's verdict is read on. A split whose oracle barely clears the threshold cannot produce an informative verdict, whichever way it falls."
+        >
+          {Object.entries(circularity.ceilings_by_split).map(([name, block]) => (
+            <tr key={name}>
+              <Cell align="left" header>
+                {SPLIT_LABELS[name] ?? name}
+                {block.measurable && block.informative === false ? (
+                  <div
+                    style={{
+                      fontSize: "var(--type-caption)",
+                      color: "var(--support-03)",
+                      fontWeight: 400,
+                    }}
+                  >
+                    not informative at this budget
+                  </div>
+                ) : null}
+              </Cell>
+              <Cell mono>{block.n_population ?? "—"}</Cell>
+              <Cell mono>{block.n_conflicts ?? "—"}</Cell>
+              <Cell mono>{block.budget ?? "—"}</Cell>
+              <Cell mono>
+                {block.ceiling === undefined ? "—" : `${fmt(block.ceiling, 3)}×`}
+              </Cell>
+              <Cell mono>
+                {block.headroom_between_threshold_and_perfection === undefined
+                  ? "—"
+                  : fmt(block.headroom_between_threshold_and_perfection, 3)}
+              </Cell>
+            </tr>
+          ))}
+        </Table>
+
+        <Note tone="limit">{circularity.what_this_does_not_establish}</Note>
+        <Note tone="info">{circularity.random_ordering_control.reading}</Note>
+      </Section>
+
+      <Section
         title={`Kill gate ${gate5.gate}: does physics conditioning help?`}
         description={<em>“{gate5.wording}”</em>}
       >
@@ -397,6 +537,7 @@ export default function EvaluationPage() {
             "Observations",
             "Groups",
           ]}
+          headAlign={["left", "right", "right", "left", "right", "right"]}
           caption="A positive margin means the physics-conditioned arm is better. An interval spanning zero is not a gain in either direction."
         >
           {Object.entries(gate5.per_split).map(([name, split]) => (
@@ -424,6 +565,7 @@ export default function EvaluationPage() {
       >
         <Table
           head={["Arm", "Blocks", "Brier", "AUC", "ECE", "Calibration slope"]}
+          headAlign={["left", "left", "right", "right", "right", "right"]}
           caption={`Test partition: ${chrono.counts.test} observations, positive rate ${fmt(chrono.test_positive_rate, 3)}. Calibrator: ${arms[0]?.[1].calibrator_chosen_because}`}
         >
           {arms.map(([name, arm]) => armRow(name, arm, worst, best))}

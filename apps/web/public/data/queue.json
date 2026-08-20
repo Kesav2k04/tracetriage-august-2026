@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-08-18T07:36:31.780369+00:00",
+ "generated_at": "2026-08-20T00:17:19.504212+00:00",
  "seed": 42,
  "review_budget": {
   "n_observations": 50,
-  "rationale": "Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test)."
+  "rationale": "Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test)."
  },
  "conflict_definition": {
   "criteria": [
@@ -31,6 +31,32 @@
      "flat_row_frac_min": 0.15
     },
     "measurable_from_snapshot": true
+   }
+  ],
+  "criteria_fired": [
+   {
+    "reason_code": "MODEL_LABEL_DISAGREE",
+    "n_flagged": 3,
+    "n_rows_the_quantity_was_measurable_on": 407,
+    "max_observed": 0.999999,
+    "inert_on_this_corpus": false,
+    "note": "Fires on 3 of the 407 rows where the quantity it thresholds is measurable, out of 407 in the queue."
+   },
+   {
+    "reason_code": "STALE_CATALOGUE_FREQ",
+    "n_flagged": 19,
+    "n_rows_the_quantity_was_measurable_on": 87,
+    "max_observed": 42.146972575163595,
+    "inert_on_this_corpus": false,
+    "note": "Fires on 19 of the 87 rows where the quantity it thresholds is measurable, out of 407 in the queue."
+   },
+   {
+    "reason_code": "DEAD_CAPTURE",
+    "n_flagged": 0,
+    "n_rows_the_quantity_was_measurable_on": 87,
+    "max_observed": 0.1370757180156658,
+    "inert_on_this_corpus": true,
+    "note": "No row in the shipped queue meets this criterion. The highest value of the quantity it thresholds is 0.1371 over 87 measurable rows."
    }
   ],
   "fixed_before_measuring": true,
@@ -7595,5 +7621,5 @@
    "episode_key": "4272:41187:16"
   }
  ],
- "receipt_sha256": "94dca2ed61434bd7b2222ca0fa0839e903657e55c1dee55c81fe77e32a564047"
+ "receipt_sha256": "bcd90fa8a2ada45af79bed2820c5c6d9da169d0e993dc37aefac0067d0451c38"
 }

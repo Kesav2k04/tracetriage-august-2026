@@ -377,7 +377,9 @@ shared_line = (
     "0.40 x disagreement + 0.35 x safe offset magnitude + 0.15 x flat-row fraction "
     "+ 0.10 x ensemble uncertainty"
 )
-shared_pct = _shared["score_weight_on_quantities_the_target_is_defined_from"] * 100
+shared_pct = _shared["score_weight_on_quantities_the_definition_names"] * 100
+active_pct = _shared["score_weight_on_quantities_a_realised_conflict_is_defined_from"] * 100
+inert_criteria = _shared["inert"]
 repro = _circ["reproduction"]["lift_point"]
 ceiling = _ceiling["lift"]
 budget = _circ["reproduction"]["budget"]
@@ -400,6 +402,41 @@ control_n = _control["n_permutations"]
 control_p5 = _control["p5"]
 control_p95 = _control["p95"]
 
+def _narrowest_split_answer() -> str:
+    """The split whose oracle sits closest to the threshold, named with its numbers.
+
+    Every split publishes a verdict against a 1.5x bar, and one of them caps at 1.520:
+    a perfect oracle scores 1.52 there, so no ordering of any kind could have produced
+    an informative answer. Reporting that split's NOT_ESTABLISHED as a finding about
+    generalisation, without saying the scale is 0.02 wide, reports the budget.
+    """
+    measurable = {
+        name: block
+        for name, block in _circ["ceilings_by_split"].items()
+        if block.get("measurable")
+    }
+    if not measurable:
+        return "No split published the counts a ceiling is computed from."
+    name, block = min(
+        measurable.items(),
+        key=lambda kv: kv[1]["headroom_between_threshold_and_perfection"],
+    )
+    verdict = block["published_verdict"]
+    tail = (
+        ", so its verdict is a fact about the budget and the receipt marks it not "
+        "informative"
+        if not block["informative"]
+        else ", which still leaves room for the measurement to land in"
+    )
+    return (
+        f"`{name}`: {block['n_conflicts']} conflicts in {block['n_population']} "
+        f"observations at a budget of {block['budget']} caps every ordering at "
+        f"{block['ceiling']:.3f}x against a {block['threshold']}x bar. That is "
+        f"{block['headroom_between_threshold_and_perfection']:.3f} of room and a "
+        f"published **{verdict}**{tail}"
+    )
+
+
 # Rows as data for the same reason the results table is: a markdown cell carrying four
 # interpolated values does not fit in a hundred columns.
 _CIRCULARITY_ROWS: list[tuple[str, str]] = [
@@ -417,8 +454,16 @@ _CIRCULARITY_ROWS: list[tuple[str, str]] = [
     (
         "What happens with the model taken out of the target?",
         f"{model_free_lift:.3f}x, 95% CI [{mf_lo:.3f}, {mf_hi:.3f}], "
-        f"**{model_free_verdict}**, counting only the {mf_n} conflicts flagged by the two "
-        "criteria the model does not enter",
+        f"**{model_free_verdict}**, counting only the {mf_n} conflicts flagged by the "
+        f"{_word(len(_model_free['criteria']))} criteria the model does not enter"
+        + (
+            ""
+            if not inert_criteria
+            else (
+                f", of which {' and '.join(inert_criteria)} flags nothing here, so the "
+                "restriction reduces to one criterion"
+            )
+        ),
     ),
     (
         "And with only the model's own disagreement?",
@@ -428,9 +473,22 @@ _CIRCULARITY_ROWS: list[tuple[str, str]] = [
         "the count was",
     ),
     (
+        "How often does a random ordering match the queue?",
+        f"{_control['n_permutations_at_or_above_observed']} times in "
+        f"{control_n:,} seeded shuffles of the same population, a permutation p-value of "
+        f"{_control['p_value_permutation']:.4f}, which is the smallest this test can "
+        f"report at {control_n:,} permutations",
+    ),
+    (
         "Does the statistic score a shuffle at 1.0?",
-        f"{control_mean:.4f} over {control_n:,} seeded permutations, 5th to 95th "
-        f"percentile {control_p5:.3f} to {control_p95:.3f}",
+        f"{control_mean:.4f} over the same {control_n:,} permutations, 5th to 95th "
+        f"percentile {control_p5:.3f} to {control_p95:.3f}. Each one is scored by "
+        f"`{_control['computed_by'].rsplit('.', 1)[-1]}`, the function gate 6 itself is "
+        "measured with, so a defect in it moves this number",
+    ),
+    (
+        "Which split has the least room to be measured in?",
+        _narrowest_split_answer(),
     ),
 ]
 
@@ -443,8 +501,10 @@ CIRCULARITY_INTRO = textwrap.fill(
     "The ranking score and the definition of a conflict are not independent, and the size "
     f"of that problem is measured rather than described. The score is {shared_line}, and "
     "the three conflict criteria threshold the first three of those same quantities. "
-    f"{shared_pct:.0f}% of the score's weight sits on quantities the target is defined "
-    "from, so a lift above 1.0 is close to guaranteed by construction. "
+    f"{shared_pct:.0f}% of the score's weight sits on quantities the definition names "
+    f"and {active_pct:.0f}% on quantities a conflict in this corpus is actually defined "
+    f"from, the gap being {' and '.join(inert_criteria)}, which fires on nothing here. "
+    "Either way a lift above 1.0 is close to guaranteed by construction. "
     f"`scripts/run_circularity_check.py` bounds it from {CIRCULARITY_REF}, reading the "
     "queue receipt and nothing else: no snapshot, no network, no model. It reproduces the "
     f"published {repro:.4f}x from that file before computing anything.",
@@ -452,11 +512,7 @@ CIRCULARITY_INTRO = textwrap.fill(
 )
 
 CIRCULARITY_CODA = textwrap.fill(
-    "Taking the model out of the target removes one loop and leaves another: the score "
-    "still weights the fitted offset at 0.35 and the flat-row fraction at 0.15, and those "
-    "are the two quantities the remaining criteria threshold. No restriction of the target "
-    "makes this measurement independent of its own construction, which is why the gate "
-    "reads NOT_ESTABLISHED and why nothing here changes that.",
+    _circ["what_this_does_not_establish"],
     width=90,
 )
 

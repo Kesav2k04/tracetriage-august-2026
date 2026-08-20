@@ -55,9 +55,10 @@
     "conflict_definition": {
       "type": "object",
       "required": [
+        "caveats",
         "criteria",
-        "fixed_before_measuring",
-        "caveats"
+        "criteria_fired",
+        "fixed_before_measuring"
       ],
       "description": "The definition of an actionable conflict, fixed before ranking, not changed after seeing results.",
       "properties": {
@@ -96,8 +97,56 @@
           "items": {
             "type": "string"
           }
+        },
+        "criteria_fired": {
+          "type": "array",
+          "minItems": 1,
+          "description": "How many shipped queue rows each criterion actually flagged. A criterion that is published in the definition and fires zero times is inert on this corpus, and every count downstream that treats it as active is wrong by that much.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "reason_code",
+              "n_flagged",
+              "n_rows_the_quantity_was_measurable_on",
+              "max_observed",
+              "inert_on_this_corpus",
+              "note"
+            ],
+            "properties": {
+              "reason_code": {
+                "type": "string"
+              },
+              "n_flagged": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "n_rows_the_quantity_was_measurable_on": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "max_observed": {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "inert_on_this_corpus": {
+                "type": "boolean"
+              },
+              "note": {
+                "type": "string",
+                "minLength": 20
+              }
+            }
+          }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "review_budget": {
       "type": "object",
@@ -1588,6 +1637,17 @@
             }
           ],
           "description": "Number of pass episodes used for bootstrap resampling. Episodes, never observations: four captures of one pass share a receiver, a local-oscillator error and a sky geometry."
+        },
+        "offset_magnitude_lift_over_random": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Lift over random of a plain descending sort on abs(fitted_offset_ppm) with at-bound rows zeroed. The single feature STALE_CATALOGUE_FREQ thresholds, measured so the composite score is held against the obvious one-line alternative rather than only against orderings that ignore it."
         }
       }
     }

@@ -1,6 +1,6 @@
 {
  "snapshot_id": "snap-20260817-stage1",
- "split_manifest_sha256": "2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199",
+ "split_manifest_sha256": "bdb159ca13ece61c923992976589fade050976e69e2b1a0564acb334b4574808",
  "data_licence": {
   "name": "CC BY-SA 4.0",
   "url": "https://creativecommons.org/licenses/by-sa/4.0/",
@@ -103,8 +103,8 @@
   },
   {
    "name": "CIRCULARITY_RECEIPT.json",
-   "sha256": "cba1fd7c773074f8ca1f82ecad3fffa26de7afe5901c94048098d08038f29b8b",
-   "bytes": 5384
+   "sha256": "8dc893191f74d0cde73d6c5580ffd69248ba15d87d1b38dbdd861315dab3507c",
+   "bytes": 11690
   },
   {
    "name": "CLEAN_CLONE_TRANSCRIPT.json",
@@ -133,8 +133,8 @@
   },
   {
    "name": "GATE3_RECEIPT.json",
-   "sha256": "dd70269875cbb80f27684691fcdb08c4f149d2b5b091e12f0d66aae343445530",
-   "bytes": 52575
+   "sha256": "1b8f154b08eeb84b67289bab892b2eeebc832d219da5217d9321f3c04f1ad85d",
+   "bytes": 53813
   },
   {
    "name": "GATE4_RECEIPT.json",
@@ -163,13 +163,13 @@
   },
   {
    "name": "PRECEDENT_RECEIPT.json",
-   "sha256": "41cd9c755ef3b36dbe48fa924d3d9723d99ed48915dc440518fcec38c77e371d",
-   "bytes": 7846
+   "sha256": "91b1ca8925aaa2e042abd937188622847b65632758752ae1050a9054ddf3455e",
+   "bytes": 9614
   },
   {
    "name": "QUEUE_RECEIPT.json",
-   "sha256": "94dca2ed61434bd7b2222ca0fa0839e903657e55c1dee55c81fe77e32a564047",
-   "bytes": 253883
+   "sha256": "bcd90fa8a2ada45af79bed2820c5c6d9da169d0e993dc37aefac0067d0451c38",
+   "bytes": 268451
   },
   {
    "name": "REPO_WEIGHT.json",
@@ -225,7 +225,7 @@
    "name": "queue_receipt.schema.json",
    "version": "0.3.0",
    "status": "ratified",
-   "sha256": "1aeb81f2ca87a5f9263f24c9d32fac8071aa07c3fceff74d58e589ba5a119c70"
+   "sha256": "1c6f785f210c9b0e4fd839fe0b983c8aa41d65c5df1353b9b7483c1f3b457ebd"
   },
   {
    "name": "source_observation.schema.json",

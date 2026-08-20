@@ -660,6 +660,7 @@ def main(argv: list[str] | None = None) -> int:
 
     queue = _load("QUEUE_RECEIPT.json")
     fusion = _load("FUSION_RECEIPT.json")
+    circularity = _load("CIRCULARITY_RECEIPT.json")
     manifest = _load("SPLIT_MANIFEST.json")
     corridor = _load("corridor_features.json")
     corridor_by_obs = {r["obs_id"]: r for r in corridor["rows"]}
@@ -690,6 +691,24 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(
             {
                 "gate6": queue["gate6"],
+                # The bound on gate 6, shipped alongside it rather than a click away.
+                # A lift measured on a ranking built from the quantities that define
+                # the target needs its ceiling and its permutation test on the same
+                # page as the lift, or the page is publishing the flattering half.
+                "circularity": {
+                    "ceiling": circularity["ceiling"],
+                    "ceilings_by_split": circularity["ceilings_by_split"],
+                    "targets": circularity["targets"],
+                    "targets_note": circularity["targets_note"],
+                    "shared_signals": circularity["shared_signals"],
+                    "random_ordering_control": circularity["random_ordering_control"],
+                    "what_this_does_not_establish": circularity[
+                        "what_this_does_not_establish"
+                    ],
+                    "receipt_sha256": _digest(
+                        _ARTIFACTS / "CIRCULARITY_RECEIPT.json"
+                    ),
+                },
                 "gate5": _require(fusion, "gate5"),
                 "ablation_conclusion": _require(fusion, "ablation_conclusion"),
                 "arm_ladder": _require(fusion, "arm_ladder"),

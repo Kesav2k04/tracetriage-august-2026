@@ -5388,3 +5388,140 @@ is re-run.
 **Tests:** none new. 1,288 offline tests pass here and 1,256 in the clone with the snapshot
 hidden.
 **Outcome:** accepted.
+
+## 2026-08-20 IST | Wave D | D15: what three judge-seat reviews found in the statistics
+
+Three reviews ran against the release commit `13bc4ae`, one on the documents, one on the
+live console, one on the code and the statistics. The last returned ten findings, every one
+confirmed by running the code rather than by reading it. Nine are real. This entry is the
+measurement half; D15a is the console half.
+
+**A published upper bound sat above its own ceiling.** `compute_lift` resamples episodes and
+gives each draw a budget of `round(budget / n * drawn_n)`. Rounding down on a draw whose
+product falls under .5 makes that draw more selective than the real measurement, and a more
+selective draw has a higher ceiling: the best any ordering can score is `drawn_n /
+drawn_budget` once conflicts are scarcer than the budget. 7.92% of chronological draws
+exceeded 87/50 = 1.740, and the published 95% upper bound was 1.7547, which is exactly
+93/53. `docs/CLAIM_REGISTER.md` stated 150 lines away that this budget caps any ordering at
+1.740, so the register contradicted itself.
+
+The fix is the exact integer ceiling, `-(-budget * drawn_n // n)`, not `math.ceil(budget / n
+* drawn_n)`. That product is 50.000000000000007 at `drawn_n == n`, so `math.ceil` returns 51
+and a draw identical to the population reviews one row more than the population did, which
+is the same defect with its sign flipped. Seven bootstrap tests caught that in one run.
+
+Every point estimate is unchanged and every verdict is unchanged. The chronological interval
+is now [1.3533, 1.7400], with the upper bound exactly at the ceiling.
+
+**The lift is reproduced by a one-line sort, and no baseline was that sort.** 19 of the 22
+conflicts on the chronological split are `STALE_CATALOGUE_FREQ`, which thresholds
+`abs(fitted_offset_ppm)`. Sorting the same 87 rows on that quantity alone, at-bound zeroed,
+finds the same 20 conflicts and scores the same 1.5818x. The four declared baselines were
+random, observation-id order, model confidence and the physics classifier's probability, and
+none of them is the single feature that defines 86% of the target.
+
+It is now the fifth baseline. `_N_ORDERING_COMPARISONS` goes 4 to 5, which widens the
+Bonferroni correction on every comparison on the baselines page including the ones the queue
+wins. The result is published whichever way it falls, and it falls as indistinguishable
+under both groupings: episode [-4, +4] conflicts, station [-3, +3]. The composite score's
+other three terms are not established as buying anything on this split.
+
+**The random-ordering control could not fail.** It never called `compute_lift`. It computed
+`found / expected` inline, where `expected` is the exact mean of `found` under a uniform
+shuffle, so its answer was 1.0 by identity. Probed four ways it returned 1.0 with the queue
+reversed, with every conflict flag inverted, and with `compute_lift` replaced by a function
+that raises. The test asserted `abs_error < 0.01`, so it could not have failed for any
+defect in the ranking, the grouping, the bootstrap or the ratio. `FOR_JUDGES.md` sold it as
+the floor the whole comparison rests on.
+
+Every permutation now goes through `compute_lift` at the smallest bootstrap it will accept,
+because only the point lift is read. That buys a second thing worth more than the floor
+check: a permutation test. **0 of 2,000 seeded shuffles of the same population found as many
+conflicts inside the budget as the shipped queue did**, a p-value of 0.0005, which is the
+smallest 2,000 permutations can report. It answers the question the bootstrap does not,
+without the threshold, and it is the first direct evidence in this project that the ordering
+is not noise. It is on the landing page.
+
+**One of the three conflict criteria fires on nothing.** `DEAD_CAPTURE` thresholds
+`flat_row_frac` at 0.15 and the highest value in the whole 407-row queue is 0.1371. Four
+published sentences implied it fired, including "the two criteria the model does not enter",
+which described one criterion. The receipt now publishes `criteria_fired` per criterion with
+the count, the number of rows the quantity was measurable on, and the largest value observed,
+and the prose downstream is generated from it. Two weights are published where there was one:
+0.90 on quantities the definition names, 0.75 on quantities a conflict in this corpus is
+actually defined from. A reader given only the first is told the loop is worse than it is.
+
+**The ceiling was computed for the split that needed it least.** `cold_combined` holds 20
+conflicts in 76 observations at a budget of 50, so a perfect oracle scores 76/50 = 1.520x
+against a 1.500x bar. That split's NOT_ESTABLISHED could not have been anything else, and
+README and register presented it as a substantive result about generalisation. The bound now
+runs on all four splits and marks a split not informative when its oracle has under 0.10 of
+room. `cold_station`, the one split that passes, gets a bound for the first time: 4.173x.
+
+**A union of two intervals discarded a missing one.** `_target` took `min` and `max` across
+the episode and station intervals without checking the station verdict. `compute_lift`
+returns `[nan, nan]` when the station bootstrap falls short, and `min(1.35, nan)` is 1.35, so
+a nan vanishes, the narrower episode-only interval gets published under a label saying it is
+the union of two, and a NOT_ESTABLISHED can become a PASSED with nobody touching a threshold.
+`measure_gate6_split` has the third branch; this file had two. Mirrored, and tested by
+forcing the station arm to fail.
+
+**The cold retrieval condition excluded a station id, not a site.** Nine sites in the
+739-observation pool run between two and four station ids from identical coordinates, one of
+them four ids at (49.2316, -121.7593), covering 22 ids and 210 observations. The stated
+reason for the cold condition is that a misconfigured station produces empty waterfalls for
+weeks, which is a property of a physical site and its operator. 22.76% of Granite's cold
+neighbours came from the query's own site, against 0.89% for a random draw: 25 times chance,
+under a condition written to forbid it. Both the rendered card and the numeric feature vector
+carry the coordinates, so both model arms could find them trivially.
+
+`is_candidate` now excludes on rounded coordinates as well, the chroma metadata filter got
+the same clause, and the fixture was re-frozen over 739 observations. It costs the cold
+result rather than helping it: Granite's cold agreement moves 0.5608 to 0.5543 and its cold
+margin 0.0398 to 0.0260. The review's own estimate had the sign the other way, which is what
+re-retrieving rather than re-scoring the existing list answers.
+
+**The register's headline precedent claim was an eighth comparison nobody made.** "Similarity
+carries the outcome when the station is allowed, and stops carrying it when it is not" is a
+statement about warm minus cold, asserted from one interval excluding zero and another
+spanning it. That is not a test of the difference. It is now computed as the paired per-query
+difference, declared in the family, and `N_COMPARISONS` is derived from the pair lists rather
+than being a hand-maintained 7 sitting 300 lines above them. **The drop is 0.0639 with a
+Bonferroni-adjusted interval of [0.0160, 0.1182] over 8 comparisons, so it excludes zero and
+the sentence is backed.** Every other interval in the study widened to make room for it, and
+the two that survived correction still do.
+
+**The axis-sign census counted 227 observations with no waterfall.** `AXIS_SIGN_CONVENTION`
+applies where a waterfall was rendered. The census counted all 2,727 stored rows and
+published 1,704 as inheriting the constant, of which 208 are rows it is never applied to. The
+error was conservative and the block's own 16-line docstring is entirely about picking the
+right denominator, which makes it the wrong kind of wrong. It now filters on
+`waterfall_sha256` and publishes both counts with the difference named: 1,496 with an image,
+1,704 over everything. It also reads `artifacts/DATASET_MANIFEST.json` rather than the API
+pages, so a judge without the 4 GB snapshot can regenerate `GATE3_RECEIPT.json`, and it
+cross-checks the manifest against the pages when they are present rather than trusting a
+copied field.
+
+**The review budget's rationale carried a count the corpus no longer had.** It said the
+chronological test set holds 88 decisively labelled observations and 50 is about 57%
+coverage. It holds 87. Both figures are derived from the split that was measured now, and an
+absent count is named rather than defaulted.
+
+**Files changed:** `pipeline/tracetriage/queue.py`, `pipeline/tracetriage/precedent.py`,
+`scripts/run_queue.py`, `scripts/run_circularity_check.py`, `scripts/run_precedent_study.py`,
+`scripts/run_gate3.py`, `scripts/build_console_data.py`, `scripts/sync_readme_results.py`,
+`scripts/sync_for_judges.py`, `contracts/queue_receipt.schema.json`, five receipts,
+`tests/test_queue_lift_bootstrap.py`, `tests/test_circularity.py`, `tests/test_precedent.py`,
+`README.md`, `FOR_JUDGES.md`, `docs/CLAIM_REGISTER.md`, `docs/REFERENCE.md`,
+`apps/web/public/data/`, `apps/web/lib/data.ts`.
+**Commands run:** `run_queue.py`, `run_circularity_check.py`, `run_precedent_study.py
+--freeze`, `run_gate3.py`, every generator, `build_console_data.py --skip-images`,
+`check_artifact_freshness.py`, `python -m pytest`, `ruff check`.
+**Tests:** 27 new. The ceiling invariant is parametrised over five populations and was
+verified to fail on the old rounding before the fix landed; the alignment of the register's
+two weight figures, the inert-criterion census, the per-split ceilings, the permutation
+control, the forced station failure, the site exclusion, the derived comparison count and the
+warm-cold difference each have one. 1,315 offline tests pass, none skipped.
+**Outcome:** accepted. Nine of the ten findings were real; the tenth, that the lede's verdict
+cards render stacked rather than side by side, is what `apps/web/app/globals.css:676`
+documents as deliberate and is not a defect.

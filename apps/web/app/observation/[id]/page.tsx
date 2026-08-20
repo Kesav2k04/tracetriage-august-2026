@@ -157,6 +157,35 @@ export default async function ObservationPage({
           title="The pass"
           description="The same propagation that produced the corridor above, drawn from the station's point of view and from orbit. Elevation is measured from the WGS-84 geodetic normal, which is the reference the corridor was scored against."
         >
+          {/* One clock over all four instruments, placed before them.
+              It used to sit after the plots, on the reasoning that the cursors it
+              drives should already be in the document. They are either way: the
+              effect that finds them runs after the whole tree is committed, not
+              during render. What the old order did cost was reachability. The scrub
+              handle landed 800 to 1,150px below the sky plot and the ground track,
+              so at a 900px viewport a reader dragging the clock could not see two of
+              the four instruments it was driving, while the caption told them one
+              clock drove all four. Controls first, and they stay stuck to the top of
+              the viewport for as long as any instrument is on screen. */}
+          {(() => {
+            const framed = boundsForPass(geometry);
+            if (!framed || !card.height) return null;
+            const seconds =
+              card.start && card.end
+                ? (Date.parse(card.end) - Date.parse(card.start)) / 1000
+                : 0;
+            if (!Number.isFinite(seconds) || seconds <= 0) return null;
+            return (
+              <PassReplay
+                geometry={geometry}
+                durationS={seconds}
+                groundLons={framed.lons}
+                bounds={framed.bounds}
+                imageHeight={card.height}
+              />
+            );
+          })()}
+
           <div className="instruments">
             <figure className="instrument">
               <figcaption>
@@ -222,26 +251,6 @@ export default async function ObservationPage({
             />
           </figure>
 
-          {/* One clock over all four instruments. Mounted after the plots so the
-              cursors it drives already exist in the document. */}
-          {(() => {
-            const framed = boundsForPass(geometry);
-            if (!framed || !card.height) return null;
-            const seconds =
-              card.start && card.end
-                ? (Date.parse(card.end) - Date.parse(card.start)) / 1000
-                : 0;
-            if (!Number.isFinite(seconds) || seconds <= 0) return null;
-            return (
-              <PassReplay
-                geometry={geometry}
-                durationS={seconds}
-                groundLons={framed.lons}
-                bounds={framed.bounds}
-                imageHeight={card.height}
-              />
-            );
-          })()}
 
           <Table
             head={["Quantity", "Value", "Where it comes from"]}
@@ -380,7 +389,10 @@ export default async function ObservationPage({
           title="Why it is in the queue"
           description="The composite score and the criteria it met, from the queue receipt."
         >
-          <Table head={["Field", "Value", "What it is"]}>
+          <Table
+          head={["Field", "Value", "What it is"]}
+          headAlign={["left", "right", "left"]}
+        >
             <tr>
               <Cell align="left" header>
                 Rank
@@ -506,7 +518,7 @@ export default async function ObservationPage({
       )}
 
       <Section title="Provenance" description="Enough to fetch the original and check it.">
-        <Table head={["Field", "Value"]}>
+        <Table head={["Field", "Value"]} headAlign={["left", "left"]}>
           <tr>
             <Cell align="left" header>
               Source

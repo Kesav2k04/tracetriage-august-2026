@@ -64,10 +64,15 @@ export function VerdictBadge({
   // but inconclusive one is a hollow ring, and one that could not be measured at
   // all is a dash: the shape says which kind of answer this is before the colour
   // says anything, which is the convention real status displays use.
+  // NOT_INFORMATIVE joins NOT_MEASURABLE on the dash. The measurement ran and
+  // returned a number; the number was a constant that no ordering could have
+  // changed, so it decides nothing. A filled marker, which is what the default
+  // branch gave it, would have drawn the least informative outcome in this
+  // console with the shape reserved for a decided one.
   const marker =
     normalised === "NOT_ESTABLISHED"
       ? "ring"
-      : normalised === "NOT_MEASURABLE"
+      : normalised === "NOT_MEASURABLE" || normalised === "NOT_INFORMATIVE"
         ? "dash"
         : "filled";
 
@@ -206,6 +211,15 @@ export function Stat({
  * The whole point of this console is that a point estimate is not a result, so
  * the interval is the figure and the point estimate is a mark inside it. A bar
  * that showed only the point estimate would make gate 6 look like a pass.
+ *
+ * Everything drawn is clamped to the track. The cold-station interval runs to
+ * 3.896 on a domain that stops at 2.5, so the band was drawn from 71% to 170%
+ * of its own width and escaped the layout: 382px of overflow, a horizontal
+ * scrollbar on the whole document, and at 390px wide a page 735px across. That
+ * was the site's only passing result. Clamping alone would quietly redraw an
+ * interval as if it ended at the axis, so a value outside the domain gets a
+ * marker on the edge it left through and the real number stays in the caption
+ * and in the accessible label.
  */
 export function IntervalBar({
   low,
@@ -224,7 +238,10 @@ export function IntervalBar({
 }) {
   const [min, max] = domain;
   const span = max - min || 1;
-  const pct = (value: number) => ((value - min) / span) * 100;
+  const raw = (value: number) => ((value - min) / span) * 100;
+  const pct = (value: number) => Math.min(100, Math.max(0, raw(value)));
+  const runsPast = high > max;
+  const startsBefore = low < min;
   const clears = low > threshold;
   const refuted = high < threshold;
   const colour = clears
@@ -241,6 +258,7 @@ export function IntervalBar({
           height: "2.25rem",
           background: "var(--ui-01)",
           border: "1px solid var(--border-subtle)",
+          overflow: "hidden",
         }}
         role="img"
         aria-label={
@@ -262,9 +280,40 @@ export function IntervalBar({
             bottom: "0.5rem",
             background: colour,
             opacity: 0.32,
-            border: `1px solid ${colour}`,
+            borderTop: `1px solid ${colour}`,
+            borderBottom: `1px solid ${colour}`,
+            borderLeft: startsBefore ? "none" : `1px solid ${colour}`,
+            borderRight: runsPast ? "none" : `1px solid ${colour}`,
           }}
         />
+        {runsPast ? (
+          <div
+            aria-hidden="true"
+            title={`continues to ${high.toFixed(3)}`}
+            style={{
+              position: "absolute",
+              right: 0,
+              top: "0.25rem",
+              bottom: "0.25rem",
+              width: "0.5rem",
+              background: `repeating-linear-gradient(135deg, ${colour} 0 2px, transparent 2px 4px)`,
+            }}
+          />
+        ) : null}
+        {startsBefore ? (
+          <div
+            aria-hidden="true"
+            title={`continues to ${low.toFixed(3)}`}
+            style={{
+              position: "absolute",
+              left: 0,
+              top: "0.25rem",
+              bottom: "0.25rem",
+              width: "0.5rem",
+              background: `repeating-linear-gradient(135deg, ${colour} 0 2px, transparent 2px 4px)`,
+            }}
+          />
+        ) : null}
         <div
           style={{
             position: "absolute",
@@ -303,6 +352,20 @@ export function IntervalBar({
         </span>
         <span className="num">{max.toFixed(1)}</span>
       </div>
+      {runsPast || startsBefore ? (
+        <p
+          style={{
+            margin: "var(--sp-02) 0 0",
+            fontSize: "var(--type-caption)",
+            color: "var(--text-03)",
+          }}
+        >
+          The interval runs past this axis. Its full extent is{" "}
+          <span className="num">{low.toFixed(3)}</span> to{" "}
+          <span className="num">{high.toFixed(3)}</span>, and the hatched edge is where
+          it leaves the scale.
+        </p>
+      ) : null}
     </div>
   );
 }

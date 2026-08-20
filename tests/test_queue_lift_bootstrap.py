@@ -354,3 +354,66 @@ def test_result_keys_match_the_ratified_contract_exactly():
 
     for required in split_result["required"]:
         assert required in _GATE6_RESULT_KEYS
+
+
+# ---------------------------------------------------------------------------
+# The ceiling: no draw may be more selective than the measurement it stands for
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("n_obs", "per_ep", "budget", "n_conflicts"),
+    [
+        (87, 1, 50, 22),
+        (87, 4, 50, 22),
+        (95, 1, 50, 39),
+        (76, 2, 50, 20),
+        (217, 3, 52, 52),
+    ],
+)
+def test_no_resample_beats_the_ceiling_of_the_real_population(
+    n_obs, per_ep, budget, n_conflicts
+):
+    """The upper end of a lift interval cannot exceed what an oracle could score.
+
+    An oracle finds every conflict it has budget for, so on a population of n holding
+    c conflicts at budget b the best possible lift is min(b, c) / (b * c / n). Every
+    resample is supposed to stand in for that same measurement, which means holding its
+    selectivity: a draw allowed to review a smaller share of its own population has a
+    higher ceiling than the thing being measured, and the interval inherits it.
+
+    This was ``round(budget / n * drawn_n)``. Rounding down on draws whose product fell
+    under .5 made 7.92% of chronological draws exceed 87/50 = 1.740, and the published
+    95% upper bound was 93/53 = 1.7547: a bound above the ceiling of the quantity it
+    bounded, printed 150 lines from a register entry stating the cap was 1.740.
+    """
+    ranked, flags, episode_of = _population(n_obs, per_ep, set(range(n_conflicts)))
+    result = compute_lift(ranked, flags, episode_of, budget=budget, n_boot=2000, seed=11)
+    expected = budget * n_conflicts / n_obs
+    ceiling = min(budget, n_conflicts) / expected
+    lo, hi = result.ci95
+    assert math.isfinite(hi)
+    assert hi <= ceiling + 1e-9, (
+        f"the 95% upper bound is {hi} on a population whose ceiling is {ceiling}, so at "
+        "least one resample was allowed to be more selective than the real measurement"
+    )
+    assert lo <= result.lift_point <= hi + 1e-9
+
+
+def test_a_draw_the_size_of_the_population_gets_the_populations_own_budget():
+    """The floating-point trap in the ceiling fix, pinned.
+
+    ``math.ceil(budget / n * drawn_n)`` is 51 rather than 50 at n = drawn_n = 88 and
+    budget = 50, because 50 / 88 * 88 is 50.000000000000007 in binary floating point. A
+    draw identical to the population would then review one row more than the population
+    did, which is the same defect as the one being fixed with its sign flipped. The
+    integer form cannot do that, and a single-observation-per-episode population draws
+    exactly n rows every time.
+    """
+    ranked, flags, episode_of = _population(88, 1, set(range(20)))
+    result = compute_lift(ranked, flags, episode_of, budget=50, n_boot=400, seed=7)
+    lo, hi = result.ci95
+    # Every draw has drawn_n == 88 and therefore drawn_budget == 50, so every draw
+    # reproduces the point estimate exactly and the interval is a point.
+    assert hi - lo < 1e-9, f"expected a degenerate interval, got [{lo}, {hi}]"
+    assert lo == pytest.approx(result.lift_point)

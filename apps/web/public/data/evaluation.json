@@ -4,7 +4,7 @@
   "wording": "Require the top review queue to find at least 1.5 times as many manually actionable conflicts as random ordering at the same budget.",
   "decided_on": "chronological",
   "verdict": "NOT_ESTABLISHED",
-  "statement": "The queue's point lift is 1.58 on the chronological split (20 conflicts in 50 examined, expected 12.6 by random). The 95% interval spans the 1.5 threshold (1.35 to 1.75). A point estimate above 1.5 whose interval does not sit above 1.5 is not a pass, for the same reason gate 5 was recorded as NOT_ESTABLISHED: the evidence does not exclude noise.",
+  "statement": "The queue's point lift is 1.58 on the chronological split (20 conflicts in 50 examined, expected 12.6 by random). The 95% interval spans the 1.5 threshold (1.35 to 1.74). A point estimate above 1.5 whose interval does not sit above 1.5 is not a pass, for the same reason gate 5 was recorded as NOT_ESTABLISHED: the evidence does not exclude noise.",
   "per_split": {
    "chronological": {
     "measurable": true,
@@ -15,15 +15,15 @@
     "lift_point": 1.5818181818181816,
     "lift_ci95": [
      1.3533333333333333,
-     1.7547169811320753
+     1.7400000000000002
     ],
     "lift_ci95_episode": [
      1.3533333333333333,
      1.7400000000000002
     ],
     "lift_ci95_station": [
-     1.3744213554987212,
-     1.7547169811320753
+     1.3676414884135473,
+     1.7346938775510203
     ],
     "governing_interval": "union_of_episode_and_station",
     "station_interval_note": null,
@@ -31,6 +31,7 @@
     "fifo_lift_over_random": 1.1072727272727272,
     "image_uncertainty_lift_over_random": 1.1863636363636363,
     "physics_only_lift_over_random": 1.028181818181818,
+    "offset_magnitude_lift_over_random": 1.5818181818181816,
     "n_boot": 4000,
     "n_boot_effective": 4000,
     "bootstrap_median": 1.588695652173913,
@@ -121,6 +122,16 @@
        ],
        "measurable": true,
        "reason": null
+      },
+      "offset_magnitude": {
+       "n_conflicts_at_budget": 20,
+       "lift_over_random": 1.5818181818181816,
+       "lift_ci95": [
+        1.3443933566433564,
+        1.7400000000000002
+       ],
+       "measurable": true,
+       "reason": null
       }
      },
      "comparisons": {
@@ -133,8 +144,8 @@
         11.0
        ],
        "diff_ci_adjusted": [
-        1.0,
-        12.0
+        0.0,
+        13.0
        ],
        "diff_median": 6.0,
        "ratio_point": 1.4137931034482758,
@@ -143,13 +154,13 @@
         1.9411764705882353
        ],
        "ratio_ci_adjusted": [
-        1.046498708010336,
-        2.176470588235294
+        1.0,
+        2.230805860805862
        ],
        "direction": "queue_better",
-       "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -163,7 +174,7 @@
        ],
        "diff_ci_adjusted": [
         -1.0,
-        13.0
+        14.0
        ],
        "diff_median": 6.0,
        "ratio_point": 1.3225806451612903,
@@ -172,13 +183,13 @@
         2.0476190476190474
        ],
        "ratio_ci_adjusted": [
-        0.9354838709677419,
-        2.3333333333333335
+        0.9148843663274745,
+        2.3685020242914994
        ],
        "direction": "indistinguishable",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -192,7 +203,7 @@
        ],
        "diff_ci_adjusted": [
         1.0,
-        14.0
+        15.0
        ],
        "diff_median": 7.0,
        "ratio_point": 1.5185185185185186,
@@ -201,13 +212,42 @@
         2.3333333333333335
        ],
        "ratio_ci_adjusted": [
-        1.0571235521235522,
-        2.71440476190476
+        1.0487691435053885,
+        2.7779797979798024
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
+       "n_effective": 4000,
+       "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
+      },
+      "offset_magnitude": {
+       "measurable": true,
+       "reason": null,
+       "diff_point": 0.0,
+       "diff_ci95": [
+        -4.0,
+        4.0
+       ],
+       "diff_ci_adjusted": [
+        -5.0,
+        5.0
+       ],
+       "diff_median": 0.0,
+       "ratio_point": 1.0,
+       "ratio_ci95": [
+        0.8285714285714286,
+        1.2285714285714286
+       ],
+       "ratio_ci_adjusted": [
+        0.7674418604651163,
+        1.3225893635571055
+       ],
+       "direction": "indistinguishable",
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       }
@@ -231,8 +271,8 @@
        "n_conflicts_at_budget": 20,
        "lift_over_random": 1.5818181818181816,
        "lift_ci95": [
-        1.3744213554987212,
-        1.7547169811320753
+        1.3676414884135473,
+        1.7346938775510203
        ],
        "measurable": true,
        "reason": null
@@ -241,8 +281,8 @@
        "n_conflicts_at_budget": 14,
        "lift_over_random": 1.1072727272727272,
        "lift_ci95": [
-        0.7899905660377358,
-        1.5056267640827474
+        0.7990395716082215,
+        1.502222222222222
        ],
        "measurable": true,
        "reason": null
@@ -251,8 +291,8 @@
        "n_conflicts_at_budget": 15,
        "lift_over_random": 1.1863636363636363,
        "lift_ci95": [
-        0.8039635603345281,
-        1.4094897414093845
+        0.8122427341520604,
+        1.402046067140407
        ],
        "measurable": true,
        "reason": null
@@ -261,8 +301,18 @@
        "n_conflicts_at_budget": 13,
        "lift_over_random": 1.028181818181818,
        "lift_ci95": [
-        0.6447368421052632,
-        1.325696048632219
+        0.6416513157894737,
+        1.3208716999440981
+       ],
+       "measurable": true,
+       "reason": null
+      },
+      "offset_magnitude": {
+       "n_conflicts_at_budget": 20,
+       "lift_over_random": 1.5818181818181816,
+       "lift_ci95": [
+        1.368888888888889,
+        1.731707317073171
        ],
        "measurable": true,
        "reason": null
@@ -285,16 +335,16 @@
        "ratio_point": 1.4137931034482758,
        "ratio_ci95": [
         1.0606060606060606,
-        1.9523809523809523
+        1.9411764705882353
        ],
        "ratio_ci_adjusted": [
         1.0,
-        2.2309716599190255
+        2.272834224598933
        ],
        "direction": "queue_better",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -314,16 +364,16 @@
        "ratio_point": 1.3225806451612903,
        "ratio_ci95": [
         1.0487237663074305,
-        2.052786377708979
+        1.96
        ],
        "ratio_ci_adjusted": [
-        0.9354560622914349,
+        0.9310089399744572,
         2.3333333333333335
        ],
        "direction": "queue_better",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -336,23 +386,52 @@
         13.0
        ],
        "diff_ci_adjusted": [
-        1.0,
+        0.0,
         15.0
        ],
        "diff_median": 7.0,
        "ratio_point": 1.5185185185185186,
        "ratio_ci95": [
         1.1538461538461537,
-        2.466666666666667
+        2.4545454545454546
        ],
        "ratio_ci_adjusted": [
-        1.0512393162393163,
-        3.4
+        1.0,
+        3.44555555555558
        ],
        "direction": "queue_better",
-       "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
+       "n_effective": 4000,
+       "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
+      },
+      "offset_magnitude": {
+       "measurable": true,
+       "reason": null,
+       "diff_point": 0.0,
+       "diff_ci95": [
+        -3.0,
+        3.0
+       ],
+       "diff_ci_adjusted": [
+        -4.0,
+        4.0
+       ],
+       "diff_median": 0.0,
+       "ratio_point": 1.0,
+       "ratio_ci95": [
+        0.8620689655172413,
+        1.173913043478261
+       ],
+       "ratio_ci_adjusted": [
+        0.8095238095238095,
+        1.266684684684685
+       ],
+       "direction": "indistinguishable",
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       }
@@ -367,18 +446,18 @@
        "claim": "not_established",
        "direction_episode": "queue_better",
        "direction_station": "queue_better",
-       "survives_correction_episode": true,
+       "survives_correction_episode": false,
        "survives_correction_station": false,
        "diff_point": 6.0,
        "diff_ci_adjusted_episode": [
-        1.0,
-        12.0
+        0.0,
+        13.0
        ],
        "diff_ci_adjusted_station": [
         0.0,
         14.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Episode grouping says queue_better (survives correction: False), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
       },
       "image_uncertainty": {
        "claim": "not_established",
@@ -389,7 +468,7 @@
        "diff_point": 5.0,
        "diff_ci_adjusted_episode": [
         -1.0,
-        13.0
+        14.0
        ],
        "diff_ci_adjusted_station": [
         -1.0,
@@ -397,29 +476,44 @@
        ],
        "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
       },
+      "offset_magnitude": {
+       "claim": "not_established",
+       "direction_episode": "indistinguishable",
+       "direction_station": "indistinguishable",
+       "survives_correction_episode": false,
+       "survives_correction_station": false,
+       "diff_point": 0.0,
+       "diff_ci_adjusted_episode": [
+        -5.0,
+        5.0
+       ],
+       "diff_ci_adjusted_station": [
+        -4.0,
+        4.0
+       ],
+       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+      },
       "physics_only": {
-       "claim": "queue_better",
+       "claim": "not_established",
        "direction_episode": "queue_better",
        "direction_station": "queue_better",
        "survives_correction_episode": true,
-       "survives_correction_station": true,
+       "survives_correction_station": false,
        "diff_point": 7.0,
        "diff_ci_adjusted_episode": [
         1.0,
-        14.0
-       ],
-       "diff_ci_adjusted_station": [
-        1.0,
         15.0
        ],
-       "reason": null
+       "diff_ci_adjusted_station": [
+        0.0,
+        15.0
+       ],
+       "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
       }
      },
-     "n_baselines": 3,
-     "n_beaten_under_both_groupings": 1,
-     "beaten": [
-      "physics_only"
-     ],
+     "n_baselines": 4,
+     "n_beaten_under_both_groupings": 0,
+     "beaten": [],
      "lost_to": [],
      "rule": "A baseline counts as beaten only when the Bonferroni-widened interval excludes zero under both the episode and the station resample, and both groupings agree on the direction. Where they disagree the comparison is reported as not established with both directions named, because a disagreement between two defensible groupings is a real state rather than a reason to pick one."
     }
@@ -433,15 +527,15 @@
     "lift_point": 2.2534615384615386,
     "lift_ci95": [
      1.9196153846153847,
-     3.8956343283582093
+     3.858769135837697
     ],
     "lift_ci95_episode": [
      1.9196153846153847,
      3.0114900793650796
     ],
     "lift_ci95_station": [
-     2.025949675324675,
-     3.8956343283582093
+     2.0204853833425265,
+     3.858769135837697
     ],
     "governing_interval": "union_of_episode_and_station",
     "station_interval_note": null,
@@ -449,6 +543,7 @@
     "fifo_lift_over_random": 1.3353846153846156,
     "image_uncertainty_lift_over_random": 1.3353846153846156,
     "physics_only_lift_over_random": 2.2534615384615386,
+    "offset_magnitude_lift_over_random": 4.006153846153847,
     "n_boot": 4000,
     "n_boot_effective": 4000,
     "bootstrap_median": 2.411111111111111,
@@ -539,6 +634,16 @@
        ],
        "measurable": true,
        "reason": null
+      },
+      "offset_magnitude": {
+       "n_conflicts_at_budget": 48,
+       "lift_over_random": 4.006153846153847,
+       "lift_ci95": [
+        3.390625,
+        4.251428571428572
+       ],
+       "measurable": true,
+       "reason": null
       }
      },
      "comparisons": {
@@ -552,7 +657,7 @@
        ],
        "diff_ci_adjusted": [
         1.0,
-        24.0
+        25.0
        ],
        "diff_median": 13.0,
        "ratio_point": 1.6666666666666667,
@@ -561,13 +666,13 @@
         2.8095238095238093
        ],
        "ratio_ci_adjusted": [
-        1.048780487804878,
-        3.2857142857142856
+        1.0444444444444445,
+        3.3159496567505755
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -590,13 +695,13 @@
         3.0
        ],
        "ratio_ci_adjusted": [
-        1.2285714285714286,
-        3.7372368421052573
+        1.2162162162162162,
+        3.933333333333333
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -620,12 +725,41 @@
        ],
        "ratio_ci_adjusted": [
         1.0,
-        1.5161290322580645
+        1.5405405405405406
        ],
        "direction": "indistinguishable",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
+       "n_effective": 4000,
+       "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
+      },
+      "offset_magnitude": {
+       "measurable": true,
+       "reason": null,
+       "diff_point": -21.0,
+       "diff_ci95": [
+        -24.0,
+        -9.0
+       ],
+       "diff_ci_adjusted": [
+        -27.0,
+        -7.0
+       ],
+       "diff_median": -18.0,
+       "ratio_point": 0.5670103092783505,
+       "ratio_ci95": [
+        0.504950495049505,
+        0.7821782178217822
+       ],
+       "ratio_ci_adjusted": [
+        0.45054945054945056,
+        0.8271796209354899
+       ],
+       "direction": "baseline_better",
+       "survives_correction": true,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       }
@@ -649,8 +783,8 @@
        "n_conflicts_at_budget": 27,
        "lift_over_random": 2.2534615384615386,
        "lift_ci95": [
-        2.025949675324675,
-        3.8956343283582093
+        2.0204853833425265,
+        3.858769135837697
        ],
        "measurable": true,
        "reason": null
@@ -659,8 +793,8 @@
        "n_conflicts_at_budget": 16,
        "lift_over_random": 1.3353846153846156,
        "lift_ci95": [
-        0.6498720043572985,
-        1.9635782617213013
+        0.6686790505675955,
+        1.9429137630662026
        ],
        "measurable": true,
        "reason": null
@@ -669,8 +803,8 @@
        "n_conflicts_at_budget": 16,
        "lift_over_random": 1.3353846153846156,
        "lift_ci95": [
-        0.0,
-        2.3441009358288776
+        0.065060240963856,
+        2.310004010695187
        ],
        "measurable": true,
        "reason": null
@@ -679,8 +813,18 @@
        "n_conflicts_at_budget": 27,
        "lift_over_random": 2.2534615384615386,
        "lift_ci95": [
-        1.6041187994522217,
-        3.5704006661442014
+        1.6002754237288137,
+        3.5354082431198655
+       ],
+       "measurable": true,
+       "reason": null
+      },
+      "offset_magnitude": {
+       "n_conflicts_at_budget": 48,
+       "lift_over_random": 4.006153846153847,
+       "lift_ci95": [
+        3.0434329710144925,
+        4.21875
        ],
        "measurable": true,
        "reason": null
@@ -697,22 +841,22 @@
        ],
        "diff_ci_adjusted": [
         4.0,
-        33.0
+        34.0
        ],
        "diff_median": 14.0,
        "ratio_point": 1.6666666666666667,
        "ratio_ci95": [
         1.3672541743970315,
-        4.090909090909091
+        3.888888888888889
        ],
        "ratio_ci_adjusted": [
-        1.2580645161290323,
-        6.6
+        1.2424242424242424,
+        7.0
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -721,27 +865,27 @@
        "reason": null,
        "diff_point": 11.0,
        "diff_ci95": [
-        1.0,
+        2.0,
         39.0
        ],
        "diff_ci_adjusted": [
         -1.0,
-        46.0
+        48.0
        ],
        "diff_median": 15.0,
        "ratio_point": 1.6666666666666667,
        "ratio_ci95": [
-        1.105263157894737,
-        29.0
+        1.1081081081081081,
+        27.050000000000182
        ],
        "ratio_ci_adjusted": [
-        0.9354838709677419,
+        0.9258962962962963,
         51.0
        ],
        "direction": "queue_better",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -755,22 +899,51 @@
        ],
        "diff_ci_adjusted": [
         -1.0,
-        18.0
+        19.0
        ],
        "diff_median": 3.0,
        "ratio_point": 1.0,
        "ratio_ci95": [
         1.0,
-        1.5926426426426428
+        1.5714285714285714
        ],
        "ratio_ci_adjusted": [
-        0.9393759018759019,
+        0.9310344827586207,
         1.9411764705882353
        ],
        "direction": "indistinguishable",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
+       "n_effective": 4000,
+       "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
+      },
+      "offset_magnitude": {
+       "measurable": true,
+       "reason": null,
+       "diff_point": -21.0,
+       "diff_ci95": [
+        -30.0,
+        -1.0
+       ],
+       "diff_ci_adjusted": [
+        -34.0,
+        0.0
+       ],
+       "diff_median": -15.0,
+       "ratio_point": 0.5670103092783505,
+       "ratio_ci95": [
+        0.5522388059701493,
+        0.9534883720930233
+       ],
+       "ratio_ci_adjusted": [
+        0.5157833418497701,
+        1.0
+       ],
+       "direction": "baseline_better",
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       }
@@ -790,11 +963,11 @@
        "diff_point": 11.0,
        "diff_ci_adjusted_episode": [
         1.0,
-        24.0
+        25.0
        ],
        "diff_ci_adjusted_station": [
         4.0,
-        33.0
+        34.0
        ],
        "reason": null
       },
@@ -811,9 +984,26 @@
        ],
        "diff_ci_adjusted_station": [
         -1.0,
-        46.0
+        48.0
        ],
        "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+      },
+      "offset_magnitude": {
+       "claim": "not_established",
+       "direction_episode": "baseline_better",
+       "direction_station": "baseline_better",
+       "survives_correction_episode": true,
+       "survives_correction_station": false,
+       "diff_point": -21.0,
+       "diff_ci_adjusted_episode": [
+        -27.0,
+        -7.0
+       ],
+       "diff_ci_adjusted_station": [
+        -34.0,
+        0.0
+       ],
+       "reason": "Not claimed. Episode grouping says baseline_better (survives correction: True), station grouping says baseline_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
       },
       "physics_only": {
        "claim": "not_established",
@@ -828,12 +1018,12 @@
        ],
        "diff_ci_adjusted_station": [
         -1.0,
-        18.0
+        19.0
        ],
        "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
       }
      },
-     "n_baselines": 3,
+     "n_baselines": 4,
      "n_beaten_under_both_groupings": 1,
      "beaten": [
       "fifo"
@@ -850,16 +1040,16 @@
     "n_queue_conflicts": 34,
     "lift_point": 1.6564102564102563,
     "lift_ci95": [
-     1.3396486415882967,
-     1.9130434782608696
+     1.3359628351188455,
+     1.8939593301435411
     ],
     "lift_ci95_episode": [
      1.4615384615384615,
      1.8344827586206895
     ],
     "lift_ci95_station": [
-     1.3396486415882967,
-     1.9130434782608696
+     1.3359628351188455,
+     1.8939593301435411
     ],
     "governing_interval": "union_of_episode_and_station",
     "station_interval_note": null,
@@ -867,6 +1057,7 @@
     "fifo_lift_over_random": 1.023076923076923,
     "image_uncertainty_lift_over_random": 1.1692307692307693,
     "physics_only_lift_over_random": 1.0717948717948718,
+    "offset_magnitude_lift_over_random": 1.4128205128205127,
     "n_boot": 4000,
     "n_boot_effective": 4000,
     "bootstrap_median": 1.65,
@@ -957,6 +1148,16 @@
        ],
        "measurable": true,
        "reason": null
+      },
+      "offset_magnitude": {
+       "n_conflicts_at_budget": 29,
+       "lift_over_random": 1.4128205128205127,
+       "lift_ci95": [
+        1.2,
+        1.6625
+       ],
+       "measurable": true,
+       "reason": null
       }
      },
      "comparisons": {
@@ -979,13 +1180,13 @@
         2.259259259259259
        ],
        "ratio_ci_adjusted": [
-        1.2127659574468086,
-        2.517258620689655
+        1.2051229722658294,
+        2.5483870967741935
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -999,7 +1200,7 @@
        ],
        "diff_ci_adjusted": [
         2.0,
-        17.00624999999991
+        18.0
        ],
        "diff_median": 10.0,
        "ratio_point": 1.4081632653061225,
@@ -1008,13 +1209,13 @@
         1.780672579453068
        ],
        "ratio_ci_adjusted": [
-        1.0754716981132075,
-        1.9090909090909092
+        1.0701524302559677,
+        1.9189189189189189
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -1028,7 +1229,7 @@
        ],
        "diff_ci_adjusted": [
         3.0,
-        19.00624999999991
+        20.0
        ],
        "diff_median": 11.0,
        "ratio_point": 1.5333333333333334,
@@ -1037,13 +1238,42 @@
         1.967741935483871
        ],
        "ratio_ci_adjusted": [
-        1.1090909090909091,
-        2.1724137931034484
+        1.1016782439566546,
+        2.1852052052052056
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
+       "n_effective": 4000,
+       "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
+      },
+      "offset_magnitude": {
+       "measurable": true,
+       "reason": null,
+       "diff_point": 5.0,
+       "diff_ci95": [
+        -2.0,
+        10.0
+       ],
+       "diff_ci_adjusted": [
+        -4.0,
+        12.0
+       ],
+       "diff_median": 4.0,
+       "ratio_point": 1.1694915254237288,
+       "ratio_ci95": [
+        0.9420289855072463,
+        1.4001694915254244
+       ],
+       "ratio_ci_adjusted": [
+        0.8900933029234915,
+        1.5283134385829806
+       ],
+       "direction": "indistinguishable",
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       }
@@ -1067,8 +1297,8 @@
        "n_conflicts_at_budget": 34,
        "lift_over_random": 1.6564102564102563,
        "lift_ci95": [
-        1.3396486415882967,
-        1.9130434782608696
+        1.3359628351188455,
+        1.8939593301435411
        ],
        "measurable": true,
        "reason": null
@@ -1077,8 +1307,8 @@
        "n_conflicts_at_budget": 21,
        "lift_over_random": 1.023076923076923,
        "lift_ci95": [
-        0.6544686840253343,
-        1.2161735883164455
+        0.6608613396004701,
+        1.2135331538557346
        ],
        "measurable": true,
        "reason": null
@@ -1087,8 +1317,8 @@
        "n_conflicts_at_budget": 24,
        "lift_over_random": 1.1692307692307693,
        "lift_ci95": [
-        0.8113601576994435,
-        1.4906615798986176
+        0.803777228976697,
+        1.4772804471343872
        ],
        "measurable": true,
        "reason": null
@@ -1097,8 +1327,18 @@
        "n_conflicts_at_budget": 22,
        "lift_over_random": 1.0717948717948718,
        "lift_ci95": [
-        0.8740655899802241,
-        1.3445378151260505
+        0.874356792878219,
+        1.3437517877574372
+       ],
+       "measurable": true,
+       "reason": null
+      },
+      "offset_magnitude": {
+       "n_conflicts_at_budget": 29,
+       "lift_over_random": 1.4128205128205127,
+       "lift_ci95": [
+        1.1408065920223371,
+        1.6804298044208021
        ],
        "measurable": true,
        "reason": null
@@ -1114,23 +1354,23 @@
         24.0
        ],
        "diff_ci_adjusted": [
-        4.0,
-        27.0
+        3.0,
+        27.00500000000011
        ],
        "diff_median": 14.0,
        "ratio_point": 1.6046511627906976,
        "ratio_ci95": [
         1.2372881355932204,
-        2.7142857142857144
+        2.6557931034482785
        ],
        "ratio_ci_adjusted": [
-        1.1701693443334782,
-        3.1293127629733477
+        1.1403270889087125,
+        3.105325077399382
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -1144,22 +1384,22 @@
        ],
        "diff_ci_adjusted": [
         0.0,
-        24.0
+        25.0
        ],
        "diff_median": 10.0,
        "ratio_point": 1.4081632653061225,
        "ratio_ci95": [
-        1.0677966101694916,
-        2.1163720930232564
+        1.0701754385964912,
+        2.11124031007752
        ],
        "ratio_ci_adjusted": [
         1.0,
-        2.3714285714285714
+        2.4194009216589873
        ],
        "direction": "queue_better",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -1172,23 +1412,52 @@
         18.0
        ],
        "diff_ci_adjusted": [
-        2.0,
+        1.0,
         21.0
        ],
        "diff_median": 11.0,
        "ratio_point": 1.5333333333333334,
        "ratio_ci95": [
-        1.1538461538461537,
-        2.0344827586206895
+        1.1492537313432836,
+        2.0256410256410255
        ],
        "ratio_ci_adjusted": [
-        1.0754545454545454,
-        2.238095238095238
+        1.054054054054054,
+        2.217391304347826
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
+       "n_effective": 4000,
+       "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
+      },
+      "offset_magnitude": {
+       "measurable": true,
+       "reason": null,
+       "diff_point": 5.0,
+       "diff_ci95": [
+        -6.0,
+        12.0
+       ],
+       "diff_ci_adjusted": [
+        -10.0,
+        14.0
+       ],
+       "diff_median": 5.0,
+       "ratio_point": 1.1694915254237288,
+       "ratio_ci95": [
+        0.842668817443542,
+        1.564102564102564
+       ],
+       "ratio_ci_adjusted": [
+        0.7777568134171908,
+        1.6956874265569926
+       ],
+       "direction": "indistinguishable",
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       }
@@ -1211,8 +1480,8 @@
         22.0
        ],
        "diff_ci_adjusted_station": [
-        4.0,
-        27.0
+        3.0,
+        27.00500000000011
        ],
        "reason": null
       },
@@ -1225,13 +1494,30 @@
        "diff_point": 10.0,
        "diff_ci_adjusted_episode": [
         2.0,
-        17.00624999999991
+        18.0
        ],
        "diff_ci_adjusted_station": [
         0.0,
-        24.0
+        25.0
        ],
        "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+      },
+      "offset_magnitude": {
+       "claim": "not_established",
+       "direction_episode": "indistinguishable",
+       "direction_station": "indistinguishable",
+       "survives_correction_episode": false,
+       "survives_correction_station": false,
+       "diff_point": 5.0,
+       "diff_ci_adjusted_episode": [
+        -4.0,
+        12.0
+       ],
+       "diff_ci_adjusted_station": [
+        -10.0,
+        14.0
+       ],
+       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
       },
       "physics_only": {
        "claim": "queue_better",
@@ -1242,16 +1528,16 @@
        "diff_point": 12.0,
        "diff_ci_adjusted_episode": [
         3.0,
-        19.00624999999991
+        20.0
        ],
        "diff_ci_adjusted_station": [
-        2.0,
+        1.0,
         21.0
        ],
        "reason": null
       }
      },
-     "n_baselines": 3,
+     "n_baselines": 4,
      "n_beaten_under_both_groupings": 2,
      "beaten": [
       "fifo",
@@ -1277,8 +1563,8 @@
      1.52
     ],
     "lift_ci95_station": [
-     1.1370873235887098,
-     1.5151515151515151
+     1.1299967532467532,
+     1.4999999999999998
     ],
     "governing_interval": "union_of_episode_and_station",
     "station_interval_note": null,
@@ -1286,6 +1572,7 @@
     "fifo_lift_over_random": 1.1400000000000001,
     "image_uncertainty_lift_over_random": 0.76,
     "physics_only_lift_over_random": 0.684,
+    "offset_magnitude_lift_over_random": 1.216,
     "n_boot": 4000,
     "n_boot_effective": 4000,
     "bootstrap_median": 1.3217391304347825,
@@ -1376,6 +1663,16 @@
        ],
        "measurable": true,
        "reason": null
+      },
+      "offset_magnitude": {
+       "n_conflicts_at_budget": 16,
+       "lift_over_random": 1.216,
+       "lift_ci95": [
+        0.9409523809523809,
+        1.4509090909090907
+       ],
+       "measurable": true,
+       "reason": null
       }
      },
      "comparisons": {
@@ -1389,7 +1686,7 @@
        ],
        "diff_ci_adjusted": [
         -2.0,
-        8.0
+        8.00500000000011
        ],
        "diff_median": 2.0,
        "ratio_point": 1.1290322580645162,
@@ -1398,13 +1695,13 @@
         1.5263157894736843
        ],
        "ratio_ci_adjusted": [
-        0.8536585365853658,
-        1.64
+        0.8518518518518519,
+        1.6666666666666667
        ],
        "direction": "indistinguishable",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -1417,7 +1714,7 @@
         13.0
        ],
        "diff_ci_adjusted": [
-        1.0,
+        0.0,
         15.0
        ],
        "diff_median": 7.0,
@@ -1427,13 +1724,13 @@
         2.8461538461538463
        ],
        "ratio_ci_adjusted": [
-        1.0606060606060606,
-        3.6666666666666665
+        1.0,
+        3.727922077922092
        ],
        "direction": "queue_better",
-       "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -1446,7 +1743,7 @@
         14.0
        ],
        "diff_ci_adjusted": [
-        2.0,
+        1.0,
         15.0
        ],
        "diff_median": 8.0,
@@ -1456,13 +1753,42 @@
         3.5714285714285716
        ],
        "ratio_ci_adjusted": [
-        1.1333064516129032,
-        4.600714285714275
+        1.1289931573802543,
+        5.0
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
+       "n_effective": 4000,
+       "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
+      },
+      "offset_magnitude": {
+       "measurable": true,
+       "reason": null,
+       "diff_point": 1.0,
+       "diff_ci95": [
+        -2.0,
+        4.0
+       ],
+       "diff_ci_adjusted": [
+        -3.0,
+        6.0
+       ],
+       "diff_median": 1.0,
+       "ratio_point": 1.0606060606060606,
+       "ratio_ci95": [
+        0.8918918918918919,
+        1.3225806451612903
+       ],
+       "ratio_ci_adjusted": [
+        0.8377915057915057,
+        1.4444444444444444
+       ],
+       "direction": "indistinguishable",
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       }
@@ -1486,8 +1812,8 @@
        "n_conflicts_at_budget": 17,
        "lift_over_random": 1.292,
        "lift_ci95": [
-        1.1370873235887098,
-        1.5151515151515151
+        1.1299967532467532,
+        1.4999999999999998
        ],
        "measurable": true,
        "reason": null
@@ -1496,8 +1822,8 @@
        "n_conflicts_at_budget": 15,
        "lift_over_random": 1.1400000000000001,
        "lift_ci95": [
-        0.7692307692307693,
-        1.4233402777777777
+        0.7865546218487396,
+        1.4103956639566397
        ],
        "measurable": true,
        "reason": null
@@ -1506,8 +1832,8 @@
        "n_conflicts_at_budget": 10,
        "lift_over_random": 0.76,
        "lift_ci95": [
-        0.5098039215686275,
-        1.090909090909091
+        0.5240133331284447,
+        1.0858363858363864
        ],
        "measurable": true,
        "reason": null
@@ -1516,8 +1842,18 @@
        "n_conflicts_at_budget": 9,
        "lift_over_random": 0.684,
        "lift_ci95": [
-        0.2037735849056604,
-        1.1537414965986394
+        0.21258003735076375,
+        1.1428571428571428
+       ],
+       "measurable": true,
+       "reason": null
+      },
+      "offset_magnitude": {
+       "n_conflicts_at_budget": 16,
+       "lift_over_random": 1.216,
+       "lift_ci95": [
+        0.9545454545454546,
+        1.4706656346749227
        ],
        "measurable": true,
        "reason": null
@@ -1543,13 +1879,13 @@
         1.6666666666666667
        ],
        "ratio_ci_adjusted": [
-        0.7647058823529411,
-        1.8571428571428572
+        0.7574975562072337,
+        1.8573015873015908
        ],
        "direction": "indistinguishable",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -1562,23 +1898,23 @@
         13.0
        ],
        "diff_ci_adjusted": [
-        0.0,
+        -1.0,
         15.0
        ],
        "diff_median": 7.0,
        "ratio_point": 1.6666666666666667,
        "ratio_ci95": [
         1.1333333333333333,
-        2.466666666666667
+        2.4545454545454546
        ],
        "ratio_ci_adjusted": [
-        1.0,
-        3.0
+        0.8823529411764706,
+        3.1820202020202064
        ],
        "direction": "queue_better",
        "survives_correction": false,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       },
@@ -1591,23 +1927,52 @@
         15.0
        ],
        "diff_ci_adjusted": [
-        2.0,
+        1.0,
         16.0
        ],
        "diff_median": 8.0,
        "ratio_point": 1.8421052631578947,
        "ratio_ci95": [
         1.1934715821812596,
-        4.721428571428597
+        4.714285714285714
        ],
        "ratio_ci_adjusted": [
-        1.1379310344827587,
-        13.0
+        1.1290322580645162,
+        13.010000000000218
        ],
        "direction": "queue_better",
        "survives_correction": true,
-       "n_comparisons": 4,
-       "adjusted_confidence": 0.9875,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
+       "n_effective": 4000,
+       "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
+      },
+      "offset_magnitude": {
+       "measurable": true,
+       "reason": null,
+       "diff_point": 1.0,
+       "diff_ci95": [
+        -2.0,
+        5.0
+       ],
+       "diff_ci_adjusted": [
+        -2.0,
+        6.0
+       ],
+       "diff_median": 1.0,
+       "ratio_point": 1.0606060606060606,
+       "ratio_ci95": [
+        0.9130434782608695,
+        1.3428571428571427
+       ],
+       "ratio_ci_adjusted": [
+        0.8709677419354839,
+        1.4705882352941178
+       ],
+       "direction": "indistinguishable",
+       "survives_correction": false,
+       "n_comparisons": 5,
+       "adjusted_confidence": 0.99,
        "n_effective": 4000,
        "statistic": "Conflicts found by the queue minus conflicts found by the baseline, at the same budget, on the same resampled population. Null 0. The ratio beside it carries a +0.5 continuity correction on both terms in every draw, so a baseline that finds nothing does not produce an unbounded value and the estimator does not change between draws."
       }
@@ -1627,7 +1992,7 @@
        "diff_point": 2.0,
        "diff_ci_adjusted_episode": [
         -2.0,
-        8.0
+        8.00500000000011
        ],
        "diff_ci_adjusted_station": [
         -3.0,
@@ -1639,18 +2004,35 @@
        "claim": "not_established",
        "direction_episode": "queue_better",
        "direction_station": "queue_better",
-       "survives_correction_episode": true,
+       "survives_correction_episode": false,
        "survives_correction_station": false,
        "diff_point": 7.0,
        "diff_ci_adjusted_episode": [
-        1.0,
-        15.0
-       ],
-       "diff_ci_adjusted_station": [
         0.0,
         15.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "diff_ci_adjusted_station": [
+        -1.0,
+        15.0
+       ],
+       "reason": "Not claimed. Episode grouping says queue_better (survives correction: False), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+      },
+      "offset_magnitude": {
+       "claim": "not_established",
+       "direction_episode": "indistinguishable",
+       "direction_station": "indistinguishable",
+       "survives_correction_episode": false,
+       "survives_correction_station": false,
+       "diff_point": 1.0,
+       "diff_ci_adjusted_episode": [
+        -3.0,
+        6.0
+       ],
+       "diff_ci_adjusted_station": [
+        -2.0,
+        6.0
+       ],
+       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
       },
       "physics_only": {
        "claim": "queue_better",
@@ -1660,17 +2042,17 @@
        "survives_correction_station": true,
        "diff_point": 8.0,
        "diff_ci_adjusted_episode": [
-        2.0,
+        1.0,
         15.0
        ],
        "diff_ci_adjusted_station": [
-        2.0,
+        1.0,
         16.0
        ],
        "reason": null
       }
      },
-     "n_baselines": 3,
+     "n_baselines": 4,
      "n_beaten_under_both_groupings": 1,
      "beaten": [
       "physics_only"
@@ -1680,6 +2062,313 @@
     }
    }
   }
+ },
+ "circularity": {
+  "ceiling": {
+   "max_findable_at_budget": 22,
+   "lift": 1.74,
+   "threshold": 1.5,
+   "headroom_between_threshold_and_perfection": 0.24,
+   "queue_share_of_the_ceiling": 0.9090909090909091,
+   "reading": "A budget of 50 over 87 observations holding 22 conflicts caps any ordering at 1.740x. The gate asked for 1.5x, so the entire distance between the bar and a perfect oracle is 0.240. The queue found 20 of the 22 an oracle would have."
+  },
+  "ceilings_by_split": {
+   "chronological": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_population": 87,
+    "n_conflicts": 22,
+    "budget": 50,
+    "ceiling": 1.74,
+    "threshold": 1.5,
+    "headroom_between_threshold_and_perfection": 0.24,
+    "published_lift_point": 1.5818181818181816,
+    "published_lift_ci95": [
+     1.3533333333333333,
+     1.7400000000000002
+    ],
+    "published_verdict": "NOT_ESTABLISHED",
+    "informative": true,
+    "note": "An oracle scores 1.740x here against a 1.5x bar, so there is 0.240 of room between the threshold and perfection for the measurement to land in."
+   },
+   "cold_combined": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_population": 76,
+    "n_conflicts": 20,
+    "budget": 50,
+    "ceiling": 1.52,
+    "threshold": 1.5,
+    "headroom_between_threshold_and_perfection": 0.020000000000000018,
+    "published_lift_point": 1.292,
+    "published_lift_ci95": [
+     1.0729411764705883,
+     1.52
+    ],
+    "published_verdict": "NOT_ESTABLISHED",
+    "informative": false,
+    "note": "An oracle scores 1.520x here against a 1.5x bar, so the whole scale this split's verdict is read on is 0.020 wide. A verdict of 'NOT_ESTABLISHED' on a scale that narrow is a fact about the budget more than about the ordering."
+   },
+   "cold_station": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_population": 217,
+    "n_conflicts": 52,
+    "budget": 50,
+    "ceiling": 4.1730769230769225,
+    "threshold": 1.5,
+    "headroom_between_threshold_and_perfection": 2.6730769230769225,
+    "published_lift_point": 2.2534615384615386,
+    "published_lift_ci95": [
+     1.9196153846153847,
+     3.858769135837697
+    ],
+    "published_verdict": "PASSED",
+    "informative": true,
+    "note": "An oracle scores 4.173x here against a 1.5x bar, so there is 2.673 of room between the threshold and perfection for the measurement to land in."
+   },
+   "cold_transmitter": {
+    "measurable": true,
+    "not_measurable_reason": null,
+    "n_population": 95,
+    "n_conflicts": 39,
+    "budget": 50,
+    "ceiling": 1.9,
+    "threshold": 1.5,
+    "headroom_between_threshold_and_perfection": 0.3999999999999999,
+    "published_lift_point": 1.6564102564102563,
+    "published_lift_ci95": [
+     1.3359628351188455,
+     1.8939593301435411
+    ],
+    "published_verdict": "NOT_ESTABLISHED",
+    "informative": true,
+    "note": "An oracle scores 1.900x here against a 1.5x bar, so there is 0.400 of room between the threshold and perfection for the measurement to land in."
+   }
+  },
+  "targets": {
+   "all_three_criteria": {
+    "criteria": [
+     "MODEL_LABEL_DISAGREE",
+     "STALE_CATALOGUE_FREQ",
+     "DEAD_CAPTURE"
+    ],
+    "measurable": true,
+    "not_measurable_reason": null,
+    "saturated": false,
+    "saturation_note": null,
+    "n_conflicts": 22,
+    "n_at_budget": 20,
+    "random_expected": 12.643678160919542,
+    "lift_point": 1.5818181818181816,
+    "lift_ci95": [
+     1.3533333333333333,
+     1.7400000000000002
+    ],
+    "lift_ci95_episode": [
+     1.3533333333333333,
+     1.7400000000000002
+    ],
+    "lift_ci95_station": [
+     1.3676414884135473,
+     1.7346938775510203
+    ],
+    "station_interval_note": null,
+    "governing_interval": "union_of_episode_and_station",
+    "n_boot_effective": 4000,
+    "direction": "spans_threshold",
+    "verdict": "NOT_ESTABLISHED"
+   },
+   "model_dependent_only": {
+    "criteria": [
+     "MODEL_LABEL_DISAGREE"
+    ],
+    "measurable": true,
+    "not_measurable_reason": null,
+    "saturated": true,
+    "saturation_note": "The queue found all 3 of them inside the budget, so this lift is n_population / budget = 1.740 whatever the count had been. It says the finds are near the top and says nothing about how near, and no verdict about the 1.5 threshold can be read off it.",
+    "n_conflicts": 3,
+    "n_at_budget": 3,
+    "random_expected": 1.7241379310344827,
+    "lift_point": 1.7400000000000002,
+    "lift_ci95": [
+     1.7045454545454546,
+     1.7400000000000002
+    ],
+    "lift_ci95_episode": [
+     1.7400000000000002,
+     1.7400000000000002
+    ],
+    "lift_ci95_station": [
+     1.7045454545454546,
+     1.7400000000000002
+    ],
+    "station_interval_note": null,
+    "governing_interval": "union_of_episode_and_station",
+    "n_boot_effective": 3795,
+    "direction": "saturated",
+    "verdict": "NOT_INFORMATIVE"
+   },
+   "model_independent_only": {
+    "criteria": [
+     "STALE_CATALOGUE_FREQ",
+     "DEAD_CAPTURE"
+    ],
+    "measurable": true,
+    "not_measurable_reason": null,
+    "saturated": false,
+    "saturation_note": null,
+    "n_conflicts": 19,
+    "n_at_budget": 17,
+    "random_expected": 10.919540229885058,
+    "lift_point": 1.5568421052631578,
+    "lift_ci95": [
+     1.2638129899216126,
+     1.7400000000000002
+    ],
+    "lift_ci95_episode": [
+     1.3046491935483873,
+     1.7400000000000002
+    ],
+    "lift_ci95_station": [
+     1.2638129899216126,
+     1.7346938775510203
+    ],
+    "station_interval_note": null,
+    "governing_interval": "union_of_episode_and_station",
+    "n_boot_effective": 4000,
+    "direction": "spans_threshold",
+    "verdict": "NOT_ESTABLISHED"
+   },
+   "model_independent_and_firing": {
+    "criteria": [
+     "STALE_CATALOGUE_FREQ"
+    ],
+    "measurable": true,
+    "not_measurable_reason": null,
+    "saturated": false,
+    "saturation_note": null,
+    "n_conflicts": 19,
+    "n_at_budget": 17,
+    "random_expected": 10.919540229885058,
+    "lift_point": 1.5568421052631578,
+    "lift_ci95": [
+     1.2638129899216126,
+     1.7400000000000002
+    ],
+    "lift_ci95_episode": [
+     1.3046491935483873,
+     1.7400000000000002
+    ],
+    "lift_ci95_station": [
+     1.2638129899216126,
+     1.7346938775510203
+    ],
+    "station_interval_note": null,
+    "governing_interval": "union_of_episode_and_station",
+    "n_boot_effective": 4000,
+    "direction": "spans_threshold",
+    "verdict": "NOT_ESTABLISHED"
+   }
+  },
+  "targets_note": "`model_independent_only` names 2 criteria and measures 1, because DEAD_CAPTURE fires on nothing here. `model_independent_and_firing` is the same restriction with the inert criteria dropped from the name, so the two rows carry identical numbers and only one of them can be misread.",
+  "shared_signals": {
+   "criteria": {
+    "MODEL_LABEL_DISAGREE": {
+     "thresholds": "model_prob",
+     "score_signal": "disagreement",
+     "score_weight": 0.4,
+     "uses_the_model": true
+    },
+    "STALE_CATALOGUE_FREQ": {
+     "thresholds": "fitted_offset_ppm",
+     "score_signal": "offset_safe",
+     "score_weight": 0.35,
+     "uses_the_model": false
+    },
+    "DEAD_CAPTURE": {
+     "thresholds": "flat_row_frac",
+     "score_signal": "flat_row_frac",
+     "score_weight": 0.15,
+     "uses_the_model": false
+    }
+   },
+   "unshared": {
+    "score_signal": "ensemble_uncertainty",
+    "score_weight": 0.1
+   },
+   "fired": {
+    "MODEL_LABEL_DISAGREE": {
+     "reason_code": "MODEL_LABEL_DISAGREE",
+     "n_flagged": 3,
+     "n_rows_the_quantity_was_measurable_on": 407,
+     "max_observed": 0.999999,
+     "inert_on_this_corpus": false,
+     "note": "Fires on 3 of the 407 rows where the quantity it thresholds is measurable, out of 407 in the queue."
+    },
+    "STALE_CATALOGUE_FREQ": {
+     "reason_code": "STALE_CATALOGUE_FREQ",
+     "n_flagged": 19,
+     "n_rows_the_quantity_was_measurable_on": 87,
+     "max_observed": 42.146972575163595,
+     "inert_on_this_corpus": false,
+     "note": "Fires on 19 of the 87 rows where the quantity it thresholds is measurable, out of 407 in the queue."
+    },
+    "DEAD_CAPTURE": {
+     "reason_code": "DEAD_CAPTURE",
+     "n_flagged": 0,
+     "n_rows_the_quantity_was_measurable_on": 87,
+     "max_observed": 0.1370757180156658,
+     "inert_on_this_corpus": true,
+     "note": "No row in the shipped queue meets this criterion. The highest value of the quantity it thresholds is 0.1371 over 87 measurable rows."
+    }
+   },
+   "active": [
+    "MODEL_LABEL_DISAGREE",
+    "STALE_CATALOGUE_FREQ"
+   ],
+   "inert": [
+    "DEAD_CAPTURE"
+   ],
+   "score_weight_on_quantities_the_definition_names": 0.9,
+   "score_weight_on_quantities_a_realised_conflict_is_defined_from": 0.75,
+   "score_weight_independent_of_the_target": 0.1,
+   "reading": "Every criterion's defining quantity is also a weighted term in the score, so no restriction of the target makes this measurement independent of its own construction. What the restrictions below separate is the model's contribution, not the score's. Two weights are published because they are different numbers: 0.90 of the score sits on quantities the definition names, and 0.75 sits on quantities a conflict in this corpus is actually defined from. The gap is DEAD_CAPTURE, which fires on nothing here. No row in the shipped queue meets this criterion. The highest value of the quantity it thresholds is 0.1371 over 87 measurable rows."
+  },
+  "random_ordering_control": {
+   "computed_by": "pipeline.tracetriage.queue.compute_lift",
+   "n_permutations": 2000,
+   "n_boot_per_permutation": 20,
+   "seed": 42,
+   "mean_lift": 0.999235,
+   "p5": 0.711818,
+   "p95": 1.265455,
+   "expected_mean": 1.0,
+   "abs_error": 0.000765,
+   "distinct_conflict_counts_at_budget": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+   ],
+   "observed_lift": 1.5818181818181818,
+   "n_permutations_at_or_above_observed": 0,
+   "p_value_permutation": 0.0005,
+   "reading": "0 of 2000 random orderings of the same population found as many conflicts inside the budget as the shipped queue did, so a permutation p-value of 0.0005, which is the smallest this test can report at 2000 permutations. The mean of the same 2000 lifts is 0.9992 against an expected 1.0, which is the floor check: every number in this file is produced by the function that returned it."
+  },
+  "what_this_does_not_establish": "That the queue generalises. Restricting the target to the criteria the model does not enter removes one loop and leaves another: on this corpus that restriction reduces to STALE_CATALOGUE_FREQ alone, whose defining quantity the score weights at 0.35. The other model-independent criterion, DEAD_CAPTURE, fires on nothing in this corpus, so a reader following its 0.15 weight is following a loop that does not exist in the data. The honest reading is that this measurement is a check on internal consistency and on the size of the space the gate was set in, not an independent test of the ranking.",
+  "receipt_sha256": "8dc893191f74d0cde73d6c5580ffd69248ba15d87d1b38dbdd861315dab3507c"
  },
  "gate5": {
   "gate": 5,
@@ -9097,7 +9786,7 @@
   }
  ],
  "receipt_sha256": {
-  "queue": "94dca2ed61434bd7b2222ca0fa0839e903657e55c1dee55c81fe77e32a564047",
+  "queue": "bcd90fa8a2ada45af79bed2820c5c6d9da169d0e993dc37aefac0067d0451c38",
   "fusion": "db61b08f973aa1aee0388bd5fe06facdfa46133ab54635e3048f5b5eaa647a31"
  }
 }

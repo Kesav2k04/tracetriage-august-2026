@@ -1,32 +1,41 @@
 /**
- * The queue against three baselines a reviewer could have used instead.
+ * The queue against the orderings a reviewer could have used instead.
  *
  * Beating random is a low bar. The question that decides whether this ranking is
  * worth building is whether it beats the orderings anybody could produce without
- * a model: take them oldest first, take them by how unsure the image model is, or
- * take them by physics alone.
+ * a model: take them oldest first, take them by how unsure the image model is,
+ * take them by physics alone, or sort on the one number that defines most of the
+ * conflicts.
+ *
+ * That last one was added after a review pointed out that the first three all
+ * miss the obvious alternative, and it is the hardest of them: it reproduces the
+ * shipped queue's lift exactly. Adding it widens the Bonferroni correction on
+ * every other comparison on this page, including the ones the queue wins.
  *
  * Each comparison is run twice, grouped two different ways, and a baseline counts
  * as beaten only when both groupings survive a Bonferroni correction and agree.
- * One of the three does.
  */
 import {
   evaluation,
   fmt,
   fmtInterval,
   requireGate6Split,
+  showcaseIds,
   type Replay,
   type SplitGate6,
 } from "@/lib/data";
+import Link from "next/link";
+
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
-export const metadata = { title: "Replay" };
+export const metadata = { title: "Baselines" };
 
 const ORDERING_LABELS: Record<string, string> = {
   queue: "The shipped queue",
   fifo: "Oldest first",
   image_uncertainty: "Most uncertain image first",
   physics_only: "Physics score only",
+  offset_magnitude: "Largest frequency offset first",
 };
 
 const ORDERING_NOTES: Record<string, string> = {
@@ -34,7 +43,17 @@ const ORDERING_NOTES: Record<string, string> = {
   fifo: "what a reviewer working through a backlog does by default",
   image_uncertainty: "classic active learning: review what the model is least sure about",
   physics_only: "pass geometry and corridor fit, with no image model at all",
+  offset_magnitude:
+    "one line: sort on the offset that defines most of the conflicts, and see whether the other three score terms bought anything",
 };
+
+/** The observation this page points at for the pass playback.
+ *
+ * Taken from the shipped showcase rather than hardcoded, so it cannot become a link
+ * to a page that stopped being built. `showcaseIds` is the same list the observation
+ * routes are generated from.
+ */
+const playbackId = showcaseIds[0];
 
 const CLAIM_COLOUR: Record<string, string> = {
   queue_better: "var(--verdict-passed)",
@@ -104,6 +123,7 @@ function OrderingTable({ replay, title }: { replay: Replay; title: string }) {
           "Against the queue",
           "Bonferroni",
         ]}
+        headAlign={["left", "right", "right", "right", "left", "right"]}
         caption={`Budget ${replay.budget}, population ${replay.n_population}, ${replay.n_total_conflicts} conflicts in it, ${replay.n_groups} groups. Random finds ${fmt(replay.random_expected_conflicts, 1)} on average.`}
       >
         {Object.entries(replay.orderings).map(([name, ordering]) => {
@@ -182,7 +202,9 @@ export default function ReplayPage() {
   return (
     <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
       <header style={{ maxWidth: "62rem" }}>
-        <h1 style={{ fontSize: "var(--type-heading-05)" }}>Replay against baselines</h1>
+        <h1 style={{ fontSize: "var(--type-heading-05)" }}>
+          The queue against the baselines
+        </h1>
         <p
           style={{
             marginTop: "var(--sp-04)",
@@ -191,11 +213,28 @@ export default function ReplayPage() {
             fontSize: "var(--type-body-long)",
           }}
         >
-          Random ordering is not the competition. These three are: they cost nothing
-          to implement, and if the queue cannot beat them then the model in front of
-          it earned nothing. Every ordering is replayed on the same population, at the
+          Random ordering is not the competition. These are: they cost nothing to
+          implement, and if the queue cannot beat them then the model in front of it
+          earned nothing. Every ordering is replayed on the same population, at the
           same budget, on the same resampled draws, so the comparison is paired rather
           than two separate measurements put side by side.
+        </p>
+        {/* This page is a statistical replay of one ordering against another. The
+            pass playback, the control that drives four instruments off one clock,
+            lives on an observation page, and "Replay" in the rail used to send
+            readers here looking for it. */}
+        <p
+          style={{
+            marginTop: "var(--sp-04)",
+            color: "var(--text-03)",
+            lineHeight: 1.7,
+            fontSize: "var(--type-caption)",
+          }}
+        >
+          Looking for the pass playback, the clock that drives the sky track, the
+          ground track and the Doppler curve together? That is on an observation:{" "}
+          <Link href={`/observation/${playbackId}/`}>open {playbackId}</Link> and scroll
+          to “The pass”.
         </p>
       </header>
 

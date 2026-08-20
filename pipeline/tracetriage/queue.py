@@ -824,10 +824,6 @@ def compute_lift(
     # published number. This is the C1 non-determinism defect, kept fixed.
     episodes = sorted(episode_to_obs)
 
-    #: Selectivity of the real measurement: the fraction of the population a
-    #: reviewer actually gets to look at. Held constant across draws.
-    budget_fraction = budget / n
-
     #: Rank position of each observation, so a resampled pool can be ordered by
     #: the queue's own ranking without re-deriving it.
     rank_of = {oid: i for i, oid in enumerate(ranked_obs_ids)}
@@ -850,7 +846,21 @@ def compute_lift(
         # occurs twice in this synthetic population.
         pool.sort(key=lambda oid: rank_of[oid])
         # Budget scales with the drawn population so selectivity is fixed.
-        drawn_budget = max(1, min(drawn_n, round(budget_fraction * drawn_n)))
+        # The draw's budget holds the real measurement's selectivity, budget / n.
+        # This was round(budget / n * drawn_n), and round lets the realised
+        # selectivity drift below it on draws whose product falls under .5. A draw
+        # with a smaller budget than its share has a higher ceiling than the real
+        # measurement, because the best any ordering can score is
+        # drawn_n / drawn_budget once conflicts are scarcer than the budget. Under
+        # round, 7.92% of chronological draws exceeded 87/50 = 1.740 and the
+        # published 95% upper bound was 93/53 = 1.7547, above the ceiling it was
+        # being read against.
+        #
+        # Ceiling, not round, and in integers. math.ceil(budget / n * drawn_n) is
+        # 51 at drawn_n == n, because that product is 50.000000000000007 in binary
+        # floating point, which would make a draw identical to the real population
+        # less selective than it. -(-a // b) is the exact ceiling of a / b.
+        drawn_budget = max(1, min(drawn_n, -(-budget * drawn_n // n)))
         drawn_top = pool[:drawn_budget]
         drawn_conflicts = sum(1 for oid in pool if conflict_flags.get(oid, False))
         drawn_rate = drawn_conflicts / drawn_n
@@ -974,6 +984,31 @@ def baseline_physics_only(
     return sorted(obs_ids, key=_score, reverse=True)
 
 
+def baseline_offset_magnitude(
+    obs_ids: list[int],
+    offset_safe: dict[int, float],
+) -> list[int]:
+    """Offset-magnitude ordering: descending abs(fitted_offset_ppm), at-bound zeroed.
+
+    This is the single feature that STALE_CATALOGUE_FREQ thresholds, and that
+    criterion accounts for most realised conflicts, so a one-line sort on it is
+    the ordering a sceptical reader reaches for first: if the composite score
+    cannot beat it, the other three terms bought nothing on this split. The
+    at-bound zeroing matches the ``offset_safe`` signal the score itself uses, so
+    the two differ only in the weighting, not in the quantity.
+
+    Observations with no usable offset sort to the bottom at zero.
+    """
+
+    def _mag(oid: int) -> float:
+        v = offset_safe.get(oid)
+        if v is None or not math.isfinite(v):
+            return 0.0
+        return float(v)
+
+    return sorted(obs_ids, key=lambda oid: (-_mag(oid), oid))
+
+
 # ---------------------------------------------------------------------------
 # Per-split gate 6 measurement
 # ---------------------------------------------------------------------------
@@ -984,10 +1019,15 @@ def baseline_physics_only(
 # ---------------------------------------------------------------------------
 
 
-#: The comparison family for one split: the queue against each of four baselines.
-#: Bonferroni widens over this, because a queue tested against four orderings and
+#: The comparison family for one split: the queue against each of five baselines.
+#: Bonferroni widens over this, because a queue tested against five orderings and
 #: reported on whichever it beat would be held to no standard at all.
-_N_ORDERING_COMPARISONS = 4
+#: The fifth is ``offset_magnitude``, added after a review pointed out that the
+#: first four (random, FIFO, model confidence, physics classifier) all miss the
+#: obvious one: a plain sort on the quantity most realised conflicts are defined
+#: from. Adding it widens every interval in the family, including the ones the
+#: queue already wins.
+_N_ORDERING_COMPARISONS = 5
 
 
 def compare_orderings(
@@ -1088,8 +1128,6 @@ def compare_orderings(
     for oid in population:
         group_to_obs.setdefault(group_of[oid], []).append(oid)
     groups = sorted(group_to_obs)
-    budget_fraction = budget / n
-
     rng = np.random.default_rng(seed)
     drawn_lifts: dict[str, list[float]] = {name: [] for name in orderings}
     #: Difference in conflicts found at the same budget, queue minus baseline.
@@ -1122,7 +1160,21 @@ def compare_orderings(
             # no denominator. Counted, not silently skipped.
             n_degenerate += 1
             continue
-        drawn_budget = max(1, min(drawn_n, round(budget_fraction * drawn_n)))
+        # The draw's budget holds the real measurement's selectivity, budget / n.
+        # This was round(budget / n * drawn_n), and round lets the realised
+        # selectivity drift below it on draws whose product falls under .5. A draw
+        # with a smaller budget than its share has a higher ceiling than the real
+        # measurement, because the best any ordering can score is
+        # drawn_n / drawn_budget once conflicts are scarcer than the budget. Under
+        # round, 7.92% of chronological draws exceeded 87/50 = 1.740 and the
+        # published 95% upper bound was 93/53 = 1.7547, above the ceiling it was
+        # being read against.
+        #
+        # Ceiling, not round, and in integers. math.ceil(budget / n * drawn_n) is
+        # 51 at drawn_n == n, because that product is 50.000000000000007 in binary
+        # floating point, which would make a draw identical to the real population
+        # less selective than it. -(-a // b) is the exact ceiling of a / b.
+        drawn_budget = max(1, min(drawn_n, -(-budget * drawn_n // n)))
         drawn_random = drawn_conflicts / drawn_n * drawn_budget
 
         found: dict[str, int] = {}
@@ -1289,6 +1341,7 @@ _GATE6_RESULT_KEYS: dict[str, Any] = {
     "fifo_lift_over_random": None,
     "image_uncertainty_lift_over_random": None,
     "physics_only_lift_over_random": None,
+    "offset_magnitude_lift_over_random": None,
     "n_boot": None,
     "n_boot_effective": None,
     "bootstrap_median": None,
@@ -1371,6 +1424,7 @@ def measure_gate6_split(
     fifo_order: list[int],
     image_uncertainty_order: list[int],
     physics_only_order: list[int],
+    offset_magnitude_order: list[int],
     *,
     station_of: dict[int, str] | None = None,
     n_boot: int = 4000,
@@ -1509,6 +1563,7 @@ def measure_gate6_split(
         fifo_lift_over_random=_lift_over_random(fifo_order),
         image_uncertainty_lift_over_random=_lift_over_random(image_uncertainty_order),
         physics_only_lift_over_random=_lift_over_random(physics_only_order),
+        offset_magnitude_lift_over_random=_lift_over_random(offset_magnitude_order),
         n_boot=n_boot,
         n_boot_effective=result.n_boot_effective,
         n_groups=result.n_groups,

@@ -70,30 +70,83 @@ _PRE_COLD = precedent["conditions"]["cold"]["comparisons"]["granite_text_vs_rand
 # omits it is a page that only publishes the parts that flatter.
 _CIRC_CEIL = circularity["ceiling"]
 _CIRC_FREE = circularity["targets"]["model_independent_only"]
-_CIRC_SHARED = circularity["shared_signals"][
-    "score_weight_on_quantities_the_target_is_defined_from"
+_CIRC_SIGNALS = circularity["shared_signals"]
+_CIRC_NAMED = _CIRC_SIGNALS["score_weight_on_quantities_the_definition_names"]
+_CIRC_ACTIVE = _CIRC_SIGNALS[
+    "score_weight_on_quantities_a_realised_conflict_is_defined_from"
 ]
+_CIRC_INERT = _CIRC_SIGNALS["inert"]
+_CIRC_CONTROL = circularity["random_ordering_control"]
+
+
+def _inert_clause() -> str:
+    """The gap between the two weights, or a statement that there is none.
+
+    Both weights are published because they answer different questions, and the
+    difference between them is the weight of a criterion that fires on nothing. A
+    reader given only the larger number is being told the loop is worse than it is;
+    a reader given only the smaller one is being told the definition is tighter than
+    it is. Naming the criterion is what makes the pair readable.
+    """
+    if not _CIRC_INERT:
+        return ", and the two are the same because every criterion fires"
+    return (
+        f", the gap being {' and '.join(_CIRC_INERT)}, which fires on nothing in this "
+        "corpus"
+    )
+
+
+def _narrowest_split() -> str:
+    """The split with the least room between the threshold and a perfect oracle."""
+    measurable = {
+        name: block
+        for name, block in circularity["ceilings_by_split"].items()
+        if block.get("measurable")
+    }
+    if not measurable:
+        return ""
+    name, block = min(
+        measurable.items(),
+        key=lambda kv: kv[1]["headroom_between_threshold_and_perfection"],
+    )
+    if block["informative"]:
+        return ""
+    return (
+        f" The same analysis runs on every split, and it finds one, `{name}`, where a "
+        f"perfect oracle would score {block['ceiling']:.3f}x against the same "
+        f"{block['threshold']}x bar: that split's "
+        f"{block['published_verdict']} could not have been anything else, and the "
+        "receipt marks it not informative rather than reporting it as a result about "
+        "generalisation."
+    )
+
+
 CIRCULARITY_BULLET = (
     "- **The queue's lift is partly guaranteed by how the queue was built.** The ranking "
-    f"score puts {_CIRC_SHARED * 100:.0f} percent of its weight on the same three "
-    "quantities the conflict criteria threshold, so beating a random ordering is close to "
+    f"score puts {_CIRC_NAMED * 100:.0f} percent of its weight on the same three "
+    "quantities the conflict criteria threshold, and "
+    f"{_CIRC_ACTIVE * 100:.0f} percent on the quantities a conflict in this corpus is "
+    f"actually defined from{_inert_clause()}, so beating a random ordering is close to "
     "assured by construction. `scripts/run_circularity_check.py` bounds that from the "
     "queue receipt alone, with no snapshot and no model, and reproduces the published "
-    "lift before computing anything. Three numbers come out. A budget of "
+    "lift before computing anything. A budget of "
     f"{circularity['reproduction']['budget']} over "
     f"{circularity['reproduction']['n_population']} observations holding "
     f"{circularity['reproduction']['n_conflicts']} conflicts caps any ordering at "
     f"{_CIRC_CEIL['lift']:.3f}x, so the whole distance between the "
     f"{_CIRC_CEIL['threshold']}x threshold and a perfect oracle is "
     f"{_CIRC_CEIL['headroom_between_threshold_and_perfection']:.3f}. Counting only the "
-    f"{_CIRC_FREE['n_conflicts']} conflicts flagged by the two criteria the model does not "
+    f"{_CIRC_FREE['n_conflicts']} conflicts flagged by the criteria the model does not "
     f"enter, the same ordering scores {_CIRC_FREE['lift_point']:.3f}x with an interval of "
     f"[{_CIRC_FREE['lift_ci95'][0]:.3f}, {_CIRC_FREE['lift_ci95'][1]:.3f}], still "
-    f"{_CIRC_FREE['verdict']}. And a random ordering scores "
-    f"{circularity['random_ordering_control']['mean_lift']} over "
-    f"{circularity['random_ordering_control']['n_permutations']:,} seeded permutations, "
-    "which is the floor the whole comparison rests on. "
-    "`artifacts/CIRCULARITY_RECEIPT.json` carries all of it."
+    f"{_CIRC_FREE['verdict']}. Against that, "
+    f"{_CIRC_CONTROL['n_permutations_at_or_above_observed']} of "
+    f"{_CIRC_CONTROL['n_permutations']:,} seeded shuffles of the same population matched "
+    f"the queue, a permutation p-value of {_CIRC_CONTROL['p_value_permutation']:.4f}, and "
+    f"the mean of those shuffles is {_CIRC_CONTROL['mean_lift']} against an expected 1.0, "
+    "which is the floor the whole comparison rests on. Every one of them is scored by the "
+    "same function gate 6 is measured with, so a defect in it moves these numbers."
+    f"{_narrowest_split()} `artifacts/CIRCULARITY_RECEIPT.json` carries all of it."
 )
 
 PRECEDENT_BULLET = (

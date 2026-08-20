@@ -454,6 +454,73 @@ const evaluationData = evaluationJson as unknown as {
     statement: string;
     per_split: Record<string, SplitGate6>;
   };
+  circularity: {
+    ceiling: {
+      max_findable_at_budget: number;
+      lift: number;
+      threshold: number;
+      headroom_between_threshold_and_perfection: number;
+      queue_share_of_the_ceiling: number;
+      reading: string;
+    };
+    ceilings_by_split: Record<
+      string,
+      {
+        measurable: boolean;
+        not_measurable_reason: string | null;
+        n_population?: number;
+        n_conflicts?: number;
+        budget?: number;
+        ceiling?: number;
+        threshold?: number;
+        headroom_between_threshold_and_perfection?: number;
+        published_lift_point?: number | null;
+        published_verdict?: string;
+        informative?: boolean;
+        note?: string;
+      }
+    >;
+    targets: Record<
+      string,
+      {
+        criteria: string[];
+        measurable: boolean;
+        not_measurable_reason: string | null;
+        n_conflicts: number;
+        lift_point: number | null;
+        lift_ci95: [number, number] | null;
+        verdict: string;
+        direction?: string;
+        saturated?: boolean;
+        saturation_note?: string | null;
+        governing_interval?: string;
+      }
+    >;
+    targets_note: string;
+    shared_signals: {
+      score_weight_on_quantities_the_definition_names: number;
+      score_weight_on_quantities_a_realised_conflict_is_defined_from: number;
+      score_weight_independent_of_the_target: number;
+      active: string[];
+      inert: string[];
+      reading: string;
+      [k: string]: unknown;
+    };
+    random_ordering_control: {
+      computed_by: string;
+      n_permutations: number;
+      mean_lift: number;
+      p5: number;
+      p95: number;
+      observed_lift: number;
+      n_permutations_at_or_above_observed: number;
+      p_value_permutation: number;
+      reading: string;
+      [k: string]: unknown;
+    };
+    what_this_does_not_establish: string;
+    receipt_sha256: string;
+  };
   gate5: Gate5;
   ablation_conclusion: AblationConclusion;
   arm_ladder: Array<{ name: string; blocks: string[] }>;
@@ -806,6 +873,29 @@ export interface PrecedentStudy {
 }
 
 export const precedent = precedentJson as unknown as PrecedentStudy;
+
+/**
+ * One arm of one condition, or a thrown error naming what the receipt does hold.
+ *
+ * `conditions.warm.arms` is a Record, so every read of it is optional and a missing
+ * arm renders as a blank rather than failing the build. Pages that quote an arm's
+ * number in a sentence go through this: a landing-page claim about Granite must not
+ * be able to become "undefined agreement" because the study was re-frozen without
+ * that arm.
+ */
+export function requirePrecedentArm(
+  condition: "warm" | "cold",
+  arm: string,
+): PrecedentArm {
+  const found = precedent.conditions[condition].arms[arm];
+  if (!found) {
+    throw new Error(
+      `the precedent study has no ${arm} arm in the ${condition} condition; it holds ` +
+        `${Object.keys(precedent.conditions[condition].arms).join(", ")}.`,
+    );
+  }
+  return found;
+}
 
 /** The neighbour lists for one observation, or null when the study had no label for it. */
 export function precedentFor(

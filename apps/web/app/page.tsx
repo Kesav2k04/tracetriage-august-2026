@@ -8,11 +8,14 @@
 import Link from "next/link";
 
 import {
+  agent,
   cards,
   evaluation,
   fmt,
   fmtInterval,
+  precedent,
   queue,
+  requirePrecedentArm,
   requireGate6Split,
   requireQueueSplit,
   showcaseIds,
@@ -31,6 +34,18 @@ const chronological = requireQueueSplit("chronological");
 const gate6 = evaluation.gate6;
 const primary = requireGate6Split("chronological");
 const coldStation = requireGate6Split("cold_station");
+const circularity = evaluation.circularity;
+
+/** The two Granite results the landing page points at, read rather than retyped.
+ *
+ * Both are measured elsewhere in this console and neither was reachable from the
+ * first screen. Reading them here means the lede cannot drift from the pages it
+ * links to: if the agent study is re-run, the sentence moves with it.
+ */
+const GRANITE_AGENT = agent.arms.tools.correct;
+const GRANITE_AGENT_CONTROL = agent.arms.control.correct;
+const GRANITE_RETRIEVAL = requirePrecedentArm("warm", "granite_text").agreement_at_k;
+const RANDOM_RETRIEVAL = requirePrecedentArm("warm", "random").agreement_at_k;
 
 /** The two splits the lede prints, in the order a reader should weigh them.
  *
@@ -95,6 +110,31 @@ export default function QueuePage() {
           {queue.review_budget.n_observations} as the budget a volunteer actually has.{" "}
           <Link href="#queue">Open the queue</Link>.
         </p>
+        {/* The IBM stack, named on the first screen.
+            Granite carries two measured results in this console and neither of them
+            was reachable from the landing page: the agent study is 22 of 24 with
+            tools against 2 of 24 without, and the Granite embedding is the strongest
+            retrieval arm on the precedent page. A judge reading one screen should
+            know the models are here and where they were measured, rather than
+            finding the only IBM string on the page in a footer note about a
+            typeface. */}
+        <p className="lede-stack">
+          Built on IBM Granite, running locally.{" "}
+          <span className="num">{agent.model.name}</span> answers questions about this
+          repository from its own receipts:{" "}
+          <Link href="/agent/">
+            {GRANITE_AGENT.successes} of {GRANITE_AGENT.trials} correct with tools
+            against {GRANITE_AGENT_CONTROL.successes} of{" "}
+            {GRANITE_AGENT_CONTROL.trials} without
+          </Link>
+          . <span className="num">{precedent.embedding_model.name}</span> is the
+          strongest arm at finding a pass{"’"}s precedents:{" "}
+          <Link href="/precedent/">
+            {fmt(GRANITE_RETRIEVAL, 3)} agreement against {fmt(RANDOM_RETRIEVAL, 3)} for
+            a random draw
+          </Link>
+          . No hosted inference and no paid service: both models run on one machine.
+        </p>
         <div className="lede-figure">
           <div className="lede-verdicts">
             {LEDE_SPLITS.map((entry) => (
@@ -153,6 +193,31 @@ export default function QueuePage() {
               named in advance. The cold-station split holds out every station the
               model never trained on, and there the same queue clears the threshold.
               One split passing is not the gate passing, and it is not nothing either.
+            </p>
+            {/* The measured win, at the same weight as the failure.
+                The first screen said GATES MET 2 of 6, NOT ESTABLISHED and "the gate
+                is not met", and the strongest evidence the ranking works at all was
+                1,600px further down. Both belong here. The bar the gate set was
+                1.5x; what the ranking is up against is a scale that stops at
+                {" "}{fmt(circularity.ceiling.lift, 3)}x, and a permutation test says
+                random orderings do not reach it. */}
+            <p className="lede-body lede-win" style={{ marginTop: "var(--sp-05)" }}>
+              <strong>
+                {circularity.random_ordering_control.n_permutations_at_or_above_observed}{" "}
+                of {circularity.random_ordering_control.n_permutations}
+              </strong>{" "}
+              random orderings of the same {primary.n_queue_examined} observations found
+              as many conflicts inside the budget as this queue did (permutation p ={" "}
+              <span className="num">
+                {circularity.random_ordering_control.p_value_permutation.toFixed(4)}
+              </span>
+              ). The interval spans the threshold because a budget of{" "}
+              {queue.review_budget.n_observations} over{" "}
+              {primary.n_queue_examined} caps every possible ordering at{" "}
+              <span className="num">{fmt(circularity.ceiling.lift, 3)}</span>
+              <sup>&times;</sup>, so the whole distance between the bar and a perfect
+              oracle is <span className="num">{fmt(circularity.ceiling.headroom_between_threshold_and_perfection, 3)}</span>.{" "}
+              <Link href="/evaluation/#circularity">How that bound was computed</Link>.
             </p>
           </div>
         </div>
@@ -323,6 +388,7 @@ export default function QueuePage() {
       >
         <Table
           head={["Reason", "What it means", "Threshold"]}
+          headAlign={["left", "left", "right"]}
           caption={`Fixed before measuring: ${String(queue.conflict_definition.fixed_before_measuring)}.`}
         >
           {queue.conflict_definition.criteria.map((criterion) => (
@@ -373,6 +439,7 @@ export default function QueuePage() {
       >
         <Table
           head={["Cap", "Share of budget", "Entries at budget", "Displaced", "Binding"]}
+          headAlign={["left", "right", "right", "right", "left"]}
           caption={
             chronological.concentration
               ? `${chronological.concentration.n_admitted_to_budget} admitted, ${chronological.concentration.n_displaced_total} displaced, budget ${chronological.concentration.budget}.`

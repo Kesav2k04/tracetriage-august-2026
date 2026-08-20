@@ -406,3 +406,160 @@ def test_a_real_index_returns_the_exact_neighbours_for_a_small_pool():
     ids = [int(x) for x in found["ids"][0] if int(x) != query.obs_id][:TOP_K]
     exact = top_k_exact(query, pool, vectors, "cold", metric="cosine")
     assert ids == exact, "the index and exact search disagree on a pool this size"
+
+
+def test_the_cold_condition_excludes_the_site_and_not_only_the_station_id():
+    """Nine sites in this pool carry more than one station id.
+
+    The reason written down for the cold condition is that a misconfigured station produces
+    empty waterfalls for weeks, and that is a property of a physical site and its operator.
+    The filter compared ground_station integers, so a site running four receivers under four
+    ids satisfied "a different station" while being the same dish on the same roof. 22.76% of
+    Granite's cold neighbours came from the query's own site against 0.89% for a random draw.
+    Both the rendered card and the numeric feature vector carry the coordinates, so both
+    model arms could find them.
+    """
+    here = (49.232, -121.759)
+    query = Observation(1, "with-signal", 10, 20, None, "", (), site=here)
+    second_id_same_roof = Observation(2, "with-signal", 4825, 99, None, "", (), site=here)
+    elsewhere = Observation(3, "with-signal", 99, 98, None, "", (), site=(51.5, -0.1))
+    no_position = Observation(4, "with-signal", 98, 97, None, "", (), site=None)
+
+    assert is_candidate(query, second_id_same_roof, "warm")
+    assert not is_candidate(query, second_id_same_roof, "cold"), (
+        "a second station id at the same coordinates is the same receiving site, which is "
+        "what the cold condition was written to exclude"
+    )
+    assert is_candidate(query, elsewhere, "cold")
+    assert is_candidate(query, no_position, "cold"), (
+        "a row with no position does not share a site with anything, and excluding it would "
+        "punish a missing field rather than a real overlap"
+    )
+
+
+def test_a_query_with_no_position_is_not_excluded_from_everything():
+    """An absent site must not collide with another absent site.
+
+    If None equalled None the rule would exclude every unpositioned row from every other
+    unpositioned row, which is an exclusion nobody asked for, silently shrinking the cold
+    candidate pool for exactly the rows with the least metadata.
+    """
+    a = Observation(1, "with-signal", 10, 20, None, "", (), site=None)
+    b = Observation(2, "with-signal", 11, 21, None, "", (), site=None)
+    assert is_candidate(a, b, "cold")
+
+
+def test_the_frozen_cold_retrievals_hold_the_site_rule(frozen):
+    """The rule in code and the rule in the frozen data are two different claims."""
+    by_id = {int(row["obs_id"]): row for row in frozen["observations"]}
+    checked = 0
+    with_a_site = 0
+    for arm in ARMS:
+        for obs_id, retrieved in frozen["retrievals"]["cold"][arm].items():
+            if retrieved is None:
+                continue
+            query = by_id[int(obs_id)]
+            for neighbour in retrieved:
+                row = by_id[neighbour]
+                if query.get("site") is not None:
+                    with_a_site += 1
+                    assert row.get("site") != query["site"], (
+                        f"{arm}: retrieved a neighbour at the query's own site "
+                        f"{query['site']} under the cold condition"
+                    )
+                checked += 1
+    assert checked > 1000, f"only {checked} cold neighbours checked, so the scan proved little"
+    assert with_a_site > 1000, (
+        f"only {with_a_site} of the cold neighbours were checked against a query that has a "
+        "site, so this scan says almost nothing about the rule it is testing"
+    )
+
+
+def test_the_cold_condition_census_is_published_with_its_counts(receipt):
+    """The size of the gap that closed, so a reader is not asked to take it on trust."""
+    census = receipt["cold_condition"]
+    assert census.get("measurable") is not False, census.get("why")
+    assert census["n_sites_with_more_than_one_station_id"] > 0
+    assert (
+        census["n_station_ids_at_those_sites"]
+        > census["n_sites_with_more_than_one_station_id"]
+    )
+    assert census["n_pairs_the_site_rule_excludes_that_the_id_rule_did_not"] > 0
+    assert "site" in " ".join(census["excludes"]).lower()
+    assert "station" in " ".join(census["excludes"]).lower()
+
+
+def test_the_comparison_count_is_derived_from_the_comparisons_that_are_made():
+    """A hand-maintained Bonferroni denominator is a silent correctness bug waiting.
+
+    N_COMPARISONS was the literal 7, set 300 lines above the list it counted. It was right,
+    and nothing tied it to the list: adding one pair would have left every published
+    ci_adjusted too narrow and every survives_correction computed at the wrong alpha, with
+    the suite green, because the only guard asserted the count was at least 5.
+    """
+    import run_precedent_study as study
+
+    expected = (
+        len(study._pairs("warm"))
+        + len(study._pairs("cold"))
+        + len(study.CROSS_CONDITION_ARMS)
+    )
+    assert expected == study.N_COMPARISONS
+
+
+def test_every_published_comparison_is_counted_in_the_family(receipt):
+    """The count in the receipt has to match the number of comparisons in the receipt."""
+    made = 0
+    for condition in CONDITIONS:
+        made += len(receipt["conditions"][condition]["comparisons"])
+    made += len(receipt["cross_condition_comparisons"])
+    counted = {
+        row["n_comparisons"]
+        for condition in CONDITIONS
+        for row in receipt["conditions"][condition]["comparisons"].values()
+        if row.get("measurable")
+    } | {
+        row["n_comparisons"]
+        for row in receipt["cross_condition_comparisons"].values()
+        if row.get("measurable")
+    }
+    assert len(counted) == 1, f"the family size is not agreed across comparisons: {counted}"
+    assert counted.pop() == made, (
+        f"the receipt publishes {made} comparisons and corrects for a different number, so "
+        "every adjusted interval in it is the wrong width"
+    )
+
+
+def test_the_warm_cold_drop_is_measured_rather_than_read_off_two_intervals(receipt):
+    """The claim the register makes, tested as the difference it is.
+
+    "Similarity carries the outcome when the station is allowed, and stops carrying it when
+    it is not" is a statement about warm minus cold. It was asserted from one interval
+    excluding zero and another spanning it, which is not a test of the difference: two wide
+    intervals can show that pattern with no real drop at all. The paired per-query
+    difference is the comparison, and it is corrected in the same family as the rest.
+    """
+    row = receipt["cross_condition_comparisons"]["granite_text_warm_vs_cold"]
+    assert row["measurable"], row.get("why")
+    assert row["queries"] > 500
+    assert row["n_groups"] > 50, "the difference is grouped by station like everything else"
+    lo, hi = row["ci95"]
+    assert lo <= row["margin"] <= hi
+    adj_lo, adj_hi = row["ci_adjusted"]
+    assert adj_lo <= lo and adj_hi >= hi, "the corrected interval must not be narrower"
+    assert row["survives_correction"] is ((adj_lo > 0) or (adj_hi < 0))
+    assert row["margin"] == pytest.approx(
+        row["warm_agreement"] - row["cold_agreement"], abs=5e-4
+    )
+
+
+def test_the_cross_condition_reading_says_which_way_it_fell(receipt):
+    """A verdict a reader can act on, generated from the number rather than written once."""
+    row = receipt["cross_condition_comparisons"]["granite_text_warm_vs_cold"]
+    reading = row["reading"]
+    assert f"{row['margin']:.4f}" in reading
+    assert str(row["n_comparisons"]) in reading
+    if row["survives_correction"]:
+        assert "excludes zero" in reading
+    else:
+        assert "spans zero" in reading

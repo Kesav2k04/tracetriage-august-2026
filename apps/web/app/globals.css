@@ -672,6 +672,31 @@ code,
   line-height: 1.6;
 }
 
+/* The stack line, under the product line and above the figures.
+   A judge arriving from an IBM challenge page should not have to click twice to find
+   out whether IBM models are used. This carries both measured Granite results and
+   links to the page each was measured on. Smaller than the product line because it
+   is provenance rather than the pitch. */
+.lede-stack {
+  margin: var(--sp-04) 0 0;
+  max-width: 62ch;
+  color: var(--text-03);
+  font-size: var(--type-caption);
+  line-height: 1.7;
+}
+
+.lede-stack .num {
+  color: var(--text-02);
+}
+
+/* The measured win, carried at the weight of the failure beside it. Bordered on the
+   left like the verdict cards so the eye reads it as a result rather than as a
+   caption apologising for one. */
+.lede-win {
+  border-left: 2px solid var(--support-04);
+  padding-left: var(--sp-05);
+}
+
 /* Two verdicts, one size. Stacked on narrow viewports and stacked again inside the
    figure column at width, so the pair reads top to bottom in the order they should
    be weighed rather than left to right by whichever is larger. */
@@ -1061,17 +1086,28 @@ code,
   will-change: transform;
 }
 
+/* The clock, above the instruments it drives. It was below them, which put the
+   scrub handle 800 to 1,150px under the sky plot and the ground track: at a 900px
+   viewport a reader dragging it could not see half of what it moved. */
 .replay {
-  margin-top: var(--sp-06);
-  border-top: 1px solid var(--border-subtle);
-  padding-top: var(--sp-05);
+  margin-bottom: var(--sp-06);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: var(--sp-05);
 }
 
+/* Sticky so the handle stays reachable for the whole scroll through the four
+   instruments rather than only while the first one is on screen. It sticks inside
+   the section, so it releases as soon as the instruments are past. */
 .replay-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-05);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--ui-background);
+  padding: var(--sp-03) 0;
 }
 
 .replay-play {
@@ -1402,4 +1438,12 @@ code,
   display: flex;
   align-items: center;
   gap: var(--sp-04);
+}
+
+/* The raw-source link beside each rendered document, quieter than the document
+   it belongs to: a reader wants the rendered page, and the markdown file is for
+   whoever is checking that the console ships the same bytes the repository does. */
+.colophon-raw {
+  font-size: var(--type-caption);
+  color: var(--text-03);
 }
