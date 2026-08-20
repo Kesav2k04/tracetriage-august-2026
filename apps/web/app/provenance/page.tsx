@@ -297,6 +297,26 @@ export default function ProvenancePage() {
             blocked font host costs the lettering and not the reading.
           </li>
           <li>
+            <strong>What those two faces cost is not the bytes.</strong> The kit
+            declares all ninety of its faces at <code>font-display: auto</code>,
+            which tells the browser to hold text unpainted while the face loads, so
+            the first screen of a first visit is blank until it arrives. Measured on
+            the built export over a local server, five interleaved rounds with a
+            fresh browser each: <code>956 ms</code> to first contentful paint as
+            served, <code>152 ms</code> with the font host blocked, and{" "}
+            <code>944 ms</code> with the self-hosted faces blocked instead. So it is
+            the licensed pair and not IBM Plex, which is set to{" "}
+            <code>swap</code> and holds nothing. The preconnect above is not the
+            cause and adding another changed nothing. This is stated rather than
+            fixed because <code>font-display</code> cannot be overridden from
+            outside the rule that declares it: the fix is one setting in the Adobe
+            Fonts web project, and the sentence above about a blocked host is true
+            of a blocked host and not of a slow one.{" "}
+            <code>apps/web/audit/paint-probe.js</code> reports which families are
+            set to block, so this is measurable on any page rather than argued
+            about.
+          </li>
+          <li>
             The kit stylesheet imports a five-byte counter from{" "}
             <code>p.typekit.net</code> so Adobe can meter the licence. It is named
             here rather than blocked: it sets no cookie and returns no content, and

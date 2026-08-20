@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-20T13:44:51+05:30",
- "commit": "68b7839c124f389b69afc3d3840e8b951aaf8e00",
+ "measured_at_commit_date": "2026-08-20T14:19:28+05:30",
+ "commit": "b83fac766bc380d3f4dfb517eb7feecb08825d39",
  "tracked_files": 322,
- "tracked_bytes": 34654872,
- "tracked_megabytes": 33.05,
+ "tracked_bytes": 34668820,
+ "tracked_megabytes": 33.06,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,7 +13,7 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 4.82
+   "megabytes": 4.83
   },
   {
    "path": "tests/fixtures",
@@ -33,7 +33,7 @@
   },
   {
    "path": "docs/BOB_BUILD_LOG.md",
-   "megabytes": 0.38
+   "megabytes": 0.39
   },
   {
    "path": "artifacts/SECOND_TRACE_SURVEY.json",
@@ -64,13 +64,13 @@
    "megabytes": 0.07
   },
   {
-   "path": "artifacts/PHYSICS_VALIDATION.json",
+   "path": "docs/CLAIM_REGISTER.md",
    "megabytes": 0.06
   }
  ],
  "by_directory_remainder": {
   "groups": 145,
-  "bytes": 2616693,
+  "bytes": 2617387,
   "megabytes": 2.5,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },

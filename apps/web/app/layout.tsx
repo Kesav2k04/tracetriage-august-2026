@@ -94,7 +94,24 @@ export default function RootLayout({
         {/* The handshake to the font origin costs a DNS lookup and a TLS
             negotiation, and it is on the critical path for the display face.
             Starting it before the stylesheet is parsed overlaps that cost with
-            the rest of the document instead of queueing behind it. */}
+            the rest of the document instead of queueing behind it.
+
+            It is not what holds the first paint, and the measurement is written
+            down here so nobody spends another hour on this line. Five interleaved
+            rounds, fresh browser each, against the built export on a local server:
+            956 ms to first contentful paint as served, 152 ms with this host
+            blocked, 944 ms with the self-hosted faces blocked instead. A second
+            preconnect changed nothing, because there was already one. The cost is
+            `font-display`, which belongs to a stylesheet this project does not
+            write: the kit declares all 90 of its faces `auto`, so Chrome holds
+            text unpainted while `neue-haas-grotesk-display` and `din-2014-narrow`
+            load, and no query parameter on the kit URL overrides it. The two
+            self-hosted faces are `swap` and hold nothing, which is the whole
+            difference. The fix is one setting in the Adobe Fonts web project and
+            there is no CSS-only substitute for it: font-display cannot be
+            overridden from outside the @font-face rule that declares it.
+            `apps/web/audit/paint-probe.js` reports which families are set to block
+            so this cannot regress unnoticed. */}
         <link rel="preconnect" href="https://use.typekit.net" crossOrigin="" />
         {/* Adobe Fonts kit iie4ixd. The kit itself @imports p.typekit.net for
             usage reporting, which is why the content security policy in
