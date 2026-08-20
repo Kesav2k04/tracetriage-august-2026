@@ -462,11 +462,31 @@ def test_every_unmeasured_row_names_a_gate_that_produced_no_number():
     rows = _unmeasured_rows(readme)
     verdicts = _gate_verdicts()
 
-    assert rows, (
-        "no [UNMEASURED] rows found in the README results tables. Either the marker "
-        "changed or the table stopped being generated; both need a look, because this "
-        "test and its counterpart divide the rows between them."
-    )
+    # The non-empty assertion is conditional on a gate existing that could justify a
+    # row, and it has to be: both markers in the README cite gate 4, and gate 4 is the
+    # only gate carrying a no-number verdict. Written unconditionally, this test became
+    # unsatisfiable the moment gate 4 was scored, with no legal row left to point at:
+    # keeping the rows fails the loop below, deleting them failed the assertion, and the
+    # person holding the scorer's output had to pick which failure to ship. A test that
+    # can only pass while a measurement is missing is a test that argues against taking
+    # the measurement.
+    open_gates = sorted(g for g, v in verdicts.items() if v in _NO_NUMBER_VERDICTS)
+    if open_gates:
+        assert rows, (
+            f"gate(s) {open_gates} produced no number and the README results tables "
+            f"carry no `[UNMEASURED]` row. Either the marker changed, or the table "
+            f"stopped being generated, or a metric that cannot be computed is being "
+            f"reported as though it could; all three need a look, because this test and "
+            f"its counterpart divide the rows between them."
+        )
+    else:
+        assert not rows, (
+            f"every gate has produced a number and yet {len(rows)} README row(s) still "
+            f"say `[UNMEASURED]`: {[metric for metric, _ in rows]}. The hatch outlived "
+            f"the absence it was for, which is how an out-of-date absence reads as a "
+            f"current one."
+        )
+        return
 
     for metric, reason in rows:
         # The pattern has one group per alternative, so each match is a pair with one

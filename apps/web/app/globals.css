@@ -1421,9 +1421,15 @@ code,
   stroke-linejoin: round;
 }
 
-/* White, not the interface blue. Viridis runs from deep indigo through teal to
-   yellow, so a blue line lands inside the map's own low end and reads as part of
-   the image. White is outside the map at every stop. */
+/* White, and the reason is the colourmap rather than the interface. Inferno runs
+   from near-black through crimson and orange to pale yellow, so any accent this
+   palette has lands inside the map's own range and reads as part of the image. The
+   plate has rendered through inferno since the viridis rationale turned out to rest
+   on a false premise about the input, and the accent has not been blue since either;
+   this comment said "not the interface blue. Viridis runs from deep indigo through
+   teal" until a review caught it, which is the same drift the header of this file
+   narrates catching a few hundred lines up. White is outside inferno at every stop,
+   which is the property that matters and the only one that survived the rewrite. */
 .hero-corridor {
   fill: none;
   stroke: var(--text-04);

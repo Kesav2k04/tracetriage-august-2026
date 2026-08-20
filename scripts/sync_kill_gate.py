@@ -94,9 +94,19 @@ _STATIC_ROWS = {
     2: (
         f"| 2 | {TITLES[2]} | {THRESHOLDS[2]} | **PRE-PASSED** |"
     ),
-    4: (
-        f"| 4 | {TITLES[4]} | {THRESHOLDS[4]} | **OPEN** |"
-    ),
+}
+
+# Gate 4's row was a static literal reading **OPEN** while its receipt sat beside the
+# others carrying NOT_RUN. Answering the worksheet would have moved the receipt and left
+# this table saying OPEN, which is the drift this file exists to prevent for gates 3, 5
+# and 6. The receipt's NOT_RUN renders as OPEN because that is the word this table has
+# always used for it; every other verdict renders as itself, and one it has no wording
+# for stops the sync instead of being published as OPEN.
+_GATE4_WORDS = {
+    "NOT_RUN": "**OPEN**",
+    "PASSED": "**PASSED**",
+    "FAILED": "**FAILED**",
+    "NOT_ESTABLISHED": "**NOT ESTABLISHED**",
 }
 
 
@@ -186,6 +196,18 @@ def _narrow_arm_clause(brier: dict | None, aurc: dict | None) -> str:
         "A narrower arm (image + corridor) leads on both metrics and neither margin "
         f"survives correction{over}"
     )
+
+
+def _gate4_row() -> str:
+    """Gate 4's row, from its receipt."""
+    verdict = _load("GATE4_RECEIPT.json").get("verdict")
+    if verdict not in _GATE4_WORDS:
+        raise SystemExit(
+            f"artifacts/GATE4_RECEIPT.json carries verdict {verdict!r}, and this table "
+            f"has no wording for it. Known: {sorted(_GATE4_WORDS)}. A gate whose verdict "
+            f"cannot be rendered has to stop the sync rather than be published as OPEN."
+        )
+    return f"| 4 | {TITLES[4]} | {THRESHOLDS[4]} | {_GATE4_WORDS[verdict]} |"
 
 
 def _gate5_row(g5: dict, brier: dict | None, aurc: dict | None) -> str:
@@ -336,7 +358,7 @@ def render(text: str) -> str:
             _STATIC_ROWS[1],
             _STATIC_ROWS[2],
             _gate3_row(g3),
-            _STATIC_ROWS[4],
+            _gate4_row(),
             _gate5_row(g5, narrow_brier, narrow_aurc),
             _gate6_row(chron, station, decisive),
         ]

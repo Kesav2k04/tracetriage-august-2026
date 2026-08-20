@@ -98,7 +98,7 @@ the same order.
 
 IBM Bob is the primary development tool and built every load-bearing subsystem: ingestion,
 physics, the model interface, calibration, abstention, ranking, the console, the test
-suite and the release sign-off. `docs/BOB_BUILD_LOG.md` carries 57 dated entries, one per
+suite and the release sign-off. `docs/BOB_BUILD_LOG.md` carries 58 dated entries, one per
 accepted unit, each naming the files it changed, the commands that were run and what
 failed before it was accepted. `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json`
 are the standing instructions, tool contracts and MCP registration each task ran under,
@@ -209,8 +209,8 @@ time.
 which means a measurement was run and its interval did not exclude the null, not that it
 failed and not that it passed.
 - **Nobody has read the blinded worksheet yet.** `artifacts/GATE4_RECEIPT.json` says
-  `NOT_RUN`, which is a fourth outcome beside passed, failed and inconclusive, and it carries
-  no rate because there is nothing to compute one from.
+`NOT_RUN`, which is a fourth outcome beside passed, failed and inconclusive, and it
+carries no rate because there is nothing to compute one from.
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
 - **Similarity stops carrying the outcome once the station is excluded.** Retrieval over 739 labelled passes agrees with the query's own label 0.6181 of the time when a neighbour may come from the same ground station, against a random arm measuring 0.5302 on the same pool, and the adjusted interval [0.0338, 0.1558] clears zero. Forbidding the query's own station and satellite drops it to 0.5543 against the random arm's 0.5283, and the adjusted interval [-0.0353, 0.0998] does not. `artifacts/PRECEDENT_RECEIPT.json` carries both conditions and the console shows them in one table.

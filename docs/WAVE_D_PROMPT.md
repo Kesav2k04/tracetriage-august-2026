@@ -130,9 +130,10 @@ walked. Using the source height where the card uses the crop displaced the drawn
 corridor by 235.7 px, which is 29 kHz against a 17.3 kHz Doppler swing. The exporter
 measures that residual every run and refuses to write above half a pixel.
 
-The neutral palette carries an indigo cast expressed in OKLCH at IBM Carbon's own
-lightness values, so no contrast ratio moved by more than 0.03 and every accessibility
-result C6 measured still holds. scripts/check_contrast.py recomputes all 26 pairs
+The neutral palette carries a deep plum cast (OKLCH hue 305) expressed at IBM
+Carbon's own lightness values, so the hue rotation moved the largest ratio on the ramp
+by 0.026 and every accessibility result C6 measured still holds. It was indigo when this
+prompt was written and warm graphite in between. scripts/check_contrast.py recomputes all 26 pairs
 straight out of globals.css and tests/test_contrast.py fails the suite if one drops
 below its floor. Do not pick a colour by eye here. NOT_ESTABLISHED stays grey, for the
 two published standards recorded in C7, and a test fails if it turns amber again.

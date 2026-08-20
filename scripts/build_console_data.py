@@ -437,11 +437,16 @@ def build_pass_geometry(record: dict[str, Any]) -> dict[str, Any] | None:
     }
 
 
-# Gates 1 to 4 were decided in documents rather than in a machine-readable
-# receipt: gate 1 and gate 2 on feasibility counts, gate 3 on a hand-reviewed
-# sample of three testable observations, and gate 4 is open because the blinded
-# human study was never run. Their statuses are therefore declared here, with the
+# Gate 1 and gate 2 were decided in a document rather than in a machine-readable
+# receipt, on feasibility counts, so their statuses are declared here with the
 # document that decided each one named beside it.
+#
+# Gates 3, 4, 5 and 6 are not declared. Gate 4 was, as a literal `OPEN`, until a
+# review pointed out what that costs: its receipt has existed since the blinded
+# worksheet was built, so answering the worksheet would have changed the receipt and
+# changed nothing any reader sees, and someone would have had to notice and edit this
+# file, `sync_kill_gate.py` and a paragraph of `sync_for_judges.py` by hand. That is
+# the same defect this file already carries a comment about for gate 3.
 #
 # Gates 5 and 6 are not declared. They are read from the receipts, and
 # ``build_gate_summary`` refuses to run if a receipt's verdict is not one of the
@@ -461,13 +466,13 @@ _DECIDED_IN_DOCS: list[dict[str, Any]] = [
         "verdict": "PRE_PASSED",
         "decided_in": "docs/KILL_GATE.md",
     },
-    {
-        "gate": 4,
-        "title": "Blinded human decidability",
-        "verdict": "OPEN",
-        "decided_in": "docs/KILL_GATE.md",
-    },
 ]
+
+# The receipt's word for "the instrument exists and nobody has used it" is NOT_RUN, and
+# the console's word for the same state is OPEN. One mapping, declared once, rather than
+# three files that happen to agree. Every other verdict passes through unchanged, so the
+# day the worksheet is answered this file needs no edit at all.
+_RECEIPT_TO_CONSOLE = {"NOT_RUN": "OPEN"}
 
 _MET = frozenset({"PASSED", "PRE_PASSED"})
 _KNOWN_VERDICTS = _MET | {"NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE", "OPEN"}
@@ -489,7 +494,8 @@ def _load_receipt_verdict(path: Path, *, gate: int, title: str) -> dict[str, Any
             f"be published from a literal in this file."
         )
     receipt = json.loads(path.read_text(encoding="utf-8"))
-    verdict = _require(receipt, "verdict")
+    recorded = _require(receipt, "verdict")
+    verdict = _RECEIPT_TO_CONSOLE.get(recorded, recorded)
     if verdict not in _KNOWN_VERDICTS:
         raise ValueError(
             f"gate {gate} carries verdict {verdict!r}, which the console does not "
@@ -526,6 +532,18 @@ def build_gate_summary(queue: dict[str, Any], fusion: dict[str, Any]) -> dict[st
         title="Corridor intersects a visible trace",
     )
     gates.append(gate3)
+
+    # Gate 4 the same way. Its receipt is written by `scripts/score_gate4.py`, which
+    # refuses to write anything at all unless every image on disk re-hashes to the
+    # digest its commitment was taken over, so a verdict here is one that was scored
+    # against the sample that was committed to.
+    gates.append(
+        _load_receipt_verdict(
+            _REPO / "artifacts/GATE4_RECEIPT.json",
+            gate=4,
+            title="Blinded human decidability",
+        )
+    )
     gates.sort(key=lambda g: g["gate"])
 
     for number, receipt, key, title in (

@@ -185,6 +185,20 @@
   let state = load();
   let current = {};
 
+  // When the plate for the current item went on screen. The README carries a row
+  // reading "Human minutes per confirmed finding [UNMEASURED]", and the only place
+  // that number can come from is a reviewer in front of this instrument. It is not
+  // recoverable after the sitting, so it is captured now and what it means is argued
+  // about later: this is one reviewer's seconds per item on blinded plates, which is
+  // an input to minutes per confirmed finding rather than that number itself.
+  //
+  // It cannot bias the answers. Nothing on screen shows the clock, no answer is
+  // timed out, and the scorer reads the column only to summarise it: the verdict path
+  // never sees it. `csv.DictReader` tolerates the extra column, and the commitment
+  // binds the items and the images rather than the header, so adding it changes
+  // nothing the blinding rests on.
+  let shownAt = null;
+
   const el = (id) => document.getElementById(id);
   const nextIndex = () => ids.findIndex((id) => !state[id]);
 
@@ -211,9 +225,26 @@
     document.querySelectorAll(`button.opt[data-axis="${axis}"]`).forEach((b) => {
       b.setAttribute("aria-pressed", String(b.dataset.value === value));
     });
-    // Complete means the scorer can read it: artifact_usable always, and when it is
-    // yes, at least one of the other two committed. The button follows the same rule
-    // the receipt's decisive_rule states, rather than a looser one.
+    // Complete means all three axes carry a value, and that is not the same rule as
+    // the receipt's `decisive_rule`. Two things force it.
+    //
+    // The scorer validates every field of any row that has been touched at all
+    // (`score_gate4.py`, `read_responses`): once one answer is present, a blank in
+    // another is a refusal, not an implied `unsure`, because which of the two a
+    // reviewer meant is not something a script may decide. So a row recorded with a
+    // blank in it costs the whole file, an hour after the reviewer stopped being able
+    // to remember what they thought.
+    //
+    // And there is nothing here a reviewer cannot answer. An unreadable plate is
+    // `artifact_usable: no`, `visible_signal: unsure`, `target_consistent: na`, all
+    // three of which are offered. Enforcing the decisive rule in the button would be
+    // worse than the extra keypress: it would refuse to record an honest three-unsure
+    // row, which is the bias this instrument exists to avoid measuring.
+    //
+    // Two reviewers read the previous version of this comment, found it disagreed
+    // with the code below, and both proposed relaxing the code to match the comment.
+    // Both proposals were tested against the scorer and both produce a file it
+    // rejects. The comment was the defect.
     el("record").disabled = !(
       current.artifact_usable &&
       current.visible_signal &&
@@ -237,6 +268,7 @@
     );
     el("record").disabled = true;
     window.scrollTo(0, 0);
+    shownAt = performance.now();
   }
 
   function record() {
@@ -245,17 +277,24 @@
       artifact_usable: current.artifact_usable,
       visible_signal: current.visible_signal,
       target_consistent: current.target_consistent,
+      // Null rather than 0 if the page was reloaded onto this item, so a resumed
+      // session reports a gap instead of an impossibly fast decision.
+      seconds: shownAt === null ? "" : Math.round((performance.now() - shownAt) / 100) / 10,
     };
     save(state);
     show();
   }
 
   function csv() {
-    const rows = [["item", "artifact_usable", "visible_signal", "target_consistent", "notes"]];
+    const rows = [
+      ["item", "artifact_usable", "visible_signal", "target_consistent", "seconds", "notes"],
+    ];
     for (const id of ids) {
       const r = state[id];
       rows.push(
-        r ? [id, r.artifact_usable, r.visible_signal, r.target_consistent, ""] : [id, "", "", "", ""]
+        r
+          ? [id, r.artifact_usable, r.visible_signal, r.target_consistent, r.seconds ?? "", ""]
+          : [id, "", "", "", "", ""]
       );
     }
     return rows.map((r) => r.join(",")).join("\r\n") + "\r\n";

@@ -530,6 +530,58 @@ AGENT_PARA = _para(
     be scored as a failure of the policy."""
 )
 
+# What the receipt says, in the receipt's own terms. This used to be two sentences
+# asserting that nobody had filled the form in, which is true of exactly one of the four
+# verdicts the receipt can carry, on a page whose whole claim is that it is generated
+# from the receipts. A verdict this has no wording for stops the sync.
+def _gate4_state(receipt: dict) -> str:
+    verdict = receipt.get("verdict")
+    if verdict == "NOT_RUN":
+        return (
+            "`artifacts/GATE4_RECEIPT.json` currently says `NOT_RUN`, with no rate in it, "
+            "because nobody has filled the form in. That is a person's afternoon rather "
+            "than a code change, and it is reported as OPEN rather than estimated."
+        )
+    rate = receipt.get("rate")
+    lower = receipt.get("rate_lower_bound_95")
+    upper = receipt.get("rate_upper_bound_95")
+    decisive = receipt.get("decisive")
+    scored = receipt.get("observations_scored")
+    span = ""
+    if lower is not None and upper is not None:
+        span = f", 95% [{lower:.3f}, {upper:.3f}]"
+    measured = (
+        f"`artifacts/GATE4_RECEIPT.json` says `{verdict}`: {decisive} of {scored} "
+        f"first-occurrence observations were decidable, a rate of {rate:.3f}{span}"
+    )
+    if verdict == "PASSED":
+        return (
+            f"{measured}, and the whole interval clears the threshold. What the gate does "
+            f"not establish is anything about a second reader: one person's judgment is "
+            f"one person's judgment, and the instrument is reproducible from its seed so "
+            f"that a second reader can be run rather than argued about."
+        )
+    if verdict == "FAILED":
+        return (
+            f"{measured}, and the whole interval sits under the threshold. The "
+            f"pre-registration says what that means and it is not a model result: "
+            f"`docs/KILL_GATE.md` reads \"if below 80%, the labelling protocol is the "
+            f"problem, not the model\"."
+        )
+    if verdict == "NOT_ESTABLISHED":
+        return (
+            f"{measured}, so the interval spans the threshold and the gate is not met. "
+            f"The point estimate and the bound are both published rather than the "
+            f"friendlier of the two."
+        )
+    raise SystemExit(
+        f"artifacts/GATE4_RECEIPT.json carries verdict {verdict!r} and this page has no "
+        f"wording for it. A verdict nobody wrote a sentence for has to stop the sync."
+    )
+
+
+_GATE4_STATE = _gate4_state(gate4)
+
 GATE4_PARA = _para(
     f"""What has not been measured is whether a reviewer reads a generated note faster or
     better than the numbers alone. That is kill gate 4. The instrument for it exists now:
@@ -539,9 +591,7 @@ GATE4_PARA = _para(
     item id so intra-rater agreement falls out of the answers, and it commits one salted
     sha256 per item so the sample provably predates the review. `scripts/score_gate4.py`
     scores the filled form against a {gate4["threshold"]:.2f} threshold using the same exact
-    bounds gate 3 reads. `artifacts/GATE4_RECEIPT.json` currently says `{gate4["verdict"]}`,
-    with no rate in it, because nobody has filled the form in. That is a person's afternoon
-    rather than a code change, and it is reported as OPEN rather than estimated."""
+    bounds gate 3 reads. {_GATE4_STATE}"""
 )
 
 SUITE_FAILURE_PARA = (
@@ -691,6 +741,24 @@ IMPACT = _para(
     [{cold_lo:.3f}, {cold_hi:.3f}], which does clear it."""
 )
 
+GATE4_BULLET = (
+    _para(
+        """- **Nobody has read the blinded worksheet yet.** `artifacts/GATE4_RECEIPT.json`
+        says `NOT_RUN`, which is a fourth outcome beside passed, failed and inconclusive,
+        and it carries no rate because there is nothing to compute one from."""
+    )
+    if gate4.get("verdict") == "NOT_RUN"
+    else _para(
+        """- **One reader is not a protocol.** The blinded worksheet has been read and
+        `artifacts/GATE4_RECEIPT.json` carries the result, but by one reviewer in one
+        sitting. The pre-registration asks for the repeated items to be relabelled after a
+        delay and this instrument interleaves them in the same sitting at a separation of
+        six positions, which is a weaker test of intra-rater agreement than the one that
+        was written down. The bundle is reproducible from its seed, so a second reader is
+        a thing that can be run rather than a thing to argue about."""
+    )
+)
+
 STABILITY_BULLET = _para(
     f"""- **Generation is not reproducible.** Same prompt, same weights, temperature zero,
     fixed seed: {within["text_disagreement_rate"] * 100:.0f} percent of drafts differed on a
@@ -810,9 +878,7 @@ matching its receipt.
 - **A grounded note is not a useful note.** Grounding is a property of the numbers in a
   sentence. Nothing here asked a human whether the sentence was worth reading.
 {INCONCLUSIVE_BULLET}
-- **Nobody has read the blinded worksheet yet.** `artifacts/GATE4_RECEIPT.json` says
-  `NOT_RUN`, which is a fourth outcome beside passed, failed and inconclusive, and it carries
-  no rate because there is nothing to compute one from.
+{GATE4_BULLET}
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
 {PRECEDENT_BULLET}

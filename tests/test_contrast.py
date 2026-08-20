@@ -1,10 +1,18 @@
 """Every rendered colour pair meets its WCAG floor, recomputed from the tokens.
 
-The neutrals carry a deep indigo cast expressed in OKLCH at Carbon's own lightness
+The neutrals carry a deep plum cast expressed in OKLCH at Carbon's own lightness
 values, on the claim that the tint costs no contrast. This is what makes that claim
 falsifiable: it reads `apps/web/app/globals.css`, recomputes all 26 pairs, and fails
-if any drops under its floor. Picking a nicer blue by eye now fails the suite instead
+if any drops under its floor. Picking a nicer colour by eye now fails the suite instead
 of an audit.
+
+This docstring said "deep indigo" until a review found it, and it had been wrong through
+two palettes: indigo at hue 264, then warm graphite at hue 70, now plum at hue 305. A
+test that describes a palette the stylesheet abandoned is worse than an undocumented
+one, because a reader checking whether the claim is current stops here and believes it.
+The cast is named in one place, `globals.css`, and every other mention of it is a copy
+that can rot; this one is kept because a test that says only "recomputes the pairs" does
+not say what would make the recomputation matter.
 """
 
 from __future__ import annotations

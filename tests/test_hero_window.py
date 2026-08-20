@@ -155,8 +155,14 @@ def test_every_published_waterfall_is_achromatic(path: Path) -> None:
     """
     a = np.asarray(Image.open(path).convert("RGB")).astype(np.int16)
     spread = a.max(axis=2) - a.min(axis=2)
-    assert spread.max() <= 2, (
+    # 1, not 2. Measured across all 50 committed waterfalls the largest channel
+    # spread is exactly 1, and `globals.css`, the README and the claim register all
+    # state "1 part in 255" as the fact this assertion locks down. At 2 the guard
+    # would pass an image that made that sentence false in three files, which is the
+    # failure mode this whole repository is written against: a claim that quietly
+    # stops being true. A bound looser than the claim it protects protects nothing.
+    assert spread.max() <= 1, (
         f"{path.name} carries chroma: the largest channel spread is "
-        f"{spread.max()} of 255. globals.css states that every published waterfall "
-        f"is greyscale and derives the palette from it."
+        f"{spread.max()} of 255, and the published claim is 1. globals.css states "
+        f"that every published waterfall is greyscale and derives the palette from it."
     )

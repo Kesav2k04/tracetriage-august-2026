@@ -84,7 +84,16 @@ def read_responses(path: Path) -> list[dict[str, str]]:
                         f"allows {sorted(allowed)}. A value nobody can interpret must not be "
                         f"counted as a decision either way."
                     )
-            rows.append({"item": (row.get("item") or "").strip(), **answers})
+            rows.append(
+                {
+                    "item": (row.get("item") or "").strip(),
+                    **answers,
+                    # Optional and never validated against a set, because a reviewer's
+                    # pace is a summary rather than a decision. A row from an older
+                    # bundle has no such column and reads as an empty string.
+                    "seconds": (row.get("seconds") or "").strip(),
+                }
+            )
 
     seen: dict[str, int] = {}
     for index, row in enumerate(rows, start=1):
@@ -96,6 +105,66 @@ def read_responses(path: Path) -> list[dict[str, str]]:
             )
         seen[row["item"]] = index
     return rows
+
+
+def _pace(rows: list[dict[str, str]]) -> dict[str, object]:
+    """Seconds per item, if the reviewer's tool recorded them.
+
+    What this is: one reviewer's time on one blinded plate, from the moment it appeared
+    to the moment they committed an answer, in one sitting.
+
+    What it is not, stated here because the README's open row is easy to close wrongly:
+    it is not human minutes per confirmed finding. That number needs this pace and the
+    share of opened observations that turn out to carry something, and the second factor
+    belongs to the queue rather than to this gate. It is also not a rate anyone should
+    extrapolate to an operator: a reviewer working through a fixed sample with a progress
+    bar is not a volunteer deciding when to stop.
+
+    Rows with no timing are counted and excluded rather than treated as zero, because a
+    resumed session records an empty cell for the item that was on screen when the tab
+    was closed, and folding those into a mean would make the reviewer look faster than
+    they were.
+    """
+    values: list[float] = []
+    without = 0
+    for row in rows:
+        raw = row.get("seconds", "")
+        if not raw:
+            without += 1
+            continue
+        try:
+            values.append(float(raw))
+        except ValueError:
+            without += 1
+    if not values:
+        return {
+            "recorded": 0,
+            "without_timing": without,
+            "reading": (
+                "The response file carries no usable timing, which is what a bundle "
+                "answered on paper or in an older build of the review page looks like. "
+                "No pace is published rather than one inferred."
+            ),
+        }
+    values.sort()
+    mid = len(values) // 2
+    median = values[mid] if len(values) % 2 else (values[mid - 1] + values[mid]) / 2
+    return {
+        "recorded": len(values),
+        "without_timing": without,
+        "median_seconds": round(median, 1),
+        "mean_seconds": round(sum(values) / len(values), 1),
+        "fastest_seconds": round(values[0], 1),
+        "slowest_seconds": round(values[-1], 1),
+        "total_minutes": round(sum(values) / 60, 1),
+        "reading": (
+            "One reviewer's seconds per blinded plate, in one sitting, from the plate "
+            "appearing to an answer being committed. This is an input to human minutes "
+            "per confirmed finding and not that number: the missing factor is the share "
+            "of opened observations that carry something, which the queue measures and "
+            "this gate does not."
+        ),
+    }
 
 
 def is_decisive(answer: dict[str, str]) -> bool:
@@ -402,6 +471,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
         },
         "intra_rater": _agreement(pairs),
+        "reviewer_pace": _pace(rows),
         "network_label_agreement": _label_agreement(
             {item: answers[item] for item in first_occurrences}, key_by_item
         ),

@@ -31,7 +31,7 @@
     "gate": 4,
     "title": "Blinded human decidability",
     "verdict": "OPEN",
-    "decided_in": "docs/KILL_GATE.md"
+    "decided_in": "artifacts/GATE4_RECEIPT.json"
    },
    {
     "gate": 5,

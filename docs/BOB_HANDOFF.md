@@ -98,9 +98,12 @@ only run once, which is recorded in the KILL_GATE failure log.
 home page draws gate 3's real null corridors; `scripts/export_hero_nulls.py` writes
 nothing unless seven statistics reproduce `artifacts/GATE3_RECEIPT.json` to 1e-9, and
 `scripts/build_console_data.py` raises if `artifacts/HERO_NULLS.json` is absent rather
-than shipping a frame with no nulls in it. The neutral palette carries an indigo cast
-expressed in OKLCH at Carbon's own lightness values, so no contrast ratio moved by
-more than 0.03; `scripts/check_contrast.py` recomputes all 26 pairs and
+than shipping a frame with no nulls in it. The neutral palette carries a deep plum
+cast (OKLCH hue 305) expressed at Carbon's own lightness values, so the hue rotation
+moved the largest ratio on the ramp by 0.026. The page ground is the one token whose
+lightness did change, from Carbon's L 0.200 to L 0.182, which raises every ratio
+measured against it rather than lowering it; `scripts/check_contrast.py` recomputes all
+26 pairs and
 `tests/test_contrast.py` fails the suite if one drops below its floor. Do not pick a
 colour by eye here.
 

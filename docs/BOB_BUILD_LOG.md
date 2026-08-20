@@ -6331,3 +6331,104 @@ the estimate stops holding.
 bytes, so a wrap change that is not committed fails there.
 **Outcome:** the diagram fits its boxes in the fonts a reader actually has, and a detail
 too long for a box stops the build instead of losing a line.
+
+## 2026-08-20 IST | Wave D | D22: three reviews, and the fix two of them agreed on was wrong
+
+**Two independent reviewers found the same defect in `scripts/gate4_review.html` and
+proposed the same repair, and it would have cost the review.** The completion check
+requires all three axes to carry a value; the comment above it described a conditional
+rule ("artifact_usable always, and when it is yes, at least one of the other two"). Both
+reviewers concluded the code was wrong and both proposed relaxing it so that
+`artifact_usable: no` records with the other two blank.
+
+Tested against the scorer rather than reasoned about. `score_gate4.py`'s `read_responses`
+validates every field of any row that has been touched at all, so a row with two blanks
+fails with `visible_signal is '', and the form allows ['no', 'unsure', 'yes']` and the
+whole file is refused. A reviewer would have answered 72 plates over half an hour, run the
+scorer, and been told the file cannot be scored, with no way to recover what they thought.
+
+**The code was right and the comment was the defect**, which is the opposite of what the
+convergence of two reviews suggested. There is also nothing a reviewer cannot answer: an
+unreadable plate is `artifact_usable: no`, `visible_signal: unsure`,
+`target_consistent: na`, and all three are offered. Enforcing the decisive rule in the
+button would have been worse than an extra keypress, because it would refuse to record an
+honest three-unsure row, which is the bias the instrument exists to measure rather than
+produce. The comment now says all of that, including that two reviewers read the old one
+and both proposed a change that does not survive contact with the scorer.
+
+**Seconds per item, because it cannot be measured afterwards.** The README has carried
+"Human minutes per confirmed finding [UNMEASURED]" since the results table was written,
+and the only instrument that can produce its input is a reviewer in front of these plates.
+The review page now records the time from a plate appearing to an answer being committed,
+and `score_gate4.py` publishes a `reviewer_pace` block if the column is present and
+nothing if it is not. Nothing on screen shows a clock, no answer is timed out, and the
+verdict path never reads the value. Verified end to end with a synthetic 72-row file:
+median, mean, fastest, slowest, total minutes, and a count of rows without timing kept
+separate rather than folded in as zero. What the receipt says it is not, in the block
+itself: this is one reviewer's pace, and minutes per confirmed finding needs it multiplied
+by a share of opened observations that carry something, which the queue measures and this
+gate does not.
+
+**Three files published gate 4's status as a literal `OPEN` while its receipt said
+`NOT_RUN`.** `build_console_data.py`'s `_DECIDED_IN_DOCS`, `sync_kill_gate.py`'s
+`_STATIC_ROWS[4]`, and a paragraph plus a whole bullet of `sync_for_judges.py`. So
+answering the worksheet would have moved the receipt and changed nothing a reader sees
+until someone noticed and hand-edited three files. This repository already fixed exactly
+this for gate 3 and left a comment about it a few lines above the one that was still
+wrong.
+
+All three now read the receipt. `NOT_RUN` maps to `OPEN` in one declared place per file
+rather than as a coincidence between them, an unrecognised verdict stops the sync instead
+of being published as OPEN, and the judges' page has a sentence for each of the four
+verdicts the receipt can carry. Verified by regenerating everything: the only byte that
+changed is gate 4's `decided_in`, from `docs/KILL_GATE.md` to
+`artifacts/GATE4_RECEIPT.json`, which is now where the verdict comes from.
+
+**A test that could only pass while the measurement was missing.**
+`test_claim_drift.py::test_every_unmeasured_row_names_a_gate_that_produced_no_number`
+asserted two things: every `[UNMEASURED]` row must cite a gate whose verdict produced no
+number, and the row list must be non-empty. Both README markers cite gate 4, and gate 4
+is the only gate with a no-number verdict, so the moment it was scored the test became
+unsatisfiable: keeping the rows fails the first assertion, deleting them fails the second.
+The non-empty check is now conditional on such a gate existing, and when none does it
+asserts the opposite, that no row still says `[UNMEASURED]`. Proven by simulation rather
+than by reading: with gate 4 patched to `NOT_ESTABLISHED` in `provenance.json`, the test
+fails with "the hatch outlived the absence it was for" and names both rows to remove, then
+passes again once the patch is reverted.
+
+**Five smaller findings, all confirmed before being touched.** A live test's docstring
+(`tests/test_contrast.py`) described a "deep indigo cast" and had been wrong through two
+palettes, indigo then warm graphite, and is now plum. `docs/BOB_HANDOFF.md`, whose stated
+job is carrying exact state across account rotations, carried the same wrong hue and a
+stale 0.03. `docs/WAVE_D_PROMPT.md` the same phrase. `globals.css`'s `.hero-corridor`
+comment still explained the white stroke by reference to viridis and "the interface blue",
+neither of which the page has had since D16, a few hundred lines below the header comment
+that narrates catching that exact drift elsewhere. And `tests/test_hero_window.py`
+asserted `spread.max() <= 2` against a claim of "1 part in 255" published in three files:
+measured across all 50 committed waterfalls the largest spread is exactly 1, so the bound
+is now 1. A bound looser than the claim it protects protects nothing.
+
+**What still needs a human, and in what order.** The review itself, about half an hour.
+Then `scripts/score_gate4.py`. Then, and this is the part nothing here can do: if the
+verdict stops being NOT_RUN, `scripts/run_agent_study.py` refuses to run, because the gate
+4 question's expected answer is read live from the receipt and compared against the frozen
+fixture. Re-freezing needs the local Granite runtime, and the frozen answer is currently
+NOT_RUN, so the headline "22 of 24 correct with tools" may become 21 of 24 and both the
+README and the judges' page move with it. Two more: the two `[UNMEASURED]` README rows have
+to come out, which the amended test now names, and `test_for_judges.py`'s pairwise-distinct
+tally assertion fails on PASSED alone, because 6, 3, 3, 0 is not four distinct numbers.
+
+**Files changed:** `scripts/gate4_review.html`, `scripts/score_gate4.py`,
+`scripts/build_console_data.py`, `scripts/sync_kill_gate.py`, `scripts/sync_for_judges.py`,
+`tests/test_claim_drift.py`, `tests/test_contrast.py`, `tests/test_hero_window.py`,
+`apps/web/app/globals.css`, `docs/BOB_HANDOFF.md`, `docs/WAVE_D_PROMPT.md`, and the
+regenerated `FOR_JUDGES.md`, `KILL_GATE.md` and console payload.
+**Commands run:** a Playwright drive of the review page reading the CSV it downloads, the
+scorer against a synthetic 72-row bundle at a scratch output path, `sync_kill_gate.py
+--check`, `check_artifact_freshness.py`, the future-state simulation, `python -m pytest`,
+`ruff check`, `npm run build`, `scripts/gate.py`.
+**Tests:** `tests/test_gate4.py` (36) and the two amended test modules pass;
+`artifacts/GATE4_RECEIPT.json` was never written, and still reads NOT_RUN.
+**Outcome:** the instrument produces a file the scorer accepts, records the one quantity
+that cannot be recovered later, and the day it is answered three files follow the receipt
+instead of needing an editor.
