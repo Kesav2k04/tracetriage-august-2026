@@ -6285,3 +6285,49 @@ because the waterfalls are still achromatic and the display window still derives
 committed image, neither of which a ground colour can change.
 **Outcome:** the ground reads as deep space with gold emission, every contrast ratio on the
 page went up rather than down, and the one hue that is a preference is still the only one.
+
+## 2026-08-20 IST | Wave D | D21: the diagram fits on this machine and nowhere else
+
+**The README embeds `docs/architecture.svg`, so judges read it on github.com.** A
+standalone SVG carries no `@font-face`, so `font-family="IBM Plex Sans, system-ui,
+sans-serif"` resolves to whatever the reader's machine has, and almost no reader has Plex
+installed. The generator wrapped each stage's detail at `(w - 32) / 5.05` characters,
+where 5.05 is Plex Sans's own average advance at font-size 11.5.
+
+**Measured, by substituting the font away and asking the renderer.** Every text run's
+`getComputedTextLength` against the box it sits in, over three fallback stacks:
+
+| Stack | Runs inside a box | Overflowing | Worst |
+|---|---|---|---|
+| Segoe UI and Consolas | 44 | 0 | |
+| DejaVu Sans and DejaVu Sans Mono | 44 | 4 | +44px |
+| Verdana and Courier New | 44 | 4 | +47px |
+
+DejaVu runs about 5.84 px per character, not 5.05, and DejaVu is what a Linux reader and
+several rendering paths get. Four lines ran past the right edge of their panels in a
+diagram that is the README's main illustration.
+
+**Two changes, and the second one is the more important.** The divisor is now 6.0, which
+clears every fallback measured with room left. And `wrap(...)[:3]` was silently dropping a
+fourth line: a box is three lines tall, so a longer detail lost text with nothing anywhere
+to notice it. It now refuses with the stage key, the line count and the lines. Widening
+the wrap pushed two stages to a second line, which is exactly the case that would have
+been truncated one sentence later.
+
+After the change: 45 runs, 0 overflow on all three stacks, and 0 runs past the canvas edge
+including the strapline, which sits outside every box and was not covered by the first
+measurement.
+
+**What this generalises to.** Three files in this repository now read the palette out of
+`globals.css` so a colour cannot drift. This is the same class of defect one level down: a
+generator that measures with a metric it cannot guarantee the reader has. The fix is not a
+better estimate, it is an estimate that is wrong in the safe direction plus a refusal when
+the estimate stops holding.
+
+**Files changed:** `scripts/build_architecture_diagram.py`, `docs/architecture.svg`.
+**Commands run:** the three-stack overflow harness, `scripts/build_architecture_diagram.py`,
+`--check`, `ruff check`, `scripts/gate.py`.
+**Tests:** the gate already runs the diagram's `--check`, which regenerates and compares
+bytes, so a wrap change that is not committed fails there.
+**Outcome:** the diagram fits its boxes in the fonts a reader actually has, and a detail
+too long for a box stops the build instead of losing a line.

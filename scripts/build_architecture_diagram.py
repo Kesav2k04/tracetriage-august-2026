@@ -363,8 +363,25 @@ def render() -> str:
             f'<text x="{x + 16}" y="{y + 24}" fill="{t["text-01"]}" font-size="14" '
             f'font-weight="600">{escape(stage.title)}</text>'
         )
-        chars = max(28, int((w - 32) / 5.05))
-        for i, line in enumerate(wrap(stage.detail, chars)[:3]):
+        # 6.0 px per character at font-size 11.5, not 5.05. The lower figure is IBM
+        # Plex Sans's own average advance, and this file is read as an image on
+        # github.com where a standalone SVG has no @font-face and Plex is not
+        # installed. Measured in a browser with Plex substituted away, DejaVu Sans
+        # runs about 5.84 px per character and four detail lines overflowed their
+        # boxes by up to 44px; Verdana was worse. 6.0 clears every fallback measured.
+        chars = max(28, int((w - 32) / 6.0))
+        lines = wrap(stage.detail, chars)
+        if len(lines) > 3:
+            # This used to be `[:3]`, which dropped the rest without saying so. A box
+            # is three lines tall, so a detail that needs four is a detail to shorten
+            # or a box to make taller, and either way it is a decision rather than a
+            # silent truncation.
+            raise SystemExit(
+                f"stage {stage.key!r} needs {len(lines)} lines of detail at "
+                f"{chars} characters and the box holds three. Shorten the detail or "
+                f"raise the box height in STAGES.\n  " + "\n  ".join(lines)
+            )
+        for i, line in enumerate(lines):
             parts.append(
                 f'<text x="{x + 16}" y="{y + 42 + i * 15}" fill="{t["text-02"]}" '
                 f'font-size="11.5">{escape(line)}</text>'

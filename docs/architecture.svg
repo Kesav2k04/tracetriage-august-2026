@@ -61,8 +61,8 @@
 <rect x="40" y="418" width="400" height="96" fill="#292232" stroke="#3d3546" stroke-width="1"/>
 <rect x="40" y="418" width="3" height="96" fill="#fca50a"/>
 <text x="56" y="442" fill="#f5f3f6" font-size="14" font-weight="600">Image</text>
-<text x="56" y="460" fill="#c7c5ca" font-size="11.5">crop, dead-row detection, the frequency axis derived per observation</text>
-<text x="56" y="475" fill="#c7c5ca" font-size="11.5">from its own rendered ticks</text>
+<text x="56" y="460" fill="#c7c5ca" font-size="11.5">crop, dead-row detection, the frequency axis derived per</text>
+<text x="56" y="475" fill="#c7c5ca" font-size="11.5">observation from its own rendered ticks</text>
 <title>pipeline/tracetriage/waterfall.py writes artifacts/SECOND_TRACE_SURVEY.json</title>
 <text x="56" y="504" fill="#8f8b94" font-size="10" font-family="IBM Plex Mono, ui-monospace, monospace">waterfall.py  →  SECOND_TRACE_SURVEY.json</text>
 </g>
@@ -70,8 +70,8 @@
 <rect x="452" y="418" width="412" height="96" fill="#292232" stroke="#3d3546" stroke-width="1"/>
 <rect x="452" y="418" width="3" height="96" fill="#fca50a"/>
 <text x="468" y="442" fill="#f5f3f6" font-size="14" font-weight="600">Corridor fit</text>
-<text x="468" y="460" fill="#c7c5ca" font-size="11.5">one bounded offset search per observation, scored against nulls built from</text>
-<text x="468" y="475" fill="#c7c5ca" font-size="11.5">that observation's own Doppler values</text>
+<text x="468" y="460" fill="#c7c5ca" font-size="11.5">one bounded offset search per observation, scored against nulls</text>
+<text x="468" y="475" fill="#c7c5ca" font-size="11.5">built from that observation's own Doppler values</text>
 <title>pipeline/tracetriage/corridor_fit.py writes artifacts/GATE3_RECEIPT.json</title>
 <text x="468" y="504" fill="#8f8b94" font-size="10" font-family="IBM Plex Mono, ui-monospace, monospace">corridor_fit.py  →  GATE3_RECEIPT.json</text>
 </g>
@@ -79,7 +79,8 @@
 <rect x="40" y="536" width="400" height="96" fill="#292232" stroke="#3d3546" stroke-width="1"/>
 <rect x="40" y="536" width="3" height="96" fill="#fca50a"/>
 <text x="56" y="560" fill="#f5f3f6" font-size="14" font-weight="600">Features</text>
-<text x="56" y="578" fill="#c7c5ca" font-size="11.5">centre energy, HOG, and the corridor statistics the fit produces</text>
+<text x="56" y="578" fill="#c7c5ca" font-size="11.5">centre energy, HOG, and the corridor statistics the fit</text>
+<text x="56" y="593" fill="#c7c5ca" font-size="11.5">produces</text>
 <title>pipeline/tracetriage/features.py writes artifacts/corridor_features.json</title>
 <text x="56" y="622" fill="#8f8b94" font-size="10" font-family="IBM Plex Mono, ui-monospace, monospace">features.py  →  corridor_features.json</text>
 </g>
@@ -119,8 +120,8 @@
 <rect x="40" y="1008" width="400" height="96" fill="#292232" stroke="#3d3546" stroke-width="1"/>
 <rect x="40" y="1008" width="3" height="96" fill="#fca50a"/>
 <text x="56" y="1032" fill="#f5f3f6" font-size="14" font-weight="600">Reviewer note</text>
-<text x="56" y="1050" fill="#c7c5ca" font-size="11.5">Granite 3.1 dense 8B on a closed evidence packet, behind a grounding</text>
-<text x="56" y="1065" fill="#c7c5ca" font-size="11.5">checker that refuses more than it accepts</text>
+<text x="56" y="1050" fill="#c7c5ca" font-size="11.5">Granite 3.1 dense 8B on a closed evidence packet, behind a</text>
+<text x="56" y="1065" fill="#c7c5ca" font-size="11.5">grounding checker that refuses more than it accepts</text>
 <title>pipeline/tracetriage/explain.py writes artifacts/EXPLAIN_RECEIPT.json</title>
 <text x="56" y="1094" fill="#8f8b94" font-size="10" font-family="IBM Plex Mono, ui-monospace, monospace">explain.py  →  EXPLAIN_RECEIPT.json</text>
 </g>
@@ -128,8 +129,8 @@
 <rect x="452" y="1008" width="412" height="96" fill="#292232" stroke="#3d3546" stroke-width="1"/>
 <rect x="452" y="1008" width="3" height="96" fill="#fca50a"/>
 <text x="468" y="1032" fill="#f5f3f6" font-size="14" font-weight="600">Evidence agent</text>
-<text x="468" y="1050" fill="#c7c5ca" font-size="11.5">five read-only MCP tools over the receipts, measured against a control arm</text>
-<text x="468" y="1065" fill="#c7c5ca" font-size="11.5">with none</text>
+<text x="468" y="1050" fill="#c7c5ca" font-size="11.5">five read-only MCP tools over the receipts, measured against a</text>
+<text x="468" y="1065" fill="#c7c5ca" font-size="11.5">control arm with none</text>
 <title>pipeline/tracetriage/agent.py writes artifacts/AGENT_RECEIPT.json</title>
 <text x="468" y="1094" fill="#8f8b94" font-size="10" font-family="IBM Plex Mono, ui-monospace, monospace">agent.py  →  AGENT_RECEIPT.json</text>
 </g>
