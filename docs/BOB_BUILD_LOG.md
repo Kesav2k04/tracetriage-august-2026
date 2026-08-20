@@ -5394,7 +5394,9 @@ hidden.
 Three reviews ran against the release commit `13bc4ae`, one on the documents, one on the
 live console, one on the code and the statistics. The last returned ten findings, every one
 confirmed by running the code rather than by reading it. Nine are real. This entry is the
-measurement half; D15a is the console half.
+measurement half and D15a below is the console half; both shipped in `880ea04`, because the
+pages read a payload the measurement half writes and splitting them would leave a commit
+whose console build fails.
 
 **A published upper bound sat above its own ceiling.** `compute_lift` resamples episodes and
 gives each draw a budget of `round(budget / n * drawn_n)`. Rounding down on a draw whose
@@ -5525,3 +5527,116 @@ warm-cold difference each have one. 1,315 offline tests pass, none skipped.
 **Outcome:** accepted. Nine of the ten findings were real; the tenth, that the lede's verdict
 cards render stacked rather than side by side, is what `apps/web/app/globals.css:676`
 documents as deliberate and is not a defect.
+
+## 2026-08-20 IST | Wave D | D15a: what the same reviews found on the console
+
+The console half of D15, shipped in the same commit `880ea04` because the pages read a
+payload the measurement half writes. Thirteen findings from a pass over the live site at
+1440 and 390, ranked by what a judge would hit first.
+
+**The one passing result was the one that broke the layout.** `IntervalBar` computed its
+percentages without clamping them. The cold-station interval runs to 3.896 on a domain that
+stops at 2.5, so the band was drawn from 71% to 170% of its own track, escaped by 382px, and
+put a horizontal scrollbar on the whole document: at 390px the page measured 735px across,
+nearly double the viewport, every card truncated mid-word and the axis label sat off screen.
+It is the only bar on the site that does this and it is the site's best number.
+
+Clamping alone would redraw an interval as though it ended at the axis, which is a quieter
+version of the same lie, so a value outside the domain now gets a hatched marker on the edge
+it left through, the border is dropped on that side, and a caption states the full extent.
+The accessible label already carried the real numbers and still does.
+
+**The landing page never said Granite, or IBM, or AI.** The only IBM strings on it were a
+footer note about Plex the typeface and Carbon the colour theme, while `granite3.1-dense:8b`
+carries the agent page at 22 of 24 with tools against 2 of 24 without, and the Granite
+embedding is the strongest arm on the precedent page. For a judge arriving from an IBM
+challenge listing, the strongest IBM evidence in the submission was two clicks away and
+unsignposted. The lede now carries a stack line naming both models with both results, each
+linking to the page it was measured on, and both figures are read from the console data
+rather than typed, so the sentence cannot drift from the study.
+
+**Ten seconds on the first screen read "this failed."** GATES MET 2 of 6, NOT ESTABLISHED,
+and "the gate is not met" were all above the fold, and the measured win was about 1,600px
+down. The permutation result from the measurement half goes beside them at the same weight:
+0 of 2,000 random orderings matched the queue, and the reason the interval spans the
+threshold is that a budget of 50 over 87 caps every possible ordering at 1.740x, so the whole
+scale is 0.240 wide. The failure stays exactly where it was.
+
+**Fifteen column headers sat on the opposite edge from their own cells.** "What it means" on
+the home page was 1,257px from its content, "What the console shows" on the provenance page
+1,008px, "Why it is here" in the queue 386px. `Table` defaults to first column left and the
+rest right, which is right for figures and wrong for a column of sentences, and the
+`headAlign` prop whose doc comment describes this exact bug was passed by five of twenty-one
+call sites. Nothing in the suite could catch it: `tsc` accepts a missing optional prop and
+`next build` renders it happily.
+
+All twenty-one call sites now declare their alignment, and a new vitest reads the sources,
+pairs each `head={[...]}` with the `<Cell>` alignments in the first row of its body and
+requires them to agree. It has one exemption, the Brier column, whose cell is declared left
+and lays its contents out flush right, and the exemption carries its reason. Removing one
+`headAlign` was checked to fail it.
+
+**The rail's "Replay" was a dead end pointing away from the real replay.** `/replay/` has no
+buttons and no body links; the twelve-second pass playback that drives four synchronised
+instruments is on an observation page. The entry is "Baselines" now, which is what the page
+is, and the page links into an observation for the playback.
+
+**The scrub handle was 800 to 1,150px below two of the four instruments it drives.** At a
+900px viewport a reader dragging the clock could not see the sky plot or the ground track,
+while the caption told them one clock drove all four. The reason given for putting it last
+was that the cursors it drives should already be in the document, and they are either way:
+the effect that finds them runs after the whole tree commits. The controls are above the
+instruments now and stick to the top of the viewport for the whole scroll.
+
+**"Two gates decide whether this project earned its claims, and neither one passed"** sat on
+the same screen as a sidebar reading GATES MET 2 of 6, with the reconciliation at the bottom
+of the page. It is inline now: the two that are met are the feasibility gates, pre-passed
+before this work started.
+
+**The footer dumped raw markdown.** `/data/KILL_GATE.md` is 54 KB of pipe-table source
+rendered at full width by the browser. Each of the three now links to the rendered file on
+the repository with a quieter raw link beside it, because the console has to keep working
+when the repository is not reachable and because these files are checked byte for byte.
+
+**A pasted link rendered as a bare text card.** No `og:image`, and `twitter:card` was
+`summary` with no image. `scripts/build_og_image.py` draws a 1200x630 card from the queue and
+circularity receipts, set in IBM Plex decompressed out of the vendored `@fontsource` package,
+using the same Carbon Gray 100 values `globals.css` defines. Both verdicts appear at one
+size: a preview card carrying only the split that passed would be the one place in this
+project that shows a win without the failure beside it. It has a `--check` mode and a
+standing gate, which makes nineteen.
+
+**The 404 was stock Next.** Its injected style is `body{color:#000;background:#fff}` with a
+dark-scheme branch, and this app sets no `color-scheme`, so on a light-mode machine it
+painted a white content area inside dark chrome with no way back. The most likely way to
+reach it is an observation id that exists in the corpus and is not one of the twenty-five the
+console ships, so the page says that and offers the ones that are.
+
+**Two smaller things.** The overlay control truncated its own default value to "Fitted,
+predicted and ce" at 1440, on the one control that explains the three lines over the flagship
+image; its grid track was 9rem. And the queue's empty state said "clear the filter to see
+them" when nothing cleared both filters: the search box's x clears the search and leaves the
+chip. There is a clear-all in the control bar when either is set, and the empty state's
+sentence is now the button.
+
+**What the review found sound, so nobody touches it:** no console errors or warnings on any
+page, every route 200, no dead links, correct playback timing and restart, all five waterfall
+controls properly label-associated, and a 133ms load.
+
+**Not a defect.** The lede's two verdict cards render stacked rather than side by side. That
+is what `apps/web/app/globals.css:676` documents as deliberate: the pair reads top to bottom
+in the order they should be weighed rather than left to right by whichever is larger, and the
+column is 354px against the roughly 728px two cards would need.
+
+**Files changed:** `apps/web/components/ui.tsx`, `apps/web/components/Rail.tsx`,
+`apps/web/components/Colophon.tsx`, `apps/web/components/QueueTable.tsx`,
+`apps/web/components/WaterfallViewer.tsx`, `apps/web/components/PassReplay.tsx`,
+`apps/web/app/page.tsx`, `apps/web/app/evaluation/page.tsx`, `apps/web/app/replay/page.tsx`,
+`apps/web/app/provenance/page.tsx`, `apps/web/app/observation/[id]/page.tsx`,
+`apps/web/app/layout.tsx`, `apps/web/app/not-found.tsx`, `apps/web/app/globals.css`,
+`apps/web/lib/data.ts`, `apps/web/tests/table-alignment.test.ts`,
+`scripts/build_og_image.py`, `scripts/gate.py`, `README.md`.
+**Commands run:** `npx tsc --noEmit`, `npx vitest run`, `npx next build`,
+`scripts/build_og_image.py`, `scripts/gate.py`.
+**Tests:** 4 new under vitest, 107 pass across 7 files. 35 pages build.
+**Outcome:** accepted.
