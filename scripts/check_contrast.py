@@ -1,7 +1,7 @@
 """Recompute every foreground/background contrast pair from the design tokens.
 
 The console's neutrals were re-expressed in OKLCH at Carbon's own lightness values so
-the page could carry a warm graphite cast without moving a single contrast ratio. That
+the page could carry a deep plum cast without moving a single contrast ratio. That
 is a claim, and a claim needs something that can fail it. This reads the tokens out of
 `apps/web/app/globals.css`, computes the WCAG 2.1 ratio for each pair the interface
 actually renders, and compares it against the floor that pair needs.
@@ -17,8 +17,8 @@ Floors, from WCAG 2.1:
 * 3.0:1 for large text and for the boundary of a user interface component.
 
 Two pairs sit deliberately below 4.5 and are declared, not discovered:
-`--text-03` on `--ui-02` is 3.49:1 and is only used for rules and axis furniture, and
-`--ui-04` on the page ground is 3.60:1 and is a component boundary. Both are recorded
+`--text-03` on `--ui-02` is 3.50:1 and is only used for rules and axis furniture, and
+`--ui-04` on the page ground is 3.73:1 and is a component boundary. Both are recorded
 with the reason rather than rounded up or quietly excluded, because an exemption with
 no measurement attached is how a scoped-out check stops covering anything.
 

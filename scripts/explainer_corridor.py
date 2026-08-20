@@ -94,7 +94,7 @@ EXAGGERATION = (PLOT_W / (X_MAX - X_MIN)) / (PLOT_H / IMG_H)
 # The palette, read out of the console's stylesheet rather than copied into this file.
 #
 # These were seven hardcoded hex strings. They matched the site when they were written
-# and then the site's palette moved from a Carbon-blue-accented navy to a warm graphite
+# and then the site's palette moved from a Carbon-blue-accented navy to a deep plum ground
 # with an inferno accent ramp, and this scene did not, so the clip embedded halfway down
 # the landing page rendered in a colour scheme the rest of the page had abandoned. Read
 # here, it cannot happen twice.

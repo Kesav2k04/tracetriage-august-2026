@@ -54,7 +54,7 @@ def _tokens() -> dict[str, tuple[int, int, int]]:
 
     These were ten hardcoded RGB tuples under a comment saying they were "the same
     values globals.css sets". They were, once. The palette then moved from a
-    Carbon-blue-accented navy to a warm graphite with an inferno accent ramp, the
+    Carbon-blue-accented navy to a deep plum ground with an inferno accent ramp, the
     stylesheet moved with it and this file did not, so the card a pasted link renders
     was still the old design and the comment asserting otherwise was false. A second
     copy of a palette is one palette and one lie waiting, which is the same reason the

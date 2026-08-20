@@ -350,20 +350,25 @@ derived, a corridor predicted from an orbit or a conflict between two labels, so
 separate the observation from the inference without reading a legend.
 
 **The neutrals are Carbon's, re-tinted.** Each one is its Carbon Gray 100 original converted
-to OKLCH, held at exactly its Carbon lightness, given chroma 0.009 at hue 70, and converted
-back. Because OKLCH lightness is perceptually uniform and the chroma is small, no ratio
-moves: `text-01` on the page ground is 16.45:1 as Carbon ships it and 16.46:1 here, `text-03`
-is 5.45:1 and 5.45:1, and `ui-04` as a component boundary is 3.60:1 and 3.60:1. The largest
-movement across all seventeen neutrals is 0.01, which is why the tint was done this way
-instead of by picking colours that looked right: no accessibility result measured on the
-built site had to be re-argued. Hue 70 is a warm graphite, and it is the one colour on the
+to OKLCH, held at exactly its Carbon lightness, given a chroma that falls as lightness rises
+(0.030 in the darkest steps, 0.004 in the lightest) at hue 305, and converted back. Because
+OKLCH lightness is perceptually uniform and the chroma is small, the hue rotation moves the
+largest ratio on the ramp by 0.026, which is rounding. One lightness did move, the page
+ground, from Carbon's L 0.200 to L 0.182, and a darker ground can only raise a ratio measured
+against it: `text-01` on the page ground is 16.45:1 as Carbon ships it and 17.11:1 here,
+`text-03` on a rule is 3.49:1 and 3.50:1, and `ui-04` as a component boundary is 3.60:1 and
+3.73:1. All 26 pairs meet their floor. The tint was done this way instead of by picking
+colours that looked right so that no accessibility result measured on the built site had to
+be re-argued, and the chroma falls with lightness for a reason worth stating: a tinted
+mid-grey is what makes a dark theme look synthetic, while a tinted black reads as a sky, so
+the void carries the colour and the ink carries almost none. Hue 305 is a deep plum, and it is the one colour on the
 page that is a preference rather than a derivation. It is named as such in `globals.css`.
 
 **The accents are stops off the colourmap the plate is rendered through.** The home page maps
 its greyscale plate through `inferno` in an SVG filter, using the same 17-stop table
 matplotlib generates, and every accent token is a sample off that same table with the
 position it was taken from written beside it. `--link-01` is inferno at 0.80, `#fca50a`,
-measuring 9.09:1 on the page ground and 7.62:1 on a tile. Inferno was chosen for three
+measuring 9.46:1 on the page ground and 7.69:1 on a tile. Inferno was chosen for three
 properties rather than for its look: it is monotonic in lightness, so a value encoded by hue
 is also encoded by contrast; it is safe under all three common colour-vision deficiencies,
 which a blue-to-red ramp is not; and it is what matplotlib ships for spectrograms, which is

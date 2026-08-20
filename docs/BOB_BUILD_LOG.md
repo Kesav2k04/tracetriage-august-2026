@@ -6217,3 +6217,71 @@ three query variants, `npm run build`, `ruff check`, `scripts/gate.py`.
 screen, because the build, the type check, the suite and both other probes all pass on one.
 **Outcome:** the cost is measured, attributed to the one descriptor that causes it, and
 recorded next to the line someone will otherwise try to fix first.
+
+## 2026-08-20 IST | Wave D | D20: the ground moved from stone to sky
+
+**The brief was a premium, space-grade palette, and half of it was not available.** The
+accent ramp is not a preference: every accent token is a stop off matplotlib's inferno
+because inferno is the colormap the waterfalls are rendered through, which is measured,
+tested and published. Repainting it would break the one thing about this palette that is
+checkable. So the accents stayed and the ground moved.
+
+**A hue rotation, not a redesign.** Every neutral keeps the OKLCH lightness Carbon Gray 100
+gives it and only its hue and chroma change: hue 70 to hue 305, and a chroma that now falls
+as lightness rises rather than sitting flat at 0.009. That last part is the difference
+between a dark theme that looks synthetic and one that reads as a sky: 0.030 in the darkest
+three steps, 0.004 in the lightest, so the void carries the colour and the ink carries
+almost none. `--text-04` still carries none at all.
+
+**One lightness did change, and it is the only one.** The page ground went from Carbon's
+L 0.200 to L 0.182. That direction is free in the only sense that matters here: a darker
+ground can only raise a ratio measured against it.
+
+| | Carbon | warm, hue 70 | plum, hue 305 |
+|---|---|---|---|
+| text-01 on the page ground | 16.45 | 16.46 | **17.11** |
+| text-03 on a rule | 3.49 | 3.49 | **3.50** |
+| ui-04 as a component boundary | 3.60 | 3.60 | **3.73** |
+| link-01 in prose | | 9.09 | **9.46** |
+
+Largest drift attributable to the rotation alone, across the whole ramp: **0.026**, which is
+rounding. All 26 pairs in `scripts/check_contrast.py` meet their floor, and the a11y probe
+reports 0 of 2,249 text nodes below requirement across seven page types, with 0 unresolved
+backgrounds and 0 focusable elements without a focus ring.
+
+**Why 305 and not something warmer or bluer.** It is the one hue on the page that is a
+preference, and it is named as one, but what it is chosen against is not. Hue 305 sits
+roughly opposite the inferno ramp on the hue circle, far from the red the failed verdict
+owns and far from blue, so gold on it reads as emission against a void and nothing competes
+with the one hue that carries meaning. Wine and oxblood were rejected for a stated reason:
+a red-adjacent ground sits under the failed verdict's red and takes its signal away.
+
+**Four candidates were rendered on the real page before one was chosen**, at hue 305 and
+312 with dark chroma from 0.016 to 0.044, against the warm ground as the control. A hex
+string cannot tell anyone whether a cast reads as depth or as a tinted grey, and the
+strongest candidate lost: at chroma 0.044 the panels stop being instrument chrome and start
+being purple furniture.
+
+**Everything that draws the palette was regenerated rather than edited.** The architecture
+diagram, the link preview card and the Manim explainer all read the `:root` block at run
+time as of D18, so a single stylesheet edit moved all three: 17,626 bytes of SVG, a 41,316
+byte card, and a re-rendered 1,635,786 byte clip with its poster re-cut at the same
+t = 18.55 s. That is what D18 bought, one entry later.
+
+**The register keeps the warm row.** It recorded a measurement that was taken, so it is
+marked superseded and the plum measurement is its own row, with the ground's lightness
+change named as the reason the ratios moved up.
+
+**Files changed:** `apps/web/app/globals.css`, `scripts/check_contrast.py`, `README.md`,
+`scripts/build_architecture_diagram.py`, `scripts/build_og_image.py`,
+`scripts/explainer_corridor.py`, `docs/architecture.svg`, `apps/web/public/og.png`,
+`apps/web/public/media/corridor-explainer.mp4` and its poster, `docs/CLAIM_REGISTER.md`.
+**Commands run:** the OKLCH re-tint and the four-candidate render harness,
+`scripts/check_contrast.py -v`, `scripts/build_architecture_diagram.py`,
+`scripts/build_og_image.py`, `manim render -qh`, `ffmpeg`, `npm run build`, both audit
+probes over seven pages, `python -m pytest`, `ruff check`, `scripts/gate.py`.
+**Tests:** `tests/test_contrast.py` and `tests/test_hero_window.py` pass, the second
+because the waterfalls are still achromatic and the display window still derives from the
+committed image, neither of which a ground colour can change.
+**Outcome:** the ground reads as deep space with gold emission, every contrast ratio on the
+page went up rather than down, and the one hue that is a preference is still the only one.

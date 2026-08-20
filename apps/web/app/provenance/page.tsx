@@ -314,7 +314,15 @@ export default function ProvenancePage() {
             of a blocked host and not of a slow one.{" "}
             <code>apps/web/audit/paint-probe.js</code> reports which families are
             set to block, so this is measurable on any page rather than argued
-            about.
+            about.{" "}
+            <strong>
+              Those three numbers hold only while the kit is set to auto.
+            </strong>{" "}
+            It was on 2026-08-20, and the setting lives in an Adobe account rather
+            than in this repository, so it can change without a commit here to
+            record it. The probe reads the descriptor off{" "}
+            <code>document.fonts</code> at run time, which means the live page can
+            always be asked whether this paragraph is still describing it.
           </li>
           <li>
             The kit stylesheet imports a five-byte counter from{" "}

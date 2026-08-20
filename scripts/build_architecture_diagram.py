@@ -15,7 +15,7 @@ on someone remembering to re-run this.
 
 The colours are the console's tokens, read from `apps/web/app/globals.css` rather than
 retyped, which is the same reason: two copies of a palette is one palette and one
-mistake waiting. The diagram is therefore in the same warm graphite and inferno the site
+mistake waiting. The diagram is therefore in the same deep plum and inferno the site
 is, and a judge who opens the README and then the console sees one project.
 
 Why an SVG and not Mermaid: GitHub renders Mermaid, the console does not, and the

@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-20T14:19:28+05:30",
- "commit": "b83fac766bc380d3f4dfb517eb7feecb08825d39",
+ "measured_at_commit_date": "2026-08-20T15:00:22+05:30",
+ "commit": "3a7340316a66c4739bc6c38af4c8fd7441142fc4",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -37,7 +37,7 @@
  "rows": [
   {
    "file": "apps/web/public/media/corridor-explainer-poster.jpg",
-   "bytes": 31237,
+   "bytes": 31382,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
@@ -49,7 +49,7 @@
   },
   {
    "file": "apps/web/public/media/corridor-explainer.mp4",
-   "bytes": 1613559,
+   "bytes": 1635786,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
@@ -61,7 +61,7 @@
   },
   {
    "file": "apps/web/public/og.png",
-   "bytes": 41165,
+   "bytes": 41316,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": null,

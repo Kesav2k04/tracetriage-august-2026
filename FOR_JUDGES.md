@@ -98,7 +98,7 @@ the same order.
 
 IBM Bob is the primary development tool and built every load-bearing subsystem: ingestion,
 physics, the model interface, calibration, abstention, ranking, the console, the test
-suite and the release sign-off. `docs/BOB_BUILD_LOG.md` carries 55 dated entries, one per
+suite and the release sign-off. `docs/BOB_BUILD_LOG.md` carries 56 dated entries, one per
 accepted unit, each naming the files it changed, the commands that were run and what
 failed before it was accepted. `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json`
 are the standing instructions, tool contracts and MCP registration each task ran under,
@@ -171,7 +171,7 @@ frozen into a committed fixture so the publisher needs no model and no network a
 MCP server imports nothing outside the standard library and is tested with site-packages
 switched off.
 
-The repository is 33.06 MB across 322 tracked files as of commit `b83fac7`,
+The repository is 33.1 MB across 323 tracked files as of commit `3a73403`,
 `artifacts/SECRET_SCAN.json` reports 0 credential-shaped values across the history it
 scanned, and the console is a static export, so hosting it costs nothing.
 

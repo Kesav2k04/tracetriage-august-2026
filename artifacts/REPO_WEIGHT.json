@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-20T14:19:28+05:30",
- "commit": "b83fac766bc380d3f4dfb517eb7feecb08825d39",
- "tracked_files": 322,
- "tracked_bytes": 34668820,
- "tracked_megabytes": 33.06,
+ "measured_at_commit_date": "2026-08-20T15:00:22+05:30",
+ "commit": "3a7340316a66c4739bc6c38af4c8fd7441142fc4",
+ "tracked_files": 323,
+ "tracked_bytes": 34706257,
+ "tracked_megabytes": 33.1,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,7 +13,7 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 4.83
+   "megabytes": 4.86
   },
   {
    "path": "tests/fixtures",
@@ -70,7 +70,7 @@
  ],
  "by_directory_remainder": {
   "groups": 145,
-  "bytes": 2617387,
+  "bytes": 2617992,
   "megabytes": 2.5,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
@@ -89,7 +89,7 @@
   },
   {
    "path": "apps/web/public/media/corridor-explainer.mp4",
-   "megabytes": 1.539
+   "megabytes": 1.56
   },
   {
    "path": "artifacts/a3_overlays/overlay_14737186.png",

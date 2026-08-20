@@ -1,6 +1,6 @@
 /* Hallmark · macrostructure: Stat-Led (/) + Map-Diagram (/observation)
  * tone: technical, austere · genre: modern-minimal · nav: N3 side-rail · footer: Ft4 dense colophon
- * theme: IBM Carbon Gray 100 structure, warm-graphite neutrals oklch(L 0.009 70)
+ * theme: IBM Carbon Gray 100 structure, deep-plum neutrals oklch(L 0.030..0.004 305)
  * accent: matplotlib inferno, sampled at named stops
  * axes: paper-band dark / display grotesk-sans / accent warm-ordinal
  * enrichment: E-data (sky plot, ground track, Manim explainer), every mark carries a receipt value
@@ -41,21 +41,33 @@
  * being applied by the console rather than found in the data. The rationale rested
  * on a false premise about the input and is recorded here rather than deleted.
  *
- * THE NEUTRALS ARE CARBON'S LIGHTNESS, RE-TINTED WARM, AND THE TINT IS FREE.
+ * THE NEUTRALS ARE CARBON'S LIGHTNESS, RE-TINTED DEEP PLUM, AND THE TINT IS FREE.
  *
  * Carbon Gray 100 is achromatic. Every neutral below is its Carbon original
- * converted to OKLCH, held at exactly its Carbon lightness, given chroma 0.009 at
- * hue 70, and converted back. Because OKLCH lightness is perceptually uniform and
+ * converted to OKLCH, held at exactly its Carbon lightness, given a chroma that
+ * falls as lightness rises (0.030 in the darkest steps, 0.004 in the lightest) at
+ * hue 305, and converted back. Because OKLCH lightness is perceptually uniform and
  * the chroma is small, the WCAG ratios do not move: text-01 on the page ground is
- * 16.45:1 as Carbon ships it and 16.46:1 here, text-03 is 5.45:1 and 5.45:1,
- * ui-04 as a component boundary is 3.60:1 and 3.60:1. The largest movement across
- * all seventeen neutrals is 0.01. The tint was done this way, rather than by
- * picking colours that looked right, so that no accessibility result measured on
- * the built site had to be re-argued.
+ * 16.45:1 as Carbon ships it and 17.11:1 here, text-03 on a rule is 3.49:1 and
+ * 3.50:1, ui-04 as a component boundary is 3.60:1 and 3.73:1. The largest movement
+ * attributable to the hue rotation alone is 0.026 across the whole ramp, which is
+ * rounding; the rest of the gain is the one lightness that did change, the page
+ * ground, from Carbon's L 0.200 to L 0.182, and a darker ground can only raise a
+ * ratio measured against it. The tint was done this way, rather than by picking
+ * colours that looked right, so that no accessibility result measured on the built
+ * site had to be re-argued.
  *
- * Hue 70 is a warm graphite. It reads as a photographic plate rather than as a
- * screen, and it is the one hue on the page that is a preference rather than a
- * derivation. It is named as such.
+ * The chroma falls with lightness on purpose. A tinted mid-grey is what makes a
+ * dark theme look synthetic; a tinted black reads as a sky. So the void carries the
+ * colour and the ink carries almost none, and text-04 carries none at all.
+ *
+ * Hue 305 is a deep plum, and it is the one hue on the page that is a preference
+ * rather than a derivation. It is named as such. What it is chosen against is not a
+ * preference: it sits roughly opposite the inferno accent ramp on the hue circle,
+ * far from the red the failed verdict owns and far from blue, so the gold that means
+ * something reads as emission against a void, and nothing else on the page competes
+ * with it for meaning. It replaced hue 70, a warm graphite, which measured the same
+ * and read as a slab of stone rather than as a sky.
  *
  * THE ACCENTS ARE STOPS OFF THE COLOURMAP THE HERO USES.
  *
@@ -88,38 +100,59 @@
  */
 
 :root {
-  /* Backgrounds. Carbon Gray 100's own lightness values, re-tinted warm.
-     Carbon original in brackets. */
-  --ui-background: #191512;  /* Carbon #161616 */
-  --ui-01: #292521;          /* Carbon #262626 */
-  --ui-02: #3c3834;          /* Carbon #393939 */
-  --ui-03: #3c3834;          /* Carbon #393939 */
-  --ui-04: #736e6a;          /* Carbon #6f6f6f */
-  --ui-05: #f8f3ee;          /* Carbon #f4f4f4 */
-  --field-01: #292521;       /* Carbon #262626 */
-  --hover-ui: #383430;       /* Carbon #353535 */
+  /* Backgrounds. Carbon Gray 100's own lightness values, re-tinted to deep plum.
+     Carbon original in brackets.
+
+     Two decisions are stacked here and only one of them is a preference. The
+     lightness ramp is Carbon's, unchanged, which is what keeps the contrast
+     measurements below true. The cast is a choice: OKLCH hue 305 at chroma 0.030
+     in the darkest steps, falling to 0.004 in the lightest, so the void carries
+     the colour and the ink almost none. A tinted mid-grey is what makes a dark
+     theme look cheap; a tinted black is what makes it look like a sky.
+
+     Rotating the hue at fixed lightness costs no contrast, and that is arithmetic
+     rather than a hope: the largest ratio drift across the whole ramp between the
+     previous warm cast and this one is 0.026, which is rounding. The one token
+     whose lightness did move is the page ground, from Carbon's L 0.200 to L 0.182,
+     and moving a ground darker raises every ratio measured against it.
+
+     Why plum. The accent ramp is not a preference either: it is sampled off
+     matplotlib's inferno, because inferno is the colormap every waterfall on this
+     console is rendered in, so gold and amber here mean the same thing they mean
+     inside the images. Hue 305 is roughly opposite that ramp on the hue circle and
+     far from both blue and the red the failed verdict owns, so gold on it reads as
+     emission against a void rather than as amber on mud, and the one hue with a
+     job keeps it. */
+  --ui-background: #150e1d;  /* Carbon #161616 */
+  --ui-01: #292232;          /* Carbon #262626 */
+  --ui-02: #3d3546;          /* Carbon #393939 */
+  --ui-03: #3d3546;          /* Carbon #393939 */
+  --ui-04: #716d76;          /* Carbon #6f6f6f */
+  --ui-05: #f5f3f6;          /* Carbon #f4f4f4 */
+  --field-01: #292232;       /* Carbon #262626 */
+  --hover-ui: #393142;       /* Carbon #353535 */
 
   /* Text.
      One deliberate departure from Carbon's naming, unchanged by the re-tint.
      Carbon's text-03 is Gray 60 (#6f6f6f) and is the placeholder colour, not a
-     text colour: measured against this theme's two surfaces it gives 3.60:1 on
-     the page background and 3.01:1 on a tile, both under the 4.5:1 that small
+     text colour: measured against this theme's two surfaces it gives 3.73:1 on
+     the page background and 3.03:1 on a tile, both under the 4.5:1 that small
      text needs. Every caption, table label and axis tick on this console would
      have failed. --text-03 is therefore Gray 50 re-tinted, which measures
-     5.45:1 and 4.55:1, and the placeholder grey keeps its own token so a real
+     5.65:1 and 4.59:1, and the placeholder grey keeps its own token so a real
      placeholder can still use it.
 
      --text-04 is the one neutral left at zero chroma. It is pure white because
      it is the strongest ink on the page and a tinted white is a dimmer white. */
-  --text-01: #f8f3ee;         /* Carbon #f4f4f4 */
-  --text-02: #cac5c0;         /* Carbon #c6c6c6 */
-  --text-03: #918c87;         /* Carbon #8d8d8d, Gray 50 */
+  --text-01: #f5f3f6;         /* Carbon #f4f4f4 */
+  --text-02: #c7c5ca;         /* Carbon #c6c6c6 */
+  --text-03: #8f8b94;         /* Carbon #8d8d8d, Gray 50 */
   --text-04: #ffffff;
-  --text-05: #918c87;
-  --text-placeholder: #736e6a; /* Carbon #6f6f6f */
+  --text-05: #8f8b94;
+  --text-placeholder: #716d76; /* Carbon #6f6f6f */
 
   /* The ground behind a waterfall. True black rather than the theme's near-black:
-     the image is a measured intensity map, and letting the warm graphite show
+     the image is a measured intensity map, and letting the plum ground show
      through the darkest rows would render a measured zero as brighter than zero. */
   --waterfall-ground: #000000;
 
@@ -128,13 +161,13 @@
      so any of them can be re-derived with
      `matplotlib.cm.inferno(t)` and checked. */
   --interactive-01: #fca50a;  /* inferno 0.80, corridor stroke and rail marker */
-  --interactive-02: #736e6a;  /* neutral: a disabled control is not a value */
+  --interactive-02: #716d76;  /* neutral: a disabled control is not a value */
   --interactive-04: #fbbe23;  /* inferno 0.85, interactive text */
   --link-01: #fca50a;         /* inferno 0.80, 9.09:1 on the ground, 7.62:1 on a tile */
   --support-01: #eb5e61;      /* inferno 0.55 lifted, see the header note */
-  --support-02: #f8f3ee;      /* the ramp has no green, and success is not a hue here */
+  --support-02: #f5f3f6;      /* the ramp has no green, and success is not a hue here */
   --support-03: #f37819;      /* inferno 0.70, caution, always paired with a glyph */
-  --support-04: #cac5c0;      /* information is neutral: it reports, it does not rank */
+  --support-04: #c7c5ca;      /* information is neutral: it reports, it does not rank */
   --support-05: #f37819;      /* inferno 0.70 */
 
   /* Verdict colours.
@@ -170,10 +203,10 @@
      annunciation, not the colour of a link. The three curves in the waterfall
      overlay are a third axis again, three things rather than three severities, and
      they take three positions off the ramp. */
-  --verdict-passed: #f8f3ee;
-  --verdict-not-established: #cac5c0;
+  --verdict-passed: #f5f3f6;
+  --verdict-not-established: #c7c5ca;
   --verdict-failed: #eb5e61;
-  --verdict-not-measurable: #918c87;
+  --verdict-not-measurable: #8f8b94;
 
   /* Spacing, Carbon's steps */
   --sp-01: 0.125rem;
@@ -214,8 +247,8 @@
   --dur-slow-01: 400ms;
   --dur-slow-02: 700ms;
 
-  --border-subtle: #3c3834;  /* Carbon #393939 */
-  --border-strong: #736e6a;  /* Carbon #6f6f6f */
+  --border-subtle: #3d3546;  /* Carbon #393939 */
+  --border-strong: #716d76;  /* Carbon #6f6f6f */
   --focus: #ffffff;
 
   --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto,
@@ -316,8 +349,8 @@ body {
     180deg,
     var(--ui-background) 0%,
     var(--ui-background) 22%,
-    #131009 62%,
-    #0e0c07 100%
+    #0f0718 62%,
+    #080310 100%
   );
   color: var(--text-01);
   font-family: var(--font-sans);
@@ -397,7 +430,7 @@ code,
 /* The skip link's ink follows its own background rather than the page's. On the
    Carbon blue this was white on #4589ff at 3.34:1, already under the floor and
    unnoticed because the link is invisible until focused, and on the amber it would
-   have been 2.00:1. Amber on graphite measures 9.09:1, so the same pair inverted is
+   have been 2.00:1. Amber on the plum ground measures 9.46:1, so the same pair inverted is
    the fix: the accent carries the plate's ground as its ink. */
 .skip-link {
   position: absolute;
