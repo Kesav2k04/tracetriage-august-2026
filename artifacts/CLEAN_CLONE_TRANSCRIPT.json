@@ -1,10 +1,10 @@
 {
  "schema": "CLEAN_CLONE_TRANSCRIPT",
  "schema_version": "0.1.0",
- "run_at_utc": "2026-08-20T01:48:16Z",
+ "run_at_utc": "2026-08-20T14:02:47Z",
  "source_repo": "D:\\IBM August Challenge\\tracetriage-august-2026",
  "clone": "D:\\_cleanclone\\tracetriage",
- "source_commit": "dc30a8a81d751c31bd7fe2c136c94de086bf8ca0",
+ "source_commit": "047f1708301df37b5c19cabf57d5805d034debc2",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",
   "python": "3.12.13"
@@ -76,24 +76,24 @@
    "artifact": "README.md",
    "command": "scripts/sync_readme_results.py",
    "exit_code": 0,
-   "sha256_committed": "4fea3cb3dc97ca4f70a45383fa8bb3e3e36cf15ff795b691ccd16b47871d0c47",
-   "sha256_rebuilt": "4fea3cb3dc97ca4f70a45383fa8bb3e3e36cf15ff795b691ccd16b47871d0c47",
+   "sha256_committed": "314fd4ba836a6a8413d1f376161ef3b5b863236cfbfd8b67c7d74503d15e58e5",
+   "sha256_rebuilt": "314fd4ba836a6a8413d1f376161ef3b5b863236cfbfd8b67c7d74503d15e58e5",
    "identical": true
   },
   {
    "artifact": "docs/KILL_GATE.md",
    "command": "scripts/sync_kill_gate.py",
    "exit_code": 0,
-   "sha256_committed": "f19cf4870a1f24bcceba0199f370b3b59d46875701674b715e5f46fc5bb2b5e0",
-   "sha256_rebuilt": "f19cf4870a1f24bcceba0199f370b3b59d46875701674b715e5f46fc5bb2b5e0",
+   "sha256_committed": "3c44eb414fb47b308f618d0cb806e891cbce8161e42a78aa8bd02797ad15f0fe",
+   "sha256_rebuilt": "3c44eb414fb47b308f618d0cb806e891cbce8161e42a78aa8bd02797ad15f0fe",
    "identical": true
   },
   {
    "artifact": "apps/web/public/data/provenance.json",
    "command": "scripts/build_console_data.py --skip-images",
    "exit_code": 0,
-   "sha256_committed": "9a8d89736d177dbef47077d4434163c84e68d948e303920bef8b5a986b6e8054",
-   "sha256_rebuilt": "9a8d89736d177dbef47077d4434163c84e68d948e303920bef8b5a986b6e8054",
+   "sha256_committed": "155a2a1bf93cfdbcd2505e00b78a241964fb4f9b81ccc09ccaba1c05f10aa018",
+   "sha256_rebuilt": "155a2a1bf93cfdbcd2505e00b78a241964fb4f9b81ccc09ccaba1c05f10aa018",
    "identical": true
   }
  ],
@@ -103,7 +103,7 @@
    "step": "git clone (local, --no-hardlinks)",
    "command": "git clone --no-hardlinks D:\\IBM August Challenge\\tracetriage-august-2026 D:\\_cleanclone\\tracetriage",
    "exit_code": 0,
-   "seconds": 1.6,
+   "seconds": 2.1,
    "needs_outside_the_repo": "the source clone. A judge would fetch from GitHub, which needs the network.",
    "output_tail": [
     "Cloning into 'D:\\_cleanclone\\tracetriage'...",
@@ -115,7 +115,7 @@
    "step": "uv venv (an interpreter inside the clone)",
    "command": "C:\\Users\\Kesav\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.EXE venv --python D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\_cleanclone\\tracetriage\\.venv",
    "exit_code": 0,
-   "seconds": 0.1,
+   "seconds": 0.0,
    "needs_outside_the_repo": "the source interpreter, copied. uv venv does not reach the network.",
    "output_tail": [
     "Using CPython 3.12.13 interpreter at: D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe",
@@ -125,18 +125,18 @@
    "offline_violation": false
   },
   {
-   "step": "uv pip install --offline -e .[dev,onnx] into the clone's environment",
-   "command": "C:\\Users\\Kesav\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.EXE pip install --python D:\\_cleanclone\\tracetriage\\.venv\\Scripts\\python.exe --offline -e .[dev,onnx]",
+   "step": "uv pip install --offline -e .[full,dev,onnx] into the clone's environment",
+   "command": "C:\\Users\\Kesav\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.EXE pip install --python D:\\_cleanclone\\tracetriage\\.venv\\Scripts\\python.exe --offline -e .[full,dev,onnx]",
    "exit_code": 1,
-   "seconds": 2.3,
+   "seconds": 1.2,
    "needs_outside_the_repo": "a warm uv cache. --offline resolves from it and never reaches the index, so this measures whether the pinned set can be rebuilt without the network, not whether it can be resolved from scratch.",
    "output_tail": [
-    "Resolved 69 packages in 240ms",
+    "Resolved 69 packages in 197ms",
     "  \u00c3\u2014 Failed to download `torch==2.13.0`",
     "  \u00e2\u2022\u00b0\u00e2\u201d\u20ac\u00e2\u2013\u00b6 Network connectivity is disabled, but the",
     "      requested data wasn't found in the cache for:",
     "      `https://files.pythonhosted.org/packages/21/d6/e8f3c6f7e01f626f77259de9860d2a78bc84c40539e28e79b7e98b0bb659/torch-2.13.0-cp312-cp312-win_amd64.whl`",
-    "hint: `torch` (v2.13.0) was included because `tracetriage` (v0.1.0) depends on `torch`"
+    "hint: `torch` (v2.13.0) was included because `tracetriage[full]` (v0.1.0) depends on `torch`"
    ],
    "offline_violation": false
   },
@@ -155,7 +155,7 @@
    "step": "offline test suite, snapshot present",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
    "exit_code": 0,
-   "seconds": 237.6,
+   "seconds": 244.7,
    "needs_outside_the_repo": null,
    "output_tail": [
     "    torch.quantization.quantize_dynamic(model, dtype=torch.qint8, inplace=True)",
@@ -163,13 +163,13 @@
     "  D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Lib\\site-packages\\torch\\ao\\nn\\quantized\\dynamic\\modules\\rnn.py:162: UserWarning: torch.quantize_per_tensor, torch.quantize_per_channel and other quantized tensor creation functions that produce tensors with dtype torch.quint8, torch.qint8, and torch.qint32 are deprecated and will be removed in a future PyTorch release. Please see https://github.com/pytorch/pytorch/issues/184982 for more information. (Triggered internally at C:\\actions-runner\\_work\\pytorch\\pytorch\\aten\\src\\ATen\\quantized\\Quantizer.cpp:116.)",
     "    w_ih = torch.quantize_per_tensor(",
     "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
-    "1313 passed, 4 deselected, 5 warnings in 235.83s (0:03:55)"
+    "1385 passed, 14 deselected, 5 warnings in 242.95s (0:04:02)"
    ],
    "offline_violation": false,
    "counts": {
-    "summary_line": "1313 passed, 4 deselected, 5 warnings in 235.83s (0:03:55)",
-    "passed": 1313,
-    "deselected": 4,
+    "summary_line": "1385 passed, 14 deselected, 5 warnings in 242.95s (0:04:02)",
+    "passed": 1385,
+    "deselected": 14,
     "failed": 0,
     "skipped": 0
    }
@@ -178,7 +178,7 @@
    "step": "offline test suite, snapshot HIDDEN",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
    "exit_code": 0,
-   "seconds": 232.6,
+   "seconds": 240.4,
    "needs_outside_the_repo": "the interpreter named in prerequisites_not_in_the_repository. This is a judge's case for the snapshot and not necessarily for the environment, and the earlier wording claimed nothing at all was needed while the command it recorded beside it named an interpreter that may sit outside the clone.",
    "output_tail": [
     "    torch.quantization.quantize_dynamic(model, dtype=torch.qint8, inplace=True)",
@@ -186,14 +186,14 @@
     "  D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Lib\\site-packages\\torch\\ao\\nn\\quantized\\dynamic\\modules\\rnn.py:162: UserWarning: torch.quantize_per_tensor, torch.quantize_per_channel and other quantized tensor creation functions that produce tensors with dtype torch.quint8, torch.qint8, and torch.qint32 are deprecated and will be removed in a future PyTorch release. Please see https://github.com/pytorch/pytorch/issues/184982 for more information. (Triggered internally at C:\\actions-runner\\_work\\pytorch\\pytorch\\aten\\src\\ATen\\quantized\\Quantizer.cpp:116.)",
     "    w_ih = torch.quantize_per_tensor(",
     "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
-    "1283 passed, 30 skipped, 4 deselected, 5 warnings in 230.75s (0:03:50)"
+    "1353 passed, 32 skipped, 14 deselected, 5 warnings in 238.47s (0:03:58)"
    ],
    "offline_violation": false,
    "counts": {
-    "summary_line": "1283 passed, 30 skipped, 4 deselected, 5 warnings in 230.75s (0:03:50)",
-    "passed": 1283,
-    "skipped": 30,
-    "deselected": 4,
+    "summary_line": "1353 passed, 32 skipped, 14 deselected, 5 warnings in 238.47s (0:03:58)",
+    "passed": 1353,
+    "skipped": 32,
+    "deselected": 14,
     "failed": 0
    }
   },
@@ -223,7 +223,7 @@
    "step": "sync_readme_results.py --check (generated table drift)",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe scripts/sync_readme_results.py --check",
    "exit_code": 0,
-   "seconds": 0.2,
+   "seconds": 0.3,
    "needs_outside_the_repo": null,
    "output_tail": [
     "README results are current: 13 measured rows and 6 gate rows"
@@ -245,7 +245,7 @@
    "step": "regenerate README.md",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe scripts/sync_readme_results.py",
    "exit_code": 0,
-   "seconds": 0.2,
+   "seconds": 0.3,
    "needs_outside_the_repo": null,
    "output_tail": [
     "README results synced: 13 measured rows, 2 marked unmeasured",
@@ -270,7 +270,7 @@
    "step": "regenerate apps/web/public/data/provenance.json",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe scripts/build_console_data.py --skip-images",
    "exit_code": 0,
-   "seconds": 0.3,
+   "seconds": 0.4,
    "needs_outside_the_repo": null,
    "output_tail": [
     "skipping imagery and cards.json (it needs the waterfall PNGs)"
@@ -281,7 +281,7 @@
    "step": "npx tsc --noEmit",
    "command": "C:\\Program Files\\nodejs\\npx.CMD tsc --noEmit",
    "exit_code": 0,
-   "seconds": 4.3,
+   "seconds": 7.3,
    "needs_outside_the_repo": null,
    "output_tail": [],
    "offline_violation": false
@@ -290,15 +290,15 @@
    "step": "npx vitest run",
    "command": "C:\\Program Files\\nodejs\\npx.CMD vitest run",
    "exit_code": 0,
-   "seconds": 2.5,
+   "seconds": 2.7,
    "needs_outside_the_repo": null,
    "output_tail": [
-    " \u001b[32m\u00e2\u0153\u201c\u001b[39m tests/plot-helpers.test.ts \u001b[2m(\u001b[22m\u001b[2m25 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 15\u001b[2mms\u001b[22m\u001b[39m",
+    " \u001b[32m\u00e2\u0153\u201c\u001b[39m tests/plot-helpers.test.ts \u001b[2m(\u001b[22m\u001b[2m25 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 14\u001b[2mms\u001b[22m\u001b[39m",
     " \u001b[32m\u00e2\u0153\u201c\u001b[39m tests/agent-study.test.ts \u001b[2m(\u001b[22m\u001b[2m10 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 11\u001b[2mms\u001b[22m\u001b[39m",
-    "\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m7 passed\u001b[39m\u001b[22m\u001b[90m (7)\u001b[39m",
-    "\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m107 passed\u001b[39m\u001b[22m\u001b[90m (107)\u001b[39m",
-    "\u001b[2m   Start at \u001b[22m 07:17:58",
-    "\u001b[2m   Duration \u001b[22m 777ms\u001b[2m (transform 412ms, setup 0ms, collect 1.05s, tests 80ms, environment 2ms, prepare 1.38s)\u001b[22m"
+    "\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m8 passed\u001b[39m\u001b[22m\u001b[90m (8)\u001b[39m",
+    "\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m113 passed\u001b[39m\u001b[22m\u001b[90m (113)\u001b[39m",
+    "\u001b[2m   Start at \u001b[22m 19:32:20",
+    "\u001b[2m   Duration \u001b[22m 856ms\u001b[2m (transform 432ms, setup 0ms, collect 1.15s, tests 96ms, environment 2ms, prepare 1.71s)\u001b[22m"
    ],
    "offline_violation": false
   },
@@ -306,7 +306,7 @@
    "step": "npx next build",
    "command": "C:\\Program Files\\nodejs\\npx.CMD next build",
    "exit_code": 0,
-   "seconds": 16.6,
+   "seconds": 26.0,
    "needs_outside_the_repo": null,
    "output_tail": [
     "+ First Load JS shared by all             102 kB",
@@ -321,17 +321,17 @@
  ],
  "suite_with_and_without_the_snapshot": {
   "with": {
-   "summary_line": "1313 passed, 4 deselected, 5 warnings in 235.83s (0:03:55)",
-   "passed": 1313,
-   "deselected": 4,
+   "summary_line": "1385 passed, 14 deselected, 5 warnings in 242.95s (0:04:02)",
+   "passed": 1385,
+   "deselected": 14,
    "failed": 0,
    "skipped": 0
   },
   "without": {
-   "summary_line": "1283 passed, 30 skipped, 4 deselected, 5 warnings in 230.75s (0:03:50)",
-   "passed": 1283,
-   "skipped": 30,
-   "deselected": 4,
+   "summary_line": "1353 passed, 32 skipped, 14 deselected, 5 warnings in 238.47s (0:03:58)",
+   "passed": 1353,
+   "skipped": 32,
+   "deselected": 14,
    "failed": 0
   },
   "reading": "Tests that skip or fail only in the second column are tests a judge cannot run. A skip is honest and a pass that depended on the cache is not, which is why both columns are published."
@@ -339,7 +339,7 @@
  "summary": {
   "steps_run": 16,
   "steps_failed": [
-   "uv pip install --offline -e .[dev,onnx] into the clone's environment"
+   "uv pip install --offline -e .[full,dev,onnx] into the clone's environment"
   ],
   "regenerated_identical": [
    "README.md",

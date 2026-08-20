@@ -66,7 +66,7 @@ from typing import Any
 
 import numpy as np
 
-from pipeline.tracetriage.physics import (
+from .physics import (
     AXIS_SIGN_CONVENTION,
     AXIS_SIGN_MEASURABLE_RATIO,
     PEAK_DOPPLER_SLOPE_HZ_PER_S,

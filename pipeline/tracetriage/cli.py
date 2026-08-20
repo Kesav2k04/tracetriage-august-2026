@@ -128,8 +128,14 @@ def _render_measurement(d: dict[str, Any]) -> str:
             + (f", flagged {fit['degraded']}" if fit.get("degraded") else "")
         )
     axis = d["axis"]
+    # The reader rather than the derivation. `derivation` has read "axis_ticks_ocr" since
+    # before a second reader existed and it is compared against frozen values, so it keeps
+    # that name, but printing it here told every base install that easyocr had read its axis
+    # when easyocr was not installed at all. Falls back to the derivation, so a failed read
+    # still says "failed".
     lines.append(
-        f"  axis      {_fmt(axis['hz_per_px'], 2, ' Hz/px')} from {axis['derivation']}"
+        f"  axis      {_fmt(axis['hz_per_px'], 2, ' Hz/px')} from "
+        f"{axis.get('reader') or axis['derivation']}"
         + (f" at {axis['confidence']:.2f} confidence" if axis["confidence"] else "")
     )
     prov = d["provenance"]
@@ -490,6 +496,34 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+# A third-party package that is not installed and a first-party module that will not import
+# are both ImportError, and the advice for them is opposite. No amount of installing fixes
+# `No module named 'pipeline'`: the wheel ships `pipeline/tracetriage` as top-level
+# `tracetriage`, so an import written the checkout way resolves only when the repository root
+# is the working directory. Reporting that as a missing dependency sent the reader off to
+# reinstall something they already had, which is how it survived a wheel check: `--help`
+# imports none of it.
+_FIRST_PARTY = ("pipeline", "tracetriage")
+
+
+def _import_failure(command: str, exc: ImportError) -> str:
+    """The reason an import failed, in the terms the reader can act on."""
+    if (getattr(exc, "name", None) or "").split(".")[0] in _FIRST_PARTY:
+        return (
+            f"{PROGRAM} {command} could not import its own module `{exc.name}`. That is a "
+            f"packaging fault in this build and not something missing from your environment, "
+            f"so installing dependencies will not help. A clone of the repository, run with "
+            f"the repository root as the working directory, is the way round it. "
+            f"Underlying error: {exc}."
+        )
+    return (
+        f"{PROGRAM} {command} needs a dependency that is not installed: {exc}. The "
+        f"measurement path needs numpy, scipy, pillow, sgp4 and httpx, all of which are base "
+        f"dependencies of this project, so installing it covers them. The ocr extra is only "
+        f"for the neural axis reader and is not needed to report Hz."
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if getattr(args, "nulls", None) is not None and not 1 <= args.nulls <= 500:
@@ -501,13 +535,7 @@ def main(argv: list[str] | None = None) -> int:
         print("interrupted", file=sys.stderr)
         return EXIT_USAGE
     except ImportError as exc:
-        print(
-            f"{PROGRAM} {args.command} needs a dependency that is not installed: {exc}. "
-            f"The measurement path needs numpy, scipy, pillow, sgp4 and httpx, all of which "
-            f"are base dependencies, so `pip install tracetriage` covers it. The ocr extra "
-            f"is only for the neural axis reader and is not needed to report Hz.",
-            file=sys.stderr,
-        )
+        print(_import_failure(args.command, exc), file=sys.stderr)
         return EXIT_USAGE
 
 

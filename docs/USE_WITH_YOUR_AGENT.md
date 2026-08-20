@@ -11,17 +11,22 @@ SatNOGS even if you asked it to.
 ## The one-minute version
 
 ```bash
-pip install tracetriage
+git clone https://github.com/Kesav2k04/tracetriage-august-2026
+cd tracetriage-august-2026
+pip install -e .
 tracetriage triage 14740031
 ```
+
+Not on PyPI, so `pip install tracetriage` will not find it. Four lines rather than two, and
+the clone is worth having anyway: the offline server answers from the receipts inside it.
 
 ```
 observation 14740031  0 OBJECT E  station 91 (M0EYT / 2E0NOG)  2026-08-09T23:50:08Z
   mode      UNCORRECTED: energy follows the predicted Doppler curve: 25.1 sigma against 2.8 for the best vertical line
   offset    13,985 Hz  (32.05 ppm of 436,400,000 Hz)
-  evidence  p = 0.0200 over 49 own-Doppler nulls  (true 2.02 sigma against a null max of 0.57)
+  evidence  p = 0.0050 over 200 own-Doppler nulls  (true 2.02 sigma against a null max of 0.57)
   support   32 of 1532 rows above the detection floor (2.1%), flagged TRACE_NOT_MEASURABLE
-  axis      123.76 Hz/px from axis_ticks_ocr at 0.94 confidence
+  axis      123.76 Hz/px from glyph_templates at 0.94 confidence
   source    https://s3.eu-central-1.wasabisys.com/.../waterfall_14740031_2026-08-09T23-50-08.png
             sha256 e496d34e0021e6d7306ffc9602f062a56a8403feed58b0ae866be7c5825ae0cd
 ```
@@ -183,6 +188,14 @@ comparison scores a whole path's mean brightness and never asks any single pixel
 detection floor. It means the offset stands and no residual spread can be measured. Two of
 the three uncorrected observations in this project's own gate 3 receipt read exactly that.
 
+**Then `axis.reader`.** Every offset is in Hz because something read the frequency axis off
+the image, and this says what: `glyph_templates` for the template matcher, `easyocr` for the
+neural reader, `caller_supplied` when you passed labels in. Read it rather than
+`axis.derivation`, which has said `axis_ticks_ocr` since before there was a second reader and
+keeps that value because frozen comparisons are made against it. A base install has no
+easyocr in it, so `glyph_templates` is what a base install reports, and that is the whole
+reason 166 MB is enough to answer in Hz.
+
 **Then `provenance`.** Every result carries the API URL, the waterfall's sha256, the two TLE
 lines used and the time of measurement, so any number here can be recomputed by someone who
 does not believe it.
@@ -194,7 +207,7 @@ tracetriage station 1696 --budget 6
 ```
 
 ```
-station 1696: 5 observations measured, 2 decisive
+station 1696: 5 observations measured, 2 decisive        # 2026-08-09
   median offset   -28.26 ppm over 2 distinct satellites [38756, 64534]
   spread          -28.43 to -28.10 ppm  (-28.43, -28.10)
 ```
@@ -203,6 +216,26 @@ Two different satellites, agreeing to a third of a part per million. A receiver'
 error is common to everything it hears and an orbit's error is not, so agreement across
 distinct satellites is the part that points at the receiver rather than at the orbits. With
 one satellite this is not a calibration and the command says so.
+
+**You will not get those numbers.** `station` measures the station's recent queue, so it
+measures whatever that station has been hearing lately. The same command eleven days later:
+
+```
+station 1696: 6 observations measured, 3 decisive        # 2026-08-20
+  median offset   -16.42 ppm over 3 distinct satellites [39440, 59775, 64577]
+  spread          -34.48 to +5.37 ppm  (-34.48, -16.42, +5.37)
+```
+
+Three satellites this time, spanning 40 ppm and changing sign. Both runs are real and both are
+printed here, because the first one on its own would read as the general case when it is one
+day's passes. What the agreeing run shows is that this measurement *can* isolate a receiver
+error; it does not show that it always does, and a spread this wide is a result rather than a
+malfunction. The third confound the command prints is the first thing to suspect: a median
+over mixed corrected and uncorrected captures is only sound if the station's own correction is
+unbiased, and that is not measured here.
+
+The useful reading of a wide spread is that this station's recent queue does not support a
+receiver-error estimate, which is a thing an operator wants told rather than averaged away.
 
 The confounds are printed with the number, every time, and they are real: each offset also
 carries that TLE's propagation error, the axis is read from rendered tick labels so every
@@ -213,7 +246,7 @@ quantity as an uncorrected capture's offset.
 
 | Install | On disk | Can report |
 |---|---|---|
-| `pip install tracetriage` | 166 MB | Hz and ppm |
+| base install | 166 MB | Hz and ppm |
 | `pip install 'tracetriage[full]'` | 4,643 MB | the whole reproduction pipeline |
 
 Measured by summing installed files per distribution in this project's own virtualenv. The

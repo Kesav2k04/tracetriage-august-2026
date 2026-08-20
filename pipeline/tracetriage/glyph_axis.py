@@ -2,7 +2,7 @@
 
 `waterfall.py` reads the tick labels with easyocr, which works and costs four and a half
 gigabytes: easyocr declares torch, torchvision, opencv and scikit-image as its own
-dependencies, so `pip install tracetriage[ocr]` pulls all of them. Without the axis a
+dependencies, so this project's ocr extra pulls all of them. Without the axis a
 measurement can only report a pixel offset, and a pixel offset is not a frequency error, so
 a light install would be a tool that answers nothing. That is the whole reason this exists.
 

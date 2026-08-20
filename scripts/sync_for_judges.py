@@ -437,6 +437,12 @@ CHECKS: list[tuple[str, ...]] = [
         f"clean checks refused",
     ),
     (
+        "Can an agent measure something new?",
+        "`tracetriage triage <id>`, or `live_triage_observation` over MCP",
+        "A measurement of an observation recorded today, from the public SatNOGS API "
+        "with no credential. `docs/USE_WITH_YOUR_AGENT.md` has the config block",
+    ),
+    (
         "Can an agent query the evidence?",
         "`python scripts/mcp_server.py` on stdio",
         f"An MCP handshake and {len(TOOL_NAMES)} read-only tools, one of which is the "

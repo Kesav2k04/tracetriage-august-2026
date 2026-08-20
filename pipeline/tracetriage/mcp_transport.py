@@ -1,7 +1,7 @@
 """JSON-RPC 2.0 over stdio: the transport both MCP servers in this project speak.
 
 Lifted out of `scripts/mcp_server.py`, which had it inline, for one concrete reason: a
-`pip install tracetriage` ships this package and does not ship `scripts/`, so
+an install ships this package and does not ship `scripts/`, so
 `tracetriage mcp-live` could not have found a dispatcher living there. The offline server
 needs a checkout regardless, because the evidence it serves is committed files, but the
 live server needs nothing except this package and the network.

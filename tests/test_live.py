@@ -23,6 +23,7 @@ easyocr over every image in the set.
 
 from __future__ import annotations
 
+import ast
 import json
 import os
 import re
@@ -347,3 +348,42 @@ def test_every_way_the_null_test_can_not_run_names_itself():
         assert "failure" in live._NOT_TESTED_READING[key], (
             f"{key} is a measurement failure but its reading does not say so"
         )
+
+
+def test_no_shipped_module_imports_itself_by_the_checkout_name():
+    """The wheel ships `pipeline/tracetriage` as top-level `tracetriage`, so `pipeline` does
+    not exist in an install and an import written `from pipeline.tracetriage.x import y`
+    raises ModuleNotFoundError there.
+
+    This shipped: `[project.scripts]` was right, the console script ran, `--help` printed,
+    and `tracetriage triage <id>` from any directory other than the repository root died with
+    `No module named 'pipeline'`. Nothing caught it because every test in this suite runs with
+    the repository root as the working directory, where the checkout spelling resolves, and
+    the wheel check only exercised `--help`, which imports none of the measurement path.
+
+    Parsed rather than grepped. Five docstrings and Sphinx references in this package quote
+    the checkout spelling on purpose, because that is what a reader of the repository would
+    type, and a grep cannot tell those from an import statement. `ast` only sees the imports,
+    including the lazy ones inside functions, which is where three of the six were.
+    """
+    package = REPO / "pipeline" / "tracetriage"
+    offenders = []
+    for path in sorted(package.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom):
+                # `level > 0` is already relative, and `module` is None for `from . import x`.
+                module = node.module or ""
+                if node.level == 0 and module.split(".")[0] == "pipeline":
+                    offenders.append(f"{path.name}:{node.lineno} from {module} import ...")
+            elif isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name.split(".")[0] == "pipeline":
+                        offenders.append(f"{path.name}:{node.lineno} import {alias.name}")
+
+    assert not offenders, (
+        "these imports resolve in a checkout and raise ModuleNotFoundError in an install, "
+        "so the console script and the live MCP server both fail on their first measurement:"
+        + "".join(f"\n  {o}" for o in offenders)
+        + "\nUse a relative import (`from .physics import ...`), which is correct in both."
+    )

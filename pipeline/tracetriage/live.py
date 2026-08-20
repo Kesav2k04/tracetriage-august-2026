@@ -157,6 +157,9 @@ class LiveMeasurement:
     hz_per_px: float | None
     axis_derivation: str | None
     axis_confidence: float | None
+    # `axis_derivation` has said "axis_ticks_ocr" since before there was a second reader, so
+    # it does not distinguish them. This does.
+    axis_reader: str | None
 
     mode: str
     mode_reason: str
@@ -223,6 +226,7 @@ class LiveMeasurement:
             "axis": {
                 "hz_per_px": self.hz_per_px,
                 "derivation": self.axis_derivation,
+                "reader": self.axis_reader,
                 "confidence": self.axis_confidence,
             },
             "mode": {
@@ -469,6 +473,7 @@ def _identity(obs: dict, obs_id: int, phys: Any, geom: Any, rx_hz: float | None,
         "pass_duration_s": phys.pass_duration_s,
         "hz_per_px": geom.hz_per_px,
         "axis_derivation": geom.derivation,
+        "axis_reader": geom.label_reader_used,
         "axis_confidence": geom.derivation_confidence,
     }
 

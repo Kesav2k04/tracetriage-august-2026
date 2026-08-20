@@ -6691,3 +6691,121 @@ never needed. The top-level field already carries it.
 serialised and re-parsed, the evidence line read back from the rendered text. CORRECTED reports
 `flat_corridor`, UNRESOLVED reports `mode_unresolved`, UNCORRECTED reports `null` with nine
 nulls and p = 0.1000. `tests/test_live.py` 9 passed.
+
+### The install nobody had installed
+
+Everything in the agent guide starts with a console script. Every MCP registration in it is
+`"command": "tracetriage"`, every framework example shells out to `tracetriage triage`, and
+the first two lines of the one-minute version are `pip install tracetriage` and
+`tracetriage triage 14740031`. All of it rests on one claim: that an install of this project
+produces a working `tracetriage`.
+
+It did not. Two separate reasons, and the first one had already been found and fixed at the
+wrong layer.
+
+`[project.scripts]` used to read `pipeline.tracetriage.cli:main`. The wheel target ships
+`pipeline/tracetriage` as top-level `tracetriage`, so the `pipeline` prefix exists only in a
+checkout, and that entry point built, installed and raised `ModuleNotFoundError` on every
+invocation. Fixing it to `tracetriage.cli:main` made `--help` work, and `--help` was as far as
+the check went. `--help` imports argparse and nothing else.
+
+The measurement path still had six imports written the checkout way, three of them lazy
+imports inside functions:
+
+    corridor_fit.py:69   from pipeline.tracetriage.physics import (
+    features.py:54,55    from pipeline.tracetriage.{physics,splits} import ...
+    features.py:298      from pipeline.tracetriage.physics import rx_freq_of
+    fusion.py:40         from pipeline.tracetriage.features import (
+    fusion.py:485        from pipeline.tracetriage.queue import intraclass_correlation
+    baseline.py:806      from pipeline.tracetriage.waterfall import parse_waterfall
+
+`corridor_fit` is on the live path, so `tracetriage triage <id>` and the live MCP server both
+died the moment they tried to measure. Not in this repository, though: every test here runs
+with the repository root as the working directory, where `pipeline.tracetriage` resolves
+perfectly well. 1,385 passing tests could not see it. The way to see it is to leave the
+repository, which is what a judge does.
+
+Relative imports (`from .physics import ...`) are right in both, and the test that holds it
+is an `ast` walk over every shipped module rather than a grep, because five docstrings and
+Sphinx references in this package quote the checkout spelling deliberately, and a grep cannot
+tell those from an import statement. The walk also catches the lazy imports, which is where
+half of them were.
+
+Proof, since a passing suite had already proved nothing here: build the wheel, install it into
+a fresh virtualenv with base dependencies only, `cd` somewhere else, and measure. 13,985 Hz,
+32.05 ppm, p = 0.0050 over 200 own-Doppler nulls, on 166 MB with no torch anywhere near it.
+
+**The refusal was pointing the wrong way.** `No module named 'pipeline'` came back as
+"tracetriage triage needs a dependency that is not installed", followed by advice to install
+the project. Installing the project is what produced the error. A missing third-party package
+and a first-party module that will not import are both `ImportError` and want opposite
+advice, so the reason is classified before it is printed, and the live MCP server answers
+`BUILD_BROKEN` where it used to answer `DEPENDENCY_MISSING`.
+
+**`pip install tracetriage` returns 404.** The project is not on PyPI and that command was
+quoted in 11 places, one of which was the first line a judge runs. The guide now clones and
+runs `pip install -e .`, and says in a sentence that PyPI does not have it. Publishing is
+available and is not mine to do.
+
+### The axis said OCR read it, and no OCR was installed
+
+A base install has no easyocr. The template matcher reads the axis, which is the entire reason
+166 MB is enough to answer in Hz, and the claim register says so. The output said
+`derivation: "axis_ticks_ocr"`, in the JSON an agent parses and in the line a person reads.
+
+`derivation` has carried that value since before a second reader existed, and frozen
+comparisons are made against it, so renaming it would rewrite history to fix a label. A
+sibling field names the reader that actually ran: `glyph_templates`, `easyocr`, or
+`caller_supplied` when labels were passed in. Not "auto", which is what the caller asked for
+rather than what happened, and recording a request in a field that asks what ran is how a
+measurement gets replaced by a constant.
+
+Three details worth keeping. The field is a trailing defaulted field on a frozen dataclass, so
+no existing caller has to know about it. It is not added to `WaterfallGeometry.to_dict()`,
+whose docstring says it matches a schema, for the same reason the zero-null reason stayed out
+of `NullCalibration.summary()`: something downstream compares those bytes. And it has to be
+bound before the branch that sets it, because that branch does not run at all when a caller
+supplies labels, which is how the frozen fixtures and gate 3's replay work; ruff does not
+flag a possibly-unbound name, and the suite would have found it as a `NameError` in the
+replay.
+
+`hz_per_px` is 123.76237623762377 before and after, to the last digit. This moved a label and
+not a measurement.
+
+### One correction
+
+The claim register row for the five zero-null reasons said two refusals and three measurement
+failures. It is three and two: `flat_corridor`, `swing_below_floor` and `mode_unresolved` are
+refusals, `no_offset_fit` and `no_null_scored` are failures, and `tests/test_live.py` asserts
+that split against the readings. The row disagreed with the test it cites.
+
+### Two documents a judge opens, neither of which knew the surface existed
+
+`README.md` and `FOR_JUDGES.md` mentioned MCP five times between them and every one of those
+was the offline receipts server. No mention of the `tracetriage` command, the live server, or
+`docs/USE_WITH_YOUR_AGENT.md`. The agent guide is a good page that nothing linked to.
+
+README's generated regions are fenced with HTML comments, so the new section goes in the prose
+outside them. `FOR_JUDGES.md` is generated in full, so its table gained a row in
+`scripts/sync_for_judges.py` instead of in the file, and the generator moved its own heading
+from "Five checks worth running first" to "Six" without being asked, which is the machinery a
+previous entry here put in after the heading counted four while the table carried five.
+
+### The station example a judge cannot reproduce
+
+The guide printed one run of `tracetriage station 1696 --budget 6`: two satellites agreeing to
+a third of a part per million, and prose concluding that agreement across distinct satellites
+is what points at a receiver rather than an orbit. Run today from the installed wheel, the same
+command measured three satellites spanning 40 ppm and changing sign.
+
+Both are correct. `station` measures the station's recent queue and eleven days had passed, so
+these are different passes of different satellites. The defect is what the prose did with the
+first one: it read as the general case when it was one day's passes, and the command a judge is
+invited to type contradicts it in thirty seconds.
+
+Both runs are now printed, dated, with the disagreement described as a result rather than
+apologised for. Deleting the agreeing run would hide a real measurement; re-recording it as
+today's numbers would be the same mistake with a fresher date. The claim register row now says
+separability is shown possible on one station on one day, not shown general, and points at the
+confound the command already prints: a median over mixed corrected and uncorrected captures is
+only sound if the station's correction is unbiased, and nothing here measures that.

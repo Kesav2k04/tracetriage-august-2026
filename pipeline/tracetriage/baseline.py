@@ -803,7 +803,7 @@ def _geometry_of(image_path: Path):
 
 @cache
 def _parse_cached(image_path_str: str):
-    from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: PLC0415
+    from .waterfall import parse_waterfall  # noqa: PLC0415
 
     return parse_waterfall(
         Path(image_path_str),

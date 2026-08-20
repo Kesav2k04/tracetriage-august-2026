@@ -482,7 +482,7 @@ def _offline_preflight() -> list[str]:
 # `handle` and `serve` moved to `pipeline/tracetriage/mcp_transport.py` so that the live
 # server can speak the same JSON-RPC without a second copy of the batch handling, the
 # notification rule and the six named error paths, each of which is here because an input
-# ended a session once. The move was forced by packaging: a `pip install tracetriage`
+# ended a session once. The move was forced by packaging: an install of this package
 # ships the package and not `scripts/`, so a dispatcher living here could not be reached
 # by an installed entry point.
 #

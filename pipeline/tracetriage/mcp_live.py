@@ -78,11 +78,22 @@ def _live():
     try:
         from . import live
     except ImportError as exc:  # pragma: no cover - exercised by the preflight test
+        first_party = (getattr(exc, "name", None) or "").split(".")[0] in (
+            "pipeline",
+            "tracetriage",
+        )
         raise ToolError(
-            "DEPENDENCY_MISSING",
-            f"the live measurement needs numpy, scipy, pillow, sgp4 and httpx: {exc}. "
-            f"All five are base dependencies, so `pip install tracetriage` is enough; the "
-            f"ocr extra is only for the neural axis reader and is not needed for Hz.",
+            "BUILD_BROKEN" if first_party else "DEPENDENCY_MISSING",
+            (
+                f"this build cannot import its own module `{exc.name}`, which is a packaging "
+                f"fault and not a missing dependency: installing more packages will not fix "
+                f"it, and running from a clone of the repository will."
+                if first_party
+                else f"the live measurement needs numpy, scipy, pillow, sgp4 and httpx: "
+                f"{exc}. All five are base dependencies of this project, so installing it is "
+                f"enough; the ocr extra is only for the neural axis reader and is not needed "
+                f"for Hz."
+            ),
         ) from exc
     return live
 
@@ -333,7 +344,7 @@ def live_preflight() -> list[str]:
     except ImportError as exc:
         problems.append(
             f"the measurement stack is not importable ({exc}); numpy, scipy, pillow, sgp4 "
-            f"and httpx are all base dependencies, so `pip install tracetriage` is enough"
+            f"and httpx are all base dependencies of this project, so installing it is enough"
         )
         return problems
 
@@ -350,7 +361,7 @@ def live_preflight() -> list[str]:
             f"in an observation's metadata gives frequency per pixel, so there is no "
             f"fallback here that would not be an invented number. Regenerate it with "
             f"scripts/build_glyph_templates.py from a checkout, or install the neural "
-            f"reader instead with `pip install tracetriage[ocr]`"
+            f"reader instead by installing this project's ocr extra"
         )
     return problems
 

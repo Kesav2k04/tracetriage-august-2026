@@ -51,8 +51,8 @@ from typing import Any
 
 import numpy as np
 
-from pipeline.tracetriage.physics import corridor_for_obs
-from pipeline.tracetriage.splits import FIELD_CLASSIFICATION
+from .physics import corridor_for_obs
+from .splits import FIELD_CLASSIFICATION
 
 _REPO = Path(__file__).resolve().parents[2]
 _CORRIDOR_CACHE = _REPO / "artifacts" / "corridor_features.json"
@@ -295,7 +295,7 @@ def metadata_features(rec: dict[str, Any], client_family: str | None = None) -> 
         sweep = min(d, 360.0 - d)
 
     lat = rec.get("station_lat")
-    from pipeline.tracetriage.physics import rx_freq_of
+    from .physics import rx_freq_of
 
     invert = rec.get("transmitter_invert")
     return {

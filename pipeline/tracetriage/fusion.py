@@ -37,7 +37,7 @@ from typing import Any
 
 import numpy as np
 
-from pipeline.tracetriage.features import (
+from .features import (
     CORRIDOR_FEATURES,
     METADATA_CATEGORICAL,
     PHYSICS_FEATURES,
@@ -482,7 +482,7 @@ def clustering_diagnostics(
     one-way ICC unit C2 applies to gate 6, so the two gates cannot disagree about what
     clustering means.
     """
-    from pipeline.tracetriage.queue import intraclass_correlation  # noqa: PLC0415
+    from .queue import intraclass_correlation  # noqa: PLC0415
 
     diff = _paired_brier_difference(challenger, reference, labels)
     by_group: dict[Any, list[float]] = {}

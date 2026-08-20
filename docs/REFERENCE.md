@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 24 JSON artifacts, 8 contracts, 38 scripts, 23 package modules and 1130 test functions across 47 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 24 JSON artifacts, 8 contracts, 38 scripts, 23 package modules and 1131 test functions across 47 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -27,7 +27,7 @@ file that no longer exists in that form.
 | `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 81,359 | `3b80f5f243b17349` | `scripts/audit_release.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `BASELINE_RECEIPT.json` | BASELINE_RECEIPT | 0.1.0 | none | 9,010 | `e0912b1454763c14` | `scripts/build_architecture_diagram.py`, `scripts/run_baseline.py`, `scripts/run_triage_slice.py` | `test_baseline.py` |
 | `CIRCULARITY_RECEIPT.json` | tracetriage/circularity/v1 | 1.0.0 | none | 11,690 | `8dc893191f74d0cd` | `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/run_circularity_check.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_circularity.py` |
-| `CLEAN_CLONE_TRANSCRIPT.json` | CLEAN_CLONE_TRANSCRIPT | 0.1.0 | none | 17,067 | `a819866790a035f7` | `scripts/clean_clone_check.py`, `scripts/sync_for_judges.py` | `test_clean_clone.py`, `test_for_judges.py` |
+| `CLEAN_CLONE_TRANSCRIPT.json` | CLEAN_CLONE_TRANSCRIPT | 0.1.0 | none | 17,098 | `be93968a1da88872` | `scripts/clean_clone_check.py`, `scripts/sync_for_judges.py` | `test_clean_clone.py`, `test_for_judges.py` |
 | `corridor_features.json` | CORRIDOR_FEATURES | 0.1.0 | none | 543,929 | `dea323857f560cc8` | `pipeline/tracetriage/features.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/clean_clone_check.py`, `scripts/extract_corridor_features.py`, `scripts/measure_throughput.py`, `scripts/run_queue.py`, `scripts/sync_docs.py` | `test_console_export.py`, `test_reference_sync.py` |
 | `DATASET_MANIFEST.json` | none declared | 0.2.1 | none | 2,359,254 | `9fb0c0a28175e7ef` | `pipeline/tracetriage/baseline.py`, `pipeline/tracetriage/snapshot.py`, `pipeline/tracetriage/splits.py`, `scripts/audit_release.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_splits.py`, `scripts/measure_throughput.py`, `scripts/run_baseline.py`, `scripts/run_gate3.py`, `scripts/run_precedent_study.py`, `scripts/run_triage_slice.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py` | `test_base_rates.py`, `test_baseline.py`, `test_contracts.py`, `test_snapshot.py`, `test_snapshot_isolation.py`, `test_splits.py` |
 | `EXPLAIN_RECEIPT.json` | none declared | n/a | none | 24,915 | `304b475a589cc2ec` | `scripts/build_architecture_diagram.py`, `scripts/run_agent_study.py`, `scripts/run_explanations.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_explain_receipt.py` |
@@ -169,7 +169,7 @@ Receipts no test names: `THROUGHPUT_RECEIPT.json`.
 | `tests/test_hero_nulls.py` | 12 | The opening frame draws the nulls that were scored, and this is the proof. |
 | `tests/test_hero_window.py` | 5 | The hero plate's display window, checked against the image it windows. |
 | `tests/test_kill_gate_sync.py` | 6 | docs/KILL_GATE.md must equal what its generator renders from the receipts. |
-| `tests/test_live.py` | 9 | The live path measures what gate 3 measured, on gate 3's own observations. |
+| `tests/test_live.py` | 10 | The live path measures what gate 3 measured, on gate 3's own observations. |
 | `tests/test_mcp_server.py` | 32 | The evidence server, driven through its own transport (unit E3). |
 | `tests/test_physics.py` | 97 | Offline tests for pipeline/tracetriage/physics.py (Unit A4). |
 | `tests/test_precedent.py` | 33 | Precedent retrieval, tested where a retrieval study fools itself (unit E8). |

@@ -597,7 +597,7 @@ Requires Python 3.12 and Node 22, and [uv](https://docs.astral.sh/uv/). Nothing 
 service, no key, no model download for the judged path.
 
 The `full` extra is what the judged path needs, and it is an extra rather than a base
-dependency so that `pip install tracetriage` is 166 MB instead of 4,643 MB. Reproducing the
+dependency so that the base install is 166 MB instead of 4,643 MB. Reproducing the
 receipts wants all of it; measuring one live observation wants none of it.
 
 ```bash
@@ -627,6 +627,34 @@ publishes a number runs in that gate.
 The reviewer notes need the model only to be re-frozen. `scripts/run_explanations.py
 --freeze` is the step that talks to it; the default run publishes from the committed fixture
 and needs neither the model nor the network.
+
+## Point your own agent at it
+
+Two MCP servers and a CLI, no credential for either. `docs/USE_WITH_YOUR_AGENT.md` is the
+whole thing in a page, with the config block for Claude Code, Claude Desktop, Cursor, Windsurf
+and Zed, and the four lines that drive the server by hand when a config is wrong.
+
+```bash
+git clone https://github.com/Kesav2k04/tracetriage-august-2026
+cd tracetriage-august-2026
+pip install -e .
+tracetriage triage 14740031          # measure an observation recorded today
+tracetriage station 1696 --budget 6  # a station's own frequency error, across satellites
+```
+
+| Surface | Answers from | Tools |
+|---|---|---|
+| `tracetriage-live` | the public SatNOGS API, now | `live_triage_observation`, `live_list_observations`, `live_rank_observations` |
+| `tracetriage-evidence` | the receipts committed in this repository | 5 read-only tools, offline, enforced by parsing its own imports |
+
+`.mcp.json` at the root registers both, so a client opened on a clone of this repository has
+them with nothing to configure. The live tools carry the `live_` prefix because a number
+measured this minute and a number this project was scored on must not be confusable by an
+agent reading a tool result.
+
+The base install is 166 MB and answers in Hz, because the frequency axis is read by a template
+matcher over rendered digits rather than a neural model. `full` adds easyocr and torch and is
+needed to reproduce the frozen receipts, not to measure something new.
 
 ## Continuous integration
 

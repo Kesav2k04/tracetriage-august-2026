@@ -89,6 +89,13 @@ class WaterfallGeometry:
     derivation: str            # "axis_ticks" | "axis_ticks_ocr" | "failed"
     derivation_confidence: float | None
     degraded: str | None
+    # Which reader produced the labels, when one did. `derivation` cannot answer this: it has
+    # said "axis_ticks_ocr" since before a second reader existed, and it is compared against
+    # frozen values, so it keeps that name. Without this field a base install with no easyocr
+    # present reports its axis as OCR-derived, which is the opposite of the claim that the
+    # axis needs no neural model. "auto" is never a value here, because it names what the
+    # caller asked for rather than what ran.
+    label_reader_used: str | None = None
 
     def to_dict(self) -> dict:
         """Return a JSON-serialisable dict matching the schema."""
@@ -776,6 +783,11 @@ def parse_waterfall(
     #   "ocr"    easyocr, which needs the extra and therefore torch.
     #   "glyph"  the template matcher in glyph_axis, numpy and scipy only.
     #   "auto"   glyph first, easyocr only if the glyph reader found too few labels to fit.
+    # Bound before the branch, because the branch below does not run at all when a caller
+    # supplies `ocr_results`, which is how the frozen fixtures and gate 3's replay work. Those
+    # get "caller_supplied": the labels came from the caller and naming a reader would be a
+    # false statement about where they came from.
+    reader_used: str | None = None if ocr_results is None else "caller_supplied"
     if ocr_results is None:
         try:
             label_band, _, _ = _extract_label_band(rgb, plot_box)
@@ -799,6 +811,7 @@ def parse_waterfall(
         # bar for "enough", not a separate number invented here.
         if len(glyph_labels) >= _MIN_TICKS or label_reader == "glyph":
             ocr_results = glyph_labels
+            reader_used = "glyph_templates"
         else:
             try:
                 ocr_results = _ocr_labels(label_band)
@@ -807,6 +820,7 @@ def parse_waterfall(
             except Exception as exc:  # noqa: BLE001
                 logger.warning("OCR failed for obs %d: %s", observation_id, exc)
                 return _make_failed(observation_id, img_w, img_h, "NO_OCR_BACKEND")
+            reader_used = "easyocr"
 
     hz_values, ocr_conf = _parse_ocr_labels(ocr_results, tick_xs, plot_box)
 
@@ -851,6 +865,7 @@ def parse_waterfall(
         seconds_per_px=seconds_per_px,
         centre_px=centre_px,
         derivation="axis_ticks_ocr",
+        label_reader_used=reader_used,
         derivation_confidence=confidence,
         degraded=None,
     )
