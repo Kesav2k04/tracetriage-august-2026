@@ -197,6 +197,11 @@
    "bytes": 234971
   },
   {
+   "name": "THROUGHPUT_RECEIPT.json",
+   "sha256": "1f814b6406e9308e00388de48d65ea12b856ffefa3e5c7d94c01667157633d7c",
+   "bytes": 3171
+  },
+  {
    "name": "TRIAGE_RECEIPT.json",
    "sha256": "08be0ca60bac7e75d8f7ebee416677a7c555342537a2bf3f39be9a752a9f50b0",
    "bytes": 3847

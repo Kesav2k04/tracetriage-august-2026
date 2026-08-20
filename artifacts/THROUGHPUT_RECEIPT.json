@@ -1,0 +1,59 @@
+{
+ "schema": "THROUGHPUT_RECEIPT",
+ "schema_version": 1,
+ "generated_by": "scripts/measure_throughput.py",
+ "what_the_network_produces": {
+  "captures_timestamped": 2500,
+  "observations_without_a_waterfall": 227,
+  "first_capture_utc": "2026-08-09T14:32:03Z",
+  "last_capture_utc": "2026-08-09T23:56:17Z",
+  "span_hours": 9.4,
+  "captures_per_day": 6380,
+  "reading": "Captures with a waterfall, per day, extrapolated from a span of 9.40 hours. This is the population the pipeline applies to: an observation with no image cannot be triaged from one."
+ },
+ "what_one_observation_costs": {
+  "corridor_fit": {
+   "artifact": "artifacts/corridor_features.json",
+   "observations": 743,
+   "elapsed_s": 934.4,
+   "seconds_per_observation": 1.2576,
+   "observations_per_day_one_core": 68702
+  },
+  "second_trace_survey": {
+   "artifact": "artifacts/SECOND_TRACE_SURVEY.json",
+   "observations": 743,
+   "elapsed_s": 866.6,
+   "seconds_per_observation": 1.1664,
+   "observations_per_day_one_core": 74077
+  }
+ },
+ "what_ingestion_costs": {
+  "elapsed_s": 4962.4,
+  "observations_stored": 2727,
+  "waterfalls_downloaded": 2500,
+  "seconds_per_observation": 1.8197,
+  "request_interval_seconds": 0.4,
+  "reading": "Wall clock for 110 API pages plus one image download per observation, against a 0.4-second courtesy interval between requests. Neither the interval nor the download is a property of this pipeline, and at a ground station the image is already on disk."
+ },
+ "headroom": {
+  "dominant_stage": "artifacts/corridor_features.json",
+  "seconds_per_observation": 1.2576,
+  "observations_per_day_one_core": 68702,
+  "network_observations_per_day": 6380,
+  "cores_to_keep_up": 0.093,
+  "headroom_multiple": 10.77,
+  "reading": "One core processes 68702 observations a day at the dominant measured stage, against 6380 the network produced in the span this snapshot covers. That is 10.77 times the load on a single core, so the pipeline is not compute-bound at network scale."
+ },
+ "the_actual_constraint": {
+  "compute_seconds_per_observation": 1.2576,
+  "ingestion_seconds_per_observation": 1.8197,
+  "ratio": 1.447,
+  "reading": "Ingestion costs more per observation than the corridor fit does, and it is bound by a courtesy interval and a 1.7 MB image download rather than by anything this project computes. The deployment that removes it is the obvious one: run at the station, where the waterfall is already local and there is no API to be polite to."
+ },
+ "what_this_does_not_measure": [
+  "The capture span is 9.4 hours inside one day. A day rate from it is one observation of the network's rate, not a long-run average.",
+  "elapsed_s covers the corridor fit and the second-trace survey only. SGP4, the fusion forward pass and the queue sort are cheaper per observation and are not in it, and Granite is not per observation at all.",
+  "Both stages were timed on one machine, single-threaded. The core count is a division and not a measured parallel speed-up.",
+  "No figure here is a claim about latency. The queue is a batch reading order, and nothing in this project needs to answer inside a pass."
+ ]
+}

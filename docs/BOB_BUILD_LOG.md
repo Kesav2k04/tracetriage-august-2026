@@ -6034,3 +6034,65 @@ it.
 **Outcome:** the palette is a derivation with two checks behind it, the accessibility claim is
 measured again on a probe that can no longer invent a background, and gate 4 is one human
 review from a verdict.
+
+## 2026-08-20 IST | Wave D | D17: whether it would keep up with the network
+
+**The README had nothing on scalability, and it is a quarter of the score.** Criterion 4
+is practicality, scalability and potential for real-world use, three of four judge seats
+scored it lowest, and the file did not contain a rate for what SatNOGS produces, a cost
+per observation, or therefore any answer to the only scalability question that has an
+honest form: does the thing keep up.
+
+**All three were already measurable from artifacts in the repository.** Every stored
+observation's `waterfall_url` embeds the capture time the station wrote into the object
+key, so the snapshot carries the network's own rate. Two stages recorded `elapsed_s`
+against `n_requested` over the same 743 observations. And `DATASET_MANIFEST.json` records
+`built_at` and `completed_at` around a run that fetched 110 pages and 2,500 images, so
+the difference is the fetch cost. `scripts/measure_throughput.py` computes all of it and
+writes `artifacts/THROUGHPUT_RECEIPT.json`; `scripts/gate.py` re-runs it with `--check`,
+because every figure in it is derived from another artifact and goes stale when that one
+is re-run.
+
+| | Measured |
+|---|---|
+| Network output | 6,380 observations with a waterfall per day, over 2,500 captures spanning 9.40 hours |
+| Cost per observation | 1.2576 s single-threaded at the dominant stage, 743 in 934.4 s |
+| One core | 68,702 observations a day |
+| Headroom | 10.77x |
+| Ingestion | 1.8197 s per observation, wall clock |
+
+**The last row is the finding.** Fetching an observation costs 1.447 times what
+processing it does, and that cost is a 0.4-second courtesy interval plus a 1.7 MB image
+download. Neither is a property of this pipeline. The project is not compute-bound at
+network scale, which also names its deployment: run at the ground station, where the
+waterfall is already on disk and there is no public API to be polite to.
+
+**A scalability claim with no boundary is not a measurement**, so four are stated in the
+receipt and in the README. The capture span is 9.40 hours inside one day, so the day rate
+is one observation of the network's rate and not a long-run average. The 1.2576 s covers
+the corridor fit and the second-trace survey only, and excludes SGP4, the fusion forward
+pass and the queue sort, all cheaper, and Granite, which is not per observation. Both
+stages were timed single-threaded on one machine, so the core count is a division rather
+than a measured parallel speed-up. And nothing in it is a latency claim: the queue is a
+batch reading order and no part of this project answers inside a pass.
+
+The script refuses rather than reporting a subset: if a waterfall URL no longer carries a
+parseable capture time it raises with the count and the first three ids, because a rate
+computed over an unstated subset is the failure this repository keeps finding.
+
+**Also in this entry.** The README described the fifth console page as "the offline
+replay". That page is titled "The queue against the baselines" and its nav label is
+"Baselines", and the same phrase is used twice more in the file to mean the CI clean-clone
+run, so one phrase named two different things and neither match was the page. It now says
+what the page is.
+
+**Files changed:** `scripts/measure_throughput.py` (new),
+`artifacts/THROUGHPUT_RECEIPT.json` (new), `scripts/gate.py`, `README.md`,
+`docs/CLAIM_REGISTER.md`.
+**Commands run:** `scripts/measure_throughput.py`, `--check`, `python -m pytest`,
+`ruff check`, `scripts/gate.py`.
+**Tests:** the register's three new rows are checked by `tests/test_claim_drift.py`
+against the receipt they cite.
+**Outcome:** the repository now answers the scalability question with three measured
+numbers and four stated boundaries, and the answer is that ingestion costs more than
+inference.

@@ -147,6 +147,18 @@ def main() -> int:
         )
     )
 
+    # The throughput receipt is the only place the repository answers whether this would
+    # keep up with the network, and every figure in it is derived from other artifacts.
+    # It goes stale the moment the snapshot or either timed stage is re-run.
+    rc, out = run([str(PY), str(REPO / "scripts" / "measure_throughput.py"), "--check"])
+    results.append(
+        check(
+            "throughput receipt matches its inputs",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
     # The architecture diagram names a module and a receipt per stage, and both are
     # checked against the tree before it is drawn. An ASCII block could describe a
     # pipeline that no longer existed; this cannot, but only if something re-runs it.
