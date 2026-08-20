@@ -77,6 +77,14 @@ _DISK_WRITES = frozenset(
 _STREAM_RECEIVER = "sink"
 _STREAM_WRITE_SITES = 1
 
+#: The transport moved to the package so that `tracetriage mcp-live` could reach a
+#: dispatcher from an installed wheel, which does not ship `scripts/`. That took the one
+#: exempt `sink.write` with it, and the scan below asserted a count of 1 against the server
+#: file alone, so it failed rather than passing over an empty file: the exemption count is
+#: what caught the writer leaving. The scan now reads both files, because a read-only claim
+#: about a server that dispatches through another module is a claim about both of them.
+_TRANSPORT = REPO / "pipeline" / "tracetriage" / "mcp_transport.py"
+
 
 def _call(name: str, arguments: dict | None = None) -> dict:
     """One tools/call through the handler, with the payload decoded."""
@@ -400,21 +408,33 @@ def _write_sites(tree: ast.AST) -> tuple[list[str], list[str]]:
 
 
 def test_the_server_holds_no_write_verb_and_no_network_import():
-    """The capability claim, checked against the source rather than the documentation."""
-    tree = ast.parse(_SERVER.read_text(encoding="utf-8"), filename=str(_SERVER))
-    imports: set[str] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            imports.update(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom) and node.module:
-            imports.add(node.module)
+    """The capability claim, checked against the source rather than the documentation.
 
-    writes, exempt = _write_sites(tree)
-    assert not writes, f"the read-only server writes: {writes}"
-    assert len(exempt) == _STREAM_WRITE_SITES, (
-        f"the stream exemption covers {_STREAM_WRITE_SITES} call site and this file has "
-        f"{len(exempt)}: {exempt}. Route every response through one writer rather than "
-        f"widening the exemption."
+    Both files, because the server dispatches through the transport: a scan of the server
+    alone would have said read-only about a file that hands every request to another one.
+    """
+    assert _TRANSPORT.exists(), f"{_TRANSPORT} is where the dispatcher lives"
+    trees = {
+        path: ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for path in (_SERVER, _TRANSPORT)
+    }
+    imports: set[str] = set()
+    for tree in trees.values():
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imports.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imports.add(node.module)
+
+    total_exempt: list[str] = []
+    for path, tree in trees.items():
+        writes, exempt = _write_sites(tree)
+        assert not writes, f"{path.name} writes: {writes}"
+        total_exempt.extend(exempt)
+    assert len(total_exempt) == _STREAM_WRITE_SITES, (
+        f"the stream exemption covers {_STREAM_WRITE_SITES} call site and these two files "
+        f"have {len(total_exempt)}: {total_exempt}. Route every response through one writer "
+        f"rather than widening the exemption."
     )
     offenders = sorted(
         m for m in imports if m.split(".")[0] in {"httpx", "requests", "socket", "urllib"}
@@ -632,6 +652,54 @@ def test_the_registration_names_the_server_that_exists():
         f"{command!r} is a path from one machine, so the registration is broken for "
         f"everyone else who reads it"
     )
+
+
+def test_the_project_registration_names_servers_that_exist():
+    """`.mcp.json` is the file a client reads on clone, so it is a claim about both servers.
+
+    Separate from `.bob/mcp.json`, which is Bob's own registration and is pinned to exactly
+    one server by the test above. This one registers both, because a judge opening this
+    repository should get the live tools as well as the receipts without editing anything.
+
+    Two registration files can drift, which is why this exists: every server named here has to
+    resolve to something that is tracked and startable, and its key has to be the name that
+    server advertises about itself.
+    """
+    project = json.loads((REPO / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]
+    assert set(project) == {"tracetriage-evidence", "tracetriage-live"}, sorted(project)
+
+    for name, spec in project.items():
+        command = spec["command"]
+        assert "/" not in command and "\\" not in command, (
+            f"{name}: {command!r} is a path from one machine and this file is public"
+        )
+        args = spec["args"]
+        if "-m" in args:
+            module = args[args.index("-m") + 1]
+            target = REPO / Path(*module.split(".")).with_suffix(".py")
+        else:
+            scripts = [a for a in args if a.endswith(".py")]
+            assert len(scripts) == 1, f"{name}: {args}"
+            target = REPO / scripts[0]
+        assert target.exists(), f"{name} launches {target}, which does not exist"
+        assert _tracked(target), (
+            f"{name} launches {target.name}, which is not tracked, so a judge who clones "
+            f"this repository cannot start it"
+        )
+
+    # The names are what each server calls itself, not labels chosen here.
+    assert project["tracetriage-evidence"]["args"][0].endswith("mcp_server.py")
+    from pipeline.tracetriage import mcp_live
+
+    assert project["tracetriage-live"]["args"][-1].endswith("mcp_live")
+    assert mcp_live.SERVER_NAME == "tracetriage-live", mcp_live.SERVER_NAME
+    assert SERVER_NAME == "tracetriage-evidence", SERVER_NAME
+
+    # The live server's tools are namespaced, and that prefix is load-bearing rather than
+    # decorative: it is what stops an agent reading a measurement taken now as one of the
+    # numbers this project was scored on.
+    assert all(t.startswith("live_") for t in mcp_live.TOOLS), sorted(mcp_live.TOOLS)
+    assert not any(t.startswith("live_") for t in TOOLS), sorted(TOOLS)
 
 
 def test_the_registration_declares_no_environment_the_server_ignores():

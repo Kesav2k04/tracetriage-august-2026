@@ -62,7 +62,11 @@ def main() -> int:
     results.append(check("offline test suite", rc == 0, tail[:70]))
 
     rc, out = run([str(PY), "-m", "ruff", "check", "."])
-    results.append(check("lint", rc == 0, "" if rc == 0 else out.splitlines()[-1][:70]))
+    # A non-zero exit with no output is not a lint finding: it is ruff failing to run,
+    # or being killed. Indexing the last line of nothing made the whole gate a
+    # traceback, so a run that could not be measured reported as no run at all.
+    lint_tail = out.splitlines()[-1][:70] if out.strip() else f"ruff did not report (exit {rc})"
+    results.append(check("lint", rc == 0, "" if rc == 0 else lint_tail))
 
     # The console had no mechanical gate at all: no type check, no build, no tests,
     # while five of the last five commits touched it. It was green, and nothing here

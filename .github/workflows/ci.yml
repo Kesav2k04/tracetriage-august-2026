@@ -21,7 +21,7 @@ jobs:
       - name: Create pinned environment
         run: |
           uv venv --python 3.12 .venv
-          uv pip install --python .venv/bin/python -e ".[dev,onnx]"
+          uv pip install --python .venv/bin/python -e ".[full,dev,onnx]"
 
       - name: Lint
         run: .venv/bin/python -m ruff check .
@@ -68,7 +68,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: |
           uv venv --python 3.12 .venv
-          uv pip install --python .venv/bin/python -e ".[dev]"
+          uv pip install --python .venv/bin/python -e ".[full,dev]"
       - name: Tests that need the live SatNOGS API
         # Informational: an upstream API change should surface here, not silently
         # in a training run. It must never block the offline gate.

@@ -431,11 +431,11 @@ def main(argv: list[str] | None = None) -> int:
                 clone_py,
                 "--offline",
                 "-e",
-                ".[dev,onnx]",
+                ".[full,dev,onnx]",
             ],
             cwd=clone,
             env=env,
-            label="uv pip install --offline -e .[dev,onnx] into the clone's environment",
+            label="uv pip install --offline -e .[full,dev,onnx] into the clone's environment",
             needs=(
                 "a warm uv cache. --offline resolves from it and never reaches the index, so "
                 "this measures whether the pinned set can be rebuilt without the network, "

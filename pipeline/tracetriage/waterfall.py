@@ -697,6 +697,7 @@ def parse_waterfall(
     rx_freq_hz: float | None = None,
     observation_freq_hz: float | None = None,
     ocr_results: list[tuple[float, str, float]] | None = None,
+    label_reader: str = "ocr",
 ) -> WaterfallGeometry:
     """Parse a SatNOGS waterfall PNG and derive the pixel-to-frequency mapping.
 
@@ -765,15 +766,47 @@ def parse_waterfall(
     # weights, which is every CI runner and every clean clone. Reading the glyphs
     # and deriving Hz/px from them are separate steps, and only the first one
     # needs a neural model. Tests pin the second against the committed fixtures.
+    #
+    # `label_reader` selects WHICH reader, and its default is the neural one because every
+    # published number in this repository was derived through it. A default of "auto" would
+    # have changed the axis under every existing caller, including the gate whose receipt is
+    # committed, and "the numbers moved because the default moved" is not a change anyone can
+    # review. `live.py` passes "auto" explicitly; nothing else does.
+    #
+    #   "ocr"    easyocr, which needs the extra and therefore torch.
+    #   "glyph"  the template matcher in glyph_axis, numpy and scipy only.
+    #   "auto"   glyph first, easyocr only if the glyph reader found too few labels to fit.
     if ocr_results is None:
         try:
             label_band, _, _ = _extract_label_band(rgb, plot_box)
-            ocr_results = _ocr_labels(label_band)
         except _DegradedError as exc:
             return _make_failed(observation_id, img_w, img_h, exc.reason)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("OCR failed for obs %d: %s", observation_id, exc)
-            return _make_failed(observation_id, img_w, img_h, "NO_OCR_BACKEND")
+
+        if label_reader not in ("ocr", "glyph", "auto"):
+            raise ValueError(f"label_reader must be ocr, glyph or auto, not {label_reader!r}")
+
+        glyph_labels: list[tuple[float, str, float]] = []
+        if label_reader in ("glyph", "auto"):
+            try:
+                from .glyph_axis import read_labels  # noqa: PLC0415
+
+                glyph_labels = read_labels(label_band)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("glyph reader failed for obs %d: %s", observation_id, exc)
+                glyph_labels = []
+
+        # _MIN_TICKS labels are what `_derive_hz_per_px` needs to fit anything, so that is the
+        # bar for "enough", not a separate number invented here.
+        if len(glyph_labels) >= _MIN_TICKS or label_reader == "glyph":
+            ocr_results = glyph_labels
+        else:
+            try:
+                ocr_results = _ocr_labels(label_band)
+            except _DegradedError as exc:
+                return _make_failed(observation_id, img_w, img_h, exc.reason)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("OCR failed for obs %d: %s", observation_id, exc)
+                return _make_failed(observation_id, img_w, img_h, "NO_OCR_BACKEND")
 
     hz_values, ocr_conf = _parse_ocr_labels(ocr_results, tick_xs, plot_box)
 

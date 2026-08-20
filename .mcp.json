@@ -1,0 +1,15 @@
+{
+  "$comment": "Project-scoped MCP registration: clone this repository, open it in an MCP client, and both servers are available with no further setup. Two servers rather than one, and the split is the point. tracetriage-evidence answers from committed receipts and reaches no network, which tests/test_mcp_server.py enforces by parsing that server's imports and refusing httpx. tracetriage-live measures observations recorded today over the public SatNOGS API, and its tools are prefixed live_ so that no tool call can confuse a number measured now with one that was scored against the frozen corpus. Neither server writes anything, anywhere, and this project holds no credential of any kind. Launch both with the repository root as the working directory. See docs/USE_WITH_YOUR_AGENT.md.",
+  "mcpServers": {
+    "tracetriage-evidence": {
+      "command": "python",
+      "args": ["scripts/mcp_server.py"],
+      "$comment": "Offline. Serves the receipts under artifacts/ and the console payload under apps/web/public/data/, so it needs this checkout rather than an install. Imports nothing outside the standard library and this repository, verified by running it with site-packages and the ambient environment switched off. No env block because it reads no environment variable."
+    },
+    "tracetriage-live": {
+      "command": "python",
+      "args": ["-m", "pipeline.tracetriage.mcp_live"],
+      "$comment": "Live. Needs numpy, scipy, pillow, sgp4 and httpx, which is what `pip install -e .` provides, and refuses to start with a named reason if they are absent rather than completing a handshake and failing every call. Reads the frequency axis with the template matcher in glyph_axis.py, so it needs no model weights. Launched as a module rather than a script path because scripts/ is not in a wheel. The `pipeline.` prefix is the checkout spelling and it is deliberate here: this file is what a client reads straight after `git clone`, with the repository root as the working directory, so it resolves whether or not the project itself was installed. An install spells the same module `tracetriage.mcp_live`, because the wheel ships `pipeline/tracetriage` as top-level `tracetriage`; docs/USE_WITH_YOUR_AGENT.md gives that form for anyone registering this from an install rather than a clone."
+    }
+  }
+}

@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 24 JSON artifacts, 8 contracts, 37 scripts, 17 package modules and 1113 test functions across 45 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 24 JSON artifacts, 8 contracts, 38 scripts, 23 package modules and 1130 test functions across 47 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -32,7 +32,7 @@ file that no longer exists in that form.
 | `DATASET_MANIFEST.json` | none declared | 0.2.1 | none | 2,359,254 | `9fb0c0a28175e7ef` | `pipeline/tracetriage/baseline.py`, `pipeline/tracetriage/snapshot.py`, `pipeline/tracetriage/splits.py`, `scripts/audit_release.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_splits.py`, `scripts/measure_throughput.py`, `scripts/run_baseline.py`, `scripts/run_gate3.py`, `scripts/run_precedent_study.py`, `scripts/run_triage_slice.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py` | `test_base_rates.py`, `test_baseline.py`, `test_contracts.py`, `test_snapshot.py`, `test_snapshot_isolation.py`, `test_splits.py` |
 | `EXPLAIN_RECEIPT.json` | none declared | n/a | none | 24,915 | `304b475a589cc2ec` | `scripts/build_architecture_diagram.py`, `scripts/run_agent_study.py`, `scripts/run_explanations.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_explain_receipt.py` |
 | `FUSION_RECEIPT.json` | FUSION_RECEIPT | 0.1.0 | `contracts/fusion_receipt.schema.json` | 248,786 | `db61b08f973aa1ae` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/run_fusion.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_fusion.py`, `test_kill_gate_sync.py` |
-| `GATE3_RECEIPT.json` | none declared | n/a | none | 53,813 | `1b8f154b08eeb84b` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/run_agent_study.py`, `scripts/run_gate3.py`, `scripts/sync_demo.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_corridor_fit.py`, `test_gate3_bound.py`, `test_hero_nulls.py`, `test_kill_gate_sync.py`, `test_physics.py` |
+| `GATE3_RECEIPT.json` | none declared | n/a | none | 53,813 | `1b8f154b08eeb84b` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/run_agent_study.py`, `scripts/run_gate3.py`, `scripts/sync_demo.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_corridor_fit.py`, `test_gate3_bound.py`, `test_hero_nulls.py`, `test_kill_gate_sync.py`, `test_live.py`, `test_physics.py` |
 | `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 2,411 | `3a066d7784ecbdd0` | `scripts/build_console_data.py`, `scripts/build_gate4_worksheet.py`, `scripts/run_agent_study.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_gate4.py` |
 | `GATE4_WORKSHEET.json` | GATE4_WORKSHEET | 1 | none | 11,815 | `517cae73592b61a0` | `scripts/build_gate4_worksheet.py`, `scripts/score_gate4.py` | `test_gate4.py` |
 | `HERO_NULLS.json` | none declared | n/a | none | 26,692 | `66657305d0bc3960` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/sync_demo.py` | `test_hero_nulls.py`, `test_hero_window.py` |
@@ -74,11 +74,17 @@ Receipts no test names: `THROUGHPUT_RECEIPT.json`.
 | `pipeline/tracetriage/agent.py` | An agent that can only answer from the evidence server, and a control arm that cannot. |
 | `pipeline/tracetriage/annotate.py` | Local annotation store for reviewed observations (unit C3). |
 | `pipeline/tracetriage/baseline.py` | Image-only baseline models for TraceTriage — unit A6. |
+| `pipeline/tracetriage/cli.py` | One command, for the three people who would use this. |
 | `pipeline/tracetriage/corridor_fit.py` | Per-row corridor residuals, a bounded frequency-offset fit, and null controls. |
+| `pipeline/tracetriage/doppler_mode.py` | Which of the two shapes does the energy in this waterfall follow? |
 | `pipeline/tracetriage/explain.py` | Grounded reviewer notes, and the checker that decides whether one may ship (unit E1). |
 | `pipeline/tracetriage/features.py` | Feature blocks for the fusion head (unit B2). |
 | `pipeline/tracetriage/fusion.py` | Fusion head over image, physics, corridor and metadata blocks (unit B2). |
+| `pipeline/tracetriage/glyph_axis.py` | Read a waterfall's frequency-axis labels without a neural network. |
 | `pipeline/tracetriage/granite.py` | The only module in this repository that issues an HTTP write verb (unit E1). |
+| `pipeline/tracetriage/live.py` | Measure one SatNOGS observation that is not in the snapshot, including one from today. |
+| `pipeline/tracetriage/mcp_live.py` | An MCP server that measures observations recorded today, over the public SatNOGS API. |
+| `pipeline/tracetriage/mcp_transport.py` | JSON-RPC 2.0 over stdio: the transport both MCP servers in this project speak. |
 | `pipeline/tracetriage/ood.py` | Out-of-distribution scoring for unseen entities and formats (unit B5). |
 | `pipeline/tracetriage/physics.py` | Physics corridor module for TraceTriage. |
 | `pipeline/tracetriage/precedent.py` | Precedent retrieval: the passes most like this one, and what the network decided about them. |
@@ -99,6 +105,7 @@ Receipts no test names: `THROUGHPUT_RECEIPT.json`.
 | `scripts/build_architecture_diagram.py` | Generate the architecture diagram, from the stages that actually exist. |
 | `scripts/build_console_data.py` | Build the static evidence console's data and imagery (unit C5). |
 | `scripts/build_gate4_worksheet.py` | Build the blinded worksheet kill gate 4 asks for, and commit to it before anyone reads it. |
+| `scripts/build_glyph_templates.py` | Freeze the digit bitmaps a SatNOGS waterfall's axis labels are drawn from. |
 | `scripts/build_og_image.py` | The link preview card, drawn from the receipts rather than typed. |
 | `scripts/build_splits.py` | Build grouped splits and emit artifacts/SPLIT_MANIFEST.json and artifacts/LEAKAGE_AUDIT.json. |
 | `scripts/check_artifact_freshness.py` | Rebuild the split artifacts into a scratch directory and diff them. |
@@ -158,10 +165,12 @@ Receipts no test names: `THROUGHPUT_RECEIPT.json`.
 | `tests/test_fusion.py` | 77 | Tests for the fusion head and its feature blocks (unit B2). |
 | `tests/test_gate3_bound.py` | 9 | Gate 3's threshold must be read off an interval, not off a point estimate. |
 | `tests/test_gate4.py` | 30 | The gate 4 instrument, tested where it could quietly stop being blinded (unit E6). |
+| `tests/test_glyph_axis.py` | 7 | The template matcher reads the same frequency axis the neural model read. |
 | `tests/test_hero_nulls.py` | 12 | The opening frame draws the nulls that were scored, and this is the proof. |
 | `tests/test_hero_window.py` | 5 | The hero plate's display window, checked against the image it windows. |
 | `tests/test_kill_gate_sync.py` | 6 | docs/KILL_GATE.md must equal what its generator renders from the receipts. |
-| `tests/test_mcp_server.py` | 31 | The evidence server, driven through its own transport (unit E3). |
+| `tests/test_live.py` | 9 | The live path measures what gate 3 measured, on gate 3's own observations. |
+| `tests/test_mcp_server.py` | 32 | The evidence server, driven through its own transport (unit E3). |
 | `tests/test_physics.py` | 97 | Offline tests for pipeline/tracetriage/physics.py (Unit A4). |
 | `tests/test_precedent.py` | 33 | Precedent retrieval, tested where a retrieval study fools itself (unit E8). |
 | `tests/test_provenance.py` | 77 | Tests for pipeline/tracetriage/provenance.py — unit A5. |

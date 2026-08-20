@@ -53,6 +53,12 @@ from PIL import Image, ImageDraw, ImageFont
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
+from pipeline.tracetriage import doppler_mode as _dm  # noqa: E402
+from pipeline.tracetriage.doppler_mode import (  # noqa: E402
+    matched_filter,
+    predicted_swing_hz,
+    verdict_from_scores,
+)
 from pipeline.tracetriage.physics import client_family  # noqa: E402
 from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: E402
 
@@ -93,22 +99,27 @@ OMEGA_EARTH = 7.2921159e-5
 
 N_SAMPLES = 240
 
-# Both hypotheses are scored as whole paths through the image and compared on a
-# null measured from the image itself. The scan is repeated at three matched
-# filter widths and a verdict is only accepted when all three agree.
-FILTER_WIDTHS = [1, 3, 5]
-PRIMARY_WIDTH = 3
+# One object under two names, not two constants: an assignment rather than a copy, so
+# a threshold cannot be changed in one file and read from the other. This script's own
+# tests reach for them as attributes of this module and the finding write-up cites them
+# here, which is why the names stay.
+FILTER_WIDTHS = _dm.FILTER_WIDTHS
+PRIMARY_WIDTH = _dm.PRIMARY_WIDTH
+SIGMA_MIN = _dm.SIGMA_MIN
+SIGMA_MARGIN = _dm.SIGMA_MARGIN
+MIN_PREDICTED_SWING_HZ = _dm.MIN_PREDICTED_SWING_HZ
+
+# The scan, the thresholds and the verdict rule moved to
+# `pipeline/tracetriage/doppler_mode.py` so that code shipped in the wheel can ask
+# the same question of a live observation, which has no annotation to read a verdict
+# from. Re-exported under their old names here: this script's own tests reach for
+# them as module attributes, and the names are what the finding write-up cites.
+#
+# The scan takes `zs` as an argument and this file still computes it with the
+# `normalised_rows` below, whose MAD floor of 1e-6 corridor_fit has since replaced
+# with one grey level. That floor is a defect, and it is the one this receipt was
+# measured through, so replaying A3 must keep it. See the note in doppler_mode.
 EDGE_MARGIN_PX = 4
-
-# A path has to stand this far above the spread of all vertical paths before it
-# counts as a signal at all, and one hypothesis has to lead the other by this
-# margin before either is called.
-SIGMA_MIN = 8.0
-SIGMA_MARGIN = 3.0
-
-# Below this the two shapes are not distinguishable: a corrected capture and an
-# uncorrected one would draw nearly the same line.
-MIN_PREDICTED_SWING_HZ = 3000.0
 
 # Half-width of the residual corridor drawn for the corrected hypothesis.
 CORRECTED_CORRIDOR_HZ = 200.0
@@ -244,194 +255,6 @@ def normalised_rows(rgb: np.ndarray, crop_box) -> np.ndarray:
     return (lum - med) / np.maximum(mad, 1e-6)
 
 
-def _smooth_columns(z: np.ndarray, width: int) -> np.ndarray:
-    """Box-average along frequency, matching a trace a few pixels wide."""
-    if width <= 1:
-        return z
-    pad = width // 2
-    padded = np.pad(z, ((0, 0), (pad, pad)), mode="edge")
-    out = np.empty_like(z)
-    for i in range(z.shape[1]):
-        out[:, i] = padded[:, i:i + width].mean(axis=1)
-    return out
-
-
-def path_score(zs: np.ndarray, cols: np.ndarray, min_valid: float = 0.8) -> float:
-    """Mean normalised intensity along one path through the image.
-
-    Returns NaN when the path leaves the plot for more than 20% of the pass,
-    because a shorter path is a noisier statistic and would win the scan for
-    the wrong reason.
-    """
-    rows = np.arange(zs.shape[0])
-    valid = (cols >= 0) & (cols < zs.shape[1])
-    if valid.mean() < min_valid:
-        return float("nan")
-    return float(zs[rows[valid], cols[valid]].mean())
-
-
-def matched_filter(
-    zs: np.ndarray,
-    centre_px: float,
-    hz_per_px: float,
-    curve_fracs: list[float],
-    curve_hz: list[float],
-) -> dict:
-    """Ask which shape the energy in this image actually follows.
-
-    Two families of paths are scanned over the same set of horizontal offsets:
-    a vertical line, which is what a Doppler-corrected capture leaves, and the
-    predicted Doppler curve, which is what an uncorrected one leaves. Each is
-    scored as mean normalised intensity along the path.
-
-    Scoring whole paths rather than detecting a peak per row matters here. An
-    earlier version averaged blocks of rows before taking the brightest column,
-    which quietly favoured one answer: near closest approach a real Doppler
-    trace crosses roughly a dozen columns within one block, so averaging smears
-    it away, while a stationary carrier survives untouched. A method that can
-    only see one of the two hypotheses cannot be used to choose between them.
-
-    The null is measured, not assumed: the spread of the vertical scores across
-    every column gives the scale that both families are reported in.
-    """
-    n_rows, n_cols = zs.shape
-
-    # Row 0 is the top of the image, and the top of a SatNOGS waterfall is the
-    # END of the pass. Read off the axis of observation 14740031: the tick
-    # labelled 200 s sits at y=258 and the one labelled 50 s at y=1228, evenly
-    # spaced, so elapsed time runs bottom to top.
-    row_fracs = 1.0 - (np.arange(n_rows) + 0.5) / n_rows
-    predicted_hz = np.interp(row_fracs, np.asarray(curve_fracs), np.asarray(curve_hz))
-    predicted_px = predicted_hz / hz_per_px
-
-    # The sign relating a Doppler shift to a direction on the frequency axis is
-    # scanned rather than assumed. Assuming it once already hid a defect: the
-    # time axis was inverted too, and for a curve that is near odd-symmetric
-    # about closest approach the two errors cancel exactly, so the fit looked
-    # excellent while both halves were wrong.
-    out: dict = {}
-    for width in FILTER_WIDTHS:
-        smoothed = _smooth_columns(zs, width)
-
-        vertical = np.array([
-            path_score(smoothed, np.full(n_rows, c, dtype=int)) for c in range(n_cols)
-        ])
-        finite = vertical[np.isfinite(vertical)]
-        baseline = float(np.median(finite))
-        spread = float(np.median(np.abs(finite - baseline)) * 1.4826) or 1e-9
-
-        best_v = int(np.nanargmax(vertical))
-        sigma_v = (vertical[best_v] - baseline) / spread
-
-        offsets = np.arange(-n_cols, n_cols, 1)
-        origin = centre_px - EDGE_MARGIN_PX
-        by_sign: dict[int, tuple[float, int | None]] = {}
-        for sign in (1, -1):
-            curved = np.array([
-                path_score(smoothed, np.rint(origin + sign * predicted_px + o).astype(int))
-                for o in offsets
-            ])
-            if np.all(np.isnan(curved)):
-                by_sign[sign] = (float("nan"), None)
-            else:
-                best_c = int(np.nanargmax(curved))
-                by_sign[sign] = (
-                    float((curved[best_c] - baseline) / spread),
-                    int(offsets[best_c]),
-                )
-
-        def rank(s: int, table: dict = by_sign) -> float:
-            v = table[s][0]
-            return -1e9 if math.isnan(v) else v
-
-        best_sign = max(by_sign, key=rank)
-        sigma_c, best_offset = by_sign[best_sign]
-
-        out[width] = {
-            "sigma_vertical": float(sigma_v),
-            "sigma_curved": float(sigma_c),
-            "frequency_axis_sign": int(best_sign),
-            "sigma_curved_by_sign": {str(s): by_sign[s][0] for s in (1, -1)},
-            "vertical_column_offset_hz": float((best_v - origin) * hz_per_px),
-            "curved_offset_hz": (
-                float(best_offset * hz_per_px) if best_offset is not None else None
-            ),
-        }
-    return out
-
-
-def verdict_from_scores(scores: dict, predicted_swing_hz: float) -> tuple[str, str, dict]:
-    """Decide, or refuse to. UNRESOLVED is a real outcome here, not a failure.
-
-    A verdict needs three things: a signal at all, one hypothesis clearly ahead
-    of the other, and the same call at every filter width. Any of those missing
-    and the image does not settle the question.
-    """
-    primary = scores[PRIMARY_WIDTH]
-    sv, sc = primary["sigma_vertical"], primary["sigma_curved"]
-
-    summary = {
-        "sigma_vertical": sv,
-        "sigma_curved": sc,
-        "frequency_axis_sign": primary["frequency_axis_sign"],
-        "sigma_curved_by_sign": primary["sigma_curved_by_sign"],
-        "vertical_column_offset_hz": primary["vertical_column_offset_hz"],
-        "curved_offset_hz": primary["curved_offset_hz"],
-        "predicted_swing_hz": predicted_swing_hz,
-        "per_width": scores,
-    }
-
-    if predicted_swing_hz < MIN_PREDICTED_SWING_HZ:
-        return (
-            "UNRESOLVED",
-            f"predicted swing is only {predicted_swing_hz:,.0f} Hz, too small to "
-            f"tell the two shapes apart",
-            summary,
-        )
-
-    best = max([s for s in (sv, sc) if not math.isnan(s)], default=float("nan"))
-    if math.isnan(best) or best < SIGMA_MIN:
-        return (
-            "UNRESOLVED",
-            f"no signal stands out: best path is {best:.1f} sigma against a "
-            f"{SIGMA_MIN:.0f} sigma floor",
-            summary,
-        )
-
-    def call(entry: dict) -> str:
-        a, b = entry["sigma_vertical"], entry["sigma_curved"]
-        if math.isnan(a) or math.isnan(b):
-            return "UNRESOLVED"
-        if b - a >= SIGMA_MARGIN:
-            return "UNCORRECTED"
-        if a - b >= SIGMA_MARGIN:
-            return "CORRECTED"
-        return "UNRESOLVED"
-
-    calls = {w: call(scores[w]) for w in FILTER_WIDTHS}
-    if len(set(calls.values())) > 1:
-        detail = ", ".join(f"width {w} -> {v}" for w, v in calls.items())
-        return "UNRESOLVED", f"filter widths disagree ({detail})", summary
-
-    verdict = calls[PRIMARY_WIDTH]
-    if verdict == "UNCORRECTED":
-        reason = (
-            f"energy follows the predicted Doppler curve: {sc:.1f} sigma against "
-            f"{sv:.1f} for the best vertical line"
-        )
-    elif verdict == "CORRECTED":
-        reason = (
-            f"energy follows a vertical line {primary['vertical_column_offset_hz']:+,.0f} Hz "
-            f"off axis zero: {sv:.1f} sigma against {sc:.1f} for the predicted curve"
-        )
-    else:
-        reason = (
-            f"neither shape leads: vertical {sv:.1f} sigma, curved {sc:.1f} sigma, "
-            f"inside the {SIGMA_MARGIN:.0f} sigma margin"
-        )
-    return verdict, reason, summary
-
-
 def visible_track(rgb: np.ndarray, crop_box, z_min: float = 4.0):
     """Per-row brightest column, for drawing only. Never feeds the verdict.
 
@@ -454,7 +277,7 @@ def analyse(rgb: np.ndarray, geom, curve, els: list[float]) -> tuple[dict, dict,
 
     zs = normalised_rows(rgb, geom.crop_box)
     scores = matched_filter(zs, centre, geom.hz_per_px, curve_fracs, curve_hz)
-    swing = float(np.percentile(curve_hz, 95) - np.percentile(curve_hz, 5)) if curve_hz else 0.0
+    swing = predicted_swing_hz(curve_hz)
     verdict, reason, summary = verdict_from_scores(scores, swing)
 
     track = visible_track(rgb, geom.crop_box)

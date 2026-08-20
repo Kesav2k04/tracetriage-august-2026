@@ -6478,3 +6478,216 @@ a table where every row reads PASS does not say which row is nearly not passing.
 `scripts/check_contrast.py -v`, `scripts/gate.py`.
 **Outcome:** the probe reports what it claims to report on every page rather than on the
 one where the markup happened to agree with its tag list.
+
+## 2026-08-20 IST | Wave E | E1: a measurement that can be pointed at this morning's pass
+
+**Everything in this repository read a frozen snapshot until today.** 2,727 observations
+taken on 2026-08-17, every waterfall on disk, every number in a receipt. That is the right
+shape for a claim and the wrong shape for a person: a station operator wondering whether
+last night's pass was off frequency has an observation id and no snapshot, and nothing here
+could take one. `pipeline/tracetriage/live.py` takes one, and the rest of this entry is the
+four things that turned out to be wrong or missing on the way.
+
+**The corridor a live observation gets scored against cannot be looked up.** Gate 3 reads
+each observation's CORRECTED / UNCORRECTED verdict from `artifacts/a3_overlays/summary.json`,
+which was produced with a human in the loop. Nobody annotates an observation recorded an hour
+ago. The first draft of `live.py` did not notice the gap: it scored `phys.corrected`
+unconditionally, and the failure was silent in the worst way. `physics.py` sets the corrected
+corridor's Doppler to zeros, `calibrate_against_nulls` refuses to build nulls for a corridor
+with no swing to scramble, and so the first live run came back with a confident-looking
+-13,981 Hz, -32.11 ppm, `sigma: 0.35` and `n_nulls: 0`. Nothing raised. Nothing in the output
+said the number had no shape evidence behind it.
+
+Measured properly, that observation has no signal at all: 2.5 sigma against an 8 sigma floor.
+SatNOGS's own `waterfall_status` for it reads `with-signal`, which is worth knowing about that
+flag.
+
+So the mode is now measured, by the rule that produced those annotations, moved out of
+`scripts/a3_doppler_investigation.py` into `pipeline/tracetriage/doppler_mode.py` so that code
+shipped in a wheel can ask the question. Two hypotheses scored as whole paths at three filter
+widths, a verdict only when all three agree and one leads by 3 sigma. **Replayed over all 24
+annotated observations it reproduces all 24 verdicts**, and that is not a tautology: A3 scored
+through its own `normalised_rows`, whose MAD floor of 1e-6 `corridor_fit` has since replaced
+with one grey level. `sigma_curved` matches A3's committed value to the decimal on all seven
+decisive rows.
+
+Two things deliberately did NOT move with it. A3 keeps its own `normalised_rows`, because its
+receipt was measured through the old floor and replaying it has to reproduce it.
+`smooth_columns` and `path_score` are imported from `corridor_fit` instead of duplicated, but
+only after checking line by line that they are the same functions: identical apart from a
+leading underscore, and identical at `row_mask=None`.
+
+**UNRESOLVED returns rather than raises, and that is the load-bearing choice.** 17 of those 24
+observations settle nothing. A tool that threw on those could not rank a queue at all, because
+ranking needs a comparable result for every entry and the empty ones are most of a real queue.
+Every measurement field comes back None rather than 0: a zero offset beside a null p-value
+reads as a confident measurement of no error, which is the opposite of what happened. The two
+sigmas are still there, so a caller can see how close it came.
+
+**The live path reproduces gate 3's receipt digit for digit.** `fit_corridor` rather than
+`fit_offset`, which is what it called first: both return the same offset, only the full fitter
+also returns how much of the image supported it. On two of the three uncorrected observations
+the receipt reads `detect_frac: 0.0` and `degraded: TRACE_NOT_MEASURABLE` beside a p-value of
+0.005, which is not a contradiction (the null comparison scores a path's mean brightness and
+never asks a pixel to clear a floor) and is exactly the caveat a stranger pointing this at
+their own station needs. Reporting the offset without it would publish the gate's number
+without the gate's reservation. `tests/test_live.py` asserts 13,985.148 Hz and -7,148.936 Hz
+twice, sigma 2.024 / 1.539 / 1.652, p = 0.004975 over 200 nulls, at a relative tolerance of
+1e-9.
+
+**Two API defects the first version could not reach.** "Newest first" includes passes that have
+not happened yet: on station 1696 every one of the first eighteen records was `status: future`
+with no image, so a `queue` that over-fetched three times its budget and filtered locally
+measured nothing and said nothing about why. `list_observations` now takes `require_waterfall`
+and pages until the budget is filled, bounded by `max_pages`. That change is what first reached
+the second page, and the second page immediately raised
+`httpx.UnsupportedProtocol: Request URL is missing an 'http://' or 'https://' protocol`:
+`extract_next_cursor` returns the cursor value rather than a URL, deliberately, so the next URL
+has to be rebuilt from the base and the filters the way `snapshot.py` does it. Both bugs were
+unreachable while the first page always satisfied the limit.
+
+**Two MCP servers, and the boundary is in the config where a reader can see it.**
+`scripts/mcp_server.py` advertises five properties and each one is a test, and "offline" is
+checked by parsing that file's imports and refusing `httpx`. Adding a network tool to it would
+not have weakened that claim by degrees, it would have deleted it. So the live tools are a
+separate server, `pipeline/tracetriage/mcp_live.py`, prefixed `live_` so that no tool call can
+confuse a number measured now with one that was scored, and `.mcp.json` at the repository root
+registers both, so a judge who clones this gets both with no setup.
+
+The transport is shared rather than copied: `pipeline/tracetriage/mcp_transport.py` now holds
+the JSON-RPC dispatch, the batch handling, the notification rule and the six named error paths,
+each of which exists because an input ended a session once. That move was forced by packaging
+rather than chosen for tidiness, because a `pip install` ships the package and not `scripts/`.
+
+**The move broke a test in the way a good test breaks.** The read-only scan asserted that
+`scripts/mcp_server.py` contains exactly one exempt `sink.write`, and after the transport left
+it contained zero, so the count failed rather than passing over an empty file. Lowering the
+number to 0 would have been the wrong fix: the writer had not gone away, it had gone somewhere
+the scan was not looking. The scan now parses both files.
+
+**Packaging: 166 MB instead of 4,643 MB**, measured by summing installed files per distribution
+in this project's own virtualenv, of which torch alone is 4,171 MB. `torch`, `torchvision`,
+`scikit-learn`, `scikit-image`, `matplotlib`, `polars`, `pyarrow` and `opencv-python-headless`
+moved into a `full` extra, which is safe because every heavy import in this package is already
+inside a function: `baseline.py` and `fusion.py` are the only two modules that reach
+scikit-learn and scikit-image at all. CI, the clean-clone check and the README setup line all
+install `.[full,...]` now, so the closure a judge reproduces is byte-for-byte the one that was
+there before.
+
+**The axis was the thing standing between a light install and a useful one.** Reporting an
+offset in Hz needs frequency per pixel, nothing in an observation's metadata gives it (the
+waterfall does not span `samp_rate_rx`, measured earlier), and the only reader this project
+had was easyocr, which declares torch, torchvision, opencv and scikit-image as its own
+dependencies. So the 166 MB install could have measured a pixel offset and nothing else,
+which is not an answer anyone asked for.
+
+`pipeline/tracetriage/glyph_axis.py` reads the same labels with numpy, scipy and pillow. It
+works because these labels are not photographs of text: SatNOGS renders its waterfalls
+server-side with matplotlib, so every digit comes out as one of a handful of bitmaps,
+measured at exactly 10 rows tall, all 3,793 of them, and 6 to 8 columns wide across the 400
+images behind the committed set. Recognising a bitmap that
+has been seen before is a dictionary lookup. Templates are frozen by
+`scripts/build_glyph_templates.py`, labelled by easyocr, and **measured over 500 random
+waterfalls the matcher derives an axis on 496 of them, 99.2 percent, with zero label sets
+that are not an arithmetic progression over the tick positions.**
+
+**Four things went wrong on the way there, and each one is a finding.**
+
+*The digit 3 is not one connected component.* At this size its middle stroke meets the upper
+and lower bowls only diagonally, so `ndimage.label` with its default four-connectivity cuts
+it into a 4-row piece and a 6-row piece. Both fail the digit-height filter and disappear, and
+the label `30` reads as `0`: a wrong value on that tick rather than a missing one, which is
+the exact failure this module exists to avoid. It cost 30 kHz on the last tick of 14740031 and
+moved that image's axis by 0.25 percent. Eight-connectivity fixes it, and cannot merge two
+digits, because adjacent digits in a label are separated by 1 to 3 blank columns.
+
+*The label band contains the axis title.* A first height floor of 6 fed capital F, lower-case
+z and the parentheses of "Frequency (kHz)" to a digit matcher. They do not produce wrong
+digits, because they fail the match, but they made easyocr read a different number of
+characters than there were components in **601 label groups**, against 108 in the build that
+produced the committed file, which is how the
+height distribution came to be measured at all. Digits are 10 rows and everything else in the
+band is 9 or fewer.
+
+*easyocr is not ground truth at this glyph size, and the committed axis for one observation
+is wrong because of it.* On 14736773 it read the centre tick as `562`, so
+`artifacts/a3_overlays/summary.json` holds an axis derived through a label of 562 kHz where
+the value is 0. The first version of the template builder treated any disagreement between
+images as fatal on the reasoning that a wrong template rescales the axis silently. That
+reasoning holds; the assumption behind it, that a single easyocr reading could be trusted,
+does not. A bitmap is now frozen only when at least three independent images read it and 80
+percent agree.
+
+*And the obvious test for the whole thing was the wrong test.* Comparing the matcher's Hz/px
+against the committed value at a relative tolerance of 1e-9 failed on 9 of 24 observations,
+and reading those failures is what produced the two findings above. The axis is now checked
+against its own structure instead: a matplotlib linear axis puts evenly spaced ticks at an
+arithmetic progression of round values, which is a property neither reader can fake and
+neither is needed to establish. That check is what caught the connectivity bug, on
+`[-30000, -20000, -10000, 0, 10000, 20000, 0]`.
+
+**Templates cover 0, 1, 2, 3, 4, 6 and 8.** Five, seven and nine almost never appear on a kHz
+axis labelled in round steps, and a bitmap is not frozen on fewer than three readings. A label
+containing an uncovered digit is dropped whole, and the builder refuses to write a set in
+which any unfrozen bitmap would classify as some other digit: on the committed set, 7 bitmaps
+were seen and not frozen and 0 of them would be misread.
+
+**Two packaging defects the wheel found and no test would have.** The console entry point read
+`pipeline.tracetriage.cli:main`, and the wheel ships `pipeline/tracetriage` as the top-level
+package `tracetriage`, so the built wheel installed cleanly and gave a `tracetriage` command
+that raised ModuleNotFoundError on every invocation. And both refusal messages told a reader
+to `pip install tracetriage[ocr]` to get an axis, which stopped being true the moment the
+glyph reader landed: the base install reports Hz, and the extra is only the neural reader.
+Verified by installing the wheel into a fresh virtualenv with `--no-deps` and running the
+console script, which prints its help with no dependencies at all and refuses `mcp-live` with
+a named reason rather than a traceback.
+
+**Files added:** `pipeline/tracetriage/live.py`, `doppler_mode.py`, `mcp_transport.py`,
+`mcp_live.py`, `cli.py`, `glyph_axis.py`, `scripts/build_glyph_templates.py`,
+`tests/test_live.py`, `tests/test_glyph_axis.py`, `docs/USE_WITH_YOUR_AGENT.md`, `.mcp.json`.
+**Files changed:** `pyproject.toml` (entry point, extras), `scripts/mcp_server.py`,
+`scripts/a3_doppler_investigation.py`, `pipeline/tracetriage/waterfall.py`,
+`tests/test_mcp_server.py`, `.github/workflows/ci.yml`, `scripts/clean_clone_check.py`,
+`README.md`, `docs/REFERENCE.md`.
+**Commands run:** the 24-observation mode replay, `tests/test_live.py`,
+`tests/test_mcp_server.py`, `tests/test_glyph_axis.py`, both servers driven over stdio by hand,
+`tracetriage triage` and `tracetriage station` against the live API, `ruff check`,
+`scripts/sync_docs.py`, the offline suite.
+**Outcome:** the same measurement gate 3 was scored on, reachable from any agent, on an
+observation that did not exist when the gate ran, from a 166 MB install that needs no model
+weights. Measured live on station 1696 while writing this: -28.26 ppm across two distinct
+satellites, spread -28.43 to -28.10, which is what a receiver error looks like and what an
+orbit error does not.
+
+### Zero nulls had five causes and one name
+
+Round-tripping a measurement of each verdict through the JSON an agent consumes turned up a
+flat spot. `nulls.n` comes back as 0 for five different reasons: the corridor is flat because
+the station corrected the capture, the pass swings under the 3 kHz floor, the true corridor did
+not fit at any offset in the bound, no scrambled corridor scored finitely, or the mode was
+UNRESOLVED so no corridor was ever selected. The first two are refusals the method makes on
+purpose. The next two are failures to measure. They were indistinguishable in the output.
+
+Worse, the `reading` paragraph attached to the nulls block described the permutation test in
+the present tense whether or not it had run, and the CLI printed the flat-corridor explanation
+whenever the verdict was CORRECTED and "none, no fit was scored" otherwise. A grazing
+low-elevation pass, which is ordinary on a live queue, therefore got a sentence that was
+simply wrong about why its p-value was missing.
+
+`calibrate_against_nulls` already documented all four of its own conditions in comments, so the
+information existed and only the output threw it away. Each of the four `return _empty(...)`
+branches now names itself, the reason is required rather than optional, and `live.py` carries a
+fifth key for the UNRESOLVED case that never reaches `corridor_fit` at all. Both prose tables,
+the JSON one and the terminal one, are keyed by that reason, and a test asserts that the set of
+reasons the code can produce and the sets the two tables cover are the same, so a new branch
+cannot be added without prose. A missing key would otherwise raise KeyError while serialising.
+
+One thing deliberately not done: the reason is not added to `NullCalibration.summary()`.
+`check_artifact_freshness.py` rebuilds `artifacts/GATE3_RECEIPT.json` and diffs it against the
+committed copy, and adding a key there would change the frozen receipt to record something it
+never needed. The top-level field already carries it.
+
+**Checked:** all three verdicts present in the snapshot re-measured end to end, JSON
+serialised and re-parsed, the evidence line read back from the rendered text. CORRECTED reports
+`flat_corridor`, UNRESOLVED reports `mode_unresolved`, UNCORRECTED reports `null` with nine
+nulls and p = 0.1000. `tests/test_live.py` 9 passed.

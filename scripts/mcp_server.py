@@ -49,7 +49,13 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
+from pipeline.tracetriage import mcp_transport as _transport  # noqa: E402
 from pipeline.tracetriage.explain import build_packet, verify_note  # noqa: E402
+from pipeline.tracetriage.mcp_transport import (  # noqa: E402
+    ToolError,
+)
+from pipeline.tracetriage.mcp_transport import handle as _handle  # noqa: E402
+from pipeline.tracetriage.mcp_transport import serve as _serve  # noqa: E402
 
 _DATA = REPO / "apps" / "web" / "public" / "data"
 _ARTIFACTS = REPO / "artifacts"
@@ -59,7 +65,20 @@ def _data_dir() -> Path:
     return _DATA
 
 
-PROTOCOL_VERSION = "2024-11-05"
+#: The protocol version the transport answers with. Re-exported rather than redeclared:
+#: two copies of a version string is one of them going stale, and this server's tests
+#: assert the handshake against this name.
+PROTOCOL_VERSION = _transport.PROTOCOL_VERSION
+
+#: What a client is told this server is for, in the initialize response.
+INSTRUCTIONS = (
+    "Read-only evidence from a physics-conditioned SatNOGS review queue. Every value "
+    "is copied from a committed receipt. check_claim is the tool worth knowing about: "
+    "it tells you whether a sentence you wrote about an observation is supported by "
+    "that observation's own measured fields."
+)
+
+
 SERVER_NAME = "tracetriage-evidence"
 SERVER_VERSION = "1.0.0"
 
@@ -68,14 +87,6 @@ SERVER_VERSION = "1.0.0"
 #: largest answer that corresponds to a decision anyone made.
 MAX_QUEUE_LIMIT = 50
 DEFAULT_QUEUE_LIMIT = 10
-
-
-class ToolError(Exception):
-    """A tool call that cannot be answered, carrying the reason code it failed with."""
-
-    def __init__(self, code: str, message: str) -> None:
-        super().__init__(message)
-        self.code = code
 
 
 def _relative(path: Path) -> str:
@@ -423,133 +434,6 @@ TOOLS: dict[str, dict[str, Any]] = {
 # ---------------------------------------------------------------------------
 
 
-def _scrubbed(exc: Exception) -> str:
-    """An exception message with this checkout's path removed.
-
-    Exceptions from the filesystem carry absolute paths, and this message goes to a client.
-
-    Split and join rather than ``str.replace``, because the read-only scan in
-    ``tests/test_mcp_server.py`` counts ``replace`` as a filesystem move, and a scan with an
-    exception for one receiver is a scan with a hole. One awkward line here is cheaper than
-    that.
-    """
-    return f"{type(exc).__name__}: {'<repo>'.join(str(exc).split(str(REPO)))}"
-
-
-def _invalid_request(detail: str, request_id: Any = None) -> dict[str, Any]:
-    return {
-        "jsonrpc": "2.0",
-        "id": request_id,
-        "error": {"code": -32600, "message": f"invalid request: {detail}"},
-    }
-
-
-def handle(request: Any) -> dict[str, Any] | None:
-    """One JSON-RPC request to one response, or None for a notification.
-
-    A frame that is not an object gets an invalid-request error rather than an
-    AttributeError. Parsing succeeded for ``5``, ``null`` and a batch array, so the parse
-    error branch never saw them and ``.get`` on a list ended the session.
-    """
-    if not isinstance(request, dict):
-        return _invalid_request(f"a JSON-RPC request is an object, got {type(request).__name__}")
-    method = request.get("method")
-    request_id = request.get("id")
-
-    if method == "initialize":
-        result: dict[str, Any] = {
-            "protocolVersion": PROTOCOL_VERSION,
-            "capabilities": {"tools": {}},
-            "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
-            "instructions": (
-                "Read-only evidence from a physics-conditioned SatNOGS review queue. "
-                "Every value is copied from a committed receipt. check_claim is the tool "
-                "worth knowing about: it tells you whether a sentence you wrote about an "
-                "observation is supported by that observation's own measured fields."
-            ),
-        }
-    elif method == "notifications/initialized":
-        return None
-    elif method == "tools/list":
-        result = {
-            "tools": [
-                {
-                    "name": name,
-                    "description": spec["description"],
-                    "inputSchema": spec["schema"],
-                }
-                for name, spec in TOOLS.items()
-            ]
-        }
-    elif method == "tools/call":
-        params = request.get("params") or {}
-        name = params.get("name")
-        arguments = params.get("arguments") or {}
-        spec = TOOLS.get(name)
-        if spec is None:
-            return _error_result(
-                request_id,
-                "UNKNOWN_TOOL",
-                f"{name!r} is not a tool. Available: {sorted(TOOLS)}.",
-            )
-        if not isinstance(arguments, dict):
-            return _error_result(
-                request_id,
-                "BAD_ARGUMENTS",
-                f"arguments must be an object, got {type(arguments).__name__}.",
-            )
-        try:
-            payload = spec["handler"](**arguments)
-        except ToolError as exc:
-            return _error_result(request_id, exc.code, str(exc))
-        except TypeError as exc:
-            return _error_result(request_id, "BAD_ARGUMENTS", _scrubbed(exc))
-        except Exception as exc:  # noqa: BLE001
-            # The blanket clause is the point. This is a stdio server, so an exception
-            # reaching the read loop ends the client's whole session, and the six inputs
-            # that did it were ordinary mistakes: an id passed as a string, a receipt name
-            # that resolved to a directory. A named reason is worth more than a traceback
-            # nobody sees, and a tool that fails for a reason nobody predicted still has to
-            # say so rather than take the transport down.
-            return _error_result(request_id, "TOOL_FAILED", _scrubbed(exc))
-        result = {
-            "content": [{"type": "text", "text": json.dumps(payload, indent=1)}],
-            "isError": False,
-        }
-    else:
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "error": {"code": -32601, "message": f"method {method!r} is not implemented"},
-        }
-
-    return {"jsonrpc": "2.0", "id": request_id, "result": result}
-
-
-def _error_result(request_id: Any, code: str, message: str) -> dict[str, Any]:
-    """A tool failure, as a tool result rather than a protocol error.
-
-    The distinction matters to a client: a protocol error means the server is broken, and a
-    tool result with isError means the question could not be answered. Returning the first
-    for the second would make an unknown observation id look like a crash.
-    """
-    return {
-        "jsonrpc": "2.0",
-        "id": request_id,
-        "result": {
-            "content": [
-                {"type": "text", "text": json.dumps({"reason": code, "detail": message})}
-            ],
-            "isError": True,
-        },
-    }
-
-
-def _write(sink: Any, payload: Any) -> None:
-    sink.write(json.dumps(payload) + "\n")
-    sink.flush()
-
-
 #: The files every advertised tool needs. Checked once at startup, because a server that
 #: answers tools/list and then fails every call has told the client it can do something it
 #: cannot.
@@ -562,7 +446,11 @@ REQUIRED_EVIDENCE = (
 
 
 def missing_evidence() -> list[str]:
-    """Which advertised evidence files are absent, as repository-relative paths."""
+    """Which advertised evidence files are absent, as repository-relative paths.
+
+    One entry per file, because a caller that wants to act on this needs the list rather
+    than a sentence. The sentence is `_offline_preflight`'s job.
+    """
     return [
         _relative(_data_dir() / name)
         for name in REQUIRED_EVIDENCE
@@ -570,60 +458,62 @@ def missing_evidence() -> list[str]:
     ]
 
 
+def _offline_preflight() -> list[str]:
+    """This server's own precondition, with its own remedy attached.
+
+    `serve` takes a preflight because the live server has a different one to state: it
+    advertises no committed file, and what it needs is an import that may not be installed.
+    The remedy belongs to the check rather than to the printer, or the offline server's
+    "run build_console_data.py" would appear under whichever server failed to start.
+    """
+    absent = missing_evidence()
+    if not absent:
+        return []
+    return [
+        ", ".join(absent)
+        + " is missing (run scripts/build_console_data.py and scripts/run_explanations.py)"
+    ]
+
+
+# ---------------------------------------------------------------------------
+# The transport, which this file no longer implements
+# ---------------------------------------------------------------------------
+#
+# `handle` and `serve` moved to `pipeline/tracetriage/mcp_transport.py` so that the live
+# server can speak the same JSON-RPC without a second copy of the batch handling, the
+# notification rule and the six named error paths, each of which is here because an input
+# ended a session once. The move was forced by packaging: a `pip install tracetriage`
+# ships the package and not `scripts/`, so a dispatcher living here could not be reached
+# by an installed entry point.
+#
+# What did NOT move is anything that makes this server this server. The tool registry, the
+# handlers, the evidence preflight and the identity below are all still local, and the
+# read-only and offline claims are claims about THIS file's imports and call sites, which
+# `tests/test_mcp_server.py` still scans. The transport is scanned as well now, because a
+# writer that moved out of the scanned file would otherwise have left the scan passing over
+# nothing.
+
+
+def handle(request: Any) -> dict[str, Any] | None:
+    """This server's registry, over the shared transport."""
+    return _handle(request, TOOLS, {"name": SERVER_NAME, "version": SERVER_VERSION},
+                   INSTRUCTIONS)
+
+
 def serve(stdin: Any = None, stdout: Any = None) -> int:
     """Read newline-delimited JSON-RPC from stdin, write responses to stdout.
 
-    Refuses to start when an advertised evidence file is missing. The docstring at the top
-    of this file claimed that behaviour before it existed: what was implemented was a
-    per-call reason code, which is weaker, because a client that has completed a handshake
-    and read a tool list has been told those tools work.
+    Refuses to start when an advertised evidence file is missing, because a client that has
+    completed a handshake and read a tool list has been told those tools work.
     """
-    source = stdin if stdin is not None else sys.stdin
-    sink = stdout if stdout is not None else sys.stdout
-
-    absent = missing_evidence()
-    if absent:
-        print(
-            "tracetriage-evidence cannot start: "
-            + ", ".join(absent)
-            + " is missing. Run scripts/build_console_data.py and "
-            "scripts/run_explanations.py; answering with an empty payload would read as a "
-            "measurement.",
-            file=sys.stderr,
-        )
-        return 2
-    for line in source:
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            request = json.loads(line)
-        except json.JSONDecodeError as exc:
-            _write(
-                sink,
-                {
-                    "jsonrpc": "2.0",
-                    "id": None,
-                    "error": {"code": -32700, "message": f"parse error: {exc}"},
-                },
-            )
-            continue
-        # A batch is legal JSON-RPC 2.0 and used to be an AttributeError that ended the
-        # session. Handling it is four lines: a batch of notifications gets no reply at
-        # all, which is what the specification says and what a client waits on.
-        if isinstance(request, list):
-            if not request:
-                _write(sink, _invalid_request("a batch must hold at least one request"))
-                continue
-            replies = [r for r in (handle(item) for item in request) if r is not None]
-            if replies:
-                _write(sink, replies)
-            continue
-
-        response = handle(request)
-        if response is not None:
-            _write(sink, response)
-    return 0
+    return _serve(
+        stdin=stdin,
+        stdout=stdout,
+        tools=TOOLS,
+        server_info={"name": SERVER_NAME, "version": SERVER_VERSION},
+        instructions=INSTRUCTIONS,
+        preflight=_offline_preflight,
+    )
 
 
 if __name__ == "__main__":

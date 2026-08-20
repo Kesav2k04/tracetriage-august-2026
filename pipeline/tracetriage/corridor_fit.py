@@ -797,6 +797,12 @@ class NullCalibration:
     # rests on is measured per observation rather than asserted once in a comment.
     odd_symmetry_residual_frac: float | None = None
     discriminates: bool | None = None
+    # Why no nulls were built, when `n_nulls` is 0. Four separate conditions end
+    # here and they do not mean the same thing: a corrected capture is vacuous by
+    # construction, a grazing pass is untestable, and a failed offset search is a
+    # measurement failure. A caller that reads only `n_nulls == 0` cannot tell a
+    # refusal from a breakage, so each branch names itself.
+    not_tested_reason: str | None = None
 
     def summary(self) -> dict[str, Any]:
         return {
@@ -848,18 +854,18 @@ def calibrate_against_nulls(
     # measured over two different row sets is not a margin.
     row_mask = visible_rows(corridor, int(zs.shape[0]))
 
+    def _empty(sig: float | None, reason: str) -> NullCalibration:
+        return NullCalibration(
+            n_nulls=0, true_sigma=sig, null_sigmas=[], null_median=None,
+            null_p95=None, null_max=None, n_at_least=None, p_value=None,
+            margin_over_best_null=None, not_tested_reason=reason,
+        )
+
     true_sigma, true_off = _best_over_offsets(
         smoothed, zs, corridor, hz_per_px, origin, bound_px, row_mask=row_mask
     )
     if true_off is None:
-        return NullCalibration(0, None, [], None, None, None, None, None)
-
-    def _empty(sig: float | None) -> NullCalibration:
-        return NullCalibration(
-            n_nulls=0, true_sigma=sig, null_sigmas=[], null_median=None,
-            null_p95=None, null_max=None, n_at_least=None, p_value=None,
-            margin_over_best_null=None,
-        )
+        return _empty(None, "no_offset_fit")
 
     span = float(np.ptp(np.asarray(corridor.doppler_hz, dtype=float)))
     if span <= 0.0:
@@ -869,7 +875,7 @@ def calibrate_against_nulls(
         # identically 0 Hz across the whole pass, and true and null sigmas agreed
         # to every decimal place. physics.py sets corrected.doppler_hz to zeros
         # unconditionally, so this branch only ever catches corrected corridors.
-        return _empty(float(true_sigma))
+        return _empty(float(true_sigma), "flat_corridor")
 
     if span < thresholds.min_swing_hz:
         # A small swing cannot distinguish one shape from another: a permutation
@@ -878,7 +884,7 @@ def calibrate_against_nulls(
         # quantisation alone. A3 refuses a verdict below the same 3 kHz for the
         # same reason. Only `span > 0` was checked before, which let a grazing
         # low-elevation pass through as testable.
-        return _empty(float(true_sigma))
+        return _empty(float(true_sigma), "swing_below_floor")
 
     sigmas: list[float] = []
     for i in range(thresholds.n_nulls):
@@ -890,7 +896,7 @@ def calibrate_against_nulls(
             sigmas.append(float(s))
 
     if not sigmas:
-        return _empty(float(true_sigma))
+        return _empty(float(true_sigma), "no_null_scored")
 
     # Scaled-swing controls hold the curve's smoothness and its sign structure
     # fixed and change only the magnitude of the predicted Doppler. A test that

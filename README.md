@@ -596,9 +596,13 @@ presented as if it did.
 Requires Python 3.12 and Node 22, and [uv](https://docs.astral.sh/uv/). Nothing else: no
 service, no key, no model download for the judged path.
 
+The `full` extra is what the judged path needs, and it is an extra rather than a base
+dependency so that `pip install tracetriage` is 166 MB instead of 4,643 MB. Reproducing the
+receipts wants all of it; measuring one live observation wants none of it.
+
 ```bash
 uv venv --python 3.12 .venv
-uv pip install --python .venv/bin/python -e ".[dev,onnx]"     # .venv/Scripts/python.exe on Windows
+uv pip install --python .venv/bin/python -e ".[full,dev,onnx]"   # .venv/Scripts/python.exe on Windows
 .venv/bin/python -m pytest -m "not network and not ocr and not llm"
 ```
 
