@@ -6432,3 +6432,49 @@ scorer against a synthetic 72-row bundle at a scratch output path, `sync_kill_ga
 **Outcome:** the instrument produces a file the scorer accepts, records the one quantity
 that cannot be recovered later, and the day it is answered three files follow the receipt
 instead of needing an editor.
+
+## 2026-08-20 IST | Wave D | D23: the probe was right by coincidence
+
+**A review found that `paint-probe.js` asked a tag list which fonts hold the first
+paint.** The list was `h1, h2, h3, h4, p, a, span, li, td, th`, which omits `dt`, `dd`,
+`button`, `label`, `figcaption` and `caption`. The home page's hero readout is a `<dl>`
+whose `<dt>` sets the Adobe-hosted label face, above the fold, in the same component this
+probe's docstring was written about.
+
+**The reviewer called it currently harmless and was half right.** On the landing page two
+nearby `<p>` elements use the same family, so it still got flagged. On the other two pages
+it did not:
+
+| Page | Tag list | Elements that paint text |
+|---|---|---|
+| `/` | din-2014-narrow, neue-haas-grotesk-display | unchanged |
+| `/evaluation/` | neue-haas-grotesk-display | **din-2014-narrow**, neue-haas-grotesk-display |
+| `/observation/14740031/` | neue-haas-grotesk-display | **din-2014-narrow**, neue-haas-grotesk-display |
+
+So a blocking font family was going unreported on two of three pages measured, and the one
+page where it was reported was reported correctly by accident.
+
+**A longer tag list would be the same defect with a longer list.** The question the probe
+asks is which families paint text above the fold, and that is a property of elements that
+have text rather than of their tag names. It now walks every element under `body` and
+keeps the ones with a direct non-empty text node child. `textContent` would not do:
+a `<div>` wrapping the page carries the text of everything under it and would report the
+wrapper's inherited family for content it does not paint.
+
+**Two things from the same review that are not defects.** `.instrument-title` was reported
+as dead CSS; it is used three times in `apps/web/app/observation/[id]/page.tsx`, and a grep
+that misses the app directory is how live CSS gets deleted. And the chroma ramp was
+reported as not perfectly monotonic, with `hover-ui` at 0.0314 sitting above `field-01`
+at 0.0308; that is 8-bit hex rounding on two values a bucket apart, `hover-ui` appears in
+no checked pair, and no ratio moves.
+
+**One thing worth keeping from it.** The tightest non-exempt pair in the whole table is
+`--text-03` on `--ui-01` at 4.59:1, a margin of 0.09 over its floor, smaller than either
+declared exemption's distance from its own. `scripts/check_contrast.py` now says so, since
+a table where every row reads PASS does not say which row is nearly not passing.
+
+**Files changed:** `apps/web/audit/paint-probe.js`, `scripts/check_contrast.py`.
+**Commands run:** the probe over three pages before and after, `ruff check`,
+`scripts/check_contrast.py -v`, `scripts/gate.py`.
+**Outcome:** the probe reports what it claims to report on every page rather than on the
+one where the markup happened to agree with its tag list.

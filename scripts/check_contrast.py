@@ -17,7 +17,12 @@ Floors, from WCAG 2.1:
 * 3.0:1 for large text and for the boundary of a user interface component.
 
 Two pairs sit deliberately below 4.5 and are declared, not discovered:
-`--text-03` on `--ui-02` is 3.50:1 and is only used for rules and axis furniture, and
+The tightest pair that is not exempt is `--text-03` on `--ui-01`, at 4.59:1 against a
+4.5 floor. It is named here because a margin of 0.09 is smaller than either declared
+exemption's distance from its own floor, so it is the pair a future change to the ramp
+will break first, and a table where every row says PASS does not say which row is nearly
+not passing. `--text-03` on `--ui-02` is 3.50:1 and is only used for rules and axis
+furniture, and
 `--ui-04` on the page ground is 3.73:1 and is a component boundary. Both are recorded
 with the reason rather than rounded up or quietly excluded, because an exemption with
 no measurement attached is how a scoped-out check stops covering anything.

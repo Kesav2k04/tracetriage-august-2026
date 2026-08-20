@@ -44,15 +44,38 @@
   // Families the reader is looking at before scrolling. The first entry of the
   // computed stack is the one that decides whether text is held, because a later
   // fallback is only reached once the browser gives up on the one in front of it.
+  //
+  // Every element with text of its own, not a list of tags. This asked
+  // `h1, h2, h3, h4, p, a, span, li, td, th` until a review pointed out what that
+  // misses: `dt`, `dd`, `button`, `label`, `figcaption`, `caption`. The home page's
+  // hero readout is a `<dl>` whose `<dt>` sets the Adobe-hosted label face, above the
+  // fold, in the same component this file's docstring is about. It did not change the
+  // answer, because two nearby `<p>` elements happen to use the same family, and that
+  // is exactly the problem: the probe was right by coincidence. A longer tag list would
+  // be the same defect with a longer list, so the test is now the thing actually being
+  // asked, which is whether the element paints text.
+  //
+  // `el.textContent` is not that test: a `<div>` wrapping the whole page has the text
+  // of everything under it and would report the wrapper's inherited family for content
+  // it does not paint. A direct child text node is what an element renders itself.
+  const paintsText = (el) => {
+    for (const node of el.childNodes) {
+      if (node.nodeType === 3 && node.nodeValue && node.nodeValue.trim()) return true;
+    }
+    return false;
+  };
+  const SKIP = new Set(["SCRIPT", "STYLE", "TITLE", "NOSCRIPT", "TEMPLATE", "OPTION"]);
+
   const firstScreen = new Set();
-  for (const el of document.querySelectorAll("h1, h2, h3, h4, p, a, span, li, td, th")) {
-    if (!el.textContent || !el.textContent.trim()) continue;
+  for (const el of document.querySelectorAll("body *")) {
+    if (SKIP.has(el.tagName) || !paintsText(el)) continue;
     const r = el.getBoundingClientRect();
-    if (r.top > window.innerHeight || r.bottom < 0 || r.width === 0) continue;
-    const family = getComputedStyle(el)
-      .fontFamily.split(",")[0]
-      .replace(/["']/g, "")
-      .trim();
+    if (r.top > window.innerHeight || r.bottom < 0 || r.width === 0 || r.height === 0) {
+      continue;
+    }
+    const style = getComputedStyle(el);
+    if (style.visibility === "hidden" || style.display === "none") continue;
+    const family = style.fontFamily.split(",")[0].replace(/["']/g, "").trim();
     if (family) firstScreen.add(family);
   }
 
