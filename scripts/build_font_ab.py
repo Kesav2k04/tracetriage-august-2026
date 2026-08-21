@@ -167,7 +167,7 @@ def _nokit(html: str) -> str:
 
 def _patch(root: pathlib.Path, edit) -> int:
     touched = 0
-    for page in sorted(root.rglob("*.html")):
+    for page in sorted(root.rglob("*.html"), key=lambda p: p.as_posix()):
         source = page.read_text(encoding="utf-8")
         edited = edit(source)
         if edited != source:

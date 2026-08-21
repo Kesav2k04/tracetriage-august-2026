@@ -201,7 +201,7 @@ def orbital_revolution_index(tle1: str, tle2: str, start_iso: str) -> int:
 def _load_raw_pages(pages_dir: Path) -> dict[int, dict[str, Any]]:
     """Load all raw observation records keyed by observation id."""
     raw: dict[int, dict[str, Any]] = {}
-    for pf in sorted(pages_dir.glob("*.json")):
+    for pf in sorted(pages_dir.glob("*.json"), key=lambda p: p.as_posix()):
         for obs in json.loads(pf.read_text(encoding="utf-8")):
             raw[obs["id"]] = obs
     return raw

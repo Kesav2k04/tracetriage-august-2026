@@ -42,7 +42,7 @@ _HAVE_PLEX = False
 if _FONT_DIR.is_dir():
     import manimpango
 
-    for _ttf in sorted(_FONT_DIR.glob("*.ttf")):
+    for _ttf in sorted(_FONT_DIR.glob("*.ttf"), key=lambda p: p.as_posix()):
         manimpango.register_font(str(_ttf))
     _HAVE_PLEX = "IBM Plex Sans" in manimpango.list_fonts()
 

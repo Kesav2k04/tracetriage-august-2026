@@ -82,11 +82,14 @@ def _docstring(path: pathlib.Path) -> str:
 
 def _modules(root: pathlib.Path, tracked: set[str]) -> list[pathlib.Path]:
     return sorted(
-        p
-        for p in root.glob("*.py")
-        if p.name not in _SKIP_SCRIPT_NAMES
-        and not p.name.startswith("__")
-        and _rel(p) in tracked
+        (
+            p
+            for p in root.glob("*.py")
+            if p.name not in _SKIP_SCRIPT_NAMES
+            and not p.name.startswith("__")
+            and _rel(p) in tracked
+        ),
+        key=lambda p: p.as_posix(),
     )
 
 
@@ -94,7 +97,7 @@ def _sources(tracked: set[str]) -> dict[pathlib.Path, str]:
     """Every published Python source under scripts/, the package and tests/, read once."""
     out: dict[pathlib.Path, str] = {}
     for root in (SCRIPTS, PACKAGE, TESTS):
-        for path in sorted(root.rglob("*.py")):
+        for path in sorted(root.rglob("*.py"), key=lambda p: p.as_posix()):
             if _rel(path) in tracked:
                 out[path] = path.read_text(encoding="utf-8")
     return out
@@ -156,7 +159,7 @@ def _tests_naming(name: str, sources: dict[pathlib.Path, str]) -> list[str]:
 
 def _contracts(tracked: set[str]) -> list[dict]:
     out = []
-    for path in sorted(CONTRACTS.glob("*.schema.json")):
+    for path in sorted(CONTRACTS.glob("*.schema.json"), key=lambda p: p.as_posix()):
         if _rel(path) not in tracked:
             continue
         doc = json.loads(path.read_text(encoding="utf-8"))
@@ -167,7 +170,14 @@ def _contracts(tracked: set[str]) -> list[dict]:
 def _artifact_rows(sources: dict[pathlib.Path, str], tracked: set[str]) -> list[dict]:
     rows = []
     contracts = _contracts(tracked)
-    for path in sorted(ARTIFACTS.glob("*.json")):
+    # Sorted by the POSIX string rather than by the Path, because comparing Path objects
+    # is case-insensitive on Windows and case-sensitive on POSIX. artifacts/ holds one
+    # lowercase name among uppercase ones, corridor_features.json, so this page listed it
+    # first when generated on Windows and last when generated on Linux. Same rows, same
+    # digests, different order, and the standing --check gate failed on CI for twenty runs
+    # with a diff that showed two identical lines. The key makes the order a property of
+    # the names instead of a property of the machine.
+    for path in sorted(ARTIFACTS.glob("*.json"), key=lambda p: p.as_posix()):
         if _rel(path) not in tracked:
             continue
         raw = path.read_bytes()
@@ -202,7 +212,7 @@ def _artifact_rows(sources: dict[pathlib.Path, str], tracked: set[str]) -> list[
 
 def _test_rows(tracked: set[str]) -> list[dict]:
     rows = []
-    for path in sorted(TESTS.glob("test_*.py")):
+    for path in sorted(TESTS.glob("test_*.py"), key=lambda p: p.as_posix()):
         if _rel(path) not in tracked:
             continue
         text = path.read_text(encoding="utf-8")

@@ -130,7 +130,7 @@ def _load_raw_obs(snapshot_dir: Path, obs_id: int) -> dict[str, Any] | None:
     pages_dir = snapshot_dir / "pages"
     if not pages_dir.exists():
         return None
-    for page_file in sorted(pages_dir.glob("*.json")):
+    for page_file in sorted(pages_dir.glob("*.json"), key=lambda p: p.as_posix()):
         try:
             records = json.loads(page_file.read_bytes())
         except Exception:

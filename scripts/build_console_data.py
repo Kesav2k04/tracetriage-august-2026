@@ -939,7 +939,10 @@ def main(argv: list[str] | None = None) -> int:
         (_ARTIFACTS / "DATASET_MANIFEST.json").read_text(encoding="utf-8")
     )
 
-    receipts = sorted(p for p in _ARTIFACTS.glob("*.json"))
+    # Keyed on the POSIX string: sorting Path objects is case-insensitive on Windows and
+    # case-sensitive on POSIX, and this list is written into the committed provenance.json,
+    # so without the key the file's row order depended on which machine built it.
+    receipts = sorted(_ARTIFACTS.glob("*.json"), key=lambda p: p.as_posix())
     (data_dir / "provenance.json").write_text(
         json.dumps(
             {

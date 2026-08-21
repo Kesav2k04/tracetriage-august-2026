@@ -112,19 +112,14 @@
    "bytes": 16750
   },
   {
-   "name": "corridor_features.json",
-   "sha256": "748ac151f0873df0dd4be46f6f46e14f519038a34078e7748c04eed9ceceb13d",
-   "bytes": 527163
-  },
-  {
    "name": "DATASET_MANIFEST.json",
    "sha256": "7029e2a8b3bef5fd05107df8650269d2defa5c2c4241dda03c3f4484c61e8ba7",
    "bytes": 2309369
   },
   {
    "name": "EXPLAIN_RECEIPT.json",
-   "sha256": "82689ecb58beefa2d56f2fe17be1b9442f84bd0977178bbf2110e7eeb3993f6c",
-   "bytes": 25623
+   "sha256": "8eab973ec828fe7460fa829ada6be135378c7c0dfc07db8e163ae4a1776ad242",
+   "bytes": 24725
   },
   {
    "name": "FONT_PAINT_RECEIPT.json",
@@ -240,6 +235,11 @@
    "name": "TRIAGE_RECEIPT.json",
    "sha256": "b5213a23e50938624ef8be5dd5bbab340559521478c6a24a1a84256137a08255",
    "bytes": 3740
+  },
+  {
+   "name": "corridor_features.json",
+   "sha256": "748ac151f0873df0dd4be46f6f46e14f519038a34078e7748c04eed9ceceb13d",
+   "bytes": 527163
   }
  ],
  "contracts": [
