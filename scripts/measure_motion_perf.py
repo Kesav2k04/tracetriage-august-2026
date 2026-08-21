@@ -372,7 +372,7 @@ def main(argv: list[str] | None = None) -> int:
     print()
     print(payload["reading"])
     if args.out:
-        args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
+        args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8", newline="\n")
         print(f"wrote {args.out}")
     return 0
 

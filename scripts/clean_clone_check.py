@@ -377,6 +377,7 @@ def main(argv: list[str] | None = None) -> int:
         args.out.write_text(
             json.dumps({"steps": steps, "fatal": "clone failed"}, indent=1),
             encoding="utf-8",
+            newline="\n",
         )
         return 1
 
@@ -384,7 +385,7 @@ def main(argv: list[str] | None = None) -> int:
     # and on PYTHONPATH so every Python process below imports it at startup.
     guard_dir = args.clone_dir / "offline_guard"
     guard_dir.mkdir(parents=True, exist_ok=True)
-    (guard_dir / "sitecustomize.py").write_text(_SITECUSTOMIZE, encoding="utf-8")
+    (guard_dir / "sitecustomize.py").write_text(_SITECUSTOMIZE, encoding="utf-8", newline="\n")
 
     env = dict(os.environ)
     env["PYTHONPATH"] = os.pathsep.join([str(guard_dir), str(clone)])
@@ -710,7 +711,7 @@ def main(argv: list[str] | None = None) -> int:
         },
     }
 
-    args.out.write_text(json.dumps(payload, indent=1), encoding="utf-8")
+    args.out.write_text(json.dumps(payload, indent=1), encoding="utf-8", newline="\n")
     print(f"\nwrote {args.out}")
     print(json.dumps(payload["summary"], indent=1))
     print(json.dumps(payload["network"]["violations"], indent=1))

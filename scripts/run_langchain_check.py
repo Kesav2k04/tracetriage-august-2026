@@ -152,7 +152,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{OUT.name} is stale. Run scripts/run_langchain_check.py.")
         return 1
 
-    OUT.write_text(rendered, encoding="utf-8")
+    OUT.write_text(rendered, encoding="utf-8", newline="\n")
     exercised = payload["exercised"]
     print(
         f"{OUT.name} written: {payload['n_offered']} of "

@@ -248,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
         "fired_obs_ids": sorted(r["obs_id"] for r in fired),
         "rows": rows,
     }
-    args.out.write_text(json.dumps(payload, indent=1), encoding="utf-8")
+    args.out.write_text(json.dumps(payload, indent=1), encoding="utf-8", newline="\n")
     print(f"\nwrote {args.out}")
     print(json.dumps(payload["states"], indent=1))
     print(json.dumps(payload["incidence"], indent=1))

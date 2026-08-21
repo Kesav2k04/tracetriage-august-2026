@@ -760,7 +760,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         return 1
 
-    readme.write_text(rendered, encoding="utf-8")
+    readme.write_text(rendered, encoding="utf-8", newline="\n")
 
     print(f"README results synced: {len(ROWS)} measured rows, 2 marked unmeasured")
     print(f"  gate status block: {N_GATES} gates, {N_MET} met")

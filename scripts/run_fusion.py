@@ -807,7 +807,7 @@ def main(argv: list[str] | None = None) -> int:
         "splits": results,
     }
     _validate_against_contract(payload)
-    args.out.write_text(json.dumps(payload, indent=1), encoding="utf-8")
+    args.out.write_text(json.dumps(payload, indent=1), encoding="utf-8", newline="\n")
     print(f"\nwrote {args.out}")
     print(f"\nGATE 5: {gate5['verdict']}")
     print(gate5["statement"])

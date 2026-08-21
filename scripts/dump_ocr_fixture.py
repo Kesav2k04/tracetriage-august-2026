@@ -57,7 +57,7 @@ def main() -> int:
         }
         print(f"{name}: {len(results)} labels read")
 
-    OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {OUT}")
     return 0
 

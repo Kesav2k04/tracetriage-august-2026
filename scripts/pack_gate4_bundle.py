@@ -245,12 +245,12 @@ def main(argv: list[str] | None = None) -> int:
     key = args.key or bundle / "KEY_do_not_open_until_scored.json"
     receipt = pack(bundle, key)
     rendered = json.dumps(receipt, indent=1) + "\n"
-    OUT.write_text(rendered, encoding="utf-8")
+    OUT.write_text(rendered, encoding="utf-8", newline="\n")
     # The same receipt, where the console can import it. The evaluation page prints
     # the size and the digest of the file a reviewer is asked for, and a page that
     # printed them from a different source than the packer would eventually print a
     # digest for an archive nobody has.
-    (PUBLISHED / "BUNDLE.json").write_text(rendered, encoding="utf-8")
+    (PUBLISHED / "BUNDLE.json").write_text(rendered, encoding="utf-8", newline="\n")
     print(
         f"{OUT.name} written: {receipt['commitments_checked']} commitments verified, "
         f"{receipt['archive']['name']} is {receipt['archive']['bytes']:,} bytes, "

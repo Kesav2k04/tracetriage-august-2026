@@ -358,7 +358,9 @@ def main(argv: list[str] | None = None) -> int:
 
     # The key leaves the repository. Writing it inside would make the commitment theatre.
     (args.out / "KEY_do_not_open_until_scored.json").write_text(
-        json.dumps({"salt": salt, "items": key_rows}, indent=1) + "\n", encoding="utf-8"
+        json.dumps({"salt": salt, "items": key_rows}, indent=1) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
 
     n_items = len(items)
@@ -371,11 +373,13 @@ def main(argv: list[str] | None = None) -> int:
         + "\n".join(f"- `{i['item']}`" for i in items)
         + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     (args.out / "responses.csv").write_text(
         "item,artifact_usable,visible_signal,target_consistent,notes\n"
         + "".join(f"{i['item']},,,,\n" for i in items),
         encoding="utf-8",
+        newline="\n",
     )
 
     args.manifest.write_text(
@@ -439,6 +443,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         + "\n",
         encoding="utf-8",
+        newline="\n",
     )
 
     print(f"bundle written to {args.out}")

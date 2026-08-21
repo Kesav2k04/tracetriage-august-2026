@@ -435,7 +435,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{args.out.relative_to(REPO)} is current: {len(STAGES)} stages")
         return 0
 
-    args.out.write_text(svg, encoding="utf-8")
+    args.out.write_text(svg, encoding="utf-8", newline="\n")
     print(
         f"wrote {args.out.relative_to(REPO)}: {len(STAGES)} stages, "
         f"{len(EDGES)} edges, {len(svg)} bytes"

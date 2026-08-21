@@ -240,7 +240,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
 
-    args.out.write_text(rendered, encoding="utf-8")
+    args.out.write_text(rendered, encoding="utf-8", newline="\n")
     h = receipt["headroom"]
     c = receipt["the_actual_constraint"]
     print(f"wrote {args.out.relative_to(REPO)}")

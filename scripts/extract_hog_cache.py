@@ -99,6 +99,7 @@ def main(argv: list[str] | None = None) -> int:
             indent=1,
         ),
         encoding="utf-8",
+        newline="\n",
     )
     print(f"\ncached {len(kept_ids)} vectors of dim {matrix.shape[1] if matrix.size else 0}")
     print(f"failures: {len(failures)}")

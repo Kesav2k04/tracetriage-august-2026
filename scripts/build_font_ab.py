@@ -171,7 +171,7 @@ def _patch(root: pathlib.Path, edit) -> int:
         source = page.read_text(encoding="utf-8")
         edited = edit(source)
         if edited != source:
-            page.write_text(edited, encoding="utf-8")
+            page.write_text(edited, encoding="utf-8", newline="\n")
             touched += 1
     return touched
 
@@ -428,7 +428,7 @@ def main(argv: list[str] | None = None) -> int:
         rendered = json.dumps(
             receipt(json.loads(args.receipt.read_text(encoding="utf-8"))), indent=1
         )
-        RECEIPT.write_text(rendered + "\n", encoding="utf-8")
+        RECEIPT.write_text(rendered + "\n", encoding="utf-8", newline="\n")
         print(f"{RECEIPT.name} written: {len(rendered):,} bytes")
         return 0
     destination = pathlib.Path(args.out).resolve()

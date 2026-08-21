@@ -621,7 +621,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  fields that differ: {differing}")
         return 1
 
-    OUT.write_text(json.dumps(fresh, indent=1) + "\n", encoding="utf-8")
+    OUT.write_text(json.dumps(fresh, indent=1) + "\n", encoding="utf-8", newline="\n")
     t = fresh["targets"]
     print(f"{OUT.relative_to(REPO)} written")
     print(

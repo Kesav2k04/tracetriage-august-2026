@@ -509,11 +509,15 @@ def main(argv: list[str] | None = None) -> int:
     attribution = audit_attribution()
     weight = audit_weight()
 
-    (args.out_dir / "SECRET_SCAN.json").write_text(json.dumps(secrets, indent=1), encoding="utf-8")
-    (args.out_dir / "ATTRIBUTION_AUDIT.json").write_text(
-        json.dumps(attribution, indent=1), encoding="utf-8"
+    (args.out_dir / "SECRET_SCAN.json").write_text(
+        json.dumps(secrets, indent=1), encoding="utf-8", newline="\n"
     )
-    (args.out_dir / "REPO_WEIGHT.json").write_text(json.dumps(weight, indent=1), encoding="utf-8")
+    (args.out_dir / "ATTRIBUTION_AUDIT.json").write_text(
+        json.dumps(attribution, indent=1), encoding="utf-8", newline="\n"
+    )
+    (args.out_dir / "REPO_WEIGHT.json").write_text(
+        json.dumps(weight, indent=1), encoding="utf-8", newline="\n"
+    )
 
     print("SECRET_SCAN     clean:", secrets["clean"], "findings:", secrets["n_findings"])
     if secrets["findings"]:

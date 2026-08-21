@@ -427,7 +427,7 @@ def main() -> int:
     }
 
     args.out.write_text(
-        json.dumps(out, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
+        json.dumps(out, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
     )
     size_kb = args.out.stat().st_size / 1024
     logger.info("wrote %s (%d paths, %.1f kB)", args.out, len(drawn), size_kb)

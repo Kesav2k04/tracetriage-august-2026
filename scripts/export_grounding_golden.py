@@ -355,7 +355,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{GOLDEN.name} is stale. Run scripts/export_grounding_golden.py.")
         return 1
 
-    GOLDEN.write_text(rendered, encoding="utf-8")
+    GOLDEN.write_text(rendered, encoding="utf-8", newline="\n")
     print(
         f"{GOLDEN.name} written: {payload['n_rows']} rows over "
         f"{payload['n_observations']} observations, checker "

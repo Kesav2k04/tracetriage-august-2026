@@ -248,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
         },
         "rows": results,
     }
-    args.out.write_text(json.dumps(payload, indent=1), encoding="utf-8")
+    args.out.write_text(json.dumps(payload, indent=1), encoding="utf-8", newline="\n")
     print(f"\nwrote {args.out}")
     print(json.dumps(payload["states"], indent=1))
     return 0

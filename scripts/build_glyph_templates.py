@@ -282,6 +282,7 @@ def main() -> int:
             indent=1,
         ),
         encoding="utf-8",
+        newline="\n",
     )
     print(f"\nwrote {args.out.relative_to(REPO)}  ({args.out.stat().st_size:,} bytes)")
     return 0

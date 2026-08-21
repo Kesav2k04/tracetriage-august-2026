@@ -186,7 +186,7 @@ def fetch_observations(target: int, max_pages: int) -> list[dict]:
         else:
             raw, headers = _get(url)
             cached.write_bytes(raw)
-            cached_hdr.write_text(json.dumps(headers), encoding="utf-8")
+            cached_hdr.write_text(json.dumps(headers), encoding="utf-8", newline="\n")
             print(f"  page {page_index}: fetched ({len(collected)} collected so far)")
             time.sleep(REQUEST_INTERVAL)
 
@@ -540,7 +540,7 @@ def main() -> None:
     result = validate(observations)
     dist = result["distribution"]
 
-    OUT_PATH.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    OUT_PATH.write_text(json.dumps(result, indent=2), encoding="utf-8", newline="\n")
     print(f"\nWrote {OUT_PATH}")
 
     print("\n--- max_altitude error distribution ---")

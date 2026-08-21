@@ -1218,7 +1218,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         return 1
 
-    OUT.write_text(PAGE, encoding="utf-8")
+    OUT.write_text(PAGE, encoding="utf-8", newline="\n")
     print(f"FOR_JUDGES.md written: {len(PAGE.splitlines())} lines")
     print(f"  gates {N_MET}/{N_GATES} met, {N_INCONCLUSIVE} inconclusive, {N_OPEN} open")
     print(f"  offline suite {SUITE_RESULT}, from the clean clone")

@@ -506,7 +506,7 @@ def fetch_candidates() -> list[dict]:
         else:
             raw, headers = _get(url)
             cached.write_bytes(raw)
-            cached_hdr.write_text(json.dumps(headers), encoding="utf-8")
+            cached_hdr.write_text(json.dumps(headers), encoding="utf-8", newline="\n")
             print(f"  page {page_index}: fetched")
             time.sleep(REQUEST_INTERVAL)
 
@@ -788,7 +788,9 @@ def main() -> None:
         record["overlay_file"] = out_path.name
         results.append(record)
 
-    (OUT_DIR / "summary.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
+    (OUT_DIR / "summary.json").write_text(
+        json.dumps(results, indent=2), encoding="utf-8", newline="\n"
+    )
 
     # ---- aggregate ----------------------------------------------------------
     ok = [r for r in results if r.get("status") == "ok"]

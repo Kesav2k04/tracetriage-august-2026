@@ -531,7 +531,7 @@ def main(argv: list[str] | None = None) -> int:
                 "silence would hide that the gate is still open."
             ),
         }
-        args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
+        args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8", newline="\n")
         print(f"gate 4: NOT_RUN ({exc})")
         print(f"wrote {args.out}")
         return 0
@@ -659,7 +659,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
             "arm": stats,
         }
-    args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
+    args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8", newline="\n")
 
     print(f"gate 4: {verdict} (reviewer kind: {reviewer['kind']})")
     print(f"  {successes}/{trials} decisive, rate {rate:.3f}, 95% [{lower:.3f}, {upper:.3f}]")

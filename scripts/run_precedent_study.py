@@ -245,7 +245,7 @@ def freeze(snapshot: Path, fixture: Path) -> dict[str, Any]:
         "console_precedent": console,
     }
     fixture.parent.mkdir(parents=True, exist_ok=True)
-    fixture.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
+    fixture.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8", newline="\n")
     print(f"froze {len(pool)} observations into {fixture}")
     return payload
 
@@ -698,7 +698,7 @@ def main(argv: list[str] | None = None) -> int:
             "detector.",
         ],
     }
-    args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
+    args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8", newline="\n")
 
     for condition in CONDITIONS:
         arms = payload["conditions"][condition]["arms"]

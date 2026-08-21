@@ -1046,7 +1046,7 @@ def main() -> None:
     _validate_receipt(receipt)
 
     # ---------- Write ----------
-    _OUT.write_text(json.dumps(receipt, indent=1), encoding="utf-8")
+    _OUT.write_text(json.dumps(receipt, indent=1), encoding="utf-8", newline="\n")
     print(f"\nWrote {_OUT}")
     print(f"Gate 6 verdict: {overall_verdict}")
     if primary.get("lift_point") is not None:

@@ -376,7 +376,7 @@ def main(argv: list[str] | None = None) -> int:
                 break
         return 1
 
-    DEMO.write_text(rendered, encoding="utf-8")
+    DEMO.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"docs/DEMO_SCRIPT.md synced: {len(SHOTS)} shots, {total}s of {CEILING_S}")
     return 0
 

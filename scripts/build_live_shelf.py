@@ -178,7 +178,7 @@ def build(target: int, attempts: int, n_nulls: int, pause_s: float) -> int:
         "n_decisive": len(decisive),
         "observations": rows,
     }
-    SHELF.write_text(json.dumps(shelf, indent=1) + "\n", encoding="utf-8")
+    SHELF.write_text(json.dumps(shelf, indent=1) + "\n", encoding="utf-8", newline="\n")
 
     receipt = {
         "schema": "LIVE_SHELF_RECEIPT",
@@ -209,7 +209,7 @@ def build(target: int, attempts: int, n_nulls: int, pause_s: float) -> int:
             "still unbound."
         ),
     }
-    RECEIPT.write_text(json.dumps(receipt, indent=1) + "\n", encoding="utf-8")
+    RECEIPT.write_text(json.dumps(receipt, indent=1) + "\n", encoding="utf-8", newline="\n")
 
     print(
         f"\nwrote {SHELF.relative_to(REPO)} ({len(rows)} observations, "

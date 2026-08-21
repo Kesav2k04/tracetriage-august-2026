@@ -379,6 +379,7 @@ def freeze(repeats: int, endpoint: str | None) -> int:
         )
         + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     print(f"wrote {_FIXTURE.relative_to(REPO)}")
     return 0
@@ -477,7 +478,7 @@ def measure_drift(endpoint: str | None, unload: bool) -> int:
         if compared
         else None,
     }
-    _FIXTURE.write_text(json.dumps(fixture, indent=1) + "\n", encoding="utf-8")
+    _FIXTURE.write_text(json.dumps(fixture, indent=1) + "\n", encoding="utf-8", newline="\n")
     print(
         f"pass {record['pass']}: {record['drafts_that_differed']}"
         f"/{record['drafts_compared']} drafts differed, {record['verdict_flips']} crossed "
@@ -623,7 +624,7 @@ def publish() -> int:
         ),
     }
 
-    _RECEIPT.write_text(json.dumps(receipt, indent=1) + "\n", encoding="utf-8")
+    _RECEIPT.write_text(json.dumps(receipt, indent=1) + "\n", encoding="utf-8", newline="\n")
     _NOTES.write_text(
         json.dumps(
             {
@@ -636,6 +637,7 @@ def publish() -> int:
         )
         + "\n",
         encoding="utf-8",
+        newline="\n",
     )
 
     sens = receipt["checker_sensitivity"]

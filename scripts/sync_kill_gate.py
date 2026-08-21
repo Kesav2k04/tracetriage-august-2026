@@ -483,7 +483,7 @@ def main() -> int:
     if before == after:
         print("KILL_GATE.md already in sync; nothing written")
         return 0
-    DOC.write_text(after, encoding="utf-8")
+    DOC.write_text(after, encoding="utf-8", newline="\n")
     print("KILL_GATE.md synced to the receipts")
     return 0
 

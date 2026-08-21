@@ -455,7 +455,7 @@ def main(argv: list[str] | None = None) -> int:
             else f"steps {unmet} did not. Read them before reading anything else here."
         ),
     }
-    OUT.write_text(json.dumps(receipt, indent=1) + "\n", encoding="utf-8")
+    OUT.write_text(json.dumps(receipt, indent=1) + "\n", encoding="utf-8", newline="\n")
     print(
         f"{OUT.name} written: {receipt['summary']['n_met']} of "
         f"{receipt['summary']['n_steps']} steps met"

@@ -535,7 +535,7 @@ def main(argv: list[str] | None = None) -> int:
     logger.info("Rendering evidence card for obs %d → %s", obs_id, out_path)
     html = render_card(receipt, wf_path, snapshot_dir)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(html, encoding="utf-8")
+    out_path.write_text(html, encoding="utf-8", newline="\n")
     logger.info("Card written: %s  (%d bytes)", out_path, len(html))
 
     print(f"\nEvidence card: {out_path}")

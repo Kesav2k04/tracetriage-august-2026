@@ -117,8 +117,8 @@ def main(argv: list[str] | None = None) -> int:
     split_path = out_dir / "SPLIT_MANIFEST.json"
     audit_path = out_dir / "LEAKAGE_AUDIT.json"
 
-    split_path.write_text(json.dumps(split_manifest, indent=2), encoding="utf-8")
-    audit_path.write_text(json.dumps(leakage_audit, indent=2), encoding="utf-8")
+    split_path.write_text(json.dumps(split_manifest, indent=2), encoding="utf-8", newline="\n")
+    audit_path.write_text(json.dumps(leakage_audit, indent=2), encoding="utf-8", newline="\n")
 
     print(f"Wrote: {split_path}")
     print(f"Wrote: {audit_path}")

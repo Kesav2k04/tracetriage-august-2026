@@ -287,7 +287,13 @@ def load_manifest(manifest_path: Path) -> dict[str, Any]:
 
 def save_manifest(manifest_path: Path, doc: dict[str, Any]) -> None:
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    manifest_path.write_text(json.dumps(doc, indent=2, ensure_ascii=False), encoding="utf-8")
+    # The explicit newline is on every text write in this repository, not only this one.
+    # Python's text mode defaults to os.linesep, so on Windows it turns "\n" into "\r\n",
+    # and the receipts here hash a file's raw bytes. Without it, the hash of a generated
+    # file depends on the machine that generated it. See .gitattributes.
+    manifest_path.write_text(
+        json.dumps(doc, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n"
+    )
 
 
 def validate_manifest(doc: dict[str, Any]) -> None:

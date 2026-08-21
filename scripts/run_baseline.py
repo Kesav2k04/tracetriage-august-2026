@@ -412,7 +412,7 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+    args.out.write_text(json.dumps(receipt, indent=2), encoding="utf-8", newline="\n")
     logger.info("Receipt written to %s", args.out)
 
     # -----------------------------------------------------------------------

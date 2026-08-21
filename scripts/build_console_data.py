@@ -738,6 +738,7 @@ def main(argv: list[str] | None = None) -> int:
             indent=1,
         ),
         encoding="utf-8",
+        newline="\n",
     )
 
     # ---- evaluation ------------------------------------------------------
@@ -799,6 +800,7 @@ def main(argv: list[str] | None = None) -> int:
             indent=1,
         ),
         encoding="utf-8",
+        newline="\n",
     )
 
     # ---- agent study -----------------------------------------------------
@@ -851,6 +853,7 @@ def main(argv: list[str] | None = None) -> int:
             indent=1,
         ),
         encoding="utf-8",
+        newline="\n",
     )
 
     # ---- precedent -------------------------------------------------------
@@ -906,6 +909,7 @@ def main(argv: list[str] | None = None) -> int:
             indent=1,
         ),
         encoding="utf-8",
+        newline="\n",
     )
 
     # ---- provenance ------------------------------------------------------
@@ -983,6 +987,7 @@ def main(argv: list[str] | None = None) -> int:
             indent=1,
         ),
         encoding="utf-8",
+        newline="\n",
     )
 
     # ---- documents rendered in the console -------------------------------
@@ -1058,6 +1063,7 @@ def main(argv: list[str] | None = None) -> int:
             indent=1,
         ),
         encoding="utf-8",
+        newline="\n",
     )
 
     total_kb = sum(c.get("bytes", 0) for c in built) // 1024

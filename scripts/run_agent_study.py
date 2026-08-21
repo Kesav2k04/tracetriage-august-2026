@@ -631,6 +631,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             + "\n",
             encoding="utf-8",
+            newline="\n",
         )
         print(f"froze {len(runs)} runs into {args.fixture}")
 
@@ -689,7 +690,7 @@ def main(argv: list[str] | None = None) -> int:
     payload["frozen_runs_sha256"] = hashlib.sha256(
         args.fixture.read_bytes()
     ).hexdigest()
-    args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
+    args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8", newline="\n")
 
     tools = payload["arms"]["tools"]
     control = payload["arms"]["control"]

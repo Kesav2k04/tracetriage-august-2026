@@ -380,7 +380,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         return 1
 
-    REFERENCE.write_text(rendered, encoding="utf-8")
+    REFERENCE.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"docs/REFERENCE.md synced: {len(rendered.splitlines())} lines")
     loose = _untracked_under((ARTIFACTS, SCRIPTS, PACKAGE, TESTS, CONTRACTS))
     if loose:

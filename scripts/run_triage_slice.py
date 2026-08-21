@@ -626,7 +626,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # ── 13. Write ─────────────────────────────────────────────────────────────
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+    args.out.write_text(json.dumps(receipt, indent=2), encoding="utf-8", newline="\n")
     logger.info("Receipt written: %s", args.out)
 
     # ── 14. Summary ───────────────────────────────────────────────────────────

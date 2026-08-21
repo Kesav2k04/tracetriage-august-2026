@@ -352,7 +352,7 @@ def main(argv: list[str] | None = None) -> int:
             "a pass nor a failure: folding it into either would misreport the run."
         ),
     }
-    RECEIPT.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
+    RECEIPT.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8", newline="\n")
 
     print(
         f"\n{counts[PASSED]} passed, {counts[FAILED]} failed, "
