@@ -54,13 +54,12 @@ graded, each question was proved answerable in a single tool call, because a que
 tools cannot serve would otherwise be scored as a failure of the policy.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `9d71832` with every non-loopback socket refused: 14 of 16 steps
+fresh clone of commit `4717161` with every non-loopback socket refused: 15 of 16 steps
 succeeded. What did not: uv pip install --offline -e .[full,dev,onnx] into the clone's
-environment, lint (ruff check .). The transcript carries each step's exit code and the
-tail of its output, so the reason is readable rather than summarised. The test counts
-above are from the pass with the snapshot directory hidden, which is a judge's case rather
-than this machine's, and they are the count at that commit rather than at the tip of the
-branch.
+environment. The transcript carries each step's exit code and the tail of its output, so
+the reason is readable rather than summarised. The test counts above are from the pass
+with the snapshot directory hidden, which is a judge's case rather than this machine's,
+and they are the count at that commit rather than at the tip of the branch.
 
 Two things about that run are worth knowing before it is trusted. The offline install into
 the clone did not succeed, because the wheel for `torch==2.13.0` is not in the local
