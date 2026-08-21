@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 31 JSON artifacts, 8 contracts, 48 scripts, 25 package modules and 1226 test functions across 57 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 31 JSON artifacts, 8 contracts, 48 scripts, 25 package modules and 1243 test functions across 60 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -168,6 +168,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_baseline.py` | 47 | Tests for the A6 image-only baseline module. |
 | `tests/test_bob_unit_count.py` | 7 | The Bob unit count is a count of units, not of markdown headings. |
 | `tests/test_centre_energy_feature.py` | 14 | Guards on the centre-energy feature itself, not on the pipeline around it. |
+| `tests/test_ci_workflow.py` | 5 | What CI must keep doing, asserted against the workflow rather than against a memory. |
 | `tests/test_circularity.py` | 21 | The circularity analysis has to reproduce the gate before it is allowed to bound it. |
 | `tests/test_claim_drift.py` | 11 | Every public number must come from a generated artifact, not a keyboard. |
 | `tests/test_clean_clone.py` | 11 | The clean-clone transcript, and the counts it publishes. |
@@ -183,7 +184,9 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_explain_time_claims.py` | 13 | Where a note tells a reviewer to look, and what happens when a card has no fit. |
 | `tests/test_explainer_gate4_values.py` | 10 | Every number the gate 4 clip shows, checked against the receipt it came from. |
 | `tests/test_failure_injection.py` | 30 | Failure injection: every mode must produce a NAMED degraded state. |
+| `tests/test_font_ab_serving.py` | 3 | The font A/B harness cannot leave a server behind, and cannot hold the export open. |
 | `tests/test_for_judges.py` | 6 | FOR_JUDGES.md is generated, and these are the ways it could still lie. |
+| `tests/test_freshness_outcomes.py` | 9 | The freshness check has three outcomes, and a missing snapshot is not a failure. |
 | `tests/test_fusion.py` | 77 | Tests for the fusion head and its feature blocks (unit B2). |
 | `tests/test_gate3_bound.py` | 9 | Gate 3's threshold must be read off an interval, not off a point estimate. |
 | `tests/test_gate4.py` | 37 | The gate 4 instrument, tested where it could quietly stop being blinded (unit E6). |

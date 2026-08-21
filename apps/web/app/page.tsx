@@ -13,6 +13,7 @@ import {
   fmt,
   fmtInterval,
   precedent,
+  provenance,
   queue,
   requirePrecedentArm,
   requirePrecedentComparison,
@@ -156,6 +157,58 @@ export default function QueuePage() {
           {queue.review_budget.n_observations} as the budget a volunteer actually has.{" "}
           <Link href="#queue">Open the queue</Link>.
         </p>
+
+        {/* Four signposts, and the reason they exist.
+            This page is 2,699 words across twelve sections, which is the right length for
+            someone checking the work and the wrong length for someone deciding whether to.
+            A reader who cannot find the shape of the argument in the first screen does not
+            read the argument. So: what it is, whether it worked, whether the model earned
+            its place, and how to check any of it, with the number each answer turns on.
+            Every figure below comes from the same constants the sections use, so this cannot
+            drift from what it summarises, and the second one states the limit rather than
+            the headline, because a summary that omitted it would be advertising. */}
+        <nav className="readpath" aria-label="How to read this page">
+          <ol>
+            <li>
+              <span className="readpath-index">01</span>
+              <Link href="#queue">What it is</Link>
+              <span className="readpath-fact">
+                a ranked queue of {queue.entries.length}, the top{" "}
+                {queue.review_budget.n_observations} is the budget
+              </span>
+            </li>
+            <li>
+              <span className="readpath-index">02</span>
+              <Link href="/evaluation">Whether it worked</Link>
+              <span className="readpath-fact">
+                <span className="num">{fmt(primary.lift_point)}&times;</span> over
+                chronological, interval{" "}
+                <span className="num">{fmtInterval(primary.lift_ci95)}</span>, which does not
+                clear the threshold
+              </span>
+            </li>
+            <li>
+              <span className="readpath-index">03</span>
+              <Link href="/precedent">Whether the model earned it</Link>
+              <span className="readpath-fact">
+                <span className="num">{fmt(GRANITE_RETRIEVAL, 3)}</span> against{" "}
+                <span className="num">{fmt(NUMERIC_RETRIEVAL, 3)}</span>, a margin that does
+                not survive its correction
+              </span>
+            </li>
+            <li>
+              <span className="readpath-index">04</span>
+              <Link href="/provenance">How to check it</Link>
+              <span className="readpath-fact">
+                every number names a receipt;{" "}
+                <span className="num">
+                  {provenance.gate_summary.n_met} of {provenance.gate_summary.n_gates}
+                </span>{" "}
+                kill gates met
+              </span>
+            </li>
+          </ol>
+        </nav>
         {/* The IBM stack, named on the first screen, with the retrieval result stated
             the way its own receipt states it.
             What this paragraph used to say: the Granite embedding "is the strongest

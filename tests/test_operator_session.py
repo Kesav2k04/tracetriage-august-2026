@@ -119,6 +119,20 @@ def test_the_live_half_measured_a_pass_and_kept_its_provenance(receipt):
     assert steps[11]["reported"]["verdict"] == "REFUSED"
 
 
+@pytest.mark.skipif(
+    sys.platform != "win32",
+    reason=(
+        "The .bob launchers this drives are Windows shims. scripts/run_operator_session.py "
+        "spawns ['cmd', '/c', '.bob\\\\run-evidence.cmd'] because that is exactly how "
+        ".bob/mcp.json starts the server, and the point of the receipt is that the demo runs "
+        "as a client of the real launcher rather than of a reimplementation of it. On Linux "
+        "there is no cmd and no .cmd to run, so this fails with FileNotFoundError: 'cmd' and "
+        "reports a broken demo where the truth is that the thing under test does not exist on "
+        "the platform. It failed that way on every CI run, and it also left the regenerated "
+        "receipt behind, which then failed test_reference_sync on a size REFERENCE.md was "
+        "right about. Cannot be measured here is not the same answer as broken."
+    ),
+)
 def test_the_offline_half_still_runs(tmp_path):
     """Re-run the nine steps that read committed receipts, and check the exit code.
 

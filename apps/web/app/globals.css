@@ -1065,11 +1065,21 @@ code,
    out whether IBM models are used. This carries both measured Granite results and
    links to the page each was measured on. Smaller than the product line because it
    is provenance rather than the pitch. */
+/* This paragraph carries the argument about the model: what Granite retrieves, what a
+   numeric baseline retrieves, and why the margin between them does not survive its own
+   correction. It was set at caption size in the faintest ink on the page, 97 words of
+   reasoning dressed as a footnote, which is the fastest way to have a reader skip the part
+   that decides whether to believe the rest.
+
+   Body size and the middle ink instead. `--text-03` on `--ui-01` is 4.56:1, which clears the
+   4.5 floor and is the tightest pair here; `--text-02` is 8.93:1. Raising the size and the
+   contrast together costs nothing and the measure is unchanged at 62ch, which is inside the
+   45 to 75 range where a line is read rather than scanned. */
 .lede-stack {
   margin: var(--sp-04) 0 0;
   max-width: 62ch;
-  color: var(--text-03);
-  font-size: var(--type-caption);
+  color: var(--text-02);
+  font-size: var(--type-body);
   line-height: 1.7;
 }
 
@@ -3234,4 +3244,84 @@ main .shell > section > h2::before {
   color: var(--text-02);
   margin-top: var(--sp-02);
   line-height: 1.5;
+}
+
+/* The reading path.
+
+   Four rows that answer, in order: what this is, whether it worked, whether the model earned
+   its place, and how to check any of it. It exists because the page is right for a reader
+   checking the work and wrong for a reader deciding whether to, and the second reader leaves
+   first.
+
+   It is a list and not a set of cards. Cards would make four peers out of a sequence, and the
+   order is the content: the limit in row two is only honest if it arrives before the reader
+   has formed an opinion from row one.
+
+   The grid is the whole design. Index, question and fact sit on three columns that line up
+   down the block, so the eye reads a column rather than four sentences, and alignment is what
+   makes a dense thing look considered instead of crowded. It collapses to two rows per item
+   on a narrow screen rather than shrinking the type. */
+.readpath {
+  margin: var(--sp-06) 0 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.readpath ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.readpath li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "index question"
+    ".     fact";
+  gap: var(--sp-02) var(--sp-05);
+  padding: var(--sp-04) 0;
+  align-items: baseline;
+}
+
+.readpath li + li {
+  border-top: 1px solid var(--border-subtle);
+}
+
+@media (min-width: 60rem) {
+  .readpath li {
+    /* One row, three columns. The question column is fixed so every fact starts on the same
+       vertical, which is the point of the whole block. */
+    grid-template-columns: auto 14rem minmax(0, 1fr);
+    grid-template-areas: "index question fact";
+  }
+}
+
+.readpath-index {
+  grid-area: index;
+  font-family: var(--font-mono);
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  font-variant-numeric: tabular-nums;
+}
+
+.readpath li > a {
+  grid-area: question;
+  font-weight: 600;
+  font-size: var(--type-body);
+  color: var(--text-01);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.readpath li > a:hover,
+.readpath li > a:focus-visible {
+  border-bottom-color: var(--link-01);
+}
+
+.readpath-fact {
+  grid-area: fact;
+  font-size: var(--type-body);
+  color: var(--text-02);
+  line-height: 1.55;
 }
