@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-22T02:31:43+05:30",
- "commit": "97339aa9336b128c45084b9a1565c09dc850d90f",
- "tracked_files": 434,
- "tracked_bytes": 44166848,
- "tracked_megabytes": 42.12,
+ "measured_at_commit_date": "2026-08-22T04:33:50+05:30",
+ "commit": "7feafc65e9663f82b1c060d4f680104d22d4c787",
+ "tracked_files": 436,
+ "tracked_bytes": 44125836,
+ "tracked_megabytes": 42.08,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -17,7 +17,7 @@
   },
   {
    "path": "presentation/out",
-   "megabytes": 4.96
+   "megabytes": 4.89
   },
   {
    "path": "tests/fixtures",
@@ -69,15 +69,15 @@
   }
  ],
  "by_directory_remainder": {
-  "groups": 201,
-  "bytes": 3542800,
-  "megabytes": 3.38,
+  "groups": 203,
+  "bytes": 3562994,
+  "megabytes": 3.4,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
   {
    "path": "presentation/out/tracetriage-film.mp4",
-   "megabytes": 4.695
+   "megabytes": 4.626
   },
   {
    "path": "artifacts/DATASET_MANIFEST.json",
@@ -168,8 +168,8 @@
   {
    "path": "presentation/out/",
    "files": 2,
-   "bytes": 5198822,
-   "megabytes": 4.96,
+   "bytes": 5126275,
+   "megabytes": 4.89,
    "keep_because": "the rendered film and its poster, 118 seconds at 1920x1080. The source beside it reads its figures from the receipts rather than restating them, so the mp4 is reproducible from this tree; it is kept because a reader who watches it should not first have to install a renderer, and because an mp4 is the one artifact here that no diff can check after the fact."
   }
  ],
