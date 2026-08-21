@@ -126,7 +126,7 @@ that were run, the Bob task id and what failed before it was accepted. A further
 units in the same file are operator-side, run from Cursor and Claude Code, and are
 labelled that way in the actor field of their own headings: the console, the calibration
 and abstention blocks, the fusion ladder and the review waves are theirs, not Bob's. That
-distinction is published because the number here used to be 63, which was the count of
+distinction is published because the number here used to be 66, which was the count of
 second-level markdown headings in the file and not the count of anything anyone did. Bob
 also operates the product: `.bob/mcp.json` registers the evidence server and the live
 measurement server, so a Bob session can measure a pass recorded today and have the same

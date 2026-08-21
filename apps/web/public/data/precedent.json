@@ -2167,5 +2167,5 @@
  },
  "observations_without_neighbours": [],
  "why_some_have_none": "A shipped observation only has neighbours here if the snapshot gave it a decisive network label, because the study measures agreement with that label and an unknown one cannot be agreed with. The ids are listed rather than dropped.",
- "receipt_sha256": "91b1ca8925aaa2e042abd937188622847b65632758752ae1050a9054ddf3455e"
+ "receipt_sha256": "a2c092782e963304a8a82ec8554bb69e6e5d6799e4ca4a44a252cad563815005"
 }

@@ -1,11 +1,11 @@
 {
  "schema": "tracetriage/circularity/v1",
  "schema_version": "1.0.0",
- "generated_at": "2026-08-20T00:17:20.020339+00:00",
+ "generated_at": "2026-08-21T14:46:11.791745+00:00",
  "question": "How much of gate 6's lift is guaranteed by the queue being ranked on the same quantities the conflict criteria threshold?",
  "source": {
   "receipt": "artifacts/QUEUE_RECEIPT.json",
-  "sha256": "bcd90fa8a2ada45af79bed2820c5c6d9da169d0e993dc37aefac0067d0451c38",
+  "sha256": "7f5251f6caaff656c539b5ec464cede3ac7c7fb1734db4618fe1287f503f0e53",
   "split": "chronological",
   "needs_the_snapshot": false
  },

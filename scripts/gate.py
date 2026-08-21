@@ -33,6 +33,13 @@ WEB = REPO / "apps" / "web"
 # non-shell subprocess. shutil.which finds whichever form this machine has.
 NPM = shutil.which("npm") or "npm"
 
+#: What `scripts/check_artifact_freshness.py` prints when the snapshot it rebuilds from is
+#: not configured in this environment. Matched on the printed line rather than on an exit
+#: code, because that outcome is not a failure and must not exit non-zero. The constant is
+#: `SKIP_PREFIX` at the other end and `tests/test_freshness_outcomes.py` asserts the two
+#: are still the same string, so a rename cannot quietly turn every skip back into a FAIL.
+_FRESHNESS_SKIP = "[SKIP]"
+
 
 def run(cmd: list[str], cwd: Path = REPO) -> tuple[int, str]:
     # text=True alone decodes with the Windows ANSI codepage (cp1252 here), which
@@ -217,14 +224,28 @@ def main() -> int:
     # disagrees with the code that produced it, which is exactly what happened in D0:
     # LEAKAGE_AUDIT.json kept a PASS the builder could no longer emit, and a test was
     # green because its fixture read that file.
+    #
+    # Three outcomes, and the third one is neither. That check rebuilds every artifact from
+    # the 20 GB snapshot, which is not in every checkout, and it used to report a missing
+    # snapshot as "the builder itself does not run": a FAIL row for a question nobody could
+    # ask here, on a tree where nothing was stale. It now exits 0 with a [SKIP] line, and
+    # the row is omitted rather than counted green, so the tally at the bottom stays the
+    # number of checks that were actually performed.
     rc, out = run([str(PY), str(REPO / "scripts" / "check_artifact_freshness.py")])
-    results.append(
-        check(
-            "artifacts match their builders",
-            rc == 0,
-            "" if rc == 0 else out.splitlines()[-1][:70],
-        )
+    not_configured = next(
+        (line for line in out.splitlines() if line.startswith(_FRESHNESS_SKIP)), None
     )
+    if not_configured:
+        reason = not_configured[len(_FRESHNESS_SKIP) :].strip()
+        print(f"  [ -- ] artifacts match their builders  omitted: {reason[:110]}")
+    else:
+        results.append(
+            check(
+                "artifacts match their builders",
+                rc == 0,
+                "" if rc == 0 else out.splitlines()[-1][:70],
+            )
+        )
 
     bad = []
     for f in sorted((REPO / "contracts").glob("*.schema.json")):

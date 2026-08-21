@@ -7281,3 +7281,170 @@ values did not change, they moved somewhere that can be overridden.
 with the counter and the entrance both running. 26 of 26 contrast pairs meet their floor, 19
 neutral tokens still match their derivation at hue 262, 211 console tests pass where there
 were 197, and typecheck, lint and the export are clean.
+
+
+## E6. Three fragilities in the harness layer, and the one that failed a gate somewhere else
+
+Nothing here is a feature. Three things were found by reproducing a failure rather than by
+reading code, and one of them had been failing a standing gate under a name that pointed at
+the wrong file.
+
+**Six static file servers outlived the run that started them, and what that cost was a
+console build.** The evidence was six `python -m http.server` processes still alive on ports
+8101, 8102 and 8103 hours after the font paint measurement had finished, each with a working
+directory inside `apps/web/out`, and `next build` failing with `EBUSY: resource busy or
+locked, rmdir ...apps\web\out`. The standing "console build" gate was red for a reason with
+nothing to do with the console. `scripts/build_font_ab.py` built the three conditions and
+then printed three shell commands of the form `cd <dir> && python -m http.server <port>`.
+Two separate defects sat in that one line. Nothing owned the processes' lifetime, so any run
+that ended without someone remembering left them behind. And the `cd` is what held the
+export open: on Windows, a process whose working directory is inside a directory keeps a
+handle on it, so the leak did not merely occupy three ports, it made the next export
+undeletable.
+
+The script serves them itself now. `--out --serve` holds all three on their ports for the
+length of one run through a context manager whose teardown is registered before anything can
+raise, so an exception, a Ctrl-C or a `SystemExit` takes every server with it, and a set of
+three that cannot bind its last port releases the two it already bound. The directory is
+handed to the handler with `directory=` rather than entered, so no process stands inside an
+export. The printed fallback, for the case where someone wants the servers outside a run,
+names `--directory` and no longer says `cd`. `tests/test_font_ab_serving.py` binds a real
+port to check this, in a child interpreter, because `conftest.py` blocks sockets in the suite
+and the subject of the test is a socket. It asserts the port is free after a clean exit,
+after an exception and after a KeyboardInterrupt, and that the working directory never moved.
+Mutating the fix so that teardown happens after the yield instead of during the unwinding
+passes the first of those and fails the other two, which is the shape the leak had.
+
+**A missing snapshot read as a stale artifact.** With `TRACETRIAGE_PAGES_DIR` unset,
+`scripts/check_artifact_freshness.py` printed `[FAIL] the builder itself does not run` and
+exited 1. Nothing was stale. `scripts/build_splits.py` refuses without the snapshot on
+purpose, because the snapshot is 20 GB and lives outside the repository, and the checker had
+two outcomes available for a question with three answers. Every machine without the snapshot
+therefore reported a regression it had not measured, which is the same defect as a green tick
+over a real one, pointing the other way.
+
+There are three outcomes now. `_builder_outcome` returns RAN, NOT_CONFIGURED or CRASHED. The
+middle one exits 0 with a `[SKIP]` line that names the variable, says nothing was compared
+and says nothing is stale. A builder that crashed for any other reason still exits 1, and
+earning the skip needs both the refusal's own class name and the variable name in the output,
+so a crash that happens to echo the startup banner does not buy one. The class name is read
+off the exception class rather than typed, so renaming it cannot leave the scanner matching
+nothing. `scripts/gate.py` omits that row using the `[ -- ]` form it already had for the
+sign-off receipt, which keeps the tally at the end equal to the number of checks actually
+performed instead of scoring a question nobody could ask in that checkout.
+`tests/test_freshness_outcomes.py` covers all three, and the one that matters most is the
+crash: a third outcome that swallowed real failures would be a worse trade than the defect it
+replaced. Checked both ways by hand as well. With the snapshot configured every artifact
+still reports PASS, and with the variable pointed at a directory holding no pages the builder
+falls over on an empty table and the check still fails.
+
+**CI was piling up runs, had no time budget, and downloaded a GPU build of torch onto a
+runner with no GPU.** Four changes to `.github/workflows/ci.yml`. A `concurrency` group keyed
+on the ref cancels a superseded run, because three commits in ten minutes otherwise held three
+runners and sent two failure notifications about a tree that no longer existed, and the
+notification a reader learns to ignore is the one that mattered. Every job carries a
+`timeout-minutes` now, 30, 10 and 15, because a step that wedges rather than fails holds a
+runner until the six-hour default expires and says nothing while it does. The offline job
+resolved `torch` and `torchvision` against the default index, which on Linux is the CUDA
+wheel and roughly 2.5 GB of `nvidia-*` packages, and the rule for this project is that CI
+measures on CPU: `--torch-backend=cpu` points those two at
+`https://download.pytorch.org/whl/cpu` and leaves every other dependency on PyPI, with the
+package set unchanged. And the job that reaches the live SatNOGS API now runs daily and on
+request rather than on every commit, since running it per push spends a stranger's rate limit
+to re-answer a question that only changes when upstream changes.
+
+`tests/test_ci_workflow.py` asserts each of those against the parsed workflow, including that
+the extras are still `full`, `dev` and `onnx`. Making CI cheaper and installing less are
+different changes and only the first one was wanted: a run that quietly stopped installing
+the onnx extra would be faster and would no longer test what a judge reproduces. Two things
+that follow are stated rather than hidden. The daily schedule triggers all three jobs, not
+only the live one, which costs one rebuild a day and buys notice of an upstream dependency
+break before a commit finds it. And that test needs PyYAML, which is not in the `dev` extra,
+so it skips where the parser is absent rather than reading the workflow with a regex.
+
+## E6. Why continuous integration had failed twenty times running
+
+Every push to this repository since it was created has failed CI, and every check has passed
+on the machine that pushed it. Both facts were true at once, and the reason is that three of
+the checks were asking a different question on the runner than they asked here.
+
+**A hash of a text file was two different hashes.** `core.autocrlf` is true and there was no
+`.gitattributes`, so the working tree on Windows held CRLF while the repository and the Linux
+runner held LF. This project publishes receipts that hash a file's raw bytes, and a line
+ending is a byte. Measured on `tests/fixtures/agent_runs.json`, 85137 bytes on disk with 2020
+CRLF pairs: hashed as it sat there it is `a162fbc3dcfd...aa6d791c2b7ae`, which is what
+`AGENT_RECEIPT.json` carried, and hashed with LF endings it is `e9759ff65d8d...2ebe1b392c995`,
+which is what CI computed. CI was right. Locally the file and the receipt were wrong together,
+which is the only reason it looked fine: the receipt was published from a byte sequence that
+existed on one machine.
+
+226 tracked text files held CRLF. `tests/test_grounding_parity.py` hashes a `.py` file rather
+than a fixture, so this reached source and not only data, and there was no narrower subset
+where a rule would have worked. Everything text is pinned to LF now, binaries are excluded
+because a normalised waterfall image is a corrupted one, and the two `.cmd` launchers are
+pinned to CRLF in both directions instead, so a hash of one is reproducible either way.
+
+Then the receipts that held a Windows hash were regenerated from the normalised tree:
+`AGENT_RECEIPT`, `PRECEDENT_RECEIPT`, `CIRCULARITY_RECEIPT`, the grounding answer key, the
+nine published console files and every generated page. **The measurements did not move.**
+Granite retrieval is still 0.6181 against 0.5922, circularity is still 1.557x [1.264, 1.740]
+NOT_ESTABLISHED over 19 conflicts. Each receipt changed one or two lines and every one of them
+was a digest field. That is the test of whether this was a line-ending fix or an accident.
+
+One thing this exposed and did not fix: the generators write CRLF on Windows, because Python's
+text mode translates on write. Git stores LF, so what is committed is right, but a receipt
+hashed in the same session it was generated in would read the wrong bytes. The writers should
+pass `newline="\n"`.
+
+**A depth-one clone cannot see the commit a receipt names.** `actions/checkout@v4` defaults to
+`fetch-depth: 1`, so the runner held only the tip. Five tests assert that a receipt names a
+commit present in this history: `SECRET_SCAN`, `ATTRIBUTION_AUDIT` and `REPO_WEIGHT` all name
+3a734031, the sign-off names 4d380b48, and the clean-clone transcript names its own. Both
+commits exist. The runner could not see them, so the check that a receipt is not pointing at a
+commit nobody has was passing here for the wrong reason and failing there for the right one.
+The offline job now clones the full history. The other two jobs read no history and stay
+shallow.
+
+**`npm ci` was refusing before it started.** EUSAGE in thirteen seconds: "lock file's
+picomatch@2.3.2 does not satisfy picomatch@4.0.5". The lock file and `package.json` had
+diverged, and nothing local caught it because a developer runs `npm install` or `npm run
+build` against an existing `node_modules` and never runs `npm ci` at all. It is in sync again
+and `npm ci --dry-run` exits 0. Worth naming the gap rather than the fix: the clean-clone check
+clones and does not install, so this class of defect had nowhere to surface.
+
+**The type check had never run.** `mypy pipeline` exits 2 with "Source file found twice under
+different module names", because the same file is reachable as the distribution names it and
+as the repository lays it out, and mypy refuses rather than choose. The step has always had
+`continue-on-error` set, so exit 2 and a clean run looked identical. With
+`explicit_package_bases` it checks 26 files and reports 50 errors. Those 50 are now visible
+and not fixed, which is a unit of its own; what changed here is that the check runs.
+
+**Two things that made the noise worse.** Nothing cancelled a superseded run, so three pushes
+in ten minutes held three runners and sent notifications about trees that no longer existed,
+and the notification a reader learns to ignore is the one that mattered. And the live-API job
+reached the public SatNOGS API on every commit, which is the job most likely to be red for a
+reason nobody here can fix. There is a concurrency group now, every job has a timeout, and the
+live job runs daily or on request.
+
+**Two local gates were failing for reasons that had nothing to do with their subject.** The
+console build gate failed with `EBUSY: resource busy or locked, rmdir` on `apps/web/out`,
+because `scripts/build_font_ab.py` printed three `cd <dir> && python -m http.server <port>`
+commands whose lifetime nothing owned. One run left six alive, still holding 8101, 8102 and
+8103 hours later, and a process whose working directory sits inside an export holds a Windows
+handle on it. Serving now happens inside a context manager that stops every server on every
+exit path, and the directory is handed to the handler rather than entered, so no handle is
+taken. A leaked server is a nuisance; a leaked handle is a false regression somewhere else.
+
+And the artifact freshness gate reported `[FAIL] the builder itself does not run` whenever
+`TRACETRIAGE_PAGES_DIR` was unset, which is a stale-artifact verdict on a tree where nothing
+was stale. It has a third outcome now. The first version of that outcome read the traceback,
+and that was wrong in a way worth recording: `_default_pages_dir` raises the same exception
+whether the variable is absent or set to a path that does not exist, and both messages carry
+the class name and the variable name, so a typo in the variable earned a skip, exited 0, and
+left the freshness check silently disabled behind a green gate. The environment decides now,
+not the text. Set means asked, and a bad address is a failure.
+
+**One observation, not fixed.** `tests/test_operator_session.py` regenerates
+`artifacts/OPERATOR_SESSION.json`, and `REFERENCE.md` records that file's size and digest, so
+one test changes a file another test verifies. On the runner the regenerated file is 7,008
+bytes against a committed 6,781, and the two fail together.

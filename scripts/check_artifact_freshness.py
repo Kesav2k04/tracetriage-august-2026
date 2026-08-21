@@ -11,8 +11,18 @@ every rebuild by design, and comparing it would report drift on every run.
 
     .venv/Scripts/python.exe scripts/check_artifact_freshness.py [--verbose] [--deep]
 
-Exit 0 means the committed artifacts are what the current code produces from the current
-snapshot. Exit 1 names the first field that differs.
+Three outcomes, not two. Exit 0 with `[PASS]` lines means the committed artifacts are what
+the current code produces from the current snapshot. Exit 1 with `[FAIL]` names the first
+field that differs, or the builder that crashed. Exit 0 with `[SKIP]` means the snapshot is
+not configured in this environment, so nothing was compared and nothing here is stale.
+
+That third outcome is the correction. Every builder below rebuilds from the 20 GB snapshot,
+which lives outside the repository and is named by TRACETRIAGE_PAGES_DIR. With the variable
+unset, `scripts/build_splits.py` refuses by design and this script printed
+`[FAIL] the builder itself does not run`, which reads as a stale artifact in a checkout
+where nothing is stale. "Not measurable here" and "wrong" are different answers, and
+folding the first into the second manufactures a regression on every machine that does not
+hold the snapshot. A builder that crashes for any other reason still fails.
 
 Covered by default: SPLIT_MANIFEST.json, LEAKAGE_AUDIT.json, HERO_NULLS.json,
 TRIAGE_RECEIPT.json and every file a JSON-only console rebuild emits under
@@ -40,12 +50,97 @@ import sys
 import tempfile
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO))
+
+from pipeline.tracetriage.splits import (  # noqa: E402
+    _PAGES_DIR_ENV,
+    SplitsPathNotConfigured,
+)
+
 PY = REPO / ".venv" / "Scripts" / "python.exe"
 ARTIFACTS = REPO / "artifacts"
 
 # Fields that are write times rather than measurements. A rebuild moves them and that is
 # not drift.
 IGNORED_TOP_LEVEL = ("rebuilt_at", "generated_at")
+
+#: The three verdicts a builder subprocess can earn. Named rather than spelled as two
+#: booleans, because the whole defect here was a third state with nowhere to go.
+RAN = "RAN"
+NOT_CONFIGURED = "NOT_CONFIGURED"
+CRASHED = "CRASHED"
+
+#: The line `scripts/gate.py` looks for to tell "not measurable here" from "stale". It
+#: greps for this prefix rather than reading an exit code, because the not-configured case
+#: is not a failure and must not exit non-zero. `tests/test_freshness_outcomes.py` asserts
+#: that the gate is still looking for this exact string.
+SKIP_PREFIX = "[SKIP]"
+
+#: The exception class name, taken from the class rather than typed, so renaming it in
+#: `pipeline/tracetriage/splits.py` cannot leave this scanner matching nothing and
+#: silently reporting every unconfigured checkout as a stale artifact again.
+_NOT_CONFIGURED_MARKER = SplitsPathNotConfigured.__name__
+
+
+def _builder_outcome(returncode: int, output: str) -> str:
+    """Which of the three things happened to a builder this script spawned.
+
+    A refusal for want of the snapshot is a refusal by design: `_default_pages_dir` raises
+    it, names the variable and says what to set. The exception's own class name is the guard
+    that this really was that designed refusal and not a coincidence.
+
+    The class name is not sufficient on its own, and reading the traceback alone was the
+    first version of this function. `_default_pages_dir` raises the same
+    `SplitsPathNotConfigured` for two different situations: the variable being absent, "no
+    pages directory was given", and the variable being set to something that is not a
+    directory, "TRACETRIAGE_PAGES_DIR is set to X, which is not a directory". Both messages
+    carry the class name and the variable name, so text matching cannot separate them, and it
+    reported a bad path as "not measurable here" and exited 0. That is worse than the defect
+    this whole outcome was added to fix: a typo in the variable disabled the freshness check
+    silently and left the gate green.
+
+    So the environment decides, not the traceback. The variable being genuinely absent is the
+    only thing that earns a skip. If it is set, the operator has asked for a measurement and
+    supplied an address, and a bad address is a failure. The subprocess inherits this
+    process's environment, so what is read here is what the builder saw.
+    """
+    if returncode == 0:
+        return RAN
+    configured = os.environ.get(_PAGES_DIR_ENV, "").strip()
+    if _NOT_CONFIGURED_MARKER in output and not configured:
+        return NOT_CONFIGURED
+    return CRASHED
+
+
+def _report_crash(subject: str, proc: subprocess.CompletedProcess) -> int:
+    """Print why a builder produced nothing, and the exit code that reading deserves.
+
+    Returns 0 for a missing snapshot and 1 for a crash. The caller returns it directly:
+    with no snapshot there is nothing further to compare, so the run stops either way, and
+    the difference is only whether stopping counts against anything.
+    """
+    output = ((proc.stdout or "") + (proc.stderr or "")).strip()
+    tail = output.splitlines()
+    if _builder_outcome(proc.returncode, output) == NOT_CONFIGURED:
+        print(
+            f"{SKIP_PREFIX} {subject} needs the snapshot, and {_PAGES_DIR_ENV} is not "
+            f"set to it here."
+        )
+        print(
+            "        Nothing was compared and nothing here is stale. The snapshot is 20 "
+            "GB and lives outside the repository."
+        )
+        print(
+            f"        Set {_PAGES_DIR_ENV} to its pages folder and run again to check "
+            f"freshness for real."
+        )
+        if tail:
+            print(f"        {tail[-1]}")
+        return 0
+    print(f"[FAIL] {subject} does not run:")
+    for line in tail[-6:]:
+        print(f"        {line}")
+    return 1
 
 
 def _load(path: pathlib.Path) -> dict | list:
@@ -131,11 +226,7 @@ def main(argv: list[str] | None = None) -> int:
             encoding="utf-8", errors="replace",
         )
         if proc.returncode != 0:
-            tail = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()
-            print("[FAIL] the builder itself does not run:")
-            for line in tail[-6:]:
-                print(f"        {line}")
-            return 1
+            return _report_crash("the split builder", proc)
         if args.verbose:
             print(proc.stdout.strip().splitlines()[-1] if proc.stdout else "")
 
@@ -179,11 +270,7 @@ def main(argv: list[str] | None = None) -> int:
                 encoding="utf-8", errors="replace",
             )
             if proc.returncode != 0:
-                tail = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()
-                print("[FAIL] the hero nulls exporter does not run:")
-                for line in tail[-6:]:
-                    print(f"        {line}")
-                return 1
+                return _report_crash("the hero nulls exporter", proc)
             diff = _first_difference(_strip(_load(hero_path)), _strip(_load(rebuilt_hero)))
             if diff:
                 print("[FAIL] HERO_NULLS.json is stale. First difference:")
@@ -217,11 +304,7 @@ def main(argv: list[str] | None = None) -> int:
                 encoding="utf-8", errors="replace",
             )
             if proc.returncode != 0:
-                tail = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()
-                print("[FAIL] the triage slice does not run:")
-                for line in tail[-6:]:
-                    print(f"        {line}")
-                return 1
+                return _report_crash("the triage slice", proc)
             diff = _first_difference(
                 _strip(committed_triage), _strip(_load(rebuilt_triage))
             )
@@ -254,11 +337,7 @@ def main(argv: list[str] | None = None) -> int:
                 encoding="utf-8", errors="replace",
             )
             if proc.returncode != 0:
-                tail = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()
-                print("[FAIL] the console data builder does not run:")
-                for line in tail[-6:]:
-                    print(f"        {line}")
-                return 1
+                return _report_crash("the console data builder", proc)
             rebuilt_names = {p.name for p in rebuilt_data.iterdir() if p.is_file()}
             for name in sorted(rebuilt_names):
                 a, b = published / name, rebuilt_data / name
@@ -310,8 +389,7 @@ def main(argv: list[str] | None = None) -> int:
                     env={**os.environ, "A4_OUT_PATH": str(rebuilt_physics)},
                 )
                 if proc.returncode != 0:
-                    print("[FAIL] the physics validation does not run")
-                    return 1
+                    return _report_crash("the physics validation", proc)
                 if rebuilt_physics.exists():
                     diff = _first_difference(
                         _strip(_load(physics_path)), _strip(_load(rebuilt_physics))
@@ -339,8 +417,7 @@ def main(argv: list[str] | None = None) -> int:
                 encoding="utf-8", errors="replace",
             )
             if proc.returncode != 0:
-                print("[FAIL] the gate 3 runner does not run")
-                return 1
+                return _report_crash("the gate 3 runner", proc)
             diff = _first_difference(
                 _strip(_load(ARTIFACTS / "GATE3_RECEIPT.json")),
                 _strip(_load(rebuilt_g3)),

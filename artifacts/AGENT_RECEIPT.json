@@ -17,7 +17,7 @@
  "max_steps": 6,
  "prompt_version": 2,
  "every_question_has_a_single_call_answer": 24,
- "frozen_runs_sha256": "a162fbc3dcfd4e813ff934958909453b53d29fe973e4c3f3640aa6d791c2b7ae",
+ "frozen_runs_sha256": "e9759ff65d8d5ba2512322b29494357d5173492d6dac3a4dcde2ebe1b392c995",
  "arms": {
   "tools": {
    "correct": {

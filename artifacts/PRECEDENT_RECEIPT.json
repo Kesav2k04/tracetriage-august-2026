@@ -50,7 +50,7 @@
  },
  "cards_sha256": "b0cb37a53b3a7a5cee8392d47bbe1d9ae534794d3d88ae50ef4b33aa278df574",
  "vectors_sha256": "1b82e3933e188f6af70026c53e752a4f99f4031236d6bd50d9023f9aabed91d4",
- "frozen_retrievals_sha256": "5f92a809a75841120b4a4f7c493c31e00839c9a70e579219a1c267794aef61a9",
+ "frozen_retrievals_sha256": "5b026b2d9e86b3b7820366b695f01b125411036ef5de378d1e68b7022af0f5ff",
  "conditions": {
   "warm": {
    "arms": {

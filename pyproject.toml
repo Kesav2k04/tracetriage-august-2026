@@ -142,3 +142,11 @@ python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
+# Without this, `mypy pipeline` exits 2 before checking anything: "Source file found twice
+# under different module names: tracetriage.mcp_transport and pipeline.tracetriage.mcp_transport".
+# The same file is reachable both ways, as the installed distribution names it and as the
+# repository lays it out, and mypy refuses rather than pick. The CI step has always had
+# continue-on-error set, so an exit 2 looked the same as a clean run and the type check has
+# never actually executed. With the base made explicit it checks 26 files and reports 50 real
+# errors, which is now visible rather than fixed: that is a unit of its own.
+explicit_package_bases = true

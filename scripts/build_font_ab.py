@@ -28,11 +28,20 @@ a faithful reconstruction and not a guess: the class it writes is the one the sc
 adds, and the link it writes is the line that was in `layout.tsx` at 1f630a0.
 
     .venv/Scripts/python.exe scripts/build_font_ab.py --out <dir>
+    .venv/Scripts/python.exe scripts/build_font_ab.py --out <dir> --serve
     .venv/Scripts/python.exe scripts/build_font_ab.py --receipt <measurement.json>
 
-Then serve the three directories and run `apps/web/audit/font-paint-ab.mjs` against
-them. This script does not serve and does not measure: a builder that also decides what
-the numbers mean is a builder nobody can check.
+Then serve the three directories and run `apps/web/audit/font-paint-ab.mjs` against them.
+`--serve` holds all three on their ports for the length of one run and stops every one of
+them on the way out, and that is the only reason serving lives in this file. What it
+replaced was three printed shell commands of the form `cd <dir> && python -m http.server
+<port>`, whose lifetime nothing owned: one run left six of them alive, and a process whose
+working directory sits inside an export holds a Windows handle on it, so the next
+`next build` failed with `EBUSY: resource busy or locked, rmdir` and the console gate
+failed for a reason with nothing to do with the console.
+
+This script still does not measure: a builder that also decides what the numbers mean is
+a builder nobody can check.
 
 `--receipt` is the other half. It takes what that harness printed, plus the per-page
 third-party byte counts and the face census from `apps/web/audit/font-swap-probe.js`, and
@@ -45,12 +54,17 @@ that survives its own numbers changing.
 from __future__ import annotations
 
 import argparse
+import contextlib
+import functools
 import hashlib
+import http.server
 import json
 import pathlib
 import re
 import shutil
 import sys
+import threading
+import time
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 EXPORT = REPO / "apps" / "web" / "out"
@@ -73,6 +87,70 @@ CLOSED_PORT = "http://127.0.0.1:9/blocked.css"
 PORTS = {"after": 8101, "before": 8102, "nokit": 8103}
 
 RECEIPT = REPO / "artifacts" / "FONT_PAINT_RECEIPT.json"
+
+
+@contextlib.contextmanager
+def _served(root: pathlib.Path, port: int):
+    """One static server on loopback, dead before this hands control back.
+
+    Two properties, both learned from a run that leaked. Every teardown is registered
+    with the stack before anything can raise, so an exception, a Ctrl-C or a
+    `SystemExit` takes the server with it: six of these outlived a measurement on
+    2026-08-21 and were still holding 8101, 8102 and 8103 hours later, because the
+    instruction this script printed started them in a shell and nothing owned their
+    lifetime.
+
+    And the directory is handed to the handler rather than entered. A process whose
+    working directory is inside `apps/web/out` holds a Windows handle on it, so the next
+    `next build` fails with `EBUSY: resource busy or locked, rmdir`. The console gate
+    failed for a reason with nothing to do with the console, which is the expensive half
+    of this defect: a leaked server is a nuisance and a leaked handle is a false
+    regression somewhere else.
+
+    Port 0 binds an ephemeral port and the caller reads it back off
+    ``httpd.server_address``, which is how a test asks for a server without racing the
+    three the harness names.
+    """
+    with contextlib.ExitStack() as stack:
+        handler = functools.partial(
+            http.server.SimpleHTTPRequestHandler, directory=str(root)
+        )
+        httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
+        # Registered first so it unwinds last, and registered before the thread exists so
+        # a thread that cannot start still releases the socket.
+        stack.callback(httpd.server_close)
+        httpd.daemon_threads = True
+        worker = threading.Thread(
+            target=httpd.serve_forever, name=f"font-ab-{port}", daemon=True
+        )
+        worker.start()
+        stack.callback(worker.join, 5)
+        # Unwinds first: stop the accept loop, then wait for it, then close the socket.
+        # The other order leaves the loop spinning on a closed descriptor.
+        stack.callback(httpd.shutdown)
+        yield httpd
+
+
+@contextlib.contextmanager
+def _serve_all(destination: pathlib.Path):
+    """The three conditions on the three ports, all of them stopped on the way out.
+
+    One stack, so a second server that cannot bind takes the first one down with it
+    rather than leaving a half-served set of conditions behind. A harness measuring two
+    of three would report a comparison with no floor.
+    """
+    with contextlib.ExitStack() as stack:
+        origins = {}
+        for name, port in PORTS.items():
+            root = destination / name
+            if not (root / "index.html").is_file():
+                raise SystemExit(
+                    f"{root} has no index.html, so the {name} condition was never "
+                    f"built. Run this script with --out first."
+                )
+            stack.enter_context(_served(root, port))
+            origins[name] = f"http://127.0.0.1:{port}/"
+        yield origins
 
 
 def _before(html: str) -> str:
@@ -323,7 +401,23 @@ def main(argv: list[str] | None = None) -> int:
         help="a measurement file from the harness, rendered into "
         "artifacts/FONT_PAINT_RECEIPT.json",
     )
+    parser.add_argument(
+        "--serve",
+        action="store_true",
+        help=(
+            "after building, hold the three conditions on their ports until "
+            "interrupted, and stop all three on the way out. Only with --out. This is "
+            "the form that cannot leak a server: the alternative is three shell "
+            "commands whose lifetime nothing owns."
+        ),
+    )
     args = parser.parse_args(argv)
+    if args.serve and not args.out:
+        raise SystemExit(
+            "--serve needs --out. It serves the three directories that --out writes, "
+            "and serving something this run did not build would measure whatever was "
+            "there from last time."
+        )
     if bool(args.out) == bool(args.receipt):
         raise SystemExit(
             "one of --out or --receipt, not both and not neither. The first builds the "
@@ -346,11 +440,31 @@ def main(argv: list[str] | None = None) -> int:
     destination.mkdir(parents=True, exist_ok=True)
     written = build(destination)
     print(json.dumps({"out": str(destination), "conditions": written}, indent=1))
+    if args.serve:
+        with _serve_all(destination) as origins:
+            print("\nServing until interrupted:")
+            for name, origin in origins.items():
+                print(f"  {name:>6}  {origin}")
+            print(
+                "\nRun apps/web/audit/font-paint-ab.mjs against these, then Ctrl-C "
+                "here. All three stop with this process, on every exit path."
+            )
+            try:
+                while True:
+                    time.sleep(0.5)
+            except KeyboardInterrupt:
+                print("\nstopped; the three ports are free")
+        return 0
     print(
-        "\nServe each and measure:\n"
+        # `--directory`, and no `cd`. The instruction here used to be
+        # `cd <dir> && python -m http.server <port>`, and a run that followed it left six
+        # servers alive whose working directory was inside an export, which held a Windows
+        # handle on it and failed the next console build with EBUSY on rmdir. Prefer
+        # --serve above: this form still needs someone to remember to stop it.
+        "\nServe each and measure (--serve does this and stops them for you):\n"
         + "\n".join(
-            f"  cd {destination / name} && python -m http.server {spec['port']} "
-            f"--bind 127.0.0.1"
+            f"  python -m http.server {spec['port']} --bind 127.0.0.1 "
+            f"--directory {destination / name}"
             for name, spec in written.items()
         )
     )

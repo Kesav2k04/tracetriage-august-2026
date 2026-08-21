@@ -5,6 +5,18 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  # Here for the live-API job, which now runs daily instead of per commit. The other two
+  # jobs run on this schedule as well, which costs one rebuild a day and buys notice of an
+  # upstream dependency break before a commit finds it.
+  schedule:
+    - cron: "17 6 * * *"
+
+# A superseded push has nothing left to say. Without this, three commits in ten minutes
+# hold three runners and send two failure notifications about a tree that no longer exists,
+# and the notification a reader learns to ignore is the one that mattered.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 # The judged path must work from a clean clone with the network disabled.
 # This workflow is that claim, tested.
@@ -12,16 +24,33 @@ jobs:
   offline-replay:
     name: Clean clone, offline replay
     runs-on: ubuntu-latest
+    # Every job here carries one. A step that wedges rather than fails holds a runner until
+    # the six-hour default expires, and the run says nothing while it does.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history. Several audit receipts name the commit they were produced at, and
+          # a depth-1 clone holds only the tip, so the tests that check a receipt against
+          # real history failed here and passed on every developer machine. Four of them:
+          # SECRET_SCAN, ATTRIBUTION_AUDIT and REPO_WEIGHT all name 3a734031, the sign-off
+          # names 4d380b48, and the clean-clone transcript names its own. Both commits exist;
+          # the runner simply could not see them.
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
       - name: Create pinned environment
+        # --torch-backend=cpu resolves torch and torchvision against
+        # https://download.pytorch.org/whl/cpu and leaves every other dependency on PyPI.
+        # Without it the default Linux wheel arrives with about 2.5 GB of nvidia-* CUDA
+        # packages, and this runner has no GPU: the rule for this project is that CI
+        # measures on CPU, so that is download time for code which cannot execute here.
+        # Which packages get installed is unchanged; only which torch wheel satisfies them.
         run: |
           uv venv --python 3.12 .venv
-          uv pip install --python .venv/bin/python -e ".[full,dev,onnx]"
+          uv pip install --python .venv/bin/python --torch-backend=cpu -e ".[full,dev,onnx]"
 
       - name: Lint
         run: .venv/bin/python -m ruff check .
@@ -63,6 +92,12 @@ jobs:
     name: Live API contract (informational)
     runs-on: ubuntu-latest
     continue-on-error: true
+    timeout-minutes: 10
+    # Daily, or when someone asks. It reaches the public SatNOGS API, and running that on
+    # every commit spends a stranger's rate limit re-answering a question that only changes
+    # when upstream changes. It is also the job most likely to be red for a reason nobody
+    # here can fix, which is how a whole workflow's output becomes background noise.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -77,6 +112,7 @@ jobs:
   console:
     name: Static console, typecheck build and unit tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
