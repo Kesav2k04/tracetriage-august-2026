@@ -208,7 +208,7 @@ recorded waterfalls, with both hypotheses drawn on the same image so a wrong con
 visible instead of hidden.
 
 The data licence is honoured rather than mentioned: `artifacts/ATTRIBUTION_AUDIT.json`
-checks every one of the 79 tracked media files for attribution and reports 0 incomplete.
+checks every one of the 83 tracked media files for attribution and reports 0 incomplete.
 
 ### Implementation and Feasibility
 
@@ -220,7 +220,7 @@ frozen into a committed fixture so the publisher needs no model and no network a
 MCP server imports nothing outside the standard library and is tested with site-packages
 switched off.
 
-The repository is 33.1 MB across 323 tracked files as of commit `3a73403`,
+The repository is 42.12 MB across 434 tracked files as of commit `e13952c`,
 `artifacts/SECRET_SCAN.json` reports 0 credential-shaped values across the history it
 scanned, and the console is a static export, so hosting it costs nothing.
 

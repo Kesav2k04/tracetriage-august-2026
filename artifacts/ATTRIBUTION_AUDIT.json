@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-20T15:00:22+05:30",
- "commit": "3a7340316a66c4739bc6c38af4c8fd7441142fc4",
+ "measured_at_commit_date": "2026-08-22T02:11:25+05:30",
+ "commit": "e13952ced79ae19dfd9fabfaf40291331954d471",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -26,9 +26,9 @@
   "console_ui_links_the_licence": true
  },
  "counts": {
-  "media_files_tracked": 79,
+  "media_files_tracked": 83,
   "satnogs_derived": 74,
-  "not_satnogs_derived": 5,
+  "not_satnogs_derived": 9,
   "distinct_observations": 43,
   "distinct_ground_stations": 22,
   "incomplete": 0
@@ -60,8 +60,32 @@
    "complete": true
   },
   {
+   "file": "apps/web/public/media/gate4-explainer-poster.jpg",
+   "bytes": 42776,
+   "observation_id": null,
+   "in_dataset_manifest": false,
+   "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
+   },
+   "complete": true
+  },
+  {
+   "file": "apps/web/public/media/gate4-explainer.mp4",
+   "bytes": 2182638,
+   "observation_id": null,
+   "in_dataset_manifest": false,
+   "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
+   },
+   "complete": true
+  },
+  {
    "file": "apps/web/public/og.png",
-   "bytes": 41316,
+   "bytes": 41499,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": null,
@@ -1844,6 +1868,30 @@
     "retrieval_timestamp": true,
     "source_sha256": true,
     "modification_notice": true
+   },
+   "complete": true
+  },
+  {
+   "file": "presentation/out/tracetriage-film-poster.jpg",
+   "bytes": 275349,
+   "observation_id": null,
+   "in_dataset_manifest": false,
+   "modification_notice": null,
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
+   },
+   "complete": true
+  },
+  {
+   "file": "presentation/out/tracetriage-film.mp4",
+   "bytes": 4923473,
+   "observation_id": null,
+   "in_dataset_manifest": false,
+   "modification_notice": null,
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
    },
    "complete": true
   },
