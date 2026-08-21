@@ -433,7 +433,7 @@ _SPEC_EVIDENCE = set(
 _SPEC_LIVE = set(_SPEC_SECTIONS.get("Implemented: `tracetriage-live`", []))
 N_TOOLS_BUILT = len(_SPEC_EVIDENCE) + len(_SPEC_LIVE)
 N_TOOLS_UNBUILT = len(set(_SPEC_SECTIONS.get("Specified and not implemented", [])))
-if _SPEC_EVIDENCE != set(TOOL_NAMES):
+if set(TOOL_NAMES) != _SPEC_EVIDENCE:
     raise SystemExit(
         f".bob/TOOL_SPECS.md documents {sorted(_SPEC_EVIDENCE)} for the evidence server "
         f"and it advertises {TOOL_NAMES}. tests/test_mcp_server.py says which."

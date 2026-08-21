@@ -23,9 +23,9 @@ sys.path.insert(0, str(_REPO))
 from pipeline.tracetriage.splits import (  # noqa: E402
     _A3_SUMMARY_PATH,
     _MANIFEST_PATH,
-    _default_pages_dir,
     ASSERTED_NOT_MEASURABLE_HERE,
     _build_obs_table,
+    _default_pages_dir,
     _extract_partition_maps,
     build_leakage_audit,
     build_splits,

@@ -879,7 +879,8 @@ code,
 /* Everything the reader is meant to read sits above it. */
 .lede-open,
 .lede-figure,
-.lede-field-note {
+.lede-field-note,
+.lede-headline-lead {
   position: relative;
   z-index: 1;
 }
@@ -1070,6 +1071,19 @@ code,
   text-transform: none;
   letter-spacing: 0;
   color: var(--text-03);
+}
+
+/* The headline in its lead position: full width above the two-column open, and wider
+   than the 30ch the figure column gave it, because it is no longer sharing a row. */
+.lede-headline-lead {
+  margin: var(--sp-04) 0 var(--sp-07);
+  max-width: 34ch;
+}
+
+@media (min-width: 62rem) {
+  .lede-headline-lead {
+    max-width: 42ch;
+  }
 }
 
 .lede-headline {

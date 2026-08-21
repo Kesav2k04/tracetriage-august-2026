@@ -807,7 +807,18 @@ def test_the_registration_has_no_comment_fields():
     """
     raw = json.loads(_REGISTRATION.read_text(encoding="utf-8"))
     assert set(raw) == {"mcpServers"}, sorted(raw)
-    allowed_keys = {"command", "args", "cwd", "env", "headers", "timeout", "alwaysAllow", "disabled", "url", "httpURL"}
+    allowed_keys = {
+        "command",
+        "args",
+        "cwd",
+        "env",
+        "headers",
+        "timeout",
+        "alwaysAllow",
+        "disabled",
+        "url",
+        "httpURL",
+    }
     for name, spec in raw["mcpServers"].items():
         extra = set(spec) - allowed_keys
         assert not extra, f"{name} declares {sorted(extra)}, which Bob's schema does not list"

@@ -29,6 +29,7 @@ sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "scripts"))
 
 from mcp_server import TOOLS  # noqa: E402
+
 from pipeline.tracetriage import langchain_tools as adapter  # noqa: E402
 
 RECEIPT = REPO / "artifacts" / "LANGCHAIN_RECEIPT.json"

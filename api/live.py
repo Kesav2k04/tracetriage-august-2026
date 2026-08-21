@@ -51,9 +51,10 @@ import re
 import sys
 import threading
 import time
+from collections.abc import Callable
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import unquote_plus
 
 # The repository root, so `pipeline.tracetriage` imports the same way it does from a

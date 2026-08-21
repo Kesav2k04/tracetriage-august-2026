@@ -131,6 +131,19 @@ export default function QueuePage() {
             nothing at all. The caption below names every channel, because a background
             that encodes data and does not say so is worse than one that encodes nothing. */}
         <DeepField points={FIELD} />
+        {/* The headline first, and this is a correction rather than a preference.
+            The first screen used to open on the kicker, then a paragraph naming the
+            product, then a paragraph of caveats about the retrieval result, then the
+            gate ledger. Measured at 1512 by 950, the sentence that says what this is
+            sat at y=520 and the two verdicts below it were cut off. A reader who left
+            after one screen had read four qualifications and no claim.
+
+            Nothing was removed to make room. The order changed: what it is, then how
+            much it is worth, then every reason to doubt both, all still above the
+            first instrument. */}
+        <h1 className="lede-headline lede-headline-lead">
+          A review queue, and the measurement that says how much it is worth.
+        </h1>
         <div className="lede-open">
         <div className="lede-open-text">
         <p className="lede-kicker">
@@ -220,10 +233,7 @@ export default function QueuePage() {
             ))}
           </div>
           <div>
-            <h1 className="lede-headline">
-              A review queue, and the measurement that says how much it is worth.
-            </h1>
-            <p className="lede-body" style={{ marginTop: "var(--sp-05)" }}>
+            <p className="lede-body">
               Volunteer ground stations record far more passes than anyone reviews.
               This ranks them by how likely a human is to find something wrong, then
               measures whether that ranking beats picking at random. The measurement

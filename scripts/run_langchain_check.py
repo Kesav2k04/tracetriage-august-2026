@@ -30,8 +30,8 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
 from pipeline.tracetriage.langchain_tools import (  # noqa: E402
-    LangChainMissing,
     OFFERED,
+    LangChainMissing,
     receipt,
     tools,
 )

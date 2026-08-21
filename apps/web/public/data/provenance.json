@@ -108,8 +108,8 @@
   },
   {
    "name": "CLEAN_CLONE_TRANSCRIPT.json",
-   "sha256": "be93968a1da888722376539028a5044cb4c63b511914516927144877c45fc54a",
-   "bytes": 17098
+   "sha256": "a8497849defbbae0333ed86b4625ad3ffa43920e2c6f8c17c467be6410a62de0",
+   "bytes": 17444
   },
   {
    "name": "corridor_features.json",
@@ -123,8 +123,8 @@
   },
   {
    "name": "EXPLAIN_RECEIPT.json",
-   "sha256": "304b475a589cc2ec71bc9611ab82e0df83fb7df7a1849e865ace63bf8e43f739",
-   "bytes": 24915
+   "sha256": "82689ecb58beefa2d56f2fe17be1b9442f84bd0977178bbf2110e7eeb3993f6c",
+   "bytes": 25623
   },
   {
    "name": "FUSION_RECEIPT.json",
@@ -152,9 +152,19 @@
    "bytes": 26692
   },
   {
+   "name": "LANGCHAIN_RECEIPT.json",
+   "sha256": "a67809c7025c94df68c8b32fca146c3683f23e89790100e0e7b2ff5d810a57ad",
+   "bytes": 4218
+  },
+  {
    "name": "LEAKAGE_AUDIT.json",
    "sha256": "68fc3a8344dc7fef9ef66288b3224e6695c9e83a6e24fef840c7cbd398b7e2c0",
    "bytes": 11342
+  },
+  {
+   "name": "LIVE_SHELF_RECEIPT.json",
+   "sha256": "1523e6cccfe117f84835e11eecedd2f9974d6c130ab593ef2702b63b4871304c",
+   "bytes": 2733
   },
   {
    "name": "PHYSICS_VALIDATION.json",

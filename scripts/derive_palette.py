@@ -43,7 +43,6 @@ from __future__ import annotations
 import argparse
 import math
 import re
-import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent

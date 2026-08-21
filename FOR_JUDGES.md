@@ -20,7 +20,7 @@ the PRE_PASSED feasibility checks answered before any pipeline code was written,
 
 | Question | Command | What it prints |
 |---|---|---|
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1353 passed, 32 skipped, none failed, measured in a clean clone with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1443 passed, 32 skipped, none failed, measured in a clean clone with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 10 emitted, 15 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent measure something new? | `live_triage_observation` over MCP, or `tracetriage triage <id>` | A measurement of an observation recorded today, from the public SatNOGS API with no credential, and `live_check_claim` refuses an invented frequency about that measurement. `docs/BOB_DEMO.md` is the prompt |
@@ -54,12 +54,13 @@ graded, each question was proved answerable in a single tool call, because a que
 tools cannot serve would otherwise be scored as a failure of the policy.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `047f170` with every non-loopback socket refused: 15 of 16 steps
+fresh clone of commit `9d71832` with every non-loopback socket refused: 14 of 16 steps
 succeeded. What did not: uv pip install --offline -e .[full,dev,onnx] into the clone's
-environment. The transcript carries each step's exit code and the tail of its output, so
-the reason is readable rather than summarised. The test counts above are from the pass
-with the snapshot directory hidden, which is a judge's case rather than this machine's,
-and they are the count at that commit rather than at the tip of the branch.
+environment, lint (ruff check .). The transcript carries each step's exit code and the
+tail of its output, so the reason is readable rather than summarised. The test counts
+above are from the pass with the snapshot directory hidden, which is a judge's case rather
+than this machine's, and they are the count at that commit rather than at the tip of the
+branch.
 
 Two things about that run are worth knowing before it is trusted. The offline install into
 the clone did not succeed, because the wheel for `torch==2.13.0` is not in the local
@@ -68,7 +69,7 @@ interpreter at `3.12.13` against the clone's source tree. The code under test is
 clone's and the environment is not, which is a weaker claim than a cold-start install and
 is stated here rather than left to be inferred. And `apps/web/node_modules` was linked
 from the source clone rather than installed, because `npm ci` needs the registry this run
-refuses; the transcript records the lockfile's sha256 (`4a30b534f981`) so a reader can
+refuses; the transcript records the lockfile's sha256 (`ced352b326ff`) so a reader can
 check that the borrowed tree belongs to this repository's pins. The socket refusal itself
 is a Python-level patch loaded through `PYTHONPATH`, so it reaches every Python child
 process and constrains nothing else: the Node steps are outside it, and that is a limit of

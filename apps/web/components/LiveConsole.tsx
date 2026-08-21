@@ -91,7 +91,12 @@ type State =
  * console's own `/api/live`. An env var overrides it for a worker hosted elsewhere, and
  * the default means a fresh clone needs no configuration to work locally.
  */
-const ENDPOINT = process.env.NEXT_PUBLIC_LIVE_API_URL || "/api/live";
+// The trailing slash is not cosmetic. `vercel.json` sets `trailingSlash: true`, so the
+// deployment answers `/api/live` with a 308 to `/api/live/` and a rewrite sends that back to
+// the function. A fetch follows a 308 and keeps the method, so posting to the unslashed form
+// works and costs an extra round trip on a request that already takes tens of seconds.
+// Measured against the deployment: POST /api/live is 308, POST /api/live/ is 200 in 16.1 s.
+const ENDPOINT = process.env.NEXT_PUBLIC_LIVE_API_URL || "/api/live/";
 
 const num = (v: number | null | undefined, digits = 2): string =>
   typeof v === "number" && Number.isFinite(v) ? v.toFixed(digits) : "—";
