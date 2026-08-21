@@ -109,7 +109,57 @@ export default function ProvenancePage() {
         </p>
       </header>
 
-      <Section title="The snapshot">
+      {/* The home page's reading path sends a judge here for "How to check it", and until
+          now the page opened on "The snapshot". The paragraph above states the guarantee;
+          this states the procedure, because a reader who is told nothing sits between the
+          receipt and the page still has to be told where the receipt is. Four steps, in the
+          order someone actually does them, and the counts come from the same export the
+          sections below render rather than from a sentence that has to be kept up to date
+          by hand. Step three names no figure on purpose: the clean-clone suite total is not
+          in this export, and a count typed in here would be the one number on the page with
+          nothing behind it. */}
+      <nav className="readpath" aria-label="How to check any number on this console">
+        <ol>
+          <li>
+            <span className="readpath-index">01</span>
+            <a href="#receipts">Find the receipt</a>
+            <span className="readpath-fact">
+              every figure names its file;{" "}
+              <span className="num">{provenance.receipts.length}</span> of them, each listed
+              in <code>docs/REFERENCE.md</code> with its size and digest
+            </span>
+          </li>
+          <li>
+            <span className="readpath-index">02</span>
+            <a href="#contracts">Rebuild it</a>
+            <span className="readpath-fact">
+              the script that wrote each receipt is named beside it, and{" "}
+              <span className="num">{provenance.contracts.length}</span> schemas validate the
+              files before they are written
+            </span>
+          </li>
+          <li>
+            <span className="readpath-index">03</span>
+            <a href="#splits">Re-run the checks</a>
+            <span className="readpath-fact">
+              the offline suite needs no snapshot, no network and no credentials, so a clone
+              reproduces it
+            </span>
+          </li>
+          <li>
+            <span className="readpath-index">04</span>
+            <a href="#limits">Read what it refuses to claim</a>
+            <span className="readpath-fact">
+              <span className="num">
+                {provenance.gate_summary.n_met} of {provenance.gate_summary.n_gates}
+              </span>{" "}
+              kill gates met, and the page says why the rest are not
+            </span>
+          </li>
+        </ol>
+      </nav>
+
+      <Section id="snapshot" title="The snapshot">
         <div
           style={{
             display: "grid",
@@ -145,6 +195,7 @@ export default function ProvenancePage() {
       </Section>
 
       <Section
+        id="splits"
         title="Splits"
         description="Four ways of holding data back, because a chronological split alone cannot tell you whether the model learned the task or learned the stations."
       >
@@ -174,6 +225,7 @@ export default function ProvenancePage() {
       </Section>
 
       <Section
+        id="receipts"
         title="Receipts"
         description="Each one is the output of a stage, validated against its contract before it reached disk."
       >
@@ -209,6 +261,7 @@ export default function ProvenancePage() {
       </Section>
 
       <Section
+        id="contracts"
         title="Contracts"
         description="A schema is ratified before the script that writes against it runs. A receipt that violates its contract never reaches disk, so a malformed measurement cannot be published and then noticed later."
       >
@@ -271,6 +324,7 @@ export default function ProvenancePage() {
       </Section>
 
       <Section
+        id="limits"
         title="What this console does not do"
         description="Stated positively, because an absence is easy to claim and hard to notice."
       >
