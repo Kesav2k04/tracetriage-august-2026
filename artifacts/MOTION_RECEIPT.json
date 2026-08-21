@@ -6,6 +6,7 @@
  "served": "scripts/serve_dist.py, gzip on the text types",
  "interleaved": "before then after, page by page, round by round",
  "rounds": 3,
+ "recomputed_from": "artifacts\\MOTION_RECEIPT.json",
  "summary": {
   "/": {
    "before": {
@@ -212,28 +213,31 @@
    }
   }
  },
- "reading": "/: first paint -2.1234 ms, outside the control's 0.1695 ms, and every one of 3 pairs has the same sign (-2.7164 to -0.6644); largest paint -7.9429 ms, inside the 68.9455 ms range the same harness produced on two identical builds, so it is not a difference; layout shift +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference; blocking time +0 ms, inside the 0 ms range the same harness produced on two identical builds, so it is not a difference. /evaluation/: first paint -0.6601 ms, inside the 0.987 ms range the same harness produced on two identical builds, so it is not a difference; largest paint +43.9558 ms, inside the 612.435 ms range the same harness produced on two identical builds, so it is not a difference; layout shift +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference; blocking time +0 ms, inside the 11 ms range the same harness produced on two identical builds, so it is not a difference. /replay/: first paint -2.2791 ms, inside the 3.8169 ms range the same harness produced on two identical builds, so it is not a difference; largest paint +158.347 ms, inside the 305.566 ms range the same harness produced on two identical builds, so it is not a difference; layout shift +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference; blocking time +0 ms, inside the 0 ms range the same harness produced on two identical builds, so it is not a difference.",
+ "reading": "/: first paint -2.1234 ms, outside the control's 0.1695 ms, and every one of 3 pairs has the same sign (-2.7164 to -0.6644); largest paint -7.9429 ms, inside the 68.9455 ms range the same harness produced on two identical builds, so it is not a difference; layout shift +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference; blocking time +0 ms, inside the 0 ms range the same harness produced on two identical builds, so it is not a difference; lighthouse performance +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference. /evaluation/: first paint -0.6601 ms, inside the 0.987 ms range the same harness produced on two identical builds, so it is not a difference; largest paint +43.9558 ms, inside the 612.435 ms range the same harness produced on two identical builds, so it is not a difference; layout shift +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference; blocking time +0 ms, inside the 11 ms range the same harness produced on two identical builds, so it is not a difference; lighthouse performance +0, inside the 0.02 range the same harness produced on two identical builds, so it is not a difference. /replay/: first paint -2.2791 ms, inside the 3.8169 ms range the same harness produced on two identical builds, so it is not a difference; largest paint +158.347 ms, inside the 305.566 ms range the same harness produced on two identical builds, so it is not a difference; layout shift +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference; blocking time +0 ms, inside the 0 ms range the same harness produced on two identical builds, so it is not a difference; lighthouse performance -0.01, inside the 0.01 range the same harness produced on two identical builds, so it is not a difference.",
  "noise_floor": {
-  "source": "artifacts\\MOTION_AA_CONTROL.json",
+  "source": "D:\\IBM August Challenge\\tracetriage-august-2026\\artifacts\\MOTION_AA_CONTROL.json",
   "reading": "The widest paired delta this harness produced with both origins serving byte-identical builds. A measured delta inside it is not a difference. Largest contentful paint has no usable floor here: its A/A range is wider than any change worth making, so it is reported and not claimed.",
   "by_page": {
    "/": {
     "fcp_ms": 0.1695,
     "lcp_ms": 68.9455,
     "cls": 0.0,
-    "tbt_ms": 0
+    "tbt_ms": 0,
+    "score": 0
    },
    "/evaluation/": {
     "fcp_ms": 0.987,
     "lcp_ms": 612.4352,
     "cls": 0.0,
-    "tbt_ms": 11
+    "tbt_ms": 11,
+    "score": 0.02
    },
    "/replay/": {
     "fcp_ms": 3.8169,
     "lcp_ms": 305.5664,
     "cls": 0.0,
-    "tbt_ms": 0
+    "tbt_ms": 0,
+    "score": 0.01
    }
   }
  },

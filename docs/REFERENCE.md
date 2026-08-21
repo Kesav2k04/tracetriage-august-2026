@@ -42,7 +42,7 @@ file that no longer exists in that form.
 | `LEAKAGE_AUDIT.json` | none declared | n/a | none | 11,342 | `68fc3a8344dc7fef` | `scripts/build_splits.py`, `scripts/check_artifact_freshness.py`, `scripts/gate.py`, `scripts/mcp_server.py` | `test_mcp_server.py`, `test_splits.py` |
 | `LIVE_SHELF_RECEIPT.json` | LIVE_SHELF_RECEIPT | 1 | none | 2,733 | `1523e6cccfe117f8` | `scripts/build_live_shelf.py` | `test_live_shelf.py` |
 | `MOTION_AA_CONTROL.json` | tracetriage/motion-perf | 0.1.0 | none | 11,765 | `7750cc406dac7675` | `scripts/measure_motion_perf.py` | **none** |
-| `MOTION_RECEIPT.json` | tracetriage/motion-perf | 0.1.0 | none | 13,038 | `36317258c392d953` | `scripts/measure_motion_perf.py` | **none** |
+| `MOTION_RECEIPT.json` | tracetriage/motion-perf | 0.1.0 | none | 13,582 | `72ff7ab8526b3e50` | `scripts/measure_motion_perf.py` | **none** |
 | `OPERATOR_SESSION.json` | tracetriage/operator-session | 0.1.0 | none | 7,008 | `7b2e8ace3d79a3a8` | `scripts/run_operator_session.py` | `test_operator_session.py` |
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 65,343 | `b5990be2a373ad5c` | `pipeline/tracetriage/physics.py`, `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
 | `PRECEDENT_RECEIPT.json` | PRECEDENT_RECEIPT | 1 | none | 9,614 | `91b1ca8925aaa2e0` | `scripts/build_console_data.py`, `scripts/run_precedent_study.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_console_export.py`, `test_precedent.py` |

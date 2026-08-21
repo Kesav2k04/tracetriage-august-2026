@@ -164,13 +164,25 @@ def _paired(runs: list[dict[str, Any]], page: str, metric: str) -> dict[str, Any
 def _floor(control: dict[str, Any] | None, page: str, metric: str) -> float | None:
     """The widest paired delta the A/A control saw for this page and metric.
 
-    None when there is no control, and that is reported as "no control" rather than as
-    zero. A floor of zero would make every measured wobble a finding, which is the
-    failure the control exists to prevent.
+    Computed from the control's own ``runs`` rather than read out of its
+    ``paired_deltas`` block. The derived block is a view and it goes stale: adding the
+    lighthouse score to the reported metrics made every existing control missing a floor
+    for it, and a missing floor is reported as "no control", which reads as an excuse
+    rather than as the measurement that is sitting in the same file. The runs are the
+    ground truth and they carry every metric this script records.
+
+    None when there is no control, or when the control has no pairs for this page, and
+    that is reported as such rather than as zero. A floor of zero makes every wobble a
+    finding, which is the failure the control exists to prevent.
     """
     if not control:
         return None
-    paired = (control.get("paired_deltas") or {}).get(page, {}).get(metric)
+    runs = control.get("runs") or []
+    paired = _paired(runs, page, metric) if runs else None
+    if not paired or paired.get("pairs", 0) == 0:
+        # Fall back to the derived block, for a control written by an older version of
+        # this script that kept the summary and not the runs.
+        paired = (control.get("paired_deltas") or {}).get(page, {}).get(metric)
     if not paired or paired.get("pairs", 0) == 0:
         return None
     return max(abs(paired["min"]), abs(paired["max"]))
@@ -188,11 +200,17 @@ def _reading(
             ("lcp_ms", "largest paint"),
             ("cls", "layout shift"),
             ("tbt_ms", "blocking time"),
+            # The score last, because it is a weighted function of the four above and on
+            # this harness it is dominated by largest contentful paint, the one metric the
+            # A/A control showed cannot support a claim. A summary median of 1.00 against
+            # 0.99 with nothing beside it reads as a regression that none of the component
+            # numbers contain, so the paired delta is published with the rest.
+            ("score", "lighthouse performance"),
         ):
             paired = _paired(runs, page, metric)
             if paired["pairs"] == 0:
                 continue
-            unit = "" if metric == "cls" else " ms"
+            unit = "" if metric in {"cls", "score"} else " ms"
             floor = _floor(control, page, metric)
             delta = paired["median"]
             if floor is None:
@@ -225,6 +243,19 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", type=Path, default=None, help="write a receipt here")
     ap.add_argument("--rounds", type=int, default=ROUNDS)
+    ap.add_argument(
+        "--from",
+        dest="reuse",
+        type=Path,
+        default=None,
+        help=(
+            "recompute the derived blocks from a receipt's stored runs instead of "
+            "measuring again. Everything above `runs` in a receipt is a view of it, so a "
+            "change to how the numbers are read should not need the browser back. Nothing "
+            "is re-measured and no run is invented: if a metric is not in the stored runs "
+            "it stays absent."
+        ),
+    )
     ap.add_argument("--pages", nargs="*", default=list(PAGES))
     ap.add_argument(
         "--control",
@@ -259,9 +290,20 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     runs: list[dict[str, Any]] = []
+    if args.reuse:
+        stored = json.loads(args.reuse.read_text(encoding="utf-8"))
+        runs = stored.get("runs") or []
+        if not runs:
+            raise SystemExit(
+                f"{args.reuse} carries no runs, so there is nothing to recompute from. A "
+                f"receipt without its raw runs can only be re-measured."
+            )
+        args.pages = sorted({row["page"] for row in runs}, key=list(PAGES).index)
+        args.rounds = len({row["round"] for row in runs})
+        print(f"recomputing from {len(runs)} stored runs in {args.reuse}")
     with tempfile.TemporaryDirectory() as raw:
         workdir = Path(raw)
-        for round_index in range(args.rounds):
+        for round_index in range(0 if args.reuse else args.rounds):
             for page in args.pages:
                 for condition, origin in CONDITIONS:
                     sample = _lighthouse(origin + page, workdir)
@@ -293,6 +335,7 @@ def main(argv: list[str] | None = None) -> int:
         "served": "scripts/serve_dist.py, gzip on the text types",
         "interleaved": "before then after, page by page, round by round",
         "rounds": args.rounds,
+        "recomputed_from": str(args.reuse) if args.reuse else None,
         "summary": summary,
         "reading": _reading(runs, list(args.pages), control),
         "noise_floor": {
@@ -307,7 +350,7 @@ def main(argv: list[str] | None = None) -> int:
             "by_page": {
                 page: {
                     metric: _floor(control, page, metric)
-                    for metric in ("fcp_ms", "lcp_ms", "cls", "tbt_ms")
+                    for metric in ("fcp_ms", "lcp_ms", "cls", "tbt_ms", "score")
                 }
                 for page in args.pages
             },
