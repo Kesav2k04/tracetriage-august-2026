@@ -419,6 +419,14 @@ _WEIGHT_NOTES: list[tuple[str, str]] = [
         "the second-trace incidence receipt. 743 rows; the per-row detail is what makes "
         "the 10 of 182 checkable.",
     ),
+    (
+        "presentation/out/",
+        "the rendered film and its poster, 103 seconds at 1920x1080. The source beside it "
+        "reads its figures from the receipts rather than restating them, so the mp4 is "
+        "reproducible from this tree; it is kept because a reader who watches it should "
+        "not first have to install a renderer, and because an mp4 is the one artifact "
+        "here that no diff can check after the fact.",
+    ),
 ]
 
 
