@@ -474,9 +474,13 @@ export default function WaterfallCanvas({
 
   if (fallback) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- the export is
-      // unoptimised on purpose: these are measured intensities, and next/image
-      // would re-encode them.
+      // The export is unoptimised on purpose: these are measured intensities, and
+      // next/image would re-encode them. The directive below has to sit on the line
+      // before the element, which is why this explanation is above it rather than
+      // wrapped into it: with the reason on the same directive, the "next line" was the
+      // second line of the comment, the rule fired anyway, and eslint reported the
+      // directive as unused. Two warnings out of one wrapped comment.
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         width={width}

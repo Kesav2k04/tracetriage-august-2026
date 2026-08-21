@@ -6809,3 +6809,156 @@ today's numbers would be the same mistake with a fresher date. The claim registe
 separability is shown possible on one station on one day, not shown general, and points at the
 confound the command already prints: a median over mixed corrected and uncorrected captures is
 only sound if the station's correction is unbiased, and nothing here measures that.
+
+## 2026-08-21 IST | Wave E | E2: the font setting reached the wrong family, and the demo died at step 9
+
+**The Adobe setting was applied and it did not touch either face this console uses.** The
+note in `layout.tsx` said the 956 ms blank first screen had one fix, a setting in the Adobe
+Fonts web project, and that there was no substitute for it because `font-display` cannot be
+overridden from outside the rule that declares it. The setting was applied. The kit now
+serves 18 faces at `swap` and 72 at `auto`, and the 18 are `acumin-pro`, a family this
+console does not use: `neue-haas-grotesk-display` and `din-2014-narrow` are both still
+`auto`. Grouping every `@font-face` in the fetched kit by family is a one-line check, and it
+is the only reason this was not shipped as fixed.
+
+**The sentence was right about CSS and wrong about the browser.** `font-display` controls a
+sequence and it is not the only lever on that sequence. The licensed families are no longer
+named in `--font-display` or `--font-label` at all. A head script appends the kit at
+`media="print"`, which fetches it without blocking the render, flips the media to `all` on
+load, and adds `html.fonts-ready` only once `document.fonts.load` has resolved for each face
+a page renders. Plex paints at once and the licensed face replaces it in one reflow.
+
+**The obvious version of that is worse than the bug.** Loading the kit non-blocking and
+stopping there means the moment its rules apply, every heading resolves to a family that has
+not downloaded, `auto` starts its block period, and text that had already painted goes
+invisible under the reader. A blank first screen is at least obvious. Holding the family out
+of the token until the file is in memory is what avoids it, and it is the reason this is two
+changes rather than one.
+
+**Measured three ways from one build, because two conditions cannot tell a fix from a fast
+morning.** `scripts/build_font_ab.py` writes three copies of the export: as it ships, with
+the head script replaced by the blocking link that shipped until today, and with the kit
+pointed at a closed port. Five interleaved rounds each, a fresh browser context per
+navigation, one uncompressed loopback server. First contentful paint: **596 ms before,
+236 ms after, 200 ms with no third-party font at all.** The after case is on the floor rather
+than near it, and its fastest round, 192 ms, beats the floor's slowest, 232 ms.
+
+**Both costs are published, including the one that is not a byte count.** Cumulative layout
+shift is 0.0115 after against 0 before, identical in all five rounds: the reflow when the
+licensed face arrives, an eighth of the 0.1 that counts as good, and exactly what `swap`
+would have caused. And 15,543 bytes on the five pages that render only two of the three
+faces, because the script waits for all three everywhere: 44,536 before against 60,079 after
+on `/evaluation/`. The alternative is a per-route face list computed at build time, which buys
+15 KB on a page that has already painted and costs a build step that can be wrong about what
+a page renders.
+
+**The face list was wrong and every page reported clean.** The first version waited for
+`neue-haas-grotesk-display` at 400, which no page renders, and never waited for
+`din-2014-narrow` at 400, which three pages do. `apps/web/audit/font-swap-probe.js` reported
+no unloaded face on all eight pages, and it was right: by the time a probe can run, anything
+rendered has finished loading. The question a probe can answer is whether the script waited,
+not whether the load finished. So the script publishes what it waited for in a `data-fonts`
+attribute and the probe compares the page against that. Three faces waited for, three faces
+rendered anywhere, checked at 1440 and 420 px wide.
+
+**A number this project published on 2026-08-18 was low by a face.** The provenance page said
+the licensed typefaces cost 43,598 bytes cold, over one stylesheet and two faces. The landing
+page rendered three faces when that was written. The figure came from curl against two URLs
+rather than from a page load, which is why nothing caught it: 60,082 bytes is what the page
+fetches.
+
+### The Bob paste died at step 9, and nothing here could have known
+
+**`docs/BOB_DEMO.md` is one paste and it needed a Bob account to check.**
+`scripts/run_operator_session.py` runs the same twelve steps as a client instead: both
+servers launched through the `.bob` launchers, JSON-RPC on stdin and stdout, every call and
+every reading written to `artifacts/OPERATOR_SESSION.json`. It is not a Bob session and the
+receipt says so in a field rather than a footnote. What Bob adds is choosing which tool
+answers each step, and here the calls are a list in a Python file. What this establishes is
+everything under that choice, which is where a demo breaks.
+
+**Step 9 had no `status` argument, so the network answered with passes that had not
+happened.** Five observations dated two days ahead, `status: future`, `has_waterfall: false`
+on every one, because a waterfall exists only after a station records something. A session
+following the old wording stopped there with nothing to measure and no reason given. With
+`status="good"` the same call returns finished passes minutes old, four of five with images.
+
+**The paragraph about step 8 said two gates were unmet. Four are.** The step now reads the
+verdicts and checks the count against the list rather than against a literal: its first
+version asserted `n_met == 4` because the document reads as though it says so, and the
+receipt says 2. Gate 3, gate 5 and gate 6 are `NOT_ESTABLISHED`, gate 4 is `OPEN`, and the
+two that are met are both `PRE_PASSED`, which counts as met and is not the same as measured.
+
+**The run: twelve of twelve.** The live half measured observation 14839732 from
+station PF_DE_UHF_X_DIPOLE, recorded at 2026-08-21T05:15:44Z and measured at
+2026-08-21T05:23:48+00:00, a 1,733,330 byte image whose sha256 is in the
+receipt. The verdict is `UNRESOLVED` because the best path it found is 1.5 sigma against an
+8 sigma floor, on an axis read at 0.94 confidence, and step 10
+records that reason: its first version reported `offset_ppm` and `p_value` and nothing else,
+which made an informative refusal look like a tool that returned nothing.
+
+### Gate 4: everything except the asking
+
+**The gate was not open because the instrument was missing.** It was open because the 72
+plates a reviewer has to look at were on the machine that built them.
+`scripts/pack_gate4_bundle.py` re-hashes every image on disk, recomputes all
+72 commitments against `artifacts/GATE4_WORKSHEET.json`, refuses
+outright if one fails, and writes one file: `tracetriage_gate4_bundle.zip`,
+113,238,991 bytes, sha256 `d474a1f23643ba3a9a5c92f4`. The
+protocol and the review page are published at `/gate4/worksheet.md` and `/gate4/review.html`,
+copied by that script so the version a judge reads cannot drift from the version in the
+bundle, and the same handoff is on the console's evaluation page and in `FOR_JUDGES.md`.
+
+**The plates are the one thing here that does not get compressed.** Lossless re-encoding
+keeps the pixels and breaks the digests, which spends the commitment to save about a quarter
+of the bytes. Lossy re-encoding and downscaling both smooth the faint traces the reviewer is
+being asked to judge, which answers the gate's question by degrading its stimulus. So the
+archive stays whole, travels as one file, and is checked on arrival against a published
+digest rather than against the word of whoever sent it.
+
+**What is left is a person, and that is now the only thing left.** Answer 72 items, return
+one CSV, and `scripts/score_gate4.py` does the rest. Until that file exists the verdict is
+what the receipt says.
+
+### The lint script had never run
+
+**`npm run lint` printed a stack trace on every commit this console has ever had.** The
+script and both eslint dependencies were in `package.json` from the day the console was
+created, and there was no eslint config file of any kind, so ESLint 9 refused before it read
+a line of source. Nothing noticed because CI ran `typecheck`, `test` and `build` and not
+this.
+
+**Its first successful run found seven things, and one of them was a suppression that
+suppressed nothing.** `WaterfallCanvas` disables `no-img-element` over the fallback `<img>`,
+deliberately, because the waterfalls are measured intensities and `next/image` would
+re-encode them. The reason was wrapped onto the directive across three comment lines, so the
+"next line" the directive applied to was the second line of its own explanation: the rule
+fired anyway and the directive was itself reported as unused. Two warnings out of one wrapped
+comment, and the whole class of thing a type checker cannot see. The rest: an unescaped
+apostrophe in `ClaimChecker`, two imports nothing used, and a triple-slash reference in a
+file the framework writes, which is now ignored rather than fought. Lint is in CI as of this
+unit, because a check that is not in CI is a check that stops working the week after it is
+written.
+
+**The console's own test suite caught the next one.** `tests/table-alignment.test.ts` reads
+every table in the console and fails when a header sits on a different edge from its own
+cells. The gate 4 handoff table added here had a right-aligned header over left-aligned
+cells, and the test named the file, the line and the column.
+
+### One stale digest, found by regenerating
+
+`apps/web/public/data/provenance.json` at commit 1f630a0 recorded
+`CLEAN_CLONE_TRANSCRIPT.json` as 17,444 bytes at `a8497849`. The committed transcript is
+17,100 bytes at `5b53d107`. The transcript was re-run last night and the provenance file was
+regenerated before it landed, so the commit whose subject is the clean clone shipped a wrong
+digest for the clean clone. Nothing downstream reads that field, which is why nothing caught
+it.
+
+### The overnight units, named here because they have no unit of their own
+
+Commits 9d71832, 4717161 and 1f630a0 shipped the grounding checker running in the reader's
+browser, the ranked queue drawn on the GPU behind the first screen, the motion layer, the
+`.bob/mcp.json` registration, the LangChain adapter over the MCP registry, and the stack
+table on the judges' page. They were written without a dated unit in this log. This paragraph
+is the record of which commits carry them and that they were operator-side, rather than a
+retrospective narrative written after the fact.

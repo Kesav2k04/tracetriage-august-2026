@@ -1,0 +1,26 @@
+{
+ "schema": "tracetriage/gate4-bundle",
+ "schema_version": "0.1.0",
+ "unit": "the blinded gate 4 review bundle, as one file",
+ "verified_against": "artifacts/GATE4_WORKSHEET.json",
+ "commitments_checked": 72,
+ "n_items": 72,
+ "n_unique_observations": 60,
+ "n_repeats": 12,
+ "source": "snapshot",
+ "archive": {
+  "name": "tracetriage_gate4_bundle.zip",
+  "bytes": 113238991,
+  "sha256": "d474a1f23643ba3a9a5c92f4a5d97a816b50ec3dfcd3d0a5f3511830953d7e03",
+  "n_entries": 75
+ },
+ "images": {
+  "n": 72,
+  "bytes": 113220706,
+  "compression": "stored, not deflated: PNG is already a deflate stream"
+ },
+ "not_packed": {
+  "key": "the salt and the item-to-observation mapping. A reviewer who receives it is not blinded, and the scorer needs it on the machine that scores rather than on the machine that reviews."
+ },
+ "reading": "One file, one digest. A reviewer checks what arrived against the sha256 above, opens review.html, answers 72 items and sends back one CSV. The verdict in artifacts/GATE4_RECEIPT.json stays NOT_RUN until that file exists, and no number in this repository moves before it does."
+}

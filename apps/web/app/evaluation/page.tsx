@@ -14,6 +14,11 @@ import {
   type SplitGate6,
 } from "@/lib/data";
 import RiskCoverage from "@/components/RiskCoverage";
+// The gate 4 bundle's own receipt, written by scripts/pack_gate4_bundle.py at the same
+// moment it verified 72 commitments and packed the archive. Imported rather than
+// retyped, so the digest a reviewer checks their download against is the digest of the
+// file that exists.
+import gate4Bundle from "@/public/gate4/BUNDLE.json";
 import {
   Cell,
   IntervalBar,
@@ -805,6 +810,88 @@ export default function EvaluationPage() {
           )}
         </Section>
       )}
+
+      <Section
+        title="Gate 4 needs a person, and here is what to send them"
+        description="The one gate in this project that no amount of compute closes. It is OPEN because nobody has been asked, and everything except the asking is built."
+      >
+        <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
+          The threshold was fixed before the build: at least 80% of a balanced sample,
+          reviewed with the network&rsquo;s labels and every model output hidden, must
+          support a decisive judgment. The sample is{" "}
+          <strong>{gate4Bundle.n_items} items over {gate4Bundle.n_unique_observations}{" "}
+          observations</strong>, {gate4Bundle.n_repeats} of them repeated under a second
+          item id so intra-rater agreement can be measured without telling the reviewer
+          which are repeats. Sixty rather than thirty-six because the verdict reads the
+          interval: at 36 a true decisive rate of 0.90 could not clear the bar however
+          the review went.
+        </p>
+        <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
+          The sample is committed to rather than promised. A 32-byte salt and the
+          item-to-observation mapping live outside the repository; what is committed is
+          one sha256 per item over the salt, the item id, the observation id and the
+          digest of the image file. Before the review nobody can invert that. After it,
+          the scorer re-hashes every image from disk, recomputes every commitment,
+          refuses outright if one fails, and publishes the salt and the mapping.{" "}
+          <strong>
+            All {gate4Bundle.commitments_checked} were verified against the images on
+            disk when the bundle was packed.
+          </strong>
+        </p>
+        <Table
+          head={["What a reviewer needs", "Where it is"]}
+          headAlign={["left", "left"]}
+        >
+          <tr>
+            <Cell align="left" header>
+              The protocol: three axes, four answers, what <code>unsure</code> means
+            </Cell>
+            <Cell align="left">
+              <a href="/gate4/worksheet.md">/gate4/worksheet.md</a>
+            </Cell>
+          </tr>
+          <tr>
+            <Cell align="left" header>
+              The review page, which exports the CSV the scorer reads
+            </Cell>
+            <Cell align="left">
+              <a href="/gate4/review.html">/gate4/review.html</a>
+            </Cell>
+          </tr>
+          <tr>
+            <Cell align="left" header>
+              The {gate4Bundle.images.n} plates, {(gate4Bundle.images.bytes / 1e6).toFixed(0)} MB of
+              full-resolution waterfalls
+            </Cell>
+            <Cell align="left">
+              not published: ask for{" "}
+              <code>{gate4Bundle.archive.name}</code>
+            </Cell>
+          </tr>
+          <tr>
+            <Cell align="left" header>
+              What to check the download against
+            </Cell>
+            <Cell mono align="left">
+              {gate4Bundle.archive.bytes.toLocaleString()} B, sha256{" "}
+              {gate4Bundle.archive.sha256.slice(0, 24)}
+            </Cell>
+          </tr>
+        </Table>
+        <Note>
+          The plates are the one thing here that is not compressed, and that is why they
+          are not on this page. Lossless re-encoding keeps the pixels and breaks the
+          digests, which spends the commitment to save a quarter of the bytes. Lossy
+          re-encoding and downscaling both smooth the faint traces the reviewer is being
+          asked to judge, which answers the gate&rsquo;s question by degrading its
+          stimulus. So the archive stays whole and travels as one file with a digest.
+          Open <code>review.html</code> from the unpacked folder, answer{" "}
+          {gate4Bundle.n_items} items, send back one CSV.{" "}
+          <strong>
+            Until that file exists the verdict stays OPEN and no number here moves.
+          </strong>
+        </Note>
+      </Section>
 
       {sizeMatched && (
         <Section

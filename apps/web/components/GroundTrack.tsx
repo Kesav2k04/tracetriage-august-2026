@@ -21,7 +21,6 @@
  */
 import {
   GROUND,
-  type GroundBounds,
   type GroundFrame,
   groundAxisScales,
   groundBounds,

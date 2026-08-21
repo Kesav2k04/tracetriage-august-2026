@@ -108,8 +108,8 @@
   },
   {
    "name": "CLEAN_CLONE_TRANSCRIPT.json",
-   "sha256": "a8497849defbbae0333ed86b4625ad3ffa43920e2c6f8c17c467be6410a62de0",
-   "bytes": 17444
+   "sha256": "5b53d1070a42a180371e7f339f8b9525cf1bbf683e9698f0709e4c8ca064b829",
+   "bytes": 17100
   },
   {
    "name": "corridor_features.json",
@@ -127,6 +127,11 @@
    "bytes": 25623
   },
   {
+   "name": "FONT_PAINT_RECEIPT.json",
+   "sha256": "41b2bf751d0a173d8645ae8725f6904d64a575d92cf8d71cd398262000ebb538",
+   "bytes": 6543
+  },
+  {
    "name": "FUSION_RECEIPT.json",
    "sha256": "db61b08f973aa1aee0388bd5fe06facdfa46133ab54635e3048f5b5eaa647a31",
    "bytes": 248786
@@ -135,6 +140,11 @@
    "name": "GATE3_RECEIPT.json",
    "sha256": "1b8f154b08eeb84b67289bab892b2eeebc832d219da5217d9321f3c04f1ad85d",
    "bytes": 53813
+  },
+  {
+   "name": "GATE4_BUNDLE.json",
+   "sha256": "3bd2030e233aa115ace258f59d9399b6d982e3964c63291961c49d8e3e0b0531",
+   "bytes": 1131
   },
   {
    "name": "GATE4_RECEIPT.json",
@@ -165,6 +175,11 @@
    "name": "LIVE_SHELF_RECEIPT.json",
    "sha256": "1523e6cccfe117f84835e11eecedd2f9974d6c130ab593ef2702b63b4871304c",
    "bytes": 2733
+  },
+  {
+   "name": "OPERATOR_SESSION.json",
+   "sha256": "7b2e8ace3d79a3a887de3a9596ebd3ac6dcc25774a802d1509a21c40535f9a98",
+   "bytes": 7008
   },
   {
    "name": "PHYSICS_VALIDATION.json",

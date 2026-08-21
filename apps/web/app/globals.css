@@ -318,9 +318,12 @@
      Numbers never use this face. Figures stay in Plex Mono, which is IBM's own,
      is the better technical mono, has tabular figures so a digit changing in the
      replay readout cannot reflow the line, and keeps the measurements on a face
-     served from this origin. */
-  --font-display: "neue-haas-grotesk-display", "IBM Plex Sans", system-ui,
-    sans-serif;
+     served from this origin.
+
+     The family name is not in this token. It is added by the `html.fonts-ready`
+     block below, once the face has actually loaded, and the reason is measured:
+     see that block. */
+  --font-display: "IBM Plex Sans", system-ui, sans-serif;
   /* Label face, for axis ticks, instrument captions and small tracked uppercase.
      DIN 2014 descends from DIN 1451, the German standard drawn for engineering
      drawings and machine plates rather than for reading, and the Narrow cut fits
@@ -328,8 +331,9 @@
      other two faces cannot: it separates the chrome of an instrument from its
      content by drawing them in different registers, which is how a real
      instrument panel is laid out. Falls back to Plex Sans, so a blocked kit
-     costs the register and not the label. */
-  --font-label: "din-2014-narrow", "IBM Plex Sans", system-ui, sans-serif;
+     costs the register and not the label. Same deal as the display face: the
+     licensed name arrives in `html.fonts-ready`, not here. */
+  --font-label: "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     monospace;
 
@@ -432,6 +436,38 @@
      vw so they are stable under browser zoom. */
   --type-prose: 1.0625rem;
   --line-prose: 1.62;
+}
+
+/* THE LICENSED FACES, ADDED AFTER THEY LOAD RATHER THAN BEFORE.
+   Both tokens above name Plex only. This block puts the Adobe families in front of
+   it, and the inline script in `app/layout.tsx` adds this class once
+   `document.fonts.load` has resolved for both faces.
+
+   It is here because of a measurement, not a preference. The kit declares its faces
+   at `font-display: auto`, and auto means Chrome holds text unpainted for up to
+   three seconds while the face arrives: 956 ms to first contentful paint as served
+   against 152 ms with the font host blocked, five interleaved cold rounds each. The
+   note in `layout.tsx` said there was no CSS-only substitute for the missing
+   `font-display: swap`, and that is still true of CSS. It is not true of the font
+   loading API. Naming the licensed family only after the file is in memory produces
+   the same sequence `swap` would: Plex paints immediately, the licensed face
+   replaces it in one reflow, and no text is ever invisible.
+
+   The order matters and the obvious shortcut breaks it. Loading the kit stylesheet
+   non-blocking on its own is not enough: the moment its rules apply, every heading
+   resolves to a family that has not downloaded yet, `auto` starts its block period,
+   and text that had already painted in Plex goes invisible. That is a worse result
+   than the blank first screen, because it happens after the reader has started
+   reading. Holding the family out of the token until the face is loaded is what
+   avoids it.
+
+   Without JavaScript the class never lands and the console stays in Plex, which is
+   the state the fallback in each token was written for. No page needs the licensed
+   faces to be complete or correct: nothing carrying a measurement uses either one. */
+html.fonts-ready {
+  --font-display: "neue-haas-grotesk-display", "IBM Plex Sans", system-ui,
+    sans-serif;
+  --font-label: "din-2014-narrow", "IBM Plex Sans", system-ui, sans-serif;
 }
 
 *,

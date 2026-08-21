@@ -219,7 +219,7 @@ export default function ClaimChecker({
           {verdict.ok ? (
             <p className="claim-verdict-body">
               Every number in this sentence is a token of the packet below, every code and
-              label in it is this observation's, and no permission rule fired. That is all
+              label in it is this observation&rsquo;s, and no permission rule fired. That is all
               the checker claims: the sentence is consistent with what was measured, not
               that the measurement is right.
             </p>

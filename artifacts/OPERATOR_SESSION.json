@@ -1,0 +1,227 @@
+{
+ "schema": "tracetriage/operator-session",
+ "schema_version": "0.1.0",
+ "unit": "the twelve steps of docs/BOB_DEMO.md, one entry per step",
+ "operator": "this repository's own JSON-RPC client, driven by scripts/run_operator_session.py. Not IBM Bob, and not a model: the calls below are a list in that file rather than a sequence something chose.",
+ "what_a_bob_session_adds": "the choice. Bob reads the tool descriptions and decides which tool answers the step, which is the claim docs/BOB_DEMO.md makes and the one this cannot stand in for. Everything under that choice is what this checks: the launchers in .bob resolve an interpreter, both servers answer initialize, twelve tools exist under the names the document prints, and each step comes back with what the document says it will.",
+ "registration": ".bob/mcp.json",
+ "started_utc": "2026-08-21T05:23:40Z",
+ "frozen": {
+  "server": "tracetriage-evidence",
+  "launched_by": "cmd /c .bob\\run-evidence.cmd",
+  "seconds": 0.19,
+  "steps": [
+   {
+    "step": 1,
+    "what": "tools/list on tracetriage-evidence",
+    "reported": {
+     "server": "tracetriage-evidence",
+     "n_tools": 7,
+     "tools": [
+      "check_claim",
+      "gate_status",
+      "observation",
+      "queue_size",
+      "queue_top",
+      "receipt",
+      "run_acceptance"
+     ]
+    },
+    "expectation": "seven tools",
+    "met": true
+   },
+   {
+    "step": 3,
+    "what": "queue_top limit=5",
+    "reported": {
+     "rank": 1,
+     "obs_id": 14746092,
+     "score": 0.879634,
+     "reasons": [
+      "MODEL_LABEL_DISAGREE"
+     ],
+     "available": 407
+    },
+    "expectation": "rank 1 with a score and at least one reason code",
+    "met": true
+   },
+   {
+    "step": 4,
+    "what": "observation on the rank-1 id 14746092",
+    "reported": {
+     "fitted_offset_hz": "6904",
+     "network_label": "without-signal",
+     "evidence_packet_sha256": "1daae25481fceab9"
+    },
+    "expectation": "a fitted offset and a network label, both from the packet",
+    "met": true
+   },
+   {
+    "step": 5,
+    "what": "check_claim on 14740031 with an invented downlink",
+    "reported": {
+     "text": "The downlink is 437.2 MHz.",
+     "verdict": "REFUSED",
+     "codes": [
+      "UNGROUNDED_NUMBER"
+     ]
+    },
+    "expectation": "REFUSED, with UNGROUNDED_NUMBER among the codes",
+    "met": true
+   },
+   {
+    "step": 6,
+    "what": "check_claim on the rank-1 id with its own printed numbers",
+    "reported": {
+     "text": "The fitted offset is 6904 Hz on a pass of 526 seconds.",
+     "verdict": "GROUNDED",
+     "codes": []
+    },
+    "expectation": "GROUNDED, with no codes",
+    "met": true
+   },
+   {
+    "step": 7,
+    "what": "queue_size",
+    "reported": {
+     "available": 407,
+     "cap": 50,
+     "review_budget": {
+      "n_observations": 50,
+      "rationale": "Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test)."
+     },
+     "which_is_the_ranked_rows": "available"
+    },
+    "expectation": "three different numbers, two of which are 50",
+    "met": true
+   },
+   {
+    "step": 8,
+    "what": "gate_status",
+    "reported": {
+     "n_met": 2,
+     "n_gates": 6,
+     "verdicts": {
+      "1": "PRE_PASSED",
+      "2": "PRE_PASSED",
+      "3": "NOT_ESTABLISHED",
+      "4": "OPEN",
+      "5": "NOT_ESTABLISHED",
+      "6": "NOT_ESTABLISHED"
+     },
+     "unmet": [
+      3,
+      4,
+      5,
+      6
+     ],
+     "gate_4": "OPEN",
+     "gate_6": "NOT_ESTABLISHED"
+    },
+    "expectation": "fewer gates met than there are gates, with gate 4 open and gate 6 not established, and neither reported as met",
+    "met": true
+   },
+   {
+    "step": 12,
+    "what": "resources/read receipt://GATE6",
+    "reported": {
+     "resources": [
+      "receipt://GATE3",
+      "receipt://GATE4",
+      "receipt://GATE5",
+      "receipt://GATE6"
+     ],
+     "mime_type": "text/plain",
+     "verdict": "NOT_ESTABLISHED",
+     "bytes": 769
+    },
+    "expectation": "a verdict read from a resource rather than from a tool, and it is not MET",
+    "met": true
+   }
+  ]
+ },
+ "live": {
+  "attempted": true,
+  "server": "tracetriage-live",
+  "launched_by": "cmd /c .bob\\run-live.cmd",
+  "seconds": 8.05,
+  "steps": [
+   {
+    "step": 2,
+    "what": "tools/list on tracetriage-live",
+    "reported": {
+     "n_tools": 5,
+     "tools": [
+      "live_check_claim",
+      "live_list_observations",
+      "live_rank_observations",
+      "live_station",
+      "live_triage_observation"
+     ]
+    },
+    "expectation": "five tools, all named live_*",
+    "met": true
+   },
+   {
+    "step": 9,
+    "what": "live_list_observations limit=5 status=good",
+    "reported": {
+     "status": "good",
+     "n": 5,
+     "with_waterfall": 5,
+     "picked": 14839732,
+     "start": "2026-08-21T05:15:44Z",
+     "end": null,
+     "station": "PF_DE_UHF_X_DIPOLE",
+     "satellite": "0 GOMX 1"
+    },
+    "expectation": "at least one finished observation with an image",
+    "met": true
+   },
+   {
+    "step": 10,
+    "what": "live_triage_observation on 14839732, n_nulls=99",
+    "reported": {
+     "mode_verdict": "UNRESOLVED",
+     "mode_why": "no signal stands out: best path is 1.5 sigma against a 8 sigma floor",
+     "sigma_curved": 1.1324318861650844,
+     "sigma_vertical": 1.5361698939501933,
+     "offset_ppm": null,
+     "p_value": null,
+     "nulls_not_tested": "mode_unresolved",
+     "axis_derivation": "axis_ticks_ocr",
+     "axis_confidence": 0.9423357268003414,
+     "pass_duration_s": 230.0,
+     "doppler_swing_hz": 14040.332438361882,
+     "tle_epoch_age_days": 0.28198005777777774,
+     "waterfall_sha256": "29fd7af0d3d59a1616ada4de6633ead3ac48b39b267e519e1403282b9cae6fc6",
+     "waterfall_bytes": 1733330,
+     "measured_at_utc": "2026-08-21T05:23:48+00:00",
+     "degraded_reason": null
+    },
+    "expectation": "a measurement with its own provenance, or a named refusal with the numbers behind it. UNRESOLVED is a result: it means the image does not settle the Doppler convention, and the sigma it reached says how far off settling it was",
+    "met": true
+   },
+   {
+    "step": 11,
+    "what": "live_check_claim on 14839732 with the same invention",
+    "reported": {
+     "text": "The downlink is 437.2 MHz.",
+     "verdict": "REFUSED",
+     "codes": [
+      "UNGROUNDED_NUMBER"
+     ],
+     "from_cache": null
+    },
+    "expectation": "REFUSED, with UNGROUNDED_NUMBER, against a measurement that did not exist when this run started",
+    "met": true
+   }
+  ]
+ },
+ "summary": {
+  "n_steps": 12,
+  "n_met": 12,
+  "steps_unmet": [],
+  "reading": "every step came back with what docs/BOB_DEMO.md says it will"
+ }
+}

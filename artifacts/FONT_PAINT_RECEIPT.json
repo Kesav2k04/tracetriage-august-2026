@@ -1,0 +1,166 @@
+{
+ "schema": "tracetriage/font-paint",
+ "schema_version": "0.2.0",
+ "unit": "milliseconds to first contentful paint, and unitless cumulative layout shift",
+ "measured_at_utc": "2026-08-21",
+ "page": "/ (the landing page of the built export)",
+ "browser": "Chromium 151.0.7922.138, headless, no network throttling",
+ "server": "python -m http.server, no compression, loopback only",
+ "harness": {
+  "conditions_built_by": "scripts/build_font_ab.py",
+  "measured_by": "apps/web/audit/font-paint-ab.mjs",
+  "face_census_by": "apps/web/audit/font-swap-probe.js",
+  "receipt_written_by": "scripts/build_font_ab.py --receipt",
+  "invocation": "the body of measure() was executed through a Playwright session on this machine rather than by `node apps/web/audit/font-paint-ab.mjs`, because Playwright is not a dependency of this project and is not installed in this checkout. The code that ran was extracted from the committed file, so the two are the same statements, and the digests below pin which revision of each file this run used.",
+  "sha256": {
+   "scripts/build_font_ab.py": "0fd52ed2112906f9",
+   "apps/web/audit/font-paint-ab.mjs": "ca8baaff15860250",
+   "apps/web/audit/font-swap-probe.js": "d873299863b0b741"
+  }
+ },
+ "kit_descriptors": {
+  "swap": 18,
+  "auto": 72,
+  "swap_families": [
+   "acumin-pro"
+  ]
+ },
+ "conditions": {
+  "after": {
+   "port": 8101,
+   "what_it_is": "the export as it ships: the kit is appended by a head script at media=print and the licensed families enter with html.fonts-ready once document.fonts.load has resolved for every face"
+  },
+  "before": {
+   "port": 8102,
+   "what_it_is": "the same export with the head script replaced by the blocking stylesheet link this console shipped until 2026-08-21, and fonts-ready written into the markup"
+  },
+  "nokit": {
+   "port": 8103,
+   "what_it_is": "the export as it ships with the kit URL pointed at a closed port, which is the floor a page with no third-party font can reach"
+  }
+ },
+ "measurement": {
+  "rounds": 5,
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settle_ms": 2500,
+  "summary": {
+   "after": {
+    "fcp_ms": [
+     276,
+     220,
+     240,
+     236,
+     192
+    ],
+    "fcp_ms_median": 236,
+    "cls": [
+     0.0115,
+     0.0115,
+     0.0115,
+     0.0115,
+     0.0115
+    ],
+    "cls_median": 0.0115,
+    "fonts_ready": true
+   },
+   "before": {
+    "fcp_ms": [
+     612,
+     416,
+     400,
+     600,
+     596
+    ],
+    "fcp_ms_median": 596,
+    "cls": [
+     0,
+     0,
+     0,
+     0.0015,
+     0
+    ],
+    "cls_median": 0,
+    "fonts_ready": true
+   },
+   "nokit": {
+    "fcp_ms": [
+     232,
+     232,
+     192,
+     200,
+     196
+    ],
+    "fcp_ms_median": 200,
+    "cls": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "cls_median": 0,
+    "fonts_ready": false
+   }
+  }
+ },
+ "faces_waited_for": [
+  "500 1em \"neue-haas-grotesk-display\"",
+  "600 1em \"din-2014-narrow\"",
+  "400 1em \"din-2014-narrow\""
+ ],
+ "faces_rendered_anywhere": {
+  "pages_checked": 8,
+  "viewports_checked": [
+   "1440x900",
+   "420x780"
+  ],
+  "faces": [
+   "neue-haas-grotesk-display 500 normal",
+   "din-2014-narrow 600 normal",
+   "din-2014-narrow 400 normal"
+  ],
+  "rendered_unwaited": []
+ },
+ "third_party_bytes": {
+  "method": "response body bytes as the browser received them, summed per page over every request to use.typekit.net and p.typekit.net, from Playwright request.sizes() on a cold context",
+  "per_page": {
+   "/": {
+    "before": 60080,
+    "after": 60082,
+    "faces_before": 3,
+    "faces_after": 3
+   },
+   "/replay/": {
+    "before": 44536,
+    "after": 60078,
+    "faces_before": 2,
+    "faces_after": 3
+   },
+   "/evaluation/": {
+    "before": 44536,
+    "after": 60079,
+    "faces_before": 2,
+    "faces_after": 3
+   }
+  },
+  "components": {
+   "kit stylesheet": 4482,
+   "p.typekit.net licence counter": 172,
+   "neue-haas-grotesk-display 500": 23455,
+   "din-2014-narrow 600": 16430,
+   "din-2014-narrow 400": 15543
+  }
+ },
+ "reading": [
+  "The font host no longer holds the first paint. `after` at a median of 236 ms against `before` at 596 ms, and a floor of 200 ms with the kit pointed at a closed port.",
+  "`after` reaches that floor rather than approaching it: its fastest round is 192 ms and the floor's slowest is 232 ms, so the two distributions overlap.",
+  "The fix costs 0.0115 of cumulative layout shift, 0.0115 against 0, in 5 of 5 rounds identically: the one reflow when the licensed face replaces Plex. That is 9 times under the 0.1 that counts as a good score, and it is the same shift `font-display: swap` would have produced.",
+  "It costs 15,543 bytes on the pages that render fewer faces than the head script waits for: 44,536 before against 60,079 after on `/evaluation/`, which draws 2 of the 3. On `/` it costs nothing. Both faces arrive after the first paint and carry a one-year cache header, so this is a cost to a first visit and to nothing else. The alternative is a per-route face list computed at build time, which buys those bytes on a page that has already painted and costs a build step that can be wrong about what a page renders.",
+  "3 faces are waited for and 3 are rendered, over 8 pages at 2 viewport widths, and `rendered_unwaited` is empty. The first version of the list had the display face at 400, which no page renders, and omitted the label face at 400, which three pages do. Every page still reported clean, because by the time a probe can run, anything rendered has finished loading. `data-fonts` on the root element is what made the mismatch visible.",
+  "The `before` figure is not the 956 ms this project published on 2026-08-20, and the two are not comparable. That number came from a harness that started a fresh browser process per round; this one opens a fresh context, which shares a warm process. The comparison that carries the claim is the one inside this run, where all three conditions were measured against each other, interleaved, on one machine.",
+  "It also corrects a number published on 2026-08-18. The provenance page said the licensed typefaces cost 43,598 bytes cold, as one stylesheet and two faces. The landing page rendered 3 faces then as it does now, so the cold cost of the page that figure was quoted beside was 60,080 bytes even before this change. The old number was curl over two of the three faces rather than a page load, which is why nothing caught it."
+ ]
+}

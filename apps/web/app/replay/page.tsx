@@ -16,7 +16,6 @@
  * as beaten only when both groupings survive a Bonferroni correction and agree.
  */
 import {
-  evaluation,
   fmt,
   fmtInterval,
   requireGate6Split,

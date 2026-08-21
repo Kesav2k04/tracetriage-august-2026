@@ -122,11 +122,11 @@ A6, A5, A0, A0b-INT, A1, A2, A4, B1, C1: the data contracts, the immutable snaps
 waterfall artifact parser, the physics corridor, label provenance, the image-only
 baselines, the end-to-end triage slice, the grouped splits with their leakage audit, and
 the review-value queue with kill gate 6. Each names the files it changed, the commands
-that were run, the Bob task id and what failed before it was accepted. A further 46 dated
+that were run, the Bob task id and what failed before it was accepted. A further 47 dated
 units in the same file are operator-side, run from Cursor and Claude Code, and are
 labelled that way in the actor field of their own headings: the console, the calibration
 and abstention blocks, the fusion ladder and the review waves are theirs, not Bob's. That
-distinction is published because the number here used to be 60, which was the count of
+distinction is published because the number here used to be 61, which was the count of
 second-level markdown headings in the file and not the count of anything anyone did. Bob
 also operates the product: `.bob/mcp.json` registers the evidence server and the live
 measurement server, so a Bob session can measure a pass recorded today and have the same
@@ -221,6 +221,18 @@ threshold using the same exact bounds gate 3 reads. `artifacts/GATE4_RECEIPT.jso
 currently says `NOT_RUN`, with no rate in it, because nobody has filled the form in. That
 is a person's afternoon rather than a code change, and it is reported as OPEN rather than
 estimated.
+
+**What it takes to close it, exactly.** The protocol and the review page are committed at
+`apps/web/public/gate4/worksheet.md` and `apps/web/public/gate4/review.html`, which the
+console serves at /gate4/worksheet.md and /gate4/review.html, and its evaluation page
+carries the same handoff. The 72 plates are not published: 113 MB of full-resolution
+waterfalls, and every way of shrinking them changes what the reviewer is being asked to
+judge, so they travel as one file. `scripts/pack_gate4_bundle.py` re-hashed every image on
+disk, recomputed all 72 commitments against `artifacts/GATE4_WORKSHEET.json`, and wrote
+`tracetriage_gate4_bundle.zip`: 113,238,991 bytes, sha256 `d474a1f23643ba3a9a5c92f4`. A
+reviewer checks what arrives against that digest, opens the page, answers 72 items and
+returns one CSV. Nothing else is missing, and until that CSV exists the verdict stays as
+the receipt reports it.
 
 ## What this project does not claim
 

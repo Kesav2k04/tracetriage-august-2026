@@ -104,24 +104,78 @@ export default function RootLayout({
             blocked, 944 ms with the self-hosted faces blocked instead. A second
             preconnect changed nothing, because there was already one. The cost is
             `font-display`, which belongs to a stylesheet this project does not
-            write: the kit declares all 90 of its faces `auto`, so Chrome holds
+            write: the kit declares 72 of its 90 faces `auto`, so Chrome holds
             text unpainted while `neue-haas-grotesk-display` and `din-2014-narrow`
             load, and no query parameter on the kit URL overrides it. The two
             self-hosted faces are `swap` and hold nothing, which is the whole
-            difference. The fix is one setting in the Adobe Fonts web project and
-            there is no CSS-only substitute for it: font-display cannot be
-            overridden from outside the @font-face rule that declares it.
-            `apps/web/audit/paint-probe.js` reports which families are set to block
-            so this cannot regress unnoticed. */}
+            difference. `apps/web/audit/paint-probe.js` reports which families are
+            set to block, so this cannot regress unnoticed. */}
         <link rel="preconnect" href="https://use.typekit.net" crossOrigin="" />
-        {/* Adobe Fonts kit iie4ixd. The kit itself @imports p.typekit.net for
-            usage reporting, which is why the content security policy in
-            vercel.json names two hosts rather than one: the second host is not in
-            this markup and cannot be found by reading it. Both are declared on
-            the provenance page as named third-party origins. */}
-        <link
-          rel="stylesheet"
-          href="https://use.typekit.net/iie4ixd.css"
+        {/* Adobe Fonts kit iie4ixd, loaded so that it cannot hold the first paint.
+
+            The note above used to end by saying the fix was one setting in the
+            Adobe Fonts web project and that there was no substitute for it. The
+            setting was applied and it is not enough: the kit now serves 18 faces
+            at `swap` and 72 at `auto`, and the 18 are `acumin-pro`, a family this
+            console does not use. Both faces it does use are still `auto`. So the
+            sentence was right about CSS and wrong about the browser, because
+            `font-display` is not the only lever on the sequence it controls.
+
+            What happens here instead. The stylesheet is appended by script at
+            `media="print"`, which fetches it without blocking the render, and the
+            media flips to `all` once it has arrived. That on its own would be
+            worse than the problem: the moment the kit's rules apply, every heading
+            resolves to a family that has not downloaded, `auto` starts its block
+            period, and text that had already painted goes invisible mid-read. So
+            the licensed families are not in `--font-display` or `--font-label` at
+            all. They arrive with the `fonts-ready` class in `globals.css`, added
+            only once `document.fonts.load` has resolved for every face this
+            console renders, which is the sequence `swap` would have produced: Plex
+            paints at once, the licensed face replaces it in one reflow, and no
+            text is ever invisible.
+
+            The faces are named rather than discovered, because a weight that is
+            not loaded before the class lands is a weight that blocks. Three is the
+            whole set and it is measured rather than assumed: across all eight
+            pages, `apps/web/audit/font-swap-probe.js` finds exactly
+            `neue-haas-grotesk-display 500`, `din-2014-narrow 600` and
+            `din-2014-narrow 400` rendered anywhere. The first version of this list
+            had the display face at 400 instead of the label face at 400, which is
+            how the probe earns its place: both lists are three names long, both
+            leave every page looking correct, and one of them lets a caption go
+            invisible after the reader has started reading. `data-fonts` on the
+            root element is the list this script actually loaded, so the probe
+            compares what a page renders against what was waited for rather than
+            against a copy of this array that could drift from it.
+
+            Without JavaScript the class never lands and the console stays in Plex.
+            That is the state a blocked kit already produced, it is what the
+            fallback in each token was written for, and nothing carrying a
+            measurement uses either licensed face.
+
+            The kit @imports p.typekit.net for usage reporting, which is why the
+            content security policy in vercel.json names two hosts rather than one:
+            the second host is not in this markup and cannot be found by reading
+            it. Both are declared on the provenance page as named third-party
+            origins. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){var F=["
+              + "'500 1em \"neue-haas-grotesk-display\"',"
+              + "'600 1em \"din-2014-narrow\"',"
+              + "'400 1em \"din-2014-narrow\"'"
+              + "];var h=document.documentElement;"
+              + "var l=document.createElement('link');"
+              + "l.rel='stylesheet';l.href='https://use.typekit.net/iie4ixd.css';"
+              + "l.media='print';l.onload=function(){l.media='all';"
+              + "var f=document.fonts;if(!f||!f.load){return}"
+              + "Promise.all(F.map(function(s){"
+              + "return f.load(s).catch(function(){})})).then(function(){"
+              + "h.setAttribute('data-fonts',F.join('|'));"
+              + "h.classList.add('fonts-ready')})};"
+              + "document.head.appendChild(l)})();",
+          }}
         />
       </head>
       <body>

@@ -94,6 +94,17 @@ jobs:
         working-directory: apps/web
         run: npm run typecheck
 
+      - name: Lint
+        # Added on 2026-08-21, when this script ran for the first time. It had been in
+        # package.json since the console was created and there was no eslint config of
+        # any kind, so `npm run lint` printed a stack trace on every commit anyone tried
+        # it on. Its first successful run found two errors and five warnings, including a
+        # `no-img-element` suppression that was suppressing nothing because the directive
+        # sat on the second line of its own comment. A check that is not in CI is a check
+        # that stops working the week after it is written.
+        working-directory: apps/web
+        run: npm run lint
+
       - name: Unit tests
         # Vitest over the pure functions in apps/web/lib. Every coordinate defect this
         # console has had was arithmetic (the pole seam, the antimeridian unwrap, a

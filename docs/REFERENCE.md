@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 26 JSON artifacts, 8 contracts, 42 scripts, 25 package modules and 1198 test functions across 54 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 29 JSON artifacts, 8 contracts, 45 scripts, 25 package modules and 1205 test functions across 55 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -31,14 +31,17 @@ file that no longer exists in that form.
 | `corridor_features.json` | CORRIDOR_FEATURES | 0.1.0 | none | 543,929 | `dea323857f560cc8` | `pipeline/tracetriage/features.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/clean_clone_check.py`, `scripts/extract_corridor_features.py`, `scripts/measure_throughput.py`, `scripts/run_queue.py`, `scripts/sync_docs.py` | `test_console_export.py`, `test_reference_sync.py` |
 | `DATASET_MANIFEST.json` | none declared | 0.2.1 | none | 2,359,254 | `9fb0c0a28175e7ef` | `pipeline/tracetriage/baseline.py`, `pipeline/tracetriage/snapshot.py`, `pipeline/tracetriage/splits.py`, `scripts/audit_release.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_live_shelf.py`, `scripts/build_splits.py`, `scripts/measure_throughput.py`, `scripts/run_baseline.py`, `scripts/run_gate3.py`, `scripts/run_precedent_study.py`, `scripts/run_triage_slice.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py` | `test_base_rates.py`, `test_baseline.py`, `test_contracts.py`, `test_snapshot.py`, `test_snapshot_isolation.py`, `test_splits.py` |
 | `EXPLAIN_RECEIPT.json` | none declared | n/a | none | 25,623 | `82689ecb58beefa2` | `scripts/build_architecture_diagram.py`, `scripts/run_agent_study.py`, `scripts/run_explanations.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_explain_receipt.py` |
+| `FONT_PAINT_RECEIPT.json` | tracetriage/font-paint | 0.2.0 | none | 6,543 | `41b2bf751d0a173d` | `scripts/build_font_ab.py` | **none** |
 | `FUSION_RECEIPT.json` | FUSION_RECEIPT | 0.1.0 | `contracts/fusion_receipt.schema.json` | 248,786 | `db61b08f973aa1ae` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/run_fusion.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_fusion.py`, `test_kill_gate_sync.py` |
 | `GATE3_RECEIPT.json` | none declared | n/a | none | 53,813 | `1b8f154b08eeb84b` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/run_agent_study.py`, `scripts/run_gate3.py`, `scripts/sync_demo.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_corridor_fit.py`, `test_gate3_bound.py`, `test_hero_nulls.py`, `test_kill_gate_sync.py`, `test_live.py`, `test_physics.py` |
-| `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 2,411 | `3a066d7784ecbdd0` | `scripts/build_console_data.py`, `scripts/build_gate4_worksheet.py`, `scripts/run_agent_study.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_gate4.py` |
-| `GATE4_WORKSHEET.json` | GATE4_WORKSHEET | 1 | none | 11,815 | `517cae73592b61a0` | `scripts/build_gate4_worksheet.py`, `scripts/score_gate4.py` | `test_gate4.py` |
+| `GATE4_BUNDLE.json` | tracetriage/gate4-bundle | 0.1.0 | none | 1,131 | `3bd2030e233aa115` | `scripts/pack_gate4_bundle.py`, `scripts/sync_for_judges.py` | **none** |
+| `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 2,411 | `3a066d7784ecbdd0` | `scripts/build_console_data.py`, `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/run_agent_study.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_gate4.py` |
+| `GATE4_WORKSHEET.json` | GATE4_WORKSHEET | 1 | none | 11,815 | `517cae73592b61a0` | `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py` | `test_gate4.py` |
 | `HERO_NULLS.json` | none declared | n/a | none | 26,692 | `66657305d0bc3960` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/sync_demo.py` | `test_hero_nulls.py`, `test_hero_window.py` |
 | `LANGCHAIN_RECEIPT.json` | tracetriage/langchain | 0.1.0 | none | 4,218 | `a67809c7025c94df` | `pipeline/tracetriage/langchain_tools.py`, `scripts/run_langchain_check.py`, `scripts/sync_for_judges.py` | `test_langchain_tools.py` |
 | `LEAKAGE_AUDIT.json` | none declared | n/a | none | 11,342 | `68fc3a8344dc7fef` | `scripts/build_splits.py`, `scripts/check_artifact_freshness.py`, `scripts/gate.py`, `scripts/mcp_server.py` | `test_mcp_server.py`, `test_splits.py` |
 | `LIVE_SHELF_RECEIPT.json` | LIVE_SHELF_RECEIPT | 1 | none | 2,733 | `1523e6cccfe117f8` | `scripts/build_live_shelf.py` | `test_live_shelf.py` |
+| `OPERATOR_SESSION.json` | tracetriage/operator-session | 0.1.0 | none | 7,008 | `7b2e8ace3d79a3a8` | `scripts/run_operator_session.py` | `test_operator_session.py` |
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 65,343 | `b5990be2a373ad5c` | `pipeline/tracetriage/physics.py`, `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
 | `PRECEDENT_RECEIPT.json` | PRECEDENT_RECEIPT | 1 | none | 9,614 | `91b1ca8925aaa2e0` | `scripts/build_console_data.py`, `scripts/run_precedent_study.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_console_export.py`, `test_precedent.py` |
 | `QUEUE_RECEIPT.json` | QUEUE_RECEIPT | 0.3.0 | `contracts/queue_receipt.schema.json` | 268,451 | `bcd90fa8a2ada45a` | `scripts/annotate.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/gate.py`, `scripts/run_agent_study.py`, `scripts/run_circularity_check.py`, `scripts/run_langchain_check.py`, `scripts/run_queue.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_circularity.py`, `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_demo_script.py`, `test_kill_gate_sync.py`, `test_mcp_server.py`, `test_queue_concentration.py`, `test_reference_sync.py` |
@@ -54,7 +57,7 @@ Files under `artifacts/` that are logs, caches or rendered output rather than re
 
 Receipts no module in this repository names, which means nothing here rebuilds them: none.
 
-Receipts no test names: `THROUGHPUT_RECEIPT.json`.
+Receipts no test names: `FONT_PAINT_RECEIPT.json`, `GATE4_BUNDLE.json`, `THROUGHPUT_RECEIPT.json`.
 
 ## Contracts
 
@@ -108,6 +111,7 @@ Receipts no test names: `THROUGHPUT_RECEIPT.json`.
 | `scripts/audit_release.py` | Release audit: tracked secrets, redistribution attribution, and repository weight. |
 | `scripts/build_architecture_diagram.py` | Generate the architecture diagram, from the stages that actually exist. |
 | `scripts/build_console_data.py` | Build the static evidence console's data and imagery (unit C5). |
+| `scripts/build_font_ab.py` | Build the three font-loading conditions the paint measurement compares. |
 | `scripts/build_gate4_worksheet.py` | Build the blinded worksheet kill gate 4 asks for, and commit to it before anyone reads it. |
 | `scripts/build_glyph_templates.py` | Freeze the digit bitmaps a SatNOGS waterfall's axis labels are drawn from. |
 | `scripts/build_live_shelf.py` | Measure recent SatNOGS observations and freeze the results the console can serve. |
@@ -126,6 +130,7 @@ Receipts no test names: `THROUGHPUT_RECEIPT.json`.
 | `scripts/mcp_server.py` | A read-only Model Context Protocol server over the committed evidence (unit E3). |
 | `scripts/measure_second_trace.py` | Survey: how often does a second satellite appear in the same waterfall? |
 | `scripts/measure_throughput.py` | What it would take to run this on the whole SatNOGS network, from measured numbers. |
+| `scripts/pack_gate4_bundle.py` | Verify the gate 4 bundle against its commitment, then pack it into one transportable file. |
 | `scripts/render_evidence_card.py` | Render a static evidence card for one observation triage receipt. |
 | `scripts/run_agent_study.py` | Ask the same questions twice, with the evidence server and without it, and grade both. |
 | `scripts/run_baseline.py` | CLI runner for A6: image-only baselines. |
@@ -134,6 +139,7 @@ Receipts no test names: `THROUGHPUT_RECEIPT.json`.
 | `scripts/run_fusion.py` | Fit the fusion ladder, calibrate it, and measure kill gate 5. |
 | `scripts/run_gate3.py` | Kill gate 3, measured: does the expected corridor intersect a visible trace? |
 | `scripts/run_langchain_check.py` | Build the LangChain adapter, call every tool through it, and write the receipt. |
+| `scripts/run_operator_session.py` | The twelve steps of `docs/BOB_DEMO.md`, driven over stdio and recorded as a receipt. |
 | `scripts/run_precedent_study.py` | Retrieve precedent for every labelled pass, four ways, and measure whether it carries a label. |
 | `scripts/run_queue.py` | Build the review-value queue and measure kill gate 6 (unit C1). |
 | `scripts/run_triage_slice.py` | A7 end-to-end triage slice: one observation, all the way through. |
@@ -185,6 +191,7 @@ Receipts no test names: `THROUGHPUT_RECEIPT.json`.
 | `tests/test_live_api.py` | 9 | The live endpoint: what it validates, what it caches, and what it may not do. |
 | `tests/test_live_shelf.py` | 9 | The frozen shelf says what it is, and every entry is what it says. |
 | `tests/test_mcp_server.py` | 36 | The evidence server, driven through its own transport (unit E3). |
+| `tests/test_operator_session.py` | 7 | The recorded twelve-step session, and the document it is supposed to be a run of. |
 | `tests/test_palette_derivation.py` | 6 | The neutral ramp in the stylesheet is the one the specification derives. |
 | `tests/test_physics.py` | 97 | Offline tests for pipeline/tracetriage/physics.py (Unit A4). |
 | `tests/test_precedent.py` | 33 | Precedent retrieval, tested where a retrieval study fools itself (unit E8). |

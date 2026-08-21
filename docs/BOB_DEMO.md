@@ -43,8 +43,10 @@ Quote tool output fields verbatim, and name the tool you got each number from.
    which one is the number of ranked rows.
 8. gate_status. Report n_met and the verdicts for gates 4 and 6. Do not
    upgrade a NOT_ESTABLISHED to anything.
-9. live_list_observations limit=5. Pick one id whose has_waterfall is true and
-   which ended within the last few hours.
+9. live_list_observations limit=5 status="good". Pick one id whose
+   has_waterfall is true. If none of the five has one, ask again with
+   status="bad": that is a real recording the network's vetting did not
+   like, which is the kind of pass this queue exists to rank.
 10. live_triage_observation on that id, n_nulls=99. Report mode.verdict,
     measurement.offset_ppm, nulls.p_value, provenance.waterfall_sha256 and
     provenance.measured_at_utc. If the verdict is UNRESOLVED, report it as the
@@ -55,6 +57,13 @@ Quote tool output fields verbatim, and name the tool you got each number from.
     came from cache or was taken now.
 12. Read the resource receipt://GATE6 and quote its verdict.
 ```
+
+**Step 9 needs `status`, and this document did not say so until 2026-08-21.** Without it
+the network answers with the newest observations it holds, and the newest are passes that
+have not happened yet: `status: future`, dated days ahead, `has_waterfall: false` on every
+one, because a waterfall exists only after a station has recorded something. A session that
+followed the earlier wording stopped at step 9 with nothing to measure and no reason why.
+Found by `scripts/run_operator_session.py`, which runs these twelve steps as a client.
 
 Steps 1 to 8 read committed receipts and are instant. Step 10 downloads one waterfall and
 fits one corridor, so it takes tens of seconds. Step 11 costs nothing extra, because it
@@ -77,15 +86,47 @@ observations the queue ranks and answered 50, which is the per-call cap and also
 budget. The answer is 407. Two of the three numbers are 50, and until `queue_size` existed
 nothing named them apart.
 
-**Step 8 has to come back with two gates unmet.** Gate 4 is open and gate 6 is
-`NOT_ESTABLISHED`. Both are published in `docs/KILL_GATE.md` and in the console. A session
-that reports six of six met has been told something false by somebody.
+**Step 8 has to come back with two of six gates met, and four unmet.** Gate 3, gate 5 and
+gate 6 are `NOT_ESTABLISHED` and gate 4 is `OPEN`; the two that are met are both
+`PRE_PASSED`, which counts as met and is not the same as measured. All six verdicts are
+published in `docs/KILL_GATE.md` and in the console. A session that reports six of six met
+has been told something false by somebody.
+
+This paragraph used to say two gates were unmet, naming the two the step asks about. Four
+are. It was found by running these twelve steps as a client rather than as a model:
+`scripts/run_operator_session.py` asserted `n_met == 4` because this document reads as
+though it says so, and the receipt said 2. Both the step and the sentence now read the
+verdicts instead of counting on them.
 
 **Step 12 uses a resource rather than a tool.** `resources/list` on this server used to
 answer `-32601`, method not found, which is the right answer for a server with no resources
 and the wrong one for a server whose subject is receipts.
 
 ---
+
+## The same twelve steps, without Bob
+
+`scripts/run_operator_session.py` runs this prompt as a client rather than as a model. It
+launches both servers through the same two launchers `.bob/mcp.json` names, speaks JSON-RPC
+on their stdin and stdout, and writes every call and every reading to
+`artifacts/OPERATOR_SESSION.json`. The last run came back twelve of twelve, and its live
+half measured observation 14839732 from station PF_DE_UHF_X_DIPOLE, recorded
+at 2026-08-21T05:15:44Z and measured at 2026-08-21T05:23:48+00:00: UNRESOLVED,
+because no signal stands out: best path is 1.5 sigma against a 8 sigma floor, over a 1,733,330 byte image whose sha256 is in
+the receipt.
+
+**It is not a substitute for the paste and the receipt says so in a field.** What Bob adds
+is the choice: reading twelve tool descriptions and deciding which tool answers each step.
+Here the calls are a list in a Python file. What the run does establish is everything under
+that choice, which is where a demo actually breaks. The launchers resolve an interpreter.
+Both servers answer `initialize`. Twelve tools exist under the names printed above. The
+frozen refusal refuses, the control passes, and the live refusal holds against a
+measurement taken minutes earlier.
+
+It has already earned its place twice. Step 9 had no `status` argument, so the network
+answered with passes scheduled for two days later, every one with no image, and the demo
+stopped there with no reason given. And the paragraph about step 8 said two gates were
+unmet when four are. Both were found by running the document instead of reading it.
 
 ## What this session proves that a build log cannot
 

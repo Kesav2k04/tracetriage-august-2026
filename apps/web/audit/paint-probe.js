@@ -12,11 +12,23 @@
  * probes report clean, and the page is blank for most of a second.
  *
  * The cause is `font-display`, which is a property of a stylesheet this project does
- * not write. The Adobe Fonts kit declares 90 faces at `font-display: auto`, and auto
- * means Chrome will hold text unpainted for up to three seconds while the face
- * loads. The two self-hosted faces are `font-display: swap` and hold nothing. So the
- * one number that predicts a blank first screen is not a byte count or a request
+ * not write. The Adobe Fonts kit declares 72 of its 90 faces at `font-display: auto`,
+ * and auto means Chrome will hold text unpainted for up to three seconds while the
+ * face loads. The two self-hosted faces are `font-display: swap` and hold nothing. So
+ * the one number that predicts a blank first screen is not a byte count or a request
  * count: it is whether a face used in the first viewport is set to block.
+ *
+ * As of 2026-08-21 that number is zero on every page and this probe will say so,
+ * because the licensed families are no longer named in `--font-display` or
+ * `--font-label` until a head script has loaded them. `blocking_faces` reports what
+ * the reader was held by, and after the fix nobody is held: 596 ms to 236 ms against a
+ * 200 ms floor, in `artifacts/FONT_PAINT_RECEIPT.json`. Two consequences for anyone
+ * reading this probe's output. An empty `blocking_faces` no longer means the kit's
+ * descriptors are safe, only that no face the first viewport uses is waiting on one,
+ * which is why `families` lists every face with its `display` descriptor rather than
+ * only the ones that block. And the question this file cannot answer is now the one
+ * that matters: whether the head script waited for every face the page renders.
+ * `font-swap-probe.js` answers that one.
  *
  * That is what this reports. `document.fonts` exposes every FontFace with its
  * `display` descriptor and its load status, and the first viewport's computed

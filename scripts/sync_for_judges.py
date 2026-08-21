@@ -57,6 +57,10 @@ attribution = _receipt("ATTRIBUTION_AUDIT.json")
 weight = _receipt("REPO_WEIGHT.json")
 clone = _receipt("CLEAN_CLONE_TRANSCRIPT.json")
 gate4 = _receipt("GATE4_RECEIPT.json")
+#: What packing the bundle measured: the commitments it verified, and the one file a
+#: reviewer has to be sent. Read here so this page names an archive that exists at a
+#: digest somebody can check, rather than describing an instrument nobody can reach.
+gate4_bundle = _receipt("GATE4_BUNDLE.json")
 agent = _receipt("AGENT_RECEIPT.json")
 precedent = _receipt("PRECEDENT_RECEIPT.json")
 circularity = _receipt("CIRCULARITY_RECEIPT.json")
@@ -632,6 +636,24 @@ GATE4_PARA = _para(
     bounds gate 3 reads. {_GATE4_STATE}"""
 )
 
+GATE4_HANDOFF_PARA = _para(
+    f"""**What it takes to close it, exactly.** The protocol and the review page are
+    committed at `apps/web/public/gate4/worksheet.md` and
+    `apps/web/public/gate4/review.html`, which the console serves at /gate4/worksheet.md
+    and /gate4/review.html, and its evaluation page carries the same handoff. The
+    {gate4_bundle["images"]["n"]} plates are not published:
+    {gate4_bundle["images"]["bytes"] / 1e6:.0f} MB of full-resolution waterfalls, and every
+    way of shrinking them changes what the reviewer is being asked to judge, so they travel
+    as one file. `scripts/pack_gate4_bundle.py` re-hashed every image on disk, recomputed
+    all {gate4_bundle["commitments_checked"]} commitments against
+    `artifacts/GATE4_WORKSHEET.json`, and wrote
+    `{gate4_bundle["archive"]["name"]}`: {gate4_bundle["archive"]["bytes"]:,} bytes, sha256
+    `{gate4_bundle["archive"]["sha256"][:24]}`. A reviewer checks what arrives against that
+    digest, opens the page, answers {gate4_bundle["n_items"]} items and returns one CSV.
+    Nothing else is missing, and until that CSV exists the verdict stays as the receipt
+    reports it."""
+)
+
 SUITE_FAILURE_PARA = (
     _para(
         f"""The first row prints a failure, and it is named here rather than left in the
@@ -1103,6 +1125,8 @@ matching its receipt.
 {IMPACT}
 
 {GATE4_PARA}
+
+{GATE4_HANDOFF_PARA}
 
 ## What this project does not claim
 
