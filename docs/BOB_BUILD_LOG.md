@@ -7072,3 +7072,121 @@ bundle is one file with a reproducible digest, the protocol and the review page 
 web, and the arm above says the sample is not the obstacle. That is the whole of what could be
 closed without a reader.
 
+## 2026-08-21 IST | Wave E | E4: the motion layer, and the four things it does not do
+
+**The ask.** Raise the console's motion and 3D work: GSAP, Lenis, CSS 3D, WebGL, Manim,
+generative imagery, use the GPU, and all of it world class. The survey came back saying the
+console had one animation dependency and two hand-written WebGL2 components, which made it
+sound like a blank canvas. Reading the files said otherwise: the hero already stages its
+argument as a scroll-driven draw, sixteen null corridors sweeping and missing before the
+fitted one lands, on `animation-timeline` with no JavaScript at all. So the job was not to
+add a motion layer. It was to raise the one that exists and to be able to prove the raise
+cost nothing.
+
+**A measurement harness first, and its own control found two ways it could lie.**
+`scripts/serve_dist.py` serves a build with gzip, because an uncompressed static server
+inflates this site's JavaScript about three times and points the work at whichever file is
+largest raw. `scripts/measure_motion_perf.py` drives lighthouse at two builds, interleaved,
+and compares them **as pairs** rather than as medians. Run first as an A/A with both origins
+serving byte-identical builds, it reported first paint "every one of them the same sign" on
+deltas of -0.15 ms and +0.62 ms, and largest paint deltas spanning -305 ms to +612 ms. Sign
+consistency is not evidence at a fraction of a millisecond, and largest contentful paint on
+this harness cannot support a claim at all: its own A/A range is wider than any change worth
+making. That control is committed as `artifacts/MOTION_AA_CONTROL.json` and every later run
+reads its ranges as the floor, so a delta inside the floor is published as inside it.
+
+**The deep field: light instead of dots, depth that reads as depth, a camera.** Four changes
+to `components/DeepField.tsx`, none of which adds a dependency, a request or a byte of CSS.
+The fragment stage draws two lobes rather than one, a tight core inside a wide halo, so with
+the additive blend the halos of crowded ranks sum into a brightness that is itself the
+density: measured, 144 to 160 lit pixels after against 187 to 207 before at the same mean
+alpha, which is the same total light redistributed into cores and glow rather than spread
+evenly. The measured Doppler offset now drives brightness as well as size, so a point
+swimming forward reads as nearer instead of as more important. The field recedes and fades as
+the hero leaves, driven from `scrollY` read once per frame inside the loop that was already
+running, so it costs no layout and no per-frame custom property. And 407 points now arrive in
+rank order over 1.5 s, centre outward, which is the queue's own ordering rather than a
+shuffle that looks busy.
+
+**One uniform in two stages is one precision.** The first build of that linked with
+"Precisions of uniform 'uScroll' differ between VERTEX and FRAGMENT shaders" and drew nothing.
+The fragment stage declares `precision mediump float`; the vertex stage defaults to `highp`.
+The component's own link-error log turned an empty canvas into a one-line fix. The second
+build failed for a different reason worth writing down: the comment explaining the first fix
+used backticks, and the shader source is a template literal, so the comment ended the shader.
+
+**A probe, because every cheap check here is wrong.** `apps/web/audit/deep-field-probe.js`.
+The DOM proves nothing: a failed context, a failed compile, a link failure and a spiral
+outside clip space all leave an identical canvas, and three of those four have happened to
+this component. A screenshot proves little, because the canvas is full-width behind the hero
+and contains the nav and the heading. And one pixel count is not a measurement: the field
+animates on its own, so the first attempt compared one sample either side of a scroll on a
+build with no recession in it and the count fell 16% anyway. The probe samples six times at
+each scroll position and reports the ranges. Before: 187-207 at the top, 178-194 scrolled,
+overlapping, recession not measured, and the probe says so. After: 144-160 against 70-97, no
+overlap, and the scroll channel the loop writes to the canvas moves 0.00 to 0.80.
+
+**A forced layout came out of every frame.** `draw()` called `resize()`, and `resize()` called
+`getBoundingClientRect()`, so the loop asked the layout engine sixty times a second for a
+number that changes when the window changes. It is a ResizeObserver now, which also covers
+the case the old window listener never saw: the hero's height depends on its own content, so
+the canvas box can change without the window changing.
+
+**Two tokens found a use and one was deleted.** `--ease-draw` and `--dur-draw-02` were
+declared with a comment saying Carbon's curves are right for a control that responds to a
+click and wrong for a mark that draws itself, and then the hero's corridor was given
+`--ease-expressive-standard` and a typed `1100ms`. Both eases are eases-out; the expressive
+curve keeps 12% of its distance for the last 40% of its time and `--ease-draw` keeps 2%, so
+the corridor now arrives and stops rather than creeping the last few pixels into place. The
+nulls keep the productive entrance, because they are a field filling in rather than a line
+being drawn. `--ease-spring` is gone rather than kept for later: nothing referenced it, and a
+spring overshoots, which on this site means a mark landing past the value its receipt
+contains for about 120 milliseconds.
+
+**A second Manim explainer, and it ends on the gate being open.**
+`scripts/explainer_gate4.py`, 37 seconds, published at
+`apps/web/public/media/gate4-explainer.mp4` and embedded in the gate 4 section of
+`/evaluation`. The subject is the part of gate 4 a reader cannot check by running the code,
+because the claim is about the order events happened in: one salted sha256 per item, the salt
+and the mapping outside the repository, and a scorer that re-hashes every image from disk and
+recomputes all 72 commitments before it reads a single answer. It closes on **Gate 4: OPEN**,
+the reviewer was a model and not a person. A version of this clip that stopped one beat
+earlier, on the rate, would be the most misleading thirty-seven seconds this site could
+serve, and `tests/test_explainer_gate4_values.py` asserts that closing frame is in the scene
+along with all eleven numbers it shows. The commitment on screen is a real one from the
+published manifest, and there is a test for that too: a fabricated digest in a video about not
+fabricating things is the one mistake this project cannot make.
+
+**What it cost, measured against the A/A floor.** Cumulative layout shift and total blocking
+time are unchanged on all three pages, exactly zero difference in both. First paint on the
+landing page moved -2.1 ms, which is
+outside the control's 0.17 ms range with all
+three pairs the same sign, and is 2 ms and reported rather than claimed. Every other delta on
+every other page is inside the floor. Lighthouse performance stays at 1.00.
+
+**Four things this unit declined to build, each for a reason rather than for time.**
+
+*GSAP.* It was asked for by name and there is nowhere on this site it earns its 24 kB. The
+sequencing it would do is already done by CSS scroll timelines, which run on the compositor,
+need no hydration and animate a static export with zero script. Replacing them with a
+JavaScript timeline is a downgrade that happens to be more fashionable.
+
+*CSS 3D on the hero plate.* The idea was to float the corridor above the spectrogram in z, so
+the measurement and the observation separate in depth, which is the site's central
+distinction. It is disqualified by projection: a layer translated in z under perspective is
+scaled, so the corridor would no longer sit on the trace it was fitted to. A parallax that
+displaces a fitted curve from its own evidence is the interface lying about a measurement.
+
+*CSS 3D on the kill-gate ledger.* Rows racking into place with a rotateX resolving to flat.
+Rejected on two counts: those rows animate on a timer in the first screen, so it would put a
+rasterised 3D transform on text during first paint, and the design foundation's own line is
+"ornament: none. An instrument has no motifs."
+
+*Easing the replay clock.* The unused draw tokens would have fitted the cursor that sweeps
+four instruments on `/replay`. That clock maps to real elapsed seconds and the readout beside
+it prints them. Easing it would make the number wrong for the duration of the ease.
+
+*Generated imagery.* The stylesheet's own argument against a Lottie file settles this: every
+animated pixel on this site draws a measurement, and a generated background would be the only
+thing on the page tracing to nobody.
+

@@ -47,8 +47,25 @@ uniform float uTime;
 uniform vec2 uSize;
 uniform float uScale;
 uniform float uCount;
+// 0 while the hero fills the viewport, 1 once it has scrolled away. Read from scrollY
+// once per frame inside the loop that was already running, so it costs no layout and no
+// custom property: a per-frame CSS variable invalidates the whole subtree that reads it,
+// and a transform cannot be composited from one.
+// The precision is written out and it is not a leftover. The fragment stage declares
+// precision mediump float and the vertex stage defaults to highp, so a uniform of the
+// same name in both stages links with two different precisions and the whole program is
+// rejected. It was, with "Precisions of uniform 'uScroll' differ between VERTEX and
+// FRAGMENT shaders", which this component's own link-error log turned into a one-line fix
+// rather than an empty canvas. No backticks in here either: this source is a template
+// literal, so one would end the shader mid-comment.
+uniform mediump float uScroll;
+// 0 at mount, 1 when the field has finished arriving. Ranks gate on it in order, so the
+// queue assembles from its own first place outward.
+uniform float uIntro;
 out float vValue;
 out float vReason;
+out float vDepth;
+out float vBorn;
 
 void main() {
   float rank = aPoint.x;
@@ -62,12 +79,24 @@ void main() {
   // The radius still goes as the square root of the rank, so rank 1 is the centre and
   // the area density is even.
   float theta = rank * (uCount - 1.0) * 2.39996 + uTime * 0.035;
-  float radius = sqrt(rank) * 0.94;
+
+  // The camera pulls back as the hero leaves. Not a zoom on the canvas box: a CSS scale
+  // on a promoted layer rasterises the whole box at the new size, and this is a
+  // full-width element. Scaling the radius in clip space instead costs one multiply and
+  // rasterises nothing, and the field recedes rather than growing soft.
+  float recede = 1.0 - uScroll * 0.22;
+  float radius = sqrt(rank) * 0.94 * recede;
 
   // Depth from the measured offset. A pass with no fit sits on the plane at z = 0 and
   // never moves; a large offset swims slowly toward the reader and back.
   float z = ppm * 0.5 * sin(uTime * 0.11 + rank * 6.0);
   float perspective = 1.0 / (1.0 + z * 0.22);
+
+  // Rank order, not a random stagger. The gate opens at the centre and sweeps out, so
+  // what a reader watches assemble is the queue's own ordering rather than a shuffle
+  // that happens to look busy. The window is wider than the step so neighbours overlap
+  // and the edge of the sweep is a gradient rather than a ring.
+  vBorn = smoothstep(rank - 0.28, rank + 0.06, uIntro * 1.34);
 
   // No aspect correction, on purpose. Clip space is the box, so the spiral fills whatever
   // shape the hero is: nearly round on a narrow viewport, a wide ellipse on a broad one.
@@ -80,9 +109,15 @@ void main() {
   // A measured point is drawn larger than an unmeasured one at the same review value, so
   // the 87 that carry a corridor fit are legible as a group even where two of them sit
   // still because their offset is zero.
-  gl_PointSize = uScale * (2.0 + value * 6.5 + aFitted * 2.2) * perspective;
+  // A point that has not arrived yet is drawn at zero size rather than skipped, because
+  // a skipped vertex is a branch and every point takes the same path here.
+  gl_PointSize = uScale * (2.0 + value * 6.5 + aFitted * 2.2) * perspective * vBorn;
   vValue = value;
   vReason = aPoint.z;
+  // Signed depth, forward positive, handed to the fragment stage so near and far differ
+  // in brightness and not only in size. Size alone reads as a point changing importance;
+  // brightness with it reads as a point moving through space.
+  vDepth = clamp(z * 0.5, -1.0, 1.0);
 }
 `;
 
@@ -90,15 +125,26 @@ const FRAGMENT = `#version 300 es
 precision mediump float;
 in float vValue;
 in float vReason;
+in float vDepth;
+in float vBorn;
 uniform vec3 uColours[4];
+uniform float uScroll;
 out vec4 outColour;
 
 void main() {
-  // A soft disc. The square falloff is what stops 407 hard squares reading as noise.
+  // Two lobes rather than one, which is the whole difference between a dot and a light.
+  // A single falloff has one width, so a point is either small and hard or large and
+  // vague. A tight core inside a wide halo has both: the core carries the position and
+  // the halo carries the glow, and because the canvas blends additively the halos of
+  // crowded ranks sum into a brightness that is itself the density. The queue is denser
+  // where it ranks harder, so that sum is information rather than decoration.
   vec2 d = gl_PointCoord * 2.0 - 1.0;
   float r2 = dot(d, d);
   if (r2 > 1.0) discard;
-  float disc = pow(1.0 - r2, 1.8);
+  float falloff = 1.0 - r2;
+  float halo = pow(falloff, 1.55);
+  float core = pow(falloff, 7.0);
+  float disc = halo * 0.52 + core;
 
   int index = int(vReason + 0.5);
   vec3 colour = uColours[0];
@@ -109,7 +155,18 @@ void main() {
   // Review value drives alpha rather than colour, so the criterion stays readable at
   // every brightness and the two channels do not compete for the same meaning.
   float alpha = disc * (0.22 + vValue * 0.74);
-  outColour = vec4(colour * (0.6 + vValue * 0.7), alpha);
+
+  // Aerial perspective, in one term. A point swimming forward gains a little light and
+  // one swimming away loses it, so the offset channel reads as distance instead of as a
+  // size wobble. Held small: this is a background, and the review value has to stay the
+  // brighter of the two signals or the field starts arguing with its own caption.
+  alpha *= 1.0 + vDepth * 0.30;
+
+  // Fades as the hero leaves, on top of the geometric recession, so the field goes away
+  // rather than shrinking into a bright knot at the centre of an empty screen.
+  alpha *= vBorn * (1.0 - uScroll * 0.55);
+  if (alpha <= 0.0) discard;
+  outColour = vec4(colour * (0.6 + vValue * 0.7 + max(vDepth, 0.0) * 0.25), alpha);
 }
 `;
 
@@ -216,6 +273,8 @@ export default function DeepField({ points }: { points: readonly FieldPoint[] })
     const uTime = gl.getUniformLocation(program, "uTime");
     const uSize = gl.getUniformLocation(program, "uSize");
     const uScale = gl.getUniformLocation(program, "uScale");
+    const uScroll = gl.getUniformLocation(program, "uScroll");
+    const uIntro = gl.getUniformLocation(program, "uIntro");
     // The count, so the golden-angle step is computed from the queue's real length rather
     // than from a constant that would silently stop being the queue's length.
     gl.uniform1f(gl.getUniformLocation(program, "uCount"), points.length);
@@ -234,23 +293,48 @@ export default function DeepField({ points }: { points: readonly FieldPoint[] })
     let width = 0;
     let height = 0;
 
-    function resize() {
-      const rect = canvas!.getBoundingClientRect();
-      const w = Math.max(1, Math.round(rect.width * dpr));
-      const h = Math.max(1, Math.round(rect.height * dpr));
-      if (w === width && h === height) return;
-      width = w;
-      height = h;
-      canvas!.width = w;
-      canvas!.height = h;
-      gl!.viewport(0, 0, w, h);
-      gl!.uniform2f(uSize, w, h);
+    // Called from a ResizeObserver and from mount, never from the loop.
+    //
+    // It used to be the first line of `draw`, so the loop asked the layout engine for a
+    // rectangle sixty times a second to learn a number that changes when the window
+    // changes. On a page with nothing else invalidating layout that is cheap, which is
+    // exactly why it survived: it cost nothing measurable and it was still the loop
+    // taking a dependency on layout it does not need.
+    function resize(w: number, h: number) {
+      const pw = Math.max(1, Math.round(w * dpr));
+      const ph = Math.max(1, Math.round(h * dpr));
+      if (pw === width && ph === height) return;
+      width = pw;
+      height = ph;
+      canvas!.width = pw;
+      canvas!.height = ph;
+      gl!.viewport(0, 0, pw, ph);
+      gl!.uniform2f(uSize, pw, ph);
       gl!.uniform1f(uScale, dpr);
     }
 
-    function draw(seconds: number) {
-      resize();
+    /**
+     * How far the hero has gone, as a fraction of one viewport.
+     *
+     * `scrollY` and not `getBoundingClientRect`: the hero starts at the top of every page
+     * this canvas is on, so the scroll position is the answer already, and reading it
+     * cannot force a layout the way a rect can. Clamped rather than unbounded, so a long
+     * page does not keep pushing the field back after it has left.
+     */
+    function scrollProgress() {
+      const span = Math.max(1, window.innerHeight);
+      return Math.min(1, Math.max(0, window.scrollY / span));
+    }
+
+    // Milliseconds. Long enough that 407 points arrive in a visible sweep rather than a
+    // flash, short enough to be over before a reader has finished the first heading.
+    const INTRO_MS = 1500;
+    let born = 0;
+
+    function draw(seconds: number, intro: number) {
       gl!.uniform1f(uTime, seconds);
+      gl!.uniform1f(uScroll, scrollProgress());
+      gl!.uniform1f(uIntro, intro);
       gl!.clear(gl!.COLOR_BUFFER_BIT);
       gl!.drawArrays(gl!.POINTS, 0, points.length);
       // The only claim a probe can check from outside: the field drew, and how many
@@ -258,6 +342,11 @@ export default function DeepField({ points }: { points: readonly FieldPoint[] })
       // context, a failed compile and a spiral outside clip space all look identical
       // from the DOM, and two of those three have already happened here.
       canvas!.dataset.fieldDrawn = String(points.length);
+      // The scroll coupling, exposed for the same reason the count is. In-page readback
+      // of a WebGL canvas is unreliable and a screenshot of one proves nothing about what
+      // a uniform was set to, so the value the loop actually pushed is written where a
+      // probe can read it. Two decimals: a probe wants to know it moved, not the float.
+      canvas!.dataset.fieldScroll = scrollProgress().toFixed(2);
     }
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -265,8 +354,12 @@ export default function DeepField({ points }: { points: readonly FieldPoint[] })
     let running = false;
     let visible = true;
 
+    let started = 0;
+
     function tick(now: number) {
-      draw(now / 1000);
+      if (!started) started = now;
+      born = Math.min(1, (now - started) / INTRO_MS);
+      draw(now / 1000, born);
       frame = requestAnimationFrame(tick);
     }
 
@@ -283,8 +376,12 @@ export default function DeepField({ points }: { points: readonly FieldPoint[] })
     }
 
     // One frame either way, so a reduced-motion reader and a scrolled-past reader both
-    // get the distribution rather than an empty rectangle.
-    draw(0);
+    // get the distribution rather than an empty rectangle. Intro at 1, not 0: the arrival
+    // sweep is the animation, and a reader who asked for less motion must get the field
+    // it arrives at rather than the empty frame it starts from.
+    const rect = canvas.getBoundingClientRect();
+    resize(rect.width, rect.height);
+    draw(0, 1);
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -300,15 +397,33 @@ export default function DeepField({ points }: { points: readonly FieldPoint[] })
     document.addEventListener("visibilitychange", onVisibility);
     const onReduced = () => (reduced.matches ? stop() : start());
     reduced.addEventListener("change", onReduced);
-    window.addEventListener("resize", () => draw(performance.now() / 1000), {
-      passive: true,
+    // A ResizeObserver rather than a window resize listener: the canvas is full-width
+    // inside a hero whose height depends on its own content, so a box change without a
+    // window change was a case the listener never saw. It also fires once on observe,
+    // which is where the first correct size comes from on a slow layout.
+    const sizes = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const box = entry.contentRect;
+        resize(box.width, box.height);
+      }
+      draw(performance.now() / 1000, running ? born : 1);
     });
+    sizes.observe(canvas);
+
+    // Redraw on scroll only when the loop is stopped. While it runs, every frame already
+    // reads the scroll position; adding a listener on top would draw the same frame twice.
+    const onScroll = () => {
+      if (!running) draw(performance.now() / 1000, born || 1);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     start();
 
     return () => {
       stop();
       observer.disconnect();
+      sizes.disconnect();
+      window.removeEventListener("scroll", onScroll);
       document.removeEventListener("visibilitychange", onVisibility);
       reduced.removeEventListener("change", onReduced);
       gl.deleteBuffer(buffer);

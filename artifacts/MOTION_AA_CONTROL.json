@@ -1,0 +1,548 @@
+{
+ "schema": "tracetriage/motion-perf",
+ "schema_version": "0.1.0",
+ "tool": "lighthouse, desktop preset, performance category only",
+ "throttling": "simulate",
+ "served": "scripts/serve_dist.py, gzip on the text types",
+ "interleaved": "before then after, page by page, round by round",
+ "rounds": 3,
+ "summary": {
+  "/": {
+   "before": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 407.7521,
+     "min": 407.0696,
+     "max": 408.3281
+    },
+    "lcp_ms": {
+     "median": 636.5521,
+     "min": 630.7131,
+     "max": 677.531
+    },
+    "cls": {
+     "median": 0.0109,
+     "min": 0.0109,
+     "max": 0.0109
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 408.3281,
+     "min": 407.7521,
+     "max": 414.6313
+    },
+    "score": {
+     "median": 1,
+     "min": 1,
+     "max": 1
+    }
+   },
+   "after": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 407.7561,
+     "min": 406.9759,
+     "max": 408.4976
+    },
+    "lcp_ms": {
+     "median": 638.6506,
+     "min": 635.1707,
+     "max": 705.4976
+    },
+    "cls": {
+     "median": 0.0109,
+     "min": 0.0109,
+     "max": 0.0109
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 407.7561,
+     "min": 406.9759,
+     "max": 408.4976
+    },
+    "score": {
+     "median": 1,
+     "min": 1,
+     "max": 1
+    }
+   }
+  },
+  "/evaluation/": {
+   "before": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 367.3212,
+     "min": 367.1224,
+     "max": 368.3632
+    },
+    "lcp_ms": {
+     "median": 561.2483,
+     "min": 557.8808,
+     "max": 564.0755
+    },
+    "cls": {
+     "median": 0.0001,
+     "min": 0.0001,
+     "max": 0.0001
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 367.3212,
+     "min": 367.1224,
+     "max": 368.3632
+    },
+    "score": {
+     "median": 1,
+     "min": 1,
+     "max": 1
+    }
+   },
+   "after": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 367.2222,
+     "min": 366.9685,
+     "max": 367.3763
+    },
+    "lcp_ms": {
+     "median": 562.3148,
+     "min": 558.9175,
+     "max": 1173.6834
+    },
+    "cls": {
+     "median": 0.0001,
+     "min": 0.0001,
+     "max": 0.0001
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 11
+    },
+    "speed_index_ms": {
+     "median": 367.2222,
+     "min": 366.9685,
+     "max": 367.3763
+    },
+    "score": {
+     "median": 1,
+     "min": 0.98,
+     "max": 1
+    }
+   }
+  },
+  "/replay/": {
+   "before": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 328.1402,
+     "min": 327.259,
+     "max": 328.8449
+    },
+    "lcp_ms": {
+     "median": 722.8449,
+     "min": 514.3393,
+     "max": 828.9043
+    },
+    "cls": {
+     "median": 0.0001,
+     "min": 0.0001,
+     "max": 0.0001
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 328.1402,
+     "min": 327.259,
+     "max": 328.8449
+    },
+    "score": {
+     "median": 1,
+     "min": 0.99,
+     "max": 1
+    }
+   },
+   "after": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 328.8822,
+     "min": 328.7568,
+     "max": 331.0759
+    },
+    "lcp_ms": {
+     "median": 725.7617,
+     "min": 523.3379,
+     "max": 784.2992
+    },
+    "cls": {
+     "median": 0.0001,
+     "min": 0.0001,
+     "max": 0.0001
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 328.8822,
+     "min": 328.7568,
+     "max": 331.0759
+    },
+    "score": {
+     "median": 1,
+     "min": 1,
+     "max": 1
+    }
+   }
+  }
+ },
+ "reading": "/: first paint +0.0039 ms over 3 pairs spanning -0.0938 to +0.1695, which contains zero; largest paint +7.9375 ms over 3 pairs spanning -42.3603 to +68.9455, which contains zero; layout shift +0 over 3 pairs spanning +0 to +0, which contains zero; blocking time +0 ms over 3 pairs spanning +0 to +0, which contains zero. /evaluation/: first paint -0.1539 ms over 3 pairs, every one of them the same sign (-0.987 to -0.099); largest paint +4.434 ms over 3 pairs spanning -5.158 to +612.435, which contains zero; layout shift +0 over 3 pairs spanning -0 to +0, which contains zero; blocking time +0 ms over 3 pairs spanning +0 to +11, which contains zero. /replay/: first paint +0.6166 ms over 3 pairs, every one of them the same sign (+0.0374 to +3.8169); largest paint +2.9168 ms over 3 pairs spanning -305.566 to +269.96, which contains zero; layout shift +0 over 3 pairs spanning +0 to +0, which contains zero; blocking time +0 ms over 3 pairs spanning +0 to +0, which contains zero.",
+ "paired_deltas": {
+  "/": {
+   "fcp_ms": {
+    "pairs": 3,
+    "median": 0.0039,
+    "min": -0.0938,
+    "max": 0.1695,
+    "contains_zero": true
+   },
+   "lcp_ms": {
+    "pairs": 3,
+    "median": 7.9375,
+    "min": -42.3603,
+    "max": 68.9455,
+    "contains_zero": true
+   },
+   "cls": {
+    "pairs": 3,
+    "median": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "contains_zero": true
+   },
+   "tbt_ms": {
+    "pairs": 3,
+    "median": 0,
+    "min": 0,
+    "max": 0,
+    "contains_zero": true
+   },
+   "speed_index_ms": {
+    "pairs": 3,
+    "median": 0.0039,
+    "min": -7.6554,
+    "max": 0.1695,
+    "contains_zero": true
+   }
+  },
+  "/evaluation/": {
+   "fcp_ms": {
+    "pairs": 3,
+    "median": -0.1539,
+    "min": -0.987,
+    "max": -0.099,
+    "contains_zero": false
+   },
+   "lcp_ms": {
+    "pairs": 3,
+    "median": 4.434,
+    "min": -5.158,
+    "max": 612.4352,
+    "contains_zero": true
+   },
+   "cls": {
+    "pairs": 3,
+    "median": 0.0,
+    "min": -0.0,
+    "max": 0.0,
+    "contains_zero": true
+   },
+   "tbt_ms": {
+    "pairs": 3,
+    "median": 0,
+    "min": 0,
+    "max": 11,
+    "contains_zero": true
+   },
+   "speed_index_ms": {
+    "pairs": 3,
+    "median": -0.1539,
+    "min": -0.987,
+    "max": -0.099,
+    "contains_zero": false
+   }
+  },
+  "/replay/": {
+   "fcp_ms": {
+    "pairs": 3,
+    "median": 0.6166,
+    "min": 0.0374,
+    "max": 3.8169,
+    "contains_zero": false
+   },
+   "lcp_ms": {
+    "pairs": 3,
+    "median": 2.9168,
+    "min": -305.5664,
+    "max": 269.9599,
+    "contains_zero": true
+   },
+   "cls": {
+    "pairs": 3,
+    "median": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "contains_zero": true
+   },
+   "tbt_ms": {
+    "pairs": 3,
+    "median": 0,
+    "min": 0,
+    "max": 0,
+    "contains_zero": true
+   },
+   "speed_index_ms": {
+    "pairs": 3,
+    "median": 0.6166,
+    "min": 0.0374,
+    "max": 3.8169,
+    "contains_zero": false
+   }
+  }
+ },
+ "what_this_does_not_measure": "scroll stutter. Blocking time covers load. Frames dropped while a scroll-driven animation runs are a different question and apps/web/audit/scroll-stutter-probe.js answers it over a scripted scroll.",
+ "runs": [
+  {
+   "round": 0,
+   "page": "/",
+   "condition": "before",
+   "fcp_ms": 407.75215,
+   "lcp_ms": 677.5309500000001,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 407.75215,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/",
+   "condition": "after",
+   "fcp_ms": 407.75605,
+   "lcp_ms": 635.1707,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 407.75605,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/evaluation/",
+   "condition": "before",
+   "fcp_ms": 367.12244999999996,
+   "lcp_ms": 561.2483,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 367.12244999999996,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/evaluation/",
+   "condition": "after",
+   "fcp_ms": 366.96855,
+   "lcp_ms": 1173.68345,
+   "cls": 6.92798835307169e-05,
+   "tbt_ms": 11,
+   "speed_index_ms": 366.96855,
+   "score": 0.98,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/replay/",
+   "condition": "before",
+   "fcp_ms": 328.1402,
+   "lcp_ms": 828.9043,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 328.1402,
+   "score": 0.99,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/replay/",
+   "condition": "after",
+   "fcp_ms": 328.75685,
+   "lcp_ms": 523.3379,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 328.75685,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/",
+   "condition": "before",
+   "fcp_ms": 408.32815,
+   "lcp_ms": 636.5520999999999,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 408.32815,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/",
+   "condition": "after",
+   "fcp_ms": 408.4976499999999,
+   "lcp_ms": 705.4976499999998,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 408.4976499999999,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/evaluation/",
+   "condition": "before",
+   "fcp_ms": 367.32120000000003,
+   "lcp_ms": 557.8808,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 367.32120000000003,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/evaluation/",
+   "condition": "after",
+   "fcp_ms": 367.2222,
+   "lcp_ms": 562.3148,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 367.2222,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/replay/",
+   "condition": "before",
+   "fcp_ms": 328.8449,
+   "lcp_ms": 722.8449,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 328.8449,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/replay/",
+   "condition": "after",
+   "fcp_ms": 328.88225,
+   "lcp_ms": 725.7617499999997,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 328.88225,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/",
+   "condition": "before",
+   "fcp_ms": 407.0696499999999,
+   "lcp_ms": 630.7130999999999,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 414.6312736960648,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/",
+   "condition": "after",
+   "fcp_ms": 406.9758999999999,
+   "lcp_ms": 638.6505999999999,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 406.9758999999999,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/evaluation/",
+   "condition": "before",
+   "fcp_ms": 368.36325,
+   "lcp_ms": 564.0755,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 368.36325,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/evaluation/",
+   "condition": "after",
+   "fcp_ms": 367.37625,
+   "lcp_ms": 558.9175,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 367.37625,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/replay/",
+   "condition": "before",
+   "fcp_ms": 327.25895,
+   "lcp_ms": 514.3393,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 327.25895,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/replay/",
+   "condition": "after",
+   "fcp_ms": 331.07585,
+   "lcp_ms": 784.29915,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 331.07585,
+   "score": 1,
+   "throttling": "simulate"
+  }
+ ]
+}

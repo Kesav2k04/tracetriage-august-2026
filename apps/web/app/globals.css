@@ -416,9 +416,18 @@
      wrong for a mark that draws itself, which wants a longer tail, and for anything
      that has to feel physical. These three are the ones the instruments use. */
   --ease-draw: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
   --dur-draw-01: 900ms;
   --dur-draw-02: 1600ms;
+
+  /* There was a `--ease-spring` here, cubic-bezier(0.34, 1.36, 0.64, 1), and it is
+     gone rather than kept for later. Nothing referenced it: not a rule in this file,
+     not a component, not a test. A spring overshoots, which means a mark that lands
+     past its own value and comes back, and every animated mark on this site draws a
+     measurement. Overshooting one is the interface asserting a number the receipt
+     does not contain, for about 120 milliseconds. It was declared with the two draw
+     tokens on the same day and only they had a use, so the honest edit is to delete
+     it and say why: an unused token reads as a decision that was made, and this one
+     was a decision that was reversed. */
 
   /* Display scale. Steps are ratio 1.5 from the body scale rather than Carbon's
      productive scale, because a stat-led hero needs a figure that dominates and
@@ -1728,18 +1737,31 @@ code,
 
   .hero-null {
     animation-name: hero-draw;
-    animation-duration: 900ms;
+    animation-duration: var(--dur-draw-01);
     animation-timing-function: var(--ease-productive-entrance);
   }
 
   /* The corridor starts after the last null has landed, so a reader sees the
-     field it has to beat before it arrives, not at the same time as it. */
+     field it has to beat before it arrives, not at the same time as it.
+
+     `--ease-draw` rather than `--ease-expressive-standard`, and the two tokens exist
+     for exactly this distinction: the comment beside them says Carbon's curves are
+     right for a control that responds to a click and wrong for a mark that draws
+     itself. Both are eases-out, but the expressive curve keeps 12% of its distance
+     for the last 40% of its time and this one keeps 2%, so the corridor arrives and
+     stops instead of creeping the last few pixels into place. The nulls keep the
+     productive entrance: they are a field being filled in, not a line being drawn,
+     and giving them the same decisive landing made sixteen paths all stop at once,
+     which read as a single event rather than as a distribution.
+
+     The duration comes from `--dur-draw-02` for the same reason the curve does. It
+     was 1100ms typed here while a 1600ms draw token sat unused twenty lines up. */
   .hero-corridor,
   .hero-corridor-casing {
     animation-name: hero-draw;
-    animation-duration: 1100ms;
+    animation-duration: var(--dur-draw-02);
     animation-delay: 1.05s;
-    animation-timing-function: var(--ease-expressive-standard);
+    animation-timing-function: var(--ease-draw);
   }
 
   /* Where the draw is driven from, given a browser that can do it.

@@ -177,6 +177,16 @@
    "bytes": 2733
   },
   {
+   "name": "MOTION_AA_CONTROL.json",
+   "sha256": "7750cc406dac76757e4fb59600042e47cb51a67cfc8b7646e677241f5b7908f4",
+   "bytes": 11765
+  },
+  {
+   "name": "MOTION_RECEIPT.json",
+   "sha256": "36317258c392d95335e48c410df2160f30554977e4c271b8381e6a9f38b26302",
+   "bytes": 13038
+  },
+  {
    "name": "OPERATOR_SESSION.json",
    "sha256": "7b2e8ace3d79a3a887de3a9596ebd3ac6dcc25774a802d1509a21c40535f9a98",
    "bytes": 7008

@@ -841,6 +841,47 @@ export default function EvaluationPage() {
             disk when the bundle was packed.
           </strong>
         </p>
+        {/* The clip goes above the arm's numbers rather than below them, because it
+            ends on the sentence the numbers are most likely to be read without: the
+            gate is open. `preload="none"` so a page nobody plays it on pays for a
+            poster and nothing else, and it is self-hosted, so `media-src 'self'`
+            holds and there is no embed from a video host.
+
+            Labelled, not just captioned. The fallback paragraph inside a `<video>` is
+            only exposed to a browser that cannot play it, so a reader using a screen
+            reader on a browser that can play it hears "video" and nothing else. The
+            label says what the clip shows; the figcaption carries the reasoning. */}
+        <figure className="explainer">
+          <video
+            controls
+            preload="none"
+            playsInline
+            aria-label={
+              "Thirty-seven seconds, no narration: how gate 4's sample was committed " +
+              "to before the review, what the scorer checks before it reads an " +
+              "answer, the rate that came back, and why the gate is still open."
+            }
+            poster="/media/gate4-explainer-poster.jpg"
+            width={1920}
+            height={1080}
+          >
+            <source src="/media/gate4-explainer.mp4" type="video/mp4" />
+            <p>
+              Your browser cannot play this video. It shows how the gate 4 sample was
+              committed to with one salted sha256 per item before any review began,
+              what the scorer re-checks from disk before it reads a single answer, the
+              rate that came back, and why the gate is still open.
+            </p>
+          </video>
+          <figcaption>
+            The commitment is the part of this gate a reader cannot check by running
+            the code, because the claim is about the order events happened in. Every
+            number in the clip is in{" "}
+            <code>artifacts/GATE4_RECEIPT.json</code>, and{" "}
+            <code>tests/test_explainer_gate4_values.py</code> fails if the scene and
+            the receipt ever disagree.
+          </figcaption>
+        </figure>
         {gate4Arm && (
           <>
             <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>

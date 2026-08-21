@@ -1,0 +1,572 @@
+{
+ "schema": "tracetriage/motion-perf",
+ "schema_version": "0.1.0",
+ "tool": "lighthouse, desktop preset, performance category only",
+ "throttling": "simulate",
+ "served": "scripts/serve_dist.py, gzip on the text types",
+ "interleaved": "before then after, page by page, round by round",
+ "rounds": 3,
+ "summary": {
+  "/": {
+   "before": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 409.4572,
+     "min": 408.3472,
+     "max": 411.5658
+    },
+    "lcp_ms": {
+     "median": 641.0648,
+     "min": 636.7105,
+     "max": 647.3048
+    },
+    "cls": {
+     "median": 0.0109,
+     "min": 0.0109,
+     "max": 0.0109
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 409.4572,
+     "min": 408.3472,
+     "max": 411.5658
+    },
+    "score": {
+     "median": 1,
+     "min": 1,
+     "max": 1
+    }
+   },
+   "after": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 407.6828,
+     "min": 406.7408,
+     "max": 409.4423
+    },
+    "lcp_ms": {
+     "median": 633.1219,
+     "min": 632.4939,
+     "max": 633.2949
+    },
+    "cls": {
+     "median": 0.0109,
+     "min": 0.0109,
+     "max": 0.0109
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 422.0235,
+     "min": 412.1516,
+     "max": 778.4891
+    },
+    "score": {
+     "median": 1,
+     "min": 1,
+     "max": 1
+    }
+   }
+  },
+  "/evaluation/": {
+   "before": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 367.1577,
+     "min": 366.1068,
+     "max": 369.9572
+    },
+    "lcp_ms": {
+     "median": 560.5712,
+     "min": 558.2718,
+     "max": 568.6381
+    },
+    "cls": {
+     "median": 0.0001,
+     "min": 0.0001,
+     "max": 0.0001
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 367.1577,
+     "min": 366.1068,
+     "max": 369.9572
+    },
+    "score": {
+     "median": 1,
+     "min": 1,
+     "max": 1
+    }
+   },
+   "after": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 367.288,
+     "min": 366.4975,
+     "max": 367.5405
+    },
+    "lcp_ms": {
+     "median": 606.8317,
+     "min": 604.527,
+     "max": 607.8587
+    },
+    "cls": {
+     "median": 0.0001,
+     "min": 0.0001,
+     "max": 0.0001
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 367.5405,
+     "min": 366.4975,
+     "max": 376.0477
+    },
+    "score": {
+     "median": 1,
+     "min": 1,
+     "max": 1
+    }
+   }
+  },
+  "/replay/": {
+   "before": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 329.0286,
+     "min": 329.0018,
+     "max": 329.2259
+    },
+    "lcp_ms": {
+     "median": 679.4047,
+     "min": 677.7418,
+     "max": 1175.5652
+    },
+    "cls": {
+     "median": 0.0001,
+     "min": 0.0001,
+     "max": 0.0001
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 329.0286,
+     "min": 329.0018,
+     "max": 329.2259
+    },
+    "score": {
+     "median": 1,
+     "min": 0.98,
+     "max": 1
+    }
+   },
+   "after": {
+    "n": 3,
+    "fcp_ms": {
+     "median": 326.7495,
+     "min": 326.24,
+     "max": 328.6719
+    },
+    "lcp_ms": {
+     "median": 836.0889,
+     "min": 733.1146,
+     "max": 862.6634
+    },
+    "cls": {
+     "median": 0.0001,
+     "min": 0.0001,
+     "max": 0.0001
+    },
+    "tbt_ms": {
+     "median": 0,
+     "min": 0,
+     "max": 0
+    },
+    "speed_index_ms": {
+     "median": 328.6719,
+     "min": 326.7495,
+     "max": 515.1323
+    },
+    "score": {
+     "median": 0.99,
+     "min": 0.99,
+     "max": 1
+    }
+   }
+  }
+ },
+ "reading": "/: first paint -2.1234 ms, outside the control's 0.1695 ms, and every one of 3 pairs has the same sign (-2.7164 to -0.6644); largest paint -7.9429 ms, inside the 68.9455 ms range the same harness produced on two identical builds, so it is not a difference; layout shift +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference; blocking time +0 ms, inside the 0 ms range the same harness produced on two identical builds, so it is not a difference. /evaluation/: first paint -0.6601 ms, inside the 0.987 ms range the same harness produced on two identical builds, so it is not a difference; largest paint +43.9558 ms, inside the 612.435 ms range the same harness produced on two identical builds, so it is not a difference; layout shift +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference; blocking time +0 ms, inside the 11 ms range the same harness produced on two identical builds, so it is not a difference. /replay/: first paint -2.2791 ms, inside the 3.8169 ms range the same harness produced on two identical builds, so it is not a difference; largest paint +158.347 ms, inside the 305.566 ms range the same harness produced on two identical builds, so it is not a difference; layout shift +0, inside the 0 range the same harness produced on two identical builds, so it is not a difference; blocking time +0 ms, inside the 0 ms range the same harness produced on two identical builds, so it is not a difference.",
+ "noise_floor": {
+  "source": "artifacts\\MOTION_AA_CONTROL.json",
+  "reading": "The widest paired delta this harness produced with both origins serving byte-identical builds. A measured delta inside it is not a difference. Largest contentful paint has no usable floor here: its A/A range is wider than any change worth making, so it is reported and not claimed.",
+  "by_page": {
+   "/": {
+    "fcp_ms": 0.1695,
+    "lcp_ms": 68.9455,
+    "cls": 0.0,
+    "tbt_ms": 0
+   },
+   "/evaluation/": {
+    "fcp_ms": 0.987,
+    "lcp_ms": 612.4352,
+    "cls": 0.0,
+    "tbt_ms": 11
+   },
+   "/replay/": {
+    "fcp_ms": 3.8169,
+    "lcp_ms": 305.5664,
+    "cls": 0.0,
+    "tbt_ms": 0
+   }
+  }
+ },
+ "paired_deltas": {
+  "/": {
+   "fcp_ms": {
+    "pairs": 3,
+    "median": -2.1234,
+    "min": -2.7164,
+    "max": -0.6644,
+    "contains_zero": false
+   },
+   "lcp_ms": {
+    "pairs": 3,
+    "median": -7.9429,
+    "min": -14.8109,
+    "max": -3.4156,
+    "contains_zero": false
+   },
+   "cls": {
+    "pairs": 3,
+    "median": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "contains_zero": true
+   },
+   "tbt_ms": {
+    "pairs": 3,
+    "median": 0,
+    "min": 0,
+    "max": 0,
+    "contains_zero": true
+   },
+   "speed_index_ms": {
+    "pairs": 3,
+    "median": 12.5663,
+    "min": 3.8044,
+    "max": 366.9233,
+    "contains_zero": false
+   }
+  },
+  "/evaluation/": {
+   "fcp_ms": {
+    "pairs": 3,
+    "median": -0.6601,
+    "min": -2.6691,
+    "max": 1.4337,
+    "contains_zero": true
+   },
+   "lcp_ms": {
+    "pairs": 3,
+    "median": 43.9558,
+    "min": 39.2206,
+    "max": 48.5599,
+    "contains_zero": false
+   },
+   "cls": {
+    "pairs": 3,
+    "median": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "contains_zero": true
+   },
+   "tbt_ms": {
+    "pairs": 3,
+    "median": 0,
+    "min": 0,
+    "max": 0,
+    "contains_zero": true
+   },
+   "speed_index_ms": {
+    "pairs": 3,
+    "median": 1.4337,
+    "min": -0.6601,
+    "max": 6.0906,
+    "contains_zero": true
+   }
+  },
+  "/replay/": {
+   "fcp_ms": {
+    "pairs": 3,
+    "median": -2.2791,
+    "min": -2.9859,
+    "max": -0.3299,
+    "contains_zero": false
+   },
+   "lcp_ms": {
+    "pairs": 3,
+    "median": 158.3471,
+    "min": -442.4506,
+    "max": 183.2587,
+    "contains_zero": true
+   },
+   "cls": {
+    "pairs": 3,
+    "median": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "contains_zero": true
+   },
+   "tbt_ms": {
+    "pairs": 3,
+    "median": 0,
+    "min": 0,
+    "max": 0,
+    "contains_zero": true
+   },
+   "speed_index_ms": {
+    "pairs": 3,
+    "median": -0.3299,
+    "min": -2.2791,
+    "max": 185.9064,
+    "contains_zero": true
+   }
+  }
+ },
+ "what_this_does_not_measure": "scroll stutter. Blocking time covers load. Frames dropped while a scroll-driven animation runs are a different question and apps/web/audit/scroll-stutter-probe.js answers it over a scripted scroll.",
+ "runs": [
+  {
+   "round": 0,
+   "page": "/",
+   "condition": "before",
+   "fcp_ms": 411.56575000000004,
+   "lcp_ms": 636.7104999999999,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 411.56575000000004,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/",
+   "condition": "after",
+   "fcp_ms": 409.44235,
+   "lcp_ms": 633.2949,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 778.4890812179901,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/evaluation/",
+   "condition": "before",
+   "fcp_ms": 366.10679999999996,
+   "lcp_ms": 560.5712,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 366.10679999999996,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/evaluation/",
+   "condition": "after",
+   "fcp_ms": 367.5405,
+   "lcp_ms": 604.527,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 367.5405,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/replay/",
+   "condition": "before",
+   "fcp_ms": 329.2259,
+   "lcp_ms": 679.40473,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 329.2259,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 0,
+   "page": "/replay/",
+   "condition": "after",
+   "fcp_ms": 326.24,
+   "lcp_ms": 862.6634000000001,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 515.1323055807327,
+   "score": 0.99,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/",
+   "condition": "before",
+   "fcp_ms": 408.3472,
+   "lcp_ms": 641.0648000000001,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 408.3472,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/",
+   "condition": "after",
+   "fcp_ms": 407.68285,
+   "lcp_ms": 633.1219,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 412.15156763550567,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/evaluation/",
+   "condition": "before",
+   "fcp_ms": 369.95715,
+   "lcp_ms": 568.6381,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 369.95715,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/evaluation/",
+   "condition": "after",
+   "fcp_ms": 367.28805,
+   "lcp_ms": 607.8587,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 376.04771004200927,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/replay/",
+   "condition": "before",
+   "fcp_ms": 329.02864999999997,
+   "lcp_ms": 677.7418400000001,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 329.02864999999997,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 1,
+   "page": "/replay/",
+   "condition": "after",
+   "fcp_ms": 326.74955,
+   "lcp_ms": 836.08895,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 326.74955,
+   "score": 0.99,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/",
+   "condition": "before",
+   "fcp_ms": 409.4572,
+   "lcp_ms": 647.3047999999999,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 409.4572,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/",
+   "condition": "after",
+   "fcp_ms": 406.7408499999999,
+   "lcp_ms": 632.4938999999999,
+   "cls": 0.010934449318223132,
+   "tbt_ms": 0,
+   "speed_index_ms": 422.0234915103513,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/evaluation/",
+   "condition": "before",
+   "fcp_ms": 367.1577,
+   "lcp_ms": 558.2718,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 367.1577,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/evaluation/",
+   "condition": "after",
+   "fcp_ms": 366.49755,
+   "lcp_ms": 606.8317,
+   "cls": 7.385923584044927e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 366.49755,
+   "score": 1,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/replay/",
+   "condition": "before",
+   "fcp_ms": 329.0018,
+   "lcp_ms": 1175.5652,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 329.0018,
+   "score": 0.98,
+   "throttling": "simulate"
+  },
+  {
+   "round": 2,
+   "page": "/replay/",
+   "condition": "after",
+   "fcp_ms": 328.67195,
+   "lcp_ms": 733.1145500000001,
+   "cls": 7.392370223331284e-05,
+   "tbt_ms": 0,
+   "speed_index_ms": 328.67195,
+   "score": 1,
+   "throttling": "simulate"
+  }
+ ]
+}

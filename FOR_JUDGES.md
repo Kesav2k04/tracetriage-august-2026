@@ -122,11 +122,11 @@ A6, A5, A0, A0b-INT, A1, A2, A4, B1, C1: the data contracts, the immutable snaps
 waterfall artifact parser, the physics corridor, label provenance, the image-only
 baselines, the end-to-end triage slice, the grouped splits with their leakage audit, and
 the review-value queue with kill gate 6. Each names the files it changed, the commands
-that were run, the Bob task id and what failed before it was accepted. A further 48 dated
+that were run, the Bob task id and what failed before it was accepted. A further 49 dated
 units in the same file are operator-side, run from Cursor and Claude Code, and are
 labelled that way in the actor field of their own headings: the console, the calibration
 and abstention blocks, the fusion ladder and the review waves are theirs, not Bob's. That
-distinction is published because the number here used to be 62, which was the count of
+distinction is published because the number here used to be 63, which was the count of
 second-level markdown headings in the file and not the count of anything anyone did. Bob
 also operates the product: `.bob/mcp.json` registers the evidence server and the live
 measurement server, so a Bob session can measure a pass recorded today and have the same
