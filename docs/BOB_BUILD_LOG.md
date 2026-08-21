@@ -6945,7 +6945,7 @@ every table in the console and fails when a header sits on a different edge from
 cells. The gate 4 handoff table added here had a right-aligned header over left-aligned
 cells, and the test named the file, the line and the column.
 
-### One stale digest, found by regenerating
+### Three stale generated files, found by running the standing gate
 
 `apps/web/public/data/provenance.json` at commit 1f630a0 recorded
 `CLEAN_CLONE_TRANSCRIPT.json` as 17,444 bytes at `a8497849`. The committed transcript is
@@ -6953,6 +6953,20 @@ cells, and the test named the file, the line and the column.
 regenerated before it landed, so the commit whose subject is the clean clone shipped a wrong
 digest for the clean clone. Nothing downstream reads that field, which is why nothing caught
 it.
+
+**Two more were stale before today, and neither is a number.** `apps/web/public/og.png`
+and `docs/architecture.svg` both failed their own `--check` at commit 1f630a0, which is
+before anything in this unit was written: checked out at that commit with today's artifacts
+absent, `build_og_image.py --check` reported the committed card at `eccecf8bb599` against a
+fresh `2f0a737059da`, and the diagram was out of date too. The cause in both cases is the
+palette. It changed twice in wave D and these two files are the only generated artefacts
+that draw with it rather than reading from it, so nothing that runs on a receipt could
+notice. Both are regenerated here: the card carries the same two numbers it did, 1.58x not
+established and 2.25x passed, on the current ground.
+
+**The standing gate is what found all three, and it had not been run since wave E started.**
+18 of 21 before this paragraph, 21 of 21 after. A gate that is only run at the end of a wave
+is a gate that reports a wave's worth of drift at once.
 
 ### The overnight units, named here because they have no unit of their own
 

@@ -80,3 +80,9 @@ apps/web/tsconfig.tsbuildinfo
 # which are reproducible from scripts/explainer_corridor.py and none of which a
 # reviewer needs.
 /media/
+
+# A received critique, kept out of the tree on purpose. It is the input to a unit rather
+# than a claim this project makes, and every statement worth keeping from it has been
+# answered in docs/BOB_BUILD_LOG.md or in a claim register row. Ignored rather than
+# deleted, because the file is still the record of what was asked for.
+HANDOVER_*.md
