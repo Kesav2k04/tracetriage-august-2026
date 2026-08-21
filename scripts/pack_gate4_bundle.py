@@ -69,6 +69,48 @@ def _sha256(path: pathlib.Path) -> str:
     return digest.hexdigest()
 
 
+#: Injected into the published copy of the review page and into nothing else. Opened from
+#: the console, that copy has no images: they are the whole weight of the bundle. Without a
+#: line saying so the page reads as broken, and a reader who thinks the instrument is broken
+#: does not ask for the plates. The copy inside the bundle keeps the builder's bytes.
+WEB_BANNER = """<p style="margin:0;padding:14px 20px;border-bottom:1px solid #313845;
+  background:#141c2b;color:#c3c4c7;font-size:13px;line-height:1.65">
+  <strong style="color:#f1f2f3">The plates are not on this copy of the page.</strong>
+  This is the instrument, published so the protocol can be read before anyone spends half an
+  hour on it. The {n_images} images are {mb} MB of full-resolution waterfalls and travel as
+  one file, <code>{archive}</code>, sha256 <code>{digest}</code>: every way of shrinking them
+  changes what a reviewer is being asked to judge. Ask for that file, unpack it, and open
+  this page from the folder it makes. Everything here works except the pictures.
+</p>"""
+
+
+def _publish_review(
+    source: pathlib.Path, archive: str, digest: str, n_images: int, image_bytes: int
+) -> None:
+    """Copy the review page to the console, with one banner the bundle's copy has not."""
+    # Bytes in, bytes out. `read_text` normalises the bundle's line endings, so the
+    # published file would differ from its source on every line and a one-paragraph
+    # injection would read as a rewrite of the whole page.
+    html = source.read_bytes().decode("utf-8")
+    anchor = "</header>"
+    if anchor not in html:
+        raise SystemExit(
+            f"{source} has no </header>, so the banner explaining the missing plates has "
+            f"nowhere to go. Publishing the page without it would put a review instrument "
+            f"on the web that reads as broken."
+        )
+    banner = WEB_BANNER.format(
+        n_images=n_images,
+        mb=f"{image_bytes / 1e6:.0f}",
+        archive=archive,
+        digest=digest[:24],
+    )
+    # The banner takes whatever line ending the file already uses, for the same reason.
+    ending = "\r\n" if "\r\n" in html else "\n"
+    injected = html.replace(anchor, anchor + ending + banner.replace("\n", ending), 1)
+    (PUBLISHED / "review.html").write_bytes(injected.encode("utf-8"))
+
+
 def pack(bundle: pathlib.Path, key: pathlib.Path) -> dict:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if not key.exists():
@@ -104,9 +146,16 @@ def pack(bundle: pathlib.Path, key: pathlib.Path) -> dict:
             zf.write(image, f"tracetriage_gate4/{IMAGES}/{image.name}", zipfile.ZIP_STORED)
 
     images = sorted((bundle / IMAGES).iterdir())
+    digest = _sha256(archive)
     PUBLISHED.mkdir(parents=True, exist_ok=True)
-    for name in ("review.html", "worksheet.md"):
-        (PUBLISHED / name).write_bytes((bundle / name).read_bytes())
+    (PUBLISHED / "worksheet.md").write_bytes((bundle / "worksheet.md").read_bytes())
+    _publish_review(
+        bundle / "review.html",
+        archive.name,
+        digest,
+        len(images),
+        sum(image.stat().st_size for image in images),
+    )
     return {
         "schema": "tracetriage/gate4-bundle",
         "schema_version": "0.1.0",
@@ -120,7 +169,7 @@ def pack(bundle: pathlib.Path, key: pathlib.Path) -> dict:
         "archive": {
             "name": archive.name,
             "bytes": archive.stat().st_size,
-            "sha256": _sha256(archive),
+            "sha256": digest,
             "n_entries": len(PACKED) + len(images),
         },
         "images": {
