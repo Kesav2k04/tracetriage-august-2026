@@ -7703,3 +7703,26 @@ and fails. Twelve files were converted back by hand earlier in the session. The 
 to sweep the changed set for `\r\n` before running any gate, and it is the same root cause as
 the digest defect above: on this platform, anything that reads a file as bytes and anything
 that reads it as text disagree, and only one of them is what git publishes.
+
+## E11. One failed sign-off could never be undone
+
+Adding the twenty-seventh gate broke the twenty-sixth. `scripts/signoff.py` runs the standing
+gate and writes its receipt afterwards, and `tests/test_signoff.py` asserts the committed
+receipt says SIGNED. The gate runs that suite. So the first sign-off that failed for any
+reason left NOT_SIGNED on disk, and every later run failed the gate on the receipt it was
+about to replace. The verdict was self-sustaining and no amount of fixing the real problem
+would clear it.
+
+`scripts/gate.py` already had the answer for its own sign-off row: `signoff.py` exports
+`TRACETRIAGE_SIGNOFF_IN_PROGRESS`, the gate sees it and prints the row as omitted rather than
+counting it green. The test never consulted the flag. It does now, on that one test, with the
+reason printed as the skip message. The other ten tests in the file still run: a stale receipt
+is still a well-formed receipt, and the structural checks about refusal are exactly the ones
+that must not go quiet.
+
+An exemption with nothing measuring it is how the first one got in, so
+`test_the_skip_is_narrow_and_the_check_underneath_it_still_refuses` does two things. It
+asserts the flag is spelled the same in all three files, because a typo would leave either
+the skip or the gate row dead with no symptom. And it hands the skipped test a fabricated
+NOT_SIGNED receipt with the flag cleared and requires an `AssertionError`, so the assertions
+hiding behind the skip cannot be softened into something a refused sign-off satisfies.

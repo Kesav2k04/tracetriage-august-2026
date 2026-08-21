@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -107,10 +108,60 @@ def test_one_failed_check_is_enough_to_withhold_the_signature(signoff) -> None:
 
 
 def test_the_receipt_is_signed_and_nothing_failed(receipt: dict) -> None:
+    """The committed sign-off is SIGNED, unless a sign-off is running right now.
+
+    This is the one test in the file that asks about the receipt a sign-off run is about to
+    replace. `scripts/signoff.py` runs the standing gate, the gate runs this suite, and the
+    receipt is written afterwards, so a NOT_SIGNED receipt on disk would fail the gate of
+    every run that could have fixed it. One bad sign-off would latch permanently.
+
+    `scripts/gate.py` already omits its own sign-off row for exactly this reason, and the
+    flag is the same one. Outside a sign-off run there is no flag and no skip, so deleting
+    or breaking the receipt still fails here and in the gate.
+    """
+    if os.environ.get("TRACETRIAGE_SIGNOFF_IN_PROGRESS"):
+        pytest.skip(
+            "a sign-off is running and writes this receipt after this suite, so the copy "
+            "on disk is the previous run's. scripts/gate.py omits its sign-off row for "
+            "the same reason."
+        )
     failed = [r["check"] for r in receipt["checks"] if r["status"] == "FAILED"]
     assert failed == [], f"the committed sign-off records failures: {failed}"
     assert receipt["verdict"] == "SIGNED"
     assert receipt["counts"]["FAILED"] == 0
+
+
+def test_the_skip_is_narrow_and_the_check_underneath_it_still_refuses() -> None:
+    """The exemption above, measured rather than described.
+
+    Two ways it could rot. The flag could be spelled differently in the three files that
+    use it, which would leave the skip dead or the gate row dead. And the assertions under
+    the skip could be weakened at some point to something a NOT_SIGNED receipt satisfies,
+    which nobody would notice because the skip hides them during every sign-off run.
+    """
+    flag = "TRACETRIAGE_SIGNOFF_IN_PROGRESS"
+    for rel, expected in (
+        ("scripts/signoff.py", 1),
+        ("scripts/gate.py", 1),
+        ("tests/test_signoff.py", 2),
+    ):
+        text = (_REPO / rel).read_text(encoding="utf-8")
+        assert text.count(flag) >= expected, f"{rel} no longer names {flag}"
+
+    # The receipt a sign-off is about to replace is skipped. A NOT_SIGNED receipt handed to
+    # the same test with no flag set has to fail, or the skip is covering nothing.
+    refused = {
+        "verdict": "NOT_SIGNED",
+        "counts": {"PASSED": 9, "FAILED": 1, "NOT_CHECKED": 0},
+        "checks": [{"check": "standing gates", "status": "FAILED"}],
+    }
+    saved = os.environ.pop(flag, None)
+    try:
+        with pytest.raises(AssertionError):
+            test_the_receipt_is_signed_and_nothing_failed(refused)
+    finally:
+        if saved is not None:
+            os.environ[flag] = saved
 
 
 def test_the_verdict_agrees_with_the_rows_it_was_computed_from(receipt: dict) -> None:
