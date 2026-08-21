@@ -1,10 +1,10 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-22T02:11:25+05:30",
- "commit": "e13952ced79ae19dfd9fabfaf40291331954d471",
+ "measured_at_commit_date": "2026-08-22T02:31:43+05:30",
+ "commit": "97339aa9336b128c45084b9a1565c09dc850d90f",
  "tracked_files": 434,
- "tracked_bytes": 44164899,
+ "tracked_bytes": 44166848,
  "tracked_megabytes": 42.12,
  "by_directory": [
   {
@@ -70,7 +70,7 @@
  ],
  "by_directory_remainder": {
   "groups": 201,
-  "bytes": 3540851,
+  "bytes": 3542800,
   "megabytes": 3.38,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
