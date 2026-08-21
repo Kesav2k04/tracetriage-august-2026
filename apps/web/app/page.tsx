@@ -181,10 +181,14 @@ export default function QueuePage() {
               <span className="readpath-index">02</span>
               <Link href="/evaluation">Whether it worked</Link>
               <span className="readpath-fact">
-                <span className="num">{fmt(primary.lift_point)}&times;</span> over
+                {/* Two decimals on the point estimate and three on the interval, matching
+                    the verdict tile a few hundred pixels below. The first cut used the
+                    default precision here and printed 1.582 next to a tile printing 1.58,
+                    which is one number written two ways on one screen. */}
+                <span className="num">{fmt(primary.lift_point, 2)}&times;</span> over
                 chronological, interval{" "}
-                <span className="num">{fmtInterval(primary.lift_ci95)}</span>, which does not
-                clear the threshold
+                <span className="num">{fmtInterval(primary.lift_ci95, 3)}</span>, which does
+                not clear the threshold
               </span>
             </li>
             <li>

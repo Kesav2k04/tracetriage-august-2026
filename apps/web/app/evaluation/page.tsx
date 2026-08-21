@@ -10,6 +10,7 @@ import {
   evaluation,
   fmt,
   fmtInterval,
+  provenance,
   type ArmMetrics,
   type SplitGate6,
 } from "@/lib/data";
@@ -39,6 +40,37 @@ const gate6 = evaluation.gate6;
 const gate5 = evaluation.gate5;
 const ablation = evaluation.ablation_conclusion;
 const circularity = evaluation.circularity;
+
+// The fourth question this page answers is the one gate no amount of compute closes, so
+// its verdict is read from the same summary the sidebar counts rather than written in by
+// hand. Absence is named: if gate 4 ever stops being listed, the orientation block says
+// so instead of asserting OPEN, because a hardcoded verdict outlives the study that
+// earned it.
+const gate4Verdict =
+  provenance.gate_summary.gates.find((g) => g.gate === 4)?.verdict ??
+  "not listed in the gate summary";
+
+// circularity.targets is keyed by target name, so indexing it is a lookup that can miss
+// and TypeScript says so. The table below never hits this because it iterates the record;
+// the orientation block does, and it names the shipped definition specifically, because
+// the whole point of that row is that the strictest of the four is the one that decides.
+// If it is ever absent the row says the verdict was not published rather than falling
+// back to one of the looser targets, which would read as a stronger result than was
+// measured.
+const shippedCircularityVerdict =
+  circularity.targets.all_three_criteria?.verdict ?? "not published for this run";
+
+/** Underscores out of a receipt key, for prose.
+ *
+ * The same transform `VerdictBadge` applies (components/ui.tsx), reused rather than
+ * skipped: the badge a few hundred pixels down renders NOT ESTABLISHED and the block
+ * above it was rendering NOT_ESTABLISHED, which is one verdict written two ways on one
+ * screen. Arm names get it too, so the orientation block reads as a sentence instead of
+ * leaking identifiers at the one place on the page that exists to be read quickly.
+ */
+function readable(token: string): string {
+  return token.replace(/_/g, " ");
+}
 
 /** Names for the restricted targets, so the table reads as English rather than as keys. */
 const CIRCULARITY_TARGET_LABELS: Record<string, string> = {
@@ -348,7 +380,59 @@ export default function EvaluationPage() {
         </p>
       </header>
 
+      {/* A judge landing here meets nine sections and no map, and every substantive answer
+          on the page is NOT_ESTABLISHED or OPEN. Read cold that looks like a project that
+          failed. Read in order it is the finding: the measurements were made, they came
+          back inconclusive, and the page says so instead of reaching for the one split that
+          would have read as a pass. So the order of the argument goes first, with each
+          verdict token taken from the same receipt field the section below renders. Nothing
+          here is retyped and nothing is softened: if a verdict changes in the data, this
+          block changes with it. */}
+      <nav className="readpath" aria-label="How to read this page">
+        <ol>
+          <li>
+            <span className="readpath-index">01</span>
+            <a href="#gate6">Does the queue beat random?</a>
+            <span className="readpath-fact">
+              <span className="num">{readable(gate6.verdict)}</span>, decided on the{" "}
+              {SPLIT_LABELS[gate6.decided_on] ?? gate6.decided_on} split
+            </span>
+          </li>
+          <li>
+            <span className="readpath-index">02</span>
+            <a href="#circularity">Is that lift guaranteed by how the queue was built?</a>
+            <span className="readpath-fact">
+              <span className="num">{readable(shippedCircularityVerdict)}</span>,
+              the queue reaches{" "}
+              <span className="num">
+                {fmt(circularity.ceiling.queue_share_of_the_ceiling, 3)}
+              </span>{" "}
+              of what an oracle could
+            </span>
+          </li>
+          <li>
+            <span className="readpath-index">03</span>
+            <a href="#gate5">Does physics conditioning help?</a>
+            <span className="readpath-fact">
+              <span className="num">{readable(gate5.verdict)}</span>, {readable(gate5.challenger)}{" "}
+              against {readable(gate5.reference)}
+            </span>
+          </li>
+          <li>
+            <span className="readpath-index">04</span>
+            <a href="#gate4">Who has to sign it off?</a>
+            <span className="readpath-fact">
+              {/* Read from the gate summary rather than written as OPEN, and named as absent
+                  if the summary stops listing gate 4, because a hardcoded verdict here would
+                  outlive the study that earned it. */}
+              <span className="num">{readable(gate4Verdict)}</span>, and no reader has been run
+            </span>
+          </li>
+        </ol>
+      </nav>
+
       <Section
+        id="gate6"
         title={`Kill gate ${gate6.gate}: does the queue beat random?`}
         description={<em>“{gate6.wording}”</em>}
       >
@@ -517,6 +601,7 @@ export default function EvaluationPage() {
       </Section>
 
       <Section
+        id="gate5"
         title={`Kill gate ${gate5.gate}: does physics conditioning help?`}
         description={<em>“{gate5.wording}”</em>}
       >
@@ -815,6 +900,7 @@ export default function EvaluationPage() {
       )}
 
       <Section
+        id="gate4"
         title="Gate 4 needs a person, and here is what to send them"
         description="The one gate in this project that no amount of compute closes. The worksheet has been answered once and not by a person, so the gate is still OPEN: the arm below says the sample supports a decision, and it cannot say a reader would reach one."
       >

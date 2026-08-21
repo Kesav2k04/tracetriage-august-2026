@@ -3325,3 +3325,14 @@ main .shell > section > h2::before {
   color: var(--text-02);
   line-height: 1.55;
 }
+
+/* Anchor targets, offset from the viewport edge.
+   The reading path on the home page and the orientation block on /evaluation both jump to
+   a section by fragment, and a jump lands the heading flush against the top of the window,
+   which reads as a page that has scrolled past its own title. There is no sticky top bar to
+   clear here (.rail is a side rail and the two sticky control strips belong to the viewer
+   and replay pages), so this is breathing room rather than a correction: enough that the
+   heading arrives with the ground above it visible. */
+section[id] {
+  scroll-margin-top: var(--sp-07);
+}
