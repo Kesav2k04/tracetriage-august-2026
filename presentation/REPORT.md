@@ -279,30 +279,30 @@ Codec                h264
 Output               out/tracetriage-film.mp4
 Concurrency          4x
 Rendered 3544/3540
-o                    out/tracetriage-film.mp4 4.9 MB
+o                    out/tracetriage-film.mp4 4.6 MB
 ```
 
-Wall clock 153.8 seconds on this machine, measured around the `npm run render` call.
-Output 4,923,473 bytes, which is 4.70 MiB. The poster frame is 275,349 bytes.
+Wall clock 149.4 seconds on this machine, measured around the `npm run render` call.
+Output 4,850,926 bytes, which is 4.63 MiB. The poster frame is 275,349 bytes.
 
 One group of frames per run stalls on the font handle for the full 58 second timeout and
 is then retried and rendered correctly. The group is always the size of the concurrency
 and the frame numbers move between runs, which is what makes the diagnosis a page recycle
-rather than a bad frame: at concurrency 4 the group was 1802 to 1805 in one run and 1818
-to 1821 in another, and at concurrency 2 there were two groups of two, 1273 to 1274 and
-2478 to 2479. Every tab refetches the bundle on a recycle and the font requests queue
+rather than a bad frame: at concurrency 4 the group was 1802 to 1805 in one run, 1818 to
+1821 in another and 1830 to 1833 in a third, and at concurrency 2 there were two groups of
+two. Every tab refetches the bundle on a recycle and the font requests queue
 behind it. The retry is configured for this and recovers, and the stall is left visible in
 the render log rather than hidden. It is why `src/fonts.ts` sets `retries: 3`.
 
 The retry recovers rather than papering over a bad frame, and that is measured rather than
-assumed: this tree was rendered three times, twice at concurrency 4 and once at
+assumed: this composition was rendered three times, twice at concurrency 4 and once at
 concurrency 2, and produced a byte-identical file every time. The concurrency 2 run took
-208.1 seconds against 153.8, so the timing moves and the bytes do not.
+202.1 seconds against 149.4, so the timing moves and the bytes do not.
 
 ```
 $ md5sum out/probe.mp4 out/tracetriage-film.mp4
-ba57a3cd01a93557e4bf2aa799ede4bd *out/probe.mp4
-ba57a3cd01a93557e4bf2aa799ede4bd *out/tracetriage-film.mp4
+841a19deabb5261b503aacb45ea2bf1f *out/probe.mp4
+841a19deabb5261b503aacb45ea2bf1f *out/tracetriage-film.mp4
 ```
 
 The GL renderer is pinned to `angle` in `remotion.config.ts` for the same reason:
@@ -344,7 +344,7 @@ nb_frames=3540
 [FORMAT]
 nb_streams=1
 duration=118.000000
-size=4923473
+size=4850926
 [/FORMAT]
 ```
 
@@ -366,7 +366,7 @@ three runs.
 
 | File | What it is |
 |---|---|
-| `presentation/out/tracetriage-film.mp4` | The film. 4,923,473 bytes, 118.0 s, 1920x1080, 30 fps, h264, no audio. |
+| `presentation/out/tracetriage-film.mp4` | The film. 4,850,926 bytes, 118.0 s, 1920x1080, 30 fps, h264, no audio. |
 | `presentation/out/tracetriage-film-poster.jpg` | Poster frame at frame 1730, the physics beat with both curves and the measurement on screen. 275,349 bytes. |
 | `presentation/src/data.ts` | Every claim, with its file and key path. The single place a number enters the film. |
 | `presentation/src/claim.ts` | The path resolver and the formatters. |

@@ -21,8 +21,8 @@ const GateRow: React.FC<{ index: number; delay: number }> = ({ index, delay }) =
           alignItems: "center",
           gap: 22,
           borderTop: `1px solid ${token.borderSubtle}`,
-          paddingTop: 18,
-          paddingBottom: 18,
+          paddingTop: 13,
+          paddingBottom: 13,
         }}
       >
         <span
@@ -98,14 +98,20 @@ export const Gates: React.FC = () => (
       <div style={{ borderTop: `1px solid ${token.borderSubtle}` }} />
     </div>
 
-    <div style={{ display: "flex", gap: 64, marginTop: 48, alignItems: "flex-start" }}>
+    {/* The ceiling paragraph added 113px to this column and pushed the closing line
+        through the footer rule. Everything below is that overflow paid back: tighter
+        gate rows, a smaller tally figure, body copy one step down, and the closing
+        pointer removed. The pointer said the console prints this tally on its own
+        front page, which is true, decorative, and the only thing here a viewer loses
+        nothing by not reading. */}
+    <div style={{ display: "flex", gap: 56, marginTop: 32, alignItems: "flex-start" }}>
       <Reveal delay={118}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
           <span
             style={{
               fontFamily: font.sans,
               fontWeight: 600,
-              fontSize: 96,
+              fontSize: 84,
               lineHeight: 1,
               color: token.text01,
               ...numeric,
@@ -126,8 +132,8 @@ export const Gates: React.FC = () => (
       </Reveal>
       <Reveal delay={132}>
         <div style={{ maxWidth: 1080, display: "flex", flexDirection: "column", gap: 12 }}>
-          <Body size={24}>{gates.note.display}</Body>
-          <Body size={24} colour={token.text01}>
+          <Body size={21}>{gates.note.display}</Body>
+          <Body size={21} colour={token.text01}>
             The {gates.met.display} that were met are the feasibility checks
             answered before any pipeline code existed. Of the{" "}
             {gates.measured.display} that ask whether the idea works,{" "}
@@ -138,7 +144,7 @@ export const Gates: React.FC = () => (
               how much room there was to work in, and it is a finding rather than an
               excuse: it was computed from the population and the budget, not from
               the result, and the console derives it on the evaluation page. */}
-          <Body size={24} colour={token.text02}>
+          <Body size={21} colour={token.text02}>
             What the measured gates were up against: the{" "}
             {ceiling.maxFindable.display} conflicts that exist at this budget cap
             every possible ordering, a perfect oracle included, at{" "}
@@ -150,12 +156,5 @@ export const Gates: React.FC = () => (
       </Reveal>
     </div>
 
-    <Reveal delay={210}>
-      <div style={{ marginTop: 40 }}>
-        <Mono size={19} colour={token.interactive01}>
-          the console prints this tally on its own front page
-        </Mono>
-      </div>
-    </Reveal>
   </Frame>
 );

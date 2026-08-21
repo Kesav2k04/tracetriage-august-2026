@@ -47,11 +47,13 @@ to win in was 0.240 wide.
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake, 7 tools over committed receipts and 4 receipt resources. One tool is the grounding checker |
 | Does the repository hold together? | `python scripts/gate.py` | The standing gates, one line each |
 
-**None of the five needs a GPU, a model runtime or a network connection.** The two that
-name a model publish from a committed fixture and only talk to it under `--freeze`, which
-is a step for re-measuring rather than for reading, so a machine with no local runtime
-reproduces the same numbers this page prints. `scripts/gate.py` builds the console as one
-of its steps, so that one wants Node as well as Python.
+**None of the seven needs a GPU, a model runtime or a network connection.**
+`tracetriage note` reads frozen drafts and the verdicts the checker recorded against them.
+`scripts/run_agent_study.py` and `scripts/run_explanations.py` publish from committed
+fixtures and talk to a model only under `--freeze`, which is a step for re-measuring rather
+than for reading. So a machine with no local runtime reproduces the same numbers this page
+prints. `scripts/gate.py` builds the console as one of its steps, so that one wants Node as
+well as Python.
 
 `python` above means the interpreter built by the Setup section of `README.md`, which on
 this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest options include

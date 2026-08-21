@@ -614,6 +614,14 @@ _NUMBER_WORDS = {
 }
 N_CHECKS_WORD = _NUMBER_WORDS.get(len(CHECKS), str(len(CHECKS)))
 
+# The heading was fixed and the sentence under the table was not: it said "none of the five"
+# while the heading said seven. The count is derived now. The other number in that sentence
+# was "the two that name a model", and it is gone rather than derived: which commands can
+# reach a model is a property of the scripts, not of the words in the table, so counting
+# text would have been a check that agrees with itself. The scripts are named instead, and
+# test_for_judges.py already asserts every path this page cites exists and is published.
+N_CHECKS_LOWER = N_CHECKS_WORD.lower()
+
 REQUIREMENTS: list[tuple[str, ...]] = [
     ("Problem statement", "`README.md`, first section"),
     ("Solution description", "`README.md`, and the console at the URL in it"),
@@ -1230,11 +1238,13 @@ mission-operations queue has: of everything that came down, what does a person o
 |---|---|---|
 {_table(CHECKS)}
 
-**None of the five needs a GPU, a model runtime or a network connection.** The two that
-name a model publish from a committed fixture and only talk to it under `--freeze`, which
-is a step for re-measuring rather than for reading, so a machine with no local runtime
-reproduces the same numbers this page prints. `scripts/gate.py` builds the console as one
-of its steps, so that one wants Node as well as Python.
+**None of the {N_CHECKS_LOWER} needs a GPU, a model runtime or a network connection.**
+`tracetriage note` reads frozen drafts and the verdicts the checker recorded against them.
+`scripts/run_agent_study.py` and `scripts/run_explanations.py` publish from committed
+fixtures and talk to a model only under `--freeze`, which is a step for re-measuring rather
+than for reading. So a machine with no local runtime reproduces the same numbers this page
+prints. `scripts/gate.py` builds the console as one of its steps, so that one wants Node as
+well as Python.
 
 `python` above means the interpreter built by the Setup section of `README.md`, which on
 this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest options include
