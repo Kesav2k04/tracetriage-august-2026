@@ -192,7 +192,7 @@ The film holds 135 claims. 25 of them are read and never drawn: they are there b
 | ceiling.threshold | `1.50` | artifacts/CIRCULARITY_RECEIPT.json | `ceiling.threshold` |
 | ceiling.headroom | `0.24` | artifacts/CIRCULARITY_RECEIPT.json | `ceiling.headroom_between_threshold_and_perfection` |
 | provenanceLine.snapshot | `snap-20260817-stage1` | apps/web/public/data/provenance.json | `snapshot_id` |
-| provenanceLine.splitSha | `bdb159ca13ec` | apps/web/public/data/provenance.json | `split_manifest_sha256` |
+| provenanceLine.splitSha | `c0f8cd3a5dd5` | apps/web/public/data/provenance.json | `split_manifest_sha256` |
 | provenanceLine.attribution | `Waterfall imagery from the SatNOGS Network, contributed by volunteer ground stations, under CC BY-SA 4.0. See DATA_LICENSE.md.` | apps/web/public/data/cards.json | `attribution` |
 | colophon.file | `apps/web/public/waterfalls/14740031.webp` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].file` |
 | colophon.recordUrl | `https://network.satnogs.org/api/observations/14740031/` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].source_url` |

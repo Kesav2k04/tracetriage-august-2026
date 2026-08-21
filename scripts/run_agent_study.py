@@ -505,10 +505,10 @@ def summarise(graded: list[dict[str, Any]], tasks: list[dict[str, Any]]) -> dict
             r["task_id"] for r in wrong if not r["answer_was_in_what_it_read"]
         ),
         "reading": (
-            "repeated_calls counts calls the loop refused because the policy had already made "
-            "them, and server_refusals counts calls the server itself rejected; the first is a "
+            "Repeated calls are ones the loop refused because the policy had already made "
+            "them, and server refusals are ones the server itself rejected; the first is a "
             "planning failure and the second is an argument failure, and summing them into one "
-            "number would hide which. fetched_the_answer is the share of questions where the "
+            "number would hide which. The fetch rate is the share of questions where the "
             "value ended up in something the policy read, so the two wrong answers can be "
             "separated into one that never looked and one that looked and chose a neighbouring "
             "field."

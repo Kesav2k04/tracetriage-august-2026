@@ -618,7 +618,14 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--splits", default="chronological,cold_station,cold_transmitter,cold_combined")
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--n-boot", type=int, default=10_000)
+    # 50,000 because that is what the shipped receipt was measured with, not because
+    # more is better. The default was 10,000, so a bare `python scripts/run_fusion.py`
+    # rebuilt this artifact with five times fewer resamples and moved every published
+    # interval, while nothing in the repository recorded which command had produced the
+    # committed file. That is the HERO_NULLS failure described in
+    # scripts/check_artifact_freshness.py, in a second generator: the default has to be
+    # the shipped decision or the artifact cannot be reproduced from the tree.
+    ap.add_argument("--n-boot", type=int, default=50_000)
     ap.add_argument("--out", type=Path, default=_REPO / "artifacts" / "FUSION_RECEIPT.json")
     args = ap.parse_args(argv)
 
@@ -972,9 +979,9 @@ def _shipped_arm_vs_recommendation(
     else:
         recommends = corrected["shipped_arm"] or "a combination no arm on the ladder fitted"
         note = (
-            f"The queue is ranked by {SHIPPED_ARM} "
+            f"The queue is ranked by the {SHIPPED_ARM.replace('_', ' plus ')} arm "
             f"({' + '.join(SHIPPED_ARM_BLOCKS)}), while the corrected ablation rule "
-            f"recommends {recommends} "
+            f"recommends the {recommends.replace('_', ' plus ')} arm "
             f"({' + '.join(corrected['shipped_blocks'])}). "
         )
         if unsupported:

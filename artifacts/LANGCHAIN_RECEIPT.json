@@ -66,7 +66,7 @@
      "review_budget",
      "with_evidence_packet"
     ],
-    "bytes": 1962
+    "bytes": 2011
    },
    {
     "tool": "queue_size",
@@ -77,7 +77,7 @@
      "reading",
      "review_budget"
     ],
-    "bytes": 682
+    "bytes": 731
    },
    {
     "tool": "observation",

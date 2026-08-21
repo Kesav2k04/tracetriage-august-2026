@@ -1,6 +1,6 @@
 {
  "snapshot_id": "snap-20260817-stage1",
- "split_manifest_sha256": "bdb159ca13ece61c923992976589fade050976e69e2b1a0564acb334b4574808",
+ "split_manifest_sha256": "c0f8cd3a5dd5fbf9b6d49beacc5c050e1cf2525daca210945a6fba80226873c9",
  "data_licence": {
   "name": "CC BY-SA 4.0",
   "url": "https://creativecommons.org/licenses/by-sa/4.0/",
@@ -88,8 +88,8 @@
  "receipts": [
   {
    "name": "AGENT_RECEIPT.json",
-   "sha256": "2b4a2183f74100ec0b46c81d860edc3e6c06cc1b153ac182ab0c4112ec669953",
-   "bytes": 29119
+   "sha256": "ccfe2de242484fbf083128c5c1a0e865e0abccb67a4c7fd391d76b2774b0ff23",
+   "bytes": 29107
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
@@ -103,8 +103,8 @@
   },
   {
    "name": "CIRCULARITY_RECEIPT.json",
-   "sha256": "e9b15d113d90dcd8280bcdf40f3eb7bc12d9856b57ee91687f50364e3366b71e",
-   "bytes": 11364
+   "sha256": "077f6afa4601452e56c817c3519003f13ff0fec1faeb79f3308cac230068a946",
+   "bytes": 11376
   },
   {
    "name": "CLEAN_CLONE_TRANSCRIPT.json",
@@ -128,8 +128,8 @@
   },
   {
    "name": "FUSION_RECEIPT.json",
-   "sha256": "b57f283057863ecf3724d3c92954a56ff04d7eb22fef5200353f912fad6c9570",
-   "bytes": 241303
+   "sha256": "7f89b40365600d9847ff220b88feff0f2184f2988ba93d20b63bc80ac07278b0",
+   "bytes": 241611
   },
   {
    "name": "GATE3_RECEIPT.json",
@@ -158,7 +158,7 @@
   },
   {
    "name": "LANGCHAIN_RECEIPT.json",
-   "sha256": "c43dacbb53633ab9ac37095926a4d1bfe005389a942d3dd5f968970262450aa8",
+   "sha256": "bfc9aebc6a4d926753f311f152881cf685cae6dc0286d27918af68cef5ea9756",
    "bytes": 4069
   },
   {
@@ -198,13 +198,13 @@
   },
   {
    "name": "PRECEDENT_RECEIPT.json",
-   "sha256": "a2c092782e963304a8a82ec8554bb69e6e5d6799e4ca4a44a252cad563815005",
-   "bytes": 9301
+   "sha256": "933ddb930cc60c23b7519a326c579f5ad865cf5d1ba9d1c2a43a1cd079efca1f",
+   "bytes": 9314
   },
   {
    "name": "QUEUE_RECEIPT.json",
-   "sha256": "7f5251f6caaff656c539b5ec464cede3ac7c7fb1734db4618fe1287f503f0e53",
-   "bytes": 258758
+   "sha256": "26ec58e5e7f9a05bec7836ac4fa8c898de19a102e3260628c423bff49f62bc36",
+   "bytes": 259083
   },
   {
    "name": "REPO_WEIGHT.json",

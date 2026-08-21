@@ -269,6 +269,27 @@ def main() -> int:
             )
         )
 
+    # Every digest a receipt records for a tracked file, against that file.
+    #
+    # Added after QUEUE_RECEIPT.json and FUSION_RECEIPT.json were both found publishing a
+    # split_manifest_sha256 that no committed file produces: the value was the manifest with
+    # CRLF endings, taken on a Windows tree before git normalised the file, and nothing
+    # re-derived it. Two receipts, one console page and a claim in the film carried it, and
+    # all 26 rows here were green. Nothing else in this repository compares a recorded hash
+    # to the bytes git actually publishes.
+    rc, out = run([str(PY), str(REPO / "scripts" / "check_receipt_digests.py")])
+    lines = [line for line in out.strip().splitlines() if line.strip()]
+    results.append(
+        check(
+            "receipt digests match the files they name",
+            rc == 0,
+            (lines[-1] if lines else "") if rc == 0 else next(
+                (line.strip()[7:] for line in lines if line.strip().startswith("[FAIL]")),
+                "",
+            )[:70],
+        )
+    )
+
     # The presentation film, and the same third outcome for the same reason.
     #
     # 453 checks live in presentation/test/claims.test.ts and none of them ran here until

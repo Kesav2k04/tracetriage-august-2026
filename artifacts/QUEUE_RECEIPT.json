@@ -3,10 +3,10 @@
  "schema_version": "0.3.0",
  "contract": "contracts/queue_receipt.schema.json",
  "unit": "C2",
- "generated_at": "2026-08-20T00:17:19.504212+00:00",
+ "generated_at": "2026-08-21T22:37:23.949453+00:00",
  "seed": 42,
  "snapshot_id": "snap-20260817-stage1",
- "split_manifest_sha256": "bdb159ca13ece61c923992976589fade050976e69e2b1a0564acb334b4574808",
+ "split_manifest_sha256": "c0f8cd3a5dd5fbf9b6d49beacc5c050e1cf2525daca210945a6fba80226873c9",
  "conflict_definition": {
   "criteria": [
    {
@@ -70,7 +70,7 @@
  },
  "review_budget": {
   "n_observations": 50,
-  "rationale": "Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test)."
+  "rationale": "Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. On a split holding fewer than 50 decisively labelled observations, the budget is however many there are."
  },
  "deduplication": {
   "key": [
@@ -7457,7 +7457,7 @@
     "budget": 50,
     "budget_filled": true,
     "binding": true,
-    "note": "Caps that displaced nothing at budget 50 over 407 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+    "note": "Displaced nothing at budget 50 over 407 ranked observations: the per-transmitter cap. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
    },
    "n_at_bound_obs": 0
   },
@@ -7534,7 +7534,7 @@
     "budget": 50,
     "budget_filled": true,
     "binding": true,
-    "note": "Caps that displaced nothing at budget 50 over 403 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+    "note": "Displaced nothing at budget 50 over 403 ranked observations: the per-transmitter cap. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
    },
    "n_at_bound_obs": 2
   },
@@ -7575,7 +7575,7 @@
     "budget": 50,
     "budget_filled": true,
     "binding": true,
-    "note": "Caps that displaced nothing at budget 50 over 352 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+    "note": "Displaced nothing at budget 50 over 352 ranked observations: the per-transmitter cap. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
    },
    "n_at_bound_obs": 1
   },
@@ -7622,7 +7622,7 @@
     "budget": 50,
     "budget_filled": true,
     "binding": true,
-    "note": "Caps that displaced nothing at budget 50 over 178 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+    "note": "Displaced nothing at budget 50 over 178 ranked observations: the per-transmitter cap. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
    },
    "n_at_bound_obs": 1
   }
@@ -8085,7 +8085,7 @@
         0.0,
         14.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: False), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "image_uncertainty": {
        "claim": "not_established",
@@ -8102,7 +8102,7 @@
         -1.0,
         13.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -8119,7 +8119,7 @@
         -4.0,
         4.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "not_established",
@@ -8136,7 +8136,7 @@
         0.0,
         15.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. The episode grouping survives the multiplicity correction and the station grouping does not, and a comparison is claimed only when both groupings survive it and agree."
       }
      },
      "n_baselines": 4,
@@ -8614,7 +8614,7 @@
         -1.0,
         48.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. The episode grouping survives the multiplicity correction and the station grouping does not, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -8631,7 +8631,7 @@
         -34.0,
         0.0
        ],
-       "reason": "Not claimed. Episode grouping says baseline_better (survives correction: True), station grouping says baseline_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did worse; grouped by ground station it did worse. The episode grouping survives the multiplicity correction and the station grouping does not, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "not_established",
@@ -8648,7 +8648,7 @@
         -1.0,
         19.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       }
      },
      "n_baselines": 4,
@@ -9128,7 +9128,7 @@
         0.0,
         25.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. The episode grouping survives the multiplicity correction and the station grouping does not, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -9145,7 +9145,7 @@
         -10.0,
         14.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "queue_better",
@@ -9626,7 +9626,7 @@
         -3.0,
         10.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "image_uncertainty": {
        "claim": "not_established",
@@ -9643,7 +9643,7 @@
         -1.0,
         15.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: False), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -9660,7 +9660,7 @@
         -2.0,
         6.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "queue_better",

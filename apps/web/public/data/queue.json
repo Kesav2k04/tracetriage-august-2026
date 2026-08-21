@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-08-20T00:17:19.504212+00:00",
+ "generated_at": "2026-08-21T22:37:23.949453+00:00",
  "seed": 42,
  "review_budget": {
   "n_observations": 50,
-  "rationale": "Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test)."
+  "rationale": "Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. On a split holding fewer than 50 decisively labelled observations, the budget is however many there are."
  },
  "conflict_definition": {
   "criteria": [
@@ -119,7 +119,7 @@
     "budget": 50,
     "budget_filled": true,
     "binding": true,
-    "note": "Caps that displaced nothing at budget 50 over 407 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+    "note": "Displaced nothing at budget 50 over 407 ranked observations: the per-transmitter cap. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
    },
    "n_at_bound_obs": 0
   },
@@ -196,7 +196,7 @@
     "budget": 50,
     "budget_filled": true,
     "binding": true,
-    "note": "Caps that displaced nothing at budget 50 over 403 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+    "note": "Displaced nothing at budget 50 over 403 ranked observations: the per-transmitter cap. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
    },
    "n_at_bound_obs": 2
   },
@@ -237,7 +237,7 @@
     "budget": 50,
     "budget_filled": true,
     "binding": true,
-    "note": "Caps that displaced nothing at budget 50 over 352 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+    "note": "Displaced nothing at budget 50 over 352 ranked observations: the per-transmitter cap. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
    },
    "n_at_bound_obs": 1
   },
@@ -284,7 +284,7 @@
     "budget": 50,
     "budget_filled": true,
     "binding": true,
-    "note": "Caps that displaced nothing at budget 50 over 178 ranked observations: ['transmitter_uuid']. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
+    "note": "Displaced nothing at budget 50 over 178 ranked observations: the per-transmitter cap. Reported as inert on this split rather than as exercised. A cap is credited with a displacement whenever it would have blocked the entry, even if another cap would have blocked it too, so an inert result here is a property of the data and not of the order the caps are checked in."
    },
    "n_at_bound_obs": 1
   }
@@ -7621,5 +7621,5 @@
    "episode_key": "4272:41187:16"
   }
  ],
- "receipt_sha256": "7f5251f6caaff656c539b5ec464cede3ac7c7fb1734db4618fe1287f503f0e53"
+ "receipt_sha256": "26ec58e5e7f9a05bec7836ac4fa8c898de19a102e3260628c423bff49f62bc36"
 }

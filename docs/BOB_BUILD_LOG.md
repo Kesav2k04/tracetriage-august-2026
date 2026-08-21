@@ -7631,3 +7631,75 @@ uncommitted tree itself. `artifacts match their builders` runs rather than being
 because `TRACETRIAGE_PAGES_DIR` points at the real snapshot. Ruff clean, `tsc --noEmit`
 clean in both packages, the console builds with `/start` in the route list, and the offline
 suite passes.
+
+## E10. Two receipts published a digest no committed file produces
+
+A blind scan of judge-facing prose came back with thirteen field names sitting inside
+English sentences on the console, all of them in receipt-derived strings. Fixing them meant
+re-running the generators, and before doing that I checked whether the generators reproduce
+what they had already written. That check is what this entry is about. The prose was the
+smaller half.
+
+**`run_queue.py` reproduces every number and one field moved.** Re-running it with no
+changes rewrote `artifacts/QUEUE_RECEIPT.json` byte for byte except `generated_at` and
+`split_manifest_sha256`, which went from `bdb159ca...` to `c0f8cd3a...`. Every measurement,
+every interval, every bootstrap: identical. So the generator is deterministic and something
+was wrong with that one field.
+
+`artifacts/SPLIT_MANIFEST.json` hashes to `c0f8cd3a...`, on disk and as a git blob. It
+hashes to `bdb159ca...` only with CRLF line endings. The receipt was written on 2026-08-20
+on a Windows working tree where the manifest still held CRLF; `.gitattributes` normalises it
+to LF on commit, and nothing re-derived the digest afterwards. **The shipped receipt named a
+digest that no committed file in this repository produces.** A judge running `sha256sum` on
+the file the receipt names would have got a mismatch. `artifacts/FUSION_RECEIPT.json`
+carried the same value for the same reason.
+
+This is the failure `.gitattributes` was written for, one level up. That file fixed the
+bytes and left the numbers *about* the bytes behind, and nothing here caught it: the
+freshness check rebuilds a different set of artifacts, the sync gates compare documents to
+receipts rather than receipts to bytes, and every test that reads a fixture reads it through
+the same translating call that hid the problem. Twenty-six gates were green over it.
+
+**`scripts/check_receipt_digests.py`.** Every sha256 a receipt records for a tracked file,
+against `git show HEAD:<path>` rather than against the working copy, because the working
+copy is the thing that went wrong and a check reading it would pass on the machine that
+wrote the bad value. Eight entries. Each records whether the digest was taken over
+`read_bytes` or `read_text`, because the second form is endings-immune and checking it
+against raw bytes would report a failure on a correct receipt. `tests/test_receipt_digests.py`
+plants the original defect and requires a failure, asserts the table's length so a row
+cannot be dropped in passing, and enumerates every sha256-shaped field in every receipt,
+requiring each to be either audited or in an exclusion list with a reason. It is the
+twenty-seventh standing gate.
+
+**A second generator whose defaults are not the shipped decision.** `run_fusion.py` writes
+`n_boot` into its receipt, and the committed value is 50,000 while the script's default was
+10,000. A bare `python scripts/run_fusion.py` rebuilds the artifact with a fifth of the
+resamples and moves every published interval, and nothing in the tree recorded which command
+had produced the committed file. I caught it by comparing the interval the re-run printed
+against the committed one and finding them close but not equal. That is exactly the
+HERO_NULLS failure `scripts/check_artifact_freshness.py` documents, in a second generator.
+The default is 50,000 now.
+
+**The prose, and the three sentences left alone.** Ten of the thirteen leaks were rewritten
+in the generator that emits them: the concentration note printed a Python list
+(`['transmitter_uuid']`) and now names the cap, the replay conclusion printed a snake_case
+verdict and a JSON boolean inside a sentence and now says what it means, the cold-split
+budget rule was a function call and is now a clause, and the same for the circularity target
+rows, the selective-risk column, the agent study's reading, the precedent study's limits and
+the corridor note on every observation page.
+
+Three were left exactly as they are, and the reason is written beside them in
+`pipeline/tracetriage/queue.py`. `image_corridor`, `offset_at_bound` and `flat_row_frac` sit
+inside the `CONFLICT_CRITERIA` descriptions, and that block is what `fixed_before_measuring`
+is a claim about. The console prints the flag, the pre-registration rests on it, and a reader
+who diffed a description against an earlier copy and found different words would be right to
+read the definition as having moved after the results were seen. Tidier prose is not worth
+putting a doubt next to the one property this project is built on.
+
+**A near miss worth recording.** Every edit made through a Python script writes the file back
+with CRLF on Windows, because `Path.write_text` translates. Git normalises on commit so
+nothing reaches the repository wrong, but a cross-runtime `--check` compares the working copy
+and fails. Twelve files were converted back by hand earlier in the session. The rule now is
+to sweep the changed set for `\r\n` before running any gate, and it is the same root cause as
+the digest defect above: on this platform, anything that reads a file as bytes and anything
+that reads it as text disagree, and only one of them is what git publishes.

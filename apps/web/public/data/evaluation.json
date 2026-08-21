@@ -457,7 +457,7 @@
         0.0,
         14.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: False), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "image_uncertainty": {
        "claim": "not_established",
@@ -474,7 +474,7 @@
         -1.0,
         13.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -491,7 +491,7 @@
         -4.0,
         4.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "not_established",
@@ -508,7 +508,7 @@
         0.0,
         15.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. The episode grouping survives the multiplicity correction and the station grouping does not, and a comparison is claimed only when both groupings survive it and agree."
       }
      },
      "n_baselines": 4,
@@ -986,7 +986,7 @@
         -1.0,
         48.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. The episode grouping survives the multiplicity correction and the station grouping does not, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -1003,7 +1003,7 @@
         -34.0,
         0.0
        ],
-       "reason": "Not claimed. Episode grouping says baseline_better (survives correction: True), station grouping says baseline_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did worse; grouped by ground station it did worse. The episode grouping survives the multiplicity correction and the station grouping does not, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "not_established",
@@ -1020,7 +1020,7 @@
         -1.0,
         19.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       }
      },
      "n_baselines": 4,
@@ -1500,7 +1500,7 @@
         0.0,
         25.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: True), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. The episode grouping survives the multiplicity correction and the station grouping does not, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -1517,7 +1517,7 @@
         -10.0,
         14.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "queue_better",
@@ -1998,7 +1998,7 @@
         -3.0,
         10.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "image_uncertainty": {
        "claim": "not_established",
@@ -2015,7 +2015,7 @@
         -1.0,
         15.0
        ],
-       "reason": "Not claimed. Episode grouping says queue_better (survives correction: False), station grouping says queue_better (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue did better; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -2032,7 +2032,7 @@
         -2.0,
         6.0
        ],
-       "reason": "Not claimed. Episode grouping says indistinguishable (survives correction: False), station grouping says indistinguishable (survives correction: False). A comparison is claimed only when both groupings survive correction and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "queue_better",
@@ -2281,7 +2281,7 @@
     "verdict": "NOT_ESTABLISHED"
    }
   },
-  "targets_note": "`model_independent_only` names 2 criteria and measures 1, because DEAD_CAPTURE fires on nothing here. `model_independent_and_firing` is the same restriction with the inert criteria dropped from the name, so the two rows carry identical numbers and only one of them can be misread.",
+  "targets_note": "The model-independent-only row names 2 criteria and measures 1, because DEAD_CAPTURE fires on nothing here. The model-independent-and-firing row is the same restriction with the inert criteria dropped from the name, so the two rows carry identical numbers and only one of them can be misread.",
   "shared_signals": {
    "criteria": {
     "MODEL_LABEL_DISAGREE": {
@@ -2378,7 +2378,7 @@
    "reading": "0 of 2000 random orderings of the same population found as many conflicts inside the budget as the shipped queue did, so a permutation p-value of 0.0005, which is the smallest this test can report at 2000 permutations. The mean of the same 2000 lifts is 0.9992 against an expected 1.0, which is the floor check: every number in this file is produced by the function that returned it."
   },
   "what_this_does_not_establish": "That the queue generalises. Restricting the target to the criteria the model does not enter removes one loop and leaves another: on this corpus that restriction reduces to STALE_CATALOGUE_FREQ alone, whose defining quantity the score weights at 0.35. The other model-independent criterion, DEAD_CAPTURE, fires on nothing in this corpus, so a reader following its 0.15 weight is following a loop that does not exist in the data. The honest reading is that this measurement is a check on internal consistency and on the size of the space the gate was set in, not an independent test of the ranking.",
-  "receipt_sha256": "e9b15d113d90dcd8280bcdf40f3eb7bc12d9856b57ee91687f50364e3366b71e"
+  "receipt_sha256": "077f6afa4601452e56c817c3519003f13ff0fec1faeb79f3308cac230068a946"
  },
  "gate5": {
   "gate": 5,
@@ -2674,7 +2674,7 @@
     "survives_correction": true,
     "n_comparisons": 21
    },
-   "note": "The queue is ranked by image_corridor (image + corridor), while the corrected ablation rule recommends image_only (image). The blocks the shipped ranker uses without corrected support are corridor: retained by the nominal rule, and the Brier interval does not clear zero once the multiplicity correction runs over the family the rule reads. The ranker was not rebuilt to match, for two measured reasons. The same comparison does not establish the narrower arm as better either, so swapping on it would be a change made for the appearance of consistency rather than for a result. And the ablation rule reads Brier comparisons only, while the same arm's risk-coverage area against the reference arm on chronological is +0.05736 with a corrected interval of +0.01192 to +0.11887 over the same 21 comparisons, which does clear zero. Selective review is what the queue does, so that is the metric closest to the shipped use, and it is reported rather than promoted into the rule after the fact."
+   "note": "The queue is ranked by the image plus corridor arm (image + corridor), while the corrected ablation rule recommends the image plus only arm (image). The blocks the shipped ranker uses without corrected support are corridor: retained by the nominal rule, and the Brier interval does not clear zero once the multiplicity correction runs over the family the rule reads. The ranker was not rebuilt to match, for two measured reasons. The same comparison does not establish the narrower arm as better either, so swapping on it would be a change made for the appearance of consistency rather than for a result. And the ablation rule reads Brier comparisons only, while the same arm's risk-coverage area against the reference arm on chronological is +0.05736 with a corrected interval of +0.01192 to +0.11887 over the same 21 comparisons, which does clear zero. Selective review is what the queue does, so that is the metric closest to the shipped use, and it is reported rather than promoted into the rule after the fact."
   },
   "fragility": [],
   "fragility_note": "Qualifications on the corrected conclusion above, not corrections to it. The verdict is read from the cluster bootstrap, which resamples stations directly; the design-effect entry here is a cruder normal-theory check on the same clustering and is reported where the two disagree.",
@@ -4048,7 +4048,7 @@
        "n_errors": 1,
        "held": false,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      },
      {
@@ -4077,7 +4077,7 @@
        "n_errors": 2,
        "held": false,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      },
      {
@@ -4106,7 +4106,7 @@
        "n_errors": 5,
        "held": true,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      }
     ]
@@ -6762,7 +6762,7 @@
        "n_errors": 12,
        "held": false,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      }
     ]
@@ -8340,7 +8340,7 @@
        "n_errors": 5,
        "held": false,
        "held_at_point_estimate": false,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      }
     ]
@@ -9642,7 +9642,7 @@
        "n_errors": 8,
        "held": false,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      }
     ]
@@ -9882,8 +9882,8 @@
   "why_the_gate_is_still_open": "the review was carried out and not by a person: Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.. Gate 4 is titled blinded human decidability, so this does not meet it. The review and every number from it are in `arm` below."
  },
  "receipt_sha256": {
-  "queue": "7f5251f6caaff656c539b5ec464cede3ac7c7fb1734db4618fe1287f503f0e53",
-  "fusion": "b57f283057863ecf3724d3c92954a56ff04d7eb22fef5200353f912fad6c9570",
+  "queue": "26ec58e5e7f9a05bec7836ac4fa8c898de19a102e3260628c423bff49f62bc36",
+  "fusion": "7f89b40365600d9847ff220b88feff0f2184f2988ba93d20b63bc80ac07278b0",
   "gate4": "64337babc7c5ed2eb1c45de40510859e1ca95e2aa9e68ade040bdce4627ab331"
  }
 }

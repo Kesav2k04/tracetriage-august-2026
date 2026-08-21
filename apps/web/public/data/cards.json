@@ -827,7 +827,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.314018983484446,
     "sigma_vertical": 0.3268237010731519,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -2511,7 +2511,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.3509187311481673,
     "sigma_vertical": 0.3156539389880859,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -4195,7 +4195,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 3.0654253402605858,
     "sigma_vertical": 0.8189957630035736,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -5876,7 +5876,7 @@
     "vertical_px": 310.0,
     "sigma_curved": 0.3678101520425172,
     "sigma_vertical": 0.2765904233807578,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -7557,7 +7557,7 @@
     "vertical_px": 310.0,
     "sigma_curved": 0.3208618653334299,
     "sigma_vertical": 0.316658009091497,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -9241,7 +9241,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.40604262984053074,
     "sigma_vertical": 0.37348019322634896,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -10922,7 +10922,7 @@
     "vertical_px": 310.0,
     "sigma_curved": 0.5550016495586425,
     "sigma_vertical": 0.3420545960697291,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -12603,7 +12603,7 @@
     "vertical_px": 310.0,
     "sigma_curved": 0.7248697116893358,
     "sigma_vertical": 0.4974918065960292,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -14284,7 +14284,7 @@
     "vertical_px": 310.0,
     "sigma_curved": 0.5320656616726912,
     "sigma_vertical": 0.5394585454141226,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -15968,7 +15968,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.4984786211537493,
     "sigma_vertical": 0.3493900507324964,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -17652,7 +17652,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.2554999444186654,
     "sigma_vertical": 0.39174240182294856,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -19333,7 +19333,7 @@
     "vertical_px": 310.0,
     "sigma_curved": 1.84280251519695,
     "sigma_vertical": 0.6524392755293414,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -21014,7 +21014,7 @@
     "vertical_px": 310.0,
     "sigma_curved": 2.024118067271594,
     "sigma_vertical": 0.6420947696027023,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -22698,7 +22698,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.3595769023643078,
     "sigma_vertical": 0.3958828387190603,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -24382,7 +24382,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.2911947841164341,
     "sigma_vertical": 0.3293895023697318,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -26066,7 +26066,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 1.5390372001550914,
     "sigma_vertical": 0.4780260609403885,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -27750,7 +27750,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 1.651837924232359,
     "sigma_vertical": 0.49360221586240627,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -29434,7 +29434,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.8693079870526783,
     "sigma_vertical": 0.4251341775139676,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -31118,7 +31118,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.5135448285069959,
     "sigma_vertical": 0.6142388948344526,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -32799,7 +32799,7 @@
     "vertical_px": 310.0,
     "sigma_curved": 1.0548054608586706,
     "sigma_vertical": 0.5424589242016628,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -34483,7 +34483,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.3397399091565555,
     "sigma_vertical": 0.33851089111035415,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -36167,7 +36167,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.4687567353248596,
     "sigma_vertical": 0.44909152388572693,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -37848,7 +37848,7 @@
     "vertical_px": 310.0,
     "sigma_curved": 0.39564081404452406,
     "sigma_vertical": 0.35208993268549044,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -39532,7 +39532,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.3796057033303799,
     "sigma_vertical": 0.22341510495037467,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {
@@ -41216,7 +41216,7 @@
     "vertical_px": 302.0,
     "sigma_curved": 0.7988434314038415,
     "sigma_vertical": 5.09090740030452,
-    "note": "fitted_px is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. predicted_px is the same curve at zero offset, so the gap between them is the measurement. Time runs bottom to top: row 0 is the end of the pass. The frequency axis runs against the Doppler sign."
+    "note": "The fitted curve is the predicted Doppler curve shifted by the fitted frequency offset, which is the path the matched filter scored. The predicted curve is the same shape at zero offset, so the gap between them is the measurement. Time runs bottom to top: the first row is the end of the pass. The frequency axis runs against the Doppler sign."
    },
    "corridor_note": null,
    "geometry": {

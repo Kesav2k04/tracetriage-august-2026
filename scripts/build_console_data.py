@@ -326,11 +326,12 @@ def export_observation(
         "sigma_curved": corridor_row.get("sigma_curved"),
         "sigma_vertical": corridor_row.get("sigma_vertical"),
         "note": (
-            "fitted_px is the predicted Doppler curve shifted by the fitted "
-            "frequency offset, which is the path the matched filter scored. "
-            "predicted_px is the same curve at zero offset, so the gap between "
-            "them is the measurement. Time runs bottom to top: row 0 is the end "
-            "of the pass. The frequency axis runs against the Doppler sign."
+            "The fitted curve is the predicted Doppler curve shifted by the "
+            "fitted frequency offset, which is the path the matched filter "
+            "scored. The predicted curve is the same shape at zero offset, so "
+            "the gap between them is the measurement. Time runs bottom to top: "
+            "the first row is the end of the pass. The frequency axis runs "
+            "against the Doppler sign."
         ),
     }
     return out

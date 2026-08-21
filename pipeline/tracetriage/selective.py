@@ -213,10 +213,11 @@ def verify_ceiling(
         "held": bool(hi <= target_risk),
         "held_at_point_estimate": bool(risk <= target_risk),
         "note": (
-            "held uses the upper end of the interval, not the point estimate, because "
-            "the promise made to a reviewer is about the worst plausible error rate at "
-            "the reported coverage. held_at_point_estimate is reported next to it so "
-            "the difference between the two is visible rather than argued about."
+            "This holds on the upper end of the interval, not on the point estimate, "
+            "because the promise made to a reviewer is about the worst plausible error "
+            "rate at the reported coverage. Whether it would also hold on the point "
+            "estimate is reported in the column beside it, so the difference between "
+            "the two is visible rather than argued about."
         ),
     }
 

@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.tracetriage.queue import combine_replays, compare_orderings
+from pipeline.tracetriage.queue import _direction_phrase, combine_replays, compare_orderings
 
 
 def _population(n: int, conflict_ranks: set[int], per_group: int = 1):
@@ -325,7 +325,20 @@ def test_disagreement_is_not_established_rather_than_resolved(
     assert b["claim"] == "not_established"
     assert out["beaten"] == []
     assert b["reason"] is not None
-    assert ep_dir in b["reason"] and st_dir in b["reason"]
+    # The reason has to name both groupings and both outcomes. It used to be checked by
+    # looking for the raw direction token in the sentence, which passed only while the
+    # sentence contained snake_case. The outcomes are written out now, so the phrase is
+    # looked up from the same map the writer uses, and the absence of the tokens is
+    # asserted directly: that is the property the rewrite was for, and it is stronger
+    # than the substring check it replaces.
+    reason = b["reason"]
+    assert "pass episode" in reason and "ground station" in reason
+    assert _direction_phrase(ep_dir) in reason
+    assert _direction_phrase(st_dir) in reason
+    for token in ("queue_better", "baseline_better", "not_established", "indistinguishable"):
+        assert token not in reason, f"{token} reached a sentence a reviewer reads"
+    for literal in ("True", "False"):
+        assert literal not in reason, f"a JSON boolean reached a sentence: {literal}"
 
 
 def test_a_loss_under_both_groupings_is_reported_as_a_loss():

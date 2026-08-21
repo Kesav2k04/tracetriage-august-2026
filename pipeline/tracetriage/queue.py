@@ -109,6 +109,27 @@ _CAP_REASON: dict[str, str] = {
     "transmitter_uuid": "DISPLACED_TRANSMITTER_CAP",
 }
 
+#: What to call each cap in a sentence a reviewer reads.
+#:
+#: The concentration note printed the field names as a Python list, so the console said
+#: "Caps that displaced nothing ...: ['transmitter_uuid']". That is a value, not a
+#: sentence, and it asks a reader to know the schema to learn which cap was inert. Kept
+#: beside the caps rather than in the formatter, so a new cap cannot be added without a
+#: name; the lookup falls back to the key rather than raising, because an unnamed cap
+#: should still be reportable.
+_CAP_LABEL: dict[str, str] = {
+    "ground_station": "the per-ground-station cap",
+    "transmitter_uuid": "the per-transmitter cap",
+}
+
+
+def _cap_names(names: list[str]) -> str:
+    """One or more cap names, joined the way a sentence joins them."""
+    labelled = [_CAP_LABEL.get(name, f"the {name} cap") for name in sorted(names)]
+    if len(labelled) == 1:
+        return labelled[0]
+    return ", ".join(labelled[:-1]) + " and " + labelled[-1]
+
 
 def cap_entries(budget: int, share: float) -> int:
     """Entries one entity may hold at a given budget, at least one.
@@ -205,8 +226,8 @@ def apply_concentration_caps(
     inert = [name for name in caps if not displaced_by[name]]
     if inert:
         record["note"] = (
-            f"Caps that displaced nothing at budget {budget} over "
-            f"{len(ranked_obs_ids)} ranked observations: {sorted(inert)}. Reported "
+            f"Displaced nothing at budget {budget} over "
+            f"{len(ranked_obs_ids)} ranked observations: {_cap_names(inert)}. Reported "
             f"as inert on this split rather than as exercised. A cap is credited "
             f"with a displacement whenever it would have blocked the entry, even "
             f"if another cap would have blocked it too, so an inert result here is "
@@ -298,6 +319,17 @@ def intraclass_correlation(groups: list[list[float]]) -> dict[str, Any]:
 #: Conflict criteria, each checkable from the snapshot without a human.
 #: These are the exact parameters used by ``is_conflict`` and ``classify_reasons``.
 #: Do not change them after ``scripts/run_queue.py`` has been run.
+#:
+#: That includes the ``description`` strings, and it was tested on 2026-08-22. A scan of
+#: judge-facing prose found three field names inside these sentences: ``image_corridor``,
+#: ``offset_at_bound`` and ``flat_row_frac``. Every other leak it found was rewritten. These
+#: three were left exactly as they are, because this block is what ``fixed_before_measuring``
+#: is a claim about. The console prints that flag, the pre-registration rests on it, and a
+#: reader who diffed a description against an earlier copy and found different words would be
+#: right to read the definition as having moved after the results were seen. Tidier prose is
+#: not worth putting a doubt next to the one property this project is built on. The field
+#: names stay; they are the exact keys the thresholds below are measured from, so a reader who
+#: wants to check a criterion can.
 CONFLICT_CRITERIA: list[dict[str, Any]] = [
     {
         "reason_code": "MODEL_LABEL_DISAGREE",
@@ -588,6 +620,48 @@ class LiftResult:
         }
 
 
+#: The verdict words, as clauses rather than as tokens.
+#:
+#: The replay conclusion read "Episode grouping says queue_better (survives correction:
+#: False)", which puts a snake_case verdict and a JSON boolean inside an English sentence
+#: on a page a reviewer reads. The words are unchanged in the fields beside the note, which
+#: is where a machine reads them; only the sentence is written out.
+#:
+#: The correction is named once, at the end, rather than after each grouping. A first draft
+#: attached it to both and produced "and that does not survive it" before anything called
+#: "it" had been mentioned, and attached a survival clause to a direction that was never
+#: established in the first place. Every branch below was read out loud before it shipped.
+_DIRECTION_PHRASE: dict[str, str] = {
+    "queue_better": "did better",
+    "baseline_better": "did worse",
+    "not_established": "was not separated from the baseline",
+    # Two spellings reach here for the same state: the receipt writes "not_established"
+    # and the replay comparison writes "indistinguishable". Both are mapped rather than
+    # left to the fallback, because "came back indistinguishable" is a token in a sentence
+    # and the whole point of this map is that there are none.
+    "indistinguishable": "was not separated from the baseline",
+}
+
+
+def _direction_phrase(direction: str) -> str:
+    return _DIRECTION_PHRASE.get(direction, f"came back {direction}")
+
+
+def _correction_sentence(episode_survives: bool, station_survives: bool) -> str:
+    """Which of the two groupings survived, as a sentence rather than two booleans."""
+    if episode_survives and station_survives:
+        return "Both survive the multiplicity correction"
+    if not episode_survives and not station_survives:
+        return "Neither survives the multiplicity correction"
+    held, dropped = (
+        ("episode", "station") if episode_survives else ("station", "episode")
+    )
+    return (
+        f"The {held} grouping survives the multiplicity correction and the "
+        f"{dropped} grouping does not"
+    )
+
+
 def combine_replays(
     replay_episode: dict[str, Any],
     replay_station: dict[str, Any],
@@ -657,11 +731,15 @@ def combine_replays(
                 None
                 if claim != "not_established"
                 else (
-                    f"Not claimed. Episode grouping says {e['direction']} "
-                    f"(survives correction: {e['survives_correction']}), station "
-                    f"grouping says {s['direction']} (survives correction: "
-                    f"{s['survives_correction']}). A comparison is claimed only "
-                    f"when both groupings survive correction and agree."
+                    f"Not claimed. Grouped by pass episode the queue "
+                    f"{_direction_phrase(e['direction'])}; grouped by ground "
+                    f"station it {_direction_phrase(s['direction'])}. "
+                    + _correction_sentence(
+                        bool(e["survives_correction"]),
+                        bool(s["survives_correction"]),
+                    )
+                    + ", and a comparison is claimed only when both groupings "
+                    "survive it and agree."
                 )
             ),
         }

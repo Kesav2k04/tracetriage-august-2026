@@ -553,17 +553,21 @@ def build() -> dict[str, Any]:
                 ranked, model_independent_active, budget
             ),
         },
+        # Written as a sentence rather than as two backticked field names. This page has
+        # no markdown renderer, so the backticks reached the reader as backticks and the
+        # row names reached them as identifiers. The keys above are unchanged; only the
+        # prose that describes them is.
         "targets_note": (
-            f"`model_independent_only` names {len(model_independent)} criteria and "
+            f"The model-independent-only row names {len(model_independent)} criteria and "
             f"measures {len(model_independent_active)}, because "
             + (
                 "all of them fire on this corpus."
                 if len(model_independent_active) == len(model_independent)
                 else (
                     ", ".join(k for k in model_independent if k not in model_independent_active)
-                    + " fires on nothing here. `model_independent_and_firing` is the same "
-                    "restriction with the inert criteria dropped from the name, so the two "
-                    "rows carry identical numbers and only one of them can be misread."
+                    + " fires on nothing here. The model-independent-and-firing row is the "
+                    "same restriction with the inert criteria dropped from the name, so the "
+                    "two rows carry identical numbers and only one of them can be misread."
                 )
             )
         ),

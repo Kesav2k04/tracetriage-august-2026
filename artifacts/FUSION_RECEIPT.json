@@ -3,10 +3,10 @@
  "schema_version": "0.1.0",
  "contract": "contracts/fusion_receipt.schema.json",
  "unit": "B2-B6",
- "generated_at": "2026-08-19T02:38:23.967186+00:00",
+ "generated_at": "2026-08-21T22:36:25.244875+00:00",
  "seed": 42,
  "snapshot_id": "snap-20260817-stage1",
- "split_manifest_sha256": "bdb159ca13ece61c923992976589fade050976e69e2b1a0564acb334b4574808",
+ "split_manifest_sha256": "c0f8cd3a5dd5fbf9b6d49beacc5c050e1cf2525daca210945a6fba80226873c9",
  "feature_admissibility": {
   "blocks": {
    "physics": [
@@ -423,7 +423,7 @@
     "survives_correction": true,
     "n_comparisons": 21
    },
-   "note": "The queue is ranked by image_corridor (image + corridor), while the corrected ablation rule recommends image_only (image). The blocks the shipped ranker uses without corrected support are corridor: retained by the nominal rule, and the Brier interval does not clear zero once the multiplicity correction runs over the family the rule reads. The ranker was not rebuilt to match, for two measured reasons. The same comparison does not establish the narrower arm as better either, so swapping on it would be a change made for the appearance of consistency rather than for a result. And the ablation rule reads Brier comparisons only, while the same arm's risk-coverage area against the reference arm on chronological is +0.05736 with a corrected interval of +0.01192 to +0.11887 over the same 21 comparisons, which does clear zero. Selective review is what the queue does, so that is the metric closest to the shipped use, and it is reported rather than promoted into the rule after the fact."
+   "note": "The queue is ranked by the image plus corridor arm (image + corridor), while the corrected ablation rule recommends the image plus only arm (image). The blocks the shipped ranker uses without corrected support are corridor: retained by the nominal rule, and the Brier interval does not clear zero once the multiplicity correction runs over the family the rule reads. The ranker was not rebuilt to match, for two measured reasons. The same comparison does not establish the narrower arm as better either, so swapping on it would be a change made for the appearance of consistency rather than for a result. And the ablation rule reads Brier comparisons only, while the same arm's risk-coverage area against the reference arm on chronological is +0.05736 with a corrected interval of +0.01192 to +0.11887 over the same 21 comparisons, which does clear zero. Selective review is what the queue does, so that is the metric closest to the shipped use, and it is reported rather than promoted into the rule after the fact."
   },
   "fragility": [],
   "fragility_note": "Qualifications on the corrected conclusion above, not corrections to it. The verdict is read from the cluster bootstrap, which resamples stations directly; the design-effect entry here is a cruder normal-theory check on the same clustering and is reported where the two disagree.",
@@ -1730,7 +1730,7 @@
        "n_errors": 1,
        "held": false,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      },
      {
@@ -1759,7 +1759,7 @@
        "n_errors": 2,
        "held": false,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      },
      {
@@ -1788,7 +1788,7 @@
        "n_errors": 5,
        "held": true,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      }
     ]
@@ -4446,7 +4446,7 @@
        "n_errors": 12,
        "held": false,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      }
     ]
@@ -6025,7 +6025,7 @@
        "n_errors": 5,
        "held": false,
        "held_at_point_estimate": false,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      }
     ]
@@ -7328,7 +7328,7 @@
        "n_errors": 8,
        "held": false,
        "held_at_point_estimate": true,
-       "note": "held uses the upper end of the interval, not the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. held_at_point_estimate is reported next to it so the difference between the two is visible rather than argued about."
+       "note": "This holds on the upper end of the interval, not on the point estimate, because the promise made to a reviewer is about the worst plausible error rate at the reported coverage. Whether it would also hold on the point estimate is reported in the column beside it, so the difference between the two is visible rather than argued about."
       }
      }
     ]

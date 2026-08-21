@@ -1,11 +1,11 @@
 {
  "schema": "tracetriage/circularity/v1",
  "schema_version": "1.0.0",
- "generated_at": "2026-08-21T14:46:11.791745+00:00",
+ "generated_at": "2026-08-21T22:37:24.492994+00:00",
  "question": "How much of gate 6's lift is guaranteed by the queue being ranked on the same quantities the conflict criteria threshold?",
  "source": {
   "receipt": "artifacts/QUEUE_RECEIPT.json",
-  "sha256": "7f5251f6caaff656c539b5ec464cede3ac7c7fb1734db4618fe1287f503f0e53",
+  "sha256": "26ec58e5e7f9a05bec7836ac4fa8c898de19a102e3260628c423bff49f62bc36",
   "split": "chronological",
   "needs_the_snapshot": false
  },
@@ -289,7 +289,7 @@
    "verdict": "NOT_ESTABLISHED"
   }
  },
- "targets_note": "`model_independent_only` names 2 criteria and measures 1, because DEAD_CAPTURE fires on nothing here. `model_independent_and_firing` is the same restriction with the inert criteria dropped from the name, so the two rows carry identical numbers and only one of them can be misread.",
+ "targets_note": "The model-independent-only row names 2 criteria and measures 1, because DEAD_CAPTURE fires on nothing here. The model-independent-and-firing row is the same restriction with the inert criteria dropped from the name, so the two rows carry identical numbers and only one of them can be misread.",
  "random_ordering_control": {
   "computed_by": "pipeline.tracetriage.queue.compute_lift",
   "n_permutations": 2000,

@@ -975,7 +975,12 @@ def main() -> None:
             "rationale": (
                 f"Fixed at {REVIEW_BUDGET} before any results were seen. "
                 f"{_budget_coverage_clause(primary_split)} "
-                f"For cold splits the budget is min({REVIEW_BUDGET}, n_decisive_test)."
+                # An expression is not a sentence. This read
+                # "min(50, n_decisive_test)", which asks a reader of the landing page
+                # to evaluate a function call against a field name to learn a rule that
+                # fits in a clause.
+                f"On a split holding fewer than {REVIEW_BUDGET} decisively labelled "
+                f"observations, the budget is however many there are."
             ),
         },
         "deduplication": {

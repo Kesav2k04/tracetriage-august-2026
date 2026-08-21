@@ -55,7 +55,7 @@
    "wrong_and_never_fetched_it": [
     "obs-axis-derivation"
    ],
-   "reading": "repeated_calls counts calls the loop refused because the policy had already made them, and server_refusals counts calls the server itself rejected; the first is a planning failure and the second is an argument failure, and summing them into one number would hide which. fetched_the_answer is the share of questions where the value ended up in something the policy read, so the two wrong answers can be separated into one that never looked and one that looked and chose a neighbouring field."
+   "reading": "Repeated calls are ones the loop refused because the policy had already made them, and server refusals are ones the server itself rejected; the first is a planning failure and the second is an argument failure, and summing them into one number would hide which. The fetch rate is the share of questions where the value ended up in something the policy read, so the two wrong answers can be separated into one that never looked and one that looked and chose a neighbouring field."
   },
   "control": {
    "correct": {
@@ -428,5 +428,5 @@
   "Whether a different model would behave the same way. One model, one seed, temperature zero, and this project has already measured that the same runtime is not reproducible run to run.",
   "Whether the tool arm would survive questions the tools cannot answer. Every task here is answerable from the five tools, so the study measures whether the policy uses them and not whether it knows when to stop."
  ],
- "receipt_sha256": "2b4a2183f74100ec0b46c81d860edc3e6c06cc1b153ac182ab0c4112ec669953"
+ "receipt_sha256": "ccfe2de242484fbf083128c5c1a0e865e0abccb67a4c7fd391d76b2774b0ff23"
 }
