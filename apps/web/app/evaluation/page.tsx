@@ -32,6 +32,9 @@ import {
 
 export const metadata = { title: "Evaluation" };
 
+// Null while nobody has answered the worksheet, which is the normal state and renders
+// nothing rather than a block of zeros.
+const gate4Arm = evaluation.gate4_arm;
 const gate6 = evaluation.gate6;
 const gate5 = evaluation.gate5;
 const ablation = evaluation.ablation_conclusion;
@@ -813,7 +816,7 @@ export default function EvaluationPage() {
 
       <Section
         title="Gate 4 needs a person, and here is what to send them"
-        description="The one gate in this project that no amount of compute closes. It is OPEN because nobody has been asked, and everything except the asking is built."
+        description="The one gate in this project that no amount of compute closes. The worksheet has been answered once and not by a person, so the gate is still OPEN: the arm below says the sample supports a decision, and it cannot say a reader would reach one."
       >
         <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
           The threshold was fixed before the build: at least 80% of a balanced sample,
@@ -838,6 +841,58 @@ export default function EvaluationPage() {
             disk when the bundle was packed.
           </strong>
         </p>
+        {gate4Arm && (
+          <>
+            <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
+              <strong style={{ color: "var(--text-01)" }}>
+                One arm has been measured, and its reviewer was not a person.
+              </strong>{" "}
+              {gate4Arm.reviewer.identity} It answered the published protocol on the
+              committed plates with every label hidden, in{" "}
+              {gate4Arm.reviewer.kind === "model" ? "twelve" : "several"} independent
+              blocks of six so that no block could see both halves of a repeated pair.
+              What that establishes is narrower than the gate and had never been
+              measured: the sample as committed supports a decisive judgment at all.
+              What it cannot establish is the gate as written, because the instrument
+              the gate names is a reader and this was not one.
+            </p>
+            <div className="stat-grid">
+              <Stat
+                label="Decidable"
+                value={`${gate4Arm.decisive}/${gate4Arm.observations_scored}`}
+                detail={`rate ${fmt(gate4Arm.rate, 3)}, 95% ${fmtInterval([
+                  gate4Arm.rate_lower_bound_95,
+                  gate4Arm.rate_upper_bound_95,
+                ])} against a 0.80 threshold`}
+              />
+              <Stat
+                label="Same answer twice"
+                value={`${gate4Arm.intra_rater.identical_on_all_three_axes}/${gate4Arm.intra_rater.repeated_pairs_scored}`}
+                detail="repeated plates answered identically on all three axes, by a different block each time. A ceiling on the rate beside it"
+              />
+              <Stat
+                label="Gate 4"
+                value={gate4Arm.gate_verdict_is_not_this}
+                detail="the arm's own verdict is not the gate's. This field is the gate's, and it does not move for a reviewer the gate is not about"
+              />
+            </div>
+            <Table
+              head={["Compared against the network label", "Agreed", "Of"]}
+              headAlign={["left", "right", "right"]}
+              caption={gate4Arm.label_agreement.neither_axis_asks_the_network_question}
+            >
+              {Object.values(gate4Arm.label_agreement.by_axis).map((axis) => (
+                <tr key={axis.axis}>
+                  <Cell align="left" header>
+                    <code>{axis.axis}</code>
+                  </Cell>
+                  <Cell mono>{axis.agreed_with_the_network_label}</Cell>
+                  <Cell mono>{axis.items_scored}</Cell>
+                </tr>
+              ))}
+            </Table>
+          </>
+        )}
         <Table
           head={["What a reviewer needs", "Where it is"]}
           headAlign={["left", "left"]}
@@ -888,8 +943,12 @@ export default function EvaluationPage() {
           Open <code>review.html</code> from the unpacked folder, answer{" "}
           {gate4Bundle.n_items} items, send back one CSV.{" "}
           <strong>
-            Until that file exists the verdict stays OPEN and no number here moves.
-          </strong>
+            Until a person does that the verdict stays OPEN, and it stays OPEN for a
+            review by anything that is not a person.
+          </strong>{" "}
+          The scorer refuses to publish a rate without a declaration of who produced it,
+          and for a reviewer that is not a person it files every number under{" "}
+          <code>arm</code> and leaves the gate&rsquo;s own verdict alone.
         </Note>
       </Section>
 

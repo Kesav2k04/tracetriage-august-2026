@@ -578,6 +578,24 @@ AGENT_PARA = _para(
 # from the receipts. A verdict this has no wording for stops the sync.
 def _gate4_state(receipt: dict) -> str:
     verdict = receipt.get("verdict")
+    arm = receipt.get("arm")
+    if verdict == "NOT_RUN" and arm:
+        # NOT_RUN with an arm in it is the third state: a review exists and its reviewer is
+        # not a person, so it cannot answer a gate titled human decidability. Saying "nobody
+        # has filled the form in" here would be the page lying about its own receipt.
+        reviewer = arm["reviewer"]
+        return (
+            f"`artifacts/GATE4_RECEIPT.json` says `NOT_RUN`, and that is about the reviewer "
+            f"rather than about the form. The worksheet has been answered end to end and the "
+            f"numbers are in the receipt under `arm`: {arm['decisive']} of "
+            f"{arm['observations_scored']} first-occurrence observations were decidable, a "
+            f"rate of {arm['rate']:.3f}, 95% "
+            f"[{arm['rate_lower_bound_95']:.3f}, {arm['rate_upper_bound_95']:.3f}]. The "
+            f"reviewer was {reviewer['identity']} That is not a person, so it does not meet "
+            f"the gate as written and the gate stays OPEN. What it does establish is that the "
+            f"sample as committed supports a decisive judgment on the published instrument "
+            f"with every label hidden, which is a different claim and a smaller one."
+        )
     if verdict == "NOT_RUN":
         return (
             "`artifacts/GATE4_RECEIPT.json` currently says `NOT_RUN`, with no rate in it, "
@@ -866,6 +884,16 @@ IMPACT = _para(
 
 GATE4_BULLET = (
     _para(
+        """- **No person has read the blinded worksheet.** The worksheet has been answered
+        and `artifacts/GATE4_RECEIPT.json` carries the numbers under `arm`, but the reviewer
+        was a model rather than a person, and this gate is titled blinded *human*
+        decidability. So its verdict stays `NOT_RUN`: the arm establishes that the committed
+        sample supports a decisive judgment on this instrument with the labels hidden, and it
+        cannot establish the thing the gate asks. The bundle is reproducible from its seed,
+        so the human arm is a thing that can be run rather than a thing to argue about."""
+    )
+    if gate4.get("verdict") == "NOT_RUN" and gate4.get("arm")
+    else _para(
         """- **Nobody has read the blinded worksheet yet.** `artifacts/GATE4_RECEIPT.json`
         says `NOT_RUN`, which is a fourth outcome beside passed, failed and inconclusive,
         and it carries no rate because there is nothing to compute one from."""

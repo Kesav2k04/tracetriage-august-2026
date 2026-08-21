@@ -73,7 +73,7 @@ substituted for the split the gate was pre-registered on.
 | # | Gate | Threshold | Verdict | What came back |
 |---|---|---|---|---|
 | 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **NOT_ESTABLISHED** | 3 of 3 testable observations discriminate, and the exact one-sided 95% lower bound on that rate is 0.368 |
-| 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** | never run, so it carries no rate. The instrument exists: `scripts/build_gate4_worksheet.py` builds the blinded bundle and `artifacts/GATE4_RECEIPT.json` reads `NOT_RUN` |
+| 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **OPEN** | answered, and not by a person, so it carries no rate for this gate. The model arm in `artifacts/GATE4_RECEIPT.json` is 57 of 60 decidable, lower bound 0.876, and the gate's own verdict stays `NOT_RUN` |
 | 5 | Physics beats image-only on Brier | strict improvement, chronological split | **NOT_ESTABLISHED** | margin +0.02079 on the shipped arm, 95% CI -0.01301 to +0.05036, which contains zero |
 | 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **NOT_ESTABLISHED** | 1.582x, 95% CI [1.353, 1.740], which contains the threshold. On the held-out cold-station split the same queue **PASSED** at 2.253x |
 

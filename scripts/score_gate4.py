@@ -22,6 +22,14 @@ Three numbers come out, and only the first is the gate:
 Absence is a verdict here. With no responses the receipt says NOT_RUN, which is neither a
 failure nor a pass, because a gate with two outcomes turns "nobody did the study" into
 "the study failed" or, worse, into silence.
+
+**Who reviewed is part of the measurement, so it is required rather than assumed.** The
+bundle must carry a ``REVIEWER.json`` declaring what kind of reviewer answered, and this
+refuses to score without one. Gate 4 is titled blinded *human* decidability: a reviewer that
+is not a person measures something real about the sample and does not measure that, so a
+non-human review is published as its own arm and the gate's own verdict stays ``NOT_RUN``.
+No consumer of this receipt has to know about the distinction to avoid getting it wrong,
+because the field they already read does not move.
 """
 
 from __future__ import annotations
@@ -63,6 +71,53 @@ class ScoringError(Exception):
     written and the exit code is non-zero. Folding them into NOT_RUN would let a tampered
     key produce a tidy receipt.
     """
+
+
+#: Every field the declaration must carry, with what each one is for. A missing field is a
+#: refusal: a decisive rate whose reviewer is unnamed is the one number in this project that
+#: could be quietly produced by anything at all.
+_REVIEWER_FIELDS = {
+    "kind": "human or model. Gate 4 is titled human decidability and only one of these meets it.",
+    "identity": "what actually answered, specifically enough to be doubted.",
+    "procedure": "how the items were presented and in what order.",
+    "independence": "what stopped one item's answer from being informed by another's.",
+}
+_REVIEWER_KINDS = {"human", "model"}
+
+
+def read_reviewer(path: Path) -> dict[str, Any]:
+    """Who answered, declared before the answers are read and refused if absent.
+
+    This exists because of the shape of the mistake it prevents. Everything else in this
+    file guards the sample: the commitment binds which images, in which order, with which
+    digests, before anyone looks at them. None of that says who looked. A receipt carrying
+    a decisive rate of 0.9 with an interval and an intra-rater figure reads as a study
+    whoever produced it, and the one fact that decides whether it answers the gate as
+    titled is the one fact nothing was recording.
+    """
+    if not path.exists():
+        raise ScoringError(
+            f"no reviewer declaration at {path}. Responses exist and nothing says who "
+            f"produced them, so there is no honest way to publish a rate from them. Write "
+            f"{path.name} with {sorted(_REVIEWER_FIELDS)}."
+        )
+    try:
+        declared = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ScoringError(f"{path} is not readable JSON: {exc}") from exc
+    missing = [field for field in _REVIEWER_FIELDS if not str(declared.get(field) or "").strip()]
+    if missing:
+        raise ScoringError(
+            f"{path.name} is missing {missing}. Each one is required: "
+            + "; ".join(f"{k}: {v}" for k, v in _REVIEWER_FIELDS.items() if k in missing)
+        )
+    if declared["kind"] not in _REVIEWER_KINDS:
+        raise ScoringError(
+            f"{path.name} declares kind {declared['kind']!r} and this scorer knows "
+            f"{sorted(_REVIEWER_KINDS)}. A kind it has no handling for must stop the run "
+            f"rather than fall through to whichever branch happens to be first."
+        )
+    return declared
 
 
 def read_responses(path: Path) -> list[dict[str, str]]:
@@ -287,45 +342,105 @@ def _balance(items: list[str], key_by_item: dict[str, dict[str, Any]]) -> dict[s
     }
 
 
-def _label_agreement(
-    answers: dict[str, dict[str, str]], key_by_item: dict[str, dict[str, Any]]
+def _one_axis_against_the_label(
+    answers: dict[str, dict[str, str]],
+    key_by_item: dict[str, dict[str, Any]],
+    axis: str,
+    positive: str,
 ) -> dict[str, Any]:
-    """Not the gate. Whether a blinded human reached the network's own verdict."""
+    """Agreement between one answer axis and the network's own label.
+
+    ``positive`` is the answer value that means the network's `with-signal`. Everything else
+    the reviewer committed to means `without-signal`, including `na` on target_consistent,
+    which is what a reviewer writes when there is no trace in the frame to judge. `unsure` is
+    excluded and counted, because there is no human verdict on that plate to compare.
+    """
     scored = 0
     agreed = 0
     excluded_unknown_label = 0
     excluded_unsure = 0
     confusion: dict[str, dict[str, int]] = {}
+    committed = _COMMITTED | ({"na"} if axis == "target_consistent" else set())
     for item, answer in answers.items():
         label = key_by_item[item]["label"]
         if label not in {"with-signal", "without-signal"}:
             excluded_unknown_label += 1
             continue
-        if answer["visible_signal"] not in _COMMITTED:
+        if answer[axis] not in committed:
             excluded_unsure += 1
             continue
         scored += 1
-        human = "with-signal" if answer["visible_signal"] == "yes" else "without-signal"
+        human = "with-signal" if answer[axis] == positive else "without-signal"
         confusion.setdefault(label, {}).setdefault(human, 0)
         confusion[label][human] += 1
         if human == label:
             agreed += 1
     return {
+        "axis": axis,
         "items_scored": scored,
         "agreed_with_the_network_label": agreed,
         "rate": round(agreed / scored, 4) if scored else None,
         "items_excluded_unknown_label": excluded_unknown_label,
         "items_excluded_reviewer_unsure": excluded_unsure,
         "confusion_network_label_to_human": confusion,
+    }
+
+
+def _label_agreement(
+    answers: dict[str, dict[str, str]], key_by_item: dict[str, dict[str, Any]]
+) -> dict[str, Any]:
+    """Not the gate. Whether a blinded human reached the network's own verdict.
+
+    Two rates, on two axes, because the first version published one and it was the wrong
+    one. `visible_signal` asks whether anything is above the noise anywhere in the frame.
+    The network's `waterfall_status` says whether the observation shows the target. A fixed
+    local carrier is a yes to the first and a no to the second, so every plate carrying one
+    counts as a disagreement by construction and the rate reads as label error when part of
+    it is the two axes not asking the same question. `target_consistent` is the axis that
+    asks a narrower question than the network label rather than the same one: it wants a
+    smooth curve drifting across frequency, and a short packet burst near zero offset is a
+    real pass that answers no. So the two axes miss the network's question in opposite
+    directions, both are published with their confusion matrices, and neither is named the
+    right one. Neither decides the gate.
+    """
+    signal = _one_axis_against_the_label(answers, key_by_item, "visible_signal", "yes")
+    target = _one_axis_against_the_label(answers, key_by_item, "target_consistent", "yes")
+    return {
+        "neither_axis_asks_the_network_question": (
+            "and they miss it in opposite directions, which is why both are here rather "
+            "than one being named the right one. visible_signal is too broad: it counts a "
+            "fixed local carrier or an interference burst as a signal, and the network "
+            "label does not. target_consistent is too narrow: it asks for a smooth curve "
+            "drifting across frequency, and a short packet burst parked near zero offset "
+            "is a real pass that answers no. Read `by_axis` with the confusion matrices, "
+            "not either rate on its own."
+        ),
+        "by_axis": {"visible_signal": signal, "target_consistent": target},
+        # Kept at the top level under the names they have always had, because the console,
+        # the sync scripts and the tests read them. They are the visible_signal pair: the
+        # looser comparison, and the one whose limitation is stated above.
+        "items_scored": signal["items_scored"],
+        "agreed_with_the_network_label": signal["agreed_with_the_network_label"],
+        "rate": signal["rate"],
+        "items_excluded_unknown_label": signal["items_excluded_unknown_label"],
+        "items_excluded_reviewer_unsure": signal["items_excluded_reviewer_unsure"],
+        "confusion_network_label_to_human": signal["confusion_network_label_to_human"],
         "reading": (
             "This is not gate 4 and it does not decide it. It is the measurement that would "
             "say whether the silver labels this project trains against are what a careful "
-            "human sees in the same image with the label hidden. Two exclusions, both "
-            "counted above rather than described: items the network left unknown, because "
-            "there is nothing to agree with, and items where the reviewer answered unsure on "
-            "visible_signal, because there is no human verdict to compare. The second "
-            "conditions this rate on the reviewer's own confidence, which is the direction "
-            "that flatters it, so the excluded count belongs beside the rate."
+            "human sees in the same image with the label hidden. The top-level rate here is "
+            "the visible_signal axis, which is the looser of the two: it asks whether "
+            "anything is above the noise anywhere in the frame, while the network label says "
+            "whether the observation shows the target, so a fixed local carrier disagrees by "
+            "construction. The other axis is not the fix: target_consistent asks for a "
+            "drifting curve, so a packet burst that is a real pass answers no, and it agrees "
+            "with the network on fewer. Both are in `by_axis` with their confusion matrices "
+            "and neither is the network's question. Two exclusions, both counted rather than "
+            "described: items the network left unknown, because there is nothing to agree "
+            "with, and items the reviewer answered unsure on, because there is no human "
+            "verdict to compare. The second conditions the rate on the reviewer's own "
+            "confidence, which is the direction that flatters it, so the excluded count "
+            "belongs beside the rate."
         ),
     }
 
@@ -337,6 +452,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--key", type=Path, default=None)
     ap.add_argument("--manifest", type=Path, default=MANIFEST)
     ap.add_argument("--out", type=Path, default=RECEIPT)
+    ap.add_argument(
+        "--reviewer",
+        type=Path,
+        default=None,
+        help="the reviewer declaration. Defaults to REVIEWER.json in the bundle.",
+    )
     args = ap.parse_args(argv)
 
     responses_path = args.responses or (args.bundle / "responses.csv")
@@ -375,8 +496,14 @@ def main(argv: list[str] | None = None) -> int:
         },
     }
 
+    reviewer_path = args.reviewer or (args.bundle / "REVIEWER.json")
     try:
         rows = read_responses(responses_path)  # ScoringError from here is not NOT_RUN
+        if rows:
+            # Read after the responses and before anything is scored. Before the responses
+            # it would refuse an unfilled bundle for the wrong reason, which would report a
+            # study nobody has run as an instrument failure.
+            reviewer = read_reviewer(reviewer_path)
         if not rows:
             raise NotRun(
                 f"{responses_path} has no answered rows. The worksheet exists and nobody has "
@@ -453,7 +580,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         verdict = "NOT_ESTABLISHED"
 
-    payload |= {
+    stats: dict[str, Any] = {
         "verdict": verdict,
         "observations_scored": trials,
         "decisive": successes,
@@ -502,16 +629,48 @@ def main(argv: list[str] | None = None) -> int:
             for item in sorted(answers)
         ],
     }
+
+    # Where the numbers go depends on who produced them, and the gate's own field does not
+    # move for a reviewer the gate is not about. A human review lands in the receipt at the
+    # top level, where every consumer already reads it. A review by anything else lands in
+    # `arm`, and `verdict` stays NOT_RUN with a `why` that says a review exists: so
+    # `sync_kill_gate.py`, the console's gate summary and the MCP `gate_status` tool keep
+    # reporting gate 4 as OPEN without knowing this distinction exists. That is deliberate.
+    # The alternative is a flag every consumer has to remember to check, and the one that
+    # forgets publishes a model's answers as a person's.
+    stats["reviewer"] = reviewer
+    if reviewer["kind"] == "human":
+        payload |= stats
+    else:
+        payload |= {
+            "verdict": "NOT_RUN",
+            "why": (
+                f"the review was carried out and not by a person: {reviewer['identity']}. "
+                f"Gate 4 is titled blinded human decidability, so this does not meet it. "
+                f"The review and every number from it are in `arm` below."
+            ),
+            "reading": (
+                "NOT_RUN here means the human arm is still open, not that nothing was "
+                "measured. What `arm` establishes is that the sample supports a decisive "
+                "judgment by the reviewer named in it, on images bound by the same "
+                "commitment, with the network's label and every model output hidden. What "
+                "it cannot establish is the gate as written, because the reviewer is the "
+                "instrument the gate names and this one is not that instrument."
+            ),
+            "arm": stats,
+        }
     args.out.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
 
-    print(f"gate 4: {verdict}")
+    print(f"gate 4: {verdict} (reviewer kind: {reviewer['kind']})")
     print(f"  {successes}/{trials} decisive, rate {rate:.3f}, 95% [{lower:.3f}, {upper:.3f}]")
-    intra = payload["intra_rater"]
+    if reviewer["kind"] != "human":
+        print("  gate 4 itself stays NOT_RUN: the reviewer is not a person")
+    intra = stats["intra_rater"]
     print(
         f"  intra-rater: {intra['identical_on_all_three_axes']}/"
         f"{intra['repeated_pairs_scored']} pairs identical on all three axes"
     )
-    label = payload["network_label_agreement"]
+    label = stats["network_label_agreement"]
     print(
         f"  agreement with the network label: {label['agreed_with_the_network_label']}/"
         f"{label['items_scored']}"

@@ -9795,8 +9795,95 @@
    }
   }
  ],
+ "gate4_arm": {
+  "verdict": "PASSED",
+  "observations_scored": 60,
+  "decisive": 57,
+  "rate": 0.95,
+  "rate_lower_bound_95": 0.8758,
+  "rate_upper_bound_95": 0.9862,
+  "not_decisive_items": [
+   "G4-018",
+   "G4-020",
+   "G4-028"
+  ],
+  "intra_rater": {
+   "repeated_pairs_scored": 12,
+   "per_axis": {
+    "artifact_usable": {
+     "pairs": 12,
+     "identical": 11,
+     "rate": 0.9167
+    },
+    "visible_signal": {
+     "pairs": 12,
+     "identical": 11,
+     "rate": 0.9167
+    },
+    "target_consistent": {
+     "pairs": 12,
+     "identical": 11,
+     "rate": 0.9167
+    }
+   },
+   "identical_on_all_three_axes": 11,
+   "rate_identical_on_all_three_axes": 0.9167,
+   "reading": "A decisive rate cannot be trusted beyond the rate at which the same reviewer gives the same answer to the same image. Both are reported so the second can be read as a ceiling on the first."
+  },
+  "label_agreement": {
+   "neither_axis_asks_the_network_question": "and they miss it in opposite directions, which is why both are here rather than one being named the right one. visible_signal is too broad: it counts a fixed local carrier or an interference burst as a signal, and the network label does not. target_consistent is too narrow: it asks for a smooth curve drifting across frequency, and a short packet burst parked near zero offset is a real pass that answers no. Read `by_axis` with the confusion matrices, not either rate on its own.",
+   "by_axis": {
+    "visible_signal": {
+     "axis": "visible_signal",
+     "items_scored": 38,
+     "agreed_with_the_network_label": 25,
+     "rate": 0.6579,
+     "items_excluded_unknown_label": 20,
+     "items_excluded_reviewer_unsure": 2,
+     "confusion_network_label_to_human": {
+      "without-signal": {
+       "with-signal": 13,
+       "without-signal": 5
+      },
+      "with-signal": {
+       "with-signal": 20
+      }
+     }
+    },
+    "target_consistent": {
+     "axis": "target_consistent",
+     "items_scored": 33,
+     "agreed_with_the_network_label": 13,
+     "rate": 0.3939,
+     "items_excluded_unknown_label": 20,
+     "items_excluded_reviewer_unsure": 7,
+     "confusion_network_label_to_human": {
+      "without-signal": {
+       "with-signal": 8,
+       "without-signal": 7
+      },
+      "with-signal": {
+       "without-signal": 12,
+       "with-signal": 6
+      }
+     }
+    }
+   }
+  },
+  "reviewer": {
+   "kind": "model",
+   "identity": "Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.",
+   "procedure": "The 72 items were split into twelve consecutive blocks of six in worksheet order. Each block went to a freshly spawned subagent that was given the three questions from worksheet.md verbatim, a short orientation note about how a pass reads on a spectrogram, the six image paths, and nothing else. Each subagent opened the six PNGs and returned six rows of artifact_usable, visible_signal and target_consistent. No timing was recorded, because a model's wall clock is not a reviewer's decision time and publishing it as pace would be a fabricated number.",
+   "independence": "Each block was judged by a subagent with no conversation context: it could not see another block's images, another block's answers, the network's label, any model prediction, or the key. Repeat pairs are at least six items apart in worksheet order and each block spans five, so no subagent could see both halves of a pair, which keeps the intra-rater figure a comparison of two independent reads. The blocks were run one at a time and the answers were written to responses.csv without editing.",
+   "why_this_is_recorded": "Gate 4 asks whether a person can decide from these images. This reviewer is not a person, so this review cannot answer that and the gate stays open. It does answer a narrower question that had never been measured: whether the sample as committed supports a decisive judgment at all, on the published instrument, with the labels hidden.",
+   "protocol_change_mid_study": "The orientation note wrapped around the three questions was worded three ways, and the first way was wrong. Blocks 1 to 6 were told time runs down the vertical axis. Block 6 reported that its plates label time as increasing upward, so block 7 was given a direction-agnostic note (one axis is time, the other frequency, the labels say which) and was asked to read the axis furniture; it reported frequency across and time running bottom to top, earliest at the bottom. Blocks 8 to 12 were given that, stated correctly. This is recorded because it happened mid-study, not because it can change an answer: a drifting trace drifts under a vertical flip, and neither a constant-frequency carrier nor a full-width instantaneous band changes class under one. It does invert the apparent sense of the drift, which two blocks noticed and neither scored on. The published protocol in worksheet.md states no orientation at all, so the instrument was not wrong; the note around it was."
+  },
+  "gate_verdict_is_not_this": "NOT_RUN",
+  "why_the_gate_is_still_open": "the review was carried out and not by a person: Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.. Gate 4 is titled blinded human decidability, so this does not meet it. The review and every number from it are in `arm` below."
+ },
  "receipt_sha256": {
   "queue": "bcd90fa8a2ada45af79bed2820c5c6d9da169d0e993dc37aefac0067d0451c38",
-  "fusion": "db61b08f973aa1aee0388bd5fe06facdfa46133ab54635e3048f5b5eaa647a31"
+  "fusion": "db61b08f973aa1aee0388bd5fe06facdfa46133ab54635e3048f5b5eaa647a31",
+  "gate4": "4d620a39dc7b13a55b521e7a4250ed45fb7ac9df29471a3dd0d476f90aa46afd"
  }
 }

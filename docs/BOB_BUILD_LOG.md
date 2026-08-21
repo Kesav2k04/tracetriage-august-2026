@@ -6976,3 +6976,99 @@ browser, the ranked queue drawn on the GPU behind the first screen, the motion l
 table on the judges' page. They were written without a dated unit in this log. This paragraph
 is the record of which commits carry them and that they were operator-side, rather than a
 retrospective narrative written after the fact.
+
+## 2026-08-21 IST | Wave E | E3: gate 4 was answered by something that is not a person
+
+**The task.** There is nobody to send the gate 4 bundle to, so the instruction was to finish
+the gate anyway. Two things could be true at once and only one of them was: the review can be
+carried out, and the gate cannot be met by carrying it out this way. Gate 4 is titled blinded
+**human** decidability. So the work was to run the review honestly, publish everything it
+measured, and make it structurally impossible for those numbers to be read as the gate's.
+
+**The scorer refuses to publish a rate that has no author.** `scripts/score_gate4.py` guarded
+the sample thoroughly and said nothing about who looked at it: the commitment binds which
+images, in which order, with which digests, before anyone opens them, and none of that names
+a reviewer. A receipt carrying a decisive rate, an interval and an intra-rater figure reads as
+a study whoever produced it. It now requires a `REVIEWER.json` in the bundle declaring `kind`,
+`identity`, `procedure` and `independence`, refuses on a missing field, and refuses on a
+`kind` it has no handling for rather than falling through to the first branch. For
+`kind != "human"` every number goes under `arm` and the top-level `verdict` stays `NOT_RUN`.
+That is what keeps `sync_kill_gate.py`, `sync_for_judges.py`, `sync_readme_results.py`, the
+console's gate table and the MCP `gate_status` tool correct without any of them knowing this
+distinction exists. The alternative was a flag every consumer has to remember, and the one
+that forgets publishes a model's answers as a person's.
+
+**The review, and why it was split into twelve.** 72 items, three axes each, twelve
+consecutive blocks of six, each block a freshly spawned subagent with no conversation context,
+given the three questions from `worksheet.md` verbatim, the six image paths and nothing else.
+No block could read the key, the network's label or any model output. The repeat pairs are at
+least six items apart in worksheet order and a block spans five, so no block could see both
+halves of a pair: verified against the key, minimum separation 6, maximum 56, all 12 pairs
+cross-block. That keeps the intra-rater figure a comparison of two genuinely independent
+reads rather than a memory test.
+
+**What it measured.** 57 of 60 first-occurrence
+observations decidable, a rate of 0.9500, exact one-sided 95%
+[0.8758, 0.9862] against the 0.80
+threshold. The three that were not: G4-018, G4-020, G4-028, two of them plates
+where the reviewer saw a faint diagonal it could not separate from render texture and one
+where full-width banding left nothing narrowband to judge. Intra-rater
+11 of
+12 pairs identical on all three axes, and each of
+those pairs was read by two different blocks. As an arm that is PASSED. As the gate it is
+nothing, and the receipt says so in the field every consumer reads.
+
+**The label agreement was comparing two different questions and reading as one.** The receipt
+published one rate, `visible_signal` against the network's `waterfall_status`, and the first
+run returned 25 of 38. Read plainly
+that says the silver labels this project trains against are wrong a third of the time. It does
+not say that. `visible_signal` asks whether anything is above the noise anywhere in the frame;
+the network label says whether the observation shows the target. A fixed local carrier is a
+yes to the first and a no to the second, so of 18 plates the network calls without-signal the
+reviewer saw a trace in 13, by construction. Adding `target_consistent` was meant to fix that
+and it swapped it: 13 of 33, which
+is near chance, because that axis wants a smooth curve drifting across frequency and of 18
+plates the network calls with-signal the reviewer called 12 not pass-shaped. That is what a
+packet burst parked near zero offset looks like under a rubric asking for Doppler. So neither
+axis asks the network's question, they miss it in opposite directions, and both are now
+published with their confusion matrices and neither is named the right one. This is a real
+finding about the instrument's wording rather than about the labels, and it is the first thing
+a human arm should fix.
+
+**The orientation note was wrong for half the review.** Blocks 1 to 6 were told time runs down
+the vertical axis. Block 6 reported that its plates label time as increasing upward, so block
+7 was given a direction-agnostic note and asked to read the axis furniture: frequency across,
+time bottom to top, earliest at the bottom. Blocks 8 to 12 got that, stated correctly. It
+cannot change an answer, because a drifting trace drifts under a vertical flip and neither a
+constant-frequency carrier nor a full-width instantaneous band changes class under one, and
+the published protocol in `worksheet.md` states no orientation at all. It is recorded in
+`REVIEWER.json` under `protocol_change_mid_study` because it happened mid-study, and a
+protocol that changed silently is worse than one that changed.
+
+**Two defects in the packer, both found by answering the worksheet.** `PACKED` copied
+`responses.csv` out of the bundle, and the bundle is where a review is carried out, so the
+moment anyone answered it the shipped archive started carrying their judgments: the next
+reviewer would open a form already filled in, which is not a blinded review of anything. The
+form is now generated empty from the committed item list, so it cannot carry a previous
+reviewer's answers and cannot list an item the sample does not contain. Second, every entry
+went in with `ZipFile.write`, which records each file's modification time, so the archive was
+a different file after any touch and the sha256 published beside it was never reproducible. It
+read as a checkable claim and was not one. Every entry now carries a fixed 1980-01-01
+timestamp: two consecutive packs of the same bundle produce the same
+113,238,991 bytes and the same digest
+`c426e1d978b66cf6`, measured. `tests/test_gate4_bundle.py` pins both.
+
+**Where the numbers landed.** `docs/KILL_GATE.md` gate 4 now has a generated block between two
+markers, rendered by `sync_kill_gate.py` from the receipt, so the arm's seven numbers cannot
+drift by hand; the section's three static sentences that claimed the instrument had not been
+run were corrected; the table row and the heading still read OPEN, because the gate is not
+met. `FOR_JUDGES.md` and the README results row branch on the arm being present.
+`apps/web/public/data/evaluation.json` carries `gate4_arm`, so the evaluation page prints the
+rate, the intra-rater ceiling and both label-agreement axes without a literal in the TSX, and
+the page's own claim that the gate is open "because nobody has been asked" is gone.
+
+**What is still open, stated as the gate states it.** A person has not read the worksheet. The
+bundle is one file with a reproducible digest, the protocol and the review page are on the
+web, and the arm above says the sample is not the obstacle. That is the whole of what could be
+closed without a reader.
+

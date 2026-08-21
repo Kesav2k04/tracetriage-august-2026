@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 29 JSON artifacts, 8 contracts, 45 scripts, 25 package modules and 1205 test functions across 55 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 29 JSON artifacts, 8 contracts, 45 scripts, 25 package modules and 1216 test functions across 56 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -34,9 +34,9 @@ file that no longer exists in that form.
 | `FONT_PAINT_RECEIPT.json` | tracetriage/font-paint | 0.2.0 | none | 6,543 | `41b2bf751d0a173d` | `scripts/build_font_ab.py` | **none** |
 | `FUSION_RECEIPT.json` | FUSION_RECEIPT | 0.1.0 | `contracts/fusion_receipt.schema.json` | 248,786 | `db61b08f973aa1ae` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/run_fusion.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_fusion.py`, `test_kill_gate_sync.py` |
 | `GATE3_RECEIPT.json` | none declared | n/a | none | 53,813 | `1b8f154b08eeb84b` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/run_agent_study.py`, `scripts/run_gate3.py`, `scripts/sync_demo.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_corridor_fit.py`, `test_gate3_bound.py`, `test_hero_nulls.py`, `test_kill_gate_sync.py`, `test_live.py`, `test_physics.py` |
-| `GATE4_BUNDLE.json` | tracetriage/gate4-bundle | 0.1.0 | none | 1,131 | `3bd2030e233aa115` | `scripts/pack_gate4_bundle.py`, `scripts/sync_for_judges.py` | **none** |
-| `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 2,411 | `3a066d7784ecbdd0` | `scripts/build_console_data.py`, `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/run_agent_study.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_gate4.py` |
-| `GATE4_WORKSHEET.json` | GATE4_WORKSHEET | 1 | none | 11,815 | `517cae73592b61a0` | `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py` | `test_gate4.py` |
+| `GATE4_BUNDLE.json` | tracetriage/gate4-bundle | 0.1.0 | none | 1,535 | `e07a973d3fef1016` | `scripts/pack_gate4_bundle.py`, `scripts/sync_for_judges.py` | **none** |
+| `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 41,428 | `4d620a39dc7b13a5` | `scripts/build_console_data.py`, `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/run_agent_study.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_gate4.py` |
+| `GATE4_WORKSHEET.json` | GATE4_WORKSHEET | 1 | none | 11,815 | `517cae73592b61a0` | `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py` | `test_gate4.py`, `test_gate4_bundle.py` |
 | `HERO_NULLS.json` | none declared | n/a | none | 26,692 | `66657305d0bc3960` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/sync_demo.py` | `test_hero_nulls.py`, `test_hero_window.py` |
 | `LANGCHAIN_RECEIPT.json` | tracetriage/langchain | 0.1.0 | none | 4,218 | `a67809c7025c94df` | `pipeline/tracetriage/langchain_tools.py`, `scripts/run_langchain_check.py`, `scripts/sync_for_judges.py` | `test_langchain_tools.py` |
 | `LEAKAGE_AUDIT.json` | none declared | n/a | none | 11,342 | `68fc3a8344dc7fef` | `scripts/build_splits.py`, `scripts/check_artifact_freshness.py`, `scripts/gate.py`, `scripts/mcp_server.py` | `test_mcp_server.py`, `test_splits.py` |
@@ -180,7 +180,8 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `GATE4_BUNDLE.json`, `THROUGH
 | `tests/test_for_judges.py` | 6 | FOR_JUDGES.md is generated, and these are the ways it could still lie. |
 | `tests/test_fusion.py` | 77 | Tests for the fusion head and its feature blocks (unit B2). |
 | `tests/test_gate3_bound.py` | 9 | Gate 3's threshold must be read off an interval, not off a point estimate. |
-| `tests/test_gate4.py` | 30 | The gate 4 instrument, tested where it could quietly stop being blinded (unit E6). |
+| `tests/test_gate4.py` | 37 | The gate 4 instrument, tested where it could quietly stop being blinded (unit E6). |
+| `tests/test_gate4_bundle.py` | 4 | What the reviewer bundle may and may not contain. |
 | `tests/test_glyph_axis.py` | 7 | The template matcher reads the same frequency axis the neural model read. |
 | `tests/test_grounding_parity.py` | 9 | The two grounding checkers decide the same thing, and the answer key still checks. |
 | `tests/test_hero_nulls.py` | 12 | The opening frame draws the nulls that were scored, and this is the proof. |

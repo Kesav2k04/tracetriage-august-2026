@@ -31,6 +31,1141 @@
   }
  },
  "verdict": "NOT_RUN",
- "why": "D:\\tracetriage_gate4\\responses.csv has no answered rows. The worksheet exists and nobody has filled it in.",
- "reading": "NOT_RUN is a third outcome and it is not a failure. The instrument exists, its sample is committed, and the review has not been carried out. Folding this into FAILED would manufacture a measurement, and folding it into silence would hide that the gate is still open."
+ "why": "the review was carried out and not by a person: Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.. Gate 4 is titled blinded human decidability, so this does not meet it. The review and every number from it are in `arm` below.",
+ "reading": "NOT_RUN here means the human arm is still open, not that nothing was measured. What `arm` establishes is that the sample supports a decisive judgment by the reviewer named in it, on images bound by the same commitment, with the network's label and every model output hidden. What it cannot establish is the gate as written, because the reviewer is the instrument the gate names and this one is not that instrument.",
+ "arm": {
+  "verdict": "PASSED",
+  "observations_scored": 60,
+  "decisive": 57,
+  "rate": 0.95,
+  "rate_lower_bound_95": 0.8758,
+  "rate_upper_bound_95": 0.9862,
+  "not_decisive_items": [
+   "G4-018",
+   "G4-020",
+   "G4-028"
+  ],
+  "sample_balance": {
+   "observations_per_class": {
+    "unknown": 20,
+    "with-signal": 20,
+    "without-signal": 20
+   },
+   "balanced": true,
+   "smallest_class": 20,
+   "largest_class": 20,
+   "reading": "Equal counts per class is what the gate's wording asks for. A source that holds fewer observations of one class than were requested cannot give it, which is why the availability is published beside this: an unbalanced sample with a stated reason is a measurement, and one without is a flaw."
+  },
+  "stimulus": {
+   "images_rehashed_from_disk": 72,
+   "reading": "Every image was hashed from the bundle and compared against the digest the commitment was taken over, before any response was read. So the sample, its order and the pictures themselves are all bound by the same commitment."
+  },
+  "intra_rater": {
+   "repeated_pairs_scored": 12,
+   "per_axis": {
+    "artifact_usable": {
+     "pairs": 12,
+     "identical": 11,
+     "rate": 0.9167
+    },
+    "visible_signal": {
+     "pairs": 12,
+     "identical": 11,
+     "rate": 0.9167
+    },
+    "target_consistent": {
+     "pairs": 12,
+     "identical": 11,
+     "rate": 0.9167
+    }
+   },
+   "identical_on_all_three_axes": 11,
+   "rate_identical_on_all_three_axes": 0.9167,
+   "reading": "A decisive rate cannot be trusted beyond the rate at which the same reviewer gives the same answer to the same image. Both are reported so the second can be read as a ceiling on the first."
+  },
+  "reviewer_pace": {
+   "recorded": 0,
+   "without_timing": 72,
+   "reading": "The response file carries no usable timing, which is what a bundle answered on paper or in an older build of the review page looks like. No pace is published rather than one inferred."
+  },
+  "network_label_agreement": {
+   "neither_axis_asks_the_network_question": "and they miss it in opposite directions, which is why both are here rather than one being named the right one. visible_signal is too broad: it counts a fixed local carrier or an interference burst as a signal, and the network label does not. target_consistent is too narrow: it asks for a smooth curve drifting across frequency, and a short packet burst parked near zero offset is a real pass that answers no. Read `by_axis` with the confusion matrices, not either rate on its own.",
+   "by_axis": {
+    "visible_signal": {
+     "axis": "visible_signal",
+     "items_scored": 38,
+     "agreed_with_the_network_label": 25,
+     "rate": 0.6579,
+     "items_excluded_unknown_label": 20,
+     "items_excluded_reviewer_unsure": 2,
+     "confusion_network_label_to_human": {
+      "without-signal": {
+       "with-signal": 13,
+       "without-signal": 5
+      },
+      "with-signal": {
+       "with-signal": 20
+      }
+     }
+    },
+    "target_consistent": {
+     "axis": "target_consistent",
+     "items_scored": 33,
+     "agreed_with_the_network_label": 13,
+     "rate": 0.3939,
+     "items_excluded_unknown_label": 20,
+     "items_excluded_reviewer_unsure": 7,
+     "confusion_network_label_to_human": {
+      "without-signal": {
+       "with-signal": 8,
+       "without-signal": 7
+      },
+      "with-signal": {
+       "without-signal": 12,
+       "with-signal": 6
+      }
+     }
+    }
+   },
+   "items_scored": 38,
+   "agreed_with_the_network_label": 25,
+   "rate": 0.6579,
+   "items_excluded_unknown_label": 20,
+   "items_excluded_reviewer_unsure": 2,
+   "confusion_network_label_to_human": {
+    "without-signal": {
+     "with-signal": 13,
+     "without-signal": 5
+    },
+    "with-signal": {
+     "with-signal": 20
+    }
+   },
+   "reading": "This is not gate 4 and it does not decide it. It is the measurement that would say whether the silver labels this project trains against are what a careful human sees in the same image with the label hidden. The top-level rate here is the visible_signal axis, which is the looser of the two: it asks whether anything is above the noise anywhere in the frame, while the network label says whether the observation shows the target, so a fixed local carrier disagrees by construction. The other axis is not the fix: target_consistent asks for a drifting curve, so a packet burst that is a real pass answers no, and it agrees with the network on fewer. Both are in `by_axis` with their confusion matrices and neither is the network's question. Two exclusions, both counted rather than described: items the network left unknown, because there is nothing to agree with, and items the reviewer answered unsure on, because there is no human verdict to compare. The second conditions the rate on the reviewer's own confidence, which is the direction that flatters it, so the excluded count belongs beside the rate."
+  },
+  "reveal": {
+   "salt": "1463e83f833c28c1dba6f4fcf7e9a1595731339b60c3008546b324f2eba817f1",
+   "items": [
+    {
+     "item": "G4-001",
+     "obs_id": 14736480,
+     "label": "without-signal",
+     "image_sha256": "6eadb443c82744a9fd7180b1866742ec23ce8f9b9d117013d7ab642a7ff0c547",
+     "pixel_sha256": "c5b1a478a6d3133a37f4ce96e6e901c592e8331a6519bdb7a1a898df99e0ff15"
+    },
+    {
+     "item": "G4-002",
+     "obs_id": 14738928,
+     "label": "unknown",
+     "image_sha256": "aef4244cdfc3740e6c3499bfa19f2c5a371703080bb8d46dc5dc7e5645b9e1ec",
+     "pixel_sha256": "cd83501778653161c7fa7c882d89acfb6bcafdfbf7bdaf507b4d053f24ac48a1"
+    },
+    {
+     "item": "G4-003",
+     "obs_id": 14745635,
+     "label": "without-signal",
+     "image_sha256": "c46d11b001099c7b5f3c79ce24cd6b06e5a8244387d6e689df8f2f20416f0280",
+     "pixel_sha256": "87edb6be1e29c9241c03c14679141bc1c0d25a99dd4bef8646a421a3ef4d03e7"
+    },
+    {
+     "item": "G4-004",
+     "obs_id": 14743702,
+     "label": "with-signal",
+     "image_sha256": "f51d4a52be0b824f73b47016396a4b4c613fbe857b0e8116c12ca0fde0c88b36",
+     "pixel_sha256": "dc57f931b1733fb252020ef582bed7aca80d3fb4f67eedb241e113d5a9123622"
+    },
+    {
+     "item": "G4-005",
+     "obs_id": 14738053,
+     "label": "without-signal",
+     "image_sha256": "cb51a299b7f6435ccfb0b82b7622e2114a19054762e23b1192a6ee3457b5abf4",
+     "pixel_sha256": "a7b5309bbf92c5af4943b9acc20d355780467d6dfaced24ef84a20cba751d2cd"
+    },
+    {
+     "item": "G4-006",
+     "obs_id": 14743373,
+     "label": "with-signal",
+     "image_sha256": "9e9018cc45d77da6bd1b4c5be212a2e1bdcc070a97ab904a16f012a7b2993913",
+     "pixel_sha256": "100141e6fc4c6b90394d6cac4d4e03d50b137276397c753a752f3fa6cfe21473"
+    },
+    {
+     "item": "G4-007",
+     "obs_id": 14740030,
+     "label": "with-signal",
+     "image_sha256": "398ee3c032fcf444c6279ed0e5ed4e8665401bcf9d77ecc4d136f836ddd95a30",
+     "pixel_sha256": "9f84cdd97299bf9b66376293a3bad8c0bf10c065333b164488c9644da51ec8df"
+    },
+    {
+     "item": "G4-008",
+     "obs_id": 14737403,
+     "label": "with-signal",
+     "image_sha256": "606cb97cfd26c0f1246cba9edc7d2e05163821b39daaa9a0173e8e6cbd8f0332",
+     "pixel_sha256": "9e6fe267114a27ab3056935d6896bbd3b6f3d5f59ac01b430241383e9d068a68"
+    },
+    {
+     "item": "G4-009",
+     "obs_id": 14744219,
+     "label": "without-signal",
+     "image_sha256": "61bd84b17b8da693b1b44259f5a8cb5d1c69d5a0c3658ec2b7552498dab44c46",
+     "pixel_sha256": "c060c28bcfe4b00ac36dfa87d22be36b020295dd2c66013cdeb6bd3bed4be2db"
+    },
+    {
+     "item": "G4-010",
+     "obs_id": 14745250,
+     "label": "unknown",
+     "image_sha256": "3e6253de04d118f0e859fc543758d028965a71fd8ec6d5d797b3f24954cc1fe0",
+     "pixel_sha256": "39cbabcc2ae539f619874fba0c77f1fae5271c535cb205a91fda55652a6793da"
+    },
+    {
+     "item": "G4-011",
+     "obs_id": 14744370,
+     "label": "unknown",
+     "image_sha256": "c0892009cdf7026b39cda386e5e5097008adbca413e171b3298f090e86c035c7",
+     "pixel_sha256": "0deb41dc085a7ff0368ea1c6b494b4b4faf87e067e035dfb23951b848cb3947d"
+    },
+    {
+     "item": "G4-012",
+     "obs_id": 14731967,
+     "label": "without-signal",
+     "image_sha256": "021d6c46a777a1b412ab8606a05dc3b0df5e5e1d9f5e9571c41648e7a30516b1",
+     "pixel_sha256": "486b6fcff1e8bd62422ead85439aa9e11756e14752afbcab38345b315407a158"
+    },
+    {
+     "item": "G4-013",
+     "obs_id": 14743793,
+     "label": "unknown",
+     "image_sha256": "879be3cab528bc5d5a2c9da2377ac41343997155b18058d3e70a4263789ca6ca",
+     "pixel_sha256": "87b20c59222d107cdf12d78bc0f8c705b380087c6dd7af4b0005d86daa48081a"
+    },
+    {
+     "item": "G4-014",
+     "obs_id": 14742635,
+     "label": "with-signal",
+     "image_sha256": "28a5bb7aa94a1d01a8ce20df961d5912d456351d5a7de0f857c0cf4ffa37bc5a",
+     "pixel_sha256": "20148dcbacfea5a4372a6f6da044a8fcf9a0c15b420efe458ac1b3454812f8c3"
+    },
+    {
+     "item": "G4-015",
+     "obs_id": 14735784,
+     "label": "with-signal",
+     "image_sha256": "c8319018e426d3f7e254fc00691fdc404421f583cf868f5080d0f4811cf6fe38",
+     "pixel_sha256": "8c95f57c569863c69775a0b0d0cc1958ab47d3d51ef7662922622cd1a9142b4a"
+    },
+    {
+     "item": "G4-016",
+     "obs_id": 14742672,
+     "label": "without-signal",
+     "image_sha256": "94e5f16b5ab375c7b70785b335a81d651f87ee267e9a8367366371ab10b2f861",
+     "pixel_sha256": "28f08eb2b38486e3d67dc18079cd0467af53844aaad55bed49ffa2e72883ea05"
+    },
+    {
+     "item": "G4-017",
+     "obs_id": 14739161,
+     "label": "with-signal",
+     "image_sha256": "33d8f3bf174ecfd9fd551daa8fd795ac8fd15ad1a9447ce0a53faea8510067f2",
+     "pixel_sha256": "0b8bbcccc6739619f923d2db202a47a3afe4d9b561b1c3223fda3c158efcbc5a"
+    },
+    {
+     "item": "G4-018",
+     "obs_id": 14742665,
+     "label": "without-signal",
+     "image_sha256": "23b01774aebfbc1757bcedf83a621da7ef44e565c10fa7841c1809892cbb3c1e",
+     "pixel_sha256": "c8bbbdcb4d6959a64deb5faf56a7a18885003b33ec6fb13f8d6a038bf0e08783"
+    },
+    {
+     "item": "G4-019",
+     "obs_id": 14745398,
+     "label": "with-signal",
+     "image_sha256": "e1f9db7b2a24a897b263a1182fbce0e47c4e31ab9cb85ef57a7d2f2cd9747b3a",
+     "pixel_sha256": "54f1c982e5566a8f3a62a744ed053d2d8c03566a6b337a65493a4f2eb4e55766"
+    },
+    {
+     "item": "G4-020",
+     "obs_id": 14733015,
+     "label": "without-signal",
+     "image_sha256": "104636b1d90bf5efc589bad758ef32620c89fba4a125e240bbea3daa54c4387a",
+     "pixel_sha256": "7d3cac42e6cebf8d21e44c44f94d62cbdc54cb97780833778ed6ef065d7df719"
+    },
+    {
+     "item": "G4-021",
+     "obs_id": 14746051,
+     "label": "unknown",
+     "image_sha256": "277683bcc6a0e95bad90a460548392b1861555da9341a9480b9fe92196f86157",
+     "pixel_sha256": "bfcc3af6d2d69b1d705bc172be94f41e128b6735cd8dafdae0ac728f096fe6ef"
+    },
+    {
+     "item": "G4-022",
+     "obs_id": 14735407,
+     "label": "with-signal",
+     "image_sha256": "01b773a5151e58d29dec9f0b34440659d192b7ccb1113fe5289d4a2763c572af",
+     "pixel_sha256": "5f97b8e6b1be5ae53a32491f2f7189b7388623c1b5fd9cfce64a09f82024f3d0"
+    },
+    {
+     "item": "G4-023",
+     "obs_id": 14738608,
+     "label": "unknown",
+     "image_sha256": "833ddfa04824852d4ed377297d43be311b85027a5dd689a9dd3a429286d719e2",
+     "pixel_sha256": "d1dcf1b979fa091c6b3f6ca50c68a7eeee5235b6a22c9f30d94936ffc92d413e"
+    },
+    {
+     "item": "G4-024",
+     "obs_id": 14740028,
+     "label": "without-signal",
+     "image_sha256": "efd5f41dc4b6bb3fb53ed9b7701679860130c52a468275325b66b024a3019cc4",
+     "pixel_sha256": "398b25aa50135d92b381f815e925c24ce40930d3f40fc6b4719a933a97eba0b7"
+    },
+    {
+     "item": "G4-025",
+     "obs_id": 14732972,
+     "label": "with-signal",
+     "image_sha256": "769d25fda0e815105e066ff9f24953d7f1c056d3f495ea32d2496dfc43edb9a8",
+     "pixel_sha256": "1a4db00a4fada82d1cc4d5872e6413adde0f67db861d6edd4afd138885a0c36a"
+    },
+    {
+     "item": "G4-026",
+     "obs_id": 14734701,
+     "label": "unknown",
+     "image_sha256": "ffae41c53465adf2c08d74fadfb4ee86b4ba3de575f38de5e3b5a7a598dd3a53",
+     "pixel_sha256": "72c03b3073c6ebcfee4b135f0cdfa7cf2d22b837705286f636c4b5776dba4d5e"
+    },
+    {
+     "item": "G4-027",
+     "obs_id": 14736755,
+     "label": "with-signal",
+     "image_sha256": "166f84854f37fdb4bf49caa34accf3d7bff980a4e279b2f3b81b3f3c7dd5609a",
+     "pixel_sha256": "94cf2b070e50b94a111e4a864fde6aff0f264e3a8c7a1022d7c8198c54c116af"
+    },
+    {
+     "item": "G4-028",
+     "obs_id": 14736348,
+     "label": "without-signal",
+     "image_sha256": "09f1c720dc0f573c87a308744d73b9817535f1658411c04efe657efa5e02b2d9",
+     "pixel_sha256": "aff2e72cc76a4999f889ba8b728cde195095c82960e226de1e80ac6c254df725"
+    },
+    {
+     "item": "G4-029",
+     "obs_id": 14744206,
+     "label": "without-signal",
+     "image_sha256": "9ba9a37a3bd600bf85403eade26eb8077eb6a723194d96b97bde6b2e565ad282",
+     "pixel_sha256": "993a59372a3d21decb4f05c4be723f19cb8dda6611518bbafcc909b484c76f8a"
+    },
+    {
+     "item": "G4-030",
+     "obs_id": 14733779,
+     "label": "with-signal",
+     "image_sha256": "7f00e63c0b9cbaf75b851fb9afa065e13066d5dc1ed6eadba098e3dafb62974d",
+     "pixel_sha256": "0c044846d28ed6c474fd4e90088e53c10b29df097cf6be14284fabdc4250dd00"
+    },
+    {
+     "item": "G4-031",
+     "obs_id": 14739506,
+     "label": "unknown",
+     "image_sha256": "a4ffbc3e714619e49798e45f28fec3635846d795d63158d151f0c9f4a5fbcd4f",
+     "pixel_sha256": "2fdd3f1086e90afb3ff7f6febf6d5348296a95cfeaa40d38ccfa1c0a1f2017e5"
+    },
+    {
+     "item": "G4-032",
+     "obs_id": 14742672,
+     "label": "without-signal",
+     "image_sha256": "c72ba41515b4ac7cbdf72680889f8cc47117c8ae1ca47ae5e71b46c37f4daf6a",
+     "pixel_sha256": "28f08eb2b38486e3d67dc18079cd0467af53844aaad55bed49ffa2e72883ea05"
+    },
+    {
+     "item": "G4-033",
+     "obs_id": 14744020,
+     "label": "unknown",
+     "image_sha256": "94a8e3e03828469990f1327239bd9e2303b44ffb1a8d7f3b4aec824f2a2d59dc",
+     "pixel_sha256": "0f846b07178fa370da7029c3f8b39f87d0c6e05d45408e6018655bd210a3389e"
+    },
+    {
+     "item": "G4-034",
+     "obs_id": 14742589,
+     "label": "without-signal",
+     "image_sha256": "afeee71f0606b0d6d8a91089f1d0ad6502275d3a66e8dd5863f6851f8b6c09ff",
+     "pixel_sha256": "66c98c83807846b2c373ed451ea4fc90e464c6eaf706b5e5cd05156aa1e94bae"
+    },
+    {
+     "item": "G4-035",
+     "obs_id": 14742635,
+     "label": "with-signal",
+     "image_sha256": "341b92a8c5f5dcea5655ccb447d900682547ba9baf380107019c49fbfa97729d",
+     "pixel_sha256": "20148dcbacfea5a4372a6f6da044a8fcf9a0c15b420efe458ac1b3454812f8c3"
+    },
+    {
+     "item": "G4-036",
+     "obs_id": 14735407,
+     "label": "with-signal",
+     "image_sha256": "2c541e2ab454d9441656f3b00c7079eb9d6d96ce0ebb5c2f4456591d6a8c3563",
+     "pixel_sha256": "5f97b8e6b1be5ae53a32491f2f7189b7388623c1b5fd9cfce64a09f82024f3d0"
+    },
+    {
+     "item": "G4-037",
+     "obs_id": 14744633,
+     "label": "unknown",
+     "image_sha256": "a7ed7450924ba37435943079a33c2989d7b9b7eacd7f62023438d5030530a5e0",
+     "pixel_sha256": "0da838365c9683e4b5a22d6c6dfe9967ef9e31ab9752bfac45a976c090c71324"
+    },
+    {
+     "item": "G4-038",
+     "obs_id": 14745530,
+     "label": "unknown",
+     "image_sha256": "a7625b9d5391a5dc4a1e3caea6cf9fbbe5da9974e0f85a760ffa985231db3482",
+     "pixel_sha256": "d5268b0840817c0724a11d5a7f91c1f8f53814fd8cea92f12f6f1a9fe3d29e1f"
+    },
+    {
+     "item": "G4-039",
+     "obs_id": 14746026,
+     "label": "unknown",
+     "image_sha256": "d2b1b65dba3ddf54e3d4c140733cd248060c312a0763a8cedb3c105280a4c976",
+     "pixel_sha256": "f4f11c71253c8b9f8c837deaa9671e01a273d603d28002452efd15c867542be7"
+    },
+    {
+     "item": "G4-040",
+     "obs_id": 14738053,
+     "label": "without-signal",
+     "image_sha256": "69b559b09f6feb49c0f2ecbe1f4125585cf3c4a459c77e72eb7f0153e36e3472",
+     "pixel_sha256": "a7b5309bbf92c5af4943b9acc20d355780467d6dfaced24ef84a20cba751d2cd"
+    },
+    {
+     "item": "G4-041",
+     "obs_id": 14739506,
+     "label": "unknown",
+     "image_sha256": "c97ee1e48cbc6c3ba8eb2e6fbe8397cc1fad146e63590ba50f23bb0af441b901",
+     "pixel_sha256": "2fdd3f1086e90afb3ff7f6febf6d5348296a95cfeaa40d38ccfa1c0a1f2017e5"
+    },
+    {
+     "item": "G4-042",
+     "obs_id": 14744742,
+     "label": "unknown",
+     "image_sha256": "4b652b5a9408e9e236c037953534263ef4134fa115580c065e4ec647a09d1919",
+     "pixel_sha256": "6654aa01ec76b6f2705e9abb548d51a4a1ed59360f6ae91916cd9b496f1b9f4a"
+    },
+    {
+     "item": "G4-043",
+     "obs_id": 14742849,
+     "label": "without-signal",
+     "image_sha256": "1355b0b30b6291702b7dede2075c95ae70b3dec09f971bdfe77ac0dbd891d93f",
+     "pixel_sha256": "10941e0cbc4589b6a45a326019d896682e84c2ed8c74263982d7ce054ab2e741"
+    },
+    {
+     "item": "G4-044",
+     "obs_id": 14745530,
+     "label": "unknown",
+     "image_sha256": "15098acc0bf262c763ec24541f38adebe919c06d0afb1d1501c6854a1c878e21",
+     "pixel_sha256": "d5268b0840817c0724a11d5a7f91c1f8f53814fd8cea92f12f6f1a9fe3d29e1f"
+    },
+    {
+     "item": "G4-045",
+     "obs_id": 14738365,
+     "label": "unknown",
+     "image_sha256": "c4eb74cb3d7370528bac441c09d7ac6874fd483b1ef41a8f1d04d749299939b5",
+     "pixel_sha256": "190c24b59f87293cf0d5170d2822d83c2c24a98a9ed71324ff1ad16a1d470a8d"
+    },
+    {
+     "item": "G4-046",
+     "obs_id": 14746051,
+     "label": "unknown",
+     "image_sha256": "2cf378b90d3c785b21877b838e6a4fb9033c0dcb6c0c511424e9c00d710ef3c7",
+     "pixel_sha256": "bfcc3af6d2d69b1d705bc172be94f41e128b6735cd8dafdae0ac728f096fe6ef"
+    },
+    {
+     "item": "G4-047",
+     "obs_id": 14743655,
+     "label": "with-signal",
+     "image_sha256": "30d750b4c2db86293fd45a56565a96f74d7e5da54dedd965c8ff903a8e7c80fe",
+     "pixel_sha256": "15b7e22806a240f383e35f7f9a1d9ad0f7d7b61105f31d23a92f7cbb4ed731fa"
+    },
+    {
+     "item": "G4-048",
+     "obs_id": 14732990,
+     "label": "without-signal",
+     "image_sha256": "d4948f1729f478a42261e9b7f713147167f6fcc49e974218daf8b1095ae1b498",
+     "pixel_sha256": "efb9a876f2d439602fcf54fb700b956cf6e6df2989992ee3b1bc96fc188dfd59"
+    },
+    {
+     "item": "G4-049",
+     "obs_id": 14745156,
+     "label": "with-signal",
+     "image_sha256": "27c58d4d374b36c1d4b362c42f6969e73a8c06a6346ace319915f51233c8c830",
+     "pixel_sha256": "67327edf6e5833994de8986135ab3cd3fa1e54b82d14f8543bdf3e2446a6b9be"
+    },
+    {
+     "item": "G4-050",
+     "obs_id": 14737158,
+     "label": "unknown",
+     "image_sha256": "661ee993b76ca58b619c7d997653f8007d0f55ecad59eefe1c3cc1de20eed655",
+     "pixel_sha256": "dd57804b84532eae32a526e4c7f8fcd1617ace986be8301625663b0f9c633ebd"
+    },
+    {
+     "item": "G4-051",
+     "obs_id": 14742679,
+     "label": "without-signal",
+     "image_sha256": "91b46a000d2b9bca511208bad50a8e0cf59c2650a6a98c47fe02096616179ba5",
+     "pixel_sha256": "d61dc336c3c5fb387a130c24126ee4535466be074a29404553df3af154b0fd97"
+    },
+    {
+     "item": "G4-052",
+     "obs_id": 14732963,
+     "label": "with-signal",
+     "image_sha256": "8fed02e4853f3971b6c89734d19a4f3e4994f2930c7ae8847f34b4edb5e548f1",
+     "pixel_sha256": "d3eee8137b8961675e74890f5925780154c938b16e4970694a4cc34232201eaf"
+    },
+    {
+     "item": "G4-053",
+     "obs_id": 14736348,
+     "label": "without-signal",
+     "image_sha256": "1295ab1f0f18f3bdacc6ba405ce6ed617b0ec4ba7e7f201e3dfaa9bdda36ad2d",
+     "pixel_sha256": "aff2e72cc76a4999f889ba8b728cde195095c82960e226de1e80ac6c254df725"
+    },
+    {
+     "item": "G4-054",
+     "obs_id": 14742689,
+     "label": "without-signal",
+     "image_sha256": "f74c35f679d8ca042e82e15d34788ecf3c91b1d6abe674bc5ff022faad97ed26",
+     "pixel_sha256": "bccafade4097e5e19ff690153c9cf124c408849b442ac3c6e18a939e3224fa70"
+    },
+    {
+     "item": "G4-055",
+     "obs_id": 14743906,
+     "label": "without-signal",
+     "image_sha256": "728b2263e529cec77a61e399f5db7910788aaf69b03e4d2a8651fca32c48b978",
+     "pixel_sha256": "b7216c395944134316176b1a7c90548cfb156f1d49c6ff53d1583ae231029c68"
+    },
+    {
+     "item": "G4-056",
+     "obs_id": 14733013,
+     "label": "with-signal",
+     "image_sha256": "745d76d793d40d4708ecc2a15fcba56e35ba5a16c9d863963fabaa799f5e955f",
+     "pixel_sha256": "495153a7cb6bdf4c8f62c63d97daa16481b6366333473208b52da2273b729de2"
+    },
+    {
+     "item": "G4-057",
+     "obs_id": 14738551,
+     "label": "unknown",
+     "image_sha256": "51a050cafb21d0efec17555da7746b80b4056f17fb9840deeb6d3d8be3bf3e81",
+     "pixel_sha256": "0a512b220c3545b631bb5d0692efa5c0d406cebc8d02722985118d00bee13ee0"
+    },
+    {
+     "item": "G4-058",
+     "obs_id": 14731943,
+     "label": "with-signal",
+     "image_sha256": "e31c225b1f590eb50213266bed9e3bbcd40bc170cb7f0dcc089b781ab82fb251",
+     "pixel_sha256": "af7fc644388f3567f793b08e9db9b4be8df2a2c890d9ac07c32c0b1c3aa462d2"
+    },
+    {
+     "item": "G4-059",
+     "obs_id": 14745755,
+     "label": "unknown",
+     "image_sha256": "3b6c5d851977d891ceff0869c4c1707993bff2199fcea06eefe46b5a247b0171",
+     "pixel_sha256": "38e3864d87bbfe8e66afe3f430ae8e4ce45d68bcef8943d846e7767a03965c6f"
+    },
+    {
+     "item": "G4-060",
+     "obs_id": 14737492,
+     "label": "without-signal",
+     "image_sha256": "1a47bc00f95ab68f71662b30bbf26227f2e666ee0e44cd02c35cef05faa7f8f9",
+     "pixel_sha256": "eda81a109fc1d05872bb2524c8d7227df679699cb5d4c409b3752f4902dbb2e7"
+    },
+    {
+     "item": "G4-061",
+     "obs_id": 14740030,
+     "label": "with-signal",
+     "image_sha256": "67e4b48eda7e62e287cd315ee579253a4b779fe54cd5e68c53b840e9adec61f8",
+     "pixel_sha256": "9f84cdd97299bf9b66376293a3bad8c0bf10c065333b164488c9644da51ec8df"
+    },
+    {
+     "item": "G4-062",
+     "obs_id": 14730841,
+     "label": "unknown",
+     "image_sha256": "20a0c070c4e2668f6d651f63c802f190cc9cb21f44c217565bc607bddbbef487",
+     "pixel_sha256": "7c83df0ceed27094342709c1edcc2e2d30b6b564ff78e3cba933f3e13c90abc4"
+    },
+    {
+     "item": "G4-063",
+     "obs_id": 14744893,
+     "label": "with-signal",
+     "image_sha256": "a24029f7f58b594b5b6edaf62e48361765c257c7c5dae3b90dc3b0e2ddaabb98",
+     "pixel_sha256": "ddbc1301b5295ac47a6f6eae8466d5bd7b37e91b1ef463ecbaee88e1522d229a"
+    },
+    {
+     "item": "G4-064",
+     "obs_id": 14737403,
+     "label": "with-signal",
+     "image_sha256": "42cd58e4ea691fa1c774ee1f506ac1068cc13c0e1ee02ab92d702f7ec3d51708",
+     "pixel_sha256": "9e6fe267114a27ab3056935d6896bbd3b6f3d5f59ac01b430241383e9d068a68"
+    },
+    {
+     "item": "G4-065",
+     "obs_id": 14733000,
+     "label": "with-signal",
+     "image_sha256": "cf4ca2ef223e9659916e0d161b3898d274ffae1ea578326e88c91ff104769ea1",
+     "pixel_sha256": "50354f80c55a29570366b71083e220b918a4293ef07e9828ee7692ec09588d8f"
+    },
+    {
+     "item": "G4-066",
+     "obs_id": 14745156,
+     "label": "with-signal",
+     "image_sha256": "1f2e152b6a579732807bfbdbf1d7b2eb2b00be1623996829125d96fcb90dd539",
+     "pixel_sha256": "67327edf6e5833994de8986135ab3cd3fa1e54b82d14f8543bdf3e2446a6b9be"
+    },
+    {
+     "item": "G4-067",
+     "obs_id": 14733013,
+     "label": "with-signal",
+     "image_sha256": "63895abadeaa7d3bc0baecac0603216c9054476443e1439f296ee84e92d1c6d5",
+     "pixel_sha256": "495153a7cb6bdf4c8f62c63d97daa16481b6366333473208b52da2273b729de2"
+    },
+    {
+     "item": "G4-068",
+     "obs_id": 14744168,
+     "label": "unknown",
+     "image_sha256": "25f29a955a7abed6df16e2db08b865238d5dcc08e532c6c1d42365c0ec52f1a1",
+     "pixel_sha256": "347c206a768184c767c1e540ae4b0076d87f01eec7ed0615739870364662a271"
+    },
+    {
+     "item": "G4-069",
+     "obs_id": 14742634,
+     "label": "without-signal",
+     "image_sha256": "23090ed06a6dc87fb6f6534dca34e9462890586093c923778430fb7d1f55b140",
+     "pixel_sha256": "757a727c629a166942bf3998712a2903bb7c40a7df55bbf80d2b44de6d7057c9"
+    },
+    {
+     "item": "G4-070",
+     "obs_id": 14743744,
+     "label": "unknown",
+     "image_sha256": "7ef4dd5b8572a68d806565dd61fa07313c61ed6183fec40249d47543dbc1cc0a",
+     "pixel_sha256": "42d92f9be2cbc4701cc31534ae47b5d6cdf1e2c29b43b677c7623d9c95f29941"
+    },
+    {
+     "item": "G4-071",
+     "obs_id": 14736477,
+     "label": "with-signal",
+     "image_sha256": "c4aa1ae90f54c8d6643dc865bcf43cb051c1294eca7032ce9ccee8bf33354563",
+     "pixel_sha256": "d661d68c63cadc7e0a25418964226055a264d7bd38d341e5c45a8297437c782f"
+    },
+    {
+     "item": "G4-072",
+     "obs_id": 14742592,
+     "label": "without-signal",
+     "image_sha256": "048456e4e02cbc9862c920644b5db5a79a6c52702f597d018dc9f0ec79f46cad",
+     "pixel_sha256": "8fdc8a22b9c8656db55399fec6f12250f3a224d2887f6141d175979d3a68a67a"
+    }
+   ],
+   "reading": "Recompute sha256(salt | item | obs_id | image_sha256) for any item and compare it against artifacts/GATE4_WORKSHEET.json. Every one was verified before a single response was read."
+  },
+  "per_item": [
+   {
+    "item": "G4-001",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-002",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-003",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-004",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-005",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-006",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-007",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-008",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-009",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-010",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-011",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-012",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-013",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-014",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-015",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-016",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-017",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-018",
+    "decisive": false,
+    "artifact_usable": "yes",
+    "visible_signal": "unsure",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-019",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-020",
+    "decisive": false,
+    "artifact_usable": "yes",
+    "visible_signal": "unsure",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-021",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-022",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-023",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-024",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-025",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-026",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-027",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-028",
+    "decisive": false,
+    "artifact_usable": "unsure",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-029",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-030",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-031",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-032",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-033",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-034",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-035",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-036",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-037",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-038",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-039",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-040",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-041",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-042",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-043",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-044",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-045",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-046",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-047",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-048",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-049",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-050",
+    "decisive": true,
+    "artifact_usable": "no",
+    "visible_signal": "unsure",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-051",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-052",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-053",
+    "decisive": true,
+    "artifact_usable": "no",
+    "visible_signal": "unsure",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-054",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-055",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-056",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-057",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-058",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-059",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-060",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "no",
+    "target_consistent": "na"
+   },
+   {
+    "item": "G4-061",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-062",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-063",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-064",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-065",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-066",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-067",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "no"
+   },
+   {
+    "item": "G4-068",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-069",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "unsure"
+   },
+   {
+    "item": "G4-070",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-071",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   },
+   {
+    "item": "G4-072",
+    "decisive": true,
+    "artifact_usable": "yes",
+    "visible_signal": "yes",
+    "target_consistent": "yes"
+   }
+  ],
+  "reviewer": {
+   "kind": "model",
+   "identity": "Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.",
+   "procedure": "The 72 items were split into twelve consecutive blocks of six in worksheet order. Each block went to a freshly spawned subagent that was given the three questions from worksheet.md verbatim, a short orientation note about how a pass reads on a spectrogram, the six image paths, and nothing else. Each subagent opened the six PNGs and returned six rows of artifact_usable, visible_signal and target_consistent. No timing was recorded, because a model's wall clock is not a reviewer's decision time and publishing it as pace would be a fabricated number.",
+   "independence": "Each block was judged by a subagent with no conversation context: it could not see another block's images, another block's answers, the network's label, any model prediction, or the key. Repeat pairs are at least six items apart in worksheet order and each block spans five, so no subagent could see both halves of a pair, which keeps the intra-rater figure a comparison of two independent reads. The blocks were run one at a time and the answers were written to responses.csv without editing.",
+   "why_this_is_recorded": "Gate 4 asks whether a person can decide from these images. This reviewer is not a person, so this review cannot answer that and the gate stays open. It does answer a narrower question that had never been measured: whether the sample as committed supports a decisive judgment at all, on the published instrument, with the labels hidden.",
+   "protocol_change_mid_study": "The orientation note wrapped around the three questions was worded three ways, and the first way was wrong. Blocks 1 to 6 were told time runs down the vertical axis. Block 6 reported that its plates label time as increasing upward, so block 7 was given a direction-agnostic note (one axis is time, the other frequency, the labels say which) and was asked to read the axis furniture; it reported frequency across and time running bottom to top, earliest at the bottom. Blocks 8 to 12 were given that, stated correctly. This is recorded because it happened mid-study, not because it can change an answer: a drifting trace drifts under a vertical flip, and neither a constant-frequency carrier nor a full-width instantaneous band changes class under one. It does invert the apparent sense of the drift, which two blocks noticed and neither scored on. The published protocol in worksheet.md states no orientation at all, so the instrument was not wrong; the note around it was."
+  }
+ }
 }

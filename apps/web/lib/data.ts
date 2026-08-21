@@ -445,6 +445,54 @@ export interface AblationConclusion {
   [k: string]: unknown;
 }
 
+/**
+ * One axis of the review compared against the network's own label.
+ *
+ * Two of these are published and neither is the network's question. `visible_signal`
+ * counts a fixed local carrier as a signal and the label does not; `target_consistent`
+ * wants a curve drifting across frequency, and a packet burst near zero offset is a
+ * real pass that answers no to it. They miss in opposite directions, so the confusion
+ * matrix matters more than either rate.
+ */
+export type Gate4LabelAxis = {
+  axis: string;
+  items_scored: number;
+  agreed_with_the_network_label: number;
+  rate: number | null;
+  items_excluded_unknown_label: number;
+  items_excluded_reviewer_unsure: number;
+  confusion_network_label_to_human: Record<string, Record<string, number>>;
+};
+
+export type Gate4Arm = {
+  verdict: Verdict;
+  observations_scored: number;
+  decisive: number;
+  rate: number;
+  rate_lower_bound_95: number;
+  rate_upper_bound_95: number;
+  not_decisive_items: string[];
+  intra_rater: {
+    repeated_pairs_scored: number;
+    identical_on_all_three_axes: number;
+    rate_identical_on_all_three_axes: number;
+    per_axis: Record<string, { pairs: number; identical: number; rate: number }>;
+    reading: string;
+  };
+  label_agreement: {
+    neither_axis_asks_the_network_question: string;
+    by_axis: { visible_signal: Gate4LabelAxis; target_consistent: Gate4LabelAxis };
+  };
+  reviewer: {
+    kind: string;
+    identity: string;
+    procedure: string;
+    independence: string;
+  } & Record<string, string>;
+  gate_verdict_is_not_this: string;
+  why_the_gate_is_still_open: string;
+};
+
 const evaluationData = evaluationJson as unknown as {
   gate6: {
     gate: number;
@@ -545,7 +593,21 @@ const evaluationData = evaluationJson as unknown as {
   arm_ladder: Array<{ name: string; blocks: string[] }>;
   size_matched_control: Record<string, unknown>;
   fusion_splits: FusionSplit[];
-  receipt_sha256: { queue: string; fusion: string };
+  /**
+   * Gate 4's measured arm, or null while nobody has answered the worksheet.
+   *
+   * Null is the normal state and the page renders nothing for it, because a section
+   * of zeros reads as a study that failed rather than as one nobody has run. The
+   * reviewer is inside this object rather than beside it: the rate and who produced
+   * it are one fact, and a rate whose reviewer is a separate import is a rate that
+   * gets quoted without them.
+   *
+   * `gate_verdict_is_not_this` is the gate's own verdict, carried here so a reader of
+   * the arm cannot mistake the arm's verdict for it. The gate table reads
+   * `provenance.gate_summary`, not this.
+   */
+  gate4_arm: Gate4Arm | null;
+  receipt_sha256: { queue: string; fusion: string; gate4: string };
 };
 
 const provenanceData = provenanceJson as unknown as {

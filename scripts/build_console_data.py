@@ -478,6 +478,42 @@ _MET = frozenset({"PASSED", "PRE_PASSED"})
 _KNOWN_VERDICTS = _MET | {"NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE", "OPEN"}
 
 
+def _gate4_arm() -> dict[str, Any] | None:
+    """What gate 4's receipt measured, if anything, with who measured it attached.
+
+    Returns None while the worksheet is unanswered, so the page renders nothing rather
+    than a section full of zeros. The reviewer travels with the numbers on purpose: these
+    two are one fact, and a rate whose reviewer is one import away is a rate that gets
+    quoted without them.
+    """
+    receipt = json.loads(
+        (_ARTIFACTS / "GATE4_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    arm = receipt.get("arm")
+    if not arm:
+        return None
+    axes = arm["network_label_agreement"]["by_axis"]
+    return {
+        "verdict": arm["verdict"],
+        "observations_scored": arm["observations_scored"],
+        "decisive": arm["decisive"],
+        "rate": arm["rate"],
+        "rate_lower_bound_95": arm["rate_lower_bound_95"],
+        "rate_upper_bound_95": arm["rate_upper_bound_95"],
+        "not_decisive_items": arm["not_decisive_items"],
+        "intra_rater": arm["intra_rater"],
+        "label_agreement": {
+            "neither_axis_asks_the_network_question": arm["network_label_agreement"][
+                "neither_axis_asks_the_network_question"
+            ],
+            "by_axis": axes,
+        },
+        "reviewer": arm["reviewer"],
+        "gate_verdict_is_not_this": receipt["verdict"],
+        "why_the_gate_is_still_open": receipt["why"],
+    }
+
+
 def _load_receipt_verdict(path: Path, *, gate: int, title: str) -> dict[str, Any]:
     """One gate's verdict, read from its own receipt rather than typed here.
 
@@ -749,9 +785,15 @@ def main(argv: list[str] | None = None) -> int:
                 # that is not degraded must carry its results, and only ensemble
                 # and ood are genuinely optional.
                 "fusion_splits": [_split_for_console(s) for s in _require(fusion, "splits")],
+                # Gate 4's arm, or null while nobody has answered the worksheet. The
+                # gate's own verdict is not here and is not derived from this: it comes
+                # from `gate_summary` like every other gate, which is what keeps a review
+                # by something that is not a person from being published as the gate.
+                "gate4_arm": _gate4_arm(),
                 "receipt_sha256": {
                     "queue": _digest(_ARTIFACTS / "QUEUE_RECEIPT.json"),
                     "fusion": _digest(_ARTIFACTS / "FUSION_RECEIPT.json"),
+                    "gate4": _digest(_ARTIFACTS / "GATE4_RECEIPT.json"),
                 },
             },
             indent=1,

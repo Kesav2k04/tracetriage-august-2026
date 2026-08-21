@@ -29,8 +29,10 @@ from build_gate4_worksheet import main as build_main  # noqa: E402
 from run_gate3 import rate_lower_bound, rate_upper_bound  # noqa: E402
 from score_gate4 import (  # noqa: E402
     ScoringError,
+    _one_axis_against_the_label,
     is_decisive,
     read_responses,
+    read_reviewer,
     verify_commitments,
 )
 from score_gate4 import main as score_main  # noqa: E402
@@ -82,10 +84,33 @@ def _write_responses(path: Path, answers: dict[str, tuple[str, str, str]]) -> No
             writer.writerow([item, *row, ""])
 
 
-def _score(bundle: dict, answers: dict[str, tuple[str, str, str]], tmp_path: Path) -> dict:
+#: A complete declaration. The tests below that measure rates declare a human reviewer,
+#: because that is the arm the gate is about and the one whose numbers land at the top level
+#: of the receipt. The model arm has its own tests.
+_HUMAN = {
+    "kind": "human",
+    "identity": "one reviewer, in the fixture",
+    "procedure": "the worksheet, in order",
+    "independence": "one sitting, no going back",
+}
+
+
+def _write_reviewer(path: Path, declared: dict[str, str] | None) -> Path:
+    if declared is not None:
+        path.write_text(json.dumps(declared), encoding="utf-8")
+    return path
+
+
+def _score(
+    bundle: dict,
+    answers: dict[str, tuple[str, str, str]],
+    tmp_path: Path,
+    reviewer: dict[str, str] | None = None,
+) -> dict:
     responses = tmp_path / "responses.csv"
     receipt = tmp_path / "GATE4_RECEIPT.json"
     _write_responses(responses, answers)
+    declaration = _write_reviewer(tmp_path / "REVIEWER.json", reviewer or _HUMAN)
     code = score_main(
         [
             "--bundle",
@@ -96,6 +121,8 @@ def _score(bundle: dict, answers: dict[str, tuple[str, str, str]], tmp_path: Pat
             str(bundle["manifest_path"]),
             "--out",
             str(receipt),
+            "--reviewer",
+            str(declaration),
         ]
     )
     assert code == 0
@@ -204,6 +231,8 @@ def test_a_tampered_key_is_refused_rather_than_scored(bundle, tmp_path):
                 str(bundle["manifest_path"]),
                 "--out",
                 str(receipt),
+            "--reviewer",
+            str(_write_reviewer(tmp_path / "REVIEWER.json", _HUMAN)),
             ]
         )
     assert "commitment" in str(caught.value)
@@ -448,6 +477,8 @@ def test_an_uninterpretable_answer_refuses_and_writes_nothing(bundle, tmp_path):
                 str(bundle["manifest_path"]),
                 "--out",
                 str(receipt),
+            "--reviewer",
+            str(_write_reviewer(tmp_path / "REVIEWER.json", _HUMAN)),
             ]
         )
     assert "probably" in str(caught.value)
@@ -639,6 +670,8 @@ def test_a_key_that_is_not_json_refuses_instead_of_crashing(bundle, tmp_path):
                 str(bundle["manifest_path"]),
                 "--out",
                 str(receipt),
+            "--reviewer",
+            str(_write_reviewer(tmp_path / "REVIEWER.json", _HUMAN)),
             ]
         )
     assert "not readable JSON" in str(caught.value)
@@ -793,3 +826,163 @@ def test_the_committed_manifest_is_not_silently_replaced(tmp_path):
         == 0
     )
     assert json.loads(manifest.read_text(encoding="utf-8"))["schema"] == "GATE4_WORKSHEET"
+
+
+# ---------------------------------------------------------------------------
+# Who reviewed
+# ---------------------------------------------------------------------------
+
+
+def test_a_rate_cannot_be_published_without_saying_who_produced_it(bundle, tmp_path):
+    """The one number in this project that must never be anonymous.
+
+    Everything else here guards the sample. Nothing guarded the reviewer, so a receipt
+    carrying a decisive rate, an interval and an intra-rater figure read as a study
+    whoever produced it. This makes the absence a refusal rather than a default.
+    """
+    answers = {row["item"]: ("yes", "yes", "yes") for row in bundle["key"]["items"]}
+    responses = tmp_path / "responses.csv"
+    receipt = tmp_path / "GATE4_RECEIPT.json"
+    _write_responses(responses, answers)
+    with pytest.raises(SystemExit) as caught:
+        score_main(
+            [
+                "--bundle",
+                str(bundle["dir"]),
+                "--responses",
+                str(responses),
+                "--manifest",
+                str(bundle["manifest_path"]),
+                "--out",
+                str(receipt),
+                "--reviewer",
+                str(tmp_path / "nothing-here.json"),
+            ]
+        )
+    assert "no reviewer declaration" in str(caught.value)
+    assert not receipt.exists(), "a refusal must not leave a receipt behind"
+
+
+@pytest.mark.parametrize("dropped", sorted(_HUMAN))
+def test_every_field_of_the_declaration_is_required(tmp_path, dropped):
+    partial = {k: v for k, v in _HUMAN.items() if k != dropped}
+    path = tmp_path / "REVIEWER.json"
+    path.write_text(json.dumps(partial), encoding="utf-8")
+    with pytest.raises(Exception) as caught:
+        read_reviewer(path)
+    assert dropped in str(caught.value)
+
+
+def test_a_kind_the_scorer_has_no_handling_for_refuses(tmp_path):
+    """Not a fallthrough. A third kind must stop the run rather than pick a branch."""
+    path = tmp_path / "REVIEWER.json"
+    path.write_text(json.dumps({**_HUMAN, "kind": "panel"}), encoding="utf-8")
+    with pytest.raises(Exception) as caught:
+        read_reviewer(path)
+    assert "panel" in str(caught.value)
+
+
+def test_a_model_review_keeps_the_gate_open_and_publishes_its_numbers_separately(
+    bundle, tmp_path
+):
+    """The whole point of the split.
+
+    A review by anything other than a person measures something real about the sample and
+    does not measure the gate as titled. So the numbers are published, in `arm`, and the
+    field every consumer reads does not move. No consumer has to know this distinction
+    exists in order to avoid getting it wrong.
+    """
+    answers = {row["item"]: ("yes", "yes", "yes") for row in bundle["key"]["items"]}
+    model = {**_HUMAN, "kind": "model", "identity": "a language model, named"}
+    receipt = _score(bundle, answers, tmp_path, reviewer=model)
+
+    assert receipt["verdict"] == "NOT_RUN"
+    assert "not by a person" in receipt["why"]
+    assert receipt["arm"]["verdict"] == "PASSED", "the measured arm keeps its own verdict"
+    assert receipt["arm"]["reviewer"]["kind"] == "model"
+    assert "rate" not in receipt, "no rate may sit where a human rate would"
+    assert receipt["arm"]["rate"] == 1.0
+
+    human = _score(bundle, answers, tmp_path)
+    assert human["verdict"] == "PASSED"
+    assert human["rate"] == 1.0
+    assert "arm" not in human, "a human review is the gate, not an arm of it"
+    assert human["reviewer"]["kind"] == "human"
+
+
+def test_the_committed_receipt_says_who_reviewed_it_if_anyone_did():
+    """The tracked receipt, not a fixture. Either nobody has reviewed, or it says who."""
+    receipt = json.loads(
+        (REPO / "artifacts/GATE4_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    if receipt["verdict"] == "NOT_RUN" and "arm" not in receipt:
+        assert "reviewer" not in receipt, "nothing was reviewed, so nobody may be named"
+        return
+    named = receipt.get("reviewer") or receipt["arm"]["reviewer"]
+    for field in ("kind", "identity", "procedure", "independence"):
+        assert str(named.get(field) or "").strip(), f"the receipt names no {field}"
+    if named["kind"] != "human":
+        assert receipt["verdict"] == "NOT_RUN", (
+            "gate 4 is titled blinded human decidability and this reviewer is not a "
+            "person, so the gate's own verdict must stay open"
+        )
+
+
+def test_the_label_agreement_reports_both_axes_and_claims_neither_is_the_question(
+    bundle, tmp_path
+):
+    """Two comparisons, and the receipt refuses to nominate one as the right one.
+
+    The first version published one rate, on `visible_signal`, and it read as "the silver
+    labels are this often wrong". It is not that: `visible_signal` counts a fixed local
+    carrier and the network label does not. Adding `target_consistent` did not fix that, it
+    swapped it, because that axis wants a drifting curve and a packet burst near zero offset
+    is a real pass that answers no. Both directions are measurable and this asserts both are
+    reported.
+    """
+    answers = {}
+    for row in bundle["key"]["items"]:
+        # Every plate: a trace is visible, and none of them is pass-shaped. Against a
+        # balanced sample that has to disagree with the network in both directions at once,
+        # which is exactly the shape the two axes cannot both describe.
+        answers[row["item"]] = ("yes", "yes", "no")
+    agreement = _score(bundle, answers, tmp_path)["network_label_agreement"]
+
+    assert "neither_axis_asks_the_network_question" in agreement
+    assert "closest" not in json.dumps(agreement), (
+        "no field may nominate one axis as the network's question, because the measurement "
+        "says both miss it"
+    )
+    by_axis = agreement["by_axis"]
+    assert set(by_axis) == {"visible_signal", "target_consistent"}
+    for axis, block in by_axis.items():
+        assert block["axis"] == axis
+        assert block["items_scored"] >= 1
+        assert block["confusion_network_label_to_human"]
+
+    # visible_signal calls everything with-signal, so it agrees on exactly the plates the
+    # network calls with-signal. target_consistent calls everything without-signal, so it
+    # agrees on exactly the complement. The two rates must therefore sum to 1.
+    assert by_axis["visible_signal"]["rate"] + by_axis["target_consistent"]["rate"] == 1.0
+
+    # And the top level stays the visible_signal pair, because the console and the sync
+    # scripts read those names.
+    assert agreement["rate"] == by_axis["visible_signal"]["rate"]
+    assert agreement["items_scored"] == by_axis["visible_signal"]["items_scored"]
+
+
+def test_na_on_the_target_axis_is_a_committed_answer_not_an_exclusion():
+    """`na` means there was nothing in the frame to judge, which is a without-signal verdict.
+
+    Counting it as unsure would drop every empty plate out of the comparison, and empty
+    plates are half of what a balanced sample is for.
+    """
+    key = {"G4-001": {"label": "without-signal"}, "G4-002": {"label": "with-signal"}}
+    answers = {
+        "G4-001": {"artifact_usable": "yes", "visible_signal": "no", "target_consistent": "na"},
+        "G4-002": {"artifact_usable": "yes", "visible_signal": "yes", "target_consistent": "yes"},
+    }
+    block = _one_axis_against_the_label(answers, key, "target_consistent", "yes")
+    assert block["items_scored"] == 2
+    assert block["items_excluded_reviewer_unsure"] == 0
+    assert block["agreed_with_the_network_label"] == 2

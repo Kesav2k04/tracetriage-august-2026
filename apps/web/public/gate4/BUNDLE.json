@@ -11,7 +11,7 @@
  "archive": {
   "name": "tracetriage_gate4_bundle.zip",
   "bytes": 113238991,
-  "sha256": "d474a1f23643ba3a9a5c92f4a5d97a816b50ec3dfcd3d0a5f3511830953d7e03",
+  "sha256": "c426e1d978b66cf62a8d024a2305c30ee374d3711eef91912a4bf181f4535643",
   "n_entries": 75
  },
  "images": {
@@ -22,5 +22,5 @@
  "not_packed": {
   "key": "the salt and the item-to-observation mapping. A reviewer who receives it is not blinded, and the scorer needs it on the machine that scores rather than on the machine that reviews."
  },
- "reading": "One file, one digest. A reviewer checks what arrived against the sha256 above, opens review.html, answers 72 items and sends back one CSV. The verdict in artifacts/GATE4_RECEIPT.json stays NOT_RUN until that file exists, and no number in this repository moves before it does."
+ "reading": "One file, one digest, and the digest is reproducible: every entry is written with a fixed timestamp, so re-running this script over the same bundle gives the same bytes. A reviewer checks what arrived against the sha256 above, opens review.html, answers every item and sends back one CSV. The response form in the archive is generated empty rather than copied from the bundle, so it never carries a previous reviewer's answers. Until a person does that, the verdict in artifacts/GATE4_RECEIPT.json stays NOT_RUN, and it stays NOT_RUN for a review by anything that is not a person: scripts/score_gate4.py publishes those under `arm` and leaves the gate's own verdict where it was."
 }

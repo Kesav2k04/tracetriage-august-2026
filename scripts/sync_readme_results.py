@@ -260,9 +260,19 @@ _MEASURED = {
         f"{_g3['rate_lower_bound_95']:.3f}"
     ),
     4: (
-        f"never run, so it carries no rate. The instrument exists: "
-        f"`scripts/build_gate4_worksheet.py` builds the blinded bundle and "
-        f"`artifacts/GATE4_RECEIPT.json` reads `{_g4['verdict']}`"
+        (
+            f"answered, and not by a person, so it carries no rate for this gate. The "
+            f"model arm in `artifacts/GATE4_RECEIPT.json` is "
+            f"{_g4['arm']['decisive']} of {_g4['arm']['observations_scored']} "
+            f"decidable, lower bound {_g4['arm']['rate_lower_bound_95']:.3f}, and the "
+            f"gate's own verdict stays `{_g4['verdict']}`"
+        )
+        if _g4.get("arm")
+        else (
+            f"never run, so it carries no rate. The instrument exists: "
+            f"`scripts/build_gate4_worksheet.py` builds the blinded bundle and "
+            f"`artifacts/GATE4_RECEIPT.json` reads `{_g4['verdict']}`"
+        )
     ),
     5: (
         f"margin {g5['margin']:+.5f} on the shipped arm, 95% CI {g5['ci95'][0]:+.5f} to "

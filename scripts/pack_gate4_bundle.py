@@ -57,8 +57,17 @@ PUBLISHED = REPO / "apps" / "web" / "public" / "gate4"
 
 #: What travels. The key is not on this list and never will be: it holds the salt and the
 #: item-to-observation mapping, and a reviewer who receives it is not blinded any more.
-PACKED = ("review.html", "worksheet.md", "responses.csv")
+#: Copied from the bundle as-is. `responses.csv` is deliberately not here: see
+#: `_blank_form`.
+PACKED = ("review.html", "worksheet.md")
 IMAGES = "images"
+FORM = "responses.csv"
+
+#: Every entry in the archive gets this timestamp instead of its own mtime. Without it the
+#: zip is a different file after any touch, and the sha256 published beside it is not
+#: something a reader can reproduce, which is worse than publishing no digest: it looks
+#: checkable. 1980-01-01 is the earliest a zip can record.
+FIXED_TIME = (1980, 1, 1, 0, 0, 0)
 
 
 def _sha256(path: pathlib.Path) -> str:
@@ -111,6 +120,29 @@ def _publish_review(
     (PUBLISHED / "review.html").write_bytes(injected.encode("utf-8"))
 
 
+def _blank_form(manifest: dict) -> bytes:
+    """The response form, generated empty from the committed item list.
+
+    Not copied from the bundle. The bundle is where a review is carried out, so its
+    `responses.csv` holds whatever the last reviewer answered, and copying it into the
+    archive would hand the next reviewer a form with someone else's judgments already in
+    it. Generating it also means the item ids in the form come from the same manifest the
+    commitments were taken over, so a form listing an item the sample does not contain is
+    not a thing this can produce.
+    """
+    lines = ["item,artifact_usable,visible_signal,target_consistent,notes"]
+    lines += [f"{row['item']},,,," for row in manifest["commitments"]]
+    return ("\r\n".join(lines) + "\r\n").encode("utf-8")
+
+
+def _add(zf: zipfile.ZipFile, name: str, payload: bytes, method: int) -> None:
+    """One entry, with a fixed timestamp so the archive's digest is reproducible."""
+    info = zipfile.ZipInfo(f"tracetriage_gate4/{name}", date_time=FIXED_TIME)
+    info.compress_type = method
+    info.external_attr = 0o644 << 16
+    zf.writestr(info, payload)
+
+
 def pack(bundle: pathlib.Path, key: pathlib.Path) -> dict:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if not key.exists():
@@ -130,22 +162,22 @@ def pack(bundle: pathlib.Path, key: pathlib.Path) -> dict:
     missing = [name for name in PACKED if not (bundle / name).exists()]
     if missing:
         raise SystemExit(
-            f"{missing} are not in {bundle}. A reviewer needs the page, the protocol and "
-            f"the empty response file, and a zip missing one of them is a zip that gets "
-            f"three emails back."
+            f"{missing} are not in {bundle}. A reviewer needs the page and the protocol, "
+            f"and a zip missing one of them is a zip that gets three emails back."
         )
 
     archive = bundle.parent / "tracetriage_gate4_bundle.zip"
     # Stored rather than deflated for the images. They are PNGs, which are already
     # deflate streams, so compressing them again buys about a percent for minutes of
-    # CPU. The three small text files are compressed, because they are text.
+    # CPU. The small text files are compressed, because they are text.
+    images = sorted((bundle / IMAGES).iterdir())
     with zipfile.ZipFile(archive, "w") as zf:
         for name in PACKED:
-            zf.write(bundle / name, f"tracetriage_gate4/{name}", zipfile.ZIP_DEFLATED)
-        for image in sorted((bundle / IMAGES).iterdir()):
-            zf.write(image, f"tracetriage_gate4/{IMAGES}/{image.name}", zipfile.ZIP_STORED)
+            _add(zf, name, (bundle / name).read_bytes(), zipfile.ZIP_DEFLATED)
+        _add(zf, FORM, _blank_form(manifest), zipfile.ZIP_DEFLATED)
+        for image in images:
+            _add(zf, f"{IMAGES}/{image.name}", image.read_bytes(), zipfile.ZIP_STORED)
 
-    images = sorted((bundle / IMAGES).iterdir())
     digest = _sha256(archive)
     PUBLISHED.mkdir(parents=True, exist_ok=True)
     (PUBLISHED / "worksheet.md").write_bytes((bundle / "worksheet.md").read_bytes())
@@ -170,7 +202,7 @@ def pack(bundle: pathlib.Path, key: pathlib.Path) -> dict:
             "name": archive.name,
             "bytes": archive.stat().st_size,
             "sha256": digest,
-            "n_entries": len(PACKED) + len(images),
+            "n_entries": len(PACKED) + 1 + len(images),
         },
         "images": {
             "n": len(images),
@@ -185,10 +217,16 @@ def pack(bundle: pathlib.Path, key: pathlib.Path) -> dict:
             ),
         },
         "reading": (
-            "One file, one digest. A reviewer checks what arrived against the sha256 "
-            "above, opens review.html, answers 72 items and sends back one CSV. The "
-            "verdict in artifacts/GATE4_RECEIPT.json stays NOT_RUN until that file "
-            "exists, and no number in this repository moves before it does."
+            "One file, one digest, and the digest is reproducible: every entry is "
+            "written with a fixed timestamp, so re-running this script over the same "
+            "bundle gives the same bytes. A reviewer checks what arrived against the "
+            "sha256 above, opens review.html, answers every item and sends back one CSV. "
+            "The response form in the archive is generated empty rather than copied from "
+            "the bundle, so it never carries a previous reviewer's answers. Until a "
+            "person does that, the verdict in artifacts/GATE4_RECEIPT.json stays "
+            "NOT_RUN, and it stays NOT_RUN for a review by anything that is not a "
+            "person: scripts/score_gate4.py publishes those under `arm` and leaves the "
+            "gate's own verdict where it was."
         ),
     }
 
