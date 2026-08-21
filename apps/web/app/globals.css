@@ -3081,3 +3081,157 @@ main .shell > section > h2::before {
     animation: fade-in 220ms var(--ease-productive-entrance) both;
   }
 }
+
+/* --------------------------------------------------------------------------------------
+   Depth.
+
+   A dark console flattens. Every surface is a near-black plate on a near-black ground, and
+   without a light source the eye reads the whole page as one plane, which is why a dark
+   interface can be correct in every colour and still look cheap. Two things fix that, and
+   neither of them is a shadow: an edge that catches light, and real distance between a plate
+   and its ground.
+
+   Where this is allowed to apply, and where it is not.
+
+   A `perspective` scales and shears everything inside it. On a plate carrying a plot, a
+   waterfall, a fitted corridor or a ground track, that means a measured geometry is drawn at
+   a size and angle the measurement never had, and this console's entire argument is that it
+   does not do that. So depth is chrome only: counts, verdict tiles, colophon cards. It is
+   never applied to `.hero-plate-frame`, `.waterfall`, `.viewer`, any `figure`, or any element
+   holding an SVG whose coordinates came off a receipt. That exclusion is the reason the hero
+   plate and the gate ledger are still flat, and it is deliberate rather than unfinished.
+
+   Everything below is transform, opacity and box-shadow. No layout property animates, so
+   nothing here can move a neighbour, and the published layout-shift number stays zero. -----*/
+
+:root {
+  /* Far enough that the tilt is a suggestion. At 900px a 6px lift is a 0.7 percent scale,
+     which is under the threshold where Chrome re-rasterises text visibly. */
+  --depth-perspective: 900px;
+  --depth-lift: 6px;
+  /* The specular edge. White at four percent reads as light on a bevel; higher reads as a
+     border, which the plate already has and does not need twice. */
+  --depth-specular: rgb(255 255 255 / 0.04);
+  --depth-specular-strong: rgb(255 255 255 / 0.09);
+  /* Two-part, for the reason stated at the shadow tokens above: in a dark theme the cast
+     shadow is nearly the colour of the ground, so the lift has to come from the ring. */
+  --depth-cast:
+    0 0 0 1px rgb(255 255 255 / 0.05),
+    0 12px 28px -14px rgb(0 0 0 / 0.75);
+}
+
+/* The specular edge is unconditional. It is not motion, it does not depend on a pointer,
+   and it is what makes a plate read as a plate on a phone and under reduced motion. */
+[data-depth] > * {
+  position: relative;
+}
+
+[data-depth] > *::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--depth-specular-strong) 18%,
+    var(--depth-specular) 50%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* The lift needs a pointer that can hover and a reader who has not asked for less motion.
+   `hover: hover` and `pointer: fine` together, because a touch screen reports itself as
+   hover-capable often enough that either one alone hands a phone a state it cannot leave. */
+@media (hover: hover) and (pointer: fine) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-depth] {
+      perspective: var(--depth-perspective);
+    }
+
+    [data-depth] > * {
+      transform-style: preserve-3d;
+      transition:
+        transform var(--dur-moderate-01) var(--ease-expressive-standard),
+        box-shadow var(--dur-moderate-01) var(--ease-expressive-standard);
+    }
+
+    [data-depth] > *:hover {
+      transform: translate3d(0, -2px, var(--depth-lift));
+      box-shadow: var(--depth-cast);
+    }
+
+    /* A tile is not a control and must not answer to focus as though it were, but a plate
+       reached by keyboard should still be findable, so it lifts without the ring moving. */
+    [data-depth] > *:focus-within {
+      transform: translate3d(0, -2px, var(--depth-lift));
+      box-shadow: var(--depth-cast);
+    }
+  }
+}
+
+/* The stat plate.
+
+   These values were inline on the component until now, which is why every stat on the console
+   was a flat rectangle: an inline style beats a stylesheet, so no rule could give the plate a
+   ground of its own. The numbers below are the ones that were inline, unchanged, plus the two
+   that could not be expressed there.
+
+   The ground stays flat, and a gradient was written here first. A flat fill at one lightness
+   reads as a hole cut in the page rather than a surface, and two percent more white at the
+   top fixes that, so the first version of this rule lit the plate from above.
+
+   It is not affordable. `--text-03` on `--ui-01` is 4.56:1 against a floor of 4.5, and
+   `scripts/check_contrast.py` says in its own docstring that this is the tightest pair on the
+   console that is not exempt. `.stat-label` is that pair. Compositing white at 0.022 over the
+   ground lifts it to #202938 and takes the label to 4.28:1, which fails, and the contrast
+   gate cannot see it happen: that script reads token pairs, and a gradient is not a token.
+   The budget on that pair is 0.06 of a ratio and the gradient spent 0.28 of it.
+
+   So the light goes on the edge instead. A one pixel lit border is the same cue and it sits
+   on the boundary rather than behind a caption, which costs nothing to read. Anything that
+   wants a lighter ground here has to move the label to `--text-02` first, which has 8.93:1
+   and room to spare. */
+.stat {
+  padding: var(--sp-05);
+  border: 1px solid var(--border-subtle);
+  background: var(--ui-01);
+  position: relative;
+}
+
+.stat::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--depth-specular-strong) 18%,
+    var(--depth-specular) 50%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+.stat-label {
+  font-size: var(--type-label);
+  color: var(--text-03);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-value {
+  font-size: var(--type-heading-04);
+  margin-top: var(--sp-02);
+  color: var(--text-01);
+  line-height: 1.2;
+}
+
+.stat-detail {
+  font-size: var(--type-caption);
+  color: var(--text-02);
+  margin-top: var(--sp-02);
+  line-height: 1.5;
+}

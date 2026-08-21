@@ -173,47 +173,23 @@ export function Stat({
   detail?: ReactNode;
   tone?: string;
 }) {
+  // A class rather than the inline styles this used to carry. Inline styles win over every
+  // stylesheet rule, so while the padding, ground and border sat in a `style` attribute no
+  // sheet could give a stat plate a gradient, a lit edge or a hover state: the depth layer in
+  // globals.css could reach the tile's transform and shadow and not its background. The
+  // computed values are unchanged, they just moved somewhere that can be overridden.
   return (
-    <div
-      style={{
-        padding: "var(--sp-05)",
-        background: "var(--ui-01)",
-        border: "1px solid var(--border-subtle)",
-      }}
-    >
+    <div className="stat">
+      <div className="stat-label">{label}</div>
       <div
-        style={{
-          fontSize: "var(--type-label)",
-          color: "var(--text-03)",
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-        }}
-      >
-        {label}
-      </div>
-      <div
-        className="num"
-        style={{
-          fontSize: "var(--type-heading-04)",
-          marginTop: "var(--sp-02)",
-          color: tone ?? "var(--text-01)",
-          lineHeight: 1.2,
-        }}
+        className="num stat-value"
+        // `tone` stays inline. It is the one value here a caller varies per instance, and it
+        // is how a stat says which verdict colour it carries.
+        style={tone ? { color: tone } : undefined}
       >
         {value}
       </div>
-      {detail && (
-        <div
-          style={{
-            fontSize: "var(--type-caption)",
-            color: "var(--text-02)",
-            marginTop: "var(--sp-02)",
-            lineHeight: 1.5,
-          }}
-        >
-          {detail}
-        </div>
-      )}
+      {detail && <div className="stat-detail">{detail}</div>}
     </div>
   );
 }

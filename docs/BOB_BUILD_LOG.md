@@ -7190,3 +7190,94 @@ it prints them. Easing it would make the number wrong for the duration of the ea
 animated pixel on this site draws a measurement, and a generated background would be the only
 thing on the page tracing to nobody.
 
+
+## E5. Depth and a counting number, and what the last unit got right by declining them
+
+This unit was asked to add the four things the previous one turned down, so it starts by
+saying which of those refusals survived contact and which did not. Two stand exactly as
+written. One was wrong. One was wrong in a way that took three measured defects to find.
+
+**GSAP is in, and the reason the last entry gave against it was a good reason for the job it
+imagined.** That entry said the sequencing GSAP would do is already done by CSS scroll
+timelines, and that is true: the stagger was rebuilt with a JavaScript timeline and then
+deleted again, because `.lede-verdict` already arrives in order from `globals.css` at 90ms and
+140ms. A second entrance on an element that has one is not an improvement. What survives is
+the one thing a scroll timeline cannot express at all: CSS cannot animate the content of a
+text node, so the two lift figures on the landing page now count to the value their receipt
+holds instead of appearing with it. The 24 kB objection is answered by measurement rather than
+by argument. First Load JS shared across all routes is unchanged at 102 kB, the landing page
+moved 113 to 114 kB, and gsap and ScrollTrigger sit in a chunk fetched after first paint that
+the page is complete without.
+
+**Counting a number that a receipt fixed is a place a display can disagree with its own
+evidence, so the arithmetic has rules and tests rather than an easing curve.** A counter never
+shows a value above its target, not for one frame, which means truncating and not rounding:
+rounding carries a frame above the target near the end, and above the target is the one place
+a number here may never be. It shows exactly the digits the page printed, and it finishes on
+the target's own string rather than a reformat of it. The target is parsed out of the text the
+server rendered, so it cannot drift from the receipt that produced the markup. Fourteen tests
+in `apps/web/tests/choreography.test.ts` cover it, and two of them walk the whole progress
+range rather than sampling it.
+
+**Lenis and GSAP now share one clock.** Each was running its own `requestAnimationFrame`,
+which does the work twice a frame and leaves the two reading the scroll a tick apart. GSAP's
+ticker drives Lenis, Lenis's scroll event drives ScrollTrigger, and `lagSmoothing(0)` is off
+because a late frame otherwise makes GSAP skip ahead, which on a scroll-linked tween reads as
+the page jumping. The standalone loop still exists and runs until the choreography chunk
+arrives, so scrolling never depends on it.
+
+**CSS 3D is in on chrome, and both of the exclusions the last entry argued for stand.** The
+hero plate is still flat, for the reason that entry gave: a layer translated in z under
+perspective is scaled, so the corridor would stop sitting on the trace it was fitted to, and
+an interface that displaces a fitted curve from its own evidence is lying about a measurement.
+The kill-gate ledger is still flat, for the reason that entry gave. What was wrong was
+treating those two cases as an argument against depth anywhere. A perspective scales
+everything inside it, so the rule is not "no 3D", it is that depth may not contain a
+measurement: it goes on stat plates and counts, never on a plot, a waterfall, a ground track,
+a figure, or an SVG whose coordinates came off a receipt. The lift is `translate3d(0, -2px,
+6px)` at 900px of perspective, which is a 0.7 percent scale, under where Chrome re-rasterises
+text visibly. It is gated on `(hover: hover) and (pointer: fine)` together, because a touch
+screen reports itself hover-capable often enough that either alone hands a phone a state it
+cannot leave.
+
+**Three defects, each found by measuring rather than by reading.**
+
+The counter pinned its own width first. A number that gains a digit moves whatever sits beside
+it, so the element was measured once and the width written back as an inline `min-width`. It
+measured 339.54px on both figures, because `.lede-number` is a block filling its grid column
+and its width never depended on its text: there was no shift to prevent. The pin was worse
+than useless. It was a desktop measurement frozen into an inline style, so a reader who
+narrowed the window afterwards kept a 339px floor on a column with less than 339px to give.
+
+The depth lift did not work, and the hover shadow beside it did, from one rule. GSAP writes
+its transform inline and an inline transform beats a stylesheet, so the finished entrance left
+`transform: matrix(1, 0, 0, 1, 0, 0)` on the tile permanently and `:hover` could never reach
+the property. `clearProps` hands the element back when the tween ends, which also means the
+settled DOM is what the server sent.
+
+It still did not work on `.lede-verdict`, and that one cannot be fixed from the hover side.
+Those tiles carry `animation: reveal-in ... both`, and `reveal-in` ends on `transform: none`.
+A filled keyframe outranks an author declaration for as long as the page lives, so the
+computed transform is the identity matrix forever and no `:hover` rule below it will ever
+apply. Depth moved to the counts, which carry no animation, and the tile markup says why.
+
+**A gradient was written and then measured out.** A flat fill at one lightness reads as a hole
+cut in the page rather than a surface, so the stat plate was lit from above with white at
+0.022. `--text-03` on `--ui-01` is 4.56:1 against a floor of 4.5, and `check_contrast.py` says
+in its own docstring that this is the tightest pair on the console that is not exempt.
+`.stat-label` is that pair. The composite is #202938 and it takes the label to 4.28:1, which
+fails, and the contrast gate cannot see it happen: that script reads token pairs, and a
+gradient is not a token. The budget was 0.06 of a ratio and the gradient spent 0.28 of it. The
+light went onto a one pixel edge instead, which is the same cue on the boundary rather than
+behind a caption. Anything that wants a lighter ground there has to move the label to
+`--text-02` first, at 8.93:1.
+
+`Stat` also stopped carrying its padding, ground and border as inline styles. That is why every
+stat on this console was a flat rectangle no sheet could reach: an inline style wins, so the
+depth layer could address the tile's transform and shadow and not its background. The computed
+values did not change, they moved somewhere that can be overridden.
+
+**Measured cost.** Cumulative layout shift is zero across a full scroll of the landing page
+with the counter and the entrance both running. 26 of 26 contrast pairs meet their floor, 19
+neutral tokens still match their derivation at hue 262, 211 console tests pass where there
+were 197, and typecheck, lint and the export are clean.

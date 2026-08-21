@@ -190,6 +190,13 @@ export default function QueuePage() {
         <GateLedger />
         </div>
         <div className="lede-figure">
+          {/* No `data-stagger` and no `data-depth` here, and both were tried. These two
+              tiles already arrive in order from CSS (`.lede-verdict` at 90ms, the second at
+              140ms in globals.css), so a scripted stagger was a second entrance on an
+              element that had one. The depth lift cannot work here either: the same rule
+              gives them `animation: reveal-in ... both`, and a filled keyframe ending in
+              `transform: none` outranks any hover declaration for as long as the page
+              lives. Depth goes on the counts below, which carry no animation. */}
           <div className="lede-verdicts">
             {LEDE_SPLITS.map((entry) => (
               <div className="lede-verdict" key={entry.name}>
@@ -434,6 +441,11 @@ export default function QueuePage() {
         description="Counts, not rates. Every number here carries the denominator it was measured over."
       >
         <div
+          // Four counts that are read left to right, so they arrive left to right. The
+          // attribute is the whole contract with the motion layer: no script, no reveal,
+          // and the tiles are exactly what the server sent.
+          data-stagger="counts"
+          data-depth=""
           style={{
             display: "grid",
             gap: "var(--sp-05)",
