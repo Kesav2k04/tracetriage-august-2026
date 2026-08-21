@@ -1,0 +1,59 @@
+name: Regenerate the console lock on Linux
+
+# The lock `npm ci` installs has to be produced on the platform `npm ci` runs on.
+#
+# When a transitive dependency appears at two versions, npm hoists one of them to the root
+# and nests the other, and it picks by the order it walks the graph. That order shifts with
+# the set of optional platform packages present, so a lock resolved on Windows hoisted
+# picomatch@2.3.2 to node_modules/picomatch, while a Linux install of the same package.json
+# wants 4.0.5 there and 2.3.2 nested. Both trees are correct. Only one matches the lock, and
+# npm ci refuses the other with a complaint about picomatch that names neither the platform
+# nor the cause.
+#
+# So the lock is generated here rather than on a developer machine, in the same image and
+# with the same node version the console job installs it with. The second step is the point:
+# the artifact is only produced if a real `npm ci` accepts the file, so this cannot upload a
+# lock that fails the job it exists to feed.
+#
+# Run it from the Actions tab, or with: gh workflow run lockfile.yml
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lock:
+    name: Resolve and prove the lock
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Resolve the tree from package.json alone
+        working-directory: apps/web
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --no-audit --no-fund
+
+      - name: Prove npm ci accepts what was just written
+        working-directory: apps/web
+        run: |
+          rm -rf node_modules
+          npm ci
+
+      - name: Report what changed
+        working-directory: apps/web
+        run: |
+          node -e "const p=require('./package-lock.json');console.log('entries',Object.keys(p.packages).length);for(const k of Object.keys(p.packages))if(k.endsWith('picomatch'))console.log(k,p.packages[k].version)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-lock
+          path: apps/web/package-lock.json
+          if-no-files-found: error
