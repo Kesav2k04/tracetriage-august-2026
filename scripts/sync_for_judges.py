@@ -771,11 +771,15 @@ _BOB_UNIT_LIST = ", ".join(_BOB_UNITS)
 #: What the old counter reported, kept so the correction is stated rather than quietly
 #: applied. A number that moves from 60 to 10 with no explanation reads as a retreat; the
 #: same number with its cause reads as a fix.
-_OLD_HEADING_COUNT = sum(
-    1
-    for line in (REPO / "docs/BOB_BUILD_LOG.md").read_text(encoding="utf-8").splitlines()
-    if line.startswith("## ") and line.strip() not in {"## Format", "## Entries"}
-)
+#:
+#: Frozen, and that is the whole point of it. This was a live count of `## ` headings in
+#: docs/BOB_BUILD_LOG.md, which is exactly the wrong thing to recompute: the sentence it
+#: feeds says the number "used to be" this, and a value that grows with every appended
+#: entry is not what it used to be. The published figure had already drifted to 66 and
+#: then to 67, neither of which was ever reported as a unit count. A historical value in a
+#: generated document has to be a literal, or the document rewrites its own past every
+#: time something unrelated is added to the tree.
+_OLD_HEADING_COUNT = 60
 
 BOB_TECHNICAL = _para(
     f"""IBM Bob built the load-bearing pipeline, and the log names which units those were
