@@ -774,6 +774,16 @@ code,
   color: var(--text-01);
 }
 
+/* The sub-label is for the sidebar only.
+   Below 60rem the rail is a horizontal strip of seven items, and seven descriptions
+   laid end to end would be a paragraph pretending to be a nav. The label alone is what
+   fits there, so the hint is not rendered at that width rather than being rendered
+   small: a caption too small to read is worse than an absence, because it still costs
+   the row its height. */
+.rail-link-hint {
+  display: none;
+}
+
 .rail-status {
   display: flex;
   flex-wrap: wrap;
@@ -803,6 +813,21 @@ code,
   color: var(--text-02);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* The gate tally is a link, and it has to look like the number it replaced rather
+   than like a link in a nav. Underlined on hover and focus only, so the resting rail
+   is unchanged. */
+.rail-status-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.rail-status-link:hover,
+.rail-status-link:focus-visible {
+  color: var(--text-01);
+  border-bottom-color: currentColor;
 }
 
 @media (min-width: 60rem) {
@@ -845,6 +870,35 @@ code,
 
   .rail-link[aria-current="page"] {
     border-left-color: var(--interactive-04);
+  }
+
+  /* Two lines here, so the nowrap above has to be released for this width only:
+     the label wraps never, the hint under it may. */
+  .rail-link {
+    white-space: normal;
+    display: flex;
+    gap: var(--sp-03);
+    align-items: flex-start;
+    line-height: 1.3;
+  }
+
+  .rail-link-text {
+    display: block;
+  }
+
+  .rail-link-hint {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-03);
+    font-family: var(--font-label);
+    font-size: 0.6875rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: none;
+  }
+
+  .rail-link:hover .rail-link-hint,
+  .rail-link[aria-current="page"] .rail-link-hint {
+    color: var(--text-02);
   }
 
   .rail-status {
@@ -1085,6 +1139,32 @@ code,
 
 .lede-stack .num {
   color: var(--text-02);
+}
+
+/* What holds, between the product line and the gates.
+   Every judge-facing surface used to open on a verdict that came back inconclusive,
+   with the three results that were established sitting one to four clicks away. That
+   ordering is true and it reads as a project that failed. This block carries the
+   established results at body size in the same ink as the product line, and the
+   pre-registered gates keep the ledger beside it and the verdict tiles below it at
+   full size with nothing softened.
+
+   Bordered left in the support-02 token rather than the support-04 the win paragraph
+   uses, so the two positive blocks on this screen are legible as a pair without either
+   borrowing the verdict palette. */
+.lede-established {
+  margin: var(--sp-05) 0 0;
+  max-width: 62ch;
+  border-left: 2px solid var(--support-02);
+  padding-left: var(--sp-05);
+  color: var(--text-02);
+  font-size: var(--type-body);
+  line-height: 1.7;
+}
+
+.lede-established strong {
+  color: var(--text-01);
+  font-weight: 600;
 }
 
 /* The measured win, carried at the weight of the failure beside it. Bordered on the
@@ -3050,6 +3130,7 @@ main .shell > section > h2::before {
 @media (prefers-reduced-motion: no-preference) {
   .lede-kicker,
   .lede-product,
+  .lede-established,
   .lede-stack,
   .lede-verdict,
   .lede-headline {
@@ -3072,8 +3153,12 @@ main .shell > section > h2::before {
     animation-delay: 170ms;
   }
 
+  .lede-established {
+    animation-delay: 200ms;
+  }
+
   .lede-stack {
-    animation-delay: 220ms;
+    animation-delay: 240ms;
   }
 
   /* The legend fades rather than rises, and last. It explains the field behind the hero,
@@ -3203,6 +3288,19 @@ main .shell > section > h2::before {
    on the boundary rather than behind a caption, which costs nothing to read. Anything that
    wants a lighter ground here has to move the label to `--text-02` first, which has 8.93:1
    and room to spare. */
+/* A row of stat plates, and this rule was missing.
+   `apps/web/app/evaluation/page.tsx` has written `<div className="stat-grid">` since the
+   ablation section was added, and no rule for that class existed anywhere in this
+   stylesheet, so the plates inside it stacked as blocks at full width. It looked
+   deliberate, which is why it survived: a column of plates is a legible layout and
+   nothing about it says the author asked for a grid. Defined here rather than removed
+   from the markup, because a grid is what that section wants. */
+.stat-grid {
+  display: grid;
+  gap: var(--sp-05);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
 .stat {
   padding: var(--sp-05);
   border: 1px solid var(--border-subtle);

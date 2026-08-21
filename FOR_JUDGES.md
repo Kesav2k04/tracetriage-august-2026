@@ -9,17 +9,37 @@ learn from opening each one, and it writes the reviewer's first sentence with a 
 Granite model whose draft is thrown away unless every number in it traces back to that
 observation's own measured fields.
 
-This page is a map, not a summary. Each claim below names the file that carries the
-evidence and, where it can, the command that regenerates it. Of the 6 kill gates declared
-before the build, 2 were met, 3 came back inconclusive and 1 was never run. That tally is
-read from the receipts by the console rather than typed here, and the 2 that were met are
-the PRE_PASSED feasibility checks answered before any pipeline code was written, so of the
-4 gates that ask whether the idea works, none passed on the split that decides it.
+Ground-station networks are how university and cubesat missions are actually operated, and
+an unreviewed pass is telemetry nobody read. The decision this serves is the one every
+mission-operations queue has: of everything that came down, what does a person open first.
 
-## Six checks worth running first
+**What was measured and holds, before what did not.** The evidence tools change what a
+local IBM Granite model gets right: 22 of 24 against 2 of 24 with no tools, paired exact
+one-sided p of 1e-06. The grounding checker caught 525 of 525 planted falsehoods and
+refused 0 of 175 drafts that break no rule, which is the half that makes the first number
+mean anything. And on stations the model never trained on, the review queue finds 2.253
+times as many actionable conflicts as random ordering at the same budget, interval [1.920,
+3.859], clear of its threshold. None of those three needed a gate to come back a
+particular way.
+
+This page is a map, not a summary. Each claim below names the file that carries the
+evidence and, where it can, the command that regenerates it. The gates it reports are a
+research bar rather than a feature list: a gate is met only when a 95% interval clears its
+threshold, so a point estimate above the bar whose interval straddles it is published as a
+failure. Of the 6 kill gates declared before the build, 2 were met, 3 came back
+inconclusive and 1 was never run. That tally is read from the receipts by the console
+rather than typed here, and the 2 that were met are the PRE_PASSED feasibility checks
+answered before any pipeline code was written, so of the 4 gates that ask whether the idea
+works, none passed on the split that decides it. Why the intervals are that wide is
+derived rather than pleaded: on the split gate 6 was pre-registered on, a perfect oracle
+caps at 1.740 times random against a threshold of 1.5, so the whole room any ordering had
+to win in was 0.240 wide.
+
+## Seven checks worth running first
 
 | Question | Command | What it prints |
 |---|---|---|
+| Show me the model doing something | `tracetriage note 14746092` | The draft `granite3.1-dense:8b` wrote, the checker's verdict on it, the number it invented, and the template that shipped instead. Offline, no model needed: the drafts are frozen and the receipt records what the checker decided about each |
 | Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1443 passed, 32 skipped, none failed, measured in a clean clone with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 10 emitted, 15 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
@@ -103,7 +123,9 @@ weaken a claim. A technology is listed here only if something measures it workin
 | SGP4 propagation | `pipeline/tracetriage/physics.py` | Every corridor is propagated from the two-line elements in the observation's own record rather than from today's, so a measurement carries the elements it was made with and can be redone from the receipt |
 | IBM Carbon and IBM Plex | `apps/web/app/globals.css` | The palette is generated from Carbon's gray ramp rather than typed: `scripts/derive_palette.py --check` recomputes every token and every contrast ratio in it. Plex Sans and Plex Mono are self-hosted, so nothing carrying a number waits on a third-party request |
 | LangChain | `pipeline/tracetriage/langchain_tools.py` | 6 of the 7 evidence tools, adapted for an agent that does not speak MCP. An adapter and not a second implementation: each tool calls the function object the MCP server registered, asserted on identity in `tests/test_langchain_tools.py`. Through it, `check_claim` came back REFUSED with UNGROUNDED_NUMBER. `artifacts/LANGCHAIN_RECEIPT.json` |
-| Next.js, Vercel, WebGL | `apps/web`, static export | 7 pages, no server, no database and no credential, with a content security policy whose `connect-src` is `'self'`. The field behind the first screen is the ranked queue drawn on the GPU: one point per observation, placed by rank, lit by review value, coloured by the criterion that raised it |
+| LangFlow | `flows/`, `pipeline/tracetriage/langflow_components.py` | Two flows, built from component objects, written out by LangFlow's own `Graph.dump()`, then loaded back from those files and run. The grounding flow needs no model and no network: grounded -> GROUNDED, ungrounded -> REFUSED/UNGROUNDED_NUMBER. A second flow binds the six tools to `granite3.1-dense:8b` through LangFlow's agent node and runs end to end. Its answer does not carry observation 14746092, which is reachable only through a tool call: the model emits its call as a `<tool_call>` text block and the agent node does not execute it. The same model and the same six handlers score 22/24 through this project's MCP harness, so this is a measurement about the client rather than the model, and it is recorded rather than rounded up. LangFlow 1.11.4 is not a dependency of this project. `artifacts/LANGFLOW_RECEIPT.json` |
+| watsonx.ai | `scripts/run_watsonx_check.py` | `ibm/granite-3-8b-instruct`, one draft about observation 14746092, put through the same grounding checker that decides whether a local draft ships. **NOT_CHECKED in this checkout**: no `WATSONX_API_KEY` is set here, so nothing was sent and nothing is claimed. The receipt records the attempt with its date rather than omitting the row. `artifacts/WATSONX_RECEIPT.json` |
+| Next.js, Vercel, WebGL | `apps/web`, static export | 8 pages, no server, no database and no credential, with a content security policy whose `connect-src` is `'self'`. The field behind the first screen is the ranked queue drawn on the GPU: one point per observation, placed by rank, lit by review value, coloured by the criterion that raised it |
 
 ## The judged criteria, and what to look at
 

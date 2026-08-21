@@ -8,10 +8,12 @@
 import Link from "next/link";
 
 import {
+  agent,
   cards,
   evaluation,
   fmt,
   fmtInterval,
+  notes,
   precedent,
   provenance,
   queue,
@@ -46,24 +48,20 @@ const circularity = evaluation.circularity;
  * precedent study is re-run, the sentence moves with it.
  */
 const GRANITE_RETRIEVAL = requirePrecedentArm("warm", "granite_text").agreement_at_k;
-/** The comparison the first screen used to omit.
+/** The baseline the Granite embedding ties with, on the same pool.
  *
- * The lede called the Granite embedding "the strongest arm at finding a pass's
- * precedents" and printed it against a random draw. Against a random draw it does win
- * warm. Against the numeric nearest-neighbour baseline on the same pool the margin is
- * 0.026 and does not survive the 8-comparison correction, and in the cold condition,
- * where the query may not retrieve its own station, its own site or its own satellite,
- * it is indistinguishable from random. Printing vs-random alone made an honest number
- * carry a claim the receipt refuses, so the sentence now names the baseline it ties
- * with and the condition where the effect disappears. Read from the receipt, not
- * retyped, so a re-run moves the sentence.
+ * The lede once called the embedding "the strongest arm at finding a pass's precedents"
+ * and printed it against a random draw. Against a random draw it does win warm. Against
+ * this numeric nearest-neighbour arm the margin is 0.026 and does not survive the
+ * 8-comparison correction, and in the cold condition it is indistinguishable from
+ * random. So the reading path names the baseline rather than the random draw, and both
+ * conditions with all four arms and every interval live on /precedent, which is where a
+ * reader can weigh them. The margin and the cold comparison were printed here too and
+ * are not any more: repeating a walk-back on the first screen cost that screen its
+ * statement of what the system is built out of, and the walk-back was already one click
+ * away at full size.
  */
-const GRANITE_VS_KNN = requirePrecedentComparison(
-  "warm",
-  "granite_text_vs_numeric_knn",
-);
 const NUMERIC_RETRIEVAL = requirePrecedentArm("warm", "numeric_knn").agreement_at_k;
-const GRANITE_COLD = requirePrecedentComparison("cold", "granite_text_vs_random");
 
 /** The two splits the lede prints, in the order a reader should weigh them.
  *
@@ -98,6 +96,34 @@ const LEDE_EXAMINED =
   primary.n_queue_examined === coldStation.n_queue_examined
     ? `${primary.n_queue_examined}`
     : `${primary.n_queue_examined} and ${coldStation.n_queue_examined}`;
+
+/** The two established results the first screen states, read rather than retyped.
+ *
+ * Both were measured against a control and both hold. They used to sit one and four
+ * clicks away respectively while the first screen opened on a verdict that came back
+ * inconclusive, which is a true order and a misleading screen: a reader who left after
+ * one viewport had met no evidence that any part of the system works.
+ *
+ * The agent study is a paired comparison of the same model with and without this
+ * project's tools. The checker score is published as a pair on purpose: a detection rate
+ * of 1.0 is what a checker that refuses everything scores, so the clean-draft refusals
+ * are what make the adversarial catch rate a measurement rather than a boast.
+ */
+const agentStudy = {
+  n: agent.arms.tools.correct.trials,
+  withTools: agent.arms.tools.correct.successes,
+  withoutTools: agent.arms.control.correct.successes,
+  pValue:
+    agent.paired.exact_p_one_sided === null
+      ? "not computed"
+      : agent.paired.exact_p_one_sided,
+};
+const groundingScore = {
+  adversarialCaught: notes.checker.adversarial_caught,
+  adversarialTotal: notes.checker.adversarial_checks,
+  cleanRefused: notes.checker.control_refused,
+  cleanTotal: notes.checker.control_checks,
+};
 
 /** The whole queue, encoded for the field behind the hero. Built at build time. */
 const FIELD = fieldPoints(queue.entries);
@@ -142,25 +168,68 @@ export default function QueuePage() {
             Nothing was removed to make room. The order changed: what it is, then how
             much it is worth, then every reason to doubt both, all still above the
             first instrument. */}
+        {/* The headline names the domain, and that is a correction.
+            The first 59 words of this page used to contain none of satellite, orbit,
+            radio, space or ground station. The largest type said "A review queue",
+            which is true of a bug tracker. The word satellite first appeared roughly
+            1,400px down, in a figure caption. For a submission whose theme is space
+            exploration, the domain belongs in the first line rather than in the
+            eighth paragraph, and nothing about the measurement posture is given up
+            by saying what the queue is a queue of. */}
         <h1 className="lede-headline lede-headline-lead">
-          A review queue, and the measurement that says how much it is worth.
+          Which satellite passes are worth a reviewer&rsquo;s time, and the
+          measurement that says so.
         </h1>
         <div className="lede-open">
         <div className="lede-open-text">
         <p className="lede-kicker">
-          SatNOGS waterfall triage · kill gate {gate6.gate} ·{" "}
-          {LEDE_EXAMINED} observations examined
+          SatNOGS ground-station network · {LEDE_EXAMINED} observations examined ·
+          IBM Granite, on one machine
         </p>
+        {/* The domain paragraph, moved up from below the gate ledger.
+            It was the eighth block of the lede, under the ledger, in the second grid.
+            It is the only sentence that says what a pass is and who is short of time,
+            so a reader who left after one screen never met the problem. */}
         <p className="lede-product">
-          The product is a ranked review queue: {queue.entries.length} observations
-          ordered by how much a reviewer would learn from opening each, with the top{" "}
-          {queue.review_budget.n_observations} as the budget a volunteer actually has.{" "}
+          Volunteer ground stations record far more satellite passes than anyone
+          reviews, and every recording is published as a waterfall image nobody has
+          opened. TraceTriage reads the image and the orbital physics together and
+          ranks {queue.entries.length} of them by how much a reviewer would learn from
+          opening each, with the top {queue.review_budget.n_observations} as the budget
+          a volunteer actually has. It writes nothing back.{" "}
           <Link href="#queue">Open the queue</Link>.
         </p>
+        {/* What holds, before what did not.
+            Every judge-facing surface used to open on a verdict that came back
+            inconclusive, and the strongest evidence the system works at all was
+            further down every one of them. Reporting order is not a truth claim:
+            these three results are established, they are read from the same receipts
+            the sections below render, and the pre-registered gates and their verdicts
+            are two blocks lower at full size with nothing softened. */}
+        <p className="lede-established">
+          <strong>What holds.</strong> The evidence tools change what a local Granite
+          model gets right, <span className="num">{agentStudy.withTools}</span> of{" "}
+          <span className="num">{agentStudy.n}</span> against{" "}
+          <span className="num">{agentStudy.withoutTools}</span> of{" "}
+          <span className="num">{agentStudy.n}</span> with no tools at all, paired{" "}
+          <span className="num">p = {agentStudy.pValue}</span>. The grounding checker
+          caught <span className="num">{groundingScore.adversarialCaught}</span> of{" "}
+          <span className="num">{groundingScore.adversarialTotal}</span> planted
+          falsehoods and refused{" "}
+          <span className="num">{groundingScore.cleanRefused}</span> of{" "}
+          <span className="num">{groundingScore.cleanTotal}</span> clean drafts. On
+          stations the model never saw, the queue clears its threshold at{" "}
+          <span className="num">{fmt(coldStation.lift_point, 3)}</span>
+          <sup>&times;</sup>.
+        </p>
 
-        {/* Four signposts, and the reason they exist.
-            This page is 2,699 words across twelve sections, which is the right length for
-            someone checking the work and the wrong length for someone deciding whether to.
+        {/* Five signposts, and the reason they exist.
+            This page runs to eight sections, which is the right length for someone
+            checking the work and the wrong length for someone deciding whether to. The
+            count used to be stated here as "2,699 words across twelve sections" and was
+            wrong by 74 percent in the words and by four in the sections, which is a small
+            thing to get wrong and a bad thing to get wrong in the justification for a
+            shipped element.
             A reader who cannot find the shape of the argument in the first screen does not
             read the argument. So: what it is, whether it worked, whether the model earned
             its place, and how to check any of it, with the number each answer turns on.
@@ -177,22 +246,43 @@ export default function QueuePage() {
                 {queue.review_budget.n_observations} is the budget
               </span>
             </li>
+            {/* Second, and this page had no prose link to it at all.
+                /live is the only route that computes in front of a reader: paste an
+                observation id recorded in the last few hours, and the same code that
+                built every number on this console measures it while you watch. Every
+                other page reports a measurement that was already made. It was reachable
+                only from the rail, which is a list of labels rather than an argument. */}
             <li>
               <span className="readpath-index">02</span>
+              <Link href="/live/">Watch it measure one</Link>
+              <span className="readpath-fact">
+                paste an id recorded today; the offset comes back in seconds, from the
+                public API, with no key
+              </span>
+            </li>
+            <li>
+              <span className="readpath-index">03</span>
               <Link href="/evaluation">Whether it worked</Link>
               <span className="readpath-fact">
                 {/* Two decimals on the point estimate and three on the interval, matching
                     the verdict tile a few hundred pixels below. The first cut used the
                     default precision here and printed 1.582 next to a tile printing 1.58,
-                    which is one number written two ways on one screen. */}
+                    which is one number written two ways on one screen.
+
+                    "over chronological" was wrong and it overstated the study. The lift
+                    is over random ordering at the same budget, measured ON the
+                    chronological split. Against the chronological ordering itself the
+                    queue is 1.58 to 1.11, and the receipt reports that comparison as not
+                    established after correction. The landing page's own summary was
+                    making a stronger claim than the page it linked to. */}
                 <span className="num">{fmt(primary.lift_point, 2)}&times;</span> over
-                chronological, interval{" "}
+                random on the pre-registered split, interval{" "}
                 <span className="num">{fmtInterval(primary.lift_ci95, 3)}</span>, which does
                 not clear the threshold
               </span>
             </li>
             <li>
-              <span className="readpath-index">03</span>
+              <span className="readpath-index">04</span>
               <Link href="/precedent">Whether the model earned it</Link>
               <span className="readpath-fact">
                 <span className="num">{fmt(GRANITE_RETRIEVAL, 3)}</span> against{" "}
@@ -201,7 +291,7 @@ export default function QueuePage() {
               </span>
             </li>
             <li>
-              <span className="readpath-index">04</span>
+              <span className="readpath-index">05</span>
               <Link href="/provenance">How to check it</Link>
               <span className="readpath-fact">
                 every number names a receipt;{" "}
@@ -226,22 +316,21 @@ export default function QueuePage() {
             the same reason: 22 of 24 is a lookup score over receipts, and a first
             screen that leads with it invites a judge to read it as reasoning. Both
             numbers stay one click away with their conditions attached. */}
+        {/* The stack, in one sentence, with the walk-back moved to the page that owns it.
+            This paragraph used to run 101 words, four of them naming the technology and
+            the rest qualifying one retrieval margin: the 0.026 that does not survive its
+            correction, and the cold condition where the effect disappears. Both are true,
+            both are still published, and both are on /precedent at full size with their
+            intervals, where a reader has the four arms in front of them. Repeating them
+            here cost the first screen its statement of what the system is built out of. */}
         <p className="lede-stack">
-          Built on IBM Granite, running locally, and reported the way the receipt
-          reports it. <span className="num">{precedent.embedding_model.name}</span>{" "}
-          retrieves a pass{"’"}s precedents at{" "}
-          <span className="num">{fmt(GRANITE_RETRIEVAL, 3)}</span> agreement against{" "}
-          <span className="num">{fmt(NUMERIC_RETRIEVAL, 3)}</span> for a numeric
-          nearest-neighbour baseline on the same pool. That margin of{" "}
-          <span className="num">{fmt(GRANITE_VS_KNN.margin, 3)}</span> does not survive
-          the correction for{" "}
-          <span className="num">{GRANITE_VS_KNN.n_comparisons}</span> comparisons, and
-          in the cold condition it beats a random draw by{" "}
-          <span className="num">{fmt(GRANITE_COLD.margin, 3)}</span>, which is
-          indistinguishable from no effect at all:{" "}
-          <Link href="/precedent/">both conditions, all four arms</Link>. The models
-          here are a guardrail on what a sentence may claim, not the ranker. No hosted
-          inference and no paid service: everything runs on one machine.
+          IBM Granite does two jobs here and neither is the ranker:{" "}
+          <span className="num">{agent.model.name}</span> answers questions over the
+          evidence through this project&rsquo;s own tools, and{" "}
+          <span className="num">{precedent.embedding_model.name}</span> retrieves a
+          pass&rsquo;s precedents, measured against a numeric baseline that{" "}
+          <Link href="/precedent/">ties with it</Link>. Both run on one machine over
+          Ollama. No hosted inference, no paid service and no credential.
         </p>
         </div>
         <GateLedger />
@@ -297,11 +386,14 @@ export default function QueuePage() {
             ))}
           </div>
           <div>
+            {/* The domain sentence that used to open this block now opens the page, and
+                one clause of it did not survive the move: the measurement is the point,
+                and a queue nobody tested is a preference. That belongs next to the
+                verdicts rather than next to the product sentence. */}
             <p className="lede-body">
-              Volunteer ground stations record far more passes than anyone reviews.
-              This ranks them by how likely a human is to find something wrong, then
-              measures whether that ranking beats picking at random. The measurement
-              is the point. A queue nobody tested is a preference.
+              This ranks passes by how likely a human is to find something wrong, then
+              measures whether that ranking beats picking at random. The measurement is
+              the point. A queue nobody tested is a preference.
             </p>
             <p className="lede-body" style={{ marginTop: "var(--sp-05)" }}>
               The split that decides the gate is the chronological one, because it was
@@ -531,14 +623,17 @@ export default function QueuePage() {
           />
         </div>
 
+        {/* Three sentences became one, and what left was a bug story.
+            This note narrated a defect in an earlier bootstrap, the fix, and the boolean
+            proving the fix held, ending on a printed `true`. That belongs in the claim
+            register, which is where it still is. A reader of this page needs the one
+            fact the section turns on: the point clears the bar and the interval does
+            not. */}
         <Note tone="warn">
           The point estimate <span className="num">{fmt(primary.lift_point)}</span> is
-          above the threshold and the interval is not. Under an earlier bootstrap the
-          same measurement produced an interval that did not contain its own point
-          estimate; that was a defect in the resampling, not a property of ratio
-          statistics, and it is documented in the claim register. The number above
-          comes from the corrected bootstrap, where the point estimate does sit inside
-          its interval ({String(primary.point_in_ci)}).
+          above the threshold and the interval is not, which is why this gate reads{" "}
+          <span className="mono">NOT_ESTABLISHED</span> rather than passing.{" "}
+          <Link href="/evaluation/#gate6">The interval, and how it was resampled</Link>.
         </Note>
       </Section>
 
@@ -549,7 +644,17 @@ export default function QueuePage() {
         <Table
           head={["Reason", "What it means", "Threshold"]}
           headAlign={["left", "left", "right"]}
-          caption={`Fixed before measuring: ${String(queue.conflict_definition.fixed_before_measuring)}.`}
+          /* A printed boolean is a value, not a sentence. This read "Fixed before
+             measuring: true", which asks a reader to parse a field name and a JSON
+             literal to learn something the section description already states, and
+             which would read as an admission nobody notices if the field went false.
+             The caption now carries the fact the description does not: where the
+             three criteria were written down before the ranking existed. */
+          caption={
+            queue.conflict_definition.fixed_before_measuring
+              ? "Written down in the pre-registration, before the ranking existed."
+              : "Warning: these were not fixed before measuring, so the ranking was scored against a definition that could have moved."
+          }
         >
           {queue.conflict_definition.criteria.map((criterion) => (
             <tr key={criterion.reason_code}>

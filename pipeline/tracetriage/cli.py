@@ -393,6 +393,145 @@ def cmd_receipts(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_note(args: argparse.Namespace) -> int:
+    """What Granite wrote about one observation, and what the checker did with it.
+
+    The gap this closes: Granite is the strongest AI component in this project and it was
+    the hardest one to see. Every other subsystem had a command. The drafts, the refusals
+    and the codes each refusal fired lived in `artifacts/EXPLAIN_RECEIPT.json` and on the
+    console, so "show me the model doing something" meant reading JSON or opening a browser.
+
+    Offline, and that is the point rather than a limitation. The drafts are frozen in
+    `tests/fixtures/granite_notes.json` at a named commit and the receipt records what the
+    checker decided about each one, so this prints a real generated sentence and a real
+    verdict on a machine with no model runtime, no GPU and no network. Re-generating the
+    drafts is `scripts/run_explanations.py --freeze`, which is a different job.
+    """
+    from pathlib import Path
+
+    root = Path(args.repo) if args.repo else Path.cwd()
+    receipt_path = root / "artifacts" / "EXPLAIN_RECEIPT.json"
+    if not receipt_path.is_file():
+        print(
+            f"{PROGRAM} note reads committed files and found no "
+            f"artifacts/EXPLAIN_RECEIPT.json under {root}. Run it from a clone, or pass "
+            f"--repo. Like `receipts`, this command cannot work from a wheel: the drafts "
+            f"and the verdicts on them are the repository.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    rows = {int(row["obs_id"]): row for row in receipt["per_observation"]}
+    model = receipt.get("model") or {}
+    # The receipt carries the verdict and a digest of the draft, not the draft itself. The
+    # text lives in the frozen fixture, and that split is what makes this reproducible with
+    # no model: the receipt says what the checker decided, the fixture says what it decided
+    # about, and the digest is compared here so a fixture that has drifted from the receipt
+    # is reported rather than printed as though it matched.
+    fixture_path = root / "tests" / "fixtures" / "granite_notes.json"
+    drafts: dict[int, str] = {}
+    if fixture_path.is_file():
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        drafts = {
+            int(entry["obs_id"]): str(entry.get("draft") or "")
+            for entry in fixture.get("drafts") or []
+        }
+    shipped_notes: dict[int, str] = {}
+    notes_path = root / "apps" / "web" / "public" / "data" / "notes.json"
+    if notes_path.is_file():
+        published = json.loads(notes_path.read_text(encoding="utf-8"))
+        shipped_notes = {
+            int(entry["obs_id"]): str(entry.get("note") or "")
+            for entry in published.get("notes") or []
+        }
+
+    if args.observation_id is None:
+        refused = [oid for oid, row in rows.items() if row.get("codes")]
+        print(
+            f"{len(rows)} observations carry a draft from "
+            f"{model.get('name', 'the local model')} at "
+            f"{model.get('quantization', 'unknown quantisation')}. "
+            f"{receipt['counts']['emitted']} were emitted and "
+            f"{receipt['counts']['refused']} refused."
+        )
+        for oid, row in sorted(rows.items()):
+            codes = ",".join(row.get("codes") or []) or "-"
+            print(f"  {oid:<10} {str(row.get('verdict', '?')):<9} {codes}")
+        print(
+            f"\n{PROGRAM} note <id> for one of them. "
+            f"{len(refused)} of {len(rows)} were refused, and the refusal is the result: "
+            f"a published sentence is one no rule could fault."
+        )
+        return EXIT_OK
+
+    row = rows.get(args.observation_id)
+    if row is None:
+        print(
+            f"{args.observation_id} carries no draft. "
+            f"{PROGRAM} note with no id lists the {len(rows)} that do.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+
+    if args.json:
+        print(json.dumps(row, indent=1))
+        return EXIT_OK
+
+    codes = row.get("codes") or []
+    print(f"observation {args.observation_id}")
+    print(f"  model      {model.get('name', '?')} at {model.get('quantization', '?')}, "
+          f"temperature {model.get('temperature', 0)}")
+    print(f"  verdict    {row.get('verdict', '?')}"
+          + (f"  {', '.join(codes)}" if codes else ""))
+    draft = drafts.get(args.observation_id, "")
+    if draft:
+        import hashlib
+
+        digest = hashlib.sha256(draft.encode("utf-8")).hexdigest()
+        if digest != row.get("draft_sha256"):
+            print(
+                f"  WARNING    the frozen draft hashes to {digest[:12]} and the receipt "
+                f"recorded {str(row.get('draft_sha256'))[:12]}. One of the two is stale; "
+                f"re-run scripts/run_explanations.py.",
+                file=sys.stderr,
+            )
+        print("\n  what the model wrote")
+        for line in _wrap(draft):
+            print(f"    {line}")
+    for violation in row.get("violations") or []:
+        detail = violation.get("detail") or ""
+        print(f"\n  {violation.get('code')}: {detail}")
+    published_note = shipped_notes.get(args.observation_id, "")
+    if published_note:
+        print(f"\n  what shipped  ({row.get('shipped', '?')})")
+        for line in _wrap(published_note):
+            print(f"    {line}")
+    print(
+        "\n  The checker is pipeline/tracetriage/explain.py and it decides this, not the "
+        "model's confidence. The same rule set runs in the browser on the console's "
+        "observation pages, where one digit can be changed to watch the refusal appear."
+    )
+    return EXIT_OK
+
+
+def _wrap(text: str, width: int = 84) -> list[str]:
+    """Hard wrap without importing textwrap into the CLI's cold path for one call."""
+    words = text.split()
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if len(candidate) > width and current:
+            lines.append(current)
+            current = word
+        else:
+            current = candidate
+    if current:
+        lines.append(current)
+    return lines
+
+
 def cmd_mcp(args: argparse.Namespace) -> int:
     """The offline receipt server. Needs a checkout, because it serves committed files."""
     from pathlib import Path
@@ -476,6 +615,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_receipts.add_argument("name", nargs="?", default=None)
     p_receipts.add_argument("--repo", default=None, help="path to a clone (default: cwd)")
     p_receipts.set_defaults(func=cmd_receipts)
+
+    p_note = sub.add_parser(
+        "note",
+        help="what Granite wrote about an observation, and what the checker did with it "
+             "(offline, no model needed)",
+    )
+    p_note.add_argument("observation_id", type=int, nargs="?", default=None)
+    p_note.add_argument("--repo", default=None, help="path to a clone (default: cwd)")
+    p_note.add_argument("--json", action="store_true",
+                        help="print the whole record as JSON rather than a summary")
+    p_note.set_defaults(func=cmd_note)
 
     p_mcp = sub.add_parser("mcp", help="MCP server over the committed receipts (offline)")
     p_mcp.add_argument("--repo", default=None, help="path to a clone (default: cwd)")

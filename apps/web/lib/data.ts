@@ -724,10 +724,29 @@ export interface NoteModel {
   context_length: number;
 }
 
+/**
+ * The grounding checker's score on both arms, published with the notes.
+ *
+ * Both halves or neither. A detection rate of 1.0 is what a checker that refuses every
+ * draft scores, so `control_refused` over `control_checks` is the number that makes
+ * `adversarial_caught` mean anything, and a page that printed one without the other
+ * would be quoting the flattering half of a two-sided measurement.
+ */
+export interface CheckerScore {
+  emitted: number;
+  refused: number;
+  decided: number;
+  adversarial_checks: number;
+  adversarial_caught: number;
+  control_checks: number;
+  control_refused: number;
+}
+
 interface NotesFile {
   drafts_frozen_at_commit: string;
   model: NoteModel | null;
   prompt_version: string;
+  checker: CheckerScore;
   notes: ReviewerNote[];
 }
 
@@ -739,6 +758,20 @@ const notesData = notesJson as unknown as NotesFile;
 if (notesData.notes.length === 0) {
   throw new Error(
     "notes.json contains no notes. Run scripts/run_explanations.py.",
+  );
+}
+
+// The first screen states the checker's score, so an older notes.json without the block
+// has to fail the build rather than render "undefined of undefined". A missing key in a
+// generated file means the generator was not re-run, and that is a build step, not a
+// result.
+if (
+  !notesData.checker
+  || typeof notesData.checker.adversarial_checks !== "number"
+  || typeof notesData.checker.control_checks !== "number"
+) {
+  throw new Error(
+    "notes.json carries no checker block. Run scripts/run_explanations.py.",
   );
 }
 

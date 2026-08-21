@@ -7514,3 +7514,120 @@ while pytest collected. The rule already written down here is not to edit source
 suite runs, and it needs widening: do not run anything against the tree while the suite runs.
 A clean rerun on a quiet tree returned exit 0 and zero failures, and the 88 would have been
 a day of chasing tests that were never wrong.
+
+## E9. The submission read as a project that failed, and the fix was ordering
+
+A blind council pass scored the entry 15.5 out of 20 against my own read of 19, and the
+gap turned out not to be about any measurement. Every judge-facing surface led with an
+inconclusive verdict. `README.md` opened on the tally, `FOR_JUDGES.md` opened on the tally,
+the landing page put the pre-registered `NOT_ESTABLISHED` on the first screen, the rail
+carried a persistent "2 of 6 met" badge, and the film's last card before the colophon was
+the gate table. A reader met four qualifications before a single piece of evidence that
+the system works.
+
+Nothing in this unit changed a count, a verdict or an interval. What changed is the order
+they arrive in, and one thing that had been measured and never stated at verdict weight.
+
+**The finding that was buried.** On the pre-registered split, a budget of 50 over 87
+observations holding 22 conflicts caps every possible ordering at 1.740x, including a
+perfect oracle. The gate asked for 1.5x. So the entire distance between the bar and
+perfection is 0.240, the queue reached 1.582x, and 0 of 2000 random orderings of the same
+observations matched it, a permutation p of 0.0005. That was in
+`artifacts/CIRCULARITY_RECEIPT.json` and on one section of one page. It is now stated
+wherever the tally is: `/start`, `/evaluation`, the README, the judges' page and the film's
+gate card. It is a finding about the instrument, derived from the population and the budget
+rather than from the result, and it is the answer to the only question a reader has after
+seeing four NOT_ESTABLISHED rows.
+
+**A page written for the reader who has three minutes.** `/start` is new and is the first
+item in the rail. Four sections: what was measured and holds, what was pre-registered and
+what it came back as, the four judged criteria quoted from the Official Rules with the page
+that answers each, and a three-stop route through the console. Every figure on it resolves
+from a receipt at build time, so it cannot drift from the pages it points at.
+
+**Prose that was true and was not about satellites.** The provenance page spent 890 words,
+46% of the page, on five font bullets. Every substantive claim in them survives in two
+bullets: 60,082 bytes over two hosts, the content security policy, 956 ms against 152 ms
+with the font host blocked, 236 ms against a 200 ms floor, CLS 0.0115. The rest points at
+`artifacts/FONT_PAINT_RECEIPT.json`. The colophon's typography paragraph went from 191
+words to 62 and it appears on every page. The gate 4 plates note went from 130 to 95 and
+kept both re-encoding arguments. A caption that printed a bare boolean now says where the
+three conflict criteria were written down. Four documents that exist for whoever builds
+this next and for nobody judging it are untracked, with the reason recorded in
+`.gitignore`.
+
+**The one fake claim is gone.** `docs/USE_WITH_YOUR_AGENT.md` carried a row reading
+"watsonx Orchestrate to orchestrate/toolkits/*.yaml". That directory has never existed in
+this repository. It is deleted and replaced with a LangFlow row and an explicit note that
+no such directory was ever built.
+
+**Two integrations that were claims became integrations.** `pipeline/tracetriage/watsonx.py`
+was 311 lines with no caller. `scripts/run_watsonx_check.py` now builds the same evidence
+packet and the same prompt the local Granite backend gets, sends it to watsonx, and runs
+the reply through `explain.verify_note`. It records one of three outcomes with a date, so
+this checkout commits `NOT_CHECKED` for observation 14746092 with no credentials present,
+and a machine with credentials commits `RAN` or `FAILED`. LangFlow was installed for real
+into a separate `.venv-langflow`, two flows were built from component objects, dumped with
+LangFlow's own serialiser, then loaded back with `run_flow_from_json` and executed. The
+grounding flow returns GROUNDED on the clean draft and refuses the other for an ungrounded
+number. The agent flow runs and its answer does not carry the tool-only fact: Granite emits
+a tool call as text and LangFlow's agent node does not execute it. That is published as a
+finding about the client rather than hidden, and it is the contrast with 22 of 24 through
+the MCP harness.
+
+Three things had to be fixed to make `--check` possible at all, and all three were
+`Graph.dump()` being non-deterministic: random five-character node id suffixes, unstable
+edge order, and an embedded timestamp. Splitting the suffix on the last hyphen was the
+wrong tool, because LangFlow's alphabet includes a hyphen and the split left
+`TraceTriageEvidenceTools-Pz` behind. An end-anchored five-character pattern is correct.
+
+**The film closed on the wrong thing too.** It ran seven cards and ended the argument on
+the gate table, so 103 seconds of evidence finished on four inconclusive verdicts and never
+said what had been decided. There is an eighth card now, `Established`, and it runs after
+the tally rather than before it. Three results: the evidence tools change what a local
+Granite model gets right, 22 of 24 against 2 of 24, paired exact one sided 0.000001 over
+20 discordant pairs; the grounding checker caught 525 of 525 planted falsehoods and refused
+0 of 175 clean drafts; on ground stations the queue was never fitted to, lift is 2.25 with
+an interval of 1.92 to 3.86 and the receipt records PASSED. `test/claims.test.ts` now pins
+the order, so an edit that puts the wins first fails a test instead of passing quietly.
+
+The film is 3540 frames, 118.0 seconds, 4,923,473 bytes, one stream and no audio track,
+which is 62 seconds inside the competition's three-minute ceiling. It was rendered three
+times, twice at concurrency 4 and once at concurrency 2, and md5 is
+`ba57a3cd01a93557e4bf2aa799ede4bd` on all three. The upper bound in the duration test moved
+from 105 seconds to the 160 the demo script budgets, and the reason is written into the
+test: what changed is the film's content, and the ceiling it is measured against is the
+rules'.
+
+**A threshold I nearly moved for the wrong reason.** `scripts/run_queue.py` writes a budget
+rationale whose last sentence states the cold-split budget as a function call over a field
+name, and that expression renders verbatim on the landing page. I rewrote it in plain
+English and then reverted, because the string lives in `artifacts/QUEUE_RECEIPT.json` and
+changing the generator without re-running the pipeline would put a builder and its receipt
+into disagreement, which is the exact drift this repository is built to prevent. Re-running
+the queue cascades into every receipt that hashes it. The expression stays.
+
+**453 checks that nobody was running.** The film's test file was reachable only by
+remembering to change directory into `presentation/`. The gate runs it now, along with
+`npm run report -- --check`, which fails if the claim table in `presentation/REPORT.md` is
+no longer what `src/data.ts` produces. That table said it was generated and the generator
+was not in the tree; `presentation/scripts/report-table.ts` is, and it rewrites the region
+between two markers and counts the claims rather than restating a count. Both rows are
+omitted rather than failed when `presentation/node_modules` is absent, for the same reason
+the LangFlow row is: a clean clone cannot answer the question, and a FAIL there would
+manufacture a regression nobody caused. The gate is 26 checks now, up from 24.
+
+**The line-ending trap, caught by a generator rather than by CI.** Every edit made through
+a Python script wrote the file back with CRLF, because `Path.write_text` translates on
+Windows. Git normalises on commit so nothing would have reached the repository wrong, but
+`npm run report -- --check` compared a CRLF working copy against an LF region and failed.
+Twelve files were converted back. This is the same class as the twenty consecutive red CI
+runs `.gitattributes` was written for, and the thing worth recording is that the generator
+caught it in one run where the receipts would not have: none of them hash a file this unit
+touched.
+
+**The gate.** 26 checks, 25 passing before the commit, the one failure being the
+uncommitted tree itself. `artifacts match their builders` runs rather than being omitted,
+because `TRACETRIAGE_PAGES_DIR` points at the real snapshot. Ruff clean, `tsc --noEmit`
+clean in both packages, the console builds with `/start` in the route list, and the offline
+suite passes.

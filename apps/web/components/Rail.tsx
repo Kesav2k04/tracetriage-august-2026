@@ -26,22 +26,64 @@ import Icon, { type IconName } from "./Icon";
  *
  * `tests/test_console_routes.py` fails if a page under `apps/web/app` is not listed here.
  */
-const LINKS: { href: string; label: string; icon: IconName }[] = [
-  { href: "/", label: "Queue", icon: "queue" },
+/* Every entry carries a `hint`, and that is a correction rather than decoration.
+ *
+ * Four of the seven labels are readable cold and three are not. Nothing in the word
+ * "Agent" says it is a controlled tool-use study, nothing in "Precedent" says it is
+ * embedding retrieval, and nothing in "Baselines" says it is the queue against the
+ * orderings a reviewer could have picked instead. A reader with three minutes chooses a
+ * page by its label, so three of seven pages were unreachable in practice while being
+ * reachable in principle.
+ *
+ * `app/not-found.tsx` already wrote these descriptions, better than the rail did, and
+ * only a reader who mistyped a URL ever saw them.
+ */
+const LINKS: { href: string; label: string; hint: string; icon: IconName }[] = [
+  // First, and it is not the landing route. A reader who arrives cold and has twelve
+  // minutes needs the map before the instrument, and FOR_JUDGES.md was that map on
+  // GitHub only, behind a step the June 2026 judges did not take. `/` stays the landing
+  // route because it carries the product and the first plate.
+  { href: "/start/", label: "Start here", hint: "what this is, in one page", icon: "provenance" },
+  { href: "/", label: "Queue", hint: "the ranked passes", icon: "queue" },
   // Second, not last. This is the only page on the console that measures rather than
   // reports, and it was the answer to the fair criticism of everything else here: a
   // queue over a frozen corpus is an exhibit. A reader who never scrolls the rail
   // would never find it, and a route nobody can reach does not exist for them.
-  { href: "/live/", label: "Live", icon: "live" },
-  { href: "/evaluation/", label: "Evaluation", icon: "evaluation" },
-  { href: "/agent/", label: "Agent", icon: "agent" },
-  { href: "/precedent/", label: "Precedent", icon: "precedent" },
+  { href: "/live/", label: "Live", hint: "measure one now", icon: "live" },
+  {
+    href: "/evaluation/",
+    label: "Evaluation",
+    hint: "the gates, as they came back",
+    icon: "evaluation",
+  },
+  {
+    href: "/agent/",
+    label: "Agent",
+    hint: "Granite, with tools and without",
+    icon: "agent",
+  },
+  {
+    href: "/precedent/",
+    label: "Precedent",
+    hint: "Granite embeddings vs a baseline",
+    icon: "precedent",
+  },
   // "Replay" named this page after the statistical replay of one ordering against
   // another, and pointed a reader at the wrong thing: the pass playback, the one
   // control on the site that moves four instruments at once, is on an observation
   // page and not here. This page is the baseline comparison, so it says so.
-  { href: "/replay/", label: "Baselines", icon: "replay" },
-  { href: "/provenance/", label: "Provenance", icon: "provenance" },
+  {
+    href: "/replay/",
+    label: "Baselines",
+    hint: "the orderings it has to beat",
+    icon: "replay",
+  },
+  {
+    href: "/provenance/",
+    label: "Provenance",
+    hint: "where each number comes from",
+    icon: "provenance",
+  },
 ];
 
 export type RailStatus = {
@@ -129,7 +171,10 @@ export default function Rail({ status }: { status: RailStatus }) {
                     aria-current={active ? "page" : undefined}
                   >
                     <Icon name={link.icon} />
-                    {link.label}
+                    <span className="rail-link-text">
+                      {link.label}
+                      <span className="rail-link-hint">{link.hint}</span>
+                    </span>
                   </Link>
                 </li>
               );
@@ -137,9 +182,14 @@ export default function Rail({ status }: { status: RailStatus }) {
           </ul>
         </nav>
 
-        {/* The three things a reader checks a claim against, on every page. The
-            gate tally counts gates met out of gates asked, and four of them were
-            not met, so the number is deliberately not a score. */}
+        {/* The three things a reader checks a claim against, on every page.
+            The gate tally is a link now, and it says which kind of gate it counts.
+            "Gates met 2 of 6" in persistent chrome on eight pages reads as a score of
+            33 percent to anyone who has not yet found the page that explains it: two of
+            the six were answered before any code existed and the other four are
+            pre-registered research thresholds, not features. The number is unchanged.
+            What changed is that a reader can reach its explanation from wherever they
+            are, and that the label no longer looks like a grade. */}
         <dl className="rail-status">
           <div>
             <dt>Snapshot</dt>
@@ -150,9 +200,11 @@ export default function Rail({ status }: { status: RailStatus }) {
             <dd>{status.observations.toLocaleString("en-GB")}</dd>
           </div>
           <div>
-            <dt>Gates met</dt>
+            <dt>Kill gates</dt>
             <dd>
-              {status.gatesMet} of {status.gatesTotal}
+              <Link href="/evaluation/" className="rail-status-link">
+                {status.gatesMet} of {status.gatesTotal} met
+              </Link>
             </dd>
           </div>
         </dl>

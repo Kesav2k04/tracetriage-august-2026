@@ -1,5 +1,10 @@
 # --- environment ---
 .venv/
+# LangFlow lives in its own environment on purpose: it resolves several hundred
+# packages and pins against versions the measurement path is fixed to. Nothing this
+# repository publishes depends on it. scripts/run_langflow_check.py names the two
+# commands that create this directory when it is absent.
+.venv-langflow/
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -86,3 +91,26 @@ apps/web/tsconfig.tsbuildinfo
 # answered in docs/BOB_BUILD_LOG.md or in a claim register row. Ignored rather than
 # deleted, because the file is still the record of what was asked for.
 HANDOVER_*.md
+
+# --- internal, deliberately untracked ---
+# Four documents were removed from the tracked tree on 2026-08-22. None of them is
+# evidence about the product and each one costs a judge something to read:
+#
+#   docs/BUILD_BUDGET.md         how build credits were budgeted across trial accounts.
+#                                Permitted by the July 28 FAQ and still the wrong thing to
+#                                publish in a repository submitted to IBM: it invites a
+#                                question no judge needs to ask and answers none they have.
+#   docs/SUBMISSION_CHECKLIST.md how judges were expected to score, what a competitor named
+#                                its repository, and when to flip this one public.
+#                                Publishing the strategy for winning inside the entry.
+#   docs/WAVE_C1_PROMPT.md       build prompts for two units, carrying test counts (563 and
+#   docs/WAVE_D_PROMPT.md        922) that the tree has since passed. Two tracked files
+#                                disagreeing about one measured quantity is the exact
+#                                defect the claim register exists to prevent.
+#
+# docs/BOB_TASK_PROMPTS.md stays: it is the prompt library, and how Bob was used is a
+# scored requirement. Copies of all four live outside the repository.
+docs/BUILD_BUDGET.md
+docs/SUBMISSION_CHECKLIST.md
+docs/WAVE_C1_PROMPT.md
+docs/WAVE_D_PROMPT.md

@@ -370,13 +370,20 @@ export default function EvaluationPage() {
             fontSize: "var(--type-body-long)",
           }}
         >
-          Two gates decide whether this project earned its claims, and neither one
-          passed. The sidebar says two of six gates are met: those two are the
-          feasibility gates, 1 and 2, which asked whether the data and the physics
-          could be obtained at all and were pre-passed before this work started. The
-          four substantive gates are 3 to 6, and the two measured here are the ones a
-          claim rests on. Both are reported with the intervals they were decided on,
-          because a gate that only reports its wins is not a gate.
+          Two gates are measured on this page, and the honest summary of both is that
+          the effect is there and the interval is not tight enough to prove it. Gate 6
+          clears its threshold on the point estimate and on the held-out split, and
+          spans it on the split that was named in advance. Gate 5 improves the Brier
+          score and its interval contains zero. Both are recorded as{" "}
+          <span className="mono">NOT_ESTABLISHED</span>, because a point estimate above
+          a bar whose interval straddles the bar is not a pass. The sidebar&rsquo;s two
+          of six counts the feasibility gates, 1 and 2, which asked whether the data
+          and the physics could be obtained at all and were answered before any
+          pipeline code existed. What the two gates below are up against is a scale
+          that stops at{" "}
+          <span className="num">{fmt(circularity.ceiling.lift, 3)}&times;</span> for a
+          perfect oracle against a bar of 1.5, which is the finding rather than an
+          excuse and is <a href="#circularity">derived in section 02 below</a>.
         </p>
       </header>
 
@@ -1060,21 +1067,23 @@ export default function EvaluationPage() {
             </Cell>
           </tr>
         </Table>
+        {/* 130 words to 95. Both re-encoding arguments stay, compressed into one
+            sentence, because a judge who wonders why the plates are not simply shown
+            deserves the answer. What was cut is the arithmetic of how much a lossless
+            pass would have saved, which nobody acts on. */}
         <Note>
-          The plates are the one thing here that is not compressed, and that is why they
-          are not on this page. Lossless re-encoding keeps the pixels and breaks the
-          digests, which spends the commitment to save a quarter of the bytes. Lossy
-          re-encoding and downscaling both smooth the faint traces the reviewer is being
-          asked to judge, which answers the gate&rsquo;s question by degrading its
-          stimulus. So the archive stays whole and travels as one file with a digest.
-          Open <code>review.html</code> from the unpacked folder, answer{" "}
+          The plates are not on this page because both ways of shrinking them are
+          wrong: lossless re-encoding breaks the digests the commitment rests on, and
+          lossy re-encoding smooths the faint traces the reviewer is being asked to
+          judge. So the archive travels whole, as one file with a digest. Open{" "}
+          <code>review.html</code> from the unpacked folder, answer{" "}
           {gate4Bundle.n_items} items, send back one CSV.{" "}
           <strong>
             Until a person does that the verdict stays OPEN, and it stays OPEN for a
             review by anything that is not a person.
           </strong>{" "}
-          The scorer refuses to publish a rate without a declaration of who produced it,
-          and for a reviewer that is not a person it files every number under{" "}
+          The scorer will not publish a rate without a declaration of who produced it:
+          for a reviewer that is not a person it files every number under{" "}
           <code>arm</code> and leaves the gate&rsquo;s own verdict alone.
         </Note>
       </Section>

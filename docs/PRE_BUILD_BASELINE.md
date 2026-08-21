@@ -85,7 +85,7 @@ All four carry `"status": "DRAFT - not authoritative until Bob ratifies it"` and
 
 ## 6. Documents
 
-`docs/SATNOGS_API_RECON.md` (findings), `docs/KILL_GATE.md` (status board, 3 of 6 gates pre-measured), `docs/BOB_TASK_PROMPTS.md` (master prompt plus 7 acceptance-defined Wave A units and outlines for B, C, D), `docs/BOB_HANDOFF.md`, `docs/BOB_BUILD_LOG.md` (empty), `docs/BUILD_BUDGET.md`, `docs/ACTOR_AND_PERMISSION_CONTRACT.md`, `docs/CLAIM_REGISTER.md` (empty), `.bob/rules.md`.
+`docs/SATNOGS_API_RECON.md` (findings), `docs/KILL_GATE.md` (status board, 3 of 6 gates pre-measured), `docs/BOB_TASK_PROMPTS.md` (master prompt plus 7 acceptance-defined Wave A units and outlines for B, C, D), `docs/BOB_HANDOFF.md`, `docs/BOB_BUILD_LOG.md` (empty), a credit budget kept outside this repository, `docs/ACTOR_AND_PERMISSION_CONTRACT.md`, `docs/CLAIM_REGISTER.md` (empty), `.bob/rules.md`.
 
 ---
 

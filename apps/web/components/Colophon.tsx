@@ -12,6 +12,8 @@
  * recorded against the imagery it actually downloaded.
  */
 
+import Link from "next/link";
+
 /** The repository this console is built from, named once. */
 const REPO = "https://github.com/Kesav2k04/tracetriage-august-2026";
 
@@ -47,13 +49,13 @@ export default function Colophon({
           <section>
             <h2>What this is</h2>
             <p>
-              A review-value queue for SatNOGS waterfalls, and the measurements
-              that decide whether it is worth a reviewer&rsquo;s time. {gatesMet} of
-              the {gatesTotal} gates it set itself were met, and{" "}
-              {gatesPrePassed === gatesMet ? "both are" : `${gatesPrePassed} of those are`}{" "}
-              feasibility checks answered before any pipeline code was written, so of the{" "}
-              {gatesTotal - gatesPrePassed} that ask whether the idea works, none passed on
-              the split that decides it. All {gatesTotal} are on the record.
+              A review-value queue for SatNOGS waterfalls, ranking which satellite
+              passes are worth a reviewer&rsquo;s time, with the measurements that say
+              how much. The {gatesTotal} kill gates it set itself are a research bar and
+              all {gatesTotal} are on the record: {gatesMet} met,{" "}
+              {gatesPrePassed === gatesMet ? "both" : String(gatesPrePassed)} of those
+              feasibility checks answered before any pipeline code existed.{" "}
+              <Link href="/start/">Start here</Link>.
             </p>
           </section>
 
@@ -94,25 +96,28 @@ export default function Colophon({
         </div>
 
         <div className="colophon-rule">
+          {/* 191 words became 62, on every page.
+              This paragraph carried the whole typography and colour argument: which
+              faces, which origin, the Plex fallback, the greyscale measurement, the
+              OKLCH re-expression of Carbon's ramp, the contrast delta it costs, the
+              colourmap the accents come off, and the two documented departures. All of
+              it is true and none of it is about satellites. It appeared eight times, at
+              the foot of a page a reader had reached by wanting something else, and the
+              provenance page carries the long version with the numbers.
+
+              What stays is the claim a reader might act on, which is that a blocked font
+              host costs nothing that carries a measurement, and the one fact that changes
+              how the plates are read: grey means measured. */}
           <p>
-            Prose and every figure set in IBM Plex, self-hosted from this origin.
-            Page titles in Neue Haas Grotesk Display and small labels in DIN 2014
-            Narrow, both licensed and served from Adobe Fonts, which is the one
-            third-party origin this site requests and the reason its content
-            security policy names two hosts. Nothing that carries a measurement
-            depends on that request: both licensed faces sit in front of a Plex
-            fallback, so a blocked kit costs the lettering and not the reading.
-            Colour is derived rather than chosen. Every waterfall this site
-            publishes is greyscale, measured at a largest channel spread of 1 part
-            in 255, so grey means measured and every coloured mark is something the
-            pipeline computed. The neutrals are IBM Carbon Gray 100&rsquo;s own
-            lightness values re-expressed in OKLCH with a small warm chroma, which
-            moves no contrast ratio by more than 0.01, and the accents are stops off{" "}
-            <span className="num">inferno</span>, the colourmap the plate above is
-            rendered through and the one matplotlib ships for spectrograms. One
-            documented departure in each: Carbon&rsquo;s own text token failed a
-            contrast requirement, and the ramp&rsquo;s crimson could not carry a word
-            on a tile until its lightness was raised.
+            Set in IBM Plex from this origin, with two licensed display faces from
+            Adobe Fonts, the one third-party host this site requests. Both sit in front
+            of a Plex fallback, so a blocked kit costs the lettering and not the reading.
+            Colour is derived rather than chosen: every waterfall here is greyscale to
+            within 1 part in 255, so grey means measured and every coloured mark is
+            something the pipeline computed. The neutrals are IBM Carbon&rsquo;s own
+            lightness ramp and the accents are stops off{" "}
+            <span className="num">inferno</span>, the colourmap the plates are rendered
+            through. <Link href="/provenance/">Both derivations, with their numbers</Link>.
           </p>
           {/* Both forms of each document.
               The served copy is markdown source, and a browser shows 54 KB of pipe
@@ -123,12 +128,17 @@ export default function Colophon({
               rendered page is a second copy of a file this project checks byte for
               byte. */}
           <p>
-            {/* First in the row, because a judge who arrives at the deployed URL rather
-                than at the repository has no other signposted way into the page written
-                for them. It is the one link here that is navigation. */}
-            <a href={`${REPO}/blob/main/FOR_JUDGES.md`}>
-              <b>For judges</b>
-            </a>
+            {/* First in the row, and it points at this site rather than at GitHub now.
+                A judge who arrives at the deployed URL had one signposted way into the
+                page written for them and it was a link off the console into a markdown
+                file. /start/ is the same map on the console, generated from the same
+                receipts. The repository copy keeps its place beside it, for a reader who
+                is in the repository anyway. */}
+            <Link href="/start/">
+              <b>Start here</b>
+            </Link>
+            {" · "}
+            <a href={`${REPO}/blob/main/FOR_JUDGES.md`}>For judges</a>
             {" · "}
             <a href={`${REPO}/blob/main/docs/KILL_GATE.md`}>Gates</a>{" "}
             <a href="/data/KILL_GATE.md" className="colophon-raw">

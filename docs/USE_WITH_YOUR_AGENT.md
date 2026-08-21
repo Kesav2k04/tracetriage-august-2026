@@ -23,7 +23,16 @@ file gets a project that looks like it has no tools.
 |---|---|
 | IBM Bob | `.bob/mcp.json` |
 | Cursor, Claude Code, Windsurf | `.mcp.json` |
-| watsonx Orchestrate | `orchestrate/toolkits/*.yaml` |
+| LangFlow | `flows/tracetriage_grounding.json`, `flows/tracetriage_granite_agent.json` |
+
+This table had a fourth row until 2026-08-22, reading `watsonx Orchestrate` against
+`orchestrate/toolkits/*.yaml`. **No such directory has ever existed in this repository.** It
+is removed rather than built, because a document written for a judge that points at an
+absent path is the one defect that makes every other path in it worth doubting, and this
+project's whole argument is that its claims can be opened. The same sentence in
+`.bob/rules.md` named watsonx Orchestrate as an optional integration and is corrected the
+same way. What watsonx actually is here is one text-generation backend with a runner and a
+dated receipt: `scripts/run_watsonx_check.py`.
 
 ## The one-minute version
 

@@ -8,6 +8,15 @@
   "context_length": 131072
  },
  "prompt_version": "e1.2",
+ "checker": {
+  "emitted": 10,
+  "refused": 15,
+  "decided": 25,
+  "adversarial_checks": 525,
+  "adversarial_caught": 525,
+  "control_checks": 175,
+  "control_refused": 0
+ },
  "notes": [
   {
    "obs_id": 14746092,

@@ -631,6 +631,31 @@ def publish() -> int:
                 "drafts_frozen_at_commit": receipt["drafts_frozen_at_commit"],
                 "model": fixture["model"],
                 "prompt_version": fixture["generation"]["prompt_version"],
+                # The checker's own two-sided score, published to the console rather
+                # than left in the receipt.
+                #
+                # The console could state the refusal rate and had no way to state what
+                # the refusals were worth, because the sensitivity block lived only in
+                # artifacts/EXPLAIN_RECEIPT.json and nothing under public/data carried
+                # it. So the first screen either printed the pair by hand, which is the
+                # one thing this project does not do, or said nothing about the
+                # strongest measured result it holds. Both halves are published
+                # together on purpose: a detection rate of 1.0 is what a checker that
+                # refuses everything scores, so the clean-draft count is the number
+                # that makes the other one mean anything.
+                "checker": {
+                    "emitted": receipt["counts"]["emitted"],
+                    "refused": receipt["counts"]["refused"],
+                    "decided": receipt["counts"]["decided_by_the_checker"],
+                    "adversarial_checks": receipt["checker_sensitivity"][
+                        "adversarial_checks"
+                    ],
+                    "adversarial_caught": receipt["checker_sensitivity"][
+                        "caught_for_the_expected_reason"
+                    ],
+                    "control_checks": receipt["checker_sensitivity"]["control_checks"],
+                    "control_refused": receipt["checker_sensitivity"]["control_refused"],
+                },
                 "notes": notes,
             },
             indent=1,

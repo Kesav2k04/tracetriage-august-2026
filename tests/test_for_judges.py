@@ -93,12 +93,24 @@ def test_every_path_the_page_cites_exists_and_is_published(page: str):
     # path the page already says is absent.
     unpublished_on_purpose = (".venv/", "apps/web/node_modules")
     suffixes = (".py", ".json", ".md", ".ts", ".tsx", ".yml", ".toml")
+    # Top-level entries this repository actually has. A slash alone does not make a token a
+    # path: the page names `ibm/granite-3-8b-instruct`, which is the model id watsonx serves
+    # Granite under, and reading it as a path sent this test looking for an `ibm/` directory
+    # that has never existed. Requiring the first segment to be something in the tree keeps
+    # every real path claim in scope and drops the identifiers that merely contain a slash.
+    top_level = {entry.name for entry in REPO.iterdir()}
+
+    def _is_a_path_claim(token: str) -> bool:
+        if token.endswith(suffixes):
+            return True
+        return "/" in token and token.split("/", 1)[0] in top_level
+
     candidates = {
         token
         for token in re.findall(r"`([^`]+)`", page)
         if " " not in token
         and not token.startswith(("http", "-", *unpublished_on_purpose))
-        and ("/" in token or token.endswith(suffixes))
+        and _is_a_path_claim(token)
     }
     assert len(candidates) >= 10, f"the extractor found {len(candidates)} paths, so it broke"
 

@@ -7,7 +7,8 @@
     "studio": "remotion studio",
     "render": "remotion render Film out/tracetriage-film.mp4 --concurrency=4 --muted --pixel-format=yuv420p",
     "poster": "remotion still Film out/tracetriage-film-poster.jpg --frame=1730 --jpeg-quality=92",
-    "test": "vitest run"
+    "test": "vitest run",
+    "report": "vite-node scripts/report-table.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "5.3.0",

@@ -67,7 +67,7 @@ Already done before your first task (do not redo):
 - Hardware profile. There is an RTX 3070 Ti and CUDA torch is installed and
   verified at 14.9x over CPU. USE IT, and guard against a silent CPU fallback.
   16 GB RAM is the binding constraint, so stream every stage: docs/HARDWARE_PROFILE.md
-- Every literal submission requirement, quoted, with status: docs/SUBMISSION_CHECKLIST.md
+- Every literal submission requirement, quoted, with status: kept outside this repository. It reasons about how judges score and when to make this repository public, which is strategy rather than evidence, and `README.md` plus `FOR_JUDGES.md` answer every requirement a reader of the tree needs answered.
 - Six data contracts, all ratified. Do not re-ratify them: contracts/
 - Doc skeletons, licences, CI config, .gitignore.
 Full inventory with the exact boundary: docs/PRE_BUILD_BASELINE.md

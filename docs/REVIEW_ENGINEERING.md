@@ -313,7 +313,7 @@ Three BLOCKING, ten SERIOUS, thirteen MINOR.
   The `.` is `test_readme_has_no_unbacked_numbers` passing on the fabricated figure and the `x` is the
   known D2 placeholder. The whole suite is blind to it. And:
   `git grep -nI "sync_readme_results"` returns only the script's own usage line and one mention in
-  `docs/WAVE_D_PROMPT.md`.
+  the Wave D build prompt, which is kept outside this repository because its test   counts are frozen at the day it was written and the tree has passed them.
 - **How to reproduce**:
   ```
   python - <<'PY'

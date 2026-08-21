@@ -17,6 +17,9 @@ import gate3Json from "../../artifacts/GATE3_RECEIPT.json";
 import provenanceJson from "../../apps/web/public/data/provenance.json";
 import cardsJson from "../../apps/web/public/data/cards.json";
 import attributionJson from "../../artifacts/ATTRIBUTION_AUDIT.json";
+import agentJson from "../../artifacts/AGENT_RECEIPT.json";
+import explainJson from "../../artifacts/EXPLAIN_RECEIPT.json";
+import circularityJson from "../../artifacts/CIRCULARITY_RECEIPT.json";
 
 import {
   Claim,
@@ -38,6 +41,9 @@ export const FILE = {
   provenance: "apps/web/public/data/provenance.json",
   cards: "apps/web/public/data/cards.json",
   attribution: "artifacts/ATTRIBUTION_AUDIT.json",
+  agent: "artifacts/AGENT_RECEIPT.json",
+  explain: "artifacts/EXPLAIN_RECEIPT.json",
+  circularity: "artifacts/CIRCULARITY_RECEIPT.json",
 } as const;
 
 const manifest = manifestJson as unknown;
@@ -46,6 +52,9 @@ const gate3 = gate3Json as unknown;
 const provenance = provenanceJson as unknown;
 const cards = cardsJson as unknown;
 const attribution = attributionJson as unknown;
+const agent = agentJson as unknown;
+const explain = explainJson as unknown;
+const circularity = circularityJson as unknown;
 
 const m = <T,>(path: string, format: (v: T) => string) =>
   read<T>(manifest, FILE.manifest, path, format);
@@ -59,6 +68,12 @@ const cd = <T,>(path: string, format: (v: T) => string) =>
   read<T>(cards, FILE.cards, path, format);
 const at = <T,>(path: string, format: (v: T) => string) =>
   read<T>(attribution, FILE.attribution, path, format);
+const ag = <T,>(path: string, format: (v: T) => string) =>
+  read<T>(agent, FILE.agent, path, format);
+const ex = <T,>(path: string, format: (v: T) => string) =>
+  read<T>(explain, FILE.explain, path, format);
+const ci = <T,>(path: string, format: (v: T) => string) =>
+  read<T>(circularity, FILE.circularity, path, format);
 
 // ---------------------------------------------------------------------------
 // Beat 1. The corpus, and how much of it carries a human verdict.
@@ -384,6 +399,75 @@ export const gates = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Beat 6. What came back established.
+//
+// The film measured the pre-registered gate and reported it inconclusive, which is
+// the honest answer and is not the whole answer. Three results were measured the
+// same way, on the same receipts, and came back decided. Leaving them out of the
+// film while the console prints them is the kind of omission this project exists to
+// argue against, so they are read here from their own receipts.
+// ---------------------------------------------------------------------------
+
+const COLD = "gate6.per_split.cold_station";
+
+export const established = {
+  model: ag<string>("model.name", identity),
+  tasks: ag<number>("tasks", group),
+  withTools: ag<number>("arms.tools.correct.successes", group),
+  withoutTools: ag<number>("arms.control.correct.successes", group),
+  trials: ag<number>("arms.tools.correct.trials", group),
+  declinedWithout: ag<number>("arms.control.declined_unknown", group),
+  discordant: ag<number>("paired.discordant_pairs", group),
+  /**
+   * One-sided exact p, printed to six places rather than in exponent form. The
+   * display has to be a number a viewer can read off the frame without knowing what
+   * "e-06" means, and the test that checks a display against its value parses digits.
+   */
+  pairedP: ag<number>("paired.exact_p_one_sided", fixed(6)),
+  adversarialChecks: ex<number>("checker_sensitivity.adversarial_checks", group),
+  adversarialCaught: ex<number>(
+    "checker_sensitivity.caught_for_the_expected_reason",
+    group,
+  ),
+  controlChecks: ex<number>("checker_sensitivity.control_checks", group),
+  controlRefused: ex<number>("checker_sensitivity.control_refused", group),
+  refusedOfDrafts: ex<number>("counts.refused", group),
+  draftsDecided: ex<number>("counts.decided_by_the_checker", group),
+  coldLift: q<number>(`${COLD}.lift_point`, fixed(2)),
+  coldCiLow: q<number>(`${COLD}.lift_ci95[0]`, fixed(2)),
+  coldCiHigh: q<number>(`${COLD}.lift_ci95[1]`, fixed(2)),
+  coldVerdict: q<string>(`${COLD}.verdict`, identity),
+  coldExamined: q<number>(`${COLD}.n_queue_examined`, group),
+  coldStationGroups: q<number>(`${COLD}.n_station_groups`, group),
+  /**
+   * The interval printed here is the wider of two: this split is resampled by pass
+   * episode and again by ground station, and the receipt governs on their union, so
+   * the held-out claim is made against the more conservative of the two.
+   */
+  coldInterval: q<string>(`${COLD}.governing_interval`, identity),
+} as const;
+
+// ---------------------------------------------------------------------------
+// The ceiling, shown under the gate tally.
+//
+// Four of the six gates read NOT_ESTABLISHED, and a tally alone does not say what
+// the measurement was up against. This is the quantity that explains it: on the
+// pre-registered split, the budget and the number of conflicts in the population
+// cap every possible ordering, a perfect oracle included, only slightly above the
+// bar the gate asked for.
+// ---------------------------------------------------------------------------
+
+export const ceiling = {
+  maxFindable: ci<number>("ceiling.max_findable_at_budget", group),
+  lift: ci<number>("ceiling.lift", fixed(2)),
+  threshold: ci<number>("ceiling.threshold", fixed(2)),
+  headroom: ci<number>(
+    "ceiling.headroom_between_threshold_and_perfection",
+    fixed(2),
+  ),
+} as const;
+
+// ---------------------------------------------------------------------------
 // Provenance, shown in the film's own footer.
 // ---------------------------------------------------------------------------
 
@@ -444,5 +528,7 @@ collect("physics", physics);
 collect("gate3Result", gate3Result);
 collect("lift", lift);
 collect("gates", gates);
+collect("established", established);
+collect("ceiling", ceiling);
 collect("provenanceLine", provenanceLine);
 collect("colophon", colophon);

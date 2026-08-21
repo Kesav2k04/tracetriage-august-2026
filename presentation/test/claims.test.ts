@@ -355,7 +355,16 @@ describe("no measurement is typed into a beat by hand", () => {
     "95%", // the confidence level, and it is in the receipt keys: lift_ci95
   ]);
 
-  const sources = ["Title", "Problem", "Queue", "Physics", "Result", "Gates", "Colophon"];
+  const sources = [
+    "Title",
+    "Problem",
+    "Queue",
+    "Physics",
+    "Result",
+    "Gates",
+    "Established",
+    "Colophon",
+  ];
 
   const strip = (source: string): string =>
     source
@@ -409,10 +418,37 @@ describe("no measurement is typed into a beat by hand", () => {
 });
 
 describe("the film is the length and shape the brief asked for", () => {
-  it("runs between 75 and 105 seconds", () => {
+  /**
+   * The competition's published ceiling for a presentation video is three minutes,
+   * and docs/DEMO_SCRIPT.md budgets 160 seconds of it. The upper bound here was 105
+   * when the film had seven beats, and the eighth pushed past it, so the number
+   * moved. The reason is written down because a threshold that follows a result is
+   * not a threshold: what changed is the film's content, the ceiling it is measured
+   * against is the rules', and the margin below it is the demo script's own budget.
+   * The lower bound has not moved. A film shorter than 75 seconds cannot show a
+   * measurement and the interval around it.
+   */
+  const RULES_CEILING_SECONDS = 180;
+  const SPOKEN_BUDGET_SECONDS = 160;
+
+  it("runs between 75 seconds and the budget the demo script sets", () => {
     const seconds = FILM_FRAMES / FPS;
     expect(seconds).toBeGreaterThanOrEqual(75);
-    expect(seconds).toBeLessThanOrEqual(105);
+    expect(seconds).toBeLessThanOrEqual(SPOKEN_BUDGET_SECONDS);
+    expect(SPOKEN_BUDGET_SECONDS).toBeLessThan(RULES_CEILING_SECONDS);
+  });
+
+  /**
+   * The order is the argument, so it is pinned rather than left to whoever edits the
+   * beat list next. Gates carries four verdicts that came back inconclusive and
+   * Established carries the three that did not. Established has to come second, or
+   * the film reads its own evidence in the order that flatters it.
+   */
+  it("states the pre-registered verdicts before the results that hold", () => {
+    const order = BEATS.map((beat) => beat.name);
+    expect(order.indexOf("Gates")).toBeGreaterThan(order.indexOf("Result"));
+    expect(order.indexOf("Established")).toBeGreaterThan(order.indexOf("Gates"));
+    expect(order[order.length - 1]).toBe("Colophon");
   });
 
   it("is 1920 by 1080 at 30 frames a second", () => {

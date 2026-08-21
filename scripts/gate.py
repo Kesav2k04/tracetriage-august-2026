@@ -220,6 +220,87 @@ def main() -> int:
         )
     )
 
+    # The LangChain adapter's receipt. Its freshness was guarded by
+    # tests/test_langchain_tools.py and by nothing here, which made it the one judge-facing
+    # generator outside this gate's own --check sweep. A test is a real guard; being the
+    # only exception to a sweep is how an exception outlives its reason.
+    rc, out = run([str(PY), str(REPO / "scripts" / "run_langchain_check.py"), "--check"])
+    results.append(
+        check(
+            "langchain receipt matches the adapter",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
+    # The watsonx receipt. Its whole point is that it records one of three outcomes with a
+    # date, so --check has to tolerate the outcome differing between a machine with
+    # credentials and one without, and it does: it reports which one is committed rather
+    # than treating either as wrong.
+    rc, out = run([str(PY), str(REPO / "scripts" / "run_watsonx_check.py"), "--check"])
+    results.append(
+        check(
+            "watsonx receipt matches this tree",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
+    # The LangFlow flows, and this one is a third outcome rather than a pass or a fail.
+    #
+    # LangFlow is deliberately not a dependency: it resolves several hundred packages and
+    # pins against versions the measurement path is fixed to. So on a machine without the
+    # separate environment there is no question to ask, and reporting that as a FAIL would
+    # manufacture a regression on every clean clone. The runner exits with a message naming
+    # the two commands that create the environment, and that string is what distinguishes
+    # "cannot be measured here" from "measured and wrong".
+    rc, out = run([str(PY), str(REPO / "scripts" / "run_langflow_check.py"), "--check"])
+    if rc != 0 and "No interpreter with LangFlow was found" in out:
+        print(
+            "  [ -- ] langflow flows match their receipt  "
+            "omitted: .venv-langflow is not present in this checkout."
+        )
+    else:
+        results.append(
+            check(
+                "langflow flows match their receipt",
+                rc == 0,
+                "" if rc == 0 else out.strip().splitlines()[0][:70],
+            )
+        )
+
+    # The presentation film, and the same third outcome for the same reason.
+    #
+    # 453 checks live in presentation/test/claims.test.ts and none of them ran here until
+    # now: they were reachable only by remembering to cd into the package. That is how a
+    # figure goes stale inside an mp4 that no diff can read. Two commands, because they
+    # fail differently. `npm test` walks every key path the film prints and re-resolves it
+    # against the receipt; `npm run report -- --check` fails if REPORT.md's claim table is
+    # no longer what src/data.ts produces.
+    #
+    # Omitted rather than failed when the package has no node_modules, because a clean
+    # clone has not run `npm install` there and a FAIL row would be a regression nobody
+    # caused. The tally counts checks that were performed.
+    presentation = REPO / "presentation"
+    if not (presentation / "node_modules").is_dir():
+        print(
+            "  [ -- ] presentation film matches its receipts  "
+            "omitted: presentation/node_modules is not present. Run npm install there."
+        )
+    else:
+        for label, argv in (
+            ("presentation film matches its receipts", [NPM, "test", "--silent"]),
+            (
+                "film report matches src/data.ts",
+                [NPM, "run", "report", "--silent", "--", "--check"],
+            ),
+        ):
+            rc, out = run(argv, cwd=presentation)
+            lines = [line for line in out.strip().splitlines() if line.strip()]
+            results.append(
+                check(label, rc == 0, "" if rc == 0 else (lines[-1] if lines else "")[:70])
+            )
+
     # Artifact freshness. Every other check here can pass while a committed artifact
     # disagrees with the code that produced it, which is exactly what happened in D0:
     # LEAKAGE_AUDIT.json kept a PASS the builder could no longer emit, and a test was

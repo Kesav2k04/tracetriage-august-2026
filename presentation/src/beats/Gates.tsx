@@ -1,5 +1,5 @@
 import React from "react";
-import { gates } from "../data";
+import { ceiling, gates } from "../data";
 import { font, numeric, token } from "../theme";
 import { Body, Frame, Heading, Mono, Reveal, VerdictMark } from "../ui";
 
@@ -77,7 +77,7 @@ const GateRow: React.FC<{ index: number; delay: number }> = ({ index, delay }) =
 };
 
 export const Gates: React.FC = () => (
-  <Frame eyebrow="The gates" sources={[gates.met, gates.total]}>
+  <Frame eyebrow="The gates" sources={[gates.met, gates.total, ceiling.lift]}>
     <Reveal delay={2}>
       <Heading>The kill gates, written down before measuring.</Heading>
     </Reveal>
@@ -132,6 +132,19 @@ export const Gates: React.FC = () => (
             answered before any pipeline code existed. Of the{" "}
             {gates.measured.display} that ask whether the idea works,{" "}
             {gates.measuredPassed.display} passed.
+          </Body>
+          {/* A tally with a zero in it and no scale beside it invites one reading,
+              which is that the idea did not work. This is the quantity that decides
+              how much room there was to work in, and it is a finding rather than an
+              excuse: it was computed from the population and the budget, not from
+              the result, and the console derives it on the evaluation page. */}
+          <Body size={24} colour={token.text02}>
+            What the measured gates were up against: the{" "}
+            {ceiling.maxFindable.display} conflicts that exist at this budget cap
+            every possible ordering, a perfect oracle included, at{" "}
+            {ceiling.lift.display} against a bar of {ceiling.threshold.display}. The
+            entire distance between the bar and perfection is{" "}
+            {ceiling.headroom.display}.
           </Body>
         </div>
       </Reveal>

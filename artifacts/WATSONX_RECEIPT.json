@@ -1,0 +1,29 @@
+{
+ "unit": "F1",
+ "generated_at": "2026-08-21T19:08:56.071339+00:00",
+ "backend": {
+  "name": "watsonx.ai text generation",
+  "model_id": "ibm/granite-3-8b-instruct",
+  "api_version": "2023-05-29",
+  "module": "pipeline/tracetriage/watsonx.py"
+ },
+ "subject": {
+  "observation_id": 14746092,
+  "chosen_by": "rank 1 of the shipped queue that carries an evidence packet",
+  "prompt_version": "e1.2",
+  "prompt_contract_sha256": "4779ba89f2d2a1b69c4f382be63bd4e404c77803672ca0fbbface0d54d96f8a7",
+  "prompt_characters": 1872
+ },
+ "attempt": {
+  "outcome": "NOT_CHECKED",
+  "reason": "WATSONX_API_KEY and WATSONX_PROJECT_ID not set. watsonx is optional in this project: the required path is the local Granite runtime in granite.py, and the grounding checker is the same either way.",
+  "variables_set": [],
+  "variables_required": [
+   "WATSONX_API_KEY",
+   "WATSONX_PROJECT_ID"
+  ],
+  "variable_optional": "WATSONX_URL",
+  "reading": "watsonx was attempted from this tree and no credential was present, so nothing was sent and nothing is claimed. This is recorded rather than omitted: an integration that cannot be exercised in an environment should say so in that environment's receipt. Every number this project publishes comes from the local Granite runtime, which needs no account, and the grounding checker is the same code either way."
+ },
+ "what_this_does_not_measure": "Whether watsonx writes better notes than the local runtime. One draft about one observation is an integration check, not a comparison: a comparison needs the same 25 observations through both backends with the checker's verdict on each, and that costs an account this project does not require anyone to have. What this receipt establishes is narrower and stated exactly: the hosted backend is reachable from this code, and its output is admitted or refused by the same rules as everything else here."
+}

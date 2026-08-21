@@ -337,103 +337,54 @@ export default function ProvenancePage() {
             maxWidth: "62rem",
           }}
         >
+          {/* Five bullets became two, and no claim was dropped.
+              This section carried 890 words about a web font: the byte inventory, a
+              correction to a byte figure published on 2026-08-18, the font-display
+              block period, a five-round paint A/B, the layout shift it cost, the
+              per-route face list that was considered and declined, and the wrong
+              weight the first version of the face list had. All of it is true and all
+              of it is still measured. It was 46 percent of this page's prose and 12
+              percent of all the prose on this console, spent on typography, on a site
+              about satellite passes.
+
+              What stays here is what a reader has to know to check the claim: how many
+              third-party origins there are, what they cost, and that the cost was
+              measured both ways. The harness, the two face lists, the five rounds and
+              the declined alternative are in artifacts/FONT_PAINT_RECEIPT.json, which
+              is the file that would have to be read to verify any of it anyway. */}
           <li>
             No request for <em>data</em> to any origin but its own, before or after
-            load. There is exactly one exception to the wider claim and it is not
-            data: two licensed families are served from Adobe Fonts, because their
-            terms forbid serving the files from anywhere else. Measured cold on this
-            page, as response bodies the browser received, that is 60,082 bytes: a
-            4,482 byte stylesheet from <code>use.typekit.net</code>, a 172 byte
-            licence counter, and three faces at 23,455, 16,430 and 15,543 bytes.
-            Two families, three faces: the label family is drawn at two weights.
-            They carry a one-year cache header, so a returning reader fetches none
-            of it. Every word of prose and every digit of every measurement is set
-            in IBM Plex from this origin, and both licensed families sit in front of
-            a Plex fallback, so a blocked font host costs the lettering and not the
-            reading.{" "}
-            <strong>This corrects a figure published here on 2026-08-18.</strong>{" "}
-            It said 43,598 bytes over one stylesheet and two faces. That was curl
-            against two URLs rather than a page load, and this page was already
-            fetching three faces when it was written, so the number was low by a
-            face from the day it appeared.
+            load. Two licensed display families are the one exception and they are not
+            data: Adobe&rsquo;s terms forbid serving the files from anywhere else.
+            Measured cold as response bodies the browser received, that is{" "}
+            <code>60,082</code> bytes over three faces and a stylesheet from{" "}
+            <code>use.typekit.net</code>, plus a 172-byte licence counter from{" "}
+            <code>p.typekit.net</code>, cached for a year. Those two hosts are the
+            complete list and the content security policy in <code>vercel.json</code>{" "}
+            names both, so a request to any third origin is refused by the browser.
+            Every word of prose and every digit of every measurement is set in IBM
+            Plex from this origin, behind which both licensed families sit as a
+            fallback: a blocked font host costs the lettering, not the reading.
           </li>
           <li>
-            <strong>What those two faces cost is not the bytes.</strong> The kit
-            declares 72 of its 90 faces at <code>font-display: auto</code>, which
-            tells the browser to hold text unpainted while the face loads, and both
-            faces this console uses are among the 72. Until 2026-08-21 that made the
-            first screen of a first visit blank until they arrived:{" "}
-            <code>956 ms</code> to first contentful paint as served against{" "}
-            <code>152 ms</code> with the font host blocked, and <code>944 ms</code>{" "}
-            with the self-hosted faces blocked instead, so it was the licensed pair
-            and not IBM Plex, which is <code>swap</code> and holds nothing. The
-            preconnect above was not the cause and adding another changed nothing.
-          </li>
-          <li>
-            <strong>It is fixed now, and not by the setting you would expect.</strong>{" "}
-            The obvious fix is <code>font-display: swap</code> in the Adobe Fonts
-            web project. It was applied, and the kit today serves 18 faces at{" "}
-            <code>swap</code> and 72 at <code>auto</code>: the 18 are{" "}
-            <code>acumin-pro</code>, which this console does not use. So the fix
-            here is in the loading order instead. The licensed families are not in{" "}
-            <code>--font-display</code> or <code>--font-label</code> at all. A head
-            script appends the kit at <code>media=&quot;print&quot;</code>, which
-            fetches it without blocking the render, and the families arrive with a
-            class on the root element only once{" "}
-            <code>document.fonts.load</code> has resolved for each of the three
-            faces any page renders. Plex paints at once, the licensed face replaces
-            it in one reflow, and no text is ever invisible, which is the sequence{" "}
-            <code>swap</code> would have produced. Measured the same way, five
-            interleaved rounds, one build patched three ways, all on one machine:
-            first contentful paint <code>596 ms</code> before,{" "}
-            <code>236 ms</code> after, against a floor of <code>200 ms</code> with
-            the kit pointed at a closed port. The after case is on the floor rather
-            than near it. Its fastest round, 192 ms, beats the floor&rsquo;s
-            slowest.
-          </li>
-          <li>
-            <strong>What that cost.</strong> A layout shift, and it is published
-            because reporting only the number that improved is how a build log
-            becomes a brochure. Cumulative layout shift is <code>0.0115</code> after
-            and <code>0</code> before, identically in all five rounds: an eighth of
-            the 0.1 that counts as good, and the same reflow <code>swap</code>{" "}
-            causes. It also costs <code>15,543</code> bytes on the five pages that
-            draw only two of the three faces, because the script waits for all three
-            everywhere: 44,536 bytes before against 60,079 after on{" "}
-            <code>/evaluation/</code>, and nothing at all on the three pages that draw
-            all three. Both arrive after the first paint and cache for a year. The
-            alternative is a per-route face list computed at build time, which buys
-            15 KB on a page that has already painted and costs a build step that can
-            be wrong about what a page renders. The three faces waited for are the
-            three any page renders,
-            checked over eight pages at two viewport widths. The first version of
-            that list had the display face at weight 400, which no page renders, and
-            omitted the label face at 400, which three pages do, and every page
-            still reported clean: by the time a probe can run, anything rendered has
-            finished loading. The head script therefore publishes what it waited for
-            in a <code>data-fonts</code> attribute, and{" "}
-            <code>apps/web/audit/font-swap-probe.js</code> compares that against
-            what the page draws instead of against a copy of the list. Both numbers
-            and both lists are in{" "}
-            <code>artifacts/FONT_PAINT_RECEIPT.json</code>, with the harness that
-            produced them.{" "}
-            <strong>
-              The kit&rsquo;s descriptors are an Adobe account setting and can change
-              with no commit here.
-            </strong>{" "}
-            Nothing above depends on them any more, and{" "}
-            <code>apps/web/audit/paint-probe.js</code> still reads them off{" "}
-            <code>document.fonts</code> at run time, so the live page can be asked
-            rather than trusted.
-          </li>
-          <li>
-            The kit stylesheet imports a five-byte counter from{" "}
-            <code>p.typekit.net</code> so Adobe can meter the licence. It is named
-            here rather than blocked: it sets no cookie and returns no content, and
-            suppressing a licensor&rsquo;s own metering to keep a claim tidy would
-            be the wrong way to earn it. Those two hosts are the complete list, and
-            the content security policy in <code>vercel.json</code> names both, so
-            a request to any third origin would be refused by the browser.
+            <strong>What the licensed faces cost is not the bytes.</strong> The kit
+            declares both of them <code>font-display: auto</code>, which holds text
+            unpainted until they arrive, and that made a first visit blank for{" "}
+            <code>956 ms</code> against <code>152 ms</code> with the host blocked.
+            Setting <code>swap</code> in the Adobe web project did not fix it, so the
+            load order does instead: the kit is appended at{" "}
+            <code>media=&quot;print&quot;</code> and the families only enter the type
+            tokens once <code>document.fonts.load</code> has resolved. First
+            contentful paint is <code>236 ms</code> against a{" "}
+            <code>200 ms</code> floor with the kit pointed at a closed port. It cost a
+            cumulative layout shift of <code>0.0115</code>, an eighth of the 0.1 that
+            counts as good, and that is published because a page that reports only the
+            number which improved is a brochure. The five interleaved rounds, both face
+            lists and the per-route alternative that was declined are in{" "}
+            <code>artifacts/FONT_PAINT_RECEIPT.json</code>;{" "}
+            <code>apps/web/audit/paint-probe.js</code> reads the descriptors off{" "}
+            <code>document.fonts</code> at run time, because they are an Adobe account
+            setting that can change with no commit here.
           </li>
           <li>
             The router does prefetch the next page&rsquo;s data when a link enters

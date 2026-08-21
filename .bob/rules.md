@@ -61,11 +61,13 @@ If a feature does not improve that decision, it does not belong in this reposito
 - **Keep everything on `D:\`.** Caches, temp files, model weights, browser binaries, build output. Never `C:\`.
 - **No paid service on the required path.** Nothing a judge runs, and nothing CI runs,
   may bill anyone. The measurement path, the console, the checker and both MCP servers are
-  local or read public APIs. Two optional integrations may touch a paid account when an
-  operator supplies credentials: watsonx text generation and watsonx Orchestrate. Both are
-  off by default, both fall back to the local model or to the deterministic template, and
-  neither is on the path any check runs. If credentials are absent the receipt records the
-  skip and no claim is made.
+  local or read public APIs. One optional integration may touch a paid account when an
+  operator supplies credentials: watsonx text generation. It is off by default, it falls
+  back to the local model or to the deterministic template, and it is not on the path any
+  check runs. If credentials are absent the receipt records the skip and no claim is made.
+  This line named watsonx Orchestrate as a second such integration until 2026-08-22. No
+  Orchestrate code, toolkit or receipt has ever existed here, so the claim is deleted
+  rather than qualified.
 
 ## 4. The kill list
 
@@ -113,7 +115,7 @@ Stop and document the failure in `docs/KILL_GATE.md`. Do not hide it, do not com
 
 ## 9. Before you run out of credits
 
-Stop starting features at **3 credits remaining**. Then: run the full test and acceptance suite, update `docs/BOB_HANDOFF.md` with exact next steps, update `docs/BOB_BUILD_LOG.md`, Task history is not exported into this repository: `bob_sessions/` was deleted in E0 because it held one `.gitkeep`, git does not publish an empty directory, and the README named it as evidence. `docs/BOB_BUILD_LOG.md` is the record. Procedure in `docs/BUILD_BUDGET.md`.
+Stop starting features at **3 credits remaining**. Then: run the full test and acceptance suite, update `docs/BOB_HANDOFF.md` with exact next steps, update `docs/BOB_BUILD_LOG.md`, Task history is not exported into this repository: `bob_sessions/` was deleted in E0 because it held one `.gitkeep`, git does not publish an empty directory, and the README named it as evidence. `docs/BOB_BUILD_LOG.md` is the record. The credit budget and the account-rotation procedure are kept outside this repository: they are build logistics, not evidence about the product, and a reader of the tracked tree gains nothing from them.
 
 ## 10. Git
 

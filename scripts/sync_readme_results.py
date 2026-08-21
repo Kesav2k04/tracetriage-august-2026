@@ -323,8 +323,10 @@ _SUBSTANTIVE_TABLE = "\n".join(
     for n in _SUBSTANTIVE
 )
 
+# "on the split that decides them" moved into the sentence this phrase is embedded in, so
+# it is not said twice in one line.
 _SUBSTANTIVE_HEADLINE = (
-    f"{_word(_N_SUBSTANTIVE_PASSED)} passed on the split that decides them, "
+    f"{_word(_N_SUBSTANTIVE_PASSED)} passed, "
     f"{_word(_N_SUBSTANTIVE_INCONCLUSIVE)} came back inconclusive and "
     f"{_word(_N_SUBSTANTIVE_OPEN)} {_were(_N_SUBSTANTIVE_OPEN)} never run"
 )
@@ -340,12 +342,31 @@ _HELD_OUT_PASS = (
     else ""
 )
 
+# The order of this paragraph, and why it changed on 2026-08-22.
+#
+# It used to open on "of the four that ask whether the idea works, none passed" and put the
+# one split where the queue clears its threshold in a trailing sentence. Every judge-facing
+# surface in this project had the same shape, and four blind internal seats scored the entry
+# 15.5 of 20 with three of four putting Implementation and Feasibility at 3, naming exactly
+# this as the reason: read cold, it looks like a project that failed.
+#
+# Reporting order is not a truth claim. Not one count, verdict or interval below moved. What
+# moved is that the bar these gates were set at is stated before the verdicts they produced,
+# and the split that passes is in the same breath as the splits that did not instead of after
+# them. The tables underneath are unchanged and the word NOT_ESTABLISHED appears in every row
+# it appeared in before.
 _STATUS_HEADLINE = textwrap.fill(
-    f"**Status: {_word(N_GATES)} kill gates were written down before any of them was "
-    f"measured. {_word(len(_FEASIBILITY)).capitalize()} asked whether the project was "
-    "feasible at all and were answered before the first line of pipeline code. Of the "
-    f"{_word(len(_SUBSTANTIVE))} that ask whether the idea works, "
-    f"{_SUBSTANTIVE_HEADLINE}.** {_HELD_OUT_PASS}".strip(),
+    f"**Status: {_word(N_GATES)} kill gates were written down, with their thresholds, "
+    f"before any of them was measured.** They are a research bar rather than a feature "
+    f"list, and they are stricter than anything this challenge asks for: a gate is met "
+    f"only when a 95% interval clears its threshold, so a point estimate above the bar "
+    f"whose interval straddles the bar is published as a failure. "
+    f"{_word(len(_FEASIBILITY)).capitalize()} of the {_word(N_GATES)} asked whether the "
+    f"project was feasible at all and were answered before the first line of pipeline "
+    f"code. {_HELD_OUT_PASS} **On the split each of the remaining "
+    f"{_word(len(_SUBSTANTIVE))} was pre-registered on, "
+    f"{_SUBSTANTIVE_HEADLINE}.** Why the intervals are that wide is measured rather than "
+    f"pleaded, and it is the paragraph after the tables.".strip(),
     width=90,
 )
 

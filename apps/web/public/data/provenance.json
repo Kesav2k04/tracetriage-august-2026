@@ -162,6 +162,11 @@
    "bytes": 4069
   },
   {
+   "name": "LANGFLOW_RECEIPT.json",
+   "sha256": "e1b89120a51596fe4f572c6e94d79cefa85f63db6271d1e739ec2474892ca85a",
+   "bytes": 3862
+  },
+  {
    "name": "LEAKAGE_AUDIT.json",
    "sha256": "ecb4aff23de891691e09b045ea91f8449906c6dbd34f5a0e470b88d79a9f53a5",
    "bytes": 10942
@@ -235,6 +240,11 @@
    "name": "TRIAGE_RECEIPT.json",
    "sha256": "b5213a23e50938624ef8be5dd5bbab340559521478c6a24a1a84256137a08255",
    "bytes": 3740
+  },
+  {
+   "name": "WATSONX_RECEIPT.json",
+   "sha256": "a4639fb7a850b9d59ae2995461ad4ce24dc70771455346057fd57e633dfb0eb6",
+   "bytes": 1878
   },
   {
    "name": "corridor_features.json",

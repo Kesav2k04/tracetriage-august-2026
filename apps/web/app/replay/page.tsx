@@ -230,10 +230,9 @@ export default function ReplayPage() {
             fontSize: "var(--type-caption)",
           }}
         >
-          Looking for the pass playback, the clock that drives the sky track, the
-          ground track and the Doppler curve together? That is on an observation:{" "}
-          <Link href={`/observation/${playbackId}/`}>open {playbackId}</Link> and scroll
-          to “The pass”.
+          The pass playback, one clock driving the sky track, the ground track and the
+          Doppler curve together, is on an observation:{" "}
+          <Link href={`/observation/${playbackId}/`}>open {playbackId}</Link>.
         </p>
       </header>
 

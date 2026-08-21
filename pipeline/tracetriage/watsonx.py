@@ -26,6 +26,13 @@ named exception, so the runner records a dated skip rather than falling through 
 template and labelling the result watsonx. Inventing text here would make the receipt a lie
 about which weights produced a published note, which is the exact failure this project's
 whole grounding argument is built to prevent.
+
+The runner is ``scripts/run_watsonx_check.py`` and it writes
+``artifacts/WATSONX_RECEIPT.json``. Until 2026-08-22 there was none: this module had no
+caller anywhere in the tree, and the sentence below about the variable names living in one
+place named a runner, tests and an ``.env.example`` entry that did not exist. Finished code
+with nothing calling it is not an integration, and a docstring describing a caller that is
+absent is worse than one that says nothing.
 """
 
 from __future__ import annotations

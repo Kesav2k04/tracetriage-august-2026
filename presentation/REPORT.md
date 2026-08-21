@@ -1,6 +1,6 @@
 # The TraceTriage presentation film
 
-A 103 second silent film for the IBM AI Builders August 2026 entry, rendered with
+A 118 second silent film for the IBM AI Builders August 2026 entry, rendered with
 Remotion at 1920 by 1080 and 30 frames a second. It is built to be read with the sound
 off and presented live.
 
@@ -11,7 +11,7 @@ re-render it, and what the verification actually printed.
 
 ## What it says, beat by beat
 
-The film is seven cards, cut rather than crossfaded, 3090 frames in total.
+The film is eight cards, cut rather than crossfaded, 3540 frames in total.
 
 | # | Card | Frames | Seconds | What it says |
 |---|---|---|---|---|
@@ -20,11 +20,21 @@ The film is seven cards, cut rather than crossfaded, 3090 frames in total.
 | 3 | The product | 570 to 1169 | 19.0 to 39.0 | 407 observations ranked by review value, with the first 50 as the budget. The four the per-station cap displaced are drawn in the caution token at the budget line. Then what the top 50 turned out to be carrying: 17 stale catalogue frequencies, 3 model and label disagreements, 0 dead captures, with the third criterion marked as one that never fires on this corpus. |
 | 4 | The physics | 1170 to 1889 | 39.0 to 63.0 | Observation 14740031's real waterfall, from the console's own public directory. Three overlays arrive in order: the commanded receive frequency as a vertical dashed line, the pass geometry at zero offset spanning 17,290 Hz, then the same curve sliding 113 pixels onto its best match. The measurement is the gap: +13,985 Hz, +32.05 ppm. Then gate 3, which asked whether that corridor lands on a visible trace: 3 of 3 discriminated, a 95% lower bound of 0.37 against a threshold of 0.70, NOT ESTABLISHED. |
 | 5 | The result | 1890 to 2459 | 63.0 to 82.0 | Gate 6's wording, quoted from its receipt. Conflicts found in the 50 examined out of 87 decisively labelled: 12.6 expected by random, 14 by first in first out, 20 by the ranked queue, against 22 in the whole population. Then the lift on one axis: a threshold at 1.50, first in first out at 1.11, a point estimate of 1.58, and a 95% interval from 1.35 to 1.74 drawn straddling the threshold. NOT ESTABLISHED, direction spans_threshold. |
-| 6 | The gates | 2460 to 2909 | 82.0 to 97.0 | All six kill gates with the file each was decided in and the receipt's own verdict word. Then the tally: 2 of 6 met, the two being the feasibility checks answered before any pipeline code existed, and of the 4 that ask whether the idea works, 0 passed. |
-| 7 | Attribution | 2910 to 3089 | 97.0 to 103.0 | The six obligations `DATA_LICENSE.md` accepts for the waterfall the film displayed, read from that file's own row in `artifacts/ATTRIBUTION_AUDIT.json`: record URL, artifact URL, retrieval timestamp, sha256, licence, licence URL and modification notice, plus the notice this film adds. ShareAlike is stated: the film contains a SatNOGS waterfall, so the film carries CC BY-SA 4.0 rather than the repository's code licence. |
+| 6 | The gates | 2460 to 2909 | 82.0 to 97.0 | All six kill gates with the file each was decided in and the receipt's own verdict word. Then the tally: 2 of 6 met, the two being the feasibility checks answered before any pipeline code existed, and of the 4 that ask whether the idea works, 0 passed. Then the scale that tally sits on, from `artifacts/CIRCULARITY_RECEIPT.json`: the 22 conflicts that exist at this budget cap every possible ordering, a perfect oracle included, at 1.74 against a bar of 1.50, so the whole distance between the bar and perfection is 0.24. |
+| 7 | What holds | 2910 to 3359 | 97.0 to 112.0 | The three results that came back decided, read from `artifacts/AGENT_RECEIPT.json`, `artifacts/EXPLAIN_RECEIPT.json` and the held-out split of `artifacts/QUEUE_RECEIPT.json`. The evidence tools change what a local Granite model gets right, 22 of 24 against 2 of 24 with no tools, paired exact one sided 0.000001 over 20 discordant pairs. The grounding checker caught 525 of 525 planted falsehoods and refused 0 of 175 clean drafts. On ground stations the queue was never fitted to, lift is 2.25 with a 95% interval of 1.92 to 3.86, above the bar rather than spanning it, and the receipt records PASSED. |
+| 8 | Attribution | 3360 to 3539 | 112.0 to 118.0 | The six obligations `DATA_LICENSE.md` accepts for the waterfall the film displayed, read from that file's own row in `artifacts/ATTRIBUTION_AUDIT.json`: record URL, artifact URL, retrieval timestamp, sha256, licence, licence URL and modification notice, plus the notice this film adds. ShareAlike is stated: the film contains a SatNOGS waterfall, so the film carries CC BY-SA 4.0 rather than the repository's code licence. |
 
 Beat 5 is not softened. The film says the point estimate clears the threshold and the
-interval does not, and beat 6 closes on 2 of 6 rather than on a win.
+interval does not, and beat 6 states the tally as 2 of 6.
+
+Beat 7 was added after a read of the finished film found a different failure. Every card
+up to beat 6 ended on a verdict that came back inconclusive, which is honest about the
+gate that was pre-registered and is not the whole state of the evidence: three results
+were measured the same way and came back decided, and the film left them out. The fix is
+ordering rather than softening. No figure moved and no verdict changed. The pre-registered
+gate is stated in full first, with its interval and its tally, and the three results that
+hold are stated after it. `test/claims.test.ts` pins that order, so a later edit that
+puts the wins first fails a test rather than passing quietly.
 
 ### Two places the film disagrees with a natural reading of the brief
 
@@ -48,16 +58,14 @@ recorded, and nothing claims a measured margin between the two shapes.
 
 ## Where every figure comes from
 
-The table below was generated from `src/data.ts`, not typed. Each row is a claim object
+The table below is generated from `src/data.ts` by `presentation/scripts/report-table.ts`, not typed. `npm run report -- --check` fails if it has drifted. Each row is a claim object
 holding a file, a key path, the value the path resolved to, and the string the film
 prints. `src/claim.ts` resolves the path at build time, so a renamed key fails the render
 instead of leaving a stale figure inside an mp4.
 
-Twenty-two of these are read and not displayed. They are there because the test uses them
-for cross-checks: `lift.statement` and `gate3Result.question` hold the receipts' own
-sentences, `physics.dopplerVerdict` proves the chosen observation is one gate 3 could be
-asked of, and `reviewQueue.criteria.N.firedInCorpus` is the corpus-wide count against
-which the in-budget count is read.
+<!-- claim-table:start -->
+
+The film holds 135 claims. 25 of them are read and never drawn: they are there because the test uses them for cross-checks, such as the receipts' own sentences in `lift.statement` and `gate3Result.question`, `physics.dopplerVerdict`, which proves the chosen observation is one gate 3 could be asked of, and `reviewQueue.criteria.N.firedInCorpus`, the corpus-wide count the in-budget count is read against.
 
 | Shown as | Value | File | Key |
 |---|---|---|---|
@@ -158,6 +166,31 @@ which the in-budget count is read.
 | gates.note | `Met counts a gate that was passed or pre-passed.` | apps/web/public/data/provenance.json | `gate_summary.note` |
 | gates.measured | `4` | apps/web/public/data/provenance.json | `gate_summary.gates[] where verdict is not PRE_PASSED` |
 | gates.measuredPassed | `0` | apps/web/public/data/provenance.json | `gate_summary.gates[] where verdict is not PRE_PASSED and verdict is PASSED` |
+| established.model | `granite3.1-dense:8b` | artifacts/AGENT_RECEIPT.json | `model.name` |
+| established.tasks | `24` | artifacts/AGENT_RECEIPT.json | `tasks` |
+| established.withTools | `22` | artifacts/AGENT_RECEIPT.json | `arms.tools.correct.successes` |
+| established.withoutTools | `2` | artifacts/AGENT_RECEIPT.json | `arms.control.correct.successes` |
+| established.trials | `24` | artifacts/AGENT_RECEIPT.json | `arms.tools.correct.trials` |
+| established.declinedWithout | `18` | artifacts/AGENT_RECEIPT.json | `arms.control.declined_unknown` |
+| established.discordant | `20` | artifacts/AGENT_RECEIPT.json | `paired.discordant_pairs` |
+| established.pairedP | `0.000001` | artifacts/AGENT_RECEIPT.json | `paired.exact_p_one_sided` |
+| established.adversarialChecks | `525` | artifacts/EXPLAIN_RECEIPT.json | `checker_sensitivity.adversarial_checks` |
+| established.adversarialCaught | `525` | artifacts/EXPLAIN_RECEIPT.json | `checker_sensitivity.caught_for_the_expected_reason` |
+| established.controlChecks | `175` | artifacts/EXPLAIN_RECEIPT.json | `checker_sensitivity.control_checks` |
+| established.controlRefused | `0` | artifacts/EXPLAIN_RECEIPT.json | `checker_sensitivity.control_refused` |
+| established.refusedOfDrafts | `15` | artifacts/EXPLAIN_RECEIPT.json | `counts.refused` |
+| established.draftsDecided | `25` | artifacts/EXPLAIN_RECEIPT.json | `counts.decided_by_the_checker` |
+| established.coldLift | `2.25` | artifacts/QUEUE_RECEIPT.json | `gate6.per_split.cold_station.lift_point` |
+| established.coldCiLow | `1.92` | artifacts/QUEUE_RECEIPT.json | `gate6.per_split.cold_station.lift_ci95[0]` |
+| established.coldCiHigh | `3.86` | artifacts/QUEUE_RECEIPT.json | `gate6.per_split.cold_station.lift_ci95[1]` |
+| established.coldVerdict | `PASSED` | artifacts/QUEUE_RECEIPT.json | `gate6.per_split.cold_station.verdict` |
+| established.coldExamined | `50` | artifacts/QUEUE_RECEIPT.json | `gate6.per_split.cold_station.n_queue_examined` |
+| established.coldStationGroups | `27` | artifacts/QUEUE_RECEIPT.json | `gate6.per_split.cold_station.n_station_groups` |
+| established.coldInterval | `union_of_episode_and_station` | artifacts/QUEUE_RECEIPT.json | `gate6.per_split.cold_station.governing_interval` |
+| ceiling.maxFindable | `22` | artifacts/CIRCULARITY_RECEIPT.json | `ceiling.max_findable_at_budget` |
+| ceiling.lift | `1.74` | artifacts/CIRCULARITY_RECEIPT.json | `ceiling.lift` |
+| ceiling.threshold | `1.50` | artifacts/CIRCULARITY_RECEIPT.json | `ceiling.threshold` |
+| ceiling.headroom | `0.24` | artifacts/CIRCULARITY_RECEIPT.json | `ceiling.headroom_between_threshold_and_perfection` |
 | provenanceLine.snapshot | `snap-20260817-stage1` | apps/web/public/data/provenance.json | `snapshot_id` |
 | provenanceLine.splitSha | `bdb159ca13ec` | apps/web/public/data/provenance.json | `split_manifest_sha256` |
 | provenanceLine.attribution | `Waterfall imagery from the SatNOGS Network, contributed by volunteer ground stations, under CC BY-SA 4.0. See DATA_LICENSE.md.` | apps/web/public/data/cards.json | `attribution` |
@@ -171,6 +204,8 @@ which the in-budget count is read.
 | colophon.modification | `cropped to the spectrogram interior and re-encoded from PNG to WebP; the _thumb variants are additionally downscaled` | artifacts/ATTRIBUTION_AUDIT.json | `rows[19].modification_notice` |
 | colophon.station | `91` | artifacts/ATTRIBUTION_AUDIT.json | `rows[19].ground_station` |
 | colophon.obligationsSource | `DATA_LICENSE.md, the six items this project commits to per artifact` | artifacts/ATTRIBUTION_AUDIT.json | `obligations_source` |
+
+<!-- claim-table:end -->
 
 ### The nine derived figures
 
@@ -226,7 +261,7 @@ npm test            # vitest run
 npx tsc --noEmit    # the key paths are resolved in TypeScript, so this is a real check
 ```
 
-The film reads five files outside this package and writes nothing outside
+The film reads eight files outside this package and writes nothing outside
 `presentation/`. It does not need the console to be built, a network connection, a GPU or
 a model runtime.
 
@@ -243,29 +278,31 @@ Composition          Film
 Codec                h264
 Output               out/tracetriage-film.mp4
 Concurrency          4x
-Rendered 3094/3090
-o                    out/tracetriage-film.mp4 4 MB
+Rendered 3544/3540
+o                    out/tracetriage-film.mp4 4.9 MB
 ```
 
-Wall clock 158 seconds on this machine, measured around the `npm run render` call. Output
-4,033,764 bytes, which is 3.85 MiB. The poster frame is 275,349 bytes.
+Wall clock 153.8 seconds on this machine, measured around the `npm run render` call.
+Output 4,923,473 bytes, which is 4.70 MiB. The poster frame is 275,349 bytes.
 
-Four frames per run stall on the font handle for the full 60 second timeout and are then
-retried and rendered correctly. The group is always the size of the concurrency and the
-frame numbers move between runs (1780 to 1783 in one, 1222 to 1223 and 2434 to 2435 in
-another), so it looks like a page recycle where every tab refetches the bundle and the
-font requests queue behind it. The retry is configured for this and recovers, and the
-stall is left visible in the render log rather than hidden. It is why `src/fonts.ts` sets
-`retries: 3`.
+One group of frames per run stalls on the font handle for the full 58 second timeout and
+is then retried and rendered correctly. The group is always the size of the concurrency
+and the frame numbers move between runs, which is what makes the diagnosis a page recycle
+rather than a bad frame: at concurrency 4 the group was 1802 to 1805 in one run and 1818
+to 1821 in another, and at concurrency 2 there were two groups of two, 1273 to 1274 and
+2478 to 2479. Every tab refetches the bundle on a recycle and the font requests queue
+behind it. The retry is configured for this and recovers, and the stall is left visible in
+the render log rather than hidden. It is why `src/fonts.ts` sets `retries: 3`.
 
 The retry recovers rather than papering over a bad frame, and that is measured rather than
-assumed: rendering this tree twice, once at concurrency 4 and once at concurrency 2,
-produced a byte-identical file both times.
+assumed: this tree was rendered three times, twice at concurrency 4 and once at
+concurrency 2, and produced a byte-identical file every time. The concurrency 2 run took
+208.1 seconds against 153.8, so the timing moves and the bytes do not.
 
 ```
 $ md5sum out/probe.mp4 out/tracetriage-film.mp4
-47eb374c785e7eadc6b42982611235ba *out/probe.mp4
-47eb374c785e7eadc6b42982611235ba *out/tracetriage-film.mp4
+ba57a3cd01a93557e4bf2aa799ede4bd *out/probe.mp4
+ba57a3cd01a93557e4bf2aa799ede4bd *out/tracetriage-film.mp4
 ```
 
 The GL renderer is pinned to `angle` in `remotion.config.ts` for the same reason:
@@ -274,17 +311,17 @@ unpinned, the antialiasing changes and the digest with it.
 ### The tests
 
 ```
- + test/claims.test.ts (375 tests) 130ms
+ + test/claims.test.ts (453 tests) 132ms
 
  Test Files  1 passed (1)
-      Tests  375 passed (375)
-   Duration  1.15s
+      Tests  453 passed (453)
+   Duration  1.09s
 ```
 
 `npx tsc --noEmit` prints nothing.
 
-Two of those 375 are the scan that says no measurement was typed into a beat by hand, and
-they were checked by planting one. Changing `Each one names a question` to `All 6 name a
+Sixteen of those 453 are the scan that says no measurement was typed into a beat by hand,
+two per card, and they were checked by planting one. Changing `Each one names a question` to `All 6 name a
 question` in `src/beats/Gates.tsx` fails `Gates has no hand-typed figure in its copy`, and
 changing the eyebrow to `The 6 gates` fails `Gates has no hand-typed figure in a string`.
 Both were reverted. The scan allows three strings with a digit in them, each named in the
@@ -302,17 +339,17 @@ width=1920
 height=1080
 pix_fmt=yuv420p
 r_frame_rate=30/1
-nb_frames=3090
+nb_frames=3540
 [/STREAM]
 [FORMAT]
 nb_streams=1
-duration=103.000000
-size=4033764
+duration=118.000000
+size=4923473
 [/FORMAT]
 ```
 
-One stream and no audio track, 1920 by 1080, exactly 30 frames a second, 3090 frames,
-103.0 seconds. `nb_streams=1` is the line that matters for the no-audio requirement:
+One stream and no audio track, 1920 by 1080, exactly 30 frames a second, 3540 frames,
+118.0 seconds, which is 62 seconds inside the competition's three-minute ceiling. `nb_streams=1` is the line that matters for the no-audio requirement:
 Remotion adds a silent AAC track unless `--muted` is passed, and the first render of this
 film had one.
 
@@ -321,19 +358,22 @@ and says which one is missing rather than passing quietly when either is not.
 
 Frames were also extracted from the encoded mp4 with ffmpeg at 3, 15, 30, 58, 75, 92 and
 100 seconds and read, so the checks above are on the delivered file and not only on the
-composition.
+composition. That sampling predates the eighth card and does not reach it; the card's own
+figures are covered by the claim table above and by the render being byte-identical across
+three runs.
 
 ## Deliverables
 
 | File | What it is |
 |---|---|
-| `presentation/out/tracetriage-film.mp4` | The film. 4,033,764 bytes, 103.0 s, 1920x1080, 30 fps, h264, no audio. |
+| `presentation/out/tracetriage-film.mp4` | The film. 4,923,473 bytes, 118.0 s, 1920x1080, 30 fps, h264, no audio. |
 | `presentation/out/tracetriage-film-poster.jpg` | Poster frame at frame 1730, the physics beat with both curves and the measurement on screen. 275,349 bytes. |
 | `presentation/src/data.ts` | Every claim, with its file and key path. The single place a number enters the film. |
 | `presentation/src/claim.ts` | The path resolver and the formatters. |
 | `presentation/src/theme.ts` | The console's tokens, copied from `globals.css` and checked against it by the test. |
 | `presentation/src/beats/*.tsx` | One file per card. |
-| `presentation/test/claims.test.ts` | 375 checks. |
+| `presentation/test/claims.test.ts` | 453 checks. |
+| `presentation/scripts/report-table.ts` | Regenerates the claim table in this report from `src/data.ts`. `npm run report -- --check` fails if it has drifted. |
 | `presentation/remotion.config.ts` | Public directory, image format, pixel format and GL renderer, each with the reason it is pinned. |
 
 ## Two things a reader should know

@@ -421,7 +421,7 @@ _WEIGHT_NOTES: list[tuple[str, str]] = [
     ),
     (
         "presentation/out/",
-        "the rendered film and its poster, 103 seconds at 1920x1080. The source beside it "
+        "the rendered film and its poster, 118 seconds at 1920x1080. The source beside it "
         "reads its figures from the receipts rather than restating them, so the mp4 is "
         "reproducible from this tree; it is kept because a reader who watches it should "
         "not first have to install a renderer, and because an mp4 is the one artifact "
