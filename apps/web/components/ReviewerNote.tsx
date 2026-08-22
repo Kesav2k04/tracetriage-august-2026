@@ -60,6 +60,26 @@ export function noteCaption(record: NoteRecord, model: NoteModel | null): string
   return `Deterministic summary, assembled from the observation's own fields.`;
 }
 
+/**
+ * What each grounding-check code means, in words.
+ *
+ * The codes were rendered bare with the meaning only in a `title` attribute, which is
+ * invisible on a touch device, in a screenshot and on a printed page. The code stays
+ * because it is the contract `pipeline/tracetriage/explain.py`, `apps/web/lib/grounding.ts`
+ * and every receipt share, and a reader matching one to another needs it. The meaning sits
+ * beside it rather than behind a hover.
+ */
+const VIOLATION_MEANING: Record<string, string> = {
+  UNGROUNDED_NUMBER: "a number not in the evidence packet",
+  UNGROUNDED_ENTITY: "a name or code not in the packet",
+  MISLOCATED_TIME_CLAIM: "a time the packet places elsewhere",
+  OVERCLAIM: "a claim this system cannot make",
+  ABSOLUTE_CLAIM: "stated as certain",
+  WRONG_VOICE: "not the reviewer's voice",
+  TOO_LONG: "over the length the contract allows",
+  TOO_MANY_SENTENCES: "more sentences than the contract allows",
+};
+
 export default function ReviewerNote({
   record,
   model,
@@ -87,6 +107,7 @@ export default function ReviewerNote({
         {record.refused_codes.map((code) => (
           <Tag key={code} tone="neutral" title="grounding check violation code">
             {code}
+            {VIOLATION_MEANING[code] ? ` · ${VIOLATION_MEANING[code]}` : ""}
           </Tag>
         ))}
       </div>

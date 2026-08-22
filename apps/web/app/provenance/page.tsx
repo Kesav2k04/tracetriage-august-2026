@@ -355,36 +355,13 @@ export default function ProvenancePage() {
           <li>
             No request for <em>data</em> to any origin but its own, before or after
             load. Two licensed display families are the one exception and they are not
-            data: Adobe&rsquo;s terms forbid serving the files from anywhere else.
-            Measured cold as response bodies the browser received, that is{" "}
-            <code>60,082</code> bytes over three faces and a stylesheet from{" "}
-            <code>use.typekit.net</code>, plus a 172-byte licence counter from{" "}
-            <code>p.typekit.net</code>, cached for a year. Those two hosts are the
-            complete list and the content security policy in <code>vercel.json</code>{" "}
-            names both, so a request to any third origin is refused by the browser.
-            Every word of prose and every digit of every measurement is set in IBM
-            Plex from this origin, behind which both licensed families sit as a
-            fallback: a blocked font host costs the lettering, not the reading.
-          </li>
-          <li>
-            <strong>What the licensed faces cost is not the bytes.</strong> The kit
-            declares both of them <code>font-display: auto</code>, which holds text
-            unpainted until they arrive, and that made a first visit blank for{" "}
-            <code>956 ms</code> against <code>152 ms</code> with the host blocked.
-            Setting <code>swap</code> in the Adobe web project did not fix it, so the
-            load order does instead: the kit is appended at{" "}
-            <code>media=&quot;print&quot;</code> and the families only enter the type
-            tokens once <code>document.fonts.load</code> has resolved. First
-            contentful paint is <code>236 ms</code> against a{" "}
-            <code>200 ms</code> floor with the kit pointed at a closed port. It cost a
-            cumulative layout shift of <code>0.0115</code>, an eighth of the 0.1 that
-            counts as good, and that is published because a page that reports only the
-            number which improved is a brochure. The five interleaved rounds, both face
-            lists and the per-route alternative that was declined are in{" "}
-            <code>artifacts/FONT_PAINT_RECEIPT.json</code>;{" "}
-            <code>apps/web/audit/paint-probe.js</code> reads the descriptors off{" "}
-            <code>document.fonts</code> at run time, because they are an Adobe account
-            setting that can change with no commit here.
+            data: Adobe&rsquo;s terms forbid serving the files from anywhere else. Those
+            two hosts are the complete list, the content security policy in{" "}
+            <code>vercel.json</code> names both, so a request to any third origin is
+            refused by the browser. Every digit of every measurement on this site is set
+            in IBM Plex served from here, and the font host cannot hold the first paint:
+            the bytes, the paint measurements and the alternative that was declined are
+            in <code>artifacts/FONT_PAINT_RECEIPT.json</code>.
           </li>
           <li>
             The router does prefetch the next page&rsquo;s data when a link enters
@@ -434,14 +411,14 @@ export default function ProvenancePage() {
             </tr>
           ))}
         </Table>
+        {/* Ninety words became forty-eight, and the sentence addressed to "a judge"
+            became an instruction addressed to whoever is reading. A page that speaks
+            to one class of reader tells every other reader they are not it. */}
         <Note tone="limit">
-          Every count above is zero, and that is worth saying out loud rather than
-          leaving as a table nobody reads. The observations this console ships are the
-          top of a queue, so they are the ones with the cleanest geometry; the
-          degraded paths are exercised in the offline suite and, for the WebGL
-          fallback, by disabling the context and reloading. A judge who wants to see
-          one live can switch off JavaScript, or block the waterfall image, and the
-          page will say what it lost.
+          Every count is zero, which is worth saying rather than leaving in a table. The
+          observations this console ships are the top of a queue, so they have the
+          cleanest geometry. The degraded paths are covered by the offline suite; to see
+          one here, block the waterfall image and the page will say what it lost.
         </Note>
       </Section>
 

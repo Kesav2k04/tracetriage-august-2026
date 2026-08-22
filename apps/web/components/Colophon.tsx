@@ -109,15 +109,10 @@ export default function Colophon({
               host costs nothing that carries a measurement, and the one fact that changes
               how the plates are read: grey means measured. */}
           <p>
-            Set in IBM Plex from this origin, with two licensed display faces from
-            Adobe Fonts, the one third-party host this site requests. Both sit in front
-            of a Plex fallback, so a blocked kit costs the lettering and not the reading.
-            Colour is derived rather than chosen: every waterfall here is greyscale to
-            within 1 part in 255, so grey means measured and every coloured mark is
-            something the pipeline computed. The neutrals are IBM Carbon&rsquo;s own
-            lightness ramp and the accents are stops off{" "}
-            <span className="num">inferno</span>, the colourmap the plates are rendered
-            through. <Link href="/provenance/">Both derivations, with their numbers</Link>.
+            Every waterfall here is greyscale to within 1 part in 255, so grey means
+            measured and every coloured mark is something the pipeline computed. The
+            ground is black because the sky between passes is.{" "}
+            <Link href="/provenance/">The derivation, with its numbers</Link>.
           </p>
           {/* Both forms of each document.
               The served copy is markdown source, and a browser shows 54 KB of pipe

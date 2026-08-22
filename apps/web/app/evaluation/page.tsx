@@ -806,10 +806,19 @@ export default function EvaluationPage() {
         <Note tone="limit">{ablation.caveat as string}</Note>
 
         <Note tone="limit">
+          {/* Both lists were joined raw, so a sentence about which splits decided the
+              verdict read "chronological, cold_station, cold_transmitter". SPLIT_LABELS
+              is at the top of this file and the table above already uses it. */}
           Splits used for the ablation verdict:{" "}
-          {(ablation.splits_used as string[]).join(", ")}. Below the{" "}
-          {String(ablation.min_train_for_verdict)}-row training floor and therefore
-          excluded: {(ablation.splits_below_training_floor as string[]).join(", ")}.{" "}
+          {(ablation.splits_used as string[])
+            .map((name) => SPLIT_LABELS[name] ?? name)
+            .join(", ")}
+          . Below the {String(ablation.min_train_for_verdict)}-row training floor and
+          therefore excluded:{" "}
+          {(ablation.splits_below_training_floor as string[])
+            .map((name) => SPLIT_LABELS[name] ?? name)
+            .join(", ")}
+          .{" "}
           {String(ablation.min_train_justification)}
         </Note>
       </Section>
@@ -891,7 +900,10 @@ export default function EvaluationPage() {
                 />
                 <Stat
                   label="Ceiling held"
-                  value={String(ceiling.achieved_on_test.held)}
+                  /* A printed boolean is a value, not a verdict. This read "false" as a
+                     headline stat, which asks a reader to decide whether false is the
+                     good outcome. */
+                  value={ceiling.achieved_on_test.held ? "held" : "not held"}
                   tone={
                     ceiling.achieved_on_test.held
                       ? "var(--verdict-passed)"

@@ -387,18 +387,16 @@ export default function StartPage() {
             with the interval it was decided on.
           </li>
         </ol>
+        {/* The gate tally used to be restated here. It is the third statement of the
+            same count on this page: the sidebar carries it, the pre-registration
+            section above carries it with every verdict. A number said three times
+            reads as insistence rather than evidence. */}
         <Note>
           Nothing on this console is claimed that a file in the repository does not carry.
-          The gate tally in the sidebar counts{" "}
-          <span className="num">
-            {gates.n_met} of {gates.n_gates}
-          </span>{" "}
-          met and links to the page that explains which kind of gate each was.{" "}
           {gate6.verdict === "NOT_ESTABLISHED" && gate5.verdict === "NOT_ESTABLISHED" ? (
             <>
-              Both measured gates on that page read{" "}
-              <span className="mono">NOT_ESTABLISHED</span>, and neither was rounded into a
-              pass.
+              {" "}Both measured gates read <span className="mono">NOT_ESTABLISHED</span>,
+              and neither was rounded into a pass.
             </>
           ) : null}
         </Note>

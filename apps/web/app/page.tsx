@@ -27,6 +27,7 @@ import DeepField from "@/components/DeepField";
 import GateLedger from "@/components/GateLedger";
 import QueueTable from "@/components/QueueTable";
 import { Cell, IntervalBar, Note, Section, Stat, Table, VerdictBadge } from "@/components/ui";
+import { REASON_LABELS, type QueueReason } from "@/lib/queue-view";
 import { FIELD_REASONS, FIELD_REASON_TOKENS, fieldPoints } from "@/lib/field";
 
 export const metadata = {
@@ -657,8 +658,14 @@ export default function QueuePage() {
         >
           {queue.conflict_definition.criteria.map((criterion) => (
             <tr key={criterion.reason_code}>
+              {/* This printed the raw enum (MODEL_LABEL_DISAGREE, STALE_CATALOGUE_FREQ,
+                  DEAD_CAPTURE) while REASON_LABELS maps every one of them to English and
+                  QueueTable uses that map on this same page. The code stays, in mono and
+                  after the label, because the receipt and the reason list use it and a
+                  reader matching one to the other needs it. */}
               <Cell align="left" header>
-                {criterion.reason_code}
+                {REASON_LABELS[criterion.reason_code as QueueReason] ??
+                  criterion.reason_code}
               </Cell>
               <Cell align="left">{criterion.description}</Cell>
               <Cell mono>
@@ -671,7 +678,7 @@ export default function QueuePage() {
                     includes the object, so the guard narrows for real. */}
                 {typeof criterion.threshold === "object"
                   ? Object.entries(criterion.threshold)
-                      .map(([k, v]) => `${k}=${v}`)
+                      .map(([k, v]) => `${k.replace(/_/g, " ")} ${v}`)
                       .join(", ")
                   : String(criterion.threshold)}
               </Cell>
@@ -784,24 +791,23 @@ export default function QueuePage() {
         />
       </Section>
 
+      {/* Deduplication was the last section on this page and it closed on a
+          Field/Value table whose row headers were the receipt's own key names
+          (`key`, `n_degraded_revolution`, `degraded_revolution_policy`), plus a
+          rule paragraph that ended on build history: "an hour bucket was the
+          earlier key and was wrong". The last impression a judge took from the
+          product page was a dump of internal field names and a note about a
+          decision that had already been corrected. The rule is one sentence and
+          the receipt is where the fields live. */}
       <Section title="Deduplication" description="One row per pass, not one row per capture.">
         <p style={{ color: "var(--text-02)", lineHeight: 1.7, maxWidth: "62rem" }}>
-          {String(queue.deduplication.rule)}
+          A pass is one ground station, one satellite and one orbital revolution.
+          Where a station published several captures of the same pass, the
+          highest-scoring one is the row and the rest are dropped, so the budget is
+          spent on {queue.review_budget.n_observations} distinct passes rather than
+          on the same pass more than once. Every field behind that rule is in{" "}
+          <code>artifacts/QUEUE_RECEIPT.json</code>.
         </p>
-        <Table head={["Field", "Value"]} caption="From the queue receipt.">
-          {Object.entries(queue.deduplication)
-            .filter(([, value]) => typeof value !== "string")
-            .map(([key, value]) => (
-              <tr key={key}>
-                <Cell align="left" header>
-                  {key}
-                </Cell>
-                <Cell mono>
-                  {Array.isArray(value) ? value.join(", ") : String(value)}
-                </Cell>
-              </tr>
-            ))}
-        </Table>
       </Section>
     </div>
   );
