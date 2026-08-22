@@ -7905,3 +7905,62 @@ frame's verdict word against the receipt.
 
 Twenty-six of twenty-seven standing gates pass, the twenty-seventh being the uncommitted
 tree this entry is part of.
+
+## E16. Gate 3 is short of observations, and the obvious way to get them is circular
+
+Gate 3 asks whether the expected Doppler corridor lands on a visible trace. Three testable
+observations, three discriminated, and the exact one-sided 95% lower bound on a perfect
+rate at n = 3 is 0.3684 against a 0.70 bar. The first n whose perfect rate clears the bar
+is 9. So the gate is short of six observations and nothing else, and
+`artifacts/GATE_POWER_RECEIPT.json` records that as an exact closure that pre-registration
+does not freeze: unlike gates 5 and 6, closing it moves no split and no budget. The
+snapshot holds 2,500 waterfalls already on disk.
+
+**Then the obvious way to get them turned out to be the problem.** A3 labelled an
+observation `UNCORRECTED` when `sigma_curved - sigma_vertical >= 3.0`, which is a statement
+about how well the predicted corridor fits the image. Growing the testable pool with that
+rule and then asking whether the corridor discriminates is selection on a quantity
+correlated with the outcome. The bigger n would have meant less than the small one.
+
+So the unit is a pre-registration rather than a re-run. `docs/E16_PREREGISTRATION.md`,
+committed before `run_gate3.py` was pointed at anything, fixes two pools.
+`scripts/build_gate3_pool.py` builds both over every snapshot observation with a waterfall
+on disk, writing a row for each one it could not measure and why, because the denominator
+is a claim too.
+
+- **Pool A** is A3's rule verbatim, published for comparability and explicitly not the gate.
+- **Pool B** decides it, and its membership reads no Doppler prediction: a predicted swing
+  large enough to tell a curve from a line, a trace visible by a per-row presence
+  statistic, and a vertical line that does not fit. The first is computed before the image
+  is opened. The last is the corridor-free test for a station that Doppler-corrected the
+  capture, whose corridor is identically 0 Hz and predicts nothing.
+
+**The presence bar was set wrong first and the wrong reasoning is in the document.** 6.0,
+argued from the maximum of W Gaussian columns sitting near `sqrt(2 ln W)`, about 3.7 at
+these widths. Measured on a twelve-observation timing probe the noise ceiling under this
+normalisation is nearer 2.0, and 6.0 excluded observation 14740031, whose matched filter
+reaches 25.1 sigma on the same image. The probe's twelve rows are in the pre-registration,
+because they are the only observations that were looked at before the pool rule was fixed.
+
+**The independence is a test, not a sentence.** `in_pool_b` exists as its own function so
+`tests/test_gate3_pool.py` can parse its AST and fail if `sigma_curved`,
+`sigma_curved_by_sign`, `curved_offset_hz` or `verdict` appear anywhere in it. A second
+test fails if any `pool_b` assignment in the module bypasses that function, which is what
+would otherwise leave the first test guarding code nobody calls. That second test caught
+its own matcher: the first version matched every subscript ending in `pool_b` and so fired
+on `payload["counts"]["pool_b"] = after`, a tally.
+
+`--recut` re-derives pool B at another bar from a finished run's own numbers without
+opening an image, which is how the verdict's sensitivity to the bar gets published rather
+than described.
+
+**What is committed here is the method, not a result.** The pre-registration says the
+number is published whichever way it goes, and that if the rate itself comes in under 0.70
+the gate is recorded as failed. A gate that only reports when it passes is not a gate.
+
+**And the rules state the judged criteria twice.** The Official Rules score four at 1 to 5
+for a maximum of 20. The challenge page lists five, adding Real-World Impact and
+shortening the fourth to Feasibility. `FOR_JUDGES.md` and `/start` answered the first list
+only, so a judge working from the challenge page would have looked for a heading that was
+not there over evidence that was. Both lists are answered now, with the extra criterion
+given its own heading and the same evidence under it.

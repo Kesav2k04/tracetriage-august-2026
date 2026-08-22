@@ -315,12 +315,71 @@ def rate_upper_bound(successes: int, trials: int, alpha: float = 0.05) -> float 
     return float(beta.ppf(1.0 - alpha, successes + 1, trials - successes))
 
 
+def _select_pool(path: Path, pool: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """The observations this run tests, and a record of how they were chosen.
+
+    Two file shapes are accepted. A bare list is A3's ``summary.json``, which is what
+    this script read when the only pool was A3's 24 live observations. A mapping with an
+    ``observations`` key is ``artifacts/GATE3_POOL.json`` from
+    ``scripts/build_gate3_pool.py``, which examines the whole snapshot and writes a
+    membership flag per pool rather than relying on the verdict word.
+
+    The selector is returned alongside the rows because "which rule chose these" is the
+    claim a reader of the receipt most needs and the one most easily lost.
+    """
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(payload, list):
+        rows, header = payload, {}
+    else:
+        rows, header = payload.get("observations", []), payload
+
+    if pool == "a3":
+        chosen = [r for r in rows if r.get("verdict") in ("CORRECTED", "UNCORRECTED")]
+        rule = "A3's own label: verdict is CORRECTED or UNCORRECTED"
+    else:
+        if not any(pool in r for r in rows):
+            raise SystemExit(
+                f"{path} carries no `{pool}` membership. Build it with "
+                f"scripts/build_gate3_pool.py, which is the only writer of that field."
+            )
+        chosen = [r for r in rows if r.get(pool)]
+        rule = (header.get("selection") or {}).get(pool, f"the `{pool}` flag")
+
+    meta = {
+        "name": pool,
+        "source": str(path).replace("\\", "/"),
+        "rule": rule,
+        "n_selected": len(chosen),
+        "n_examined": len(rows),
+        "decides_the_gate": pool != "pool_a",
+        "pre_registration": (
+            "docs/E16_PREREGISTRATION.md" if pool in ("pool_a", "pool_b") else None
+        ),
+    }
+    if header:
+        meta["trace_q75_min"] = header.get("trace_q75_min")
+        meta["pool_counts"] = header.get("counts")
+    return chosen, meta
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--snapshot", type=Path, default=Path("D:/tracetriage_data/snap-stage1"))
     ap.add_argument("--a3", type=Path, default=REPO_ROOT / "artifacts/a3_overlays/summary.json")
     ap.add_argument("--out", type=Path, default=REPO_ROOT / "artifacts/GATE3_RECEIPT.json")
     ap.add_argument("--gate-threshold", type=float, default=0.70)
+    ap.add_argument(
+        "--pool",
+        choices=("a3", "pool_a", "pool_b"),
+        default="a3",
+        help=(
+            "which membership defines the testable set. `a3` is the original rule and "
+            "the default, so an existing command produces an identical receipt. "
+            "`pool_a` and `pool_b` read the memberships scripts/build_gate3_pool.py "
+            "writes, and are defined in docs/E16_PREREGISTRATION.md. `pool_b` is the "
+            "pre-registered one and the only one whose rate decides the gate"
+        ),
+    )
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
 
@@ -329,9 +388,8 @@ def main() -> int:
         format="%(levelname)s %(message)s",
     )
 
-    a3_rows = json.loads(args.a3.read_text(encoding="utf-8"))
-    decisive = [r for r in a3_rows if r.get("verdict") in ("CORRECTED", "UNCORRECTED")]
-    logger.info("A3 decisive observations: %d", len(decisive))
+    decisive, pool_meta = _select_pool(args.a3, args.pool)
+    logger.info("%s pool: %d observations", args.pool, len(decisive))
 
     wf_dir = args.snapshot / "waterfalls"
 
@@ -371,7 +429,16 @@ def main() -> int:
             continue
 
         verdict = entry["verdict"]
-        corridor = phys.uncorrected if verdict == "UNCORRECTED" else phys.corrected
+        # Under `a3` the label chooses the corridor, which is what makes a CORRECTED
+        # observation come out not-testable: its corridor is identically 0 Hz. Under an
+        # explicit pool the membership rule has already decided the observation is a
+        # positive example, and the hypothesis on trial is the predicted Doppler shape,
+        # so the uncorrected corridor is the one being asked about.
+        corridor = (
+            phys.uncorrected
+            if (args.pool != "a3" or verdict == "UNCORRECTED")
+            else phys.corrected
+        )
         corridors[obs_id] = corridor
 
         from PIL import Image
@@ -391,7 +458,11 @@ def main() -> int:
             "end": raw.get("end"),
             "zs": zs,
             "corridor": corridor,
-            "corridor_type": "uncorrected" if verdict == "UNCORRECTED" else "corrected",
+            "corridor_type": (
+                "uncorrected"
+                if (args.pool != "a3" or verdict == "UNCORRECTED")
+                else "corrected"
+            ),
             "hz_per_px": geom.hz_per_px,
             "centre_px": geom.centre_px,
             "rx_freq_hz": rx_freq_of(raw),
@@ -594,6 +665,10 @@ def main() -> int:
         "generated_at": datetime.now(UTC).isoformat(),
         "verdict": verdict,
         "threshold": args.gate_threshold,
+        # Which rule chose the observations, carried in the receipt rather than in the
+        # command someone ran. A rate is a different claim under a corridor-selected
+        # pool than under a corridor-free one, and the receipt has to say which it is.
+        "pool": pool_meta,
         "observations_decisive": len(decisive),
         "observations_testable": len(testable),
         "observations_not_testable": len(not_testable),

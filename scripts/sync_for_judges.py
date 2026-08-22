@@ -1522,9 +1522,15 @@ weaken a claim. A technology is listed here only if something measures it workin
 
 ## The judged criteria, and what to look at
 
-Four criteria, each scored 1 to 5. The heading is the criterion as the Official Rules write
-it and the line under it is the rules' own wording, so a scoring sheet and this page read in
-the same order.
+The Official Rules score four criteria, each 1 to 5, for a maximum of 20. Each heading
+below is a criterion as the rules write it and the line under it is the rules' own wording,
+so a scoring sheet and this page read in the same order.
+
+The challenge page states the criteria a second time and lists five, adding **Real-World
+Impact** and shortening the fourth to Feasibility. The two lists are answered here rather
+than one of them being picked: Real-World Impact has its own heading under the fourth
+criterion, so a judge scoring from either list finds their heading and the same evidence
+under it.
 
 ### Technical Execution
 
@@ -1566,7 +1572,13 @@ matching its receipt.
 
 {FEASIBILITY_TWO}
 
-#### Real-world use, under the same criterion
+#### Real-World Impact
+
+> Ability to create meaningful value and address real-world needs.
+
+The fifth criterion on the challenge page, which the Official Rules fold into the fourth.
+It is given its own heading because a judge working from the challenge page will look for
+it, and the evidence is the same either way.
 
 {IMPACT}
 

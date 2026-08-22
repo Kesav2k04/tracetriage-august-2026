@@ -16,9 +16,12 @@
  * is not a truth claim, so the order changed and nothing else did: the pre-registered
  * gates are on this page at full size, with the verdict word each receipt uses.
  *
- * It maps the four judged criteria to the page that answers each, because a reader with
- * twelve minutes is not reading in document order, they are looking for the thing they
- * have to score.
+ * It maps the judged criteria to the page that answers each, because a reader with twelve
+ * minutes is not reading in document order, they are looking for the thing they have to
+ * score. Five rows for four criteria: the Official Rules score four at 1 to 5 each, and
+ * the challenge page states them again with Real-World Impact as a fifth. A judge working
+ * from the second list should not have to work out that the answer is filed under the
+ * fourth heading, so it has its own row and the evidence is the same.
  *
  * Every figure is read from the same data the sections it points at render. Nothing on
  * this page is typed, so it cannot drift from the pages it summarises, and a re-run of
@@ -247,10 +250,12 @@ export default function StartPage() {
       </Section>
 
       <Section
-        title="The four judged criteria, and where each is answered"
+        title="The judged criteria, and where each is answered"
         description={
-          "Quoted from the Official Rules, section 6. Each row names the page on this "
-          + "console that carries the evidence rather than the argument."
+          "The Official Rules score four criteria at 1 to 5 each. The challenge page "
+          + "states them again and lists five, adding Real-World Impact. Both lists are "
+          + "answered below, each row quoting the wording it came from and naming the "
+          + "page on this console that carries the evidence rather than the argument."
         }
       >
         <div style={{ display: "grid", gap: "var(--sp-05)", maxWidth: "62rem" }}>
@@ -318,6 +323,31 @@ export default function StartPage() {
                   your own is a written path rather than an offer:{" "}
                   <a href="/data/USE_WITH_YOUR_AGENT.md">the guide</a> is served from this
                   origin and names the same tools the agent study measured.
+                </>
+              ),
+            },
+            {
+              // The fifth criterion on the challenge page, which the Official Rules fold
+              // into the fourth. It gets a row because a judge working from the challenge
+              // page will look for the heading, and a missing heading reads as a missing
+              // answer even when the evidence is two rows up.
+              criterion: "Real-World Impact",
+              quote:
+                "Ability to create meaningful value and address real-world needs.",
+              answer: (
+                <>
+                  The bottleneck is counted rather than asserted, in{" "}
+                  <Link href="/provenance/">Provenance</Link>: most of{" "}
+                  {provenance.snapshot_id} carries no human verdict at all, which is what
+                  a ranked queue is for. On ground stations the queue was never fitted to,
+                  it surfaces conflicts at{" "}
+                  <span className="num">{fmt(coldStation.lift_point, 3)}x</span> the rate
+                  of random review, interval{" "}
+                  {fmtInterval(coldStation.lift_ci95, 3)}, and that split{" "}
+                  <strong>PASSED</strong>. What has not been measured is whether a human
+                  reviewer is faster or better for reading the note, which is why{" "}
+                  <Link href="/evaluation/">Evaluation</Link> carries an explicit
+                  unmeasured row rather than an estimate.
                 </>
               ),
             },
