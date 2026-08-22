@@ -154,7 +154,10 @@ function OrderingTable({ replay, title }: { replay: Replay; title: string }) {
                         comparison.direction === "queue_better" ? "action" : "muted"
                       }
                     >
-                      {comparison.direction}
+                      {/* This printed the raw token (queue_better, baseline_better,
+                          not_established) while CLAIM_LABEL, eighty lines above in this
+                          same file, maps every one of them to a sentence. */}
+                      {CLAIM_LABEL[comparison.direction] ?? comparison.direction}
                     </Tag>{" "}
                     <span className="num">
                       {comparison.diff_point === null
@@ -273,7 +276,12 @@ export default function ReplayPage() {
                 value={conclusion.lost_to?.length ?? 0}
                 detail={
                   conclusion.lost_to?.length
-                    ? conclusion.lost_to.join(", ")
+                    ? // `beaten`, ten lines up, maps through ORDERING_LABELS and this
+                      // did not, so the same baseline read as English in one stat and
+                      // as a snake_case token in the one beside it.
+                      conclusion.lost_to
+                        .map((name) => ORDERING_LABELS[name] ?? name)
+                        .join(", ")
                     : "no baseline beat the queue"
                 }
               />

@@ -10,6 +10,7 @@ import Link from "next/link";
 import {
   REASON_LABELS,
   cardById,
+  queue,
   entryById,
   fmt,
   isBuilt,
@@ -414,8 +415,11 @@ export default async function ObservationPage({
               </Cell>
               <Cell mono>{entry.rank}</Cell>
               <Cell align="left">
-                of {entry.within_budget ? "and inside" : "and outside"} the review
-                budget
+                {/* This read "of and inside the review budget": a dangling "of" whose
+                    number was dropped, so the cell described a total it never named.
+                    The budget is a receipt figure, so it is read rather than typed. */}
+                {entry.within_budget ? "inside" : "outside"} the review budget of{" "}
+                <span className="num">{queue.review_budget.n_observations}</span>
               </Cell>
             </tr>
             <tr>
@@ -575,7 +579,12 @@ export default async function ObservationPage({
               Axis derivation
             </Cell>
             <Cell align="left">
-              {card.derivation}
+              {/* The only value this field takes is `axis_ticks_ocr`, and it was printed
+                  raw in a table a reader is meant to understand. It is the whole reason
+                  the frequency scale exists: no metadata field supplies Hz per pixel. */}
+              {card.derivation === "axis_ticks_ocr"
+                ? "read off the spectrogram's own tick labels"
+                : card.derivation}
               {card.derivation_confidence !== null &&
                 card.derivation_confidence !== undefined && (
                   <>
