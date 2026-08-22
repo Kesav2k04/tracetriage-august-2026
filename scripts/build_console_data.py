@@ -22,7 +22,7 @@ through the axis sign convention, and the exported path is exactly what the
 matched filter scored at the fitted offset. A curve the console drew for itself
 would be a picture of the physics rather than evidence of it.
 
-**Only a curated subset ships.** Waterfalls are 1.9 MB PNGs and there are 2,500 of
+**Only part of the corpus ships.** Waterfalls are 1.9 MB PNGs and there are 2,500 of
 them. The console ships the top of the shipped queue plus the observations the
 findings actually name, as greyscale WebP at roughly an eighth the weight, with
 attribution, under the terms in DATA_LICENSE.md.
