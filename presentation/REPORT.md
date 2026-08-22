@@ -373,7 +373,8 @@ three runs.
 | `presentation/src/theme.ts` | The console's tokens, copied from `globals.css` and checked against it by the test. |
 | `presentation/src/beats/*.tsx` | One file per card. |
 | `presentation/test/claims.test.ts` | 453 checks. |
-| `presentation/scripts/report-table.ts` | Regenerates the claim table in this report from `src/data.ts`. `npm run report -- --check` fails if it has drifted. |
+| `presentation/scripts/report-table.ts` | Regenerates the claim table in this report and writes `artifacts/FILM_RECEIPT.json`. `npm run report -- --check` fails if either has drifted, and `scripts/gate.py` runs it. |
+| `artifacts/FILM_RECEIPT.json` | The film described by the sources that build it: the composition, every card with its frames, the claim counts, the nine committed JSON files the claims are read from, and the byte count and sha256 of the two files above. `scripts/check_receipt_digests.py` checks those two digests against the committed bytes on every gate run, and `tests/test_film_receipt.py` checks the rest of the receipt against the tree. |
 | `presentation/remotion.config.ts` | Public directory, image format, pixel format and GL renderer, each with the reason it is pinned. |
 
 ## Two things a reader should know
