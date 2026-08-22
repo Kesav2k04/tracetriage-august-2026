@@ -473,6 +473,26 @@ def main() -> int:
         })
 
     ok = [p for p in prepared if "zs" in p]
+
+    # The other side of that filter. An observation the pool selected and this run could
+    # not prepare is excluded from the rate, which is correct, and used to be excluded
+    # from the record too, which is not: the only trace was a warning. With a pool of
+    # hundreds that lets the denominator be set by whichever images happened to fail.
+    not_prepared = [
+        {"obs_id": p["obs_id"], "reason": p.get("degraded", "UNKNOWN")}
+        for p in prepared
+        if "zs" not in p
+    ]
+    if not_prepared:
+        by_reason: dict[str, int] = {}
+        for row in not_prepared:
+            by_reason[row["reason"]] = by_reason.get(row["reason"], 0) + 1
+        logger.warning(
+            "%d of %d selected observations could not be prepared: %s",
+            len(not_prepared), len(prepared),
+            ", ".join(f"{v} {k}" for k, v in sorted(by_reason.items())),
+        )
+
     donor_ids = [p["obs_id"] for p in ok]
 
     results: list[dict[str, Any]] = []
@@ -670,6 +690,15 @@ def main() -> int:
         # pool than under a corridor-free one, and the receipt has to say which it is.
         "pool": pool_meta,
         "observations_decisive": len(decisive),
+        # Selected and not scorable, with the reason for each. The rate below is over
+        # `observations_scored`, so this is the difference between that denominator and
+        # the pool the pre-registration fixed, published rather than left to subtraction.
+        "observations_not_prepared": len(not_prepared),
+        "not_prepared": not_prepared,
+        "not_prepared_by_reason": {
+            reason: sum(1 for r in not_prepared if r["reason"] == reason)
+            for reason in sorted({r["reason"] for r in not_prepared})
+        },
         "observations_testable": len(testable),
         "observations_not_testable": len(not_testable),
         "observations_scored": len(scored),

@@ -448,3 +448,67 @@ def test_the_committed_pool_records_every_observation_it_examined():
                 f"obs {row['obs_id']} has status {row['status']!r} and a presence "
                 "statistic, so one of the two is wrong about whether it was measured"
             )
+
+
+def test_the_receipt_was_scored_against_the_pool_that_is_committed():
+    """The selection story and the numbers have to come from one population.
+
+    `_select_pool` copies the pool file's counts into the receipt. Nothing compared them
+    back to the file, so a pool rebuilt after the run, or a receipt carried over from a
+    different build, would leave every generated surface describing a selection that did
+    not produce the rate beside it.
+
+    The counts stand in for a digest, which would have needed the scoring run repeated to
+    add. A pool differing in any observation almost certainly differs in one of these.
+    """
+    receipt_path = REPO / "artifacts" / "GATE3_RECEIPT.json"
+    if not (receipt_path.exists() and POOL.exists()):
+        pytest.skip("no receipt or no pool in this checkout")
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    meta = receipt.get("pool")
+    if not meta or meta.get("name") not in ("pool_a", "pool_b"):
+        pytest.skip("the committed receipt predates the pre-registered pools")
+
+    pool = json.loads(POOL.read_text(encoding="utf-8"))
+    assert meta["source"].endswith("GATE3_POOL.json"), meta["source"]
+    assert meta["n_examined"] == len(pool["observations"]), (
+        "the receipt was scored against a pool with a different number of observations "
+        "than the one committed here"
+    )
+    assert meta["n_selected"] == sum(
+        1 for r in pool["observations"] if r.get(meta["name"])
+    ), (
+        f"the receipt selected {meta['n_selected']} observations and the committed pool "
+        f"flags a different number as {meta['name']}"
+    )
+    assert meta.get("pool_counts") == pool["counts"], (
+        "the counts the receipt carries are not the counts in the committed pool file"
+    )
+    assert meta.get("trace_q75_min") == pool["trace_q75_min"], (
+        "the receipt and the pool disagree about the presence bar that selected it"
+    )
+
+
+def test_the_receipt_scored_every_observation_its_pool_selected():
+    """A silent drop between selection and scoring changes the denominator.
+
+    `run_gate3.py` skips an observation whose waterfall is missing or whose geometry is
+    degraded, and each skip is a warning nobody reads. If the scored count can fall below
+    the selected count without anything saying so, the published rate is over a subset
+    chosen by whatever happened to fail, which is not the pre-registered pool.
+    """
+    receipt_path = REPO / "artifacts" / "GATE3_RECEIPT.json"
+    if not receipt_path.exists():
+        pytest.skip("no receipt in this checkout")
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    meta = receipt.get("pool")
+    if not meta or meta.get("name") not in ("pool_a", "pool_b"):
+        pytest.skip("the committed receipt predates the pre-registered pools")
+
+    selected = meta["n_selected"]
+    reported = len(receipt["observations"])
+    assert reported == selected, (
+        f"the pool selected {selected} observations and the receipt reports {reported}. "
+        "Every selected observation has to appear, including the ones that could not be "
+        "scored, or the denominator is decided by which images happened to fail."
+    )
