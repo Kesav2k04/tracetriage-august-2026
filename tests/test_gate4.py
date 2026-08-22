@@ -34,6 +34,7 @@ from score_gate4 import (  # noqa: E402
     read_responses,
     read_reviewer,
     verify_commitments,
+    why_not_run,
 )
 from score_gate4 import main as score_main  # noqa: E402
 
@@ -986,3 +987,32 @@ def test_na_on_the_target_axis_is_a_committed_answer_not_an_exclusion():
     assert block["items_scored"] == 2
     assert block["items_excluded_reviewer_unsure"] == 0
     assert block["agreed_with_the_network_label"] == 2
+
+
+def test_the_committed_receipt_still_says_what_its_generator_says() -> None:
+    """The one field in this receipt that no checkout can re-derive by running the scorer.
+
+    Scoring gate 4 needs the bundle: the plates, the response file and the reviewer
+    declaration, none of which are in the repository, because the plates are the sample
+    itself and the declaration names a reviewer rather than a setting. So the receipt is a
+    committed artifact whose builder cannot be run here, and the sentence explaining why a
+    measured review still leaves the gate open was typed into the receipt by a run nobody
+    can repeat.
+
+    `why_not_run` is a pure function of the reviewer declaration the receipt already
+    carries, so that one field can be re-derived without the bundle. It is checked because
+    it drifted once: the template appended a full stop to an identity that ended in one and
+    the receipt carried a double stop for four days.
+    """
+    receipt = json.loads(
+        (REPO / "artifacts" / "GATE4_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    if receipt["verdict"] != "NOT_RUN":
+        pytest.skip(
+            f"the committed verdict is {receipt['verdict']}, so this receipt was not "
+            "written by the NOT_RUN branch this checks"
+        )
+    assert receipt["why"] == why_not_run(receipt["arm"]["reviewer"]), (
+        "the receipt's `why` is not what scripts/score_gate4.py would write from the "
+        "reviewer declaration the same receipt carries"
+    )

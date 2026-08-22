@@ -56,7 +56,21 @@ def run(cmd: list[str], cwd: Path = REPO) -> tuple[int, str]:
 
 
 def check(name: str, ok: bool, detail: str = "") -> bool:
-    print(f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f"  {detail}" if detail else ""))
+    """Print one row, and never fail while doing it.
+
+    `run` decodes subprocess output as UTF-8, and on Windows this script's own stdout is
+    cp1252 whenever it is redirected to a file. A failing row whose detail carried a
+    character cp1252 cannot encode therefore raised UnicodeEncodeError *inside the print*,
+    so the gate died with a traceback at the row it was trying to report and said nothing
+    about the other rows. It happened on the first presentation-test failure, because
+    vitest draws its summary with box characters: the one row that had something to say was
+    the one that could not say it.
+
+    Encoding-safe now, and the substitution is visible rather than silent.
+    """
+    line = f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f"  {detail}" if detail else "")
+    encoding = sys.stdout.encoding or "utf-8"
+    print(line.encode(encoding, errors="replace").decode(encoding, errors="replace"))
     return ok
 
 

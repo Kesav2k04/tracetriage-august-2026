@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import tomllib
 import re
 from pathlib import Path
 
@@ -74,13 +75,31 @@ def test_the_receipt_names_both_flows(receipt):
 
 
 def test_langflow_is_not_a_dependency_of_this_project(receipt):
-    """The claim, and the thing that would make it false."""
+    """The claim, and the thing that would make it false.
+
+    Read from the dependency tables rather than as a substring of the file. The first
+    version searched the whole of `pyproject.toml` for the word, which fired the moment the
+    wheel target grew an `exclude` keeping the LangFlow components out of the wheel: a
+    comment explaining why LangFlow is not shipped read to that check exactly like a
+    declaration that it is required.
+    """
     assert receipt["runtime"]["is_a_dependency_of_this_project"] is False
-    pyproject = (REPO / "pyproject.toml").read_text(encoding="utf-8")
-    assert "langflow" not in pyproject.lower(), (
-        "langflow appears in pyproject.toml. It resolves several hundred packages and pins "
-        "against versions the measurement path is fixed to, and the receipt claims it is "
-        "not a dependency."
+
+    data = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
+    project = data.get("project", {})
+    requirements = list(project.get("dependencies", []))
+    for extra in project.get("optional-dependencies", {}).values():
+        requirements.extend(extra)
+    requirements.extend(data.get("build-system", {}).get("requires", []))
+    for group in data.get("dependency-groups", {}).values():
+        requirements.extend(r for r in group if isinstance(r, str))
+
+    assert requirements, "no requirements were read, so this check measured nothing"
+    offenders = [r for r in requirements if "langflow" in r.lower()]
+    assert offenders == [], (
+        f"langflow is declared as a requirement: {offenders}. It resolves several hundred "
+        "packages and pins against versions the measurement path is fixed to, and the "
+        "receipt claims it is not a dependency."
     )
 
 

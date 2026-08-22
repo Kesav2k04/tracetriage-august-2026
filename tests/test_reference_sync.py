@@ -193,10 +193,26 @@ def test_the_page_names_no_file_a_clone_would_not_have(sync_docs) -> None:
         )
     }
     resolved = {n if "/" in n else f"artifacts/{n}" for n in candidates}
+
+    def published(name: str) -> bool:
+        """Tracked, or a directory git publishes something out of.
+
+        A directory is never in `tracked`, which lists files, so the first version of this
+        called every backticked directory unpublished. `pipeline/tracetriage` in a module
+        docstring failed a check about files a clone would not have, while being the
+        package the clone is mostly made of. A directory counts as published when git
+        carries at least one file under it, which is the same question asked of a path
+        that can hold more than one thing.
+        """
+        if name in tracked:
+            return True
+        prefix = f"{name}/"
+        return any(t.startswith(prefix) for t in tracked)
+
     unpublished = sorted(
         n
         for n in resolved
-        if (_REPO / n).exists() and n not in tracked and not n.endswith(".schema.json")
+        if (_REPO / n).exists() and not published(n) and not n.endswith(".schema.json")
     )
     assert not unpublished, f"the page names files git does not publish: {unpublished}"
 

@@ -85,6 +85,25 @@ _REVIEWER_FIELDS = {
 _REVIEWER_KINDS = {"human", "model"}
 
 
+def why_not_run(reviewer: dict[str, Any]) -> str:
+    """Why a measured review still leaves gate 4 open, in one sentence.
+
+    Extracted from the payload it used to be inlined into for two reasons. The template
+    appended a full stop to an identity string that already ended in one, so the committed
+    receipt carried a double stop that nothing could see: the bundle this gate scores is
+    not in the repository, so nobody can re-run the scorer here and diff its output. That
+    is the second reason. A generated field whose generator cannot be run in a checkout is
+    a field that drifts silently, and `tests/test_gate4.py` now calls this function against
+    the committed receipt, which is a check that needs no bundle.
+    """
+    identity = reviewer["identity"].rstrip().rstrip(".")
+    return (
+        f"the review was carried out, and not by a person: {identity}. Gate 4 is titled "
+        "blinded human decidability, so this does not meet it. The review and every "
+        "number from it are in `arm` below."
+    )
+
+
 def read_reviewer(path: Path) -> dict[str, Any]:
     """Who answered, declared before the answers are read and refused if absent.
 
@@ -644,11 +663,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         payload |= {
             "verdict": "NOT_RUN",
-            "why": (
-                f"the review was carried out and not by a person: {reviewer['identity']}. "
-                f"Gate 4 is titled blinded human decidability, so this does not meet it. "
-                f"The review and every number from it are in `arm` below."
-            ),
+            "why": why_not_run(reviewer),
             "reading": (
                 "NOT_RUN here means the human arm is still open, not that nothing was "
                 "measured. What `arm` establishes is that the sample supports a decisive "
