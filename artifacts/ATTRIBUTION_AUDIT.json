@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-22T06:16:23+05:30",
- "commit": "edd65172c6e6bff2e8836f4544359c4f0e94dd5e",
+ "measured_at_commit_date": "2026-08-22T11:12:54+05:30",
+ "commit": "d6fbda65f3eebb6025fa1e83d48c5709ec496b48",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -85,7 +85,7 @@
   },
   {
    "file": "apps/web/public/og.png",
-   "bytes": 41499,
+   "bytes": 41249,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": null,

@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-22T06:16:23+05:30",
- "commit": "edd65172c6e6bff2e8836f4544359c4f0e94dd5e",
- "tracked_files": 439,
- "tracked_bytes": 44183664,
- "tracked_megabytes": 42.14,
+ "measured_at_commit_date": "2026-08-22T11:12:54+05:30",
+ "commit": "d6fbda65f3eebb6025fa1e83d48c5709ec496b48",
+ "tracked_files": 436,
+ "tracked_bytes": 44124076,
+ "tracked_megabytes": 42.08,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,7 +13,7 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 7.84
+   "megabytes": 7.85
   },
   {
    "path": "presentation/out",
@@ -69,9 +69,9 @@
   }
  ],
  "by_directory_remainder": {
-  "groups": 205,
-  "bytes": 3593945,
-  "megabytes": 3.43,
+  "groups": 203,
+  "bytes": 3531683,
+  "megabytes": 3.37,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
@@ -146,7 +146,7 @@
   },
   {
    "path": "tests/fixtures/",
-   "files": 8,
+   "files": 7,
    "bytes": 4430931,
    "megabytes": 4.23,
    "keep_because": "inputs the offline suite needs. Removing any of it breaks the clean-clone claim."
