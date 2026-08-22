@@ -1,7 +1,7 @@
 {
  "schema": "FILM_RECEIPT",
  "schema_version": 1,
- "generated_at": "2026-08-22T00:09:38.303Z",
+ "generated_at": "2026-08-22T05:58:52.579Z",
  "generated_by": "presentation/scripts/report-table.ts",
  "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so REPORT.md and this receipt cannot disagree about the same film.",
  "composition": {
@@ -85,13 +85,13 @@
  ],
  "render": {
   "path": "presentation/out/tracetriage-film.mp4",
-  "bytes": 4850926,
-  "sha256": "9e33e25651703023794051b1e660930bf4a129b663ca301b14e408dbae5ed430"
+  "bytes": 4675644,
+  "sha256": "bae59607100da07e002c7db6600a3c142fde20d60c6970ca1cc5752815dbcb59"
  },
  "poster": {
   "path": "presentation/out/tracetriage-film-poster.jpg",
-  "bytes": 275349,
-  "sha256": "58c8a5f17601bfbe59c7c1b70bb76b5d0e48129327d06f557dfbfe7083d26d4d"
+  "bytes": 271401,
+  "sha256": "0ee95d724eda12b285dcb2618bfe2e16d276819b4d225ae5aeb39b930e81c251"
  },
  "what_this_does_not_measure": [
   "Whether the film is any good, or whether a viewer follows it.",

@@ -146,3 +146,29 @@ def test_the_live_accent_is_not_on_the_intensity_ramp():
     # And it still has to be readable on both surfaces it is used on.
     assert palette.contrast(tokens["live-01"], tokens["ui-background"]) >= 4.5
     assert palette.contrast(tokens["live-01"], tokens["ui-01"]) >= 4.5
+def test_every_colour_in_the_mark_is_a_stylesheet_token():
+    """The favicon is hand-drawn SVG, so nothing regenerates it when the palette moves.
+
+    It went stale exactly that way: the ground, the plate, its edge and the corridor were
+    hex literals from the palette before the chroma reduction, so the tab carried the old
+    navy for as long as the mark was not looked at. Naming the tokens in the comment does
+    not help on its own, because a comment cannot be wrong in a way a test notices. This
+    reads the hexes back out of the drawing and requires each one to be a value the
+    stylesheet defines.
+    """
+    import re
+
+    css = (REPO / "apps" / "web" / "app" / "globals.css").read_text(encoding="utf-8")
+    defined = {
+        m.group(2).lower(): m.group(1)
+        for m in re.finditer(r"--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})", css)
+    }
+    mark = (REPO / "apps" / "web" / "app" / "icon.svg").read_text(encoding="utf-8")
+    drawn = re.findall(r'(?:fill|stroke)="(#[0-9a-fA-F]{6})"', mark)
+    assert drawn, "apps/web/app/icon.svg draws nothing with a hex fill or stroke"
+    strays = sorted({h.lower() for h in drawn} - set(defined))
+    assert not strays, (
+        f"the mark draws with {strays}, which globals.css does not define. Either the "
+        "palette moved and the mark did not follow it, or the mark is using a colour the "
+        "console does not have. The tokens it is meant to use are named in its own comment."
+    )
