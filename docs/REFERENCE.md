@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 34 JSON artifacts, 8 contracts, 51 scripts, 29 package modules and 1288 test functions across 67 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 34 JSON artifacts, 8 contracts, 51 scripts, 29 package modules and 1292 test functions across 67 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -231,7 +231,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_review_documents.py` | 2 | The two independent reviews, and whether they describe themselves correctly. |
 | `tests/test_selective_and_ood.py` | 26 | Tests for selective prediction (B4) and out-of-distribution scoring (B5). |
 | `tests/test_signoff.py` | 11 | The sign-off receipt, and whether it could ever say NOT_SIGNED. |
-| `tests/test_snapshot.py` | 44 | Tests for pipeline/tracetriage/snapshot.py — unit A1 acceptance. |
+| `tests/test_snapshot.py` | 48 | Tests for pipeline/tracetriage/snapshot.py — unit A1 acceptance. |
 | `tests/test_snapshot_isolation.py` | 6 | Regression tests for snapshot isolation and the verification mode. |
 | `tests/test_snapshot_throttle.py` | 19 | Throttle handling for unit A1's snapshot builder. |
 | `tests/test_split_guarantees.py` | 37 | Falsifiability tests for the B1 split guarantees, on synthetic rows. |

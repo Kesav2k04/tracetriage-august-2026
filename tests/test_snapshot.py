@@ -27,10 +27,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from pipeline.tracetriage import snapshot
 from pipeline.tracetriage.snapshot import (
     BASE_URL,
     LICENSE_STR,
     LICENSE_URL,
+    MAX_RETRIES,
     SCHEMA_VERSION,
     USER_AGENT,
     build_resume_index,
@@ -269,7 +271,50 @@ class TestBuildResumeIndex:
 #    Acceptance criterion: a 404 is stored with waterfall_missing_reason="HTTP_404"
 # ===========================================================================
 
+class TestRetryDelay:
+    """The backoff schedule, asserted where it costs nothing to assert.
+
+    `TestDownloadWaterfall` patches this function out so its two retrying tests do not
+    spend 126 seconds each waiting for a `MagicMock` to change its mind. That patch is
+    only honest if the schedule is checked somewhere, and this is where.
+    """
+
+    def test_the_computed_schedule_doubles_from_two_seconds(self):
+        assert [snapshot.retry_delay(n) for n in range(6)] == [2.0, 4.0, 8.0, 16.0, 32.0, 64.0]
+
+    def test_the_computed_schedule_is_capped(self):
+        assert snapshot.retry_delay(20) == snapshot.MAX_RETRY_DELAY
+
+    def test_a_server_delta_wins_over_the_guess(self):
+        response = MagicMock()
+        response.headers = {"retry-after": "732"}
+        assert snapshot.retry_delay(0, response) == 732.0
+
+    def test_an_unparseable_header_falls_back_rather_than_to_zero(self):
+        """Treating a bad header as "retry immediately" is how one 429 becomes a ban."""
+        response = MagicMock()
+        response.headers = {"retry-after": "soon"}
+        assert snapshot.retry_delay(2, response) == 8.0
+
+
 class TestDownloadWaterfall:
+    @pytest.fixture(autouse=True)
+    def _no_real_backoff(self, monkeypatch):
+        """Exercise the retry loop without sitting through it.
+
+        `get_with_retry` retries a timeout and a 5xx `MAX_RETRIES` times, waiting
+        `retry_delay(attempt)`, which doubles from two seconds. Two tests in this class
+        reach that path, and with the real schedule each one sleeps 2+4+8+16+32+64 = 126
+        seconds. Four minutes of the standing gate's runtime was two tests waiting for
+        nothing: the client is a `MagicMock`, so no wait can change what it returns. It
+        read as a hung gate twice before it was measured, and a gate nobody can tell from
+        a hang is a gate people learn to kill.
+
+        The schedule itself is not skipped, only the waiting. `retry_delay` is asserted
+        directly in `TestRetryDelay`, where it costs nothing.
+        """
+        monkeypatch.setattr(snapshot, "retry_delay", lambda attempt, response=None: 0.0)
+
     def _make_mock_client(self, status: int, content: bytes = b"") -> MagicMock:
         resp = MagicMock()
         resp.status_code = status
@@ -325,6 +370,9 @@ class TestDownloadWaterfall:
         dest = tmp_path / "wf_err.png"
         sha, nbytes, reason = download_waterfall(client, 5, "https://example.com/wf.png", dest)
         assert reason == "HTTP_ERROR"
+        assert client.get.call_count == MAX_RETRIES, (
+            "a 500 is retried, so the number of attempts is part of what this asserts"
+        )
 
     def test_timeout_returns_timeout_reason(self, tmp_path):
         import httpx
@@ -333,6 +381,9 @@ class TestDownloadWaterfall:
         dest = tmp_path / "wf_timeout.png"
         sha, nbytes, reason = download_waterfall(client, 7, "https://example.com/wf.png", dest)
         assert reason == "TIMEOUT"
+        assert client.get.call_count == MAX_RETRIES, (
+            "a timeout is retried, so the number of attempts is part of what this asserts"
+        )
 
 
 # ===========================================================================
