@@ -180,3 +180,47 @@ def test_only_pool_b_is_ever_called_the_gate():
     )
     assert "Only pool B decides the gate" in out
     assert "circularity" in out
+
+
+def test_the_pool_table_publishes_the_population_it_was_drawn_from():
+    """A rate without its denominator is a true number that misleads.
+
+    100% of a pool of 200 reads as 100% of the snapshot unless the table says the
+    snapshot was 2,750 and where the other 2,550 went. E16 section 5 promises exactly
+    that, and nothing rendered it.
+    """
+    from scripts.sync_kill_gate import _gate3_pools
+
+    r = _pool_receipt("pool_b", scored=200, rate=1.0, bound=0.9851)
+    r["pool"]["pool_counts"] = {
+        "examined": 2750, "measurable": 2100, "pool_a": 311, "pool_b": 200,
+        "in_both": 141,
+        "by_status": {"ok": 2100, "no_waterfall": 250, "swing_below_floor": 400},
+    }
+    out = _gate3_pools(r, None)
+    assert "2,750 observations" in out
+    assert "250 had no waterfall image" in out
+    assert "400 have a predicted Doppler swing too small" in out
+    assert "recut at another bar" in out
+
+
+def test_an_unrecognised_refusal_reason_is_printed_not_swallowed():
+    """A new status quietly rendering as an old one makes the count lie.
+
+    The phrase map is a convenience. When it does not know a status the raw status has
+    to appear, so the sentence stays true and the gap is visible.
+    """
+    from scripts.sync_kill_gate import _status_phrase
+
+    assert _status_phrase("no_waterfall") == "had no waterfall image"
+    assert "`something_new`" in _status_phrase("something_new")
+    assert "STALE_TLE" in _status_phrase("physics_STALE_TLE")
+
+
+def test_a_receipt_with_no_pool_counts_omits_the_population_sentence():
+    """Silence beats a sentence built on zeros."""
+    from scripts.sync_kill_gate import _gate3_pools
+
+    out = _gate3_pools(_pool_receipt("pool_b"), None)
+    assert "drawn from" not in out
+    assert "0 observations" not in out

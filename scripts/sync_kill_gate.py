@@ -366,6 +366,30 @@ def _load_optional(name: str) -> dict[str, Any] | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _status_phrase(status: str) -> str:
+    """A pool status as something a reader can read, without hiding an unknown one.
+
+    An unrecognised status is printed rather than mapped to a friendly default, because
+    a new refusal reason silently rendering as an old one is how a count stops meaning
+    what the sentence around it says.
+    """
+    known = {
+        "no_waterfall": "had no waterfall image",
+        "swing_below_floor": "have a predicted Doppler swing too small to tell the two "
+        "shapes apart",
+        "no_measurable_rows": "had no image row with the spread to carry a z-score",
+    }
+    if status in known:
+        return known[status]
+    if status.startswith("physics_"):
+        return f"failed physics ({status[len('physics_'):]})"
+    if status.startswith("geometry_"):
+        return f"failed geometry ({status[len('geometry_'):]})"
+    if status.startswith("worker_failed"):
+        return "crashed while being examined"
+    return f"carry status `{status}`"
+
+
 def _pool_row(label: str, r: dict[str, Any] | None, note: str) -> str:
     """One pool's five numbers, or an honest blank when that run has not happened."""
     if r is None:
@@ -429,8 +453,27 @@ def _gate3_pools(g3: dict[str, Any], g3a: dict[str, Any] | None) -> str:
     if g3a is not None:
         gap = (g3a["discriminating_rate"] - g3["discriminating_rate"]) * 100
         tail += (
-            f" Measured here it is {gap:+.0f} percentage points, on pools sharing "
-            f"{g3.get('pool', {}).get('n_in_both', 'some')} observations."
+            f" Measured here it is {gap:+.0f} percentage points."
+        )
+
+    # The denominator, and where it went. A pool rate published without the population it
+    # was drawn from lets 100% of a small tail read as 100% of the snapshot.
+    counts = (g3.get("pool") or {}).get("pool_counts") or {}
+    if counts.get("examined"):
+        by_status = counts.get("by_status") or {}
+        dropped = sorted(
+            ((k, v) for k, v in by_status.items() if k != "ok"),
+            key=lambda kv: -kv[1],
+        )
+        reasons = ", ".join(f"{v:,} {_status_phrase(k)}" for k, v in dropped)
+        tail += (
+            f"\n\nThe pools are drawn from {counts['examined']:,} observations, the whole "
+            f"snapshot. {counts.get('measurable', 0):,} were measured"
+            + (f" and the rest were dropped: {reasons}." if reasons else ".")
+            + f" Pool B took {counts.get('pool_b', 0):,} of them and pool A "
+            f"{counts.get('pool_a', 0):,}, sharing {counts.get('in_both', 0):,}. Every "
+            f"observation's own `trace_q75` is in `artifacts/GATE3_POOL.json` whether it "
+            f"was selected or not, so the pool can be recut at another bar from that file."
         )
     return "\n".join(rows) + "\n\n" + tail
 
