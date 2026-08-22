@@ -56,10 +56,19 @@ def test_generated_gate3_row_matches_its_receipt(doc: str):
     g3 = _receipt("GATE3_RECEIPT.json")
     row = next(line for line in doc.splitlines() if line.startswith("| 3 |"))
     assert g3["verdict"] in row
-    assert f"{g3['rate_lower_bound_95']:.3f}" in row
     # The row must carry the bound, not only the point estimate. A row that quoted
-    # 100% alone is what let this gate read PASSED.
-    assert "0.368" in row
+    # 100% alone is what let this gate read PASSED. The line above is that check; a
+    # literal "0.368" used to sit here beside it, which was one run's value and could
+    # only ever fail when the measurement moved.
+    assert f"{g3['rate_lower_bound_95']:.3f}" in row
+    assert f"{g3['discriminating_rate'] * 100:.0f}%" in row
+    # The clause after the bound has to follow it. Printing a bound that clears the bar
+    # beside a sentence saying the rate is not established is what this row did.
+    if g3["clears_threshold"]:
+        assert "not established" not in row, (
+            f"the bound is {g3['rate_lower_bound_95']:.3f} against a threshold of "
+            f"{g3['threshold']}, which it clears, and the row says otherwise"
+        )
     assert row.count("|") == 5
 
 

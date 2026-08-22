@@ -308,7 +308,14 @@ UNMEASURED_TABLE = "\n".join(
 # "none of the four that matter, yet".
 # ---------------------------------------------------------------------------------
 
-_GATE_VERDICT = {g["gate"]: g["verdict"] for g in _summary["gates"]}
+# The receipt's own word, not the console's bucket for it. `build_console_data.py`
+# folds verdicts the side rail's three-state chip cannot render into the nearest one it
+# can, and records the original as `verdict_in_the_receipt` when it does. This table
+# claims to print what the receipts carry, so it prints that.
+_GATE_VERDICT = {
+    g["gate"]: g.get("verdict_in_the_receipt") or g["verdict"]
+    for g in _summary["gates"]
+}
 
 _FEASIBILITY = (1, 2)
 _SUBSTANTIVE = (3, 4, 5, 6)
@@ -382,6 +389,36 @@ _N_SUBSTANTIVE_INCONCLUSIVE = sum(
     1 for n in _SUBSTANTIVE if _GATE_VERDICT[n] == "NOT_ESTABLISHED"
 )
 _N_SUBSTANTIVE_OPEN = sum(1 for n in _SUBSTANTIVE if _GATE_VERDICT[n] == "OPEN")
+#: Cleared over observations and not over independent episodes. Its own bucket, because
+#: it is neither a pass nor an inconclusive interval: the interval cleared, and the
+#: grouping the plan requires is what it did not survive.
+_N_SUBSTANTIVE_UNGROUPED = sum(
+    1 for n in _SUBSTANTIVE if _GATE_VERDICT[n] == "PASSED_UNGROUPED_ONLY"
+)
+
+# The headline sentence is assembled from the counts above, so a verdict in none of them
+# is a gate that vanishes from the summary rather than an error. That is how a reader
+# gets "three of four" over four gates with nothing naming the fourth.
+_BUCKETED = (
+    _N_SUBSTANTIVE_PASSED
+    + _N_SUBSTANTIVE_INCONCLUSIVE
+    + _N_SUBSTANTIVE_OPEN
+    + _N_SUBSTANTIVE_UNGROUPED
+)
+if len(_SUBSTANTIVE) != _BUCKETED:
+    _unbucketed = sorted(
+        f"gate {n}: {_GATE_VERDICT[n]}"
+        for n in _SUBSTANTIVE
+        if _GATE_VERDICT[n]
+        not in {
+            "PASSED", "PRE_PASSED", "NOT_ESTABLISHED", "OPEN", "PASSED_UNGROUPED_ONLY",
+        }
+    )
+    raise SystemExit(
+        f"{len(_SUBSTANTIVE) - _BUCKETED} substantive gate(s) fall into no headline "
+        f"bucket: {_unbucketed}. Add the clause rather than letting the sentence count "
+        "fewer gates than there are."
+    )
 
 
 #: Small counts read as words in a sentence and as digits in a table. The sentence is
@@ -421,6 +458,11 @@ _SUBSTANTIVE_HEADLINE = _clauses(
             f"{_word(_N_SUBSTANTIVE_INCONCLUSIVE)} came back inconclusive",
         ),
         (
+            _N_SUBSTANTIVE_UNGROUPED,
+            f"{_word(_N_SUBSTANTIVE_UNGROUPED)} cleared the bar over observations and "
+            f"not over independent episodes",
+        ),
+        (
             _N_SUBSTANTIVE_OPEN,
             f"{_word(_N_SUBSTANTIVE_OPEN)} {_were(_N_SUBSTANTIVE_OPEN)} never run",
         ),
@@ -451,6 +493,20 @@ _HELD_OUT_PASS = (
 # and the split that passes is in the same breath as the splits that did not instead of after
 # them. The tables underneath are unchanged and the word NOT_ESTABLISHED appears in every row
 # it appeared in before.
+# Gate 3 has been three things and each change is in `docs/KILL_GATE.md` rather than
+# rewritten over. The current word is read from the receipt, so this paragraph cannot say
+# one thing while the table above it says another, which is what it did.
+_gate3_history = textwrap.fill(
+    "Gate 3 was `PASSED` until 2026-08-18, when the rate it claimed was re-derived with "
+    "an exact interval and moved to `NOT_ESTABLISHED` on three observations. It reads "
+    f"`{_GATE_VERDICT[3]}` now, on a pool of "
+    f"{_g3['pool']['n_selected']} selected by a rule that never fits a corridor: the "
+    "observation-level bound clears the bar and the bound over independent "
+    f"(station, date) episodes does not. `docs/KILL_GATE.md` carries every entry rather "
+    "than the history being quietly rewritten.",
+    width=90,
+)
+
 _STATUS_HEADLINE = textwrap.fill(
     f"**Status: {_word(N_GATES)} kill gates were written down, with their thresholds, "
     f"before any of them was measured.** They are a research bar rather than a feature "
@@ -724,10 +780,7 @@ STATUS_BLOCK = f"""{_STATUS_HEADLINE}
 {_WHAT_THE_INTERVALS_DO_NOT_SAY}
 
 Inconclusive is reported as `NOT_ESTABLISHED` rather than rounded into a pass, and the gate
-that was never run is reported as `OPEN` rather than omitted. Gate 3 was `PASSED` until
-2026-08-18, when the rate it claimed was re-derived with an exact interval and moved to
-`NOT_ESTABLISHED`; `docs/KILL_GATE.md` carries the entry rather than the history being
-quietly rewritten.
+that was never run is reported as `OPEN` rather than omitted. {_gate3_history}
 
 Every number in this README is generated from a frozen artifact under `artifacts/` and
 carries a row in `docs/CLAIM_REGISTER.md`. `tests/test_claim_drift.py` compares each quoted

@@ -25,7 +25,8 @@
     "gate": 3,
     "title": "Corridor intersects a visible trace",
     "verdict": "NOT_ESTABLISHED",
-    "decided_in": "artifacts/GATE3_RECEIPT.json"
+    "decided_in": "artifacts/GATE3_RECEIPT.json",
+    "verdict_in_the_receipt": "PASSED_UNGROUPED_ONLY"
    },
    {
     "gate": 4,
@@ -88,12 +89,12 @@
  "receipts": [
   {
    "name": "AGENT_RECEIPT.json",
-   "sha256": "287ff5368cc2079a8f27841cf0cc0fa5299cde751112e751b10ef5569d97d3ea",
-   "bytes": 29194
+   "sha256": "e98402dd20e1a396ebe9e83231e07431aee25961d83c647928a67887932357a8",
+   "bytes": 29212
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "c036bcf480108c575fc60930d2dbde56d4c690640adaf3274707602d2604da09",
+   "sha256": "aebbf41cab8336a0ee9f83460d891b602d06c2c4ab46764e2e9c3c76342a8e36",
    "bytes": 80953
   },
   {
@@ -137,9 +138,24 @@
    "bytes": 241611
   },
   {
+   "name": "GATE3_POOL.json",
+   "sha256": "f21a8d4a432736ef83b14107b7ac5ae39c17cf4e283ac7886af7aab3d0a07fbc",
+   "bytes": 3026676
+  },
+  {
+   "name": "GATE3_POOL_A_RECEIPT.json",
+   "sha256": "80d1fa57f0cc327682bcf4c9c1a1acdb0cf4658dab1e9a1d65e8e6755910c6ca",
+   "bytes": 2064646
+  },
+  {
    "name": "GATE3_RECEIPT.json",
-   "sha256": "5165682a009a8605f7f4d06695abbd239777dd3a7a339caa3f371b4ce5264878",
-   "bytes": 52667
+   "sha256": "348aa0650fc387dc9d7ad3c94ef0e673ffed4d7572a8fe7ecee44c0e7ddede1a",
+   "bytes": 2041328
+  },
+  {
+   "name": "GATE3_SENSITIVITY.json",
+   "sha256": "eac05c8bfb49a4203e7a1da864a65c4b9c7d017a0d787a9beaeb147b28e8f3b0",
+   "bytes": 2725
   },
   {
    "name": "GATE4_BUNDLE.json",
@@ -158,17 +174,17 @@
   },
   {
    "name": "GATE_POWER_RECEIPT.json",
-   "sha256": "474ac3aa7a51ff804ffa1baecd2d3bd65dde26e4cd431396da2cd4d20cd9b557",
-   "bytes": 10778
+   "sha256": "4c102864f1cbf70653c09f0b971151f3c7b030954bf7199b200260377c4412c4",
+   "bytes": 10800
   },
   {
    "name": "HERO_NULLS.json",
-   "sha256": "9bb077a4b072a0216a259ae39d8326a34bbf68c538eaad5e29219b40b4511b7a",
-   "bytes": 24524
+   "sha256": "905e748cd0b0f9454087ef56c8e0220f6c07a4c3e89421a2e7c4119dc7a56bf6",
+   "bytes": 24553
   },
   {
    "name": "LANGCHAIN_RECEIPT.json",
-   "sha256": "a288bfc931d5e41cde6031e609ef78247e8d6bacbee3dbf7b8bb441fce248041",
+   "sha256": "043c8239286dee167e9ede84899e0ea471a18ac13451d811a9b1fcfd213b0982",
    "bytes": 4069
   },
   {
@@ -218,8 +234,8 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "49d0fa038ce3b14c269c6f0a9c67cd1ee495645715c64fe7b98d59ef37770a2f",
-   "bytes": 4569
+   "sha256": "aae796e9b520a60651d9286ae6fb41c807986ffb0785894a5ee1db44360dde47",
+   "bytes": 5048
   },
   {
    "name": "SECOND_TRACE_SURVEY.json",
@@ -228,7 +244,7 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "959fa7847fe2cbefc66bc2708b23c14baf76094d8f31f2dd2c6cf7dece428f25",
+   "sha256": "3bd2c06812d3678fc040d69e7366c17bbe9b140c75c7b67ef4f4e8fcf619f666",
    "bytes": 1170
   },
   {

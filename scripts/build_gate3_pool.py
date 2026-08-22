@@ -3,8 +3,12 @@
 Gate 3 asks whether the expected Doppler corridor lands on a visible trace. It was
 measured on the 3 uncorrected captures in A3's 24-observation live sample, and 3 of 3
 discriminated. A perfect rate at n = 3 has an exact one-sided 95% lower bound of
-``0.05 ** (1/3) = 0.368`` against a 0.70 bar, so the gate reads NOT_ESTABLISHED on the
+``0.05 ** (1/3) = 0.368`` against a 0.70 bar, so the gate read NOT_ESTABLISHED on the
 count rather than on the measurements. The first n whose perfect rate clears 0.70 is 9.
+
+That was the state this script was written to change. The verdict it produced is in
+``artifacts/GATE3_RECEIPT.json`` and is not restated here, because a docstring that
+names a result is a second copy of it and the copy is the one that goes stale.
 
 The snapshot already on disk holds 2,500 waterfalls. Nothing has to be fetched, and no
 threshold in gate 3 moves. What this script does is decide which observations are
@@ -68,6 +72,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 import os
 import sys
 from concurrent.futures import ProcessPoolExecutor
@@ -516,7 +521,7 @@ def _recut(path: Path, trace_q75_min: float) -> int:
     )
     payload["recut_at"] = datetime.now(UTC).isoformat()
     path.write_text(
-        json.dumps(payload, indent=1, sort_keys=False) + "\n",
+        _dump(payload),
         encoding="utf-8",
         newline="\n",
     )
@@ -669,7 +674,7 @@ def main(argv: list[str] | None = None) -> int:
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
-        json.dumps(payload, indent=1, sort_keys=False) + "\n",
+        _dump(payload),
         encoding="utf-8",
         newline="\n",
     )
@@ -680,6 +685,42 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  pool A (corridor-selected) {len(pool_a)}")
     print(f"  pool B (pre-registered)    {len(pool_b)}")
     return 0
+
+
+def _json_safe(node, path: str = "", found: list[str] | None = None):
+    """Non-finite floats become null, and where each one was is recorded.
+
+    `json.dumps` writes `NaN`, which is not JSON. This file carried one, inherited into
+    `artifacts/GATE3_RECEIPT.json`, and made both unreadable by `jq`, by `JSON.parse` and
+    by the presentation film's build. Every other consumer here is Python, so nothing had
+    noticed for as long as the pool had existed.
+
+    A NaN means the statistic could not be computed for that observation. JSON spells that
+    null. The conversion is reported because a file that turned numbers into nulls quietly
+    would be a worse artifact than one that refuses to write.
+    """
+    if found is None:
+        found = []
+    if isinstance(node, dict):
+        return {k: _json_safe(v, f"{path}.{k}", found) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_json_safe(v, f"{path}[{i}]", found) for i, v in enumerate(node)]
+    if isinstance(node, float) and not math.isfinite(node):
+        found.append(f"{path} = {node}")
+        return None
+    return node
+
+
+def _dump(payload) -> str:
+    non_finite: list[str] = []
+    payload = _json_safe(payload, "", non_finite)
+    if non_finite:
+        print(
+            f"  {len(non_finite)} non-finite value(s) written as null, because JSON has "
+            f"no NaN: {', '.join(non_finite[:8])}"
+            + (" ..." if len(non_finite) > 8 else "")
+        )
+    return json.dumps(payload, indent=1, sort_keys=False, allow_nan=False) + "\n"
 
 
 def _tally(rows: list[dict[str, Any]], key: str) -> dict[str, int]:

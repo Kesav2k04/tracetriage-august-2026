@@ -161,8 +161,30 @@ def test_gate3_needs_nine_testable_observations(script, receipt):
         pytest.skip("gate 3 is met, so it has no shortfall to check")
     closure = gate3["closure"]
     assert closure["required_n"] == 9
-    assert closure["have_n"] == gate3["measured"]["observations_testable"]
-    assert closure["shortfall"] == closure["required_n"] - closure["have_n"]
+
+    # What `have_n` counts depends on what the gate is short of, and the gate is not
+    # always short of observations. This asserted `have_n == observations_testable`
+    # unconditionally, which compared 68 episodes against 303 observations the first time
+    # the gate came back short of independent station-nights instead.
+    constraint = gate3["binding_constraint"]
+    if constraint == "testable_sample_size":
+        assert closure["have_n"] == gate3["measured"]["observations_testable"]
+        assert closure["shortfall"] == closure["required_n"] - closure["have_n"]
+    elif constraint == "independent_episodes":
+        assert closure["have_n"] == gate3["measured"]["groups_scored"]
+        assert closure["shortfall"] == max(
+            0, closure["required_n"] - closure["have_n"]
+        )
+    elif constraint == "measured_rate_below_the_bar":
+        # Not a shortfall. More observations of the same kind move the interval towards
+        # a number that is already under the bar.
+        assert closure["kind"] == "not_a_shortfall"
+        assert closure["shortfall"] == 0
+    else:
+        raise AssertionError(
+            f"gate 3 reports binding constraint {constraint!r}, which this test does "
+            f"not know how to check. Add the branch rather than widening the assertion."
+        )
 
 
 def test_gate3_reports_the_bound_its_own_receipt_carries(receipt):

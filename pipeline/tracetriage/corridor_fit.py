@@ -751,7 +751,7 @@ def _pixel_sigma_scale(
     return baseline, spread
 
 
-def _best_over_offsets(
+def offset_sweep(
     smoothed: np.ndarray,
     zs: np.ndarray,
     corridor: Corridor,
@@ -759,13 +759,21 @@ def _best_over_offsets(
     origin: float,
     bound_px: int,
     row_mask: np.ndarray | None = None,
-) -> tuple[float, int | None]:
-    """Best path sigma over every whole-pixel offset inside the bound.
+) -> tuple[np.ndarray, np.ndarray]:
+    """Matched-filter sigma at every whole-pixel offset inside the bound.
 
-    The base columns are computed once and shifted in column space, which is
-    equivalent to re-calling ``corridor_columns`` per offset and about two orders
-    of magnitude cheaper. That speed is what makes a 200-sample null
-    distribution affordable per observation.
+    This is the quantity :func:`_best_over_offsets` used to compute and discard all but
+    the maximum of. It is published because it is the most direct evidence available that
+    the corridor is on the trace rather than near it: the detection rises to a peak at the
+    fitted offset and falls away either side, and a reader can watch that happen instead
+    of being handed one number.
+
+    Returning it as the primitive, with the argmax as a wrapper, means the peak of the
+    published curve *is* the fitted offset by construction. Computing the two separately
+    would be two implementations of one quantity, free to drift apart.
+
+    Offsets that score non-finitely are dropped from both arrays rather than filled, so
+    the two stay aligned and nothing invents a value for an offset that was not scored.
     """
     n_rows = zs.shape[0]
     base = _base_columns(corridor, hz_per_px, origin, n_rows)
@@ -777,21 +785,48 @@ def _best_over_offsets(
     scored_rows = live if row_mask is None else (row_mask & live)
     baseline, spread = _pixel_sigma_scale(zs, scored_rows)
     if spread <= 0.0:
-        # No measurable row under the mask. There is no scale, so there is no sigma, and
-        # NaN reaches the caller's existing refusal path rather than a number.
-        return float("nan"), None
+        empty = np.empty(0, dtype=int), np.empty(0, dtype=float)
+        return empty
 
-    best_sigma = -np.inf
-    best_off_px: int | None = None
+    offs: list[int] = []
+    sigs: list[float] = []
     for off_px in range(-bound_px, bound_px + 1):
         cols = np.rint(base + off_px).astype(int)
         s = path_score(smoothed, cols, row_mask=scored_rows)
         if math.isnan(s):
             continue
-        sigma = (s - baseline) / spread
-        if sigma > best_sigma:
-            best_sigma = sigma
-            best_off_px = off_px
+        offs.append(off_px)
+        sigs.append((s - baseline) / spread)
+    return np.asarray(offs, dtype=int), np.asarray(sigs, dtype=float)
+
+
+def _best_over_offsets(
+    smoothed: np.ndarray,
+    zs: np.ndarray,
+    corridor: Corridor,
+    hz_per_px: float,
+    origin: float,
+    bound_px: int,
+    row_mask: np.ndarray | None = None,
+) -> tuple[float, int | None]:
+    """Best path sigma over every whole-pixel offset inside the bound.
+
+    The argmax of :func:`offset_sweep`, and nothing else. Keeping it that thin is the
+    point: the console publishes the sweep so a reader can see the detection rise to a
+    peak and fall away, and if the peak were computed by a second loop the curve on
+    screen could disagree with the number beside it.
+    """
+    offsets, sigmas = offset_sweep(
+        smoothed, zs, corridor, hz_per_px, origin, bound_px, row_mask=row_mask
+    )
+    if offsets.size == 0:
+        # Either no measurable row under the mask, or no offset scored finitely. There is
+        # no sigma to report, and NaN reaches the caller's existing refusal path.
+        return float("nan"), None
+
+    best = int(np.argmax(sigmas))
+    best_sigma = float(sigmas[best])
+    best_off_px: int | None = int(offsets[best])
     return best_sigma, best_off_px
 
 
@@ -871,7 +906,68 @@ class NullCalibration:
             "beats_reversed": self.beats_reversed,
             "odd_symmetry_residual_frac": self.odd_symmetry_residual_frac,
             "discriminates": self.discriminates,
+            # Why there is no p-value, when there is none. Every caller that shows a
+            # human an absent p-value already names the reason; this summary is what
+            # the gate receipt publishes, and it used to be the one that did not.
+            "not_tested_reason": self.not_tested_reason,
         }
+
+
+def scoring_setup(
+    zs: np.ndarray,
+    corridor: Corridor,
+    hz_per_px: float,
+    centre_px: float,
+    rx_freq_hz: float,
+    thresholds: GateThresholds = DEFAULT_THRESHOLDS,
+) -> tuple[np.ndarray, float, int, np.ndarray]:
+    """The four things every scored curve in one observation must share.
+
+    The smoothed image, the column origin, the offset bound in pixels, and the horizon
+    row mask. Extracted from :func:`calibrate_against_nulls` so that anything publishing
+    the sweep gets the geometry the gate scored rather than its own reconstruction of it.
+    A second copy with a different filter width, or a mask derived from a null's corridor
+    instead of the true one, would produce a curve peaking somewhere the receipt does not,
+    and neither would look wrong on its own.
+
+    SPACE-S4: the horizon mask belongs to the observation window, so it is built once from
+    the true corridor and handed to every curve. Letting each null derive its own would
+    score the nulls on more rows than the truth, because the null builders carry no
+    elevation series, and a margin measured over two different row sets is not a margin.
+    """
+    bound_hz = thresholds.offset_ppm_limit * rx_freq_hz / 1e6
+    bound_px = int(math.floor(bound_hz / hz_per_px))
+    smoothed = smooth_columns(zs, thresholds.filter_width)
+    origin = centre_px - EDGE_MARGIN_PX
+    row_mask = visible_rows(corridor, int(zs.shape[0]))
+    return smoothed, origin, bound_px, row_mask
+
+
+def published_sweep(
+    zs: np.ndarray,
+    corridor: Corridor,
+    hz_per_px: float,
+    centre_px: float,
+    rx_freq_hz: float,
+    thresholds: GateThresholds = DEFAULT_THRESHOLDS,
+) -> tuple[np.ndarray, np.ndarray]:
+    """The offset sweep for one observation, in the geometry the gate used.
+
+    Offsets in whole pixels and matched-filter sigma at each. The console draws this so a
+    reader can watch the detection rise to a peak at the fitted offset and fall away
+    either side, which is the most direct evidence available that the corridor is on the
+    trace rather than merely near it.
+
+    Returns two empty arrays when there is nothing to sweep, for the same reason
+    :func:`offset_sweep` does: a flat line of zeros would render as "measured, and nothing
+    is there", which is a different claim from "this could not be measured".
+    """
+    smoothed, origin, bound_px, row_mask = scoring_setup(
+        zs, corridor, hz_per_px, centre_px, rx_freq_hz, thresholds
+    )
+    return offset_sweep(
+        smoothed, zs, corridor, hz_per_px, origin, bound_px, row_mask=row_mask
+    )
 
 
 def calibrate_against_nulls(
@@ -889,17 +985,9 @@ def calibrate_against_nulls(
     gets the same bounded offset search the true corridor gets, so neither is
     advantaged by the free parameter.
     """
-    bound_hz = thresholds.offset_ppm_limit * rx_freq_hz / 1e6
-    bound_px = int(math.floor(bound_hz / hz_per_px))
-    smoothed = smooth_columns(zs, thresholds.filter_width)
-    origin = centre_px - EDGE_MARGIN_PX
-
-    # SPACE-S4: the horizon mask belongs to the observation window, so it is built
-    # once from the true corridor and handed to every scored curve below. Letting
-    # each null derive its own would score the nulls on more rows than the truth,
-    # because the null builders do not carry an elevation series, and a margin
-    # measured over two different row sets is not a margin.
-    row_mask = visible_rows(corridor, int(zs.shape[0]))
+    smoothed, origin, bound_px, row_mask = scoring_setup(
+        zs, corridor, hz_per_px, centre_px, rx_freq_hz, thresholds
+    )
 
     def _empty(sig: float | None, reason: str) -> NullCalibration:
         return NullCalibration(

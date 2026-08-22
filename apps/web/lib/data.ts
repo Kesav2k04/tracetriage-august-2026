@@ -44,7 +44,32 @@ export interface QueueEntry {
   episode_key: string;
 }
 
+/**
+ * Matched-filter sigma at every whole-pixel offset the fit was allowed.
+ *
+ * The fitted offset is the argmax of this array, computed by the same function, so
+ * `peak_offset_px` and the fit cannot disagree. Subsampled for transport with the peak
+ * and both endpoints always kept, because a curve missing its peak would misplace the
+ * one point its caption is about.
+ *
+ * Null on a card whose image has no measurable row: an empty curve renders as
+ * "measured, and nothing is there", which is a different claim from "not measurable".
+ */
+export interface OffsetSweepData {
+  offset_px: number[];
+  offset_hz: number[];
+  sigma: number[];
+  peak_offset_px: number;
+  peak_offset_hz: number;
+  peak_sigma: number;
+  fitted_offset_hz: number;
+  n_scored: number;
+  n_published: number;
+  note: string;
+}
+
 export interface CorridorGeometry {
+  offset_sweep: OffsetSweepData | null;
   fitted_offset_hz: number;
   fitted_offset_ppm: number | null;
   offset_at_bound: boolean | null;

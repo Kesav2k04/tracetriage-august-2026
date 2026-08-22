@@ -35,6 +35,7 @@ import {
   physics,
   reviewQueue,
 } from "../src/data";
+import { KNOWN_VERDICTS } from "../src/ui";
 import { BEATS, FILM_FRAMES } from "../src/Film";
 import { FPS, HEIGHT, token, WIDTH } from "../src/theme";
 
@@ -504,5 +505,77 @@ describe("the rendered file", () => {
     expect(stream.height).toBe(HEIGHT);
     expect(stream.r_frame_rate).toBe(`${FPS}/1`);
     expect(Number(stream.nb_frames)).toBe(FILM_FRAMES);
+  });
+});
+
+describe("the film can draw every verdict the receipts hold", () => {
+  it("has a mark for each one, rather than falling through to a dash", () => {
+    // `VerdictMark` returns a flat dash for anything it does not recognise, and that
+    // dash means "not measurable". So an unrecognised verdict is not a missing glyph:
+    // it is a false claim about the gate, rendered into a committed video.
+    const summary = resolve(cached(FILE.provenance), "gate_summary") as {
+      gates: { gate: number; verdict: string }[];
+    };
+    const onScreen = new Set<string>([
+      ...summary.gates.map((row) => row.verdict),
+      String(gate3Result.verdict.value),
+      String(lift.verdict.value),
+    ]);
+    const undrawable = [...onScreen].filter(
+      (v) => !(KNOWN_VERDICTS as readonly string[]).includes(v),
+    );
+    expect(undrawable, `add a VerdictMark branch for ${undrawable.join(", ")}`).toEqual(
+      [],
+    );
+  });
+
+  it("renders a multi-word verdict with no underscore left in it", () => {
+    // `String.replace` with a string argument replaces the first match only in
+    // JavaScript, so PASSED_UNGROUPED_ONLY rendered as "passed ungrouped_only".
+    for (const verdict of KNOWN_VERDICTS) {
+      expect(verdict.replace(/_/g, " ")).not.toContain("_");
+    }
+  });
+});
+
+describe("the sentence beside gate 3's bound agrees with it", () => {
+  const receipt = () => ({
+    clears: resolve(cached(FILE.gate3), "clears_threshold") as boolean,
+    grouped: resolve(
+      cached(FILE.gate3),
+      "entity_grouping.grouped_clears_threshold",
+    ) as boolean,
+    groups: resolve(cached(FILE.gate3), "entity_grouping.groups_scored") as number,
+  });
+
+  it("does not deny a bound that clears the bar", () => {
+    // The card ended with the literal "That is not enough to clear it" while printing a
+    // bound of 0.73 against a threshold of 0.70, two lines above, from the same receipt.
+    const { clears } = receipt();
+    const sentence = gate3Result.outcomeSentence.toLowerCase();
+    if (clears) {
+      expect(sentence).toContain("clears the bar");
+      expect(sentence).not.toContain("not enough");
+    } else {
+      expect(sentence).not.toContain("clears the bar");
+    }
+  });
+
+  it("names the grouping when the grouping is what it failed", () => {
+    const { clears, grouped, groups } = receipt();
+    if (clears && !grouped) {
+      expect(gate3Result.outcomeSentence).toContain(String(groups));
+      expect(gate3Result.outcomeSentence.toLowerCase()).toContain("station-nights");
+      expect(gate3Result.outcomeSentence.toLowerCase()).toContain(
+        "reported and not claimed",
+      );
+    }
+  });
+
+  it("counts what discriminated as a part of what was scored, not all of it", () => {
+    // "All 224 discriminated" was on screen against 289 scored.
+    expect(gate3Result.discriminating.value as number).toBeLessThanOrEqual(
+      gate3Result.scored.value as number,
+    );
   });
 });

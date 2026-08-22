@@ -19,6 +19,7 @@ import {
   precedentFor,
   showcaseIds,
 } from "@/lib/data";
+import OffsetSweep from "@/components/OffsetSweep";
 import WaterfallViewer from "@/components/WaterfallViewer";
 import SkyPlot from "@/components/SkyPlot";
 import GroundTrack, { boundsForPass } from "@/components/GroundTrack";
@@ -386,6 +387,10 @@ export default async function ObservationPage({
               detail="through the observation window, where the Doppler curve is steepest"
             />
           </div>
+
+          {card.corridor.offset_sweep && (
+            <OffsetSweep sweep={card.corridor.offset_sweep} />
+          )}
 
           {card.corridor.offset_at_bound && (
             <Note tone="warn">

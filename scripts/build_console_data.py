@@ -45,6 +45,11 @@ from PIL import Image
 _REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO))
 
+from pipeline.tracetriage.corridor_fit import (  # noqa: E402
+    normalised_rows,
+    published_sweep,
+    px_to_offset_hz,
+)
 from pipeline.tracetriage.physics import (  # noqa: E402
     C_M_PER_S,
     corridor_columns,
@@ -157,6 +162,80 @@ def _require(doc: dict[str, Any], key: str) -> Any:
             "show an absent measurement where one exists."
         )
     return value
+
+
+#: How many points of the sweep reach the browser. The bound is about 227 pixels at
+#: these receive frequencies, so a full sweep is roughly 455 samples; a reader sees the
+#: curve a few hundred pixels wide and the extra precision is bytes with no reader.
+_SWEEP_POINTS = 121
+
+
+def _offset_sweep_block(
+    rgb: Any,
+    crop_box: Any,
+    corridor: Any,
+    geometry: Any,
+    rx_freq_hz: float | None,
+    fitted_offset_hz: float,
+) -> dict[str, Any] | None:
+    """Matched-filter sigma against corridor offset, for one observation.
+
+    The console draws the predicted corridor and the fitted one and says the gap between
+    them is the measurement. This is the evidence that the gap is where the evidence
+    actually is: the detection rises to a peak and falls away either side, and a reader
+    can see that instead of being asked to accept one number.
+
+    Computed by `corridor_fit.published_sweep`, which shares its geometry with the null
+    calibration, so the peak of this curve is the fitted offset by construction. Computing
+    it here from a second reconstruction of the scoring setup would let the picture and
+    the number disagree, each looking correct alone.
+
+    Returns None rather than an empty curve when there is nothing to sweep. A flat line
+    of zeros reads as "measured, and nothing is there", which is a different claim.
+    """
+    if rx_freq_hz is None or geometry.centre_px is None:
+        return None
+    zs = normalised_rows(rgb, crop_box)
+    offsets, sigmas = published_sweep(
+        zs, corridor, geometry.hz_per_px, geometry.centre_px, float(rx_freq_hz)
+    )
+    if offsets.size == 0:
+        return None
+
+    step = max(1, offsets.size // _SWEEP_POINTS)
+    keep = list(range(0, offsets.size, step))
+    # The peak is the point the caption is about, so it is never the one dropped by
+    # subsampling. Endpoints too, or the curve appears to stop before the bound.
+    peak = int(np.argmax(sigmas))
+    for i in (0, peak, offsets.size - 1):
+        if i not in keep:
+            keep.append(i)
+    keep = sorted(set(keep))
+
+    hz = float(geometry.hz_per_px)
+    # Through `px_to_offset_hz`, never `off_px * hz_per_px`. A column shift and the Hz
+    # offset that causes it differ in sign through AXIS_SIGN_CONVENTION, and multiplying
+    # directly put this curve's peak at -6,903.7 Hz on a card fitted at +6,903.7: the
+    # right magnitude, mirrored, drawn on the wrong side of the carrier.
+    return {
+        "offset_px": [int(offsets[i]) for i in keep],
+        "offset_hz": [round(px_to_offset_hz(float(offsets[i]), hz), 1) for i in keep],
+        "sigma": [round(float(sigmas[i]), 4) for i in keep],
+        "peak_offset_px": int(offsets[peak]),
+        "peak_offset_hz": round(px_to_offset_hz(float(offsets[peak]), hz), 1),
+        "peak_sigma": round(float(sigmas[peak]), 4),
+        "fitted_offset_hz": fitted_offset_hz,
+        "n_scored": int(offsets.size),
+        "n_published": len(keep),
+        "note": (
+            "Matched-filter sigma at every whole-pixel offset the fit was allowed, "
+            "subsampled for transport with the peak and both endpoints always kept. "
+            "The peak is the fitted offset: the same function produces both, so they "
+            "cannot disagree. The curve is what makes the fit a measurement rather than "
+            "a choice, because a corridor that were merely near the trace would give a "
+            "flat sweep with no peak to find."
+        ),
+    }
 
 
 def _channel_mean_grey(rgb: np.ndarray) -> Image.Image:
@@ -312,6 +391,9 @@ def export_observation(
         rows.append(grey.height - 1)
 
     out["corridor"] = {
+        "offset_sweep": _offset_sweep_block(
+            rgb, box, physics.uncorrected, geometry, rx_freq, offset_hz
+        ),
         "fitted_offset_hz": offset_hz,
         "fitted_offset_ppm": corridor_row.get("fitted_offset_ppm"),
         "offset_at_bound": corridor_row.get("offset_at_bound"),
@@ -635,12 +717,15 @@ def _gate4_fields(
 def _load_receipt_verdict(path: Path, *, gate: int, title: str) -> dict[str, Any]:
     """One gate's verdict, read from its own receipt rather than typed here.
 
-    Gate 3's receipt carries a verdict of NOT_ESTABLISHED: every one of its three
-    testable observations discriminates, and three successes in three trials cannot
-    establish the 70 percent rate the gate asked for, because the exact one-sided
-    95 percent lower bound is 0.368. The point estimate and the bound are both
-    published so a reader can see that the per-observation evidence is strong and
-    the rate claim is what failed.
+    This function names no verdict. It used to describe gate 3's as NOT_ESTABLISHED
+    with three of three discriminating at a bound of 0.368, which was true when it was
+    written and was still sitting here, in the docstring of the reader whose entire
+    purpose is that verdicts are not typed, after the pool grew to 303 and the verdict
+    changed. A comment is not checked by the thing it describes.
+
+    What is stable is the rule: the receipt decides, an unrecognised verdict raises
+    rather than defaulting, and both the point estimate and the interval are published
+    so a reader can tell strong per-observation evidence from an established rate.
     """
     if not path.exists():
         raise FileNotFoundError(

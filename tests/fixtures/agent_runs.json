@@ -382,7 +382,7 @@
   {
    "id": "receipt-gate3-verdict",
    "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
-   "expected": "NOT_ESTABLISHED",
+   "expected": "PASSED_UNGROUPED_ONLY",
    "tool": "receipt",
    "reference": {
     "name": "GATE3_RECEIPT.json"
@@ -1206,7 +1206,7 @@
      "arguments": {},
      "error": null,
      "answer": null,
-     "result_bytes": 1244
+     "result_bytes": 1295
     },
     {
      "index": 2,
@@ -1219,7 +1219,7 @@
     }
    ],
    "read": [
-    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\", \"verdict_in_the_receipt\": \"PASSED_UNGROUPED_ONLY\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
    ]
   },
   {
@@ -1239,7 +1239,7 @@
      "arguments": {},
      "error": null,
      "answer": null,
-     "result_bytes": 1244
+     "result_bytes": 1295
     },
     {
      "index": 2,
@@ -1252,7 +1252,7 @@
     }
    ],
    "read": [
-    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\", \"verdict_in_the_receipt\": \"PASSED_UNGROUPED_ONLY\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
    ]
   },
   {
@@ -1272,7 +1272,7 @@
      "arguments": {},
      "error": null,
      "answer": null,
-     "result_bytes": 1244
+     "result_bytes": 1295
     },
     {
      "index": 2,
@@ -1285,7 +1285,7 @@
     }
    ],
    "read": [
-    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\", \"verdict_in_the_receipt\": \"PASSED_UNGROUPED_ONLY\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
    ]
   },
   {
@@ -1305,7 +1305,7 @@
      "arguments": {},
      "error": null,
      "answer": null,
-     "result_bytes": 1244
+     "result_bytes": 1295
     },
     {
      "index": 2,
@@ -1318,7 +1318,7 @@
     }
    ],
    "read": [
-    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\", \"verdict_in_the_receipt\": \"PASSED_UNGROUPED_ONLY\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
    ]
   },
   {
@@ -1360,9 +1360,8 @@
    "task_id": "receipt-gate3-verdict",
    "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
    "arm": "tools",
-   "answer": "NOT_ESTABLISHED",
+   "answer": "PASSED_UNGROUPED_ONLY",
    "tools_called": [
-    "receipt",
     "receipt"
    ],
    "stopped_because": "answered",
@@ -1376,31 +1375,20 @@
      },
      "error": null,
      "answer": null,
-     "result_bytes": 1943
+     "result_bytes": 2064
     },
     {
      "index": 2,
-     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"GATE3_RECEIPT.json\"}}",
-     "tool": "receipt",
-     "arguments": {
-      "name": "GATE3_RECEIPT.json"
-     },
-     "error": "repeated call, the earlier result is already in the history",
-     "answer": null,
-     "result_bytes": null
-    },
-    {
-     "index": 3,
-     "raw": "{\"answer\": \"NOT_ESTABLISHED\"}",
+     "raw": "{\"answer\": \"PASSED_UNGROUPED_ONLY\"}",
      "tool": null,
      "arguments": null,
      "error": null,
-     "answer": "NOT_ESTABLISHED",
+     "answer": "PASSED_UNGROUPED_ONLY",
      "result_bytes": null
     }
    ],
    "read": [
-    "{\"receipt\": \"GATE3_RECEIPT.json\", \"bytes\": 52667, \"path\": \"artifacts/GATE3_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"gate\": 3, \"question\": \"Does the expected corridor intersect a visible target-like trace?\", \"generated_at\": \"2026-08-20T00:40:37.891532+00:00\", \"verdict\": \"NOT_ESTABLISHED\", \"threshold\": 0.7, \"observations_decisive\": 7, \"observations_testable\": 3, \"observations_not_testable\": 4, \"observations_scored\": 3, \"discriminating_rate\": 1.0, \"rate_lower_bound_95\": 0.3684031498640387, \"clears_point_estimate\": true, \"clears_threshold\": false, \"not_testable_note\": \"A corrected corridor is identically 0 Hz across the pass, so it is a vertical line with a free horizontal offset and predicts no shape. Gate 3 can only be asked of uncorrected captures, where an S-curve is predicted and can be wrong. Excluding these is a limit on the gate's scope, not a pass.\", \"method\": \"Per observation: fit one constant frequency offset bounded at offset_ppm_limit ppm of the downlink, scoring the predicted curve with a matched filter and taking the best offset. Then repeat the identical fit for n_nulls corridors built by permuting the observation's own Doppler samples in time, which preserves every frequency value and the whole swing while destroying the monotone shape. The statistic is the one-sided empirical p-value of the true corridor against that null distribution. An observation discriminates when p <= p_value_max. The gate passes when the discriminating rate over scored observations reaches the threshold. Per-row residuals and coverage are reported as diagnostics but are not the gate: these traces integrate to significance along the path while individual rows stay below z_min, so a per-row instrument reports zero detections on a trace A3 localised at high sigma.\"}, \"collection_sizes\": {\"entity_grouping\": 12, \"axis_sign_scope\": 18, \"thresholds\": 7, \"threshold_rationale\": 11, \"claim\": 3, \"observations\": 7, \"skipped\": 0}}"
+    "{\"receipt\": \"GATE3_RECEIPT.json\", \"bytes\": 2028268, \"path\": \"artifacts/GATE3_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"gate\": 3, \"question\": \"Does the expected corridor intersect a visible target-like trace?\", \"generated_at\": \"2026-08-22T20:30:35.338583+00:00\", \"verdict\": \"PASSED_UNGROUPED_ONLY\", \"threshold\": 0.7, \"observations_decisive\": 303, \"observations_not_prepared\": 0, \"observations_testable\": 303, \"observations_not_testable\": 0, \"observations_scored\": 289, \"discriminating_rate\": 0.7750865051903114, \"rate_lower_bound_95\": 0.7309344186327931, \"clears_point_estimate\": true, \"clears_threshold\": true, \"not_testable_note\": \"A corrected corridor is identically 0 Hz across the pass, so it is a vertical line with a free horizontal offset and predicts no shape. Gate 3 can only be asked of uncorrected captures, where an S-curve is predicted and can be wrong. Excluding these is a limit on the gate's scope, not a pass.\", \"method\": \"Per observation: fit one constant frequency offset bounded at offset_ppm_limit ppm of the downlink, scoring the predicted curve with a matched filter and taking the best offset. Then repeat the identical fit for n_nulls corridors built by permuting the observation's own Doppler samples in time, which preserves every frequency value and the whole swing while destroying the monotone shape. The statistic is the one-sided empirical p-value of the true corridor against that null distribution. An observation discriminates when p <= p_value_max. The gate passes when the discriminating rate over scored observations reaches the threshold. Per-row residuals and coverage are reported as diagnostics but are not the gate: these traces integrate to significance along the path while individual rows stay below z_min, so a per-row instrument reports zero detections on a trace A3 localised at high sigma.\"}, \"collection_sizes\": {\"pool\": 9, \"not_prepared\": 0, \"not_prepared_by_reason\": 0, \"entity_grouping\": 12, \"axis_sign_scope\": 18, \"thresholds\": 7, \"threshold_rationale\": 11, \"claim\": 3, \"observations\": 303, \"skipped\": 0}}"
    ]
   },
   {

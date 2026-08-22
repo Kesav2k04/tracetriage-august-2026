@@ -7960,3 +7960,239 @@ shortening the fourth to Feasibility. `FOR_JUDGES.md` and `/start` answered the 
 only, so a judge working from the challenge page would have looked for a heading that was
 not there over evidence that was. Both lists are answered now, with the extra criterion
 given its own heading and the same evidence under it.
+
+## E17. Two divisors collapsed, and the gate that came back was the interesting one
+
+E16 committed a method. This ran it, and the run found the method's own instrument broken
+twice before it found a result.
+
+**The first collapse was in the pool statistic.** The pre-registration requires reading
+pool B's marginal distribution before the gate is pointed at it, and the reading was
+absurd: a median `trace_q75` of 4.72, a 90th percentile of 22,666,664 and a maximum of
+89,000,000. A z-score of 89 million is not a trace. `_normalised_rows` divided each row by
+`max(MAD, 1e-6)`, and a blank or saturated row has MAD exactly 0, so the floor turned the
+emptiest row in an image into the largest value in it. The statistic was inverted
+precisely where it degenerated, and a mostly-blank waterfall could outrank a 25 sigma
+detection by six orders of magnitude.
+
+Fixing it is not a change to the rule. Section 3 defines the statistic as each row scored
+against its own median and MAD; a row whose MAD is zero has no z-score, not an infinite
+one, so the floor was never the statistic the document specified. Rows below the
+quantisation step are dropped and counted as `n_rows_unmeasurable`, an image with no
+measurable row is refused rather than scored low, and `TRACE_Q75_MIN` stays at 3.5,
+because the defect only ever inflated the statistic and so could only ever have added
+members. Pool B went from 321 to 303 and its 90th percentile from 22,666,664 to 10.79. All
+of that is committed as an amendment inside `docs/E16_PREREGISTRATION.md`, before either
+pool was scored, with a test that fails if that ordering ever stops holding in git.
+
+**The second collapse was hiding behind the first, and it was worse.** With the dead rows
+finally reading zero instead of enormous, the gate scorer started returning sigmas of
+3.09e10. `_best_over_offsets` normalised by
+
+```python
+spread = float(np.median(np.abs(finite - baseline)) * 1.4826) or 1e-9
+```
+
+Python reads `0.0` as falsy, so a genuinely zero spread silently became 1e-9. The same
+line had a second fault: the numerator and the denominator were computed over different
+row sets, so an image half of whose rows were dead was scored with a scale taken from the
+whole. Both are gone. A zero spread returns NaN, `calibrate_against_nulls` refuses with
+`no_measurable_rows`, and the A3 three-observation receipt reproduces bit for bit
+afterwards, which is the check that this moved the degenerate cases and nothing else.
+
+Neither defect was reachable on A3's three observations. Both were reachable the moment
+the pool was 303. A guard written as a floor is a guard that behaves correctly on data
+that never tests it.
+
+**The result.** Pool B, the pre-registered one: 303 selected, 0 unpreparable, 289 scored,
+224 discriminating at 77.5%, and an exact one-sided 95% lower bound of 0.7309, which
+clears the 0.70 bar. Over the 68 independent (ground station, UTC date) episodes those 289
+span, the grouped bound is 0.3662 and does not. The plan groups before it decides, so the
+verdict is `PASSED_UNGROUPED_ONLY` and the gate is not counted as met. A ground station's
+local-oscillator error is common to every pass it records, so many observations from one
+receiver on one night are one systematic offset measured many times.
+
+**And pool A is why E16 existed.** Same scorer, same nulls, same grouping rule, the only
+difference being that pool A is selected on `sigma_curved - sigma_vertical >= 3.0`, which
+is a corridor result. It gives 308 selected, 307 scored, 95.1% discriminating, a bound of
+0.9258, and over 74 episodes a grouped bound of 0.7505. It clears the bar both ways. It
+reads PASSED.
+
+That is the whole argument made concrete. Had the pool been grown the obvious way, this
+project would be publishing a passed gate 3 tonight. The 17.6-point gap between the two
+rates is the size of the selection effect on this corpus, and it is now a measurement
+rather than a caution. The pre-registration named pool B as the deciding one before either
+was scored, which is the only reason that sentence can be written at all.
+
+**Fourteen observations had no p-value and no reason.** Testable, scored, nothing came
+back. `calibrate_against_nulls` names every branch it can refuse on and the CLI and the
+live path both print the name, but `NullCalibration.summary()` dropped
+`not_tested_reason`, so the one consumer a judge reads was the only one showing a blank.
+The receipt carries `no_p_value_by_reason` now, and the writer raises rather than
+bucketing an unnamed branch as unknown, because a branch added later without naming itself
+is exactly how the field goes quiet again.
+
+**More than half the pool is unresolved to the mode reader.** Of the 289 scored, 136 are
+UNCORRECTED to `doppler_mode.verdict_from_scores` and 126 of those discriminate, at 92.6%.
+The other 153 are UNRESOLVED: neither the curved nor the vertical hypothesis cleared an
+8 sigma floor. 98 of them discriminate anyway, at 64.1%. The pool rule never reads a mode,
+so this is a decomposition of the scored set rather than a selection within it, and the
+receipt says `decides_the_gate: false` beside it. The pooled rate stays the gate's. But it
+is the more interesting half of the result: a matched filter with an ephemeris behind it
+finds a trace on 98 images where a two-hypothesis comparison could not resolve one, and
+the pooled 77.5% hides that entirely.
+
+**Four generated surfaces asserted their own conclusion.** They were written when gate 3
+had one possible outcome and they hardcoded it.
+
+- The KILL_GATE summary row rendered ", so a 70% rate is not established" unconditionally.
+  With a bound of 0.731 against a 0.70 bar it printed the bound that clears the bar and the
+  sentence denying it, in the same cell, at the top of the document a judge reads first.
+- `run_gate_power.py` derived gate 3 from one assumed state. Its binding constraint is
+  `independent_episodes` now, its `have_n` is 68 episodes rather than 3 observations, and
+  its shortfall is 0: what it needs is not more observations but observations that are not
+  the same receiver on the same night.
+- The demo script's spoken line was half generated and half typed. It would have read
+  "303 testable observations, all three discriminate" on camera.
+- The sensitivity table computed its verdict from the observation-level bound alone, so at
+  the pre-registered bar it printed PASSED against a receipt saying
+  `PASSED_UNGROUPED_ONLY`. A robustness table that disagrees with the receipt at the
+  published row is not corroboration.
+
+All four derive four states now, and `tests/test_verdict_vocabulary.py` fails if a surface
+invents a word for a verdict that the receipts do not use.
+
+**The sensitivity sweep, since the bar is the one degree of freedom.** Over 3.5, 4.0, 5.0,
+6.0 and 8.0 the discriminating rate stays between 75.0% and 79.8% while the scored count
+falls from 289 to 42. The observation-level verdict does change at 6.0, and it changes
+because the interval widens on 76 observations rather than because the rate moved. The
+grouped bound clears at no bar. Bars below the one that was scored report NOT SCORED
+rather than a number, because a looser bar selects observations this run never scored and
+a rate over the ones it happens to have is a rate over a biased subset.
+
+**A unanimity that was true of three.** The frequency-axis sign is remeasured per
+observation by scoring the corridor as shipped and mirrored. On A3's three every
+remeasurement agreed with `AXIS_SIGN_CONVENTION`, so the test asserted unanimity. Over
+E16's pool it is not unanimous, and the disagreements are not noise in the ratio: no
+agreeing ratio falls within 20% of a tie. Both terms of the dissenting ratios are noise
+instead. Their best orientation reaches under 1.0 sigma against a median of 2.11 among the
+agreeing, so neither orientation detects anything and the ratio is decisive-looking
+arithmetic over nothing. The property that holds is stronger than unanimity over
+everything: every observation with a detection agrees. Conditioning on that would be
+circular if it were used to excuse a disagreement, so it is not. Every dissenter is
+published with both its sigmas, and the test fails if one ever turns up on an observation
+that does discriminate.
+
+**The live path's reproduction claim was reaching the receipt sideways.** The replay was
+built from A3's 24 observations, so it compared whatever the two sets shared: 3 while the
+receipt was A3's pool, 1 after E16 rebuilt it, and the test failed on its own floor. The
+floor was right to fail, and raising it would have been the wrong repair, because the set
+being sampled was never the receipt's. It walks the receipt's own observations now, in
+obs_id order so the sample is not chosen on the result.
+
+Doing that exposed a real divergence: on obs 14730584 the gate fitted 5,906.219475941733 Hz
+and `live.measure` returned nothing. Neither is wrong. The live path measures the mode
+first and declines on UNRESOLVED, because it answers a human asking about one observation.
+The gate fits the uncorrected corridor on every pool member, because filtering the pool by
+a mode verdict afterwards would put the annotation back in. With 153 of the scored set
+UNRESOLVED that is a third of the receipt rather than one odd row, so the claim is stated
+at the precision it holds: the live path reproduces the gate digit for digit wherever both
+score a corridor, and names its reason where it does not. Both halves are asserted,
+because the first alone would be satisfied by a live path that quietly declined
+everything.
+
+**The agent study was re-frozen rather than regraded.** One of its 24 questions asks what
+verdict `GATE3_RECEIPT.json` records, and the study refuses to grade an old answer against
+a changed expectation: *the data moved under the study; re-freeze rather than regrading old
+answers.* So both arms were run again against the local Granite model. The headline did not
+move: 22 of 24 with the tools against 2 of 24 without, p = 1e-06 over 20 discordant pairs.
+The tool arm read the new verdict in one call where it had needed two.
+
+**The README printed two different verdicts for gate 3, eleven lines apart.** The
+substantive gate table read `NOT_ESTABLISHED` and the closure table below it read
+`PASSED_UNGROUPED_ONLY`. Both generated. The first goes through the console summary, where
+the verdict is bucketed so a three-state chip can render it, and `_verdict_cell`'s own
+docstring says the opposite: "the verdict token as written, not prettified ... the strings
+the receipts carry". It reads the receipt's word now, through the
+`verdict_in_the_receipt` field the console already records whenever it buckets one.
+
+Fixing that exposed the second half. The headline sentence is assembled from three counts,
+passed, inconclusive and never run, and a verdict in none of those buckets is not an error:
+it is a gate that silently vanishes. The sentence would have said three of four and named
+no fourth. There are four buckets now and an assertion that they sum to the number of
+substantive gates, which fails the build rather than dropping a gate from a summary.
+
+**The film says the old verdict, on a committed video, and it had three defects on one
+card.** Every number in it is read from a receipt at build time. The sentences holding
+those numbers were typed, so on the current receipt the physics beat rendered "All 224
+discriminated, which puts the 95% lower bound at 0.73 against a threshold of 0.70. That is
+not enough to clear it." 224 is not all of 289, and 0.73 clears 0.70.
+
+Two more in the display layer, both worse for being invisible:
+
+- `verdict.display.replace("_", " ")` replaces only the first `_` in JavaScript.
+  `PASSED_UNGROUPED_ONLY` renders as "passed ungrouped_only".
+- `VerdictMark` has branches for PASSED, PRE_PASSED, NOT_ESTABLISHED and FAILED and falls
+  through to a flat dash, which is its glyph for "not measurable". A gate measured on 289
+  observations would have been marked unmeasurable, in a video, with the whole suite green,
+  because no test ever asked whether the film could draw the verdicts the receipts hold.
+
+The sentence is derived now, the mark has a branch for a bound that cleared over
+observations and not over episodes, and `KNOWN_VERDICTS` is exported so a test can assert
+the set against what the receipts actually contain rather than against what the component
+happens to handle.
+
+**A tally keyed on a sentence with a number in it.** The new axis-sign block came back
+with 62 distinct `not_measurable_by_reason` keys, every one the same reason with a
+different ratio inside the prose: "the two orientations score within 1.07x of each other",
+"... within 1.04x ...", and so on down. That is not a tally, it answers nothing, and it put
+62 near-identical sentences into a receipt a judge might open. Each key is now the reason with its
+digits normalised out, and the ratio goes out as a distribution, because a dead tie and
+a 1.9x win under a 2.0x bar are different situations and neither was legible before.
+
+**What the remeasurement actually found.** 175 of the 289 scored observations can orient an
+axis at all; the rest tie between the two orientations by less than the 2.0x separation
+this treats as decisive. Of the 175, 173 agree with `AXIS_SIGN_CONVENTION` and 2 do not.
+Among the 171 that both orient and discriminate, agreement is 171 of 171. The two
+dissenters reach 0.83 and 1.00 sigma in their best orientation against a median of 2.11
+among the agreeing, so neither detects anything in either direction.
+
+**The offset sweep, published.** The matched filter evaluates every whole-pixel offset
+inside the frequency bound and keeps the maximum. The rest of that curve is the most direct
+evidence in the project that the corridor is on the trace rather than near it, and it was
+being computed and discarded on every observation. `offset_sweep` is the primitive now and
+`_best_over_offsets` is `np.argmax` over it, so the peak the console draws *is* the fitted
+offset by construction rather than by agreement between two loops. The scoring geometry
+that both the sweep and the null calibration need, the smoothed image, the origin, the
+pixel bound and the horizon row mask, comes out of `calibrate_against_nulls` into
+`scoring_setup` for the same reason: a second reconstruction of it in the console builder
+could put the peak somewhere the receipt does not, and both would look right alone.
+
+The chart is server-rendered SVG and ships no JavaScript. A corridor that were merely near
+the trace would give a flat sweep with no peak to find, so the shape is the claim.
+
+**Two receipts were not JSON, and only a bundler noticed.** `json.dumps` writes the bare
+tokens `NaN`, `Infinity` and `-Infinity` unless told not to. None of them is in the JSON
+grammar, and `json.loads` reads them straight back, so a project whose consumers are all
+Python can carry one indefinitely without finding out.
+
+This one carried two. `artifacts/GATE3_POOL.json` had a NaN in the `trace_q75` block of
+four observations, `run_gate3.py` copied one of them into `artifacts/GATE3_RECEIPT.json`,
+and both files stopped being readable by `jq`, by a browser's `JSON.parse`, and by anything
+else a judge would reach for. The whole argument of this project is that a reader can open
+a receipt and check a number, and the two most important receipts in it could only be
+opened by the language that wrote them.
+
+It surfaced because the presentation film imports the receipt through a bundler whose JSON
+plugin is strict. The error it produced was "Failed to parse JSON file" with no line
+number.
+
+Both writers pass `allow_nan=False` now, so a non-finite value stops the write rather than
+being emitted, and non-finite values are converted to null first, with a log line naming
+each one, because a receipt that quietly turned numbers into nulls would be worse than one
+that refuses to write. `tests/test_artifacts_are_json.py` reads every JSON file under
+`artifacts/`, `apps/web/public/data/`, `tests/fixtures/` and `contracts/` the way a parser
+that is not Python's would, and prints the offending line numbers when one fails.
+
+The pool was rebuilt to clear it, and membership was compared before and after to show that
+this changed a serialisation and not a selection.

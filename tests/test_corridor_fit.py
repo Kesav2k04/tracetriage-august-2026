@@ -1160,3 +1160,81 @@ def test_an_image_with_no_measurable_row_refuses_instead_of_returning_a_number()
     assert math.isnan(sigma), (
         "a dead image must not come back with a finite sigma of any size"
     )
+
+
+class TestTheOffsetSweep:
+    """The curve the console publishes, and the fit that has to be its peak.
+
+    `_best_over_offsets` used to run its own comparison loop over the offsets. Publishing
+    the sweep beside a separately computed fitted offset would be two implementations of
+    one quantity, free to drift apart, which is the class of defect this file exists to
+    catch. So the sweep is the primitive and the fit is its argmax, and these are the
+    properties that says.
+    """
+
+    def _scene(self, offset_hz: float = 1_200.0):
+        from pipeline.tracetriage.corridor_fit import smooth_columns
+
+        corridor = s_curve()
+        zs = paint(corridor, offset_hz=offset_hz)
+        return zs, corridor, smooth_columns(zs, DEFAULT_THRESHOLDS.filter_width)
+
+    def test_the_fitted_offset_is_the_peak_of_the_published_sweep(self):
+        from pipeline.tracetriage.corridor_fit import _best_over_offsets, offset_sweep
+
+        zs, corridor, smoothed = self._scene()
+        origin = N_COLS / 2 - EDGE_MARGIN_PX
+        args = (smoothed, zs, corridor, HZ_PER_PX, origin, 60)
+
+        offsets, sigmas = offset_sweep(*args)
+        sigma, off = _best_over_offsets(*args)
+
+        assert offsets.size > 0, "the sweep scored nothing, so this test checked nothing"
+        peak = int(np.argmax(sigmas))
+        assert off == int(offsets[peak]), (
+            f"the fit says {off} and the published curve peaks at {offsets[peak]}. "
+            "These are the same quantity and must not be able to differ."
+        )
+        assert sigma == float(sigmas[peak])
+
+    def test_the_sweep_is_a_curve_and_not_a_plateau(self):
+        """A detection that did not rise to a peak would not be evidence of anything."""
+        from pipeline.tracetriage.corridor_fit import offset_sweep
+
+        zs, corridor, smoothed = self._scene()
+        origin = N_COLS / 2 - EDGE_MARGIN_PX
+        _, sigmas = offset_sweep(smoothed, zs, corridor, HZ_PER_PX, origin, 60)
+        assert float(sigmas.max()) > float(np.median(sigmas)) + 3.0, (
+            "the peak does not stand out of its own sweep, so the curve carries no "
+            "information about where the trace is"
+        )
+
+    def test_the_sweep_covers_the_bound_and_stays_aligned(self):
+        """A truncated curve would read as a detection near an edge."""
+        from pipeline.tracetriage.corridor_fit import offset_sweep
+
+        zs, corridor, smoothed = self._scene()
+        origin = N_COLS / 2 - EDGE_MARGIN_PX
+        offsets, sigmas = offset_sweep(smoothed, zs, corridor, HZ_PER_PX, origin, 60)
+        assert offsets.size == sigmas.size, "the two arrays fell out of alignment"
+        assert offsets.min() >= -60
+        assert offsets.max() <= 60
+        assert np.all(np.diff(offsets) > 0), "offsets must increase, or a plot lies"
+
+    def test_a_dead_image_produces_no_sweep_rather_than_a_flat_one(self):
+        """Zero spread is the divisor collapse this module spent a session on.
+
+        A flat curve of zeros would render as "measured, and nothing is there". No curve
+        is the honest output, and it is what reaches the caller's refusal path.
+        """
+        from pipeline.tracetriage.corridor_fit import _best_over_offsets, offset_sweep
+
+        corridor = s_curve()
+        zs = np.zeros((64, N_COLS), dtype=np.float32)
+        origin = N_COLS / 2 - EDGE_MARGIN_PX
+        offsets, sigmas = offset_sweep(zs, zs, corridor, HZ_PER_PX, origin, 60)
+        assert offsets.size == 0
+        assert sigmas.size == 0
+        sigma, off = _best_over_offsets(zs, zs, corridor, HZ_PER_PX, origin, 60)
+        assert off is None
+        assert math.isnan(sigma)

@@ -38,8 +38,8 @@
     "lower_95": 0.8827,
     "upper_95": 1.0
    },
-   "tool_calls": 46,
-   "repeated_calls": 6,
+   "tool_calls": 45,
+   "repeated_calls": 5,
    "server_refusals": 9,
    "hit_the_step_cap": 0,
    "fetched_the_answer": {
@@ -385,11 +385,11 @@
   {
    "task_id": "receipt-gate3-verdict",
    "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
-   "expected": "NOT_ESTABLISHED",
-   "tools_answer": "NOT_ESTABLISHED",
+   "expected": "PASSED_UNGROUPED_ONLY",
+   "tools_answer": "PASSED_UNGROUPED_ONLY",
    "tools_correct": true,
    "tools_grounded": true,
-   "tools_calls": 2,
+   "tools_calls": 1,
    "tools_fetched_the_answer": true,
    "control_answer": "unknown",
    "control_correct": false,
@@ -427,5 +427,5 @@
   "Whether a different model would behave the same way. One model, one seed, temperature zero, and this project has already measured that the same runtime is not reproducible run to run.",
   "Whether the tool arm would survive questions the tools cannot answer. Every task here is answerable from the five tools, so the study measures whether the policy uses them and not whether it knows when to stop."
  ],
- "receipt_sha256": "287ff5368cc2079a8f27841cf0cc0fa5299cde751112e751b10ef5569d97d3ea"
+ "receipt_sha256": "e98402dd20e1a396ebe9e83231e07431aee25961d83c647928a67887932357a8"
 }

@@ -1,7 +1,7 @@
 {
  "schema": "FILM_RECEIPT",
  "schema_version": 1,
- "generated_at": "2026-08-22T13:01:55.909Z",
+ "generated_at": "2026-08-22T23:45:33.719Z",
  "generated_by": "presentation/scripts/report-table.ts",
  "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so REPORT.md and this receipt cannot disagree about the same film.",
  "composition": {
@@ -56,9 +56,9 @@
   }
  ],
  "claims": {
-  "total": 135,
-  "drawn": 110,
-  "read_but_not_drawn": 25,
+  "total": 137,
+  "drawn": 111,
+  "read_but_not_drawn": 26,
   "per_file": {
    "apps/web/public/data/cards.json": 14,
    "apps/web/public/data/provenance.json": 31,
@@ -67,7 +67,7 @@
    "artifacts/CIRCULARITY_RECEIPT.json": 4,
    "artifacts/DATASET_MANIFEST.json": 8,
    "artifacts/EXPLAIN_RECEIPT.json": 6,
-   "artifacts/GATE3_RECEIPT.json": 10,
+   "artifacts/GATE3_RECEIPT.json": 12,
    "artifacts/QUEUE_RECEIPT.json": 44
   },
   "reading": "A claim is a value resolved from a key path in one of the files below at build time. The ones read and never drawn are cross-checks the test suite uses, not figures on screen."
@@ -85,13 +85,13 @@
  ],
  "render": {
   "path": "presentation/out/tracetriage-film.mp4",
-  "bytes": 4675493,
-  "sha256": "c5a209680da1fd83efb026ef47b16f87d74b76887ff37aa5f6efda74ff41307e"
+  "bytes": 4754228,
+  "sha256": "4d92cd4de25ccee0cec00a6850fb06703824ffd4afbe3bf165fa344b0e28b166"
  },
  "poster": {
   "path": "presentation/out/tracetriage-film-poster.jpg",
-  "bytes": 271401,
-  "sha256": "0ee95d724eda12b285dcb2618bfe2e16d276819b4d225ae5aeb39b930e81c251"
+  "bytes": 293847,
+  "sha256": "b9a4ff57585c0e6680a45d8eee88d9a180a227a35ead09872da813bb8459fc05"
  },
  "what_this_does_not_measure": [
   "Whether the film is any good, or whether a viewer follows it.",

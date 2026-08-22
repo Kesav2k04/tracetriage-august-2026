@@ -101,6 +101,36 @@ def measured(a3_rows) -> dict[int, object]:
     return out
 
 
+#: How many of the receipt's own observations the replay reproduces. Every one is a
+#: full parse, fit and 200-null calibration, so this is a sample rather than the pool,
+#: and it is taken in obs_id order precisely so it is not a sample chosen on the result.
+REPLAY_SAMPLE = 8
+
+
+@pytest.fixture(scope="module")
+def receipt_replay(receipt_fits) -> dict[int, object]:
+    """Re-measure the receipt's own observations through `live.measure`.
+
+    This used to reach the receipt through A3's 24 observations, so it compared only
+    what the two sets happened to share: three while the receipt was A3's pool, one
+    after E16 rebuilt it on 303. The set worth replaying is the receipt's.
+    """
+    from pipeline.tracetriage import live
+
+    out: dict[int, object] = {}
+    for obs_id in sorted(receipt_fits):
+        if len(out) >= REPLAY_SAMPLE:
+            break
+        raw = _load_raw(obs_id)
+        img = SNAP / "waterfalls" / f"waterfall_{obs_id}.png"
+        if raw is None or not img.exists():
+            continue
+        # The gate calls `parse_waterfall` with its default `label_reader`, which is
+        # "ocr". Reproducing a receipt means reproducing the reader it had.
+        out[obs_id] = live.measure(raw, img.read_bytes(), label_reader="ocr")
+    return out
+
+
 @requires_snapshot
 def test_the_mode_is_measured_not_looked_up(a3_rows, measured):
     """Every decisive verdict A3 recorded is reproduced from the image alone."""
@@ -141,21 +171,45 @@ def test_the_hypothesis_scores_survive_the_mad_floor_change(a3_rows, measured):
 
 
 @requires_snapshot
-def test_the_offset_reproduces_the_gate3_receipt(measured, receipt_fits):
-    """Digit for digit against the committed receipt, on every observation in both.
+def test_the_offset_reproduces_the_gate3_receipt(receipt_replay, receipt_fits):
+    """Digit for digit against the committed receipt, on the receipt's own observations.
 
     This is the claim the live path rests on. `live.measure` calls `parse_waterfall`,
     `fit_corridor` and `calibrate_against_nulls` in the order `scripts/run_gate3.py` calls
     them, so the numbers are not merely close: they are the same computation reached by a
     different entry point, and a difference in the last decimal place means one of the two
     has a call the other does not.
+
+    The observations come from the receipt rather than from A3, because reaching the
+    receipt through A3 compared whatever the two sets shared, which fell to one when the
+    pool was rebuilt.
+
+    Stated at the precision it holds. The two entry points do not always score the same
+    corridor: `live.measure` measures the mode and declines on UNRESOLVED, while the gate
+    fits the uncorrected corridor on every pool member because E16's pool is selected
+    without reference to any annotation. 166 of pool B's 303 are UNRESOLVED, so the claim
+    is that the live path reproduces the gate wherever it scores a corridor at all, and
+    names its reason where it does not.
     """
     checked = 0
-    for obs_id, m in measured.items():
+    declined: list[str] = []
+    for obs_id, m in receipt_replay.items():
         want = receipt_fits.get(obs_id)
         if want is None:
             continue
         fit = want["fit"]
+        if m.offset_hz is None:
+            # The gate fits every pool member; live.py measures the mode first and
+            # declines on UNRESOLVED. Both are deliberate and they part company here, so
+            # what is checked is that the live side says why rather than returning a
+            # silent None. The count is asserted below.
+            assert m.mode == "UNRESOLVED", (
+                f"obs {obs_id}: live produced no offset and the mode is {m.mode!r}, "
+                "which is not a reason to decline"
+            )
+            assert m.mode_reason, f"obs {obs_id}: declined with no stated reason"
+            declined.append(f"{obs_id} ({m.mode_reason})")
+            continue
         assert m.offset_hz == pytest.approx(fit["fitted_offset_hz"], rel=1e-9), obs_id
         assert m.offset_ppm == pytest.approx(fit["fitted_offset_ppm"], rel=1e-9), obs_id
         assert m.at_bound == fit["offset_at_bound"], obs_id
@@ -163,7 +217,19 @@ def test_the_offset_reproduces_the_gate3_receipt(measured, receipt_fits):
         assert m.fit_detail["detect_frac"] == pytest.approx(fit["detect_frac"], rel=1e-9)
         assert m.fit_detail["degraded"] == fit["degraded"], obs_id
         checked += 1
-    assert checked >= 3, f"only {checked} observations were compared against the receipt"
+    assert checked + len(declined) == len(receipt_replay), (
+        f"{len(receipt_replay) - checked - len(declined)} replayed observations were "
+        "not in the receipt they were drawn from, which cannot happen unless the "
+        "fixture drifted"
+    )
+    # A live path that declined everything would satisfy the loop above with nothing
+    # compared, so the reproduction has to have happened on most of the sample.
+    assert checked > len(declined), (
+        f"only {checked} of {len(receipt_replay)} replayed observations were compared "
+        f"digit for digit; {len(declined)} were declined as UNRESOLVED: {declined}. "
+        "A reproduction claim needs the reproductions to be the majority of the sample, "
+        "or it is a claim about the refusals."
+    )
 
 
 @requires_snapshot

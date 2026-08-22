@@ -2,7 +2,7 @@
  "schema": "GATE3_POOL",
  "schema_version": 1,
  "generated_by": "scripts/build_gate3_pool.py",
- "generated_at": "2026-08-22T16:08:40.293790+00:00",
+ "generated_at": "2026-08-22T22:47:53.264381+00:00",
  "snapshot": "D:/tracetriage_data/snap-stage1",
  "pre_registration": "docs/E16_PREREGISTRATION.md",
  "unit": "one record per snapshot observation examined, selected or not",
@@ -4794,11 +4794,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 7.000317204068378,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": 798.1377670191532,
    "curved_offset_hz": null,
@@ -16404,11 +16404,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 10.573378721452444,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -1676.0893107402217,
    "curved_offset_hz": null,
@@ -17728,11 +17728,11 @@
    "n_rows": 1536,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.2532248118041511,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": 10585.967042152608,
    "curved_offset_hz": null,
@@ -29489,11 +29489,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.059866817711656,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -9098.770544018345,
    "curved_offset_hz": null,
@@ -31046,11 +31046,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.2309295157168765,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -11253.74251497006,
    "curved_offset_hz": null,
@@ -33264,11 +33264,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.1940836102199743,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -12051.880281989213,
    "curved_offset_hz": null,
@@ -41354,11 +41354,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.2099218548212491,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -11572.99762177772,
    "curved_offset_hz": null,
@@ -42607,11 +42607,11 @@
    "n_rows": 1536,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.3182338011445094,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": 1236.3173187915454,
    "curved_offset_hz": null,
@@ -43374,11 +43374,11 @@
    "n_rows": 1536,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.3600477835318097,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": 4404.380448194881,
    "curved_offset_hz": null,
@@ -45794,11 +45794,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.159912253941005,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -12131.694058691128,
    "curved_offset_hz": null,
@@ -47913,11 +47913,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.219119544723188,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -12530.762942200705,
    "curved_offset_hz": null,
@@ -49042,11 +49042,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.1911690005855162,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -12051.880281989213,
    "curved_offset_hz": null,
@@ -50148,11 +50148,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.201735754475203,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -9577.653204229839,
    "curved_offset_hz": null,
@@ -54968,11 +54968,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.154272384535619,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -12610.57671890262,
    "curved_offset_hz": null,
@@ -55781,11 +55781,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.1828251441586082,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -12211.507835393044,
    "curved_offset_hz": null,
@@ -61669,11 +61669,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.1870868975498354,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -20297.872340425532,
    "curved_offset_hz": null,
@@ -61722,11 +61722,11 @@
    "n_rows": 1536,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.3255492455939024,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": 12517.712852764398,
    "curved_offset_hz": null,
@@ -64421,11 +64421,11 @@
    "n_rows": 1536,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.2592440424407005,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": 5099.808940015125,
    "curved_offset_hz": null,
@@ -65213,11 +65213,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.195544684989343,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -9737.280757633669,
    "curved_offset_hz": null,
@@ -66596,11 +66596,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 8.451248970678918,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -798.1377670191532,
    "curved_offset_hz": null,
@@ -74272,11 +74272,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.1996892815278308,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -11493.183845075806,
    "curved_offset_hz": null,
@@ -75085,11 +75085,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 9.989509499466768,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": 0.0,
    "curved_offset_hz": null,
@@ -77092,11 +77092,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.1847529586879093,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -10375.79097124899,
    "curved_offset_hz": null,
@@ -79598,11 +79598,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 7.408196078127478,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": 6145.660806047479,
    "curved_offset_hz": null,
@@ -81023,11 +81023,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.2359722134200557,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -12690.390495604535,
    "curved_offset_hz": null,
@@ -83832,11 +83832,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.4649975602232659,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -12929.831825710282,
    "curved_offset_hz": null,
@@ -86496,11 +86496,11 @@
    "n_rows": 1536,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.5668899233750955,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": 7417.903912749272,
    "curved_offset_hz": null,
@@ -89058,11 +89058,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 7.219770541052869,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -2075.1581942497983,
    "curved_offset_hz": null,
@@ -89787,11 +89787,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 4.088846662719529,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -2394.4133010574596,
    "curved_offset_hz": null,
@@ -92713,11 +92713,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 6.147509830832274,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -638.5102136153225,
    "curved_offset_hz": null,
@@ -95977,11 +95977,11 @@
    "n_rows": 1545,
    "n_rows_unmeasurable": 0,
    "sigma_vertical": 1.6796928655821397,
-   "sigma_curved": NaN,
+   "sigma_curved": null,
    "frequency_axis_sign": 1,
    "sigma_curved_by_sign": {
-    "1": NaN,
-    "-1": NaN
+    "1": null,
+    "-1": null
    },
    "vertical_column_offset_hz": -11972.066505287297,
    "curved_offset_hz": null,

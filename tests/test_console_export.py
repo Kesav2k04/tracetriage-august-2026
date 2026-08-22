@@ -539,3 +539,84 @@ def test_every_document_the_console_serves_is_the_document_in_docs() -> None:
             )
     assert stale == [], stale
 
+
+# ---------------------------------------------------------------------------
+# The offset sweep each card publishes.
+# ---------------------------------------------------------------------------
+
+_CARDS = _REPO / "apps" / "web" / "public" / "data" / "cards.json"
+
+
+def _cards_with_a_sweep() -> list[dict]:
+    if not _CARDS.exists():
+        return []
+    cards = json.loads(_CARDS.read_text(encoding="utf-8"))["cards"]
+    return [c for c in cards if (c.get("corridor") or {}).get("offset_sweep")]
+
+
+@pytest.mark.skipif(not _CARDS.exists(), reason="the console data has not been built")
+def test_the_sweeps_peak_is_the_offset_the_card_publishes():
+    """The marker and the number are one measurement, and must say one thing.
+
+    Inside the pipeline the fit *is* the argmax of this array, so they cannot differ.
+    Across the export they can: the offset comes from `corridor_features.json` and the
+    sweep from a fresh call, and a card built against a stale feature row would draw the
+    peak somewhere the caption does not say.
+    """
+    cards = _cards_with_a_sweep()
+    assert cards, "no shipped card carries a sweep, so this test checked nothing"
+    for card in cards:
+        sweep = card["corridor"]["offset_sweep"]
+        hz_per_px = card["hz_per_px"]
+        # The card's own published Hz, not a re-derivation. Multiplying pixels by
+        # hz_per_px here is what the export did, and it drops AXIS_SIGN_CONVENTION: this
+        # test would have re-derived the same wrong number and agreed with itself.
+        peak_hz = sweep["peak_offset_hz"]
+        fitted = card["corridor"]["fitted_offset_hz"]
+        # One pixel of tolerance: the fit is reported in Hz from a whole-pixel argmax.
+        assert abs(peak_hz - fitted) <= abs(hz_per_px) + 1e-6, (
+            f"obs {card['obs_id']}: the sweep peaks at {peak_hz:.1f} Hz and the card "
+            f"publishes a fitted offset of {fitted:.1f} Hz"
+        )
+        # And the curve's own array has to agree with its own summary field.
+        i = sweep["offset_px"].index(sweep["peak_offset_px"])
+        assert sweep["offset_hz"][i] == peak_hz, (
+            f"obs {card['obs_id']}: the peak's Hz in the curve is "
+            f"{sweep['offset_hz'][i]} and the summary says {peak_hz}"
+        )
+
+
+@pytest.mark.skipif(not _CARDS.exists(), reason="the console data has not been built")
+def test_the_published_sweep_keeps_its_own_peak_and_both_ends():
+    """Subsampling must not drop the point the caption is about.
+
+    A curve plotted without its maximum shows the detection peaking at whichever
+    neighbouring sample survived, which is a wrong number drawn at full confidence.
+    """
+    for card in _cards_with_a_sweep():
+        sweep = card["corridor"]["offset_sweep"]
+        assert sweep["peak_offset_px"] in sweep["offset_px"], (
+            f"obs {card['obs_id']}: the peak was subsampled out of its own curve"
+        )
+        assert sweep["peak_sigma"] == max(sweep["sigma"]), (
+            f"obs {card['obs_id']}: the published maximum is not the maximum published"
+        )
+        assert len(sweep["offset_px"]) == len(sweep["sigma"]) == len(sweep["offset_hz"])
+        assert sweep["n_published"] == len(sweep["offset_px"])
+        assert sweep["n_published"] <= sweep["n_scored"]
+
+
+@pytest.mark.skipif(not _CARDS.exists(), reason="the console data has not been built")
+def test_a_sweep_that_is_flat_is_not_published_as_evidence():
+    """The shape is the claim, so a curve with no peak is worth knowing about.
+
+    This does not fail a flat sweep: a real observation can have one, and hiding it would
+    be the dishonest move. It fails a sweep that is *exactly* flat, which cannot come from
+    a measurement and means the scale collapsed to a constant.
+    """
+    for card in _cards_with_a_sweep():
+        sigma = card["corridor"]["offset_sweep"]["sigma"]
+        assert min(sigma) < max(sigma), (
+            f"obs {card['obs_id']}: every offset scored identically, which is a "
+            "degenerate divisor rather than a measurement"
+        )

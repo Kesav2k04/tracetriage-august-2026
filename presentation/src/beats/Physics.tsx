@@ -289,7 +289,7 @@ export const Physics: React.FC = () => (
               <VerdictMark verdict={gate3Result.verdict.value as string} />
               <Mono size={17} colour={token.text02}>
                 gate {gate3Result.number.display}{" "}
-                {gate3Result.verdict.display.replace("_", " ").toLowerCase()}
+                {gate3Result.verdict.display.replace(/_/g, " ").toLowerCase()}
               </Mono>
             </div>
             <Body size={22} colour={token.text02}>
@@ -297,7 +297,7 @@ export const Physics: React.FC = () => (
               <strong style={{ color: token.text01, ...numeric }}>
                 {gate3Result.scored.display}
               </strong>{" "}
-              observations. All{" "}
+              observations.{" "}
               <strong style={{ color: token.text01, ...numeric }}>
                 {gate3Result.discriminating.display}
               </strong>{" "}
@@ -309,7 +309,7 @@ export const Physics: React.FC = () => (
               <strong style={{ color: token.text01, ...numeric }}>
                 {gate3Result.threshold.display}
               </strong>
-              . That is not enough to clear it.
+              . {gate3Result.outcomeSentence}
             </Body>
           </div>
         </Reveal>

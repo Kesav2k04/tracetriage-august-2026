@@ -169,9 +169,25 @@ def test_the_discriminating_count_cannot_exceed_the_scored_count(hero):
 
 
 def test_the_published_verdict_follows_from_the_bound(hero):
-    """PASSED requires the lower bound to clear the bar, not the point estimate."""
+    """PASSED requires the lower bound to clear the bar, not the point estimate.
+
+    Three outcomes, not two. This had an else branch asserting that anything not PASSED
+    has a bound below the threshold, which is false for PASSED_UNGROUPED_ONLY: there the
+    observation-level bound clears and the grouped one does not. A two-way test on a
+    three-way rule fails on the one result nobody had seen yet.
+    """
     g = hero["gate"]
     if g["verdict"] == "PASSED":
         assert g["rate_lower_bound_95"] >= g["threshold"]
+    elif g["verdict"] == "PASSED_UNGROUPED_ONLY":
+        assert g["rate_lower_bound_95"] >= g["threshold"], (
+            "this verdict means the observation-level bound cleared the bar"
+        )
+        grouped = (g.get("entity_grouping") or {}).get("grouped_rate_lower_bound_95")
+        if grouped is not None:
+            assert grouped < g["threshold"], (
+                "and that the grouped bound did not, which is the whole reason the "
+                "gate is not recorded as met"
+            )
     else:
         assert g["rate_lower_bound_95"] < g["threshold"]

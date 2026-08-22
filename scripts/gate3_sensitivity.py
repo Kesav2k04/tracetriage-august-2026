@@ -36,20 +36,54 @@ from scripts.run_gate3 import rate_lower_bound  # noqa: E402
 DEFAULT_BARS = (2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 8.0)
 
 
-def verdict_for(rate: float | None, bound: float | None, threshold: float) -> str:
-    """The same four-way rule `scripts/run_gate3.py` applies, kept in one shape.
+def verdict_for(
+    rate: float | None,
+    bound: float | None,
+    threshold: float,
+    grouped_bound: float | None = None,
+) -> str:
+    """The same four-way rule `scripts/run_gate3.py` applies, grouping included.
 
-    Duplicating the rule would let this table disagree with the receipt it describes,
-    which is the failure the whole project is built against, so the words here are the
-    words the receipt uses and the ordering is the same.
+    This used to read only the observation-level bound, so at the pre-registered bar it
+    printed PASSED against a receipt saying PASSED_UNGROUPED_ONLY. A robustness table that
+    disagrees with the receipt at the published row is not corroboration, it is a second
+    opinion from a rule the gate does not use.
+
+    The plan groups before it decides, so a bound that clears over observations and not
+    over episodes is reported and not claimed.
     """
     if rate is None or bound is None:
         return "UNMEASURABLE"
     if bound >= threshold:
+        if grouped_bound is not None and grouped_bound < threshold:
+            return "PASSED_UNGROUPED_ONLY"
         return "PASSED"
     if rate >= threshold:
         return "NOT_ESTABLISHED"
     return "FAILED"
+
+
+def _day(row: dict) -> str | None:
+    start = row.get("start")
+    return start[:10] if isinstance(start, str) and len(start) >= 10 else None
+
+
+def _grouped_bound(subset: list[dict]) -> tuple[float | None, int]:
+    """The episode-level bound over one subset, by the gate's own collapsing rule.
+
+    A group counts as discriminating only if every observation in it does, which is what
+    `scripts/run_gate3.py` does and is the direction that cannot manufacture a pass.
+    """
+    by_group: dict[tuple, list[bool]] = {}
+    for o in subset:
+        key = (o.get("station_id"), _day(o))
+        by_group.setdefault(key, []).append(
+            bool(o["null_calibration"]["discriminates"])
+        )
+    flags = [all(v) for v in by_group.values()]
+    if not flags:
+        return None, 0
+    return rate_lower_bound(sum(flags), len(flags)), len(flags)
 
 
 def measure(
@@ -90,13 +124,16 @@ def measure(
         hits = sum(1 for o in subset if o["null_calibration"]["discriminates"])
         rate = hits / n if n else None
         bound = rate_lower_bound(hits, n) if n else None
+        gbound, n_groups = _grouped_bound(subset)
         rows.append({
             "trace_q75_min": bar,
             "scored": n,
             "discriminating": hits,
             "rate": rate,
             "lower_bound_95": bound,
-            "verdict": verdict_for(rate, bound, threshold),
+            "groups": n_groups,
+            "grouped_lower_bound_95": gbound,
+            "verdict": verdict_for(rate, bound, threshold, gbound),
             "is_the_pre_registered_bar": scored_bar is not None
             and abs(bar - scored_bar) < 1e-9,
         })
@@ -125,18 +162,25 @@ def measure(
 
 def as_table(out: dict) -> str:
     lines = [
-        "| `TRACE_Q75_MIN` | scored | discriminating | rate | 95% lower bound | verdict |",
-        "|---|---|---|---|---|---|",
+        "| `TRACE_Q75_MIN` | scored | discriminating | rate | 95% lower bound "
+        "| episodes | grouped bound | verdict |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for r in out["rows"]:
         bar = f"**{r['trace_q75_min']}**" if r.get("is_the_pre_registered_bar") \
             else f"{r['trace_q75_min']}"
         if r["scored"] is None:
-            lines.append(f"| {bar} | not scored | | | | {r['verdict']} |")
+            lines.append(f"| {bar} | not scored | | | | | | {r['verdict']} |")
             continue
+        gb = r.get("grouped_lower_bound_95")
         lines.append(
             f"| {bar} | {r['scored']} | {r['discriminating']} | "
-            f"{r['rate'] * 100:.0f}% | {r['lower_bound_95']:.4f} | {r['verdict']} |"
+            f"{r['rate'] * 100:.0f}% | {r['lower_bound_95']:.4f} | "
+            f"{r.get('groups', 0)} | {gb:.4f} | {r['verdict']} |"
+            if gb is not None
+            else f"| {bar} | {r['scored']} | {r['discriminating']} | "
+            f"{r['rate'] * 100:.0f}% | {r['lower_bound_95']:.4f} | "
+            f"{r.get('groups', 0)} | | {r['verdict']} |"
         )
     return "\n".join(lines)
 

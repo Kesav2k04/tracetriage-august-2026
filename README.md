@@ -295,8 +295,9 @@ as a failure. Two of the six asked whether the project was feasible at all and w
 answered before the first line of pipeline code. Gate 6 does clear its threshold on the
 held-out cold-station split, at 2.253x. That is reported, and it is not substituted for
 the split the gate was pre-registered on. **On the split each of the remaining four was
-pre-registered on, one passed and three came back inconclusive.** Why the intervals are
-that wide is measured rather than pleaded, and it is the paragraph after the tables.
+pre-registered on, one passed, two came back inconclusive and one cleared the bar over
+observations and not over independent episodes.** Why the intervals are that wide is
+measured rather than pleaded, and it is the paragraph after the tables.
 
 **Feasibility, decided in advance.**
 
@@ -309,7 +310,7 @@ that wide is measured rather than pleaded, and it is the paragraph after the tab
 
 | # | Gate | Threshold | Verdict | What came back |
 |---|---|---|---|---|
-| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **NOT_ESTABLISHED** | 3 of 3 testable observations discriminate, and the exact one-sided 95% lower bound on that rate is 0.368 |
+| 3 | Corridor intersects a visible trace | ≥70% of reviewed positives | **PASSED_UNGROUPED_ONLY** | 224 of 289 testable observations discriminate, and the exact one-sided 95% lower bound on that rate is 0.731 |
 | 4 | Blinded human decidability | ≥80% of a balanced sample decidable | **PASSED** | 60 of 60 first-occurrence plates decidable by one person under commitment, rate 1.0000, exact one-sided 95% lower bound 0.9513. The reviewer is the author, so this is blinded and not independent, and intra-rater agreement is the weaker number at 8 of 12 repeated plates |
 | 5 | Physics beats image-only on Brier | strict improvement, chronological split | **NOT_ESTABLISHED** | margin +0.02079 on the shipped arm, 95% CI -0.01301 to +0.05036, which contains zero |
 | 6 | Queue lift over random | ≥1.5x actionable conflicts at equal budget | **NOT_ESTABLISHED** | 1.582x, 95% CI [1.353, 1.740], which contains the threshold. On the held-out cold-station split the same queue **PASSED** at 2.253x |
@@ -323,10 +324,12 @@ included, at 1.740x. The gate is still not met, and the whole room any ordering 
 meet it in was 0.240 wide.
 
 Inconclusive is reported as `NOT_ESTABLISHED` rather than rounded into a pass, and the gate
-that was never run is reported as `OPEN` rather than omitted. Gate 3 was `PASSED` until
-2026-08-18, when the rate it claimed was re-derived with an exact interval and moved to
-`NOT_ESTABLISHED`; `docs/KILL_GATE.md` carries the entry rather than the history being
-quietly rewritten.
+that was never run is reported as `OPEN` rather than omitted. Gate 3 was `PASSED` until 2026-08-18, when the rate it claimed was re-derived with an
+exact interval and moved to `NOT_ESTABLISHED` on three observations. It reads
+`PASSED_UNGROUPED_ONLY` now, on a pool of 303 selected by a rule that never fits a
+corridor: the observation-level bound clears the bar and the bound over independent
+(station, date) episodes does not. `docs/KILL_GATE.md` carries every entry rather than the
+history being quietly rewritten.
 
 Every number in this README is generated from a frozen artifact under `artifacts/` and
 carries a row in `docs/CLAIM_REGISTER.md`. `tests/test_claim_drift.py` compares each quoted
@@ -345,7 +348,7 @@ so the difference survives being quoted.
 
 | Gate | Verdict | What bound it | What would close it |
 |---|---|---|---|
-| 3 | **NOT_ESTABLISHED** | 3 testable observations, 3 discriminating. The exact bound is 0.368 against a 0.7 bar. | 9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be passes carrying a measurable narrowband trace. |
+| 3 | **PASSED_UNGROUPED_ONLY** | 303 testable observations, 224 discriminating. The exact bound is 0.731 against a 0.7 bar. | 9 independent (station, date) episodes, all discriminating. The observation-level bound already clears 0.7; the grouped one, over 68 episodes, does not. The plan's rule is to group, so the observation-level pass is reported and not claimed. |
 | 5 | **NOT_ESTABLISHED** | 88 test observations. The interval's lower arm is 1.63 times the margin it has to clear. | About 233 test observations at the same margin, against the 88 this split has. That is 2.6 times the chronological test set. *(projected)* |
 | 6 | **NOT_ESTABLISHED** | 87 observations at a budget of 50 cap every ordering at 1.740x, leaving 0.240 of room for an interval 0.387 wide. | A split whose room exceeds the interval it produces. cold_station already does: room 2.673 against an interval 1.939 wide, and it passed at 2.253. |
 

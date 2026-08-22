@@ -1,0 +1,88 @@
+{
+  "schema": "gate3_sensitivity/1",
+  "generated_by": "scripts/gate3_sensitivity.py",
+  "threshold": 0.7,
+  "scored_at_bar": 3.5,
+  "published_verdict": "PASSED_UNGROUPED_ONLY",
+  "verdict_is_constant_across_measured_bars": false,
+  "distinct_verdicts": [
+    "NOT_ESTABLISHED",
+    "PASSED_UNGROUPED_ONLY"
+  ],
+  "note": "No observation is rescored. A tighter bar selects a strict subset of a looser one, so every row at or above the scored bar is exact. Rows below it are marked NOT SCORED rather than estimated.",
+  "rows": [
+    {
+      "trace_q75_min": 2.5,
+      "scored": null,
+      "discriminating": null,
+      "rate": null,
+      "lower_bound_95": null,
+      "verdict": "NOT SCORED",
+      "why": "a bar of 2.5 selects observations this run did not score, so a rate over them would have the wrong denominator"
+    },
+    {
+      "trace_q75_min": 3.0,
+      "scored": null,
+      "discriminating": null,
+      "rate": null,
+      "lower_bound_95": null,
+      "verdict": "NOT SCORED",
+      "why": "a bar of 3.0 selects observations this run did not score, so a rate over them would have the wrong denominator"
+    },
+    {
+      "trace_q75_min": 3.5,
+      "scored": 289,
+      "discriminating": 224,
+      "rate": 0.7750865051903114,
+      "lower_bound_95": 0.7309344186327931,
+      "groups": 68,
+      "grouped_lower_bound_95": 0.3662383812551562,
+      "verdict": "PASSED_UNGROUPED_ONLY",
+      "is_the_pre_registered_bar": true
+    },
+    {
+      "trace_q75_min": 4.0,
+      "scored": 208,
+      "discriminating": 162,
+      "rate": 0.7788461538461539,
+      "lower_bound_95": 0.7262614210282117,
+      "groups": 54,
+      "grouped_lower_bound_95": 0.39888881382238855,
+      "verdict": "PASSED_UNGROUPED_ONLY",
+      "is_the_pre_registered_bar": false
+    },
+    {
+      "trace_q75_min": 5.0,
+      "scored": 114,
+      "discriminating": 91,
+      "rate": 0.7982456140350878,
+      "lower_bound_95": 0.726445897719298,
+      "groups": 37,
+      "grouped_lower_bound_95": 0.4463441121359716,
+      "verdict": "PASSED_UNGROUPED_ONLY",
+      "is_the_pre_registered_bar": false
+    },
+    {
+      "trace_q75_min": 6.0,
+      "scored": 76,
+      "discriminating": 57,
+      "rate": 0.75,
+      "lower_bound_95": 0.6551042480067586,
+      "groups": 24,
+      "grouped_lower_bound_95": 0.31942102236108094,
+      "verdict": "NOT_ESTABLISHED",
+      "is_the_pre_registered_bar": false
+    },
+    {
+      "trace_q75_min": 8.0,
+      "scored": 42,
+      "discriminating": 32,
+      "rate": 0.7619047619047619,
+      "lower_bound_95": 0.6296824633328466,
+      "groups": 13,
+      "grouped_lower_bound_95": 0.16565942671507172,
+      "verdict": "NOT_ESTABLISHED",
+      "is_the_pre_registered_bar": false
+    }
+  ]
+}

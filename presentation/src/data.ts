@@ -308,6 +308,47 @@ export const physics = {
 const gate3Scored = resolve(gate3, "observations_scored") as number;
 const gate3Rate = resolve(gate3, "discriminating_rate") as number;
 
+/**
+ * The sentence that says what the bound did, derived from the receipt that produced it.
+ *
+ * Grouping is what decides. A ground station's oscillator error is common to every pass
+ * it records, so observations sharing a station and a night are one systematic offset
+ * measured several times, and the plan collapses them before reading the rate. A bound
+ * that clears over observations and not over episodes is therefore reported as exactly
+ * that rather than as a pass.
+ */
+function gate3OutcomeSentence(): string {
+  const grouping = resolve(gate3, "entity_grouping") as {
+    groups_scored: number;
+    grouped_rate_lower_bound_95: number | null;
+    grouped_clears_threshold?: boolean;
+  };
+  const clears = resolve(gate3, "clears_threshold") as boolean;
+  const threshold = resolve(gate3, "threshold") as number;
+  const rate = resolve(gate3, "discriminating_rate") as number;
+  const groups = grouping.groups_scored;
+  const groupedBound = grouping.grouped_rate_lower_bound_95;
+
+  if (clears && grouping.grouped_clears_threshold) {
+    return (
+      `It clears the bar, over observations and over the ${groups} independent ` +
+      `station-nights they span.`
+    );
+  }
+  if (clears) {
+    const shown = groupedBound === null ? "not measurable" : groupedBound.toFixed(2);
+    return (
+      `That clears the bar over observations. Over the ${groups} independent ` +
+      `station-nights they span the bound is ${shown}, and the plan groups before it ` +
+      `decides, so this is reported and not claimed.`
+    );
+  }
+  if (rate >= threshold) {
+    return "The rate is above the bar and the interval is not, so at this sample size the rate is not established.";
+  }
+  return "Both the rate and the interval below it are under the bar.";
+}
+
 export const gate3Result = {
   number: g3<number>("gate", group),
   question: g3<string>("question", identity),
@@ -323,6 +364,20 @@ export const gate3Result = {
   threshold: g3<number>("threshold", fixed(2)),
   notTestable: g3<number>("observations_not_testable", group),
   verdict: g3<string>("verdict", identity),
+  groups: g3<number>("entity_grouping.groups_scored", group),
+  groupedLowerBound: g3<number>(
+    "entity_grouping.grouped_rate_lower_bound_95",
+    fixed(2),
+  ),
+  /**
+   * What the bound means, in the four states it can be in.
+   *
+   * This card used to end with the literal "That is not enough to clear it", written
+   * when the bound was 0.37 and still on screen when the bound became 0.73 against the
+   * same 0.70 bar. Every number around it was read from the receipt; the sentence
+   * holding them was not, which is the only reason it could go wrong.
+   */
+  outcomeSentence: gate3OutcomeSentence(),
 } as const;
 
 // ---------------------------------------------------------------------------

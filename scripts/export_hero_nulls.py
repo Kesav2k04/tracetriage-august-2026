@@ -68,8 +68,8 @@ from scripts.run_gate3 import _geometry_of, _load_raw_obs  # noqa: E402
 
 logger = logging.getLogger("hero-nulls")
 
-# Observation 14740031 is the subject. It is one of gate 3's three testable
-# observations, it is one of the two named cards the console already ships, and its
+# Observation 14740031 is the subject. It is in gate 3's pool, it is one of the two
+# named cards the console already ships, and its
 # fitted offset is 13,985 Hz, which is 32 ppm and 113 pixels: large enough to see and
 # invisible in the metadata, because the commanded receive frequency matches the
 # catalogue exactly. Choosing it is a presentation decision and it is recorded here

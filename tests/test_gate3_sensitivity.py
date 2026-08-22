@@ -32,6 +32,11 @@ def _synthetic(n=60, bar=3.5, discriminates_from=40):
         "observations": [
             {
                 "obs_id": i,
+                # One station-night each, so grouping is the identity here and these
+                # tests measure the bar sweep rather than the collapsing rule. The
+                # grouped path has its own test below.
+                "station_id": i,
+                "start": f"2026-08-{(i % 28) + 1:02d}T00:00:00Z",
                 "null_calibration": {
                     "p_value": 0.005,
                     "discriminates": i >= discriminates_from,
@@ -151,4 +156,32 @@ def test_the_shipped_table_agrees_with_the_shipped_receipt():
     assert row["verdict"] == receipt["verdict"]
     assert row["lower_bound_95"] == pytest.approx(
         receipt["rate_lower_bound_95"], abs=5e-5
+    )
+
+
+def test_collapsing_to_episodes_can_only_lower_the_verdict():
+    """The grouping rule, which the table used to ignore entirely.
+
+    `verdict_for` read only the observation-level bound, so at the pre-registered bar it
+    printed PASSED against a receipt saying PASSED_UNGROUPED_ONLY. A robustness table
+    disagreeing with the receipt at the published row is not corroboration.
+
+    A group counts as discriminating only if every observation in it does, so putting
+    many observations in one episode can lower a verdict and can never raise one.
+    """
+    receipt, pool = _synthetic(n=60, discriminates_from=0)
+    # Every observation onto one station-night, one of them failing.
+    for o in receipt["observations"]:
+        o["station_id"] = 7
+        o["start"] = "2026-08-09T00:00:00Z"
+    receipt["observations"][0]["null_calibration"]["discriminates"] = False
+
+    row = next(
+        r for r in measure(receipt, pool)["rows"] if r.get("is_the_pre_registered_bar")
+    )
+    assert row["groups"] == 1
+    assert row["rate"] > 0.9, "the observation-level rate is still high"
+    assert row["verdict"] == "PASSED_UNGROUPED_ONLY", (
+        "59 of 60 observations on one receiver on one night is one episode measured 60 "
+        "times, and one failure in it collapses the episode"
     )

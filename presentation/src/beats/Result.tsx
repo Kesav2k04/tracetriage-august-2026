@@ -306,7 +306,7 @@ export const Result: React.FC = () => (
                 color: token.text01,
               }}
             >
-              {lift.verdict.display.replace("_", " ")}
+              {lift.verdict.display.replace(/_/g, " ")}
             </span>
             <Mono size={18} colour={token.text03}>
               {lift.direction.display.replace(/_/g, " ")}

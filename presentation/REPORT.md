@@ -65,7 +65,7 @@ instead of leaving a stale figure inside an mp4.
 
 <!-- claim-table:start -->
 
-The film holds 135 claims. 25 of them are read and never drawn: they are there because the test uses them for cross-checks, such as the receipts' own sentences in `lift.statement` and `gate3Result.question`, `physics.dopplerVerdict`, which proves the chosen observation is one gate 3 could be asked of, and `reviewQueue.criteria.N.firedInCorpus`, the corpus-wide count the in-budget count is read against.
+The film holds 137 claims. 26 of them are read and never drawn: they are there because the test uses them for cross-checks, such as the receipts' own sentences in `lift.statement` and `gate3Result.question`, `physics.dopplerVerdict`, which proves the chosen observation is one gate 3 could be asked of, and `reviewQueue.criteria.N.firedInCorpus`, the corpus-wide count the in-budget count is read against.
 
 | Shown as | Value | File | Key |
 |---|---|---|---|
@@ -107,17 +107,19 @@ The film holds 135 claims. 25 of them are read and never drawn: they are there b
 | physics.maxElevation | `41.2` | apps/web/public/data/cards.json | `cards[12].corridor.max_elevation_deg` |
 | physics.offsetHz | `+13,985` | apps/web/public/data/cards.json | `cards[12].corridor.fitted_offset_hz` |
 | physics.offsetPpm | `+32.05` | apps/web/public/data/cards.json | `cards[12].corridor.fitted_offset_ppm` |
-| physics.corridorSpanHz | `17,290` | artifacts/GATE3_RECEIPT.json | `observations[4].corridor_span_hz` |
-| physics.dopplerVerdict | `UNCORRECTED` | artifacts/GATE3_RECEIPT.json | `observations[4].verdict` |
+| physics.corridorSpanHz | `17,290` | artifacts/GATE3_RECEIPT.json | `observations[0].corridor_span_hz` |
+| physics.dopplerVerdict | `UNCORRECTED` | artifacts/GATE3_RECEIPT.json | `observations[0].verdict` |
 | physics.shiftPx | `113` | apps/web/public/data/cards.json | `cards[12].corridor.fitted_px[0] minus cards[12].corridor.predicted_px[0]` |
 | gate3Result.number | `3` | artifacts/GATE3_RECEIPT.json | `gate` |
 | gate3Result.question | `Does the expected corridor intersect a visible target-like trace?` | artifacts/GATE3_RECEIPT.json | `question` |
-| gate3Result.scored | `3` | artifacts/GATE3_RECEIPT.json | `observations_scored` |
-| gate3Result.discriminating | `3` | artifacts/GATE3_RECEIPT.json | `discriminating_rate times observations_scored` |
-| gate3Result.lowerBound | `0.37` | artifacts/GATE3_RECEIPT.json | `rate_lower_bound_95` |
+| gate3Result.scored | `289` | artifacts/GATE3_RECEIPT.json | `observations_scored` |
+| gate3Result.discriminating | `224` | artifacts/GATE3_RECEIPT.json | `discriminating_rate times observations_scored` |
+| gate3Result.lowerBound | `0.73` | artifacts/GATE3_RECEIPT.json | `rate_lower_bound_95` |
 | gate3Result.threshold | `0.70` | artifacts/GATE3_RECEIPT.json | `threshold` |
-| gate3Result.notTestable | `4` | artifacts/GATE3_RECEIPT.json | `observations_not_testable` |
-| gate3Result.verdict | `NOT_ESTABLISHED` | artifacts/GATE3_RECEIPT.json | `verdict` |
+| gate3Result.notTestable | `0` | artifacts/GATE3_RECEIPT.json | `observations_not_testable` |
+| gate3Result.verdict | `PASSED_UNGROUPED_ONLY` | artifacts/GATE3_RECEIPT.json | `verdict` |
+| gate3Result.groups | `68` | artifacts/GATE3_RECEIPT.json | `entity_grouping.groups_scored` |
+| gate3Result.groupedLowerBound | `0.37` | artifacts/GATE3_RECEIPT.json | `entity_grouping.grouped_rate_lower_bound_95` |
 | lift.number | `6` | artifacts/QUEUE_RECEIPT.json | `gate6.gate` |
 | lift.wording | `Require the top review queue to find at least 1.5 times as many manually actionable conflicts as random ordering at the same budget.` | artifacts/QUEUE_RECEIPT.json | `gate6.wording` |
 | lift.decidedOn | `chronological` | artifacts/QUEUE_RECEIPT.json | `gate6.decided_on` |

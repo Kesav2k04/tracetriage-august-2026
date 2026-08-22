@@ -9893,10 +9893,10 @@
    {
     "gate": 3,
     "title": "Corridor intersects a visible trace",
-    "verdict": "NOT_ESTABLISHED",
-    "binding_constraint": "testable_sample_size",
-    "bound_by": "3 testable observations. At a perfect rate the exact bound is 0.368 against a 0.7 bar.",
-    "closure": "9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be uncorrected passes carrying a measurable narrowband trace.",
+    "verdict": "PASSED_UNGROUPED_ONLY",
+    "binding_constraint": "independent_episodes",
+    "bound_by": "303 testable observations, 224 discriminating. The exact bound is 0.731 against a 0.7 bar.",
+    "closure": "9 independent (station, date) episodes, all discriminating. The observation-level bound already clears 0.7; the grouped one, over 68 episodes, does not. The plan's rule is to group, so the observation-level pass is reported and not claimed.",
     "closure_kind": "exact"
    },
    {

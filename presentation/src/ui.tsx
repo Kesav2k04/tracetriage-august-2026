@@ -219,6 +219,25 @@ export const Plate: React.FC<{
  * a measurement that came back inconclusive, a dash for one that was never run.
  * Shape carries the state so hue never has to.
  */
+/**
+ * Every verdict token this film knows how to draw.
+ *
+ * `VerdictMark` used to fall through to the not-measurable dash for anything it did not
+ * recognise, so a verdict added to a gate script would have rendered, on a committed
+ * video, as a claim that the gate could not be measured. `test/claims.test.ts` asserts
+ * that every verdict actually present in the receipts is in this set.
+ */
+export const KNOWN_VERDICTS = [
+  "PASSED",
+  "PRE_PASSED",
+  "PASSED_UNGROUPED_ONLY",
+  "NOT_ESTABLISHED",
+  "FAILED",
+  "UNMEASURABLE",
+  "NOT_RUN",
+  "OPEN",
+] as const;
+
 export const VerdictMark: React.FC<{ verdict: string; size?: number }> = ({
   verdict,
   size = 14,
@@ -250,6 +269,37 @@ export const VerdictMark: React.FC<{ verdict: string; size?: number }> = ({
           boxSizing: "border-box",
         }}
       />
+    );
+  }
+  if (verdict === "PASSED_UNGROUPED_ONLY") {
+    // Cleared over observations, not over independent episodes. Neither a filled dot
+    // nor an empty ring is honest, so it is the ring with a filled centre: the shape of
+    // a pass, qualified. Rendering it as the fall-through dash would have marked a gate
+    // measured on 289 observations "not measurable".
+    return (
+      <span
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size,
+          border: `2px solid ${token.verdictNotEstablished}`,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: "0 0 auto",
+          boxSizing: "border-box",
+        }}
+      >
+        <span
+          style={{
+            width: Math.max(2, Math.round(size * 0.36)),
+            height: Math.max(2, Math.round(size * 0.36)),
+            borderRadius: size,
+            background: token.verdictPassed,
+            display: "inline-block",
+          }}
+        />
+      </span>
     );
   }
   if (verdict === "FAILED") {

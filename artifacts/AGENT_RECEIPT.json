@@ -17,7 +17,7 @@
  "max_steps": 6,
  "prompt_version": 2,
  "every_question_has_a_single_call_answer": 24,
- "frozen_runs_sha256": "3cabc5b1fc055cff1c9804f39db582b934352aabd4431c427d0e80b4ee753dc5",
+ "frozen_runs_sha256": "10f18a39e43be7857c55a63cff7ad502c3a1a7c8ab474e06d842802314db73e9",
  "arms": {
   "tools": {
    "correct": {
@@ -44,8 +44,8 @@
     "lower_95": 0.8827,
     "upper_95": 1.0
    },
-   "tool_calls": 46,
-   "repeated_calls": 6,
+   "tool_calls": 45,
+   "repeated_calls": 5,
    "server_refusals": 9,
    "hit_the_step_cap": 0,
    "fetched_the_answer": {
@@ -479,15 +479,15 @@
    "task_id": "receipt-gate3-verdict",
    "arm": "tools",
    "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
-   "answer": "NOT_ESTABLISHED",
-   "expected": "NOT_ESTABLISHED",
+   "answer": "PASSED_UNGROUPED_ONLY",
+   "expected": "PASSED_UNGROUPED_ONLY",
    "correct": true,
    "grounded": true,
    "ungrounded_numbers": [],
    "expected_tool": "receipt",
    "expected_tool_called": true,
-   "tool_calls": 2,
-   "repeated_calls": 1,
+   "tool_calls": 1,
+   "repeated_calls": 0,
    "server_refusals": 0,
    "answer_was_in_what_it_read": true,
    "unparseable_steps": 0,
@@ -916,7 +916,7 @@
    "arm": "control",
    "question": "What verdict does the receipt GATE3_RECEIPT.json record?",
    "answer": "unknown",
-   "expected": "NOT_ESTABLISHED",
+   "expected": "PASSED_UNGROUPED_ONLY",
    "correct": false,
    "grounded": true,
    "ungrounded_numbers": [],

@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-22T21:51:50+05:30",
- "commit": "6e6c6803f2d761398af21894fe8e2765f9f70877",
+ "measured_at_commit_date": "2026-08-23T01:39:16+05:30",
+ "commit": "29766d2a166402b3161d6242a406dfda39de12a4",
  "tracked_files": 452,
- "tracked_bytes": 46215402,
- "tracked_megabytes": 44.07,
+ "tracked_bytes": 48578875,
+ "tracked_megabytes": 46.33,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,11 +13,11 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 6.83
+   "megabytes": 7.0
   },
   {
    "path": "presentation/out",
-   "megabytes": 4.72
+   "megabytes": 4.81
   },
   {
    "path": "tests/fixtures",
@@ -32,15 +32,19 @@
    "megabytes": 2.2
   },
   {
-   "path": "pipeline/tracetriage",
-   "megabytes": 0.73
+   "path": "artifacts/GATE3_RECEIPT.json",
+   "megabytes": 1.95
   },
   {
-   "path": "artifacts/corridor_features.json",
-   "megabytes": 0.5
+   "path": "pipeline/tracetriage",
+   "megabytes": 0.74
   },
   {
    "path": "docs/BOB_BUILD_LOG.md",
+   "megabytes": 0.51
+  },
+  {
+   "path": "artifacts/corridor_features.json",
    "megabytes": 0.5
   },
   {
@@ -62,22 +66,18 @@
   {
    "path": "flows/tracetriage_granite_agent.json",
    "megabytes": 0.15
-  },
-  {
-   "path": "presentation/package-lock.json",
-   "megabytes": 0.14
   }
  ],
  "by_directory_remainder": {
   "groups": 218,
-  "bytes": 3919957,
-  "megabytes": 3.74,
+  "bytes": 4078443,
+  "megabytes": 3.89,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
   {
    "path": "presentation/out/tracetriage-film.mp4",
-   "megabytes": 4.459
+   "megabytes": 4.534
   },
   {
    "path": "artifacts/GATE3_POOL.json",
@@ -86,6 +86,10 @@
   {
    "path": "artifacts/DATASET_MANIFEST.json",
    "megabytes": 2.202
+  },
+  {
+   "path": "artifacts/GATE3_RECEIPT.json",
+   "megabytes": 1.947
   },
   {
    "path": "tests/fixtures/waterfall_836px_client_v2.3.png",
@@ -130,10 +134,6 @@
   {
    "path": "artifacts/a3_overlays/overlay_14737118.png",
    "megabytes": 0.734
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14746049.png",
-   "megabytes": 0.733
   }
  ],
  "proposals": [
@@ -147,14 +147,14 @@
   {
    "path": "tests/fixtures/",
    "files": 7,
-   "bytes": 4440306,
+   "bytes": 4440333,
    "megabytes": 4.23,
    "keep_because": "inputs the offline suite needs. Removing any of it breaks the clean-clone claim."
   },
   {
    "path": "artifacts/GATE3_POOL.json",
    "files": 1,
-   "bytes": 3026583,
+   "bytes": 3026676,
    "megabytes": 2.89,
    "keep_because": "every observation in the snapshot with its own corridor-free `trace_q75`, selected or not. docs/E16_PREREGISTRATION.md promises this file by name: it is what lets a reader recut gate 3's pool at a different presence bar and check the published verdict against their own. Dropping it turns the pre-registration's main mitigation into a sentence nobody can run."
   },
@@ -175,8 +175,8 @@
   {
    "path": "presentation/out/",
    "files": 2,
-   "bytes": 4946894,
-   "megabytes": 4.72,
+   "bytes": 5048075,
+   "megabytes": 4.81,
    "keep_because": "the rendered film and its poster, 118 seconds at 1920x1080. The source beside it reads its figures from the receipts rather than restating them, so the mp4 is reproducible from this tree; it is kept because a reader who watches it should not first have to install a renderer, and because an mp4 is the one artifact here that no diff can check after the fact."
   }
  ],

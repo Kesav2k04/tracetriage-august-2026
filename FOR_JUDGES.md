@@ -106,7 +106,7 @@ it, and that is a limit of the guard rather than a claim about them.
 | Selected challenge theme | Space exploration. `README.md` states it, and `artifacts/DATASET_MANIFEST.json` records the snapshot it was built from |
 | How IBM Bob was used | `docs/BOB_BUILD_LOG.md`, one entry per unit, and `.bob/rules.md` for the standing rules Bob worked to |
 | Working prototype | The static console under `apps/web`, deployed from this repository |
-| Demo or presentation video | `docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated from the receipts so no spoken number can drift from what the console shows. `presentation/out/tracetriage-film.mp4` is a rendered 118 second silent film over the same receipts: 8 cards, 3540 frames, and 135 figures each resolved from a receipt key path at build time rather than typed. `artifacts/FILM_RECEIPT.json` records its digest and `scripts/check_receipt_digests.py`, a standing gate, checks the committed bytes against it |
+| Demo or presentation video | `docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated from the receipts so no spoken number can drift from what the console shows. `presentation/out/tracetriage-film.mp4` is a rendered 118 second silent film over the same receipts: 8 cards, 3540 frames, and 137 figures each resolved from a receipt key path at build time rather than typed. `artifacts/FILM_RECEIPT.json` records its digest and `scripts/check_receipt_digests.py`, a standing gate, checks the committed bytes against it |
 | Public repository | This one |
 
 ## The stack, and what each piece is measured doing
@@ -128,7 +128,7 @@ weaken a claim. A technology is listed here only if something measures it workin
 | LangChain | `pipeline/tracetriage/langchain_tools.py` | 6 of the 7 evidence tools, adapted for an agent that does not speak MCP. An adapter and not a second implementation: each tool calls the function object the MCP server registered, asserted on identity in `tests/test_langchain_tools.py`. Through it, `check_claim` came back REFUSED with UNGROUNDED_NUMBER. `artifacts/LANGCHAIN_RECEIPT.json` |
 | LangFlow | `flows/`, `pipeline/tracetriage/langflow_components.py` | Two flows, built from component objects, written out by LangFlow's own `Graph.dump()`, then loaded back from those files and run. The grounding flow needs no model and no network: grounded -> GROUNDED, ungrounded -> REFUSED/UNGROUNDED_NUMBER. A second flow binds the six tools to `granite3.1-dense:8b` through LangFlow's agent node and runs end to end. Its answer does not carry observation 14746092, which is reachable only through a tool call: the model emits its call as a `<tool_call>` text block and the agent node does not execute it. The same model and the same six handlers score 22/24 through this project's MCP harness, so this is a measurement about the client rather than the model, and it is recorded rather than rounded up. LangFlow 1.11.4 is not a dependency of this project. `artifacts/LANGFLOW_RECEIPT.json` |
 | watsonx.ai | `scripts/run_watsonx_check.py` | `ibm/granite-3-8b-instruct`, one draft about observation 14746092, put through the same grounding checker that decides whether a local draft ships. **NOT_CHECKED in this checkout**: no `WATSONX_API_KEY` is set here, so nothing was sent and nothing is claimed. The receipt records the attempt with its date rather than omitting the row. `artifacts/WATSONX_RECEIPT.json` |
-| Remotion | `presentation/`, rendered offline | The presentation film. 8 cards, 3540 frames, 118 seconds at 30 fps, no audio. Every figure on screen is resolved from a receipt key path at build time by `presentation/src/data.ts`, so a number in the film cannot disagree with the artifact it came from: 135 claims over 9 committed JSON files, of which 110 are drawn and 25 are read only for cross-checks. Remotion 4.0.489. `artifacts/FILM_RECEIPT.json` |
+| Remotion | `presentation/`, rendered offline | The presentation film. 8 cards, 3540 frames, 118 seconds at 30 fps, no audio. Every figure on screen is resolved from a receipt key path at build time by `presentation/src/data.ts`, so a number in the film cannot disagree with the artifact it came from: 137 claims over 9 committed JSON files, of which 111 are drawn and 26 are read only for cross-checks. Remotion 4.0.489. `artifacts/FILM_RECEIPT.json` |
 | Next.js, Vercel, WebGL | `apps/web`, static export | 8 pages, no server, no database and no credential, with a content security policy whose `connect-src` is `'self'`. The field behind the first screen is the ranked queue drawn on the GPU: one point per observation, placed by rank, lit by review value, coloured by the criterion that raised it |
 
 ## The judged criteria, and what to look at
@@ -230,7 +230,7 @@ frozen into a committed fixture so the publisher needs no model and no network a
 MCP server imports nothing outside the standard library and is tested with site-packages
 switched off.
 
-The repository is 44.07 MB across 452 tracked files as of commit `6e6c680`,
+The repository is 46.33 MB across 452 tracked files as of commit `29766d2`,
 `artifacts/SECRET_SCAN.json` reports 0 credential-shaped values across the history it
 scanned, and the console is a static export, so hosting it costs nothing.
 
@@ -284,7 +284,7 @@ arithmetic; the rest are projections and are labelled as such. Regenerate the lo
 
 | Gate | Verdict | What bound it | What would close it |
 | --- | --- | --- | --- |
-| 3 | `NOT_ESTABLISHED` | 3 testable observations, 3 discriminating. The exact bound is 0.368 against a 0.7 bar. | 9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be passes carrying a measurable narrowband trace. |
+| 3 | `PASSED_UNGROUPED_ONLY` | 303 testable observations, 224 discriminating. The exact bound is 0.731 against a 0.7 bar. | 9 independent (station, date) episodes, all discriminating. The observation-level bound already clears 0.7; the grouped one, over 68 episodes, does not. The plan's rule is to group, so the observation-level pass is reported and not claimed. |
 | 5 | `NOT_ESTABLISHED` | 88 test observations. The interval's lower arm is 1.63 times the margin it has to clear. | About 233 test observations at the same margin, against the 88 this split has. That is 2.6 times the chronological test set. *(projected)* |
 | 6 | `NOT_ESTABLISHED` | 87 observations at a budget of 50 cap every ordering at 1.740x, leaving 0.240 of room for an interval 0.387 wide. | A split whose room exceeds the interval it produces. cold_station already does: room 2.673 against an interval 1.939 wide, and it passed at 2.253. |
 

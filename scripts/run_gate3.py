@@ -31,6 +31,9 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
+import re
+import statistics
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -104,13 +107,197 @@ def _geometry_of(image_path: Path, obs_id: int, rx_freq_hz: float | None, durati
     )
 
 
-def _axis_sign_scope(snapshot_dir: Path | None) -> dict[str, Any]:
+def _by_mode_verdict(scored: list[dict[str, Any]]) -> dict[str, Any]:
+    """The discriminating rate split by what the mode reader made of each image.
+
+    Descriptive only. `docs/E16_PREREGISTRATION.md` fixes one rate over one pool and this
+    is not a second one: the split is read off the same images after they were scored, so
+    treating either half as a verdict would be choosing a subgroup having seen its result.
+    It is published because the pooled number hides the finding rather than despite it.
+
+    `doppler_mode.verdict_from_scores` compares the best curved path against the best
+    vertical one and declines when neither clears an 8 sigma floor. The corridor test is a
+    matched filter against a predicted ephemeris with 200 time-permuted nulls behind it.
+    They can disagree, and where the corridor finds a trace the mode reader could not
+    resolve, the disagreement is the system working rather than a contradiction.
+    """
+    out: dict[str, Any] = {}
+    for verdict in sorted({r["verdict"] for r in scored}):
+        rows = [r for r in scored if r["verdict"] == verdict]
+        hits = sum(1 for r in rows if r["null_calibration"]["discriminates"])
+        out[verdict] = {
+            "scored": len(rows),
+            "discriminating": hits,
+            "rate": hits / len(rows) if rows else None,
+            "rate_lower_bound_95": rate_lower_bound(hits, len(rows)),
+        }
+    return {
+        "by_mode_verdict": out,
+        "decides_the_gate": False,
+        "note": (
+            "The pool rule never reads a mode verdict, so this is a decomposition of the "
+            "scored set and not a selection within it. The gate's rate is the pooled one "
+            "above. A subgroup rate chosen after seeing the split is not a gate result, "
+            "and the field beside it says so rather than leaving that to a reader."
+        ),
+    }
+
+
+def _no_p_value_by_reason(testable: list[dict[str, Any]]) -> dict[str, int]:
+    """Tally the reasons the null test gave no p-value, over the testable set.
+
+    A missing reason raises rather than counting as UNKNOWN. `not_tested_reason` is set
+    on every refusal branch in `calibrate_against_nulls`, so a blank one means a branch
+    was added without naming itself, and quietly bucketing it as unknown is how a gap
+    stops being visible.
+    """
+    tally: dict[str, int] = {}
+    for row in testable:
+        cal = row.get("null_calibration") or {}
+        if cal.get("p_value") is not None:
+            continue
+        reason = cal.get("not_tested_reason")
+        if not reason:
+            raise SystemExit(
+                f"observation {row.get('obs_id')} has no p-value and no "
+                "`not_tested_reason`. Every refusal branch in calibrate_against_nulls "
+                "names itself; a blank one means a new branch does not."
+            )
+        tally[reason] = tally.get(reason, 0) + 1
+    return dict(sorted(tally.items()))
+
+
+#: Strip the measured quantity out of a reason sentence so the tally has one key
+#: per reason. `not_measurable_reason` embeds the separation ratio in its prose,
+#: which made every observation its own bucket and put 62 near-identical sentences
+#: into the receipt.
+_A_NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+
+
+def _json_safe(node: Any, path: str = "", found: list[str] | None = None) -> Any:
+    """Replace non-finite floats with null, recording where each one was.
+
+    `json.dumps` writes the bare token `NaN` by default, which is not JSON. One
+    observation of 303 carried `a3_reference.sigma_curved: NaN` and made this receipt
+    unparseable by `jq`, by `JSON.parse` and by the presentation film's build, which is
+    where it surfaced. Every other consumer in this repository is Python, so nothing else
+    had noticed.
+
+    A NaN means the statistic could not be computed on that observation, and null is what
+    JSON has for that. The conversion is recorded rather than done quietly: a receipt that
+    turned a hundred numbers into nulls without saying so would be a worse artifact than
+    one that fails to write.
+    """
+    if found is None:
+        found = []
+    if isinstance(node, dict):
+        return {k: _json_safe(v, f"{path}.{k}", found) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_json_safe(v, f"{path}[{i}]", found) for i, v in enumerate(node)]
+    if isinstance(node, float) and not math.isfinite(node):
+        found.append(f"{path} = {node}")
+        return None
+    return node
+
+
+def _reason_key(reason: str | None) -> str:
+    if not reason:
+        return "UNKNOWN"
+    return _A_NUMBER.sub("N", reason).strip()
+
+
+def _axis_sign_remeasurement(scored: list[dict[str, Any]] | None) -> dict[str, Any]:
+    """What the per-observation axis-sign remeasurement found across this run.
+
+    Each scored observation is fitted twice, as shipped and mirrored, and the ratio says
+    which orientation the image prefers. On A3's three observations every one agreed and
+    unanimity was the property worth publishing. It is not the property here: at E16's
+    scale a handful of observations disagree, and suppressing that would be worse than
+    reporting it.
+
+    What separates the two cases is whether the disagreeing observation detected anything.
+    A row where neither orientation clears its own null distribution cannot testify about
+    which orientation is right, and the ratio of two noise values is decisive-looking
+    arithmetic over nothing. So the count that matters is agreement among the observations
+    that discriminate, and every disagreement is published with the sigma that explains it
+    rather than dropped.
+    """
+    if not scored:
+        return {"measurable": 0, "note": "no observation was scored in this run"}
+
+    agree = disagree = 0
+    deciding_agree = deciding_total = 0
+    dissenters: list[dict[str, Any]] = []
+    not_measurable: dict[str, int] = {}
+    separations: list[float] = []
+    for row in scored:
+        block = (row.get("axis_sign") or {}).get("remeasured") or {}
+        if not block.get("measurable"):
+            reason = _reason_key(block.get("not_measurable_reason"))
+            not_measurable[reason] = not_measurable.get(reason, 0) + 1
+            ratio = block.get("ratio")
+            if isinstance(ratio, int | float):
+                separations.append(float(ratio))
+            continue
+        decides = bool((row.get("null_calibration") or {}).get("discriminates"))
+        if block.get("agrees_with_constant"):
+            agree += 1
+            deciding_agree += decides
+        else:
+            disagree += 1
+            dissenters.append({
+                "obs_id": row.get("obs_id"),
+                "sigma_as_shipped": block.get("sigma_as_shipped"),
+                "sigma_mirrored": block.get("sigma_mirrored"),
+                "discriminates": decides,
+            })
+        deciding_total += decides
+
+    return {
+        "measurable": agree + disagree,
+        "agree_with_the_constant": agree,
+        "disagree_with_the_constant": disagree,
+        "among_observations_that_discriminate": {
+            "measurable": deciding_total,
+            "agree_with_the_constant": deciding_agree,
+        },
+        "dissenters": dissenters,
+        "not_measurable_by_reason": not_measurable,
+        # The quantity that used to be inside the reason string, as a distribution. How
+        # close the two orientations came matters: a dead tie and a 1.9x win under a 2.0x
+        # bar are different situations, and 62 sentences differing only in that number
+        # were not telling a reader either of them.
+        "separation_ratio": {
+            "n": len(separations),
+            "min": min(separations) if separations else None,
+            "median": float(statistics.median(separations)) if separations else None,
+            "max": max(separations) if separations else None,
+        },
+        "note": (
+            "An observation whose best orientation does not clear its own null "
+            "distribution cannot say which orientation is right, so the count that "
+            "carries weight is agreement among the observations that discriminate. "
+            "Every disagreement is listed above with both sigmas."
+        ),
+    }
+
+
+def _axis_sign_scope(
+    snapshot_dir: Path | None, scored: list[dict[str, Any]] | None = None
+) -> dict[str, Any]:
     """Census the client families across the observations the constant is applied to.
 
-    SPACE-S5: AXIS_SIGN_CONVENTION is a property of the renderer, measured on 3
+    SPACE-S5: AXIS_SIGN_CONVENTION is a property of the renderer, derived on 3
     observations from 2 client families. This counts how much of the corpus those 2
     families actually cover, so the reach of the assumption is a published number rather
     than a sentence. Nothing here changes a verdict; it is scope.
+
+    `remeasurement` is the other half, and it is what `scored` is for. Every observation
+    the gate scores is also scored against the mirrored corridor, so the constant is
+    checked against the data on every row rather than asserted from the two families it
+    came from. That count used to be the literal 3, which was A3's pool and stopped being
+    true the moment the gate ran on 289 observations while the field beside them still
+    said three.
 
     Two denominators, and picking the wrong one is how this block went wrong twice.
 
@@ -164,7 +351,8 @@ def _axis_sign_scope(snapshot_dir: Path | None) -> dict[str, Any]:
     return {
         "axis_sign_applied": AXIS_SIGN_CONVENTION,
         "measured_families": sorted(AXIS_SIGN_MEASURED_FAMILIES),
-        "measured_on_observations": 3,
+        "derived_on_observations": 3,
+        "remeasurement": _axis_sign_remeasurement(scored),
         "source": "artifacts/DATASET_MANIFEST.json",
         "needs_the_snapshot": False,
         "observations_in_the_dataset": n,
@@ -611,14 +799,15 @@ def main() -> int:
 
     # Entity grouping. A rate over observations overstates the evidence when the
     # observations are not independent, and the plan requires bootstrapping "by
-    # orbital episode or day, not by image row". Measured here: the three
-    # testable observations span 2 ground stations and 1 UTC night inside a
-    # 22-minute window, on satellites with consecutive NORAD IDs (63214, 63217,
-    # 63218) that are almost certainly one deployment cluster. Two of them share
-    # station 1696 three minutes apart, which is why they fit an identical
-    # -7,149 Hz offset: the same receiver carries the same local-oscillator error,
-    # so that is one systematic offset measured twice rather than two independent
-    # confirmations.
+    # orbital episode or day, not by image row".
+    #
+    # What makes them dependent is the receiver. A ground station's local-oscillator
+    # error is common to everything it hears, so two passes recorded by one station on
+    # one night are one systematic offset measured twice rather than two confirmations.
+    # A3's three observations made this concrete: two of them shared station 1696 three
+    # minutes apart and fitted an identical -7,149 Hz offset. The grouping key is
+    # (ground station, UTC date) for that reason, and the counts below are measured on
+    # whatever pool this run scored rather than described here.
     def _day(row: dict[str, Any]) -> str | None:
         start = row.get("start")
         return start[:10] if isinstance(start, str) and len(start) >= 10 else None
@@ -630,10 +819,12 @@ def main() -> int:
         "distinct_days": len({_day(r) for r in scored}),
         "distinct_station_days": len({(r["station_id"], _day(r)) for r in scored}),
         "note": (
-            "The discriminating rate is over observations, not over independent "
-            "episodes. Per-observation evidence is strong: each beats 200 nulls "
-            "with 0 reaching it, and each beats all four scaled-swing controls. "
-            "The cross-observation rate does not carry three independent samples."
+            "The discriminating rate above is over observations, not over independent "
+            "episodes. A ground station's oscillator error is common to every pass it "
+            "records, so observations sharing a (station, UTC date) are one episode "
+            "measured several times. The grouped rate below collapses them, and a group "
+            "counts as discriminating only if every observation in it does, which is the "
+            "direction that cannot manufacture a pass."
         ),
     }
 
@@ -702,12 +893,21 @@ def main() -> int:
         "observations_testable": len(testable),
         "observations_not_testable": len(not_testable),
         "observations_scored": len(scored),
+        # Testable, scored, and no p-value came back. The rate's denominator is
+        # `observations_scored`, so these are the observations between the pool and the
+        # denominator, and each one names the branch that refused it. Published as a
+        # tally rather than left for a reader to find by subtracting two numbers.
+        "observations_without_a_p_value": len(testable) - len(scored),
+        "no_p_value_by_reason": _no_p_value_by_reason(testable),
         "discriminating_rate": hit_rate,
         "rate_lower_bound_95": rate_bound,
         "clears_point_estimate": clears_point,
         "clears_threshold": clears_threshold,
         "entity_grouping": grouping,
-        "axis_sign_scope": _axis_sign_scope(args.snapshot),
+        # What the mode reader made of each scored image, and how the rate splits by it.
+        # 166 of pool B's 303 are UNRESOLVED to that reader, which the pooled rate hides.
+        "mode_decomposition": _by_mode_verdict(scored),
+        "axis_sign_scope": _axis_sign_scope(args.snapshot, scored),
         "not_testable_note": (
             "A corrected corridor is identically 0 Hz across the pass, so it is a "
             "vertical line with a free horizontal offset and predicts no shape. "
@@ -773,7 +973,19 @@ def main() -> int:
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(receipt, indent=2), encoding="utf-8", newline="\n")
+    # Non-finite floats out, then `allow_nan=False` so a value this missed stops the
+    # writer rather than producing a file only Python can read.
+    non_finite: list[str] = []
+    receipt = _json_safe(receipt, "", non_finite)
+    if non_finite:
+        logger.warning(
+            "%d non-finite value(s) written as null, because JSON has no NaN: %s",
+            len(non_finite),
+            ", ".join(non_finite[:8]) + (" ..." if len(non_finite) > 8 else ""),
+        )
+    args.out.write_text(
+        json.dumps(receipt, indent=2, allow_nan=False), encoding="utf-8", newline="\n"
+    )
 
     print()
     print("=" * 72)
