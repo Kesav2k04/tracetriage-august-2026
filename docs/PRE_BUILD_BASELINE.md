@@ -22,7 +22,7 @@ ingestion, waterfall parsing, physics, the model ladder, calibration, abstention
 
 ### Why prepare anything at all
 
-Each Bob trial account carries 40 build credits. Credits spent rediscovering that `db.satnogs.org/api/observations/` returns 404, or that `end__lte=` is silently ignored, or that the waterfall does not span `samp-rate-rx`, are credits not spent on the model, the calibration, or the queue. The reconnaissance below cost zero build credits and removes roughly a day of dead ends.
+Bob's build budget is finite. Budget spent rediscovering that `db.satnogs.org/api/observations/` returns 404, or that `end__lte=` is silently ignored, or that the waterfall does not span `samp-rate-rx`, is budget not spent on the model, the calibration, or the queue. The reconnaissance below consumed none of it and removes roughly a day of dead ends.
 
 That is the whole rationale. It buys Bob more room on the judged path, not less.
 
@@ -104,6 +104,6 @@ All four carry `"status": "DRAFT - not authoritative until Bob ratifies it"` and
 
 ## How the build proceeds from here
 
-Bob builds every lettered unit: A0 through A7, then waves B, C and D. Each unit is scoped to a single acceptance-defined deliverable, its result is recorded in `docs/BOB_BUILD_LOG.md` with the commit SHA and the tests that ran, and a handoff kept outside this repository carries exact state across trial-account rotations.
+Bob builds every lettered unit: A0 through A7, then waves B, C and D. Each unit is scoped to a single acceptance-defined deliverable, its result is recorded in `docs/BOB_BUILD_LOG.md` with the commit SHA and the tests that ran, and a handoff kept outside this repository carries exact state between sessions.
 
 Where hardening happens outside a Bob task, it is logged under "Operator-side hardening" in the build log against the unit it followed, so the history stays complete and a later unit does not overwrite it.

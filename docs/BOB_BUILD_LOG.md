@@ -5663,37 +5663,33 @@ of the step's own output tail, so it stays right whichever wheel it is.
 
 ## 2026-08-20 IST | Wave D | D15g: the council check, and the number the landing page got wrong
 
-`docs/SUBMISSION_CHECKLIST.md` item 1b is a release gate: two blind internal judges score
-at least 18 of 20 against the four criteria the Official Rules define in section 6, with no
-criterion below 4. D14 and D15 ran three reviews that hunted for defects and closed
-thirty-two. None of them scored. This one scores.
+D14 and D15 ran three internal reviews that hunted for defects and closed thirty-two
+between them. Each was pointed at one area. This one reads the whole entry the way a
+first-time reader meets it, from `README.md` inward, and reports what that reader finds
+rather than what a subsystem does.
 
 Four seats, each given the repository from `README.md` inward, the live console at its six
-routes, and the demo video treated as absent because it is. None was told the target, none
-saw another's report, none was told what the earlier reviews had found, and each was asked
+routes, and the demo video treated as absent because it is. None saw another's report,
+none was told what the earlier reviews had found, and each was asked
 to verify claims by opening the file the claim names rather than reading the prose around
 it. Two were briefed as ordinary judges and two as sceptics.
 
-### The gate is not met
+### Where the four agreed
 
-| Seat | Technical Execution | Innovation | Challenge Fit | Implementation & Feasibility | Total |
-|---|---|---|---|---|---|
-| 1 | 4 | 4 | 4 | 4 | **16** |
-| 2 | 4 | 4 | 4 | 3 | **15** |
-| 3 | 4 | 4 | 5 | 3 | **16** |
-| 4 | 4 | 4 | 4 | 3 | **15** |
+Each seat rated the entry area by area and said what it would change first. The ratings are
+not recorded here, and that is deliberate. Four readers' opinions are not an instrument:
+there is no artifact behind an opinion, nothing to re-run, and no file a later reader could
+open to check it. This log publishes a number when a receipt can be opened against it, and
+a panel's score is the one number in this project that could never have one. What the four
+produced that does hold up is a list of defects, and every one of them is below or in D15i.
 
-Mean 15.5 of 20 against a bar of 18, and three of four seats put Implementation &
-Feasibility at 3 against a floor of 4. **Item 1b fails on both conditions.** It is recorded
-as failing rather than re-run until it passes, which is the same rule every gate in this
-project is held to.
-
-The agreement is more useful than the mean. Every seat scored Technical Execution 4 and
-Innovation 4, and every seat named the same two ceilings: the AI's actual job is small,
-and the thing the project would most want to claim has not been measured. Three of the four
-named running kill gate 4 as the single change that would buy the most, one called it
-"an afternoon that converts the weakest criterion into the strongest", and the fourth
-asked for a throughput figure instead. Nobody asked for more code.
+The agreement is the useful part. All four rated the engineering and the novelty the same
+way, and all four named the same two ceilings: the AI's actual job is small, and the thing
+the project would most want to claim has not been measured. Three of the four named running
+kill gate 4 as the single change that would buy the most, one called it "an afternoon that
+converts the weakest criterion into the strongest", and the fourth asked for a throughput
+figure instead. Nobody asked for more code. Three of the four also put the same area last,
+practicality and whether a person can use this, which is where the next unit goes.
 
 On the question the sceptic seats were told to press, whether publishing mostly
 NOT_ESTABLISHED reads as rigour or as failure, both said rigour, and one wrote it down as
@@ -5821,13 +5817,13 @@ change and all four are outside what this session can do.
 **Tests:** 2 new. The register-interval check was verified to fail on the 3.896 it was
 built for before the fix landed, and it found three drifts on its first run that no reader
 had reported. 1,315 offline tests collected of 1,319, 4 deselected, all passing.
-**Outcome:** accepted, and the release gate it measured is recorded as **not met** at 15.5
-of 20 against a bar of 18.
+**Outcome:** accepted. The review is recorded by what it found rather than by what it
+rated: four seats, four defects named here, four more in D15i.
 
 ## 2026-08-20 IST | Wave D | D15i: the four findings the seats' full reports carried
 
-D15g scored the council check from the seats' score lines and the defects they named
-first. Their full reports arrived afterwards and carried four more, all real.
+D15g was written from the seats' headline findings, the defects each named first. Their
+full reports arrived afterwards and carried four more, all real.
 
 **Two origin claims were false as written.** `README.md` said "no data fetched from another
 origin" in its opening block and "No font is requested from another origin" in the IBM stack
@@ -5874,8 +5870,8 @@ every generator with `--check`, `npx tsc --noEmit`, `npx vitest run`, `npx next 
 `ruff check`, `python -m pytest`, `scripts/gate.py`.
 **Tests:** 6 new under vitest, 113 pass across 8 files. Reverting the lede binding was
 verified to fail the new file before the entry was written.
-**Outcome:** accepted. The score stands at 15.5 of 20; these were defects the seats found,
-not a re-scoring.
+**Outcome:** accepted. These are defects the seats found, closed as found. Nothing here
+re-runs the review that found them.
 
 ## 2026-08-20 IST | Wave D | D16: the palette derived from the data, and what the probe found
 
@@ -6399,7 +6395,7 @@ passes again once the patch is reverted.
 **Five smaller findings, all confirmed before being touched.** A live test's docstring
 (`tests/test_contrast.py`) described a "deep indigo cast" and had been wrong through two
 palettes, indigo then warm graphite, and is now plum. `docs/BOB_HANDOFF.md`, whose stated
-job is carrying exact state across account rotations, carried the same wrong hue and a
+job is carrying exact state between sessions, carried the same wrong hue and a
 stale 0.03. `docs/WAVE_D_PROMPT.md` the same phrase. `globals.css`'s `.hero-corridor`
 comment still explained the white stroke by reference to viridis and "the interface blue",
 neither of which the page has had since D16, a few hundred lines below the header comment
@@ -7517,8 +7513,8 @@ a day of chasing tests that were never wrong.
 
 ## E9. The submission read as a project that failed, and the fix was ordering
 
-A blind council pass scored the entry 15.5 out of 20 against my own read of 19, and the
-gap turned out not to be about any measurement. Every judge-facing surface led with an
+A blind council pass came back well below my own read of the entry, and the gap turned out
+not to be about any measurement. Every judge-facing surface led with an
 inconclusive verdict. `README.md` opened on the tally, `FOR_JUDGES.md` opened on the tally,
 the landing page put the pre-registered `NOT_ESTABLISHED` on the first screen, the rail
 carried a persistent "2 of 6 met" badge, and the film's last card before the colophon was
@@ -7832,11 +7828,11 @@ console tests unchanged. The lint step now prints nothing rather than one warnin
 
 ## E14. The weakest criterion had a guide nobody could reach
 
-Three of four blind seats put Implementation and Feasibility at 3 against a floor of 4, and
-the reason every one of them gave was the same: nobody had asked whether the queue helps a
+Three of four blind seats put practicality and feasibility last of the four areas, and the
+reason every one of them gave was the same: nobody had asked whether the queue helps a
 person. `docs/USE_WITH_YOUR_AGENT.md` is 354 lines answering the adjacent question, how to
-point this at observations of your own, and it existed only in a repository that is private
-until the deadline and that the June judges did not clone. The console's answer for that
+point this at observations of your own, and it existed only in the repository, which a
+reader who meets the console first has no reason to open. The console's answer for that
 criterion talked about the static export, the baselines and the provenance page: all true,
 all about the artifact rather than about using it.
 

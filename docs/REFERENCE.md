@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 35 JSON artifacts, 8 contracts, 54 scripts, 29 package modules and 1342 test functions across 71 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 35 JSON artifacts, 8 contracts, 54 scripts, 29 package modules and 1343 test functions across 71 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -206,7 +206,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_for_judges.py` | 6 | FOR_JUDGES.md is generated, and these are the ways it could still lie. |
 | `tests/test_freshness_outcomes.py` | 9 | The freshness check has three outcomes, and a missing snapshot is not a failure. |
 | `tests/test_fusion.py` | 77 | Tests for the fusion head and its feature blocks (unit B2). |
-| `tests/test_gate3_bound.py` | 9 | Gate 3's threshold must be read off an interval, not off a point estimate. |
+| `tests/test_gate3_bound.py` | 10 | Gate 3's threshold must be read off an interval, not off a point estimate. |
 | `tests/test_gate3_pool.py` | 14 | The gate 3 pool builder, and the one property the whole unit rests on. |
 | `tests/test_gate4.py` | 38 | The gate 4 instrument, tested where it could quietly stop being blinded (unit E6). |
 | `tests/test_gate4_bundle.py` | 4 | What the reviewer bundle may and may not contain. |
