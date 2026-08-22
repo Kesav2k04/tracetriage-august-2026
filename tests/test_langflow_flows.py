@@ -40,8 +40,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-import tomllib
 import re
+import tomllib
 from pathlib import Path
 
 import pytest
