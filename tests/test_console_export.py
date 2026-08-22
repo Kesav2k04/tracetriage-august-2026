@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import pathlib
 import sys
 from pathlib import Path
 
@@ -507,3 +508,34 @@ def test_an_empty_precedent_condition_is_not_a_measurement() -> None:
     mutated["conditions"] = dict(receipt["conditions"], cold={})
     with pytest.raises(ValueError):
         mod._precedent_conditions(mutated)
+
+def test_every_document_the_console_serves_is_the_document_in_docs() -> None:
+    """The served copies, against their source, byte for byte.
+
+    `scripts/build_console_data.py` copies four markdown files into
+    `apps/web/public/data` so the console can serve them from its own origin. Nothing
+    compared the copy to the source, so editing one of the four in `docs/` and not
+    re-running the exporter would leave the console serving a document that no longer
+    exists in the repository, and every gate would stay green: the copy is valid markdown
+    and the page that links it still resolves.
+
+    Byte for byte rather than "close enough", because these are the documents the console
+    points a reader at as the authority behind a number.
+    """
+    repo = pathlib.Path(__file__).resolve().parents[1]
+    served = sorted((repo / "apps/web/public/data").glob("*.md"))
+    assert served, "the console serves no documents, which is a change nobody announced"
+
+    stale = []
+    for copy in served:
+        source = repo / "docs" / copy.name
+        if not source.is_file():
+            stale.append(f"{copy.name} is served and has no source under docs/")
+            continue
+        if source.read_bytes() != copy.read_bytes():
+            stale.append(
+                f"{copy.name} differs from docs/{copy.name}. Run "
+                f"scripts/build_console_data.py --skip-images."
+            )
+    assert stale == [], stale
+

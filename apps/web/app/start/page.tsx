@@ -313,7 +313,10 @@ export default function StartPage() {
                   <Link href="/replay/">Baselines</Link> is the queue against the orderings
                   a reviewer could have used instead, and{" "}
                   <Link href="/provenance/">Provenance</Link> names the receipt behind every
-                  figure and the command that regenerates it.
+                  figure and the command that regenerates it. Pointing it at observations of
+                  your own is a written path rather than an offer:{" "}
+                  <a href="/data/USE_WITH_YOUR_AGENT.md">the guide</a> is served from this
+                  origin and names the same tools the agent study measured.
                 </>
               ),
             },

@@ -93,7 +93,7 @@
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "be23448e93af1f1dec0426568073edbfe8ae9fc2fc535bbf53db1aa34e2cbf6a",
+   "sha256": "0c5aa8304305b48416e02e3feb86b9a38a96f6059c45d575da9c46240d4ba371",
    "bytes": 80953
   },
   {
@@ -120,6 +120,11 @@
    "name": "EXPLAIN_RECEIPT.json",
    "sha256": "8eab973ec828fe7460fa829ada6be135378c7c0dfc07db8e163ae4a1776ad242",
    "bytes": 24725
+  },
+  {
+   "name": "FILM_RECEIPT.json",
+   "sha256": "a7bbe2e510c743e157341eb691225e8f7b4f7678414d3c129d8d8e91c0089231",
+   "bytes": 2917
   },
   {
    "name": "FONT_PAINT_RECEIPT.json",
@@ -208,8 +213,8 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "34bb226a63532ded687091c272c0689790c2eba01127e743a4f3f03573e2b70e",
-   "bytes": 4567
+   "sha256": "c4d1f49bb292622429460bf14c6d05e93f0ac06e0e5f41fa74f6b28ca46384a9",
+   "bytes": 4568
   },
   {
    "name": "SECOND_TRACE_SURVEY.json",
@@ -218,13 +223,13 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "f482eafbdf76e054b456e256ef246087283ff74555e9d3247035f247b63bcb85",
+   "sha256": "9df27417be536454d6f42d5b25bf9f7bdeac45930c63b631af914d738a4ac6b0",
    "bytes": 1170
   },
   {
    "name": "SIGNOFF_RECEIPT.json",
-   "sha256": "183b44bf0422393eacb699b61ed3387a01ef4f59be8dec976031f4849f46e37d",
-   "bytes": 3574
+   "sha256": "d139b830119c02d417308e95295135fee32b100876ce3af419351ef6b00cc8dd",
+   "bytes": 3547
   },
   {
    "name": "SPLIT_MANIFEST.json",

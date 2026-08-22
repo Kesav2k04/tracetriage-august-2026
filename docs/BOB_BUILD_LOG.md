@@ -7829,3 +7829,27 @@ in `apps/web/lib/data.ts` with no caller at all, and its own docstring describin
 page that no longer prints what it described. `.bob/rules.md` removes a component whose
 ablation does not change a judge-facing result, so it is gone: 35 lines, `tsc` clean, 211
 console tests unchanged. The lint step now prints nothing rather than one warning.
+
+## E14. The weakest criterion had a guide nobody could reach
+
+Three of four blind seats put Implementation and Feasibility at 3 against a floor of 4, and
+the reason every one of them gave was the same: nobody had asked whether the queue helps a
+person. `docs/USE_WITH_YOUR_AGENT.md` is 354 lines answering the adjacent question, how to
+point this at observations of your own, and it existed only in a repository that is private
+until the deadline and that the June judges did not clone. The console's answer for that
+criterion talked about the static export, the baselines and the provenance page: all true,
+all about the artifact rather than about using it.
+
+The guide is served from the console's own origin now, through the step that already copies
+`KILL_GATE.md`, `CLAIM_REGISTER.md` and `C2_PREREGISTRATION.md` into
+`apps/web/public/data`, and `/start` links it from the Implementation and Feasibility row
+where it does the most work. One sentence, one file, and the criterion that scored lowest
+now names something a reader can act on.
+
+**And the copies were unchecked.** Four markdown files are duplicated into the export and
+nothing compared a copy to its source. Editing one of the four under `docs/` without
+re-running the exporter would leave the console serving a document that no longer exists in
+the repository, with every gate green: the copy is still valid markdown and the page linking
+it still resolves. `tests/test_console_export.py::test_every_document_the_console_serves_is_the_document_in_docs`
+compares them byte for byte and fails with the command that fixes it. It also fails if a
+served file has no source at all, which is the other direction the drift can go.

@@ -995,7 +995,16 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     # ---- documents rendered in the console -------------------------------
-    for name in ("KILL_GATE.md", "CLAIM_REGISTER.md", "C2_PREREGISTRATION.md"):
+    # USE_WITH_YOUR_AGENT.md is here because the criterion it answers is the one the
+    # blind-seat review scored lowest, and the console had no path to it at all: the
+    # guide for pointing this at your own observations existed only in the repository,
+    # which is private until the deadline and which the June judges did not clone.
+    for name in (
+        "KILL_GATE.md",
+        "CLAIM_REGISTER.md",
+        "C2_PREREGISTRATION.md",
+        "USE_WITH_YOUR_AGENT.md",
+    ):
         source = _REPO / "docs" / name
         if source.exists():
             shutil.copyfile(source, data_dir / name)
