@@ -473,7 +473,29 @@ _DECIDED_IN_DOCS: list[dict[str, Any]] = [
 # the console's word for the same state is OPEN. One mapping, declared once, rather than
 # three files that happen to agree. Every other verdict passes through unchanged, so the
 # day the worksheet is answered this file needs no edit at all.
-_RECEIPT_TO_CONSOLE = {"NOT_RUN": "OPEN"}
+# Receipt vocabulary that the console renders under one of its own four words. Every
+# entry needs a reason, because a mapping is a claim that two words mean the same thing.
+#
+#   NOT_RUN                -> OPEN
+#       A study nobody carried out. The console's word for that is OPEN.
+#
+#   PASSED_UNGROUPED_ONLY  -> NOT_ESTABLISHED
+#       scripts/run_gate3.py returns this when the observation-level bound clears the
+#       threshold and the grouped one does not. The plan's rule is to group before
+#       deciding, so the gate is not met. PASSED would overstate it; FAILED would
+#       understate it, because the rate is above the bar and every observation behaved.
+#       What is true is that the interval over the required grouping does not exclude
+#       the threshold, which is what NOT_ESTABLISHED means everywhere else here. Keeping
+#       it as its own string would also put the substring "PASSED" inside a verdict that
+#       is not met, in a file where _MET is a set today and could be a prefix test later.
+#
+#   UNMEASURABLE           -> NOT_MEASURABLE
+#       The same state under the console's own spelling.
+_RECEIPT_TO_CONSOLE = {
+    "NOT_RUN": "OPEN",
+    "PASSED_UNGROUPED_ONLY": "NOT_ESTABLISHED",
+    "UNMEASURABLE": "NOT_MEASURABLE",
+}
 
 _MET = frozenset({"PASSED", "PRE_PASSED"})
 _KNOWN_VERDICTS = _MET | {"NOT_ESTABLISHED", "FAILED", "NOT_MEASURABLE", "OPEN"}
@@ -633,12 +655,18 @@ def _load_receipt_verdict(path: Path, *, gate: int, title: str) -> dict[str, Any
             f"gate {gate} carries verdict {verdict!r}, which the console does not "
             f"know how to count. Known verdicts: {sorted(_KNOWN_VERDICTS)}."
         )
-    return {
+    entry = {
         "gate": gate,
         "title": title,
         "verdict": verdict,
         "decided_in": str(path.relative_to(_REPO)).replace("\\", "/"),
     }
+    # When the console renders a receipt's verdict under a different word, both travel.
+    # A reader of evaluation.json who saw only the console's word would have no way to
+    # find out that the receipt said something more specific.
+    if recorded != verdict:
+        entry["verdict_in_the_receipt"] = recorded
+    return entry
 
 
 def build_gate_summary(queue: dict[str, Any], fusion: dict[str, Any]) -> dict[str, Any]:
