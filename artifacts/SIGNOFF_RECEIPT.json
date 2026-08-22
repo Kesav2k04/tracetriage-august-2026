@@ -1,23 +1,23 @@
 {
  "schema": "SIGNOFF_RECEIPT",
  "schema_version": "0.1.0",
- "measured_at_commit": "fa274cb9aac7805e89a01b9c44e514f58c1e605f",
- "measured_at_commit_date": "2026-08-22T05:14:33+05:30",
+ "measured_at_commit": "7bdda3e492699cf3a2b7a99304facf635a08bec8",
+ "measured_at_commit_date": "2026-08-22T05:30:38+05:30",
  "note_on_the_commit": "This receipt is written at the commit named above and then committed, so the commit it lands in is one later. It cannot name that one, and saying so is better than implying it measured itself.",
  "commits_behind_head_when_written": 0,
- "verdict": "NOT_SIGNED",
+ "verdict": "SIGNED",
  "counts": {
-  "PASSED": 9,
-  "FAILED": 1,
+  "PASSED": 10,
+  "FAILED": 0,
   "NOT_CHECKED": 0
  },
  "checks": [
   {
    "check": "standing gates",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\gate.py",
-   "status": "FAILED",
-   "detail": "Do not start the next unit until these are green.",
-   "seconds": 342.6,
+   "status": "PASSED",
+   "detail": "25/25 standing gates pass",
+   "seconds": 337.4,
    "why_not_checked": null
   },
   {
@@ -41,15 +41,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run typecheck",
    "status": "PASSED",
    "detail": "> tsc --noEmit",
-   "seconds": 2.6,
+   "seconds": 2.1,
    "why_not_checked": null
   },
   {
    "check": "console tests",
    "command": "C:\\Program Files\\nodejs\\npm.CMD run test",
    "status": "PASSED",
-   "detail": "\u001b[2m   Duration \u001b[22m 1.21s\u001b[2m (transform 997ms, setup 0ms, collect 2.82s, tests 661ms, environment 4ms, prepare 2.98s)\u001b[22m",
-   "seconds": 2.5,
+   "detail": "\u001b[2m   Duration \u001b[22m 1.06s\u001b[2m (transform 887ms, setup 0ms, collect 2.32s, tests 495ms, environment 3ms, prepare 2.53s)\u001b[22m",
+   "seconds": 2.2,
    "why_not_checked": null
   },
   {
@@ -57,7 +57,7 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run build",
    "status": "PASSED",
    "detail": "34 index.html files emitted to apps/web/out",
-   "seconds": 22.2,
+   "seconds": 19.7,
    "why_not_checked": null
   },
   {
@@ -65,7 +65,7 @@
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\audit_release.py",
    "status": "PASSED",
    "detail": "0 secret findings, 0 files short of their attribution, 42.09 MB tracked",
-   "seconds": 8.1,
+   "seconds": 7.3,
    "why_not_checked": null
   },
   {
@@ -89,7 +89,7 @@
    "command": null,
    "status": "PASSED",
    "detail": "HTTP 200, 413,779 bytes from https://tracetriage.vercel.app",
-   "seconds": 0.4,
+   "seconds": 0.6,
    "why_not_checked": null
   }
  ],
