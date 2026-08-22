@@ -201,6 +201,74 @@ def test_one_bright_row_does_not_admit_an_observation(builder):
     )
 
 
+class _Box:
+    """The two attributes `_normalised_rows` reads off a crop box."""
+
+    def __init__(self, x0, y0, x1, y1):
+        self.x0, self.y0, self.x1, self.y1 = x0, y0, x1, y1
+
+    def width(self):
+        return self.x1 - self.x0
+
+
+def _image(rows, cols, rng):
+    """A uint8 RGB image of gaussian noise, which is what the builder is handed."""
+    lum = np.clip(rng.normal(loc=110.0, scale=18.0, size=(rows, cols)), 0, 255)
+    return np.repeat(lum[:, :, None].astype(np.uint8), 3, axis=2)
+
+
+def test_a_flat_row_is_not_the_strongest_evidence_in_the_image(builder):
+    """The defect that cost a whole pool build, tested from the pixels.
+
+    `_normalised_rows` divided by `np.maximum(mad, 1e-6)`. A row with no variation has
+    MAD exactly 0, so the floor turned the emptiest row in an image into z of order 1e8
+    and put it above every real trace. Measured on the first full build, pool B's 75th
+    percentile reached 22,666,664 against a real matched-filter detection at 25.
+
+    A z-score matrix cannot reach this, because the bug is in how the matrix is made.
+    This starts from an image and plants the degenerate rows in it.
+    """
+    rng = np.random.default_rng(11)
+    rgb = _image(240, 600, rng)
+    rgb[80:160, :, :] = 200  # a third of the pass, perfectly flat
+
+    zs, measurable = builder._normalised_rows(rgb, _Box(0, 0, 600, 240))
+    assert measurable.sum() == 236 - 80, (
+        "the flat block should be the only unmeasurable part of this image"
+    )
+
+    stats = builder.trace_presence(zs, measurable)
+    assert stats["trace_q75"] < builder.TRACE_Q75_MIN, (
+        f"80 flat rows produced trace_q75 {stats['trace_q75']:.3g} on an image with no "
+        "trace in it, so a blank waterfall would enter the pool ahead of a real one"
+    )
+    assert stats["n_rows_unmeasurable"] == 80
+    assert stats["n_rows"] == 156, "the flat rows are still in the percentile"
+
+
+def test_an_image_with_nothing_in_it_refuses_the_statistic(builder):
+    """No measurable row is not a low score. It is no measurement.
+
+    Returning 0.0 here would be a number that reads as "checked, no trace", and this
+    pool's rule keys on the statistic being absent, not small.
+    """
+    rgb = np.full((120, 400, 3), 17, dtype=np.uint8)
+    zs, measurable = builder._normalised_rows(rgb, _Box(0, 0, 400, 120))
+    assert not measurable.any()
+    assert builder.trace_presence(zs, measurable) is None
+
+
+def test_a_flat_image_cannot_enter_the_pool(builder):
+    """The membership rule's side of the same defect."""
+    assert not builder.in_pool_b(
+        {
+            "predicted_swing_hz": 50_000.0,
+            "trace_q75": None,
+            "sigma_vertical": 0.1,
+        }
+    )
+
+
 def test_the_presence_bar_sits_above_what_noise_produces(builder):
     """The number in the pre-registration, checked against simulated noise.
 
@@ -324,10 +392,22 @@ def test_the_pre_registration_predates_the_gate_receipt_in_git():
     if receipt is None:
         pytest.skip("no committed gate 3 receipt to compare against")
 
-    # Only meaningful once the receipt has been rebuilt from a pool. Before that the
-    # receipt predates the document legitimately, because it is the n = 3 result.
-    if not POOL.exists():
-        pytest.skip("no pool has been built, so the receipt is still the n = 3 run")
+    # Only meaningful once the receipt itself came from a pre-registered pool. This used
+    # to key on whether a pool file existed in the working tree, which is a proxy for the
+    # wrong thing: building a pool opened the guard while the committed receipt was still
+    # the n = 3 run, so the test failed for the one reason that is not a defect. The
+    # receipt records which pool produced it, and that is the question being asked.
+    receipt_path = REPO / "artifacts" / "GATE3_RECEIPT.json"
+    pool_name = None
+    if receipt_path.exists():
+        pool_name = (
+            json.loads(receipt_path.read_text(encoding="utf-8")).get("pool") or {}
+        ).get("name")
+    if pool_name in (None, "a3"):
+        pytest.skip(
+            "the committed receipt is the n = 3 A3 run, which predates the document "
+            "legitimately"
+        )
     assert int(prereg) <= int(receipt), (
         "docs/E16_PREREGISTRATION.md was committed after the gate 3 receipt it is "
         "supposed to constrain, so it is a report and not a pre-registration"
@@ -344,10 +424,27 @@ def test_the_committed_pool_records_every_observation_it_examined():
     assert sum(payload["counts"]["by_status"].values()) == len(rows)
     assert payload["counts"]["pool_b"] == sum(1 for r in rows if r.get("pool_b"))
     assert payload["counts"]["pool_a"] == sum(1 for r in rows if r.get("pool_a"))
+    # Every row that could enter the pool at some other threshold has to carry the
+    # statistic the threshold reads, or the file cannot be recut from itself. That is
+    # every row whose image was read and measured, and no others: an observation ruled
+    # out by the swing floor is out at every threshold, and one whose crop has no row
+    # with any spread has no statistic to record.
+    recuttable = {"ok"}
     for row in rows:
         assert "status" in row, row.get("obs_id")
-        if row["status"] == "ok":
+        if row["status"] in recuttable:
             assert "trace_q75" in row, (
-                f"obs {row['obs_id']} was measurable and carries no presence statistic, "
+                f"obs {row['obs_id']} was measured and carries no presence statistic, "
                 "so the pool cannot be recut at another threshold from this file"
+            )
+            assert row["trace_q75"] < 1e4, (
+                f"obs {row['obs_id']} reports trace_q75 {row['trace_q75']:.3g}. A z-score "
+                "that large is a divisor collapsing, not a trace: see MIN_ROW_MAD in "
+                "scripts/build_gate3_pool.py for the run where flat rows outscored a real "
+                "detection by six orders of magnitude"
+            )
+        else:
+            assert "trace_q75" not in row, (
+                f"obs {row['obs_id']} has status {row['status']!r} and a presence "
+                "statistic, so one of the two is wrong about whether it was measured"
             )

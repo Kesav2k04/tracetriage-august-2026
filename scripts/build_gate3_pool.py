@@ -68,12 +68,21 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import sys
+from concurrent.futures import ProcessPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import numpy as np
+# Set before numpy is imported, or the libraries have already read their own defaults.
+# Each worker examines one image at a time and gains nothing from an internal thread
+# pool; eight workers each spawning one would oversubscribe every core on the machine.
+for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
+             "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
+    os.environ.setdefault(_var, "1")
+
+import numpy as np  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
@@ -95,6 +104,10 @@ from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: E402
 
 logger = logging.getLogger("gate3_pool")
 
+#: Written explicitly so the partial file is LF on every platform, matching the
+#: receipt beside it and the repository's .gitattributes.
+NEWLINE = "\n"
+
 #: The corridor-free presence bar. Set from the marginal distribution of ``trace_q75``
 #: over the whole snapshot, which is bimodal, and fixed in
 #: ``docs/E16_PREREGISTRATION.md`` before gate 3 was run on the pool it selects. The
@@ -112,14 +125,36 @@ TRACE_PERCENTILE = 75.0
 #: Rows within this many pixels of the crop edge are dropped, matching A3.
 EDGE_MARGIN_PX = 2
 
+#: The smallest MAD a row can have and still carry a z-score. ``lum`` is the mean of
+#: three uint8 channels, so its quantisation step is 1/3 and the smallest MAD an
+#: informative row can show is that step scaled by the same 1.4826.
+#:
+#: This exists because the first version floored the divisor at 1e-6 instead. A row with
+#: no variation at all, a blank or saturated line with nothing in it, has MAD exactly 0,
+#: so the floor turned it into z of order 1e8 and put the emptiest row in the image above
+#: every real trace in it. On the first full build the 75th percentile of pool B reached
+#: 22,666,664 and the maximum 89,000,000, against a real matched-filter detection at 25.
+#: The statistic was inverted precisely where it degenerated, and it inflates only
+#: upward, so it could add observations to pool B and never remove one.
+#:
+#: A row with no measurable variation is not evidence of a trace. It is dropped from the
+#: percentile rather than floored, and the count is written to the record so a reader can
+#: see how much of each image this removed.
+MIN_ROW_MAD = (1.0 / 3.0) * 1.4826
 
-def _normalised_rows(rgb: np.ndarray, crop_box) -> np.ndarray:
-    """Per-row robust z-scores over the spectrogram interior.
+
+def _normalised_rows(rgb: np.ndarray, crop_box) -> tuple[np.ndarray, np.ndarray]:
+    """Per-row robust z-scores over the spectrogram interior, and which rows carry one.
 
     The same normalisation A3 and ``corridor_fit`` use: each row against its own median
     and MAD, so the vertical brightness gradient a changing range puts into every pass
     does not decide anything, and nothing is normalised along time, which would delete a
     stationary carrier and hand the answer to one hypothesis.
+
+    The second return is the mask of rows whose MAD clears ``MIN_ROW_MAD``. A row below
+    it has no spread to measure against, so the ratio it produces is an artifact of the
+    divisor and not a z-score. See ``MIN_ROW_MAD`` for what that cost before it was
+    caught.
     """
     x0 = crop_box.x0 + EDGE_MARGIN_PX
     x1 = crop_box.x1 - EDGE_MARGIN_PX
@@ -128,22 +163,35 @@ def _normalised_rows(rgb: np.ndarray, crop_box) -> np.ndarray:
     lum = rgb[y0:y1, x0:x1].astype(np.float32).mean(axis=2)
     med = np.median(lum, axis=1, keepdims=True)
     mad = np.median(np.abs(lum - med), axis=1, keepdims=True) * 1.4826
-    return (lum - med) / np.maximum(mad, 1e-6)
+    measurable = (mad[:, 0] >= MIN_ROW_MAD)
+    return (lum - med) / np.maximum(mad, MIN_ROW_MAD), measurable
 
 
-def trace_presence(zs: np.ndarray) -> dict[str, float]:
+def trace_presence(
+    zs: np.ndarray, measurable: np.ndarray | None = None
+) -> dict[str, float] | None:
     """How strongly a trace is visible, with no Doppler prediction anywhere in it.
 
     Returns the percentile the pool rule reads plus the maximum and the median, so a
     reader can see the shape of the row-peak distribution rather than one number chosen
-    from it.
+    from it, and the count of rows that had no spread to measure against.
+
+    ``None`` when no row is measurable. That is an image with nothing in it, and the
+    honest answer is that the statistic could not be taken, not that it came back low:
+    ``in_pool_b`` already treats a missing ``trace_q75`` as out.
     """
-    peaks = zs.max(axis=1)
+    if measurable is None:
+        measurable = np.ones(zs.shape[0], dtype=bool)
+    dropped = int(zs.shape[0] - int(measurable.sum()))
+    if not measurable.any():
+        return None
+    peaks = zs[measurable].max(axis=1)
     return {
         "trace_q75": float(np.percentile(peaks, TRACE_PERCENTILE)),
         "trace_median": float(np.median(peaks)),
         "trace_max": float(peaks.max()),
         "n_rows": int(peaks.size),
+        "n_rows_unmeasurable": dropped,
     }
 
 
@@ -309,6 +357,34 @@ def examine(
         return record | {"status": f"physics_{phys.degraded}", "verdict": "UNRESOLVED"}
     duration_s = phys.pass_duration_s or 200.0
 
+    # The orbit before the image. ``verdict_from_scores`` returns UNRESOLVED whenever the
+    # predicted swing is under the floor, whatever the matched filter says, so an
+    # observation that fails here cannot reach either pool and the axis OCR on it would
+    # be paid for and discarded. Same rule and same outcome, an order of magnitude less
+    # work across a snapshot where most passes are too short or too low to be told apart.
+    try:
+        curve_fracs, curve_hz, els = compute_doppler_curve(obs)
+    except Exception as exc:  # noqa: BLE001
+        return record | {"status": f"physics_failed: {exc}", "verdict": "UNRESOLVED"}
+    swing = predicted_swing_hz(curve_hz)
+    record["predicted_swing_hz"] = swing
+    record["sgp4_max_elevation_deg"] = max(els) if els else None
+    if swing < MIN_PREDICTED_SWING_HZ:
+        # Not "ok": this returns before `parse_waterfall`, so the image is never opened.
+        # Calling it ok put observations into `counts.measurable` that nothing measured.
+        # `in_pool_b` carries the same swing floor, so these are out at every threshold
+        # and the short circuit costs the pool nothing.
+        return record | {
+            "status": "swing_below_floor",
+            "verdict": "UNRESOLVED",
+            "reason": (
+                f"predicted swing is only {swing:,.0f} Hz, too small to tell the two "
+                f"shapes apart"
+            ),
+            "pool_a": False,
+            "pool_b": False,
+        }
+
     try:
         geom = parse_waterfall(
             image_data=img.read_bytes(),
@@ -328,25 +404,32 @@ def examine(
         "pass_duration_s": duration_s,
     }
 
-    try:
-        curve_fracs, curve_hz, els = compute_doppler_curve(obs)
-    except Exception as exc:  # noqa: BLE001
-        return record | {"status": f"physics_failed: {exc}", "verdict": "UNRESOLVED"}
-    record["sgp4_max_elevation_deg"] = max(els) if els else None
-
     from PIL import Image
 
     with Image.open(img) as im:
         rgb = np.asarray(im.convert("RGB"))
-    zs = _normalised_rows(rgb, geom.crop_box)
+    zs, measurable = _normalised_rows(rgb, geom.crop_box)
 
     # Corridor-free first, and recorded for every observation whether it is selected or
     # not, so the pool rule can be re-run at another threshold from this file alone.
-    record |= trace_presence(zs)
+    presence = trace_presence(zs, measurable)
+    if presence is None:
+        # Every row in the crop is flat. There is nothing in this image for a trace to
+        # be present or absent in, so the statistic is refused rather than returned low,
+        # and it carries a status like every other refusal above. `_recut` keys on
+        # status == "ok", so this stays out of the pool at any threshold.
+        return record | {
+            "status": "no_measurable_rows",
+            "verdict": "UNRESOLVED",
+            "reason": "no row in the crop has the spread to carry a z-score",
+            "n_rows_unmeasurable": int(zs.shape[0]),
+            "pool_a": False,
+            "pool_b": False,
+        }
+    record |= presence
 
     centre = geom.centre_px if geom.centre_px is not None else geom.crop_box.width() / 2.0
     scores = matched_filter(zs, centre, geom.hz_per_px, curve_fracs, curve_hz)
-    swing = predicted_swing_hz(curve_hz)
     verdict, reason, summary = verdict_from_scores(scores, swing)
     summary.pop("per_width", None)
     record |= summary
@@ -356,6 +439,61 @@ def examine(
     record["pool_a"] = verdict == "UNCORRECTED"
     record["pool_b"] = in_pool_b(record, trace_q75_min)
     return record
+
+
+#: Set once per worker process so every task does not re-resolve it.
+_WORKER_STATE: dict[str, Any] = {}
+
+
+def _examine_one(task: tuple[dict[str, Any], str, float]) -> dict[str, Any]:
+    """One observation, in a worker process. Never raises: a crash here loses the pass.
+
+    An exception inside a pool worker kills the task and, depending on how it is
+    surfaced, the run. A failure is a record with a status like every other refusal, so
+    the denominator survives whatever one bad image does.
+    """
+    obs, snapshot, bar = task
+    try:
+        return examine(obs, Path(snapshot), bar)
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "obs_id": obs.get("id"),
+            "status": f"worker_failed: {type(exc).__name__}: {exc}",
+            "verdict": "UNRESOLVED",
+            "pool_a": False,
+            "pool_b": False,
+        }
+
+
+def _partial_path(out: Path) -> Path:
+    """Where finished records land as they are produced.
+
+    JSON Lines rather than JSON, because a list has to be closed to be valid and a run
+    that dies mid-write should still leave every completed record readable.
+    """
+    return out.with_suffix(out.suffix + ".partial.jsonl")
+
+
+def _resume(partial: Path) -> dict[int, dict[str, Any]]:
+    """Whatever a previous run finished, keyed by observation id.
+
+    A truncated final line is dropped rather than repaired: the observation it belongs to
+    is simply re-examined.
+    """
+    done: dict[int, dict[str, Any]] = {}
+    if not partial.is_file():
+        return done
+    for line in partial.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(row, dict) and row.get("obs_id") is not None:
+            done[int(row["obs_id"])] = row
+    return done
 
 
 def _recut(path: Path, trace_q75_min: float) -> int:
@@ -416,6 +554,24 @@ def main(argv: list[str] | None = None) -> int:
             "This is how the verdict's sensitivity to the presence bar is produced"
         ),
     )
+    ap.add_argument(
+        "--jobs",
+        type=int,
+        default=8,
+        help=(
+            "worker processes. The per-observation work is pure CPU over one image, so "
+            "it parallelises exactly. 1 runs in this process, which is what a debugger "
+            "wants"
+        ),
+    )
+    ap.add_argument(
+        "--fresh",
+        action="store_true",
+        help=(
+            "delete the partial file first. Without this a run resumes from whatever a "
+            "previous one finished, which is the point of the partial file"
+        ),
+    )
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 
@@ -432,11 +588,41 @@ def main(argv: list[str] | None = None) -> int:
         observations = observations[: args.limit]
     logger.info("snapshot records: %d", len(observations))
 
-    records: list[dict[str, Any]] = []
-    for i, obs in enumerate(observations, 1):
-        records.append(examine(obs, args.snapshot, args.trace_q75_min))
-        if i % 100 == 0:
-            logger.info("  %d/%d examined", i, len(observations))
+    partial = _partial_path(args.out)
+    if args.fresh and partial.exists():
+        partial.unlink()
+    done = _resume(partial)
+    if done:
+        logger.info("resuming: %d records already on disk in %s", len(done), partial.name)
+
+    todo = [obs for obs in observations if int(obs["id"]) not in done]
+    logger.info("to examine: %d", len(todo))
+
+    if todo:
+        tasks = [(obs, str(args.snapshot), args.trace_q75_min) for obs in todo]
+        with partial.open("a", encoding="utf-8", newline=NEWLINE) as sink:
+            if args.jobs == 1:
+                produced = (_examine_one(task) for task in tasks)
+                for i, row in enumerate(produced, 1):
+                    sink.write(json.dumps(row) + NEWLINE)
+                    sink.flush()
+                    done[int(row["obs_id"])] = row
+                    if i % 100 == 0:
+                        logger.info("  %d/%d examined", i, len(tasks))
+            else:
+                with ProcessPoolExecutor(max_workers=args.jobs) as pool:
+                    for i, row in enumerate(
+                        pool.map(_examine_one, tasks, chunksize=4), 1
+                    ):
+                        sink.write(json.dumps(row) + NEWLINE)
+                        sink.flush()
+                        done[int(row["obs_id"])] = row
+                        if i % 100 == 0:
+                            logger.info("  %d/%d examined", i, len(tasks))
+
+    # Snapshot order, not completion order, so two runs that split the work differently
+    # still produce byte-identical output.
+    records = [done[int(obs["id"])] for obs in observations if int(obs["id"]) in done]
 
     ok = [r for r in records if r.get("status") == "ok"]
     pool_a = [r for r in ok if r.get("pool_a")]
