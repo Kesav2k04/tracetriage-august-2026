@@ -141,14 +141,14 @@
      images. Hue 262 is nearly opposite that ramp on the hue circle and far from the
      crimson the failed verdict owns, so gold on it reads as emission against a void
      rather than as amber on mud, and the one hue with a job keeps it. */
-  --ui-background: #050d21;  /* Carbon #161616, L 0.165 C 0.044 */
-  --ui-01: #1b2434;          /* Carbon #262626, L 0.260 C 0.033 */
-  --ui-02: #313845;          /* Carbon #393939, L 0.340 C 0.025 */
-  --ui-03: #313845;          /* Carbon #393939, L 0.340 C 0.025 */
-  --ui-04: #6c7077;          /* Carbon #6f6f6f, L 0.545 C 0.012 */
-  --ui-05: #f1f2f3;          /* Carbon #f4f4f4, L 0.960 C 0.002 */
-  --field-01: #1b2434;       /* Carbon #262626, L 0.260 C 0.033 */
-  --hover-ui: #2b3342;       /* Carbon #353535, L 0.320 C 0.029 */
+  --ui-background: #0c0e12;  /* Carbon #161616, L 0.165 C 0.0090 */
+  --ui-01: #1e242f;          /* Carbon #262626, L 0.260 C 0.0220 */
+  --ui-02: #313845;          /* Carbon #393939, L 0.340 C 0.0250 */
+  --ui-03: #313845;          /* Carbon #393939, L 0.340 C 0.0250 */
+  --ui-04: #6c7077;          /* Carbon #6f6f6f, L 0.545 C 0.0120 */
+  --ui-05: #f1f2f3;          /* Carbon #f4f4f4, L 0.960 C 0.0020 */
+  --field-01: #1e242f;       /* Carbon #262626, L 0.260 C 0.0220 */
+  --hover-ui: #2d333d;       /* Carbon #353535, L 0.320 C 0.0200 */
 
   /* Elevation, which the ramp above does not carry.
      A console with one ground and one tile has two planes and reads flat no matter
@@ -158,9 +158,9 @@
      stated lightness in `scripts/derive_palette.py`, so elevation moves with the
      palette rather than drifting away from it the first time somebody picks a
      slightly nicer grey for a card. */
-  --surface-raised: #121c2e;  /* L 0.225 C 0.038 */
-  --surface-sunken: #02081c;  /* L 0.140 C 0.046 */
-  --edge-highlight: #444d5e;  /* L 0.420 C 0.030 */
+  --surface-raised: #161c26;  /* L 0.225 C 0.0220 */
+  --surface-sunken: #07090e;  /* L 0.140 C 0.0110 */
+  --edge-highlight: #444d5e;  /* L 0.420 C 0.0300 */
 
   /* Text.
      One deliberate departure from Carbon's naming, unchanged by the re-tint.
@@ -174,12 +174,12 @@
 
      --text-04 is the one neutral left at zero chroma. It is pure white because
      it is the strongest ink on the page and a tinted white is a dimmer white. */
-  --text-01: #f1f2f3;         /* Carbon #f4f4f4, L 0.960 C 0.002 */
-  --text-02: #c3c4c7;         /* Carbon #c6c6c6, L 0.820 C 0.004 */
-  --text-03: #888b90;         /* Carbon #8d8d8d Gray 50, L 0.635 C 0.008 */
+  --text-01: #f1f2f3;         /* Carbon #f4f4f4, L 0.960 C 0.0020 */
+  --text-02: #c3c4c7;         /* Carbon #c6c6c6, L 0.820 C 0.0040 */
+  --text-03: #888b90;         /* Carbon #8d8d8d Gray 50, L 0.635 C 0.0080 */
   --text-04: #ffffff;
   --text-05: #888b90;
-  --text-placeholder: #6c7077; /* Carbon #6f6f6f, L 0.545 C 0.012 */
+  --text-placeholder: #6c7077; /* Carbon #6f6f6f, L 0.545 C 0.0120 */
 
   /* The ground behind a waterfall. True black rather than the theme's near-black:
      the image is a measured intensity map, and letting the blue ground show
@@ -277,8 +277,8 @@
   --dur-slow-01: 400ms;
   --dur-slow-02: 700ms;
 
-  --border-subtle: #313845;  /* Carbon #393939, L 0.340 C 0.025 */
-  --border-strong: #6c7077;  /* Carbon #6f6f6f, L 0.545 C 0.012 */
+  --border-subtle: #313845;  /* Carbon #393939, L 0.340 C 0.0250 */
+  --border-strong: #6c7077;  /* Carbon #6f6f6f, L 0.545 C 0.0120 */
   --focus: #ffffff;
 
   /* The one hue on this page that is not a sample off the intensity ramp.

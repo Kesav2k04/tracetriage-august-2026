@@ -10,12 +10,12 @@
 
 export const token = {
   // Ground and plates
-  uiBackground: "#050d21", // --ui-background
-  ui01: "#1b2434", // --ui-01
+  uiBackground: "#0c0e12", // --ui-background
+  ui01: "#1e242f", // --ui-01
   ui02: "#313845", // --ui-02
   ui04: "#6c7077", // --ui-04
-  surfaceRaised: "#121c2e", // --surface-raised
-  surfaceSunken: "#02081c", // --surface-sunken
+  surfaceRaised: "#161c26", // --surface-raised
+  surfaceSunken: "#07090e", // --surface-sunken
   edgeHighlight: "#444d5e", // --edge-highlight
 
   // Ink
