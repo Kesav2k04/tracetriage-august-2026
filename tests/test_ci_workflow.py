@@ -120,3 +120,41 @@ def test_the_offline_gate_still_runs_on_every_commit(workflow, triggers):
             f"the presentation claim tests are the standing gates and they run on every "
             f"commit."
         )
+
+
+def test_ci_runs_the_node_the_deploy_runs(workflow):
+    """A green typecheck on a runtime nobody ships on is evidence about nothing.
+
+    Vercel builds `apps/web` and picks its Node major from that package's `engines.node`,
+    falling back to the project setting in the dashboard. CI pinned 20 while the deploy
+    ran 24, so the console was type-checked, built and unit-tested on one major and served
+    from another. That is the shape of gap that produces a build failure whose first
+    reader is a judge.
+
+    The pin lives in `apps/web/package.json` rather than here, because that is the file
+    Vercel reads. This test only asserts the two agree.
+    """
+    import json
+
+    engines = json.loads(
+        (REPO / "apps" / "web" / "package.json").read_text(encoding="utf-8")
+    ).get("engines", {})
+    declared = engines.get("node")
+    assert declared, (
+        "apps/web/package.json has no engines.node, so the Node major the deploy builds "
+        "on is a dashboard setting nothing in this repository records"
+    )
+    major = declared.split(".")[0].lstrip(">=^~ ")
+
+    pins = [
+        step["with"]["node-version"]
+        for job in workflow["jobs"].values()
+        for step in job["steps"]
+        if str(step.get("uses", "")).startswith("actions/setup-node")
+    ]
+    assert pins, "no job sets up Node, so nothing here type-checks the console"
+    for pin in pins:
+        assert str(pin).split(".")[0] == major, (
+            f"CI sets up Node {pin} and apps/web/package.json pins {declared}, so a "
+            "green run is not evidence about the runtime Vercel builds on"
+        )
