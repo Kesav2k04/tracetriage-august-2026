@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-22T15:28:29+05:30",
- "commit": "c5d9e7d6a83e12ecda6149345d1084a6b5f07a00",
- "tracked_files": 440,
- "tracked_bytes": 43956440,
- "tracked_megabytes": 41.92,
+ "measured_at_commit_date": "2026-08-22T21:51:50+05:30",
+ "commit": "6e6c6803f2d761398af21894fe8e2765f9f70877",
+ "tracked_files": 452,
+ "tracked_bytes": 46215402,
+ "tracked_megabytes": 44.07,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,7 +13,7 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 7.82
+   "megabytes": 6.83
   },
   {
    "path": "presentation/out",
@@ -22,6 +22,10 @@
   {
    "path": "tests/fixtures",
    "megabytes": 4.23
+  },
+  {
+   "path": "artifacts/GATE3_POOL.json",
+   "megabytes": 2.89
   },
   {
    "path": "artifacts/DATASET_MANIFEST.json",
@@ -37,7 +41,7 @@
   },
   {
    "path": "docs/BOB_BUILD_LOG.md",
-   "megabytes": 0.49
+   "megabytes": 0.5
   },
   {
    "path": "artifacts/SECOND_TRACE_SURVEY.json",
@@ -62,16 +66,12 @@
   {
    "path": "presentation/package-lock.json",
    "megabytes": 0.14
-  },
-  {
-   "path": "presentation/src",
-   "megabytes": 0.09
   }
  ],
  "by_directory_remainder": {
-  "groups": 206,
-  "bytes": 3570475,
-  "megabytes": 3.41,
+  "groups": 218,
+  "bytes": 3919957,
+  "megabytes": 3.74,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
@@ -80,12 +80,12 @@
    "megabytes": 4.459
   },
   {
-   "path": "artifacts/DATASET_MANIFEST.json",
-   "megabytes": 2.202
+   "path": "artifacts/GATE3_POOL.json",
+   "megabytes": 2.886
   },
   {
-   "path": "apps/web/public/media/gate4-explainer.mp4",
-   "megabytes": 2.037
+   "path": "artifacts/DATASET_MANIFEST.json",
+   "megabytes": 2.202
   },
   {
    "path": "tests/fixtures/waterfall_836px_client_v2.3.png",
@@ -98,6 +98,10 @@
   {
    "path": "apps/web/public/media/corridor-explainer.mp4",
    "megabytes": 1.566
+  },
+  {
+   "path": "apps/web/public/media/gate4-explainer.mp4",
+   "megabytes": 1.047
   },
   {
    "path": "artifacts/a3_overlays/overlay_14737186.png",
@@ -130,10 +134,6 @@
   {
    "path": "artifacts/a3_overlays/overlay_14746049.png",
    "megabytes": 0.733
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14745839.png",
-   "megabytes": 0.733
   }
  ],
  "proposals": [
@@ -147,9 +147,16 @@
   {
    "path": "tests/fixtures/",
    "files": 7,
-   "bytes": 4430931,
+   "bytes": 4440306,
    "megabytes": 4.23,
    "keep_because": "inputs the offline suite needs. Removing any of it breaks the clean-clone claim."
+  },
+  {
+   "path": "artifacts/GATE3_POOL.json",
+   "files": 1,
+   "bytes": 3026583,
+   "megabytes": 2.89,
+   "keep_because": "every observation in the snapshot with its own corridor-free `trace_q75`, selected or not. docs/E16_PREREGISTRATION.md promises this file by name: it is what lets a reader recut gate 3's pool at a different presence bar and check the published verdict against their own. Dropping it turns the pre-registration's main mitigation into a sentence nobody can run."
   },
   {
    "path": "apps/web/public/waterfalls/",
@@ -168,7 +175,7 @@
   {
    "path": "presentation/out/",
    "files": 2,
-   "bytes": 4947045,
+   "bytes": 4946894,
    "megabytes": 4.72,
    "keep_because": "the rendered film and its poster, 118 seconds at 1920x1080. The source beside it reads its figures from the receipts rather than restating them, so the mp4 is reproducible from this tree; it is kept because a reader who watches it should not first have to install a renderer, and because an mp4 is the one artifact here that no diff can check after the fact."
   }

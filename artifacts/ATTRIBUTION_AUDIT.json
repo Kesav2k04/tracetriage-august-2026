@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-22T15:28:29+05:30",
- "commit": "c5d9e7d6a83e12ecda6149345d1084a6b5f07a00",
+ "measured_at_commit_date": "2026-08-22T21:51:50+05:30",
+ "commit": "6e6c6803f2d761398af21894fe8e2765f9f70877",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -61,7 +61,7 @@
   },
   {
    "file": "apps/web/public/media/gate4-explainer-poster.jpg",
-   "bytes": 46436,
+   "bytes": 26553,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
@@ -73,7 +73,7 @@
   },
   {
    "file": "apps/web/public/media/gate4-explainer.mp4",
-   "bytes": 2136109,
+   "bytes": 1097672,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
@@ -1885,7 +1885,7 @@
   },
   {
    "file": "presentation/out/tracetriage-film.mp4",
-   "bytes": 4675644,
+   "bytes": 4675493,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": null,

@@ -230,7 +230,7 @@ frozen into a committed fixture so the publisher needs no model and no network a
 MCP server imports nothing outside the standard library and is tested with site-packages
 switched off.
 
-The repository is 41.92 MB across 440 tracked files as of commit `c5d9e7d`,
+The repository is 44.07 MB across 452 tracked files as of commit `6e6c680`,
 `artifacts/SECRET_SCAN.json` reports 0 credential-shaped values across the history it
 scanned, and the console is a static export, so hosting it costs nothing.
 
