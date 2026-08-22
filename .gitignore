@@ -115,3 +115,4 @@ docs/WAVE_D_PROMPT.md
 # The assembled receipt beside it is what gets committed.
 artifacts/*.partial.jsonl
 .bob/SESSION_STATE.md
+.bob/AGY_PROPOSAL_ASSESSMENT.md

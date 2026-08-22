@@ -50,6 +50,10 @@ MAX_BUDGET = 25
 # measurement recorded. The long form lives in `live._NOT_TESTED_READING`; this is the
 # terminal's version of it.
 _NO_P_VALUE = {
+    "no_measurable_rows": (
+        "every visible row of this capture is flat, so there is no spread to express a "
+        "sigma in. Nothing was measured, which is not the same as measuring nothing"
+    ),
     "flat_corridor": (
         "the station corrected this capture, so the corridor is flat and permuting it "
         "reproduces it. The offset still stands"

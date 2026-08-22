@@ -302,11 +302,12 @@ def test_the_offset_in_pixels_does_not_depend_on_which_reader_read_the_axis(a3_r
 
 
 def test_every_way_the_null_test_can_not_run_names_itself():
-    """Zero nulls has five causes and they do not carry the same weight.
+    """Zero nulls has six causes and they do not carry the same weight.
 
-    Two are refusals the method makes on purpose (a corrected capture has no shape to
+    Three are refusals the method makes on purpose (a corrected capture has no shape to
     scramble; a grazing pass swings too little for a permutation to differ from the
-    truth) and three are failures to measure. A caller that sees only `n: 0` cannot
+    truth; a capture whose visible rows are all flat has no spread to express a sigma in)
+    and three are failures to measure. A caller that sees only `n: 0` cannot
     tell a refusal from a breakage, and could quote a sigma with no p-value and no
     reason for its absence. So every branch that returns zero nulls sets a reason, and
     both places that turn a reason into prose cover all of them.
@@ -319,8 +320,8 @@ def test_every_way_the_null_test_can_not_run_names_itself():
     ).read_text(encoding="utf-8")
     body = src.split("def calibrate_against_nulls", 1)[1]
     reasons = set(re.findall(r'_empty\((?:[^,]+),\s*"([a-z_]+)"\)', body))
-    assert len(reasons) == 4, (
-        f"expected four distinct reasons inside calibrate_against_nulls, found "
+    assert len(reasons) == 5, (
+        f"expected five distinct reasons inside calibrate_against_nulls, found "
         f"{sorted(reasons)}. A new branch that returns zero nulls without a reason "
         f"puts a caller back to guessing from n == 0."
     )

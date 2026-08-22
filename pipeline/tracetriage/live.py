@@ -100,6 +100,14 @@ class LiveRefusal(Exception):
 # failures to measure. Folding them together would let a caller read a refusal as a
 # breakage, or quote a sigma with no p-value and no reason for its absence.
 _NOT_TESTED_READING = {
+    "no_measurable_rows": (
+        "A failure to measure, and a failure of the capture rather than of the method. "
+        "Every row inside the corridor's visible window is flat: the receiver produced a "
+        "constant value across the whole band for that stretch of the pass, so there is "
+        "no spread left for a sigma to be expressed in. Read it as no measurement, not "
+        "as a low one, and as a data-quality finding about this capture rather than "
+        "anything about the satellite."
+    ),
     "flat_corridor": (
         "No null test is possible here and none is missing. The station "
         "Doppler-corrected this capture, so the predicted corridor is 0 Hz across the "
