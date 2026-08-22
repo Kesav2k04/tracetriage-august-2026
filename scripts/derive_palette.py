@@ -60,17 +60,24 @@ NEUTRALS: tuple[tuple[str, str, float, float, str], ...] = (
         "ui-background",
         "#161616",
         0.1650,
-        0.0440,
+        0.0090,
         "the page ground, taken below Carbon's 0.200 on purpose: a darker ground "
-        "raises every ratio measured against it, and the void is where the cast lives",
+        "raises every ratio measured against it. The chroma was 0.0440 and the note "
+        "here used to read 'the void is where the cast lives'. That rule was wrong "
+        "for this subject. At 0.0440 and hue 262 the ground resolves to #050d21, "
+        "which is navy, and the page it grounds is about the sky between passes. "
+        "Sky is black. Dropping it to 0.0090 gives #0c0e12 and moves the ratio "
+        "against body ink from 17.25:1 to 17.23:1, which is rounding, so the cast "
+        "was costing the one thing it could not buy back: the accents and the "
+        "observation field now sit on black instead of competing with a blue",
     ),
-    ("ui-01", "#262626", 0.2600, 0.0330, "a tile"),
+    ("ui-01", "#262626", 0.2600, 0.0220, "a tile, lifted off a black ground by its cast"),
     ("ui-02", "#393939", 0.3400, 0.0250, "a raised surface and a rule"),
     ("ui-03", "#393939", 0.3400, 0.0250, "a rule, same step as ui-02 in Carbon"),
     ("ui-04", "#6f6f6f", 0.5450, 0.0120, "a component boundary"),
     ("ui-05", "#f4f4f4", 0.9600, 0.0020, "the inverse surface"),
-    ("field-01", "#262626", 0.2600, 0.0330, "an input field, Carbon's tile step"),
-    ("hover-ui", "#353535", 0.3200, 0.0290, "hover on a tile"),
+    ("field-01", "#262626", 0.2600, 0.0220, "an input field, Carbon's tile step"),
+    ("hover-ui", "#353535", 0.3200, 0.0200, "hover on a tile"),
     ("text-01", "#f4f4f4", 0.9600, 0.0020, "body ink"),
     ("text-02", "#c6c6c6", 0.8200, 0.0040, "secondary prose"),
     (
@@ -96,8 +103,9 @@ NEUTRALS: tuple[tuple[str, str, float, float, str], ...] = (
 #: light along its top edge. Both are derived from the ramp rather than picked, so the
 #: elevation system moves with the palette instead of drifting away from it.
 ELEVATION: tuple[tuple[str, float, float, str], ...] = (
-    ("surface-raised", 0.2250, 0.0380, "a floating panel over the ground"),
-    ("surface-sunken", 0.1400, 0.0460, "a well: a plot ground or a code block"),
+    ("surface-raised", 0.2250, 0.0220, "a floating panel over the ground"),
+    ("surface-sunken", 0.1400, 0.0110, "a well: a plot ground or a code block, and part "
+     "of the void rather than a plane above it, so it goes as achromatic as the ground"),
     ("edge-highlight", 0.4200, 0.0300, "the lit top edge of a raised panel"),
 )
 
