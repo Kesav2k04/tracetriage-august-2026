@@ -31,9 +31,9 @@ orderings the queue has to beat, and the provenance of each number.
 **Judges start here: <https://tracetriage.vercel.app/start/>**, or
 [`FOR_JUDGES.md`](FOR_JUDGES.md) if you would rather read it in the repository. Both map
 each judged criterion to the thing that carries it and both are generated from the
-receipts, so neither can drift from them. The page exists because the June 2026 judges did
-not clone the repository: they opened the deployed console, and the document written for
-them was on the other side of a step they do not take.
+receipts, so neither can drift from them. The page exists because the console is the
+artifact most readers open, and a document that lives only in the repository sits behind a
+step many of them never take.
 
 **A presentation film ships with the repository.**
 [`presentation/out/tracetriage-film.mp4`](presentation/out/tracetriage-film.mp4) is a silent
@@ -327,7 +327,6 @@ IBM Bob is the primary development tool for this project and builds every load-b
 Bob's work is recorded, not asserted:
 
 - `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures and repairs, with actual build credit consumption
-- `docs/BOB_HANDOFF.md` carries exact state across trial-account rotations
 - `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool contracts and MCP wiring each Bob task ran under, tracked so the conditions of the work are readable and not just its output. The specification separates the five tools that exist from the five that were specified and were not, naming for each of those the script that did its job instead, and a test fails if the registration ever points at a server that is not there
 - exported task transcripts are **not included**. An earlier draft of this section said they were, pointing at a directory that held nothing but a placeholder file, which git does not publish at all. The directory is gone and the build log is the record; a test now fails if this file names a path that is missing or empty
 - a final Bob task inspects the release commit, runs the acceptance suite, repairs failures

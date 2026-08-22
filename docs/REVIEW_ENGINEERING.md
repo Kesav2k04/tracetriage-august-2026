@@ -19,9 +19,18 @@ test can fail. Analysis began at 7fbb980 and every finding below was re-verified
 four commits landed mid-review; where a commit changed a file a finding lives in, the re-verification
 is quoted. `git status` is clean apart from this file.
 
+> **What happened to these findings.** This is an adversarial pre-ship review. It was
+> commissioned to find defects, so every line below is something that was wrong at the
+> commit named above, not something that is wrong now. The work that answers them runs
+> in `docs/BOB_BUILD_LOG.md` from Wave D (2026-08-19) onward, under the identifiers the
+> log assigns. This file is the list of what was found; the build log is what was done
+> about it.
+
 ## Findings
 
-Three BLOCKING, ten SERIOUS, thirteen MINOR.
+Three BLOCKING, eleven SERIOUS, thirteen MINOR. The reviewer's summary line said ten
+SERIOUS and the file carries eleven; the count here is what `grep -c` returns over the
+headings, and the discrepancy is logged in `docs/CLAIM_REGISTER.md` under C7h.
 
 ### [BLOCKING] A missing corridor fit is published as a measured zero offset
 
