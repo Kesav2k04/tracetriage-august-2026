@@ -3,7 +3,7 @@
  "schema_version": "0.3.0",
  "contract": "contracts/queue_receipt.schema.json",
  "unit": "C2",
- "generated_at": "2026-08-21T22:37:23.949453+00:00",
+ "generated_at": "2026-08-22T04:07:16.672666+00:00",
  "seed": 42,
  "snapshot_id": "snap-20260817-stage1",
  "split_manifest_sha256": "c0f8cd3a5dd5fbf9b6d49beacc5c050e1cf2525daca210945a6fba80226873c9",
@@ -64,8 +64,8 @@
   "fixed_before_measuring": true,
   "caveats": [
    "MODEL_LABEL_DISAGREE uses all decisively-labelled observations, not only single-vetted ones. The SatNOGS waterfall_status_user field is present in the snapshot but the single-vetter count per observation is not stored; restricting to single-vetted records would require a second API call not made at snapshot time.",
-   "DOPPLER_UNCORRECTED_OUTLIER is not included as a criterion. A3 identified only 3 UNCORRECTED observations (out of 24 vetted); applying the criterion to the remaining corpus would be a guess. It is named in QUEUE_REASONS and listed as NOT_APPLICABLE in the per-split state because the data do not support it.",
-   "Corridor features are unavailable for 18 observations (4 NO_IMAGE + 14 PHYSICS_STALE_TLE). Those observations score 0 on the offset and flat-row signals and rank on disagreement alone."
+   "An uncorrected-Doppler outlier is not one of the criteria. The survey of correction status found only 3 uncorrected captures among the 24 it could vet, so applying the rule to the rest of the corpus would be a guess. The criterion keeps its name in the reason list and every split records it as not applicable, because saying the data do not support it is not the same as leaving it out.",
+   "Corridor features are unavailable for 18 observations: 4 have no waterfall image and 14 have orbital elements too stale to propagate. Those score zero on the offset and flat-row signals and rank on model disagreement alone."
   ]
  },
  "review_budget": {
@@ -8102,7 +8102,7 @@
         -1.0,
         13.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -8119,7 +8119,7 @@
         -4.0,
         4.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "not_established",
@@ -8648,7 +8648,7 @@
         -1.0,
         19.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       }
      },
      "n_baselines": 4,
@@ -9145,7 +9145,7 @@
         -10.0,
         14.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "queue_better",
@@ -9626,7 +9626,7 @@
         -3.0,
         10.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "image_uncertainty": {
        "claim": "not_established",
@@ -9660,7 +9660,7 @@
         -2.0,
         6.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "queue_better",

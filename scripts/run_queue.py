@@ -957,16 +957,18 @@ def main() -> None:
                     "would require a second API call not made at snapshot time."
                 ),
                 (
-                    "DOPPLER_UNCORRECTED_OUTLIER is not included as a criterion. "
-                    "A3 identified only 3 UNCORRECTED observations (out of 24 vetted); "
-                    "applying the criterion to the remaining corpus would be a guess. "
-                    "It is named in QUEUE_REASONS and listed as NOT_APPLICABLE in the "
-                    "per-split state because the data do not support it."
+                    "An uncorrected-Doppler outlier is not one of the criteria. "
+                    "The survey of correction status found only 3 uncorrected captures "
+                    "among the 24 it could vet, so applying the rule to the rest of the "
+                    "corpus would be a guess. The criterion keeps its name in the reason "
+                    "list and every split records it as not applicable, because saying "
+                    "the data do not support it is not the same as leaving it out."
                 ),
                 (
-                    "Corridor features are unavailable for 18 observations "
-                    "(4 NO_IMAGE + 14 PHYSICS_STALE_TLE). Those observations score 0 "
-                    "on the offset and flat-row signals and rank on disagreement alone."
+                    "Corridor features are unavailable for 18 observations: 4 have "
+                    "no waterfall image and 14 have orbital elements too stale to "
+                    "propagate. Those score zero on the offset and flat-row signals and "
+                    "rank on model disagreement alone."
                 ),
             ],
         },

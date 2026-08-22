@@ -474,7 +474,7 @@
         -1.0,
         13.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it did better. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "offset_magnitude": {
        "claim": "not_established",
@@ -491,7 +491,7 @@
         -4.0,
         4.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "not_established",
@@ -1020,7 +1020,7 @@
         -1.0,
         19.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       }
      },
      "n_baselines": 4,
@@ -1517,7 +1517,7 @@
         -10.0,
         14.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "queue_better",
@@ -1998,7 +1998,7 @@
         -3.0,
         10.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "image_uncertainty": {
        "claim": "not_established",
@@ -2032,7 +2032,7 @@
         -2.0,
         6.0
        ],
-       "reason": "Not claimed. Grouped by pass episode the queue came back indistinguishable; grouped by ground station it came back indistinguishable. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
+       "reason": "Not claimed. Grouped by pass episode the queue was not separated from the baseline; grouped by ground station it was not separated from the baseline. Neither survives the multiplicity correction, and a comparison is claimed only when both groupings survive it and agree."
       },
       "physics_only": {
        "claim": "queue_better",
@@ -2378,7 +2378,7 @@
    "reading": "0 of 2000 random orderings of the same population found as many conflicts inside the budget as the shipped queue did, so a permutation p-value of 0.0005, which is the smallest this test can report at 2000 permutations. The mean of the same 2000 lifts is 0.9992 against an expected 1.0, which is the floor check: every number in this file is produced by the function that returned it."
   },
   "what_this_does_not_establish": "That the queue generalises. Restricting the target to the criteria the model does not enter removes one loop and leaves another: on this corpus that restriction reduces to STALE_CATALOGUE_FREQ alone, whose defining quantity the score weights at 0.35. The other model-independent criterion, DEAD_CAPTURE, fires on nothing in this corpus, so a reader following its 0.15 weight is following a loop that does not exist in the data. The honest reading is that this measurement is a check on internal consistency and on the size of the space the gate was set in, not an independent test of the ranking.",
-  "receipt_sha256": "077f6afa4601452e56c817c3519003f13ff0fec1faeb79f3308cac230068a946"
+  "receipt_sha256": "8e6f893a005e3bcc474f852ca27aa4a70ae0d3df397dd474215e8a7d039de83e"
  },
  "gate5": {
   "gate": 5,
@@ -9879,11 +9879,11 @@
    "protocol_change_mid_study": "The orientation note wrapped around the three questions was worded three ways, and the first way was wrong. Blocks 1 to 6 were told time runs down the vertical axis. Block 6 reported that its plates label time as increasing upward, so block 7 was given a direction-agnostic note (one axis is time, the other frequency, the labels say which) and was asked to read the axis furniture; it reported frequency across and time running bottom to top, earliest at the bottom. Blocks 8 to 12 were given that, stated correctly. This is recorded because it happened mid-study, not because it can change an answer: a drifting trace drifts under a vertical flip, and neither a constant-frequency carrier nor a full-width instantaneous band changes class under one. It does invert the apparent sense of the drift, which two blocks noticed and neither scored on. The published protocol in worksheet.md states no orientation at all, so the instrument was not wrong; the note around it was."
   },
   "gate_verdict_is_not_this": "NOT_RUN",
-  "why_the_gate_is_still_open": "the review was carried out and not by a person: Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.. Gate 4 is titled blinded human decidability, so this does not meet it. The review and every number from it are in `arm` below."
+  "why_the_gate_is_still_open": "the review was carried out, and not by a person: Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob. Gate 4 is titled blinded human decidability, so this does not meet it. The review and every number from it are in `arm` below."
  },
  "receipt_sha256": {
-  "queue": "26ec58e5e7f9a05bec7836ac4fa8c898de19a102e3260628c423bff49f62bc36",
+  "queue": "4204193634349fa8c40242078fe60f80d26e79b322a9da5d43b6652252307c0f",
   "fusion": "7f89b40365600d9847ff220b88feff0f2184f2988ba93d20b63bc80ac07278b0",
-  "gate4": "64337babc7c5ed2eb1c45de40510859e1ca95e2aa9e68ade040bdce4627ab331"
+  "gate4": "1e3492b559b4bebd417316a244155b96c7b6beb5dbda4248d092fb236d3c1c02"
  }
 }
