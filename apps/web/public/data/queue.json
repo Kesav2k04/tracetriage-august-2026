@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-21T22:37:23.949453+00:00",
+ "generated_at": "2026-08-22T04:07:16.672666+00:00",
  "seed": 42,
  "review_budget": {
   "n_observations": 50,
@@ -62,8 +62,8 @@
   "fixed_before_measuring": true,
   "caveats": [
    "MODEL_LABEL_DISAGREE uses all decisively-labelled observations, not only single-vetted ones. The SatNOGS waterfall_status_user field is present in the snapshot but the single-vetter count per observation is not stored; restricting to single-vetted records would require a second API call not made at snapshot time.",
-   "DOPPLER_UNCORRECTED_OUTLIER is not included as a criterion. A3 identified only 3 UNCORRECTED observations (out of 24 vetted); applying the criterion to the remaining corpus would be a guess. It is named in QUEUE_REASONS and listed as NOT_APPLICABLE in the per-split state because the data do not support it.",
-   "Corridor features are unavailable for 18 observations (4 NO_IMAGE + 14 PHYSICS_STALE_TLE). Those observations score 0 on the offset and flat-row signals and rank on disagreement alone."
+   "An uncorrected-Doppler outlier is not one of the criteria. The survey of correction status found only 3 uncorrected captures among the 24 it could vet, so applying the rule to the rest of the corpus would be a guess. The criterion keeps its name in the reason list and every split records it as not applicable, because saying the data do not support it is not the same as leaving it out.",
+   "Corridor features are unavailable for 18 observations: 4 have no waterfall image and 14 have orbital elements too stale to propagate. Those score zero on the offset and flat-row signals and rank on model disagreement alone."
   ]
  },
  "deduplication": {
@@ -7621,5 +7621,5 @@
    "episode_key": "4272:41187:16"
   }
  ],
- "receipt_sha256": "26ec58e5e7f9a05bec7836ac4fa8c898de19a102e3260628c423bff49f62bc36"
+ "receipt_sha256": "4204193634349fa8c40242078fe60f80d26e79b322a9da5d43b6652252307c0f"
 }

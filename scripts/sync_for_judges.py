@@ -579,7 +579,11 @@ CHECKS: list[tuple[str, ...]] = [
     (
         "Do the tests pass offline?",
         '`pytest -m "not network and not ocr and not llm" -q`',
-        f"{SUITE_RESULT}, measured in a clean clone with every non-loopback socket refused",
+        # The commit is in the cell rather than only in the prose below the table. A table
+        # row is read on its own, and a count of passing tests with no commit beside it
+        # reads as a statement about whatever the reader is looking at.
+        f"{SUITE_RESULT}, measured in a clean clone of `{CLONE_COMMIT}` with every "
+        f"non-loopback socket refused",
     ),
     (
         "Do the tools change what the agent gets right?",
