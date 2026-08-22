@@ -417,7 +417,11 @@ if (CLONE_ENV_CACHE is None) == (CLONE_ENV_BORROWED is None):
         f"it names both: {[row['prerequisite'] for row in _PREREQ]}. One of the two has to be "
         "true, and which one it is decides what this page is allowed to say."
     )
-if CLONE_NODE is None:
+#: Where the clone's node_modules came from. Recorded as a block of its own since the check
+#: started attempting `npm ci --offline` before falling back to a link, because on a success
+#: there is no prerequisite row to read: nothing outside the repository was borrowed.
+CLONE_NODE_SOURCE = clone.get("node_modules")
+if CLONE_NODE is None and CLONE_NODE_SOURCE is None:
     raise SystemExit(
         "the clean-clone transcript does not record where apps/web/node_modules came from, so "
         "the page cannot disclose it."
@@ -873,12 +877,27 @@ CLONE_PARA = _para(
     rather than at the tip of the branch."""
 )
 
+_LOCK_DIGEST = (CLONE_NODE_SOURCE or CLONE_NODE)["package_lock_sha256"][:12]
+
+if CLONE_NODE is None:
+    _NODE_SENTENCE = (
+        "And `apps/web/node_modules` was installed into the clone by `npm ci --offline`, "
+        "which builds the locked tree out of npm's own cache without reaching the registry, "
+        f"against the lockfile whose sha256 is `{_LOCK_DIGEST}`. A judge whose npm cache is "
+        "cold needs one online install before that step reproduces, in the same way the "
+        "Python side does."
+    )
+else:
+    _NODE_SENTENCE = (
+        "And `apps/web/node_modules` was linked from the source clone rather than installed, "
+        "because the offline `npm ci` did not succeed here; the transcript records the "
+        f"lockfile's sha256 (`{_LOCK_DIGEST}`) so a reader can check that the borrowed tree "
+        "belongs to this repository's pins."
+    )
+
 CLONE_LIMITS = _para(
     f"""Two things about that run are worth knowing before it is trusted.
-    {CLONE_ENV_SENTENCE} And `apps/web/node_modules` was linked from the source clone rather
-    than installed, because `npm ci` needs the registry this run refuses; the transcript
-    records the lockfile's sha256 (`{CLONE_NODE["package_lock_sha256"][:12]}`) so a reader can
-    check that the borrowed tree belongs to this repository's pins. The socket refusal itself
+    {CLONE_ENV_SENTENCE} {_NODE_SENTENCE} The socket refusal itself
     is a Python-level patch loaded through `PYTHONPATH`, so it reaches every Python child
     process and constrains nothing else: the Node steps are outside it, and that is a limit of
     the guard rather than a claim about them."""

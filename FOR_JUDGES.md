@@ -40,7 +40,7 @@ to win in was 0.240 wide.
 | Question | Command | What it prints |
 |---|---|---|
 | Show me the model doing something | `tracetriage note 14746092` | The draft `granite3.1-dense:8b` wrote, the checker's verdict on it, the number it invented, and the template that shipped instead. Offline, no model needed: the drafts are frozen and the receipt records what the checker decided about each |
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1443 passed, 32 skipped, none failed, measured in a clean clone of `4717161` with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1576 passed, 33 skipped, none failed, measured in a clean clone of `5bb5478` with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 10 emitted, 15 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent measure something new? | `live_triage_observation` over MCP, or `tracetriage triage <id>` | A measurement of an observation recorded today, from the public SatNOGS API with no credential, and `live_check_claim` refuses an invented frequency about that measurement. `docs/BOB_DEMO.md` is the prompt |
@@ -76,7 +76,7 @@ graded, each question was proved answerable in a single tool call, because a que
 tools cannot serve would otherwise be scored as a failure of the policy.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `4717161` with every non-loopback socket refused: 15 of 16 steps
+fresh clone of commit `5bb5478` with every non-loopback socket refused: 15 of 16 steps
 succeeded. What did not: uv pip install --offline -e .[full,dev,onnx] into the clone's
 environment. The transcript carries each step's exit code and the tail of its output, so
 the reason is readable rather than summarised. The test counts above are from the pass
@@ -84,17 +84,17 @@ with the snapshot directory hidden, which is a judge's case rather than this mac
 and they are the count at that commit rather than at the tip of the branch.
 
 Two things about that run are worth knowing before it is trusted. The offline install into
-the clone did not succeed, because the wheel for `torch==2.13.0` is not in the local
-package cache and the run refuses the index, so the suite ran on this machine's
-interpreter at `3.12.13` against the clone's source tree. The code under test is the
-clone's and the environment is not, which is a weaker claim than a cold-start install and
-is stated here rather than left to be inferred. And `apps/web/node_modules` was linked
-from the source clone rather than installed, because `npm ci` needs the registry this run
-refuses; the transcript records the lockfile's sha256 (`ced352b326ff`) so a reader can
-check that the borrowed tree belongs to this repository's pins. The socket refusal itself
-is a Python-level patch loaded through `PYTHONPATH`, so it reaches every Python child
-process and constrains nothing else: the Node steps are outside it, and that is a limit of
-the guard rather than a claim about them.
+the clone did not succeed, because the pinned set could not be resolved from the local
+cache alone, so the suite ran on this machine's interpreter at `3.12.13` against the
+clone's source tree. The code under test is the clone's and the environment is not, which
+is a weaker claim than a cold-start install and is stated here rather than left to be
+inferred. And `apps/web/node_modules` was linked from the source clone rather than
+installed, because the offline `npm ci` did not succeed here; the transcript records the
+lockfile's sha256 (`b3c0cba83c9f`) so a reader can check that the borrowed tree belongs to
+this repository's pins. The socket refusal itself is a Python-level patch loaded through
+`PYTHONPATH`, so it reaches every Python child process and constrains nothing else: the
+Node steps are outside it, and that is a limit of the guard rather than a claim about
+them.
 
 ## Where each submission requirement is answered
 
