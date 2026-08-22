@@ -35,9 +35,14 @@ time on.
 
 from __future__ import annotations
 
-from pipeline.tracetriage.langflow_grounding import TraceTriageGroundingCheck
-from pipeline.tracetriage.langflow_queue import TraceTriageQueueTop
-from pipeline.tracetriage.langflow_tools import TraceTriageEvidenceTools
+# Relative, unlike the three modules below it. Those three are LangFlow components: their
+# source is stored in the flow JSON and executed on load with no parent package, where a
+# relative import raises, so they have to spell the checkout path. This module is only a
+# re-export, LangFlow never executes it, and an absolute `pipeline.` import here is one more
+# module that cannot be imported from an installed wheel.
+from .langflow_grounding import TraceTriageGroundingCheck
+from .langflow_queue import TraceTriageQueueTop
+from .langflow_tools import TraceTriageEvidenceTools
 
 __all__ = [
     "TraceTriageEvidenceTools",

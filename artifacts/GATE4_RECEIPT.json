@@ -31,7 +31,7 @@
   }
  },
  "verdict": "NOT_RUN",
- "why": "the review was carried out and not by a person: Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.. Gate 4 is titled blinded human decidability, so this does not meet it. The review and every number from it are in `arm` below.",
+ "why": "the review was carried out, and not by a person: Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob. Gate 4 is titled blinded human decidability, so this does not meet it. The review and every number from it are in `arm` below.",
  "reading": "NOT_RUN here means the human arm is still open, not that nothing was measured. What `arm` establishes is that the sample supports a decisive judgment by the reviewer named in it, on images bound by the same commitment, with the network's label and every model output hidden. What it cannot establish is the gate as written, because the reviewer is the instrument the gate names and this one is not that instrument.",
  "arm": {
   "verdict": "PASSED",

@@ -112,6 +112,15 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pipeline/tracetriage"]
+# The three LangFlow components are checkout-only and the wheel does not carry them.
+# LangFlow serialises a custom component by storing its source in the flow JSON and
+# executing that source on load with no parent package, so those three files have to import
+# by the checkout path (`pipeline.tracetriage.langchain_tools`) or they will not load. That
+# spelling does not exist inside an install, where this package is top-level `tracetriage`,
+# so shipping them would put three modules in the wheel that raise ModuleNotFoundError on
+# import. LangFlow is deliberately not a dependency of this project either, so a wheel that
+# omits them loses nothing an installed user could have run.
+exclude = ["pipeline/tracetriage/langflow_*.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
