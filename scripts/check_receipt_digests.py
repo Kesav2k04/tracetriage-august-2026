@@ -78,6 +78,16 @@ class Bytes:
 #: inventing a source for them.
 CHECKS: list[tuple[str, str, str, str, str]] = [
     (
+        # The lockfile the clean clone installed against. It is a claim about a tracked file
+        # like every other row here, and when the field was added it was neither audited nor
+        # declared as something else, which tests/test_receipt_digests.py catches by design.
+        "artifacts/CLEAN_CLONE_TRANSCRIPT.json",
+        "node_modules.package_lock_sha256",
+        "apps/web/package-lock.json",
+        Bytes.RAW,
+        "scripts/clean_clone_check.py",
+    ),
+    (
         "artifacts/QUEUE_RECEIPT.json",
         "split_manifest_sha256",
         "artifacts/SPLIT_MANIFEST.json",

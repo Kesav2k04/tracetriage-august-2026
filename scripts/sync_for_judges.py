@@ -523,12 +523,20 @@ def _para(text: str, indent: str = "") -> str:
     """
     # break_on_hyphens=False, because the default split "cold-station" and "read-only"
     # across two lines, and markdown renders that as "cold- station".
+    #
+    # break_long_words=False for the same reason one step further out. A test node id is one
+    # unbreakable token of 86 characters, and the default put a line break inside
+    # `tests/test_receipt_digests.py::...`, which markdown renders as "tests/t
+    # est_receipt_digests.py" and the page's own path check reads as a file that does not
+    # exist. A token wider than the column overhangs it instead, which is the right trade for
+    # a document whose tokens are paths.
     return textwrap.fill(
         " ".join(text.split()),
         width=90,
         initial_indent=indent,
         subsequent_indent=indent,
         break_on_hyphens=False,
+        break_long_words=False,
     )
 
 

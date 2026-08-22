@@ -53,7 +53,7 @@ def test_the_table_is_not_empty_and_every_row_is_well_formed():
     a digest is deliberately removed from the audit, this number moves in the same commit
     and the reason lands in the diff beside it.
     """
-    assert len(CHECKS) == 10
+    assert len(CHECKS) == 11
     for receipt, field, file_rel, how, writer in CHECKS:
         assert receipt.startswith("artifacts/"), receipt
         assert field and not field.startswith("."), field

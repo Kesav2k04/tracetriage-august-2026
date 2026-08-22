@@ -40,7 +40,7 @@ to win in was 0.240 wide.
 | Question | Command | What it prints |
 |---|---|---|
 | Show me the model doing something | `tracetriage note 14746092` | The draft `granite3.1-dense:8b` wrote, the checker's verdict on it, the number it invented, and the template that shipped instead. Offline, no model needed: the drafts are frozen and the receipt records what the checker decided about each |
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1576 passed, 33 skipped, none failed, measured in a clean clone of `5bb5478` with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 4 failed, 1555 passed, 36 skipped, measured in a clean clone of `1ce96a9` with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 10 emitted, 15 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent measure something new? | `live_triage_observation` over MCP, or `tracetriage triage <id>` | A measurement of an observation recorded today, from the public SatNOGS API with no credential, and `live_check_claim` refuses an invented frequency about that measurement. `docs/BOB_DEMO.md` is the prompt |
@@ -60,9 +60,14 @@ this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest optio
 `-q`, so a second `-q` suppresses the summary line: that is worth knowing before reading a
 run as having collected nothing.
 
-No test failed in that run. The count is published with its zero rather than as a pass,
-because a summary that prints only what went right cannot be read as a summary of what
-happened.
+The first row prints a failure, and it is named here rather than left in the transcript:
+`tests/test_for_judges.py::test_the_committed_page_is_what_the_receipts_produce`,
+`tests/test_for_judges.py::test_the_test_count_is_the_one_a_judge_can_reproduce`,
+`tests/test_receipt_digests.py::test_every_sha256_field_that_names_a_file_is_either_audited_or_explained`,
+`tests/test_reference_sync.py::test_the_committed_page_is_what_the_tree_produces`. The
+transcript is the record of commit `1ce96a9` and of nothing later, so what this page can
+honestly say about the current tip is only that the command in the table is the way to see
+it. A run of that command on a fresh clone of this commit reproduces the count exactly.
 
 The agent layer is measured against a control rather than demonstrated.
 `scripts/run_agent_study.py` puts 24 questions to the same local model twice, once with
@@ -76,25 +81,25 @@ graded, each question was proved answerable in a single tool call, because a que
 tools cannot serve would otherwise be scored as a failure of the policy.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `5bb5478` with every non-loopback socket refused: 15 of 16 steps
-succeeded. What did not: uv pip install --offline -e .[full,dev,onnx] into the clone's
-environment. The transcript carries each step's exit code and the tail of its output, so
-the reason is readable rather than summarised. The test counts above are from the pass
+fresh clone of commit `1ce96a9` with every non-loopback socket refused: 14 of 16 steps
+succeeded. What did not: offline test suite, snapshot present, offline test suite,
+snapshot HIDDEN. The transcript carries each step's exit code and the tail of its output,
+so the reason is readable rather than summarised. The test counts above are from the pass
 with the snapshot directory hidden, which is a judge's case rather than this machine's,
 and they are the count at that commit rather than at the tip of the branch.
 
-Two things about that run are worth knowing before it is trusted. The offline install into
-the clone did not succeed, because the pinned set could not be resolved from the local
-cache alone, so the suite ran on this machine's interpreter at `3.12.13` against the
-clone's source tree. The code under test is the clone's and the environment is not, which
-is a weaker claim than a cold-start install and is stated here rather than left to be
-inferred. And `apps/web/node_modules` was linked from the source clone rather than
-installed, because the offline `npm ci` did not succeed here; the transcript records the
-lockfile's sha256 (`b3c0cba83c9f`) so a reader can check that the borrowed tree belongs to
-this repository's pins. The socket refusal itself is a Python-level patch loaded through
-`PYTHONPATH`, so it reaches every Python child process and constrains nothing else: the
-Node steps are outside it, and that is a limit of the guard rather than a claim about
-them.
+Two things about that run are worth knowing before it is trusted. The clone built its own
+Python environment, inside itself, with the network refused, resolving the pinned set from
+a local package cache rather than from an index, so a judge with a cold cache needs one
+online install before this step reproduces. The transcript records which cache it read,
+because a run that resolves from a warm cache and a run that resolves from nothing are
+different claims. And `apps/web/node_modules` was installed into the clone by `npm ci
+--offline`, which builds the locked tree out of npm's own cache without reaching the
+registry, against the lockfile whose sha256 is `b3c0cba83c9f`. A judge whose npm cache is
+cold needs one online install before that step reproduces, in the same way the Python side
+does. The socket refusal itself is a Python-level patch loaded through `PYTHONPATH`, so it
+reaches every Python child process and constrains nothing else: the Node steps are outside
+it, and that is a limit of the guard rather than a claim about them.
 
 ## Where each submission requirement is answered
 
