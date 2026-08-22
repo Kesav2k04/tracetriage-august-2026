@@ -149,3 +149,56 @@ listed in section 3; reporting Pool A's rate as the gate; or running the gate mo
 once against the same pool and keeping the better run. `scripts/run_gate3.py` is
 deterministic given the snapshot and the pool file, so the last of those is checkable by
 re-running it.
+
+## 7. Amendment, committed before the gate was run
+
+The pool was built, its marginal distribution was read as section 3 requires, and the
+statistic was found to be degenerating. This section records the correction and the
+rebuild. It is committed before `scripts/run_gate3.py` was run against either pool, so
+the ordering is checkable in git rather than asserted here, and
+`tests/test_gate3_pool.py::test_the_pre_registration_predates_the_gate_receipt_in_git`
+fails if it ever stops being true.
+
+**What the distribution showed.** Pool B's `trace_q75` had a median of
+4.72 and a 90th percentile of 22,666,664, with a
+maximum of 89,000,000. A z-score of 89 million is not a trace. It is a
+divisor collapsing: `_normalised_rows` divided by `max(MAD, 1e-6)`, and a row with no
+variation at all, a blank or saturated line, has MAD exactly 0. The floor turned the
+emptiest row in an image into the largest value in it, so the statistic was inverted
+precisely where it degenerated, and a mostly-blank waterfall could outrank a real
+detection at 25 sigma by six orders of magnitude.
+
+**Why fixing it is not a change to the rule in section 3.** Section 3 defines the
+statistic as each row scored against its own median and MAD. A row whose MAD is zero has
+no z-score, not an infinite one, so the 1e-6 floor was never the statistic this document
+specified. Rows below the quantisation step of the luminance mean are now dropped from
+the percentile instead of floored, and the count is written to each record as
+`n_rows_unmeasurable`. An image with no measurable row at all is refused rather than
+scored low, because "could not be measured" and "no trace" are different answers and only
+one of them is true.
+
+**`TRACE_Q75_MIN` is unchanged at 3.5.** The defect inflates the statistic and only ever
+upward, so it could add observations to pool B and never remove one. The bar stays where
+section 3 fixed it. Moving it now, having seen a distribution, is the move section 6 says
+invalidates this document.
+
+**A second correction, with no effect on membership.** The swing short circuit returned
+`status: "ok"` before the image was opened, so `counts.measurable` counted observations
+nothing had measured. Those rows now carry `status: "swing_below_floor"`. Pool B's rule
+contains the same swing floor, so every one of them was already out at every threshold;
+what changes is that the published count means what it says.
+
+**The pool before and after.**
+
+| | first build | after the correction |
+|---|---|---|
+| examined | 2,750 | 2,750 |
+| measurable | 2,463 | 2,412 |
+| pool A, corridor-selected | 311 | 308 |
+| **pool B, pre-registered** | **321** | **303** |
+| in both | 141 | 137 |
+| pool B `trace_q75` 90th percentile | 22,666,664 | 10.79 |
+
+No gate 3 result of any kind had been produced from either pool when this was written.
+The receipt in the tree at that moment was still the three-observation A3 run from
+2026-08-19, which is what `pool.name` records and what the ordering test keys on.

@@ -284,7 +284,7 @@ arithmetic; the rest are projections and are labelled as such. Regenerate the lo
 
 | Gate | Verdict | What bound it | What would close it |
 | --- | --- | --- | --- |
-| 3 | `NOT_ESTABLISHED` | 3 testable observations. At a perfect rate the exact bound is 0.368 against a 0.7 bar. | 9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be uncorrected passes carrying a measurable narrowband trace. |
+| 3 | `NOT_ESTABLISHED` | 3 testable observations, 3 discriminating. The exact bound is 0.368 against a 0.7 bar. | 9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be passes carrying a measurable narrowband trace. |
 | 5 | `NOT_ESTABLISHED` | 88 test observations. The interval's lower arm is 1.63 times the margin it has to clear. | About 233 test observations at the same margin, against the 88 this split has. That is 2.6 times the chronological test set. *(projected)* |
 | 6 | `NOT_ESTABLISHED` | 87 observations at a budget of 50 cap every ordering at 1.740x, leaving 0.240 of room for an interval 0.387 wide. | A split whose room exceeds the interval it produces. cold_station already does: room 2.673 against an interval 1.939 wide, and it passed at 2.253. |
 

@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 35 JSON artifacts, 8 contracts, 54 scripts, 29 package modules and 1343 test functions across 71 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 35 JSON artifacts, 8 contracts, 55 scripts, 29 package modules and 1370 test functions across 73 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -33,11 +33,11 @@ file that no longer exists in that form.
 | `FILM_RECEIPT.json` | FILM_RECEIPT | 1 | none | 2,917 | `f966e5fb1e47d04c` | `scripts/check_receipt_digests.py`, `scripts/sync_for_judges.py` | `test_film_receipt.py` |
 | `FONT_PAINT_RECEIPT.json` | tracetriage/font-paint | 0.2.0 | none | 6,377 | `cf9a8a36448599c1` | `scripts/build_font_ab.py` | **none** |
 | `FUSION_RECEIPT.json` | FUSION_RECEIPT | 0.1.0 | `contracts/fusion_receipt.schema.json` | 241,611 | `7f89b40365600d98` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/check_receipt_digests.py`, `scripts/gate.py`, `scripts/run_fusion.py`, `scripts/run_gate_power.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_fusion.py`, `test_gate_power.py`, `test_kill_gate_sync.py` |
-| `GATE3_RECEIPT.json` | none declared | n/a | none | 52,667 | `5165682a009a8605` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/run_agent_study.py`, `scripts/run_gate3.py`, `scripts/run_gate_power.py`, `scripts/sync_demo.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_corridor_fit.py`, `test_gate3_bound.py`, `test_gate3_pool.py`, `test_gate_power.py`, `test_hero_nulls.py`, `test_kill_gate_sync.py`, `test_live.py`, `test_physics.py` |
+| `GATE3_RECEIPT.json` | none declared | n/a | none | 52,667 | `5165682a009a8605` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/gate3_sensitivity.py`, `scripts/run_agent_study.py`, `scripts/run_gate3.py`, `scripts/run_gate_power.py`, `scripts/sync_demo.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_corridor_fit.py`, `test_gate3_bound.py`, `test_gate3_pool.py`, `test_gate3_sensitivity.py`, `test_gate_power.py`, `test_hero_nulls.py`, `test_kill_gate_sync.py`, `test_live.py`, `test_physics.py` |
 | `GATE4_BUNDLE.json` | tracetriage/gate4-bundle | 0.1.0 | none | 1,509 | `4a4411de5b4ea76c` | `scripts/pack_gate4_bundle.py`, `scripts/sync_for_judges.py` | `test_explainer_gate4_values.py`, `test_receipt_digests.py` |
 | `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 74,956 | `36282b4bf0ba44e1` | `scripts/build_console_data.py`, `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/run_agent_study.py`, `scripts/run_gate_power.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_explainer_gate4_values.py`, `test_gate4.py`, `test_gate_power.py`, `test_receipt_digests.py` |
 | `GATE4_WORKSHEET.json` | GATE4_WORKSHEET | 1 | none | 11,481 | `44cc11bd27d624f1` | `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py` | `test_explainer_gate4_values.py`, `test_gate4.py`, `test_gate4_bundle.py` |
-| `GATE_POWER_RECEIPT.json` | GATE_POWER_RECEIPT | 1 | none | 10,778 | `474ac3aa7a51ff80` | `scripts/build_console_data.py`, `scripts/run_gate_power.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_gate_power.py` |
+| `GATE_POWER_RECEIPT.json` | GATE_POWER_RECEIPT | 1 | none | 10,903 | `fbd1fbb84fd5b33c` | `scripts/build_console_data.py`, `scripts/run_gate_power.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_gate_power.py` |
 | `HERO_NULLS.json` | none declared | n/a | none | 24,524 | `9bb077a4b072a021` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/sync_demo.py` | `test_hero_nulls.py`, `test_hero_window.py` |
 | `LANGCHAIN_RECEIPT.json` | tracetriage/langchain | 0.1.0 | none | 4,069 | `a288bfc931d5e41c` | `pipeline/tracetriage/langchain_tools.py`, `scripts/run_langchain_check.py`, `scripts/sync_for_judges.py` | `test_langchain_tools.py` |
 | `LANGFLOW_RECEIPT.json` | none declared | n/a | none | 3,862 | `e1b89120a51596fe` | `pipeline/tracetriage/langflow_components.py`, `scripts/check_receipt_digests.py`, `scripts/run_langflow_check.py`, `scripts/sync_for_judges.py` | `test_langflow_flows.py` |
@@ -141,6 +141,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/extract_corridor_features.py` | Extract per-observation corridor measurements and cache them for the fusion head. |
 | `scripts/extract_hog_cache.py` | Cache HOG feature vectors for the decisive corpus. |
 | `scripts/gate.py` | Mechanical verification of a Bob unit. |
+| `scripts/gate3_sensitivity.py` | How gate 3's verdict moves with the presence bar that chose its pool. |
 | `scripts/mcp_server.py` | A read-only Model Context Protocol server over the committed evidence (unit E3). |
 | `scripts/measure_motion_perf.py` | What a motion change costs, measured on two builds of the same site. |
 | `scripts/measure_second_trace.py` | Survey: how often does a second satellite appear in the same waterfall? |
@@ -207,15 +208,16 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_freshness_outcomes.py` | 9 | The freshness check has three outcomes, and a missing snapshot is not a failure. |
 | `tests/test_fusion.py` | 77 | Tests for the fusion head and its feature blocks (unit B2). |
 | `tests/test_gate3_bound.py` | 10 | Gate 3's threshold must be read off an interval, not off a point estimate. |
-| `tests/test_gate3_pool.py` | 14 | The gate 3 pool builder, and the one property the whole unit rests on. |
+| `tests/test_gate3_pool.py` | 17 | The gate 3 pool builder, and the one property the whole unit rests on. |
+| `tests/test_gate3_sensitivity.py` | 8 | The sensitivity table has to agree with the receipt it describes, or it is noise. |
 | `tests/test_gate4.py` | 38 | The gate 4 instrument, tested where it could quietly stop being blinded (unit E6). |
 | `tests/test_gate4_bundle.py` | 4 | What the reviewer bundle may and may not contain. |
-| `tests/test_gate_power.py` | 24 | Every unmet gate must carry a reason, and the reason must be derivable without the script. |
+| `tests/test_gate_power.py` | 29 | Every unmet gate must carry a reason, and the reason must be derivable without the script. |
 | `tests/test_glyph_axis.py` | 7 | The template matcher reads the same frequency axis the neural model read. |
 | `tests/test_grounding_parity.py` | 9 | The two grounding checkers decide the same thing, and the answer key still checks. |
 | `tests/test_hero_nulls.py` | 12 | The opening frame draws the nulls that were scored, and this is the proof. |
 | `tests/test_hero_window.py` | 5 | The hero plate's display window, checked against the image it windows. |
-| `tests/test_kill_gate_sync.py` | 6 | docs/KILL_GATE.md must equal what its generator renders from the receipts. |
+| `tests/test_kill_gate_sync.py` | 13 | docs/KILL_GATE.md must equal what its generator renders from the receipts. |
 | `tests/test_langchain_tools.py` | 10 | The LangChain adapter offers the MCP server's tools, and not copies of them. |
 | `tests/test_langflow_flows.py` | 10 | The committed LangFlow flows are files LangFlow wrote, and the receipt describes them. |
 | `tests/test_live.py` | 9 | The live path measures what gate 3 measured, on gate 3's own observations. |
@@ -244,6 +246,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_snapshot_throttle.py` | 19 | Throttle handling for unit A1's snapshot builder. |
 | `tests/test_split_guarantees.py` | 37 | Falsifiability tests for the B1 split guarantees, on synthetic rows. |
 | `tests/test_splits.py` | 21 | Tests for pipeline/tracetriage/splits.py (Unit B1). |
+| `tests/test_verdict_vocabulary.py` | 4 | Every verdict a gate script can emit must be a verdict the console can render. |
 | `tests/test_waterfall.py` | 47 | Acceptance tests for pipeline/tracetriage/waterfall.py. |
 | `tests/test_watsonx_runner.py` | 7 | The watsonx runner records one of three outcomes, and never invents the third. |
 
