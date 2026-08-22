@@ -34,8 +34,9 @@ _NUMBER = re.compile(r"-?\d[\d,]*\.?\d*")
 _UNCOMPARABLE = {
     "Strongest corrected match": "receipt is an overlay PNG",
     "Strongest uncorrected match": "receipt is an overlay PNG",
-    "Human minutes per confirmed finding": "gate 4 was never run; the cell is prose",
-    "Blinded human decidability rate": "gate 4 was never run; the cell is prose",
+    # Half measured, half not: the reviewer's pace is a number and minutes per confirmed
+    # finding is not, so the cell is prose that quotes the half that exists.
+    "Human minutes per confirmed finding": "the cell is prose around a measured pace",
 }
 
 # Measured on 2026-08-19: 15 rows, 49 numbers. The floors sit just below that, so
@@ -479,15 +480,16 @@ def test_every_unmeasured_row_names_a_gate_that_produced_no_number():
             f"reported as though it could; all three need a look, because this test and "
             f"its counterpart divide the rows between them."
         )
-    else:
-        assert not rows, (
-            f"every gate has produced a number and yet {len(rows)} README row(s) still "
-            f"say `[UNMEASURED]`: {[metric for metric, _ in rows]}. The hatch outlived "
-            f"the absence it was for, which is how an out-of-date absence reads as a "
-            f"current one."
-        )
-        return
-
+    # With every gate answered, an [UNMEASURED] row is still legal: a quantity can be
+    # missing for a reason that is not a gate. What stops being legal is a row that blames
+    # a gate which has since produced a number, because that is an absence describing a
+    # world that ended. This branch used to forbid the rows outright, which made the test
+    # unsatisfiable on the day gate 4 was scored: the only two rows in the README cited it,
+    # keeping them failed here and deleting them failed the assertion above. The property
+    # worth holding is that the hatch points at something true, not that no hatch exists.
+    #
+    # The loop below enforces exactly that and runs in both branches, so the only thing
+    # that differs is whether a citation is required.
     for metric, reason in rows:
         # The pattern has one group per alternative, so each match is a pair with one
         # side empty. Flatten and keep the digits.
@@ -497,11 +499,20 @@ def test_every_unmeasured_row_names_a_gate_that_produced_no_number():
             for m in pair
             if m
         }
-        assert cited, (
-            f"README row {metric!r} is marked [UNMEASURED] and its reason names no "
-            f"gate: {reason!r}. An absence with no cause attached is the shape that "
-            "let a scoped-out check hide real violations in Wave B."
-        )
+        if open_gates:
+            assert cited, (
+                f"README row {metric!r} is marked [UNMEASURED] and its reason names no "
+                f"gate: {reason!r}. An absence with no cause attached is the shape that "
+                "let a scoped-out check hide real violations in Wave B."
+            )
+        elif not cited:
+            # No gate is open, so a row that blames no gate is blaming something else and
+            # has to say what. A bare "[UNMEASURED]" with an empty reason is still a defect.
+            assert len(reason.split()) >= 12, (
+                f"README row {metric!r} is marked [UNMEASURED], no gate is open to blame, "
+                f"and its reason is {reason!r}. Say what is missing and why, or compute it."
+            )
+            continue
         for gate in cited:
             assert gate in verdicts, (
                 f"README row {metric!r} cites gate {gate}, which the console's gate "

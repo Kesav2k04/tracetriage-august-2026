@@ -511,6 +511,30 @@ def _plural(n: int, one: str, many: str) -> str:
     return one if n == 1 else many
 
 
+def _clauses(parts: list[tuple[int, str]]) -> str:
+    """Join the tally clauses that have a member, dropping the ones that do not.
+
+    Written the day gate 4 was answered, when the sentence became "three came back
+    inconclusive and none were never run". A template that always renders every category
+    produces a double negative the moment a category empties, and the categories here empty
+    as the work succeeds, which is exactly when nobody re-reads the sentence.
+    """
+    said = [text for count, text in parts if count]
+    if not said:
+        return "none produced a verdict"
+    if len(said) == 1:
+        return said[0]
+    return f"{', '.join(said[:-1])} and {said[-1]}"
+
+
+GATE_TALLY_CLAUSE = _clauses(
+    [
+        (N_MET, f'{N_MET} {_plural(N_MET, "was", "were")} met'),
+        (N_INCONCLUSIVE, f"{N_INCONCLUSIVE} came back inconclusive"),
+        (N_OPEN, f'{N_OPEN} {_plural(N_OPEN, "was", "were")} never run'),
+    ]
+)
+
 def _table(rows: list[tuple[str, ...]]) -> str:
     return "\n".join("| " + " | ".join(cells) + " |" for cells in rows)
 
@@ -693,15 +717,44 @@ REQUIREMENTS: list[tuple[str, ...]] = [
 # says so plainly two screens away. The page written for judges was the softer one.
 _N_PRE_PASSED = sum(1 for g in gates["gates"] if g["verdict"] == "PRE_PASSED")
 _N_SUBSTANTIVE = N_GATES - _N_PRE_PASSED
-_MET_CLAUSE = (
-    f"""and the {N_MET} that {_plural(N_MET, "was", "were")} met
-    {_plural(N_MET, "is", "are")} {_plural(N_MET, "a", "the")} PRE_PASSED feasibility
-    {_plural(N_MET, "check", "checks")} answered before any pipeline code was written, so
-    of the {_N_SUBSTANTIVE} gates that ask whether the idea works, none passed on the split
-    that decides it"""
-    if _N_PRE_PASSED == N_MET and N_MET
-    else "and the receipts name which"
+# Which of the met gates are feasibility checks and which are substantive. The distinction
+# is the whole honesty of the tally: two of the six were answered before any pipeline code
+# existed and counting them alongside a measured pass would inflate the headline. It is
+# computed rather than asserted, because it changed the day gate 4 was answered and the
+# sentence that asserted it would have gone on saying none passed.
+_SUBSTANTIVE_PASSES = sorted(
+    g["gate"] for g in gates["gates"] if g["verdict"] == "PASSED"
 )
+
+
+def _met_clause() -> str:
+    if not N_MET:
+        return "and none of them was"
+    if _N_PRE_PASSED == N_MET:
+        return (
+            f"and the {N_MET} that {_plural(N_MET, 'was', 'were')} met "
+            f"{_plural(N_MET, 'is', 'are')} {_plural(N_MET, 'a', 'the')} PRE_PASSED "
+            f"feasibility {_plural(N_MET, 'check', 'checks')} answered before any pipeline "
+            f"code was written, so of the {_N_SUBSTANTIVE} gates that ask whether the idea "
+            f"works, none passed on the split that decides it"
+        )
+    if not _SUBSTANTIVE_PASSES:
+        return "and the receipts name which"
+    named = " and ".join(f"gate {n}" for n in _SUBSTANTIVE_PASSES)
+    return (
+        f"and the split matters: {_N_PRE_PASSED} of the {N_MET} "
+        f"{_plural(_N_PRE_PASSED, 'is', 'are')} "
+        f"{_plural(_N_PRE_PASSED, 'a', 'the')} PRE_PASSED feasibility "
+        f"{_plural(_N_PRE_PASSED, 'check', 'checks')} answered before any pipeline code "
+        f"was written, and {len(_SUBSTANTIVE_PASSES)} "
+        f"{_plural(len(_SUBSTANTIVE_PASSES), 'is', 'are')} a substantive gate that cleared "
+        f"its threshold on the sample it was pre-registered on, {named}. So of the "
+        f"{_N_SUBSTANTIVE} gates that ask whether the idea works, "
+        f"{len(_SUBSTANTIVE_PASSES)} passed and the rest are reported as they came back"
+    )
+
+
+_MET_CLAUSE = _met_clause()
 
 # Established first, then the gate tally. The reason, in one line: this paragraph used to
 # be the third thing on the page and it ended on "none passed", so a judge met four
@@ -729,8 +782,7 @@ INTRO = _para(
     research bar rather than a feature list: a gate is met only when a 95% interval clears
     its threshold, so a point estimate above the bar whose interval straddles it is
     published as a failure. Of the {N_GATES} kill gates declared before the build,
-    {N_MET} {_plural(N_MET, "was", "were")} met, {N_INCONCLUSIVE} came back inconclusive and
-    {N_OPEN} {_plural(N_OPEN, "was", "were")} never run. That tally is read from the receipts
+    {GATE_TALLY_CLAUSE}. That tally is read from the receipts
     by the console rather than typed here, {_MET_CLAUSE}. Why the intervals are that wide is
     derived rather than pleaded: on the split gate 6 was pre-registered on, a perfect oracle
     caps at {_CIRC_CEIL["lift"]:.3f} times random against a threshold of 1.5, so the whole
@@ -763,6 +815,131 @@ AGENT_PARA = _para(
 # asserting that nobody had filled the form in, which is true of exactly one of the four
 # verdicts the receipt can carry, on a page whose whole claim is that it is generated
 # from the receipts. A verdict this has no wording for stops the sync.
+def _gate_power() -> str:
+    """The account a reader is owed for every gate that did not come back met.
+
+    A submission with four unmet gates and no measured account of why is indistinguishable
+    from one that did not try. This is generated from ``artifacts/GATE_POWER_RECEIPT.json``,
+    and ``scripts/run_gate_power.py`` refuses to write that receipt while any unmet gate has
+    no named constraint, so a row cannot go quietly missing from this section: the gate that
+    produces it fails first.
+    """
+    power = _receipt("GATE_POWER_RECEIPT.json")
+    unmet = [g for g in power["gates"] if not g["met"]]
+    if not unmet:
+        return _para(
+            "Every gate is met. This section used to explain what was outstanding and there "
+            "is nothing outstanding, so it is empty rather than kept as decoration."
+        )
+
+    exact = sum(1 for g in unmet if g["closure"]["kind"] == "exact")
+    out = [
+        _para(
+            f"{len(unmet)} of the {power['n_gates']} gates did not come back met, and none "
+            f"of them is left as a bare verdict. Each carries what actually bound the "
+            f"measurement and the condition that would move it, computed from the same "
+            f"receipts that decided the verdicts. {exact} of the {len(unmet)} closure "
+            f"conditions are exact arithmetic; the rest are projections and are labelled as "
+            f"such. Regenerate the lot with "
+            f"`.venv/Scripts/python.exe scripts/run_gate_power.py --check`."
+        ),
+        "",
+        _table(
+            [
+                ("Gate", "Verdict", "What bound it", "What would close it"),
+                ("---", "---", "---", "---"),
+            ]
+            + [
+                (
+                    str(g["gate"]),
+                    f"`{g['verdict']}`",
+                    " ".join(g["bound_by_in_one_line"].split()),
+                    " ".join(g["closure"]["statement"].split())
+                    + ("" if g["closure"]["kind"] == "exact" else " *(projected)*"),
+                )
+                for g in unmet
+            ]
+        ),
+    ]
+
+    room = next((g for g in power["gates"] if g["gate"] == 6 and "the_room_rule" in g), None)
+    if room:
+        rule = room["the_room_rule"]
+        splits = [s for s in rule["per_split"] if s["measurable"]]
+        truncated = rule["splits_whose_interval_is_truncated_by_the_ceiling"]
+        out += [
+            "",
+            _para(
+                "**The one finding in this section.** Gate 6's verdict is predicted by the "
+                "split it was taken on rather than by the queue. A split's *room* is the "
+                "distance between the threshold and the best score any ordering could reach "
+                "there, a perfect oracle included. Whether the published interval fits "
+                f"inside that room predicts the verdict on {len(splits)} of {len(splits)} "
+                "measurable splits, with no exceptions."
+            ),
+            "",
+            _table(
+                [
+                    (
+                        "Split",
+                        "Observations",
+                        "Oracle ceiling",
+                        "Room above 1.5x",
+                        "Interval width",
+                        "Fits",
+                        "Verdict",
+                    ),
+                    ("---", "---:", "---:", "---:", "---:", ":---:", "---"),
+                ]
+                + [
+                    (
+                        f"`{s['split']}`",
+                        str(s["n_population"]),
+                        f"{s['ceiling']:.3f}",
+                        f"{s['room_above_the_threshold']:.3f}",
+                        f"{s['interval_width']:.3f}",
+                        "yes" if s["interval_fits_in_the_room"] else "no",
+                        f"`{s['verdict']}`",
+                    )
+                    for s in splits
+                ]
+            ),
+            "",
+            _para(
+                f"On {_and_list(truncated)} the interval's upper bound **is** the ceiling. No "
+                f"resampling of those splits can return a number above it, however good the "
+                f"ranking is, so the interval there is reporting the arithmetic of the split "
+                f"rather than the quality of the ordering. The single split with room to "
+                f"spare is the single split that passed. That is why the cold-station result "
+                f"is published beside the pre-registered one and never instead of it."
+            ),
+            "",
+            _para(
+                "The obvious next thought does not follow, and the counterexample is in this "
+                "corpus: `cold_transmitter` holds more observations than `chronological` and "
+                "still fails, because its interval came back wider too. So no required sample "
+                "size is published for gate 6, only the condition."
+            ),
+            "",
+            _para(
+                "Gates 5 and 6 have one closure condition in common and this project will not "
+                "take it. Both are short of test rows, and both were fixed before their "
+                "results were read. Growing a test set after seeing its verdict is precisely "
+                "what pre-registration exists to prevent, so the shortfall is recorded as the "
+                "reason those gates stay open rather than as work outstanding."
+            ),
+        ]
+    return "\n".join(out)
+
+
+def _and_list(names: list[str]) -> str:
+    """`a`, `b` and `c`. Two items joined by a comma read as one name with a typo."""
+    quoted = [f"`{n}`" for n in names]
+    if len(quoted) <= 1:
+        return "".join(quoted)
+    return f"{', '.join(quoted[:-1])} and {quoted[-1]}"
+
+
 def _gate4_state(receipt: dict) -> str:
     verdict = receipt.get("verdict")
     arm = receipt.get("arm")
@@ -1278,6 +1455,10 @@ STACK: list[tuple[str, ...]] = [
 ]
 
 
+# Built here rather than inline in the template, because it reads five receipts and the
+# template is already the longest f-string in this repository.
+GATE_POWER = _gate_power()
+
 PAGE = f"""# For judges
 
 <!-- Generated by scripts/sync_for_judges.py from the receipts under artifacts/.
@@ -1392,6 +1573,10 @@ matching its receipt.
 {GATE4_PARA}
 
 {GATE4_HANDOFF_PARA}
+
+## Why the gates that are not met are not met
+
+{GATE_POWER}
 
 ## What this project does not claim
 

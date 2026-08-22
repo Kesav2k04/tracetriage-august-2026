@@ -148,7 +148,17 @@ def test_every_sha256_field_that_names_a_file_is_either_audited_or_explained():
         ("PRECEDENT_RECEIPT.json", "embedding_model.digest"): "the Ollama model blob",
         ("EXPLAIN_RECEIPT.json", "generation.prompt_contract_sha256"): "a function's output",
         ("WATSONX_RECEIPT.json", "subject.prompt_contract_sha256"): "a function's output",
+        # The salt is 32 random bytes as hex, which is indistinguishable from a sha256 by
+        # shape. Where it sits in the receipt depends on who reviewed: under `arm` for a
+        # reviewer the gate is not about, at the top level once a person has answered, and
+        # under `prior_review` for the earlier review that a human answer carries forward.
+        # All three are listed rather than matched by suffix, so a fourth place a salt could
+        # appear fails here until someone says what it is.
         ("GATE4_RECEIPT.json", "arm.reveal.salt"): "a random salt",
+        ("GATE4_RECEIPT.json", "reveal.salt"): "a random salt, from the human review",
+        ("GATE4_RECEIPT.json", "prior_review.reveal.salt"): (
+            "a random salt, from the review a human answer carried forward"
+        ),
         ("GATE4_BUNDLE.json", "archive.sha256"): "an archive this repo does not publish",
         ("PRECEDENT_RECEIPT.json", "cards_sha256"): "an in-memory structure",
         ("PRECEDENT_RECEIPT.json", "vectors_sha256"): "in-memory vectors",

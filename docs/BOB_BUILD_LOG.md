@@ -7853,3 +7853,55 @@ the repository, with every gate green: the copy is still valid markdown and the 
 it still resolves. `tests/test_console_export.py::test_every_document_the_console_serves_is_the_document_in_docs`
 compares them byte for byte and fails with the command that fixes it. It also fails if a
 served file has no source at all, which is the other direction the drift can go.
+
+## E15. A gate passed, and the surfaces describing it went on saying it had not
+
+Gate 4 asks whether a person can decide from these plates. Nobody had ever answered it, so
+every surface in the repository had been written against a single state: the study was never
+run, the verdict was `OPEN`, and the tally was 2 of 6. When a person did answer it, in one
+sitting through the console's own review form, the scorer produced `PASSED` at 60 of 60 with
+an exact one-sided 95% lower bound of 0.9513 against a 0.80 bar, and the tally moved to 3 of
+6 in every place that computes it.
+
+The places that compute it were fine. The places that describe it were not.
+
+**Six that a judge would have read first.** The README's gate 4 cell said "never run, so it carries no rate" in the
+column next to the word `PASSED`, because the generator branched on `_g4.get("arm")` and a
+human review does not write an `arm`: it writes the receipt's top level and moves the earlier
+model review to `prior_review`. The evaluation page was headed "Gate 4 needs a person, and
+here is what to send them" over a table reading PASSED. `docs/BOB_DEMO.md` told a judge that
+step 8 has to come back with two of six met and gate 4 `OPEN`. The operator session receipt
+recorded the expectation "with gate 4 open and gate 6 not established" beside a payload
+listing gate 4 as passed. The film's beat 6 said the two met gates were both feasibility
+checks. `GATE_POWER_RECEIPT.json` opened its summary with "Four constraints, three of them
+exact. Gate 4 is short of a reviewer and nothing else."
+
+Each one was true when it was written and none of them was reachable from the verdict.
+
+**What changed is where the sentences come from.** The gate 4 README cell is three branches
+on who answered rather than two. The evaluation page's heading and lede are ternaries on
+`gate4_arm.is_the_gate`. The operator session renders both its assertion and the sentence
+beside it from the verdicts it just read, and its step 8 names no gate and no count. The gate
+power receipt's `reading` paragraph is built from the gates list: it counts the unmet ones,
+counts how many closures are exact, and groups the ones pre-registration will not let this
+project close. `docs/BOB_DEMO.md` now says outright that the paragraph has been wrong twice
+and to check `gate_status` instead of it.
+
+**The invariant that was missing.** A closure that says "short of test rows" and a closure
+that says "short of test rows we are not allowed to collect" are different claims, and the
+difference was carried in a sentence rather than in a field. Every closure now declares
+`frozen_by_pre_registration`, and `tests/test_gate_power.py` asserts which gates carry it,
+that exactly one closure is an extrapolation, and that the summary paragraph names every
+unmet gate and no met one. One of those tests flips a verdict by hand and requires the
+paragraph to stop naming that gate, because a sentence that happens to be right today is not
+the same as one that follows the data.
+
+**And the render was stale under passing digests.** The gate 4 explainer clip ended on
+`Gate 4: OPEN`, and the three tests guarding its values had been written to skip when the
+receipt held no `arm`. A human answer removes the `arm`, so all three skipped and reported
+green over a video contradicting the page it sits on. The guard now reads the top-level
+receipt first and skips only when neither shape is present, and it asserts the closing
+frame's verdict word against the receipt.
+
+Twenty-six of twenty-seven standing gates pass, the twenty-seventh being the uncommitted
+tree this entry is part of.

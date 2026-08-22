@@ -1,7 +1,7 @@
 {
  "schema": "FILM_RECEIPT",
  "schema_version": 1,
- "generated_at": "2026-08-22T05:58:52.579Z",
+ "generated_at": "2026-08-22T13:01:55.909Z",
  "generated_by": "presentation/scripts/report-table.ts",
  "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so REPORT.md and this receipt cannot disagree about the same film.",
  "composition": {
@@ -85,8 +85,8 @@
  ],
  "render": {
   "path": "presentation/out/tracetriage-film.mp4",
-  "bytes": 4675644,
-  "sha256": "bae59607100da07e002c7db6600a3c142fde20d60c6970ca1cc5752815dbcb59"
+  "bytes": 4675493,
+  "sha256": "c5a209680da1fd83efb026ef47b16f87d74b76887ff37aa5f6efda74ff41307e"
  },
  "poster": {
   "path": "presentation/out/tracetriage-film-poster.jpg",

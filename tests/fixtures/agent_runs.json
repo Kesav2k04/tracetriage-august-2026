@@ -345,7 +345,7 @@
   {
    "id": "gates-met",
    "question": "How many of this project's kill gates are met?",
-   "expected": "2",
+   "expected": "3",
    "tool": "gate_status",
    "reference": {}
   },
@@ -366,7 +366,7 @@
   {
    "id": "gate-4-verdict",
    "question": "What is the verdict of kill gate 4?",
-   "expected": "OPEN",
+   "expected": "PASSED",
    "tool": "gate_status",
    "reference": {}
   },
@@ -391,7 +391,7 @@
   {
    "id": "receipt-gate4-verdict",
    "question": "What verdict does the receipt GATE4_RECEIPT.json record?",
-   "expected": "NOT_RUN",
+   "expected": "PASSED",
    "tool": "receipt",
    "reference": {
     "name": "GATE4_RECEIPT.json"
@@ -424,6 +424,7 @@
    "answer": "14746092",
    "tools_called": [
     "queue_top",
+    "queue_top",
     "queue_top"
    ],
    "stopped_because": "answered",
@@ -437,21 +438,28 @@
      },
      "error": null,
      "answer": null,
-     "result_bytes": 999
+     "result_bytes": 1609
     },
     {
      "index": 2,
-     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 1}}",
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {}}",
      "tool": "queue_top",
-     "arguments": {
-      "limit": 1
-     },
+     "arguments": {},
+     "error": null,
+     "answer": null,
+     "result_bytes": 3414
+    },
+    {
+     "index": 3,
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {}}",
+     "tool": "queue_top",
+     "arguments": {},
      "error": "repeated call, the earlier result is already in the history",
      "answer": null,
      "result_bytes": null
     },
     {
-     "index": 3,
+     "index": 4,
      "raw": "{\"answer\": \"14746092\"}",
      "tool": null,
      "arguments": null,
@@ -461,7 +469,8 @@
     }
    ],
    "read": [
-    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. On a split holding fewer than 50 decisively labelled observations, the budget is however many there are.\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Three counts here are different numbers and answering the wrong one is the mistake this string exists to stop. `available` is how many observations the queue ranks in total, which is the answer to 'how long is the queue'. `cap` is the most rows one call may return (50) and is a property of this tool, not of the queue. `review_budget.n_observations` is the budget the ranking was scored against and happens to equal the cap, which is exactly why it gets misread. `returned` is how many rows are in this response. Use queue_size if the total is all you want. Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}",
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. On a split holding fewer than 50 decisively labelled observations, the budget is however many there are.\"}, \"returned\": 10, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 10, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}, {\"obs_id\": 14735140, \"rank\": 2, \"score\": 0.849634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 1e-06, \"has_evidence_packet\": true}, {\"obs_id\": 14732518, \"rank\": 3, \"score\": 0.599878, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745718, \"rank\": 4, \"score\": 0.59622, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745990, \"rank\": 5, \"score\": 0.596098, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744250, \"rank\": 6, \"score\": 0.593171, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14746054, \"rank\": 7, \"score\": 0.584634, \"reasons\": [\"NO_REASON\"], \"is_conflict\": false, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744187, \"rank\": 8, \"score\": 0.583659, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 0.4375, \"has_evidence_packet\": true}, {\"obs_id\": 14733024, \"rank\": 9, \"score\": 0.583049, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14744248, \"rank\": 10, \"score\": 0.581585, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.5, \"has_evidence_packet\": true}], \"reading\": \"Three counts here are different numbers and answering the wrong one is the mistake this string exists to stop. `available` is how many observations the queue ranks in total, which is the answer to 'how long is the queue'. `cap` is the most rows one call may return (50) and is a property of this tool, not of the queue. `review_budget.n_observations` is the budget the ranking was scored against and happens to equal the cap, which is exactly why it gets misread. `returned` is how many rows are in this response. Use queue_size if the total is all you want. Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
    ]
   },
   {
@@ -470,6 +479,7 @@
    "arm": "tools",
    "answer": "0.879634",
    "tools_called": [
+    "queue_top",
     "queue_top"
    ],
    "stopped_because": "answered",
@@ -483,11 +493,20 @@
      },
      "error": null,
      "answer": null,
-     "result_bytes": 999
+     "result_bytes": 1609
     },
     {
      "index": 2,
-     "raw": "{\"answer\": \"0.879634\"}",
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {}}",
+     "tool": "queue_top",
+     "arguments": {},
+     "error": null,
+     "answer": null,
+     "result_bytes": 3414
+    },
+    {
+     "index": 3,
+     "raw": "{\"answer\": 0.879634}",
      "tool": null,
      "arguments": null,
      "error": null,
@@ -496,17 +515,16 @@
     }
    ],
    "read": [
-    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. On a split holding fewer than 50 decisively labelled observations, the budget is however many there are.\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Three counts here are different numbers and answering the wrong one is the mistake this string exists to stop. `available` is how many observations the queue ranks in total, which is the answer to 'how long is the queue'. `cap` is the most rows one call may return (50) and is a property of this tool, not of the queue. `review_budget.n_observations` is the budget the ranking was scored against and happens to equal the cap, which is exactly why it gets misread. `returned` is how many rows are in this response. Use queue_size if the total is all you want. Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}",
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. On a split holding fewer than 50 decisively labelled observations, the budget is however many there are.\"}, \"returned\": 10, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 10, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}, {\"obs_id\": 14735140, \"rank\": 2, \"score\": 0.849634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 1e-06, \"has_evidence_packet\": true}, {\"obs_id\": 14732518, \"rank\": 3, \"score\": 0.599878, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745718, \"rank\": 4, \"score\": 0.59622, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745990, \"rank\": 5, \"score\": 0.596098, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744250, \"rank\": 6, \"score\": 0.593171, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14746054, \"rank\": 7, \"score\": 0.584634, \"reasons\": [\"NO_REASON\"], \"is_conflict\": false, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744187, \"rank\": 8, \"score\": 0.583659, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 0.4375, \"has_evidence_packet\": true}, {\"obs_id\": 14733024, \"rank\": 9, \"score\": 0.583049, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14744248, \"rank\": 10, \"score\": 0.581585, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.5, \"has_evidence_packet\": true}], \"reading\": \"Three counts here are different numbers and answering the wrong one is the mistake this string exists to stop. `available` is how many observations the queue ranks in total, which is the answer to 'how long is the queue'. `cap` is the most rows one call may return (50) and is a property of this tool, not of the queue. `review_budget.n_observations` is the budget the ranking was scored against and happens to equal the cap, which is exactly why it gets misread. `returned` is how many rows are in this response. Use queue_size if the total is all you want. Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
    ]
   },
   {
    "task_id": "queue-total",
    "question": "How many observations does the review queue rank in total?",
    "arm": "tools",
-   "answer": "50",
+   "answer": "The review queue has an insufficient limit to determine the total number of observations.",
    "tools_called": [
-    "queue_top",
-    "queue_top",
     "queue_top"
    ],
    "stopped_because": "answered",
@@ -524,39 +542,15 @@
     },
     {
      "index": 2,
-     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 1}}",
-     "tool": "queue_top",
-     "arguments": {
-      "limit": 1
-     },
-     "error": null,
-     "answer": null,
-     "result_bytes": 999
-    },
-    {
-     "index": 3,
-     "raw": "{\"tool\": \"queue_top\", \"arguments\": {\"limit\": 1}}",
-     "tool": "queue_top",
-     "arguments": {
-      "limit": 1
-     },
-     "error": "repeated call, the earlier result is already in the history",
-     "answer": null,
-     "result_bytes": null
-    },
-    {
-     "index": 4,
-     "raw": "{\"answer\": \"50\"}",
+     "raw": "{\"answer\": \"The review queue has an insufficient limit to determine the total number of observations.\"}",
      "tool": null,
      "arguments": null,
      "error": null,
-     "answer": "50",
+     "answer": "The review queue has an insufficient limit to determine the total number of observations.",
      "result_bytes": null
     }
    ],
-   "read": [
-    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
-   ]
+   "read": []
   },
   {
    "task_id": "queue-packets-top-10",
@@ -577,11 +571,11 @@
      },
      "error": null,
      "answer": null,
-     "result_bytes": 2804
+     "result_bytes": 3414
     },
     {
      "index": 2,
-     "raw": "{\"answer\": \"10\"}",
+     "raw": "{\"answer\": 10}",
      "tool": null,
      "arguments": null,
      "error": null,
@@ -590,7 +584,7 @@
     }
    ],
    "read": [
-    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 10, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 10, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}, {\"obs_id\": 14735140, \"rank\": 2, \"score\": 0.849634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 1e-06, \"has_evidence_packet\": true}, {\"obs_id\": 14732518, \"rank\": 3, \"score\": 0.599878, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745718, \"rank\": 4, \"score\": 0.59622, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745990, \"rank\": 5, \"score\": 0.596098, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744250, \"rank\": 6, \"score\": 0.593171, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14746054, \"rank\": 7, \"score\": 0.584634, \"reasons\": [\"NO_REASON\"], \"is_conflict\": false, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744187, \"rank\": 8, \"score\": 0.583659, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 0.4375, \"has_evidence_packet\": true}, {\"obs_id\": 14733024, \"rank\": 9, \"score\": 0.583049, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14744248, \"rank\": 10, \"score\": 0.581585, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.5, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. On a split holding fewer than 50 decisively labelled observations, the budget is however many there are.\"}, \"returned\": 10, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 10, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}, {\"obs_id\": 14735140, \"rank\": 2, \"score\": 0.849634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 1e-06, \"has_evidence_packet\": true}, {\"obs_id\": 14732518, \"rank\": 3, \"score\": 0.599878, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745718, \"rank\": 4, \"score\": 0.59622, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745990, \"rank\": 5, \"score\": 0.596098, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744250, \"rank\": 6, \"score\": 0.593171, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14746054, \"rank\": 7, \"score\": 0.584634, \"reasons\": [\"NO_REASON\"], \"is_conflict\": false, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744187, \"rank\": 8, \"score\": 0.583659, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 0.4375, \"has_evidence_packet\": true}, {\"obs_id\": 14733024, \"rank\": 9, \"score\": 0.583049, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14744248, \"rank\": 10, \"score\": 0.581585, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.5, \"has_evidence_packet\": true}], \"reading\": \"Three counts here are different numbers and answering the wrong one is the mistake this string exists to stop. `available` is how many observations the queue ranks in total, which is the answer to 'how long is the queue'. `cap` is the most rows one call may return (50) and is a property of this tool, not of the queue. `review_budget.n_observations` is the budget the ranking was scored against and happens to equal the cap, which is exactly why it gets misread. `returned` is how many rows are in this response. Use queue_size if the total is all you want. Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
    ]
   },
   {
@@ -614,7 +608,7 @@
      },
      "error": null,
      "answer": null,
-     "result_bytes": 999
+     "result_bytes": 1609
     },
     {
      "index": 2,
@@ -623,11 +617,11 @@
      "arguments": {},
      "error": null,
      "answer": null,
-     "result_bytes": 2804
+     "result_bytes": 3414
     },
     {
      "index": 3,
-     "raw": "{\"tool\": \"queue_top\", \"arguments\": {}}\n\nAnswer: MODEL_LABEL_DISAGREE",
+     "raw": "{\"tool\": \"queue_top\", \"arguments\": {}}",
      "tool": "queue_top",
      "arguments": {},
      "error": "repeated call, the earlier result is already in the history",
@@ -645,8 +639,8 @@
     }
    ],
    "read": [
-    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}",
-    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 88 decisively-labelled observations; 50 is ~57% coverage, large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. For cold splits the budget is min(50, n_decisive_test).\"}, \"returned\": 10, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 10, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}, {\"obs_id\": 14735140, \"rank\": 2, \"score\": 0.849634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 1e-06, \"has_evidence_packet\": true}, {\"obs_id\": 14732518, \"rank\": 3, \"score\": 0.599878, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745718, \"rank\": 4, \"score\": 0.59622, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745990, \"rank\": 5, \"score\": 0.596098, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744250, \"rank\": 6, \"score\": 0.593171, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14746054, \"rank\": 7, \"score\": 0.584634, \"reasons\": [\"NO_REASON\"], \"is_conflict\": false, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744187, \"rank\": 8, \"score\": 0.583659, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 0.4375, \"has_evidence_packet\": true}, {\"obs_id\": 14733024, \"rank\": 9, \"score\": 0.583049, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14744248, \"rank\": 10, \"score\": 0.581585, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.5, \"has_evidence_packet\": true}], \"reading\": \"Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. On a split holding fewer than 50 decisively labelled observations, the budget is however many there are.\"}, \"returned\": 1, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 1, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}], \"reading\": \"Three counts here are different numbers and answering the wrong one is the mistake this string exists to stop. `available` is how many observations the queue ranks in total, which is the answer to 'how long is the queue'. `cap` is the most rows one call may return (50) and is a property of this tool, not of the queue. `review_budget.n_observations` is the budget the ranking was scored against and happens to equal the cap, which is exactly why it gets misread. `returned` is how many rows are in this response. Use queue_size if the total is all you want. Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}",
+    "{\"review_budget\": {\"n_observations\": 50, \"rationale\": \"Fixed at 50 before any results were seen. The chronological test set has 87 decisively-labelled observations, so 50 is 57% coverage: large enough to measure lift with reasonable precision and small enough that 1.5x is non-trivial. On a split holding fewer than 50 decisively labelled observations, the budget is however many there are.\"}, \"returned\": 10, \"available\": 407, \"cap\": 50, \"with_evidence_packet\": 10, \"entries\": [{\"obs_id\": 14746092, \"rank\": 1, \"score\": 0.879634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.999999, \"has_evidence_packet\": true}, {\"obs_id\": 14735140, \"rank\": 2, \"score\": 0.849634, \"reasons\": [\"MODEL_LABEL_DISAGREE\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 1e-06, \"has_evidence_packet\": true}, {\"obs_id\": 14732518, \"rank\": 3, \"score\": 0.599878, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745718, \"rank\": 4, \"score\": 0.59622, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14745990, \"rank\": 5, \"score\": 0.596098, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744250, \"rank\": 6, \"score\": 0.593171, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14746054, \"rank\": 7, \"score\": 0.584634, \"reasons\": [\"NO_REASON\"], \"is_conflict\": false, \"network_label\": \"without-signal\", \"model_probability\": 0.65, \"has_evidence_packet\": true}, {\"obs_id\": 14744187, \"rank\": 8, \"score\": 0.583659, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"with-signal\", \"model_probability\": 0.4375, \"has_evidence_packet\": true}, {\"obs_id\": 14733024, \"rank\": 9, \"score\": 0.583049, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.6875, \"has_evidence_packet\": true}, {\"obs_id\": 14744248, \"rank\": 10, \"score\": 0.581585, \"reasons\": [\"STALE_CATALOGUE_FREQ\"], \"is_conflict\": true, \"network_label\": \"without-signal\", \"model_probability\": 0.5, \"has_evidence_packet\": true}], \"reading\": \"Three counts here are different numbers and answering the wrong one is the mistake this string exists to stop. `available` is how many observations the queue ranks in total, which is the answer to 'how long is the queue'. `cap` is the most rows one call may return (50) and is a property of this tool, not of the queue. `review_budget.n_observations` is the budget the ranking was scored against and happens to equal the cap, which is exactly why it gets misread. `returned` is how many rows are in this response. Use queue_size if the total is all you want. Rank is the order a reviewer should spend a fixed budget in. A row with has_evidence_packet false is ranked but carries no imagery in this checkout, so observation and check_claim refuse it. The queue's headline lift over random is NOT_ESTABLISHED against its 1.5x threshold: the point estimate is above it and the interval contains it. See gate_status.\"}"
    ]
   },
   {
@@ -899,7 +893,7 @@
    "tools_called": [
     "observation",
     "observation",
-    "observation"
+    "check_claim"
    ],
    "stopped_because": "answered",
    "steps": [
@@ -927,14 +921,15 @@
     },
     {
      "index": 3,
-     "raw": "{\"tool\": \"observation\", \"arguments\": {\"observation_id\": 14732518}}",
-     "tool": "observation",
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14732518, \"text\": \"The transmitter mode is BPSK.\"}}",
+     "tool": "check_claim",
      "arguments": {
-      "observation_id": 14732518
+      "observation_id": 14732518,
+      "text": "The transmitter mode is BPSK."
      },
-     "error": "repeated call, the earlier result is already in the history",
+     "error": null,
      "answer": null,
-     "result_bytes": null
+     "result_bytes": 313
     },
     {
      "index": 4,
@@ -947,7 +942,8 @@
     }
    ],
    "read": [
-    "{\"observation_id\": 14732518, \"evidence_packet\": {\"observation_id\": \"14732518\", \"ground_station_id\": \"4806\", \"ground_station_name\": \"KC1OCA UC-1464-531L (VHF)\", \"norad_catalogue_id\": \"40025\", \"transmitter_mode\": \"BPSK\", \"receiver_frequency_hz\": \"145815000\", \"network_label\": \"without-signal\", \"pass_duration_s\": \"214\", \"max_elevation_deg\": \"20.5\", \"closest_approach_fraction\": \"0.50\", \"fitted_offset_hz\": \"6146\", \"fitted_offset_ppm\": \"42.1\", \"corridor_half_width_hz\": \"2000\", \"sigma_curved\": \"3.1\", \"sigma_vertical\": \"0.8\", \"hz_per_pixel\": \"79.8\", \"seconds_per_pixel\": \"0.14\", \"axis_derivation\": \"axis_ticks_ocr\", \"axis_derivation_confidence\": \"0.94\", \"model_probability\": \"0.688\", \"ensemble_uncertainty\": \"0.0067\", \"flat_row_fraction\": \"0.00\", \"queue_rank\": \"3\", \"queue_score\": \"0.600\", \"queue_reason_codes\": \"STALE_CATALOGUE_FREQ\", \"offset_at_bound\": \"false\"}, \"evidence_packet_sha256\": \"eb43777f2a79063214886e0e3ab46a3771df6dd0a4ec4daf57293fcd8848df8b\", \"note\": {\"text\": \"The observation disagrees with the NORAD catalogue, suggesting a frequency of 145.815 MHz. In the waterfall image, look for a signal around the 20th degree elevation, near the center of the pass duration. A definitive observation would be the clear detection of a BPSK modulated signal at approximately 145.815 MHz, with a Doppler shift matching the provided fitted offset of 6146 Hz or 42.1 ppm.\", \"source\": \"generated\", \"refused_codes\": [], \"why\": null}, \"reading\": \"evidence_packet is the closed world a generated note may draw on. A note whose source is deterministic means a generated draft was refused or never existed, and refused_codes says which.\"}"
+    "{\"observation_id\": 14732518, \"evidence_packet\": {\"observation_id\": \"14732518\", \"ground_station_id\": \"4806\", \"ground_station_name\": \"KC1OCA UC-1464-531L (VHF)\", \"norad_catalogue_id\": \"40025\", \"transmitter_mode\": \"BPSK\", \"receiver_frequency_hz\": \"145815000\", \"network_label\": \"without-signal\", \"pass_duration_s\": \"214\", \"max_elevation_deg\": \"20.5\", \"closest_approach_fraction\": \"0.50\", \"fitted_offset_hz\": \"6146\", \"fitted_offset_ppm\": \"42.1\", \"corridor_half_width_hz\": \"2000\", \"sigma_curved\": \"3.1\", \"sigma_vertical\": \"0.8\", \"hz_per_pixel\": \"79.8\", \"seconds_per_pixel\": \"0.14\", \"axis_derivation\": \"axis_ticks_ocr\", \"axis_derivation_confidence\": \"0.94\", \"model_probability\": \"0.688\", \"ensemble_uncertainty\": \"0.0067\", \"flat_row_fraction\": \"0.00\", \"queue_rank\": \"3\", \"queue_score\": \"0.600\", \"queue_reason_codes\": \"STALE_CATALOGUE_FREQ\", \"offset_at_bound\": \"false\"}, \"evidence_packet_sha256\": \"eb43777f2a79063214886e0e3ab46a3771df6dd0a4ec4daf57293fcd8848df8b\", \"note\": {\"text\": \"The observation disagrees with the NORAD catalogue, suggesting a frequency of 145.815 MHz. In the waterfall image, look for a signal around the 20th degree elevation, near the center of the pass duration. A definitive observation would be the clear detection of a BPSK modulated signal at approximately 145.815 MHz, with a Doppler shift matching the provided fitted offset of 6146 Hz or 42.1 ppm.\", \"source\": \"generated\", \"refused_codes\": [], \"why\": null}, \"reading\": \"evidence_packet is the closed world a generated note may draw on. A note whose source is deterministic means a generated draft was refused or never existed, and refused_codes says which.\"}",
+    "{\"observation_id\": 14732518, \"verdict\": \"GROUNDED\", \"codes\": [], \"violations\": [], \"reading\": \"GROUNDED means every number in the text appears in this observation's evidence packet, in the unit it was written in, and the text asserts nothing the permission contract forbids. It does not mean the text is useful.\"}"
    ]
   },
   {
@@ -1047,11 +1043,11 @@
     },
     {
      "index": 3,
-     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14745718, \"text\": \"The maximum elevation was 38.4 degrees.\"}}",
+     "raw": "{\"tool\": \"check_claim\", \"arguments\": {\"observation_id\": 14745718, \"text\": \"The maximum elevation was more than 38.4 degrees.\"}}",
      "tool": "check_claim",
      "arguments": {
       "observation_id": 14745718,
-      "text": "The maximum elevation was 38.4 degrees."
+      "text": "The maximum elevation was more than 38.4 degrees."
      },
      "error": null,
      "answer": null,
@@ -1197,7 +1193,7 @@
    "task_id": "gates-met",
    "question": "How many of this project's kill gates are met?",
    "arm": "tools",
-   "answer": "2",
+   "answer": "3",
    "tools_called": [
     "gate_status"
    ],
@@ -1210,20 +1206,20 @@
      "arguments": {},
      "error": null,
      "answer": null,
-     "result_bytes": 1231
+     "result_bytes": 1244
     },
     {
      "index": 2,
-     "raw": "{\"answer\": 2}",
+     "raw": "{\"answer\": 3}",
      "tool": null,
      "arguments": null,
      "error": null,
-     "answer": "2",
+     "answer": "3",
      "result_bytes": null
     }
    ],
    "read": [
-    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"OPEN\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 2, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
    ]
   },
   {
@@ -1243,7 +1239,7 @@
      "arguments": {},
      "error": null,
      "answer": null,
-     "result_bytes": 1231
+     "result_bytes": 1244
     },
     {
      "index": 2,
@@ -1256,7 +1252,7 @@
     }
    ],
    "read": [
-    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"OPEN\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 2, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
    ]
   },
   {
@@ -1276,7 +1272,7 @@
      "arguments": {},
      "error": null,
      "answer": null,
-     "result_bytes": 1231
+     "result_bytes": 1244
     },
     {
      "index": 2,
@@ -1289,14 +1285,14 @@
     }
    ],
    "read": [
-    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"OPEN\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 2, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
    ]
   },
   {
    "task_id": "gate-4-verdict",
    "question": "What is the verdict of kill gate 4?",
    "arm": "tools",
-   "answer": "OPEN",
+   "answer": "PASSED",
    "tools_called": [
     "gate_status"
    ],
@@ -1309,20 +1305,20 @@
      "arguments": {},
      "error": null,
      "answer": null,
-     "result_bytes": 1231
+     "result_bytes": 1244
     },
     {
      "index": 2,
-     "raw": "{\"answer\": \"OPEN\"}",
+     "raw": "{\"answer\": \"PASSED\"}",
      "tool": null,
      "arguments": null,
      "error": null,
-     "answer": "OPEN",
+     "answer": "PASSED",
      "result_bytes": null
     }
    ],
    "read": [
-    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"OPEN\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 2, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
+    "{\"gates\": [{\"gate\": 1, \"title\": \"Dataset volume and entity spread\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 2, \"title\": \"Metadata coverage for the corridor\", \"verdict\": \"PRE_PASSED\", \"decided_in\": \"docs/KILL_GATE.md\"}, {\"gate\": 3, \"title\": \"Corridor intersects a visible trace\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/GATE3_RECEIPT.json\"}, {\"gate\": 4, \"title\": \"Blinded human decidability\", \"verdict\": \"PASSED\", \"decided_in\": \"artifacts/GATE4_RECEIPT.json\"}, {\"gate\": 5, \"title\": \"Physics beats image-only on Brier\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/FUSION_RECEIPT.json\"}, {\"gate\": 6, \"title\": \"Queue lift over random\", \"verdict\": \"NOT_ESTABLISHED\", \"decided_in\": \"artifacts/QUEUE_RECEIPT.json\"}], \"n_gates\": 6, \"n_met\": 3, \"note\": \"Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run.\", \"reading\": \"Met counts a gate that passed or pre-passed. NOT_ESTABLISHED is a measurement that came back inconclusive, not a failure and not a pass. OPEN is a study that was never run.\"}"
    ]
   },
   {
@@ -1357,7 +1353,7 @@
     }
    ],
    "read": [
-    "{\"receipt\": \"QUEUE_RECEIPT.json\", \"bytes\": 253883, \"path\": \"artifacts/QUEUE_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"schema\": \"QUEUE_RECEIPT\", \"schema_version\": \"0.3.0\", \"contract\": \"contracts/queue_receipt.schema.json\", \"unit\": \"C2\", \"generated_at\": \"2026-08-18T07:36:31.780369+00:00\", \"seed\": 42, \"snapshot_id\": \"snap-20260817-stage1\", \"split_manifest_sha256\": \"2687e8b9300e894e7641618387ce3927f0ae9ffee7346175db01289b0af15199\"}, \"collection_sizes\": {\"conflict_definition\": 3, \"review_budget\": 2, \"deduplication\": 9, \"queue\": 407, \"per_split_summaries\": 4, \"gate6\": 6}}"
+    "{\"receipt\": \"QUEUE_RECEIPT.json\", \"bytes\": 259290, \"path\": \"artifacts/QUEUE_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"schema\": \"QUEUE_RECEIPT\", \"schema_version\": \"0.3.0\", \"contract\": \"contracts/queue_receipt.schema.json\", \"unit\": \"C2\", \"generated_at\": \"2026-08-22T04:07:16.672666+00:00\", \"seed\": 42, \"snapshot_id\": \"snap-20260817-stage1\", \"split_manifest_sha256\": \"c0f8cd3a5dd5fbf9b6d49beacc5c050e1cf2525daca210945a6fba80226873c9\"}, \"collection_sizes\": {\"conflict_definition\": 4, \"review_budget\": 2, \"deduplication\": 9, \"queue\": 407, \"per_split_summaries\": 4, \"gate6\": 6}}"
    ]
   },
   {
@@ -1380,7 +1376,7 @@
      },
      "error": null,
      "answer": null,
-     "result_bytes": 1942
+     "result_bytes": 1943
     },
     {
      "index": 2,
@@ -1404,16 +1400,15 @@
     }
    ],
    "read": [
-    "{\"receipt\": \"GATE3_RECEIPT.json\", \"bytes\": 52145, \"path\": \"artifacts/GATE3_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"gate\": 3, \"question\": \"Does the expected corridor intersect a visible target-like trace?\", \"generated_at\": \"2026-08-19T01:18:00.823527+00:00\", \"verdict\": \"NOT_ESTABLISHED\", \"threshold\": 0.7, \"observations_decisive\": 7, \"observations_testable\": 3, \"observations_not_testable\": 4, \"observations_scored\": 3, \"discriminating_rate\": 1.0, \"rate_lower_bound_95\": 0.3684031498640387, \"clears_point_estimate\": true, \"clears_threshold\": false, \"not_testable_note\": \"A corrected corridor is identically 0 Hz across the pass, so it is a vertical line with a free horizontal offset and predicts no shape. Gate 3 can only be asked of uncorrected captures, where an S-curve is predicted and can be wrong. Excluding these is a limit on the gate's scope, not a pass.\", \"method\": \"Per observation: fit one constant frequency offset bounded at offset_ppm_limit ppm of the downlink, scoring the predicted curve with a matched filter and taking the best offset. Then repeat the identical fit for n_nulls corridors built by permuting the observation's own Doppler samples in time, which preserves every frequency value and the whole swing while destroying the monotone shape. The statistic is the one-sided empirical p-value of the true corridor against that null distribution. An observation discriminates when p <= p_value_max. The gate passes when the discriminating rate over scored observations reaches the threshold. Per-row residuals and coverage are reported as diagnostics but are not the gate: these traces integrate to significance along the path while individual rows stay below z_min, so a per-row instrument reports zero detections on a trace A3 localised at high sigma.\"}, \"collection_sizes\": {\"entity_grouping\": 12, \"axis_sign_scope\": 9, \"thresholds\": 7, \"threshold_rationale\": 11, \"claim\": 3, \"observations\": 7, \"skipped\": 0}}"
+    "{\"receipt\": \"GATE3_RECEIPT.json\", \"bytes\": 52667, \"path\": \"artifacts/GATE3_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"gate\": 3, \"question\": \"Does the expected corridor intersect a visible target-like trace?\", \"generated_at\": \"2026-08-20T00:40:37.891532+00:00\", \"verdict\": \"NOT_ESTABLISHED\", \"threshold\": 0.7, \"observations_decisive\": 7, \"observations_testable\": 3, \"observations_not_testable\": 4, \"observations_scored\": 3, \"discriminating_rate\": 1.0, \"rate_lower_bound_95\": 0.3684031498640387, \"clears_point_estimate\": true, \"clears_threshold\": false, \"not_testable_note\": \"A corrected corridor is identically 0 Hz across the pass, so it is a vertical line with a free horizontal offset and predicts no shape. Gate 3 can only be asked of uncorrected captures, where an S-curve is predicted and can be wrong. Excluding these is a limit on the gate's scope, not a pass.\", \"method\": \"Per observation: fit one constant frequency offset bounded at offset_ppm_limit ppm of the downlink, scoring the predicted curve with a matched filter and taking the best offset. Then repeat the identical fit for n_nulls corridors built by permuting the observation's own Doppler samples in time, which preserves every frequency value and the whole swing while destroying the monotone shape. The statistic is the one-sided empirical p-value of the true corridor against that null distribution. An observation discriminates when p <= p_value_max. The gate passes when the discriminating rate over scored observations reaches the threshold. Per-row residuals and coverage are reported as diagnostics but are not the gate: these traces integrate to significance along the path while individual rows stay below z_min, so a per-row instrument reports zero detections on a trace A3 localised at high sigma.\"}, \"collection_sizes\": {\"entity_grouping\": 12, \"axis_sign_scope\": 18, \"thresholds\": 7, \"threshold_rationale\": 11, \"claim\": 3, \"observations\": 7, \"skipped\": 0}}"
    ]
   },
   {
    "task_id": "receipt-gate4-verdict",
    "question": "What verdict does the receipt GATE4_RECEIPT.json record?",
    "arm": "tools",
-   "answer": "NOT_RUN",
+   "answer": "PASSED",
    "tools_called": [
-    "receipt",
     "receipt"
    ],
    "stopped_because": "answered",
@@ -1427,31 +1422,20 @@
      },
      "error": null,
      "answer": null,
-     "result_bytes": 1561
+     "result_bytes": 1469
     },
     {
      "index": 2,
-     "raw": "{\"tool\": \"receipt\", \"arguments\": {\"name\": \"GATE4_RECEIPT.json\"}}",
-     "tool": "receipt",
-     "arguments": {
-      "name": "GATE4_RECEIPT.json"
-     },
-     "error": "repeated call, the earlier result is already in the history",
-     "answer": null,
-     "result_bytes": null
-    },
-    {
-     "index": 3,
-     "raw": "{\"answer\": \"NOT_RUN\"}",
+     "raw": "{\"answer\": \"PASSED\"}",
      "tool": null,
      "arguments": null,
      "error": null,
-     "answer": "NOT_RUN",
+     "answer": "PASSED",
      "result_bytes": null
     }
    ],
    "read": [
-    "{\"receipt\": \"GATE4_RECEIPT.json\", \"bytes\": 2411, \"path\": \"artifacts/GATE4_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"schema\": \"GATE4_RECEIPT\", \"schema_version\": 1, \"gate\": 4, \"unit\": \"E6\", \"threshold\": 0.8, \"decisive_rule\": \"An item is decisive when the reviewer committed to an answer rather than declining. artifact_usable must be yes or no. When it is no, that is itself the decisive artifact judgment the gate names and the item counts. When it is yes, at least one of visible_signal or target_consistent must also be yes or no, because an image the reviewer calls usable and then declines to judge on every axis supported no judgment.\", \"verdict_rule\": \"PASSED when the 95 percent lower bound is at or above the threshold. FAILED when the upper bound is below it. NOT_ESTABLISHED when the interval contains it. NOT_RUN when no response has been recorded, which is not a failure and is not a pass.\", \"ci_method\": \"Exact one-sided Clopper-Pearson bounds at 95 percent, from scripts/run_gate3.py::rate_lower_bound and rate_upper_bound, so gates 3 and 4 read their rates from the same function.\", \"verdict\": \"NOT_RUN\", \"why\": \"D:\\\\tracetriage_gate4\\\\responses.csv has no answered rows. The worksheet exists and nobody has filled it in.\", \"reading\": \"NOT_RUN is a third outcome and it is not a failure. The instrument exists, its sample is committed, and the review has not been carried out. Folding this into FAILED would manufacture a measurement, and folding it into silence would hide that the gate is still open.\"}, \"collection_sizes\": {\"worksheet\": 9}}"
+    "{\"receipt\": \"GATE4_RECEIPT.json\", \"bytes\": 74956, \"path\": \"artifacts/GATE4_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"schema\": \"GATE4_RECEIPT\", \"schema_version\": 1, \"gate\": 4, \"unit\": \"E6\", \"threshold\": 0.8, \"decisive_rule\": \"An item is decisive when the reviewer committed to an answer rather than declining. artifact_usable must be yes or no. When it is no, that is itself the decisive artifact judgment the gate names and the item counts. When it is yes, at least one of visible_signal or target_consistent must also be yes or no, because an image the reviewer calls usable and then declines to judge on every axis supported no judgment.\", \"verdict_rule\": \"PASSED when the 95 percent lower bound is at or above the threshold. FAILED when the upper bound is below it. NOT_ESTABLISHED when the interval contains it. NOT_RUN when no response has been recorded, which is not a failure and is not a pass.\", \"ci_method\": \"Exact one-sided Clopper-Pearson bounds at 95 percent, from scripts/run_gate3.py::rate_lower_bound and rate_upper_bound, so gates 3 and 4 read their rates from the same function.\", \"verdict\": \"PASSED\", \"observations_scored\": 60, \"decisive\": 60, \"rate\": 1.0, \"rate_lower_bound_95\": 0.9513, \"rate_upper_bound_95\": 1.0}, \"collection_sizes\": {\"worksheet\": 9, \"not_decisive_items\": 0, \"sample_balance\": 5, \"stimulus\": 2, \"intra_rater\": 5, \"reviewer_pace\": 8, \"network_label_agreement\": 9, \"reveal\": 3, \"per_item\": 72, \"reviewer\": 5, \"prior_review\": 15}}"
    ]
   },
   {
@@ -1498,7 +1482,7 @@
     }
    ],
    "read": [
-    "{\"receipt\": \"EXPLAIN_RECEIPT.json\", \"bytes\": 24915, \"path\": \"artifacts/EXPLAIN_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"frozen_drafts_sha256\": \"27a4c77f87eedbfa6213e232d3a268aab4af946fc9cf731b9324b54bcec1d26a\", \"unit\": \"E1\", \"drafts_frozen_at_commit\": \"2026-08-19T13:41:46+05:30\", \"what_this_does_not_measure\": \"Whether a note that passed the checker is useful. Grounding is a property of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.\"}, \"collection_sizes\": {\"model\": 5, \"generation\": 7, \"counts\": 6, \"hallucinated_downlink_frequency\": 6, \"run_to_run_stability\": 2, \"checker_sensitivity\": 14, \"per_observation\": 25}}"
+    "{\"receipt\": \"EXPLAIN_RECEIPT.json\", \"bytes\": 24725, \"path\": \"artifacts/EXPLAIN_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"frozen_drafts_sha256\": \"27a4c77f87eedbfa6213e232d3a268aab4af946fc9cf731b9324b54bcec1d26a\", \"unit\": \"E1\", \"drafts_frozen_at_commit\": \"2026-08-19T13:41:46+05:30\", \"what_this_does_not_measure\": \"Whether a note that passed the checker is useful. Grounding is a property of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.\"}, \"collection_sizes\": {\"model\": 5, \"generation\": 7, \"counts\": 8, \"hallucinated_downlink_frequency\": 6, \"run_to_run_stability\": 2, \"checker_sensitivity\": 14, \"per_observation\": 25}}"
    ]
   },
   {
@@ -1533,7 +1517,7 @@
     }
    ],
    "read": [
-    "{\"receipt\": \"EXPLAIN_RECEIPT.json\", \"bytes\": 24915, \"path\": \"artifacts/EXPLAIN_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"frozen_drafts_sha256\": \"27a4c77f87eedbfa6213e232d3a268aab4af946fc9cf731b9324b54bcec1d26a\", \"unit\": \"E1\", \"drafts_frozen_at_commit\": \"2026-08-19T13:41:46+05:30\", \"what_this_does_not_measure\": \"Whether a note that passed the checker is useful. Grounding is a property of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.\"}, \"collection_sizes\": {\"model\": 5, \"generation\": 7, \"counts\": 6, \"hallucinated_downlink_frequency\": 6, \"run_to_run_stability\": 2, \"checker_sensitivity\": 14, \"per_observation\": 25}}"
+    "{\"receipt\": \"EXPLAIN_RECEIPT.json\", \"bytes\": 24725, \"path\": \"artifacts/EXPLAIN_RECEIPT.json\", \"root\": \"object\", \"scalars\": {\"frozen_drafts_sha256\": \"27a4c77f87eedbfa6213e232d3a268aab4af946fc9cf731b9324b54bcec1d26a\", \"unit\": \"E1\", \"drafts_frozen_at_commit\": \"2026-08-19T13:41:46+05:30\", \"what_this_does_not_measure\": \"Whether a note that passed the checker is useful. Grounding is a property of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.\"}, \"collection_sizes\": {\"model\": 5, \"generation\": 7, \"counts\": 8, \"hallucinated_downlink_frequency\": 6, \"run_to_run_stability\": 2, \"checker_sensitivity\": 14, \"per_observation\": 25}}"
    ]
   },
   {

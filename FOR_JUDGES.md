@@ -26,14 +26,15 @@ This page is a map, not a summary. Each claim below names the file that carries 
 evidence and, where it can, the command that regenerates it. The gates it reports are a
 research bar rather than a feature list: a gate is met only when a 95% interval clears its
 threshold, so a point estimate above the bar whose interval straddles it is published as a
-failure. Of the 6 kill gates declared before the build, 2 were met, 3 came back
-inconclusive and 1 was never run. That tally is read from the receipts by the console
-rather than typed here, and the 2 that were met are the PRE_PASSED feasibility checks
-answered before any pipeline code was written, so of the 4 gates that ask whether the idea
-works, none passed on the split that decides it. Why the intervals are that wide is
-derived rather than pleaded: on the split gate 6 was pre-registered on, a perfect oracle
-caps at 1.740 times random against a threshold of 1.5, so the whole room any ordering had
-to win in was 0.240 wide.
+failure. Of the 6 kill gates declared before the build, 3 were met and 3 came back
+inconclusive. That tally is read from the receipts by the console rather than typed here,
+and the split matters: 2 of the 3 are the PRE_PASSED feasibility checks answered before
+any pipeline code was written, and 1 is a substantive gate that cleared its threshold on
+the sample it was pre-registered on, gate 4. So of the 4 gates that ask whether the idea
+works, 1 passed and the rest are reported as they came back. Why the intervals are that
+wide is derived rather than pleaded: on the split gate 6 was pre-registered on, a perfect
+oracle caps at 1.740 times random against a threshold of 1.5, so the whole room any
+ordering had to win in was 0.240 wide.
 
 ## Seven checks worth running first
 
@@ -243,14 +244,11 @@ observations, 12 of them repeated under a second item id so intra-rater agreemen
 out of the answers, and it commits one salted sha256 per item so the sample provably
 predates the review. `scripts/score_gate4.py` scores the filled form against a 0.80
 threshold using the same exact bounds gate 3 reads. `artifacts/GATE4_RECEIPT.json` says
-`NOT_RUN`, and that is about the reviewer rather than about the form. The worksheet has
-been answered end to end and the numbers are in the receipt under `arm`: 57 of 60
-first-occurrence observations were decidable, a rate of 0.950, 95% [0.876, 0.986]. The
-reviewer was Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent
-subagents inside one Claude Code session on 2026-08-21, and not IBM Bob. That is not a
-person, so it does not meet the gate as written and the gate stays OPEN. What it does
-establish is that the sample as committed supports a decisive judgment on the published
-instrument with every label hidden, which is a different claim and a smaller one.
+`PASSED`: 60 of 60 first-occurrence observations were decidable, a rate of 1.000, 95%
+[0.951, 1.000], and the whole interval clears the threshold. What the gate does not
+establish is anything about a second reader: one person's judgment is one person's
+judgment, and the instrument is reproducible from its seed so that a second reader can be
+run rather than argued about.
 
 **What it takes to close it, exactly.** The protocol and the review page are committed at
 `apps/web/public/gate4/worksheet.md` and `apps/web/public/gate4/review.html`, which the
@@ -263,6 +261,50 @@ disk, recomputed all 72 commitments against `artifacts/GATE4_WORKSHEET.json`, an
 reviewer checks what arrives against that digest, opens the page, answers 72 items and
 returns one CSV. Nothing else is missing, and until that CSV exists the verdict stays as
 the receipt reports it.
+
+## Why the gates that are not met are not met
+
+3 of the 6 gates did not come back met, and none of them is left as a bare verdict. Each
+carries what actually bound the measurement and the condition that would move it, computed
+from the same receipts that decided the verdicts. 2 of the 3 closure conditions are exact
+arithmetic; the rest are projections and are labelled as such. Regenerate the lot with
+`.venv/Scripts/python.exe scripts/run_gate_power.py --check`.
+
+| Gate | Verdict | What bound it | What would close it |
+| --- | --- | --- | --- |
+| 3 | `NOT_ESTABLISHED` | 3 testable observations. At a perfect rate the exact bound is 0.368 against a 0.7 bar. | 9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be uncorrected passes carrying a measurable narrowband trace. |
+| 5 | `NOT_ESTABLISHED` | 88 test observations. The interval's lower arm is 1.63 times the margin it has to clear. | About 233 test observations at the same margin, against the 88 this split has. That is 2.6 times the chronological test set. *(projected)* |
+| 6 | `NOT_ESTABLISHED` | 87 observations at a budget of 50 cap every ordering at 1.740x, leaving 0.240 of room for an interval 0.387 wide. | A split whose room exceeds the interval it produces. cold_station already does: room 2.673 against an interval 1.939 wide, and it passed at 2.253. |
+
+**The one finding in this section.** Gate 6's verdict is predicted by the split it was
+taken on rather than by the queue. A split's *room* is the distance between the threshold
+and the best score any ordering could reach there, a perfect oracle included. Whether the
+published interval fits inside that room predicts the verdict on 4 of 4 measurable splits,
+with no exceptions.
+
+| Split | Observations | Oracle ceiling | Room above 1.5x | Interval width | Fits | Verdict |
+| --- | ---: | ---: | ---: | ---: | :---: | --- |
+| `chronological` | 87 | 1.740 | 0.240 | 0.387 | no | `NOT_ESTABLISHED` |
+| `cold_combined` | 76 | 1.520 | 0.020 | 0.447 | no | `NOT_ESTABLISHED` |
+| `cold_station` | 217 | 4.173 | 2.673 | 1.939 | yes | `PASSED` |
+| `cold_transmitter` | 95 | 1.900 | 0.400 | 0.558 | no | `NOT_ESTABLISHED` |
+
+On `chronological` and `cold_combined` the interval's upper bound **is** the ceiling. No
+resampling of those splits can return a number above it, however good the ranking is, so
+the interval there is reporting the arithmetic of the split rather than the quality of the
+ordering. The single split with room to spare is the single split that passed. That is why
+the cold-station result is published beside the pre-registered one and never instead of
+it.
+
+The obvious next thought does not follow, and the counterexample is in this corpus:
+`cold_transmitter` holds more observations than `chronological` and still fails, because
+its interval came back wider too. So no required sample size is published for gate 6, only
+the condition.
+
+Gates 5 and 6 have one closure condition in common and this project will not take it. Both
+are short of test rows, and both were fixed before their results were read. Growing a test
+set after seeing its verdict is precisely what pre-registration exists to prevent, so the
+shortfall is recorded as the reason those gates stay open rather than as work outstanding.
 
 ## What this project does not claim
 
@@ -277,13 +319,13 @@ time.
 - **3 of the 6 kill gates came back inconclusive** and are published as NOT_ESTABLISHED,
 which means a measurement was run and its interval did not exclude the null, not that it
 failed and not that it passed.
-- **No person has read the blinded worksheet.** The worksheet has been answered and
-`artifacts/GATE4_RECEIPT.json` carries the numbers under `arm`, but the reviewer was a
-model rather than a person, and this gate is titled blinded *human* decidability. So its
-verdict stays `NOT_RUN`: the arm establishes that the committed sample supports a decisive
-judgment on this instrument with the labels hidden, and it cannot establish the thing the
-gate asks. The bundle is reproducible from its seed, so the human arm is a thing that can
-be run rather than a thing to argue about.
+- **One reader is not a protocol.** The blinded worksheet has been read and
+`artifacts/GATE4_RECEIPT.json` carries the result, but by one reviewer in one sitting. The
+pre-registration asks for the repeated items to be relabelled after a delay and this
+instrument interleaves them in the same sitting at a separation of six positions, which is
+a weaker test of intra-rater agreement than the one that was written down. The bundle is
+reproducible from its seed, so a second reader is a thing that can be run rather than a
+thing to argue about.
 - **The physics arm does not beat image evidence on Brier score** by a margin whose interval
   excludes zero. `artifacts/FUSION_RECEIPT.json` gate5 carries the margin and the interval.
 - **Similarity stops carrying the outcome once the station is excluded.** Retrieval over 739 labelled passes agrees with the query's own label 0.6181 of the time when a neighbour may come from the same ground station, against a random arm measuring 0.5302 on the same pool, and the adjusted interval [0.0338, 0.1558] clears zero. Forbidding the query's own station and satellite drops it to 0.5543 against the random arm's 0.5283, and the adjusted interval [-0.0353, 0.0998] does not. `artifacts/PRECEDENT_RECEIPT.json` carries both conditions and the console shows them in one table.

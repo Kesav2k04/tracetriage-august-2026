@@ -9796,38 +9796,42 @@
   }
  ],
  "gate4_arm": {
+  "is_the_gate": true,
+  "prior_review": {
+   "kind": "model",
+   "identity": "Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.",
+   "decisive": 57,
+   "observations_scored": 60,
+   "rate": 0.95
+  },
   "verdict": "PASSED",
   "observations_scored": 60,
-  "decisive": 57,
-  "rate": 0.95,
-  "rate_lower_bound_95": 0.8758,
-  "rate_upper_bound_95": 0.9862,
-  "not_decisive_items": [
-   "G4-018",
-   "G4-020",
-   "G4-028"
-  ],
+  "decisive": 60,
+  "rate": 1.0,
+  "rate_lower_bound_95": 0.9513,
+  "rate_upper_bound_95": 1.0,
+  "not_decisive_items": [],
   "intra_rater": {
    "repeated_pairs_scored": 12,
    "per_axis": {
     "artifact_usable": {
      "pairs": 12,
-     "identical": 11,
-     "rate": 0.9167
+     "identical": 12,
+     "rate": 1.0
     },
     "visible_signal": {
      "pairs": 12,
-     "identical": 11,
-     "rate": 0.9167
+     "identical": 12,
+     "rate": 1.0
     },
     "target_consistent": {
      "pairs": 12,
-     "identical": 11,
-     "rate": 0.9167
+     "identical": 8,
+     "rate": 0.6667
     }
    },
-   "identical_on_all_three_axes": 11,
-   "rate_identical_on_all_three_axes": 0.9167,
+   "identical_on_all_three_axes": 8,
+   "rate_identical_on_all_three_axes": 0.6667,
    "reading": "A decisive rate cannot be trusted beyond the rate at which the same reviewer gives the same answer to the same image. Both are reported so the second can be read as a ceiling on the first."
   },
   "label_agreement": {
@@ -9835,35 +9839,36 @@
    "by_axis": {
     "visible_signal": {
      "axis": "visible_signal",
-     "items_scored": 38,
-     "agreed_with_the_network_label": 25,
-     "rate": 0.6579,
+     "items_scored": 40,
+     "agreed_with_the_network_label": 23,
+     "rate": 0.575,
      "items_excluded_unknown_label": 20,
-     "items_excluded_reviewer_unsure": 2,
+     "items_excluded_reviewer_unsure": 0,
      "confusion_network_label_to_human": {
       "without-signal": {
-       "with-signal": 13,
+       "with-signal": 15,
        "without-signal": 5
       },
       "with-signal": {
-       "with-signal": 20
+       "without-signal": 2,
+       "with-signal": 18
       }
      }
     },
     "target_consistent": {
      "axis": "target_consistent",
-     "items_scored": 33,
-     "agreed_with_the_network_label": 13,
-     "rate": 0.3939,
+     "items_scored": 40,
+     "agreed_with_the_network_label": 17,
+     "rate": 0.425,
      "items_excluded_unknown_label": 20,
-     "items_excluded_reviewer_unsure": 7,
+     "items_excluded_reviewer_unsure": 0,
      "confusion_network_label_to_human": {
       "without-signal": {
-       "with-signal": 8,
-       "without-signal": 7
+       "with-signal": 9,
+       "without-signal": 11
       },
       "with-signal": {
-       "without-signal": 12,
+       "without-signal": 14,
        "with-signal": 6
       }
      }
@@ -9871,19 +9876,98 @@
    }
   },
   "reviewer": {
-   "kind": "model",
-   "identity": "Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.",
-   "procedure": "The 72 items were split into twelve consecutive blocks of six in worksheet order. Each block went to a freshly spawned subagent that was given the three questions from worksheet.md verbatim, a short orientation note about how a pass reads on a spectrogram, the six image paths, and nothing else. Each subagent opened the six PNGs and returned six rows of artifact_usable, visible_signal and target_consistent. No timing was recorded, because a model's wall clock is not a reviewer's decision time and publishing it as pace would be a fabricated number.",
-   "independence": "Each block was judged by a subagent with no conversation context: it could not see another block's images, another block's answers, the network's label, any model prediction, or the key. Repeat pairs are at least six items apart in worksheet order and each block spans five, so no subagent could see both halves of a pair, which keeps the intra-rater figure a comparison of two independent reads. The blocks were run one at a time and the answers were written to responses.csv without editing.",
-   "why_this_is_recorded": "Gate 4 asks whether a person can decide from these images. This reviewer is not a person, so this review cannot answer that and the gate stays open. It does answer a narrower question that had never been measured: whether the sample as committed supports a decisive judgment at all, on the published instrument, with the labels hidden.",
-   "protocol_change_mid_study": "The orientation note wrapped around the three questions was worded three ways, and the first way was wrong. Blocks 1 to 6 were told time runs down the vertical axis. Block 6 reported that its plates label time as increasing upward, so block 7 was given a direction-agnostic note (one axis is time, the other frequency, the labels say which) and was asked to read the axis furniture; it reported frequency across and time running bottom to top, earliest at the bottom. Blocks 8 to 12 were given that, stated correctly. This is recorded because it happened mid-study, not because it can change an answer: a drifting trace drifts under a vertical flip, and neither a constant-frequency carrier nor a full-width instantaneous band changes class under one. It does invert the apparent sense of the drift, which two blocks noticed and neither scored on. The published protocol in worksheet.md states no orientation at all, so the instrument was not wrong; the note around it was."
+   "kind": "human",
+   "identity": "Kesav Jayakumar (Kesav2k04), the author of TraceTriage, reviewing on 2026-08-22. Not an independent reviewer: the same person built the instrument. What the commitment guarantees instead is that the sample, its order and the images were fixed before the review and cannot have been chosen around the answers.",
+   "procedure": "The 72 items were answered in worksheet order in one sitting through apps/web/public/gate4/review.html, one plate at a time, with no item revisited after its answer was recorded. The three questions are the ones printed in worksheet.md and no other information was on screen. Answers were exported from the form as a single CSV and scored without editing.",
+   "independence": "The reviewer could not see the network's waterfall_status, any model prediction, the item-to-observation mapping or the salt, none of which is in the bundle: the key file was never opened before scoring. The reviewer knows the corpus and built the pipeline, so this is blinded but not independent, and the receipt says so rather than implying a stranger did it. Repeat pairs are at least six items apart and are not marked, so the intra-rater figure is still two reads that could not see each other.",
+   "why_this_is_recorded": "Gate 4 asks whether a person can decide from these images. This reviewer is a person, so this review answers the gate as written. It does not answer whether an arbitrary volunteer could, which needs a reviewer who did not build the corpus, and that remains open."
   },
-  "gate_verdict_is_not_this": "NOT_RUN",
-  "why_the_gate_is_still_open": "the review was carried out, and not by a person: Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob. Gate 4 is titled blinded human decidability, so this does not meet it. The review and every number from it are in `arm` below."
+  "gate_verdict_is_not_this": "PASSED",
+  "why_the_gate_is_still_open": null
+ },
+ "gate_power": {
+  "n_gates": 6,
+  "n_unmet": 3,
+  "every_unmet_gate_has_a_named_constraint": true,
+  "unmet": [
+   {
+    "gate": 3,
+    "title": "Corridor intersects a visible trace",
+    "verdict": "NOT_ESTABLISHED",
+    "binding_constraint": "testable_sample_size",
+    "bound_by": "3 testable observations. At a perfect rate the exact bound is 0.368 against a 0.7 bar.",
+    "closure": "9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be uncorrected passes carrying a measurable narrowband trace.",
+    "closure_kind": "exact"
+   },
+   {
+    "gate": 5,
+    "title": "Physics beats image-only on Brier",
+    "verdict": "NOT_ESTABLISHED",
+    "binding_constraint": "test_set_size",
+    "bound_by": "88 test observations. The interval's lower arm is 1.63 times the margin it has to clear.",
+    "closure": "About 233 test observations at the same margin, against the 88 this split has. That is 2.6 times the chronological test set.",
+    "closure_kind": "extrapolated"
+   },
+   {
+    "gate": 6,
+    "title": "Queue lift over random",
+    "verdict": "NOT_ESTABLISHED",
+    "binding_constraint": "split_population_at_a_fixed_budget",
+    "bound_by": "87 observations at a budget of 50 cap every ordering at 1.740x, leaving 0.240 of room for an interval 0.387 wide.",
+    "closure": "A split whose room exceeds the interval it produces. cold_station already does: room 2.673 against an interval 1.939 wide, and it passed at 2.253.",
+    "closure_kind": "exact"
+   }
+  ],
+  "room_rule": {
+   "holds": true,
+   "n_splits": 4,
+   "truncated": [
+    "chronological",
+    "cold_combined"
+   ],
+   "per_split": [
+    {
+     "split": "chronological",
+     "n_population": 87,
+     "ceiling": 1.74,
+     "room": 0.24,
+     "width": 0.38666666666666694,
+     "fits": false,
+     "verdict": "NOT_ESTABLISHED"
+    },
+    {
+     "split": "cold_combined",
+     "n_population": 76,
+     "ceiling": 1.52,
+     "room": 0.020000000000000018,
+     "width": 0.44705882352941173,
+     "fits": false,
+     "verdict": "NOT_ESTABLISHED"
+    },
+    {
+     "split": "cold_station",
+     "n_population": 217,
+     "ceiling": 4.1730769230769225,
+     "room": 2.6730769230769225,
+     "width": 1.9391537512223125,
+     "fits": true,
+     "verdict": "PASSED"
+    },
+    {
+     "split": "cold_transmitter",
+     "n_population": 95,
+     "ceiling": 1.9,
+     "room": 0.3999999999999999,
+     "width": 0.5579964950246956,
+     "fits": false,
+     "verdict": "NOT_ESTABLISHED"
+    }
+   ]
+  }
  },
  "receipt_sha256": {
   "queue": "4204193634349fa8c40242078fe60f80d26e79b322a9da5d43b6652252307c0f",
   "fusion": "7f89b40365600d9847ff220b88feff0f2184f2988ba93d20b63bc80ac07278b0",
-  "gate4": "1e3492b559b4bebd417316a244155b96c7b6beb5dbda4248d092fb236d3c1c02"
+  "gate4": "36282b4bf0ba44e17aeb37e091790d28199aec71d267ae3e19cd636a8ce540d2"
  }
 }

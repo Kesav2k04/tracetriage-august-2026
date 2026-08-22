@@ -20,12 +20,12 @@ The film is eight cards, cut rather than crossfaded, 3540 frames in total.
 | 3 | The product | 570 to 1169 | 19.0 to 39.0 | 407 observations ranked by review value, with the first 50 as the budget. The four the per-station cap displaced are drawn in the caution token at the budget line. Then what the top 50 turned out to be carrying: 17 stale catalogue frequencies, 3 model and label disagreements, 0 dead captures, with the third criterion marked as one that never fires on this corpus. |
 | 4 | The physics | 1170 to 1889 | 39.0 to 63.0 | Observation 14740031's real waterfall, from the console's own public directory. Three overlays arrive in order: the commanded receive frequency as a vertical dashed line, the pass geometry at zero offset spanning 17,290 Hz, then the same curve sliding 113 pixels onto its best match. The measurement is the gap: +13,985 Hz, +32.05 ppm. Then gate 3, which asked whether that corridor lands on a visible trace: 3 of 3 discriminated, a 95% lower bound of 0.37 against a threshold of 0.70, NOT ESTABLISHED. |
 | 5 | The result | 1890 to 2459 | 63.0 to 82.0 | Gate 6's wording, quoted from its receipt. Conflicts found in the 50 examined out of 87 decisively labelled: 12.6 expected by random, 14 by first in first out, 20 by the ranked queue, against 22 in the whole population. Then the lift on one axis: a threshold at 1.50, first in first out at 1.11, a point estimate of 1.58, and a 95% interval from 1.35 to 1.74 drawn straddling the threshold. NOT ESTABLISHED, direction spans_threshold. |
-| 6 | The gates | 2460 to 2909 | 82.0 to 97.0 | All six kill gates with the file each was decided in and the receipt's own verdict word. Then the tally: 2 of 6 met, the two being the feasibility checks answered before any pipeline code existed, and of the 4 that ask whether the idea works, 0 passed. Then the scale that tally sits on, from `artifacts/CIRCULARITY_RECEIPT.json`: the 22 conflicts that exist at this budget cap every possible ordering, a perfect oracle included, at 1.74 against a bar of 1.50, so the whole distance between the bar and perfection is 0.24. |
+| 6 | The gates | 2460 to 2909 | 82.0 to 97.0 | All six kill gates with the file each was decided in and the receipt's own verdict word. Then the tally: 3 of 6 met, and of the 4 that ask whether the idea works, 1 passed, the rest of the met tally being the feasibility checks answered before any pipeline code existed. Then the scale that tally sits on, from `artifacts/CIRCULARITY_RECEIPT.json`: the 22 conflicts that exist at this budget cap every possible ordering, a perfect oracle included, at 1.74 against a bar of 1.50, so the whole distance between the bar and perfection is 0.24. |
 | 7 | What holds | 2910 to 3359 | 97.0 to 112.0 | The three results that came back decided, read from `artifacts/AGENT_RECEIPT.json`, `artifacts/EXPLAIN_RECEIPT.json` and the held-out split of `artifacts/QUEUE_RECEIPT.json`. The evidence tools change what a local Granite model gets right, 22 of 24 against 2 of 24 with no tools, paired exact one sided 0.000001 over 20 discordant pairs. The grounding checker caught 525 of 525 planted falsehoods and refused 0 of 175 clean drafts. On ground stations the queue was never fitted to, lift is 2.25 with a 95% interval of 1.92 to 3.86, above the bar rather than spanning it, and the receipt records PASSED. |
 | 8 | Attribution | 3360 to 3539 | 112.0 to 118.0 | The six obligations `DATA_LICENSE.md` accepts for the waterfall the film displayed, read from that file's own row in `artifacts/ATTRIBUTION_AUDIT.json`: record URL, artifact URL, retrieval timestamp, sha256, licence, licence URL and modification notice, plus the notice this film adds. ShareAlike is stated: the film contains a SatNOGS waterfall, so the film carries CC BY-SA 4.0 rather than the repository's code licence. |
 
 Beat 5 is not softened. The film says the point estimate clears the threshold and the
-interval does not, and beat 6 states the tally as 2 of 6.
+interval does not, and beat 6 states the tally as 3 of 6.
 
 Beat 7 was added after a read of the finished film found a different failure. Every card
 up to beat 6 ended on a verdict that came back inconclusive, which is honest about the
@@ -151,7 +151,7 @@ The film holds 135 claims. 25 of them are read and never drawn: they are there b
 | gates.rows.2.decidedIn | `artifacts/GATE3_RECEIPT.json` | apps/web/public/data/provenance.json | `gate_summary.gates[2].decided_in` |
 | gates.rows.3.number | `4` | apps/web/public/data/provenance.json | `gate_summary.gates[3].gate` |
 | gates.rows.3.title | `Blinded human decidability` | apps/web/public/data/provenance.json | `gate_summary.gates[3].title` |
-| gates.rows.3.verdict | `OPEN` | apps/web/public/data/provenance.json | `gate_summary.gates[3].verdict` |
+| gates.rows.3.verdict | `PASSED` | apps/web/public/data/provenance.json | `gate_summary.gates[3].verdict` |
 | gates.rows.3.decidedIn | `artifacts/GATE4_RECEIPT.json` | apps/web/public/data/provenance.json | `gate_summary.gates[3].decided_in` |
 | gates.rows.4.number | `5` | apps/web/public/data/provenance.json | `gate_summary.gates[4].gate` |
 | gates.rows.4.title | `Physics beats image-only on Brier` | apps/web/public/data/provenance.json | `gate_summary.gates[4].title` |
@@ -162,10 +162,10 @@ The film holds 135 claims. 25 of them are read and never drawn: they are there b
 | gates.rows.5.verdict | `NOT_ESTABLISHED` | apps/web/public/data/provenance.json | `gate_summary.gates[5].verdict` |
 | gates.rows.5.decidedIn | `artifacts/QUEUE_RECEIPT.json` | apps/web/public/data/provenance.json | `gate_summary.gates[5].decided_in` |
 | gates.total | `6` | apps/web/public/data/provenance.json | `gate_summary.n_gates` |
-| gates.met | `2` | apps/web/public/data/provenance.json | `gate_summary.n_met` |
+| gates.met | `3` | apps/web/public/data/provenance.json | `gate_summary.n_met` |
 | gates.note | `Met counts a gate that was passed or pre-passed.` | apps/web/public/data/provenance.json | `gate_summary.note` |
 | gates.measured | `4` | apps/web/public/data/provenance.json | `gate_summary.gates[] where verdict is not PRE_PASSED` |
-| gates.measuredPassed | `0` | apps/web/public/data/provenance.json | `gate_summary.gates[] where verdict is not PRE_PASSED and verdict is PASSED` |
+| gates.measuredPassed | `1` | apps/web/public/data/provenance.json | `gate_summary.gates[] where verdict is not PRE_PASSED and verdict is PASSED` |
 | established.model | `granite3.1-dense:8b` | artifacts/AGENT_RECEIPT.json | `model.name` |
 | established.tasks | `24` | artifacts/AGENT_RECEIPT.json | `tasks` |
 | established.withTools | `22` | artifacts/AGENT_RECEIPT.json | `arms.tools.correct.successes` |

@@ -36,6 +36,11 @@ export const metadata = { title: "Evaluation" };
 // Null while nobody has answered the worksheet, which is the normal state and renders
 // nothing rather than a block of zeros.
 const gate4Arm = evaluation.gate4_arm;
+//: True once a person has answered the committed sample rather than a model. It decides
+//: the heading, the lede and the paragraph under the clip, all three of which asserted
+//: "the gate is open" for as long as that was the only state this page had ever been in.
+const gate4Answered = Boolean(gate4Arm?.is_the_gate);
+const gatePower = evaluation.gate_power;
 const gate6 = evaluation.gate6;
 const gate5 = evaluation.gate5;
 const ablation = evaluation.ablation_conclusion;
@@ -68,6 +73,12 @@ const shippedCircularityVerdict =
  * screen. Arm names get it too, so the orientation block reads as a sentence instead of
  * leaking identifiers at the one place on the page that exists to be read quickly.
  */
+/** `a`, `b` and `c`. Two names joined by a comma read as one name with a typo. */
+function andList(names: string[]): string {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
 function readable(token: string): string {
   return token.replace(/_/g, " ");
 }
@@ -437,6 +448,136 @@ export default function EvaluationPage() {
           </li>
         </ol>
       </nav>
+
+      <Section
+        id="why"
+        title="Why the gates that are not met are not met"
+        description={
+          <>
+            {gatePower.n_unmet} of {gatePower.n_gates} did not come back met, and none of
+            them is left as a bare verdict.
+          </>
+        }
+      >
+        <p style={{ maxWidth: "62rem", lineHeight: 1.7 }}>
+          Each one names what actually bound the measurement and the condition that would
+          move it, computed by <code>scripts/run_gate_power.py</code> from the same receipts
+          that decided the verdicts. That script refuses to write its receipt at all while an
+          unmet gate has no named constraint, so a gate cannot go quietly missing from here.
+        </p>
+        {/* One card per gate rather than a four-column table. The closure statements run
+            to two or three lines each, and side by side they pushed the table into a
+            horizontal scroller that hid the whole last column at 1440px, which is the
+            column a reader came for. */}
+        <div style={{ display: "grid", gap: "var(--sp-05)" }}>
+          {gatePower.unmet.map((row) => (
+            <div
+              key={row.gate}
+              style={{
+                padding: "var(--sp-05)",
+                border: "1px solid var(--border-subtle)",
+                background: "var(--ui-01)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: "var(--sp-04)",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  marginBottom: "var(--sp-04)",
+                }}
+              >
+                <h3 style={{ fontSize: "var(--type-heading-02)" }}>
+                  Gate {row.gate}: {row.title}
+                </h3>
+                <VerdictBadge verdict={row.verdict} />
+              </div>
+              <dl
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(9rem, auto) 1fr",
+                  gap: "var(--sp-03) var(--sp-05)",
+                  margin: 0,
+                  lineHeight: 1.7,
+                }}
+              >
+                <dt style={{ color: "var(--text-03)" }}>What bound it</dt>
+                <dd style={{ margin: 0 }}>{row.bound_by}</dd>
+                <dt style={{ color: "var(--text-03)" }}>What would close it</dt>
+                <dd style={{ margin: 0 }}>
+                  {row.closure}
+                  {row.closure_kind === "extrapolated" ? (
+                    <span style={{ color: "var(--text-03)" }}> (projected)</span>
+                  ) : null}
+                </dd>
+              </dl>
+            </div>
+          ))}
+        </div>
+        {gatePower.room_rule ? (
+          <>
+            <p style={{ maxWidth: "62rem", lineHeight: 1.7, marginTop: "var(--sp-06)" }}>
+              <strong style={{ color: "var(--text-01)" }}>
+                Gate 6&rsquo;s verdict is predicted by the split it was taken on, not by the
+                queue.
+              </strong>{" "}
+              A split&rsquo;s <em>room</em> is the distance between the threshold and the best
+              score any ordering could reach there, a perfect oracle included. Whether the
+              published interval fits inside that room predicts the verdict on{" "}
+              {gatePower.room_rule.n_splits} of {gatePower.room_rule.n_splits} measurable
+              splits, with no exceptions.
+            </p>
+            <Table
+              head={[
+                "Split",
+                "Observations",
+                "Oracle ceiling",
+                "Room above 1.5x",
+                "Interval width",
+                "Fits",
+                "Verdict",
+              ]}
+              headAlign={[
+                "left",
+                "right",
+                "right",
+                "right",
+                "right",
+                "right",
+                "left",
+              ]}
+              caption={`On ${andList(gatePower.room_rule.truncated)} the interval's upper bound is the ceiling itself: no resampling of those splits can return a number above it, however good the ranking is. The one split with room to spare is the one split that passed.`}
+            >
+              {gatePower.room_rule.per_split.map((row) => (
+                <tr key={row.split}>
+                  <Cell align="left" header>
+                    <code>{row.split}</code>
+                  </Cell>
+                  <Cell mono>{row.n_population}</Cell>
+                  <Cell mono>{fmt(row.ceiling, 3)}</Cell>
+                  <Cell mono>{fmt(row.room, 3)}</Cell>
+                  <Cell mono>{fmt(row.width, 3)}</Cell>
+                  <Cell mono>{row.fits ? "yes" : "no"}</Cell>
+                  <Cell align="left">
+                    <VerdictBadge verdict={row.verdict} />
+                  </Cell>
+                </tr>
+              ))}
+            </Table>
+            <p style={{ maxWidth: "62rem", lineHeight: 1.7, marginTop: "var(--sp-05)" }}>
+              The obvious next thought does not follow, and the counterexample is in this
+              corpus: <code>cold_transmitter</code> holds more observations than{" "}
+              <code>chronological</code> and still fails, because its interval came back wider
+              too. So no required sample size is published for gate 6, only the condition.
+              Gates 5 and 6 are both short of test rows and both were fixed before their
+              results were read, so growing either now is the one thing pre-registration
+              exists to prevent, and the shortfall is recorded as the reason they stay open
+              rather than as work outstanding.
+            </p>
+          </>
+        ) : null}
+      </Section>
 
       <Section
         id="gate6"
@@ -918,10 +1059,22 @@ export default function EvaluationPage() {
         </Section>
       )}
 
+      {/* The heading and the lede both used to state the gate was open, which was the
+          whole point of the section while it was. A person answered it, and a title that
+          says "needs a person" over a table reading PASSED is the same staleness this
+          page exists to catch elsewhere, so both read from the receipt now. */}
       <Section
         id="gate4"
-        title="Gate 4 needs a person, and here is what to send them"
-        description="The one gate in this project that no amount of compute closes. The worksheet has been answered once and not by a person, so the gate is still OPEN: the arm below says the sample supports a decision, and it cannot say a reader would reach one."
+        title={
+          gate4Answered
+            ? "Gate 4 asked a person, and this is what they answered"
+            : "Gate 4 needs a person, and here is what to send them"
+        }
+        description={
+          gate4Answered
+            ? "The one gate in this project that no amount of compute closes. A person has now answered the committed sample, so this section is the review rather than the request: what was committed to before it began, what the scorer re-checked from disk, and the two rates it produced."
+            : "The one gate in this project that no amount of compute closes. The worksheet has been answered once and not by a person, so the gate is still OPEN: the arm below says the sample supports a decision, and it cannot say a reader would reach one."
+        }
       >
         <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
           The threshold was fixed before the build: at least 80% of a balanced sample,
@@ -946,9 +1099,9 @@ export default function EvaluationPage() {
             disk when the bundle was packed.
           </strong>
         </p>
-        {/* The clip goes above the arm's numbers rather than below them, because it
-            ends on the sentence the numbers are most likely to be read without: the
-            gate is open. `preload="none"` so a page nobody plays it on pays for a
+        {/* The clip goes above the numbers rather than below them, because it ends on
+            the verdict, which is the thing the rates are most likely to be read
+            without. `preload="none"` so a page nobody plays it on pays for a
             poster and nothing else, and it is self-hosted, so `media-src 'self'`
             holds and there is no embed from a video host.
 
@@ -964,7 +1117,7 @@ export default function EvaluationPage() {
             aria-label={
               "Thirty-seven seconds, no narration: how gate 4's sample was committed " +
               "to before the review, what the scorer checks before it reads an " +
-              "answer, the rate that came back, and why the gate is still open."
+              "answer, the rate that came back, and who produced it."
             }
             poster="/media/gate4-explainer-poster.jpg"
             width={1920}
@@ -975,7 +1128,7 @@ export default function EvaluationPage() {
               Your browser cannot play this video. It shows how the gate 4 sample was
               committed to with one salted sha256 per item before any review began,
               what the scorer re-checks from disk before it reads a single answer, the
-              rate that came back, and why the gate is still open.
+              rate that came back, and who produced it.
             </p>
           </video>
           <figcaption>
@@ -990,17 +1143,40 @@ export default function EvaluationPage() {
         {gate4Arm && (
           <>
             <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
-              <strong style={{ color: "var(--text-01)" }}>
-                One arm has been measured, and its reviewer was not a person.
-              </strong>{" "}
-              {gate4Arm.reviewer.identity} It answered the published protocol on the
-              committed plates with every label hidden, in{" "}
-              {gate4Arm.reviewer.kind === "model" ? "twelve" : "several"} independent
-              blocks of six so that no block could see both halves of a repeated pair.
-              What that establishes is narrower than the gate and had never been
-              measured: the sample as committed supports a decisive judgment at all.
-              What it cannot establish is the gate as written, because the instrument
-              the gate names is a reader and this was not one.
+              {gate4Arm.is_the_gate ? (
+                <>
+                  <strong style={{ color: "var(--text-01)" }}>
+                    A person has answered the blinded worksheet, so this gate is
+                    decided.
+                  </strong>{" "}
+                  {gate4Arm.reviewer.identity} {gate4Arm.reviewer.independence}
+                  {gate4Arm.prior_review ? (
+                    <>
+                      {" "}
+                      A {gate4Arm.prior_review.kind} answered the same committed
+                      plates first, at {gate4Arm.prior_review.decisive}/
+                      {gate4Arm.prior_review.observations_scored}, and that review is
+                      kept rather than overwritten: the two are the same instrument
+                      read by two different kinds of reviewer.
+                    </>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <strong style={{ color: "var(--text-01)" }}>
+                    One arm has been measured, and its reviewer was not a person.
+                  </strong>{" "}
+                  {gate4Arm.reviewer.identity} It answered the published protocol on
+                  the committed plates with every label hidden, in{" "}
+                  {gate4Arm.reviewer.kind === "model" ? "twelve" : "several"}{" "}
+                  independent blocks of six so that no block could see both halves of a
+                  repeated pair. What that establishes is narrower than the gate and had
+                  never been measured: the sample as committed supports a decisive
+                  judgment at all. What it cannot establish is the gate as written,
+                  because the instrument the gate names is a reader and this was not
+                  one.
+                </>
+              )}
             </p>
             <div className="stat-grid">
               <Stat
@@ -1019,7 +1195,11 @@ export default function EvaluationPage() {
               <Stat
                 label="Gate 4"
                 value={gate4Arm.gate_verdict_is_not_this}
-                detail="the arm's own verdict is not the gate's. This field is the gate's, and it does not move for a reviewer the gate is not about"
+                detail={
+                  gate4Arm.is_the_gate
+                    ? "the gate's own verdict, from the reviewer it names. It follows the interval, so a rate above 0.80 whose bound straddles it would still read NOT_ESTABLISHED"
+                    : "the arm's own verdict is not the gate's. This field is the gate's, and it does not move for a reviewer the gate is not about"
+                }
               />
             </div>
             <Table

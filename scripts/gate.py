@@ -222,6 +222,21 @@ def main() -> int:
         )
     )
 
+    # Four of the six gates are unmet, and the account of why is generated from the same
+    # receipts that decided them. It goes stale for the same reason the circularity bound
+    # does, and it fails harder: a closure condition computed against last week's interval
+    # is a number telling a reader what would fix a gate that has since moved. The script
+    # also refuses to write at all if an unmet gate comes out with no binding constraint,
+    # so this step is what keeps "every gate has a reason" a checked property.
+    rc, out = run([str(PY), str(REPO / "scripts" / "run_gate_power.py"), "--check"])
+    results.append(
+        check(
+            "every unmet gate has a current, named reason",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
     # The link preview card carries two verdicts and a permutation count, drawn from the
     # receipts. It is the one published surface nobody looks at while working, so a stale
     # one would sit in every shared link showing a number the console no longer holds.

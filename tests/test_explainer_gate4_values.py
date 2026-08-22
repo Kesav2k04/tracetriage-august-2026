@@ -47,14 +47,29 @@ def scene() -> dict[str, str]:
 
 @pytest.fixture(scope="module")
 def arm() -> dict:
+    """Whichever review the clip is supposed to be showing.
+
+    This read only ``arm`` and skipped when it was absent, which was right for exactly one
+    of the two states the receipt has. A human answer is the gate, so its numbers sit at the
+    top level and there is no ``arm`` at all: on the day the worksheet was answered these
+    three checks all skipped, and the clip went on hardcoding a model's 57 of 60 and a
+    closing frame reading "Gate 4: OPEN" over a gate that had passed, with nothing failing.
+    A guard written for "nothing has happened yet" fired for "the thing happened", which is
+    the shape that lets a stale render survive a green suite.
+
+    So: skip only when no review exists at all, and otherwise return the one the receipt
+    says is current.
+    """
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
-    if "arm" not in receipt:
-        pytest.skip(
-            "GATE4_RECEIPT.json carries no arm, so there is no review for the clip to "
-            "be checked against. Skipped rather than failed: an unrun gate is a state "
-            "this project publishes, not a broken test."
-        )
-    return receipt["arm"]
+    if (receipt.get("reviewer") or {}).get("kind"):
+        return receipt
+    if "arm" in receipt:
+        return receipt["arm"]
+    pytest.skip(
+        "GATE4_RECEIPT.json carries neither a reviewer nor an arm, so nobody has reviewed "
+        "and there is nothing for the clip to be checked against. Skipped rather than "
+        "failed: an unrun gate is a state this project publishes, not a broken test."
+    )
 
 
 def test_the_headline_numbers_are_the_receipt_s(scene, arm):
@@ -74,10 +89,18 @@ def test_the_intra_rater_pair_count_is_the_receipt_s(scene, arm):
 def test_the_clip_says_who_reviewed_and_says_it_correctly(scene, arm):
     """The one claim in the clip that decides how the rest of it should be read."""
     assert scene["REVIEWER_KIND"].strip('"') == arm["reviewer"]["kind"]
+    receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
+    assert scene["VERDICT"].strip('"') == receipt["verdict"], (
+        f"the clip's closing frame states {scene['VERDICT']} and the receipt says "
+        f"{receipt['verdict']!r}. A rendered frame is the one surface no digest check "
+        f"catches, so this is the check."
+    )
     source = SCENE.read_text(encoding="utf-8")
-    assert "Gate 4: OPEN" in source, (
-        "the clip must end on the gate being open. A version that ends on the rate is "
-        "the most misleading thirty-seven seconds this site could serve."
+    assert 'f"Gate 4: {VERDICT}"' in source, (
+        "the clip must state the gate's verdict from the receipt rather than as a "
+        "literal. It ended on the hardcoded string 'Gate 4: OPEN' through the run that "
+        "made the gate pass, which is the most misleading thirty-seven seconds this site "
+        "could serve."
     )
 
 

@@ -86,17 +86,17 @@ observations the queue ranks and answered 50, which is the per-call cap and also
 budget. The answer is 407. Two of the three numbers are 50, and until `queue_size` existed
 nothing named them apart.
 
-**Step 8 has to come back with two of six gates met, and four unmet.** Gate 3, gate 5 and
-gate 6 are `NOT_ESTABLISHED` and gate 4 is `OPEN`; the two that are met are both
-`PRE_PASSED`, which counts as met and is not the same as measured. All six verdicts are
-published in `docs/KILL_GATE.md` and in the console. A session that reports six of six met
-has been told something false by somebody.
+**Step 8 has to come back with three of six gates met, and three unmet.** Gate 3, gate 5
+and gate 6 are `NOT_ESTABLISHED`. Gate 4 is `PASSED`, on a blinded review a person answered;
+the other two met gates are `PRE_PASSED`, which counts as met and is not the same as
+measured. All six verdicts are published in `docs/KILL_GATE.md` and in the console. A
+session that reports six of six met has been told something false by somebody.
 
-This paragraph used to say two gates were unmet, naming the two the step asks about. Four
-are. It was found by running these twelve steps as a client rather than as a model:
-`scripts/run_operator_session.py` asserted `n_met == 4` because this document reads as
-though it says so, and the receipt said 2. Both the step and the sentence now read the
-verdicts instead of counting on them.
+Do not check that tally against this paragraph. It has been wrong twice: once when it said
+two gates were unmet and four were, and once when it still said gate 4 was open after a
+person had answered it. Check it against `gate_status`, which reads the receipts.
+`scripts/run_operator_session.py` renders both its assertion and the sentence beside it from
+those verdicts for the same reason.
 
 **Step 12 uses a resource rather than a tool.** `resources/list` on this server used to
 answer `-32601`, method not found, which is the right answer for a server with no resources

@@ -63,9 +63,32 @@ def _were(n: int) -> str:
     return "was" if n == 1 else "were"
 
 
+def _clauses(parts: list[tuple[int, str]]) -> str:
+    """Join the tally clauses that have a member, dropping the ones that do not.
+
+    Written the day gate 4 was answered, when the sentence became "three came back
+    inconclusive and none were never run". A template that always renders every category
+    produces a double negative the moment a category empties, and the categories here empty
+    as the work succeeds, which is exactly when nobody re-reads the sentence.
+    """
+    said = [text for count, text in parts if count]
+    if not said:
+        return "none produced a verdict"
+    if len(said) == 1:
+        return said[0]
+    return f"{', '.join(said[:-1])} and {said[-1]}"
+
+
 GATE_TALLY = (
-    f"Of the {N_GATES} kill gates, {N_MET} {_were(N_MET)} met, "
-    f"{N_INCONCLUSIVE} came back inconclusive and {N_OPEN} {_were(N_OPEN)} never run."
+    f"Of the {N_GATES} kill gates, "
+    + _clauses(
+        [
+            (N_MET, f"{N_MET} {_were(N_MET)} met"),
+            (N_INCONCLUSIVE, f"{N_INCONCLUSIVE} came back inconclusive"),
+            (N_OPEN, f"{N_OPEN} {_were(N_OPEN)} never run"),
+        ]
+    )
+    + "."
 )
 
 # Wrapped here rather than in the template, because the tally's length depends on the
@@ -206,24 +229,69 @@ ROWS: list[tuple[str, str, str]] = [
     ),
 ]
 
+_gate4 = json.loads((REPO / "artifacts/GATE4_RECEIPT.json").read_text(encoding="utf-8"))
+_GATE4_REF = "`artifacts/GATE4_RECEIPT.json`"
+# True once a person has answered: the rate then sits at the top level of the receipt and
+# is the gate, rather than under `arm` where a review the gate is not about goes.
+_GATE4_ANSWERED = (_gate4.get("reviewer") or {}).get("kind") == "human"
+
+if _GATE4_ANSWERED:
+    _intra = _gate4["intra_rater"]
+    ROWS.append(
+        (
+            "Blinded human decidability rate",
+            f"**{_gate4['verdict']}**. {_gate4['decisive']} of "
+            f"{_gate4['observations_scored']} first-occurrence observations decidable, "
+            f"rate {_gate4['rate']:.4f}, exact one-sided 95% "
+            f"[{_gate4['rate_lower_bound_95']:.4f}, {_gate4['rate_upper_bound_95']:.4f}] "
+            f"against a 0.80 threshold. Intra-rater agreement is "
+            f"{_intra['identical_on_all_three_axes']} of "
+            f"{_intra['repeated_pairs_scored']} repeated plates, which is the weaker of "
+            f"the two numbers and no claim rests on it",
+            _GATE4_REF,
+        )
+    )
+
 TABLE = "\n".join(f"| {metric} | {value} | {ref} |" for metric, value, ref in ROWS)
 
 # The genuinely unmeasured metrics. They carry the literal `[UNMEASURED]` marker because
 # tests/test_claim_drift.py treats that exact string as the only permitted stand-in for a
 # number, and because a reader should be able to grep the README for what is missing.
-UNMEASURED: list[tuple[str, str]] = [
-    (
-        "Human minutes per confirmed finding",
-        "Kill gate 4, the blinded human decidability study, was never run. Any "
-        "number here would be an estimate wearing a measurement's clothes.",
-    ),
-    (
-        "Blinded human decidability rate",
-        "Kill gate 4 again, and it is the gate itself rather than a derived quantity. "
-        "The console reports gate 4 as OPEN rather than as a value, and the gate tally "
-        "counts it as not met.",
-    ),
-]
+#
+# Both rows here used to read "gate 4 was never run". A person has now answered it, so that
+# reason is dead and one of the two rows is not unmeasured at all any more. The reasons are
+# derived from the receipt rather than typed, because a stated absence that outlives the
+# thing it was about reads to a reader as a current one, which is the exact defect
+# tests/test_claim_drift.py fails on.
+UNMEASURED: list[tuple[str, str]] = []
+
+if _GATE4_ANSWERED:
+    _pace = _gate4["reviewer_pace"]
+    UNMEASURED.append(
+        (
+            "Human minutes per confirmed finding",
+            f"Half of it is now measured and the other half is not. One reviewer spent "
+            f"{_pace['total_minutes']:.1f} minutes over {_pace['recorded']} blinded "
+            f"plates, a median of {_pace['median_seconds']:.1f} seconds each. Turning "
+            f"that into minutes per confirmed finding needs the share of opened "
+            f"observations that carry something, and no study here measures it on a human "
+            f"who opened them.",
+        )
+    )
+else:
+    UNMEASURED += [
+        (
+            "Human minutes per confirmed finding",
+            "Kill gate 4, the blinded human decidability study, was never run. Any "
+            "number here would be an estimate wearing a measurement's clothes.",
+        ),
+        (
+            "Blinded human decidability rate",
+            "Kill gate 4 again, and it is the gate itself rather than a derived quantity. "
+            "The console reports gate 4 as OPEN rather than as a value, and the gate tally "
+            "counts it as not met.",
+        ),
+    ]
 
 UNMEASURED_TABLE = "\n".join(
     f"| {metric} | `[UNMEASURED]` | {why} |" for metric, why in UNMEASURED
@@ -250,6 +318,40 @@ _g4 = json.loads((REPO / "artifacts/GATE4_RECEIPT.json").read_text(encoding="utf
 _g3_scored = _g3["observations_scored"]
 _g3_discriminating = round(_g3["discriminating_rate"] * _g3_scored)
 
+def _gate4_cell() -> str:
+    """What the gate 4 row says, which depends on who answered it.
+
+    Three states, and the first two both used to render as the third. A person answering
+    the gate does not write an ``arm`` block: the human review is the receipt's top level
+    and the earlier model review moves under ``prior_review``. Keying the cell on ``arm``
+    therefore printed "never run" beside a verdict of PASSED, one column to the left.
+    """
+    if _GATE4_ANSWERED:
+        intra = _g4["intra_rater"]
+        return (
+            f"{_g4['decisive']} of {_g4['observations_scored']} first-occurrence plates "
+            f"decidable by one person under commitment, rate {_g4['rate']:.4f}, exact "
+            f"one-sided 95% lower bound {_g4['rate_lower_bound_95']:.4f}. The reviewer is "
+            f"the author, so this is blinded and not independent, and intra-rater "
+            f"agreement is the weaker number at "
+            f"{intra['identical_on_all_three_axes']} of "
+            f"{intra['repeated_pairs_scored']} repeated plates"
+        )
+    if _g4.get("arm"):
+        return (
+            f"answered, and not by a person, so it carries no rate for this gate. The "
+            f"model arm in `artifacts/GATE4_RECEIPT.json` is "
+            f"{_g4['arm']['decisive']} of {_g4['arm']['observations_scored']} "
+            f"decidable, lower bound {_g4['arm']['rate_lower_bound_95']:.3f}, and the "
+            f"gate's own verdict stays `{_g4['verdict']}`"
+        )
+    return (
+        f"never run, so it carries no rate. The instrument exists: "
+        f"`scripts/build_gate4_worksheet.py` builds the blinded bundle and "
+        f"`artifacts/GATE4_RECEIPT.json` reads `{_g4['verdict']}`"
+    )
+
+
 #: One line per substantive gate saying what the measurement came back as. Short enough
 #: to read in a table cell; `docs/KILL_GATE.md` carries the same number with its
 #: qualifications, and the receipt carries the rest.
@@ -259,21 +361,7 @@ _MEASURED = {
         f"the exact one-sided 95% lower bound on that rate is "
         f"{_g3['rate_lower_bound_95']:.3f}"
     ),
-    4: (
-        (
-            f"answered, and not by a person, so it carries no rate for this gate. The "
-            f"model arm in `artifacts/GATE4_RECEIPT.json` is "
-            f"{_g4['arm']['decisive']} of {_g4['arm']['observations_scored']} "
-            f"decidable, lower bound {_g4['arm']['rate_lower_bound_95']:.3f}, and the "
-            f"gate's own verdict stays `{_g4['verdict']}`"
-        )
-        if _g4.get("arm")
-        else (
-            f"never run, so it carries no rate. The instrument exists: "
-            f"`scripts/build_gate4_worksheet.py` builds the blinded bundle and "
-            f"`artifacts/GATE4_RECEIPT.json` reads `{_g4['verdict']}`"
-        )
-    ),
+    4: _gate4_cell(),
     5: (
         f"margin {g5['margin']:+.5f} on the shipped arm, 95% CI {g5['ci95'][0]:+.5f} to "
         f"{g5['ci95'][1]:+.5f}, which contains zero"
@@ -325,10 +413,18 @@ _SUBSTANTIVE_TABLE = "\n".join(
 
 # "on the split that decides them" moved into the sentence this phrase is embedded in, so
 # it is not said twice in one line.
-_SUBSTANTIVE_HEADLINE = (
-    f"{_word(_N_SUBSTANTIVE_PASSED)} passed, "
-    f"{_word(_N_SUBSTANTIVE_INCONCLUSIVE)} came back inconclusive and "
-    f"{_word(_N_SUBSTANTIVE_OPEN)} {_were(_N_SUBSTANTIVE_OPEN)} never run"
+_SUBSTANTIVE_HEADLINE = _clauses(
+    [
+        (_N_SUBSTANTIVE_PASSED, f"{_word(_N_SUBSTANTIVE_PASSED)} passed"),
+        (
+            _N_SUBSTANTIVE_INCONCLUSIVE,
+            f"{_word(_N_SUBSTANTIVE_INCONCLUSIVE)} came back inconclusive",
+        ),
+        (
+            _N_SUBSTANTIVE_OPEN,
+            f"{_word(_N_SUBSTANTIVE_OPEN)} {_were(_N_SUBSTANTIVE_OPEN)} never run",
+        ),
+    ]
 )
 
 # The one substantive gate that clears its threshold somewhere is named in the headline
@@ -390,6 +486,16 @@ _control_arm = _agent["arms"]["control"]["correct"]
 _pair = _agent["paired"]
 _ecounts = _explain["counts"]
 _esens = _explain["checker_sensitivity"]
+
+
+def _wrap(text: str) -> str:
+    """A paragraph at the width the rest of this file is written to.
+
+    break_long_words is off because a backticked path is a single long word and wrapping
+    one puts a newline inside the backticks, which markdown then renders as two broken
+    code spans. That has happened in this repository once already.
+    """
+    return textwrap.fill(text, width=90, break_on_hyphens=False, break_long_words=False)
 
 
 def _bullet(text: str) -> str:
@@ -458,6 +564,123 @@ ORIENT_BLOCK = "\n".join(
 
 STATUS_OPEN = "<!-- generated by scripts/sync_readme_results.py: gate status, do not edit -->"
 STATUS_CLOSE = "<!-- end gate status -->"
+
+WHY_OPEN = (
+    "<!-- generated by scripts/sync_readme_results.py: why the gates landed there, "
+    "do not edit -->"
+)
+WHY_CLOSE = "<!-- end why the gates landed there -->"
+
+
+def _why_block() -> str:
+    """One row per unmet gate: what bound it, and the exact condition that would move it.
+
+    Read out of ``artifacts/GATE_POWER_RECEIPT.json`` rather than written, because a
+    hand-typed account of why a gate failed drifts in one direction and it is not the
+    direction that helps a reader. ``scripts/run_gate_power.py`` refuses to write that
+    receipt at all while an unmet gate has no named constraint, so the table below cannot
+    quietly lose a row: the gate that generates it fails first.
+    """
+    power = json.loads(
+        (REPO / "artifacts" / "GATE_POWER_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    unmet = [g for g in power["gates"] if not g["met"]]
+    if not unmet:
+        return _wrap(
+            "**Every gate is met.** Nothing is outstanding, so the table that used to "
+            "explain what was is gone rather than kept as decoration."
+        )
+
+    _exact = sum(1 for g in unmet if g["closure"]["kind"] == "exact")
+    room = next(
+        (g for g in power["gates"] if g["gate"] == 6 and "the_room_rule" in g), None
+    )
+    lines = [
+        _wrap(
+            f"**{len(unmet)} of the {power['n_gates']} gates are not met, and none of "
+            f"them is left without an account.** Each row below names what actually "
+            f"bound the measurement and the condition that would move it, computed from "
+            f"the same receipts that decided the verdicts by "
+            f"`scripts/run_gate_power.py`. {_exact} of the {len(unmet)} "
+            f"{_were(_exact)} settled by exact arithmetic and {len(unmet) - _exact} "
+            f"{_were(len(unmet) - _exact)} a projection, and they are labelled so the "
+            f"difference survives being quoted."
+        ),
+        "",
+        "| Gate | Verdict | What bound it | What would close it |",
+        "|---|---|---|---|",
+    ]
+    for gate in unmet:
+        closure = gate["closure"]
+        kind = "" if closure["kind"] == "exact" else " *(projected)*"
+        lines.append(
+            f"| {gate['gate']} | **{gate['verdict']}** | "
+            f"{_oneline(gate['bound_by_in_one_line'])} | "
+            f"{_oneline(closure['statement'])}{kind} |"
+        )
+
+    if room:
+        rule = room["the_room_rule"]
+        splits = [s for s in rule["per_split"] if s["measurable"]]
+        lines += [
+            "",
+            _wrap(
+                "**Gate 6's verdict is decided by the split, not by the queue, and that "
+                "is measurable.** Define the room a split gives a verdict as the distance "
+                "between the threshold and the best score any ordering could reach there, "
+                "a perfect oracle included. Whether the published interval fits inside "
+                f"that room predicts the verdict on {len(splits)} of {len(splits)} "
+                "measurable splits, with no exceptions."
+            ),
+            "",
+            "| Split | Observations | Oracle ceiling | Room above 1.5x | "
+            "Interval width | Fits | Verdict |",
+            "|---|---:|---:|---:|---:|:---:|---|",
+        ]
+        for split in splits:
+            lines.append(
+                f"| `{split['split']}` | {split['n_population']} | "
+                f"{split['ceiling']:.3f} | "
+                f"{split['room_above_the_threshold']:.3f} | "
+                f"{split['interval_width']:.3f} | "
+                f"{'yes' if split['interval_fits_in_the_room'] else 'no'} | "
+                f"**{split['verdict']}** |"
+            )
+        truncated = rule["splits_whose_interval_is_truncated_by_the_ceiling"]
+        lines += [
+            "",
+            _wrap(
+                f"On {_and_list(truncated)} the interval's "
+                f"upper bound "
+                f"**is** the ceiling: no resampling of that split can return a number above "
+                f"it, however good the ranking is. An interval truncated by the arithmetic "
+                f"of its own split is not measuring the ranker. The one split with room to "
+                f"spare is the one split that passed, which is why the cold-station result "
+                f"is reported beside the pre-registered one rather than instead of it."
+            ),
+            "",
+            _wrap(
+                "The obvious extrapolation does not follow, and this corpus contains its "
+                "counterexample: `cold_transmitter` holds more observations than "
+                "`chronological` and still fails, because its interval came back wider "
+                "too. So no required sample size is published for gate 6, only the "
+                "condition."
+            ),
+        ]
+    return "\n".join(lines)
+
+
+def _and_list(names: list[str]) -> str:
+    """`a`, `b` and `c`. A comma-joined list of two reads as one name with a typo."""
+    quoted = [f"`{n}`" for n in names]
+    if len(quoted) <= 1:
+        return "".join(quoted)
+    return f"{', '.join(quoted[:-1])} and {quoted[-1]}"
+
+
+def _oneline(text: str) -> str:
+    """A paragraph as one table cell: no newlines, no pipes, and short enough to read."""
+    return " ".join(text.split()).replace("|", "/")
 
 # What an interval spanning a threshold does not say, stated where the verdicts are.
 #
@@ -747,6 +970,16 @@ def main(argv: list[str] | None = None) -> int:
     _, tail = rest.split(ORIENT_CLOSE, 1)
     rendered = f"{head}{ORIENT_OPEN}\n{ORIENT_BLOCK}\n{ORIENT_CLOSE}{tail}"
 
+    # Why each unmet gate is unmet. It sits under the status block rather than inside it
+    # because the two answer different questions and a reader who wants the verdicts should
+    # not have to read the diagnosis to reach them. The region is optional: a README that
+    # does not carry the markers is not failed for it, because this block was added after
+    # the file already existed and a missing region is a layout choice rather than drift.
+    if WHY_OPEN in rendered and WHY_CLOSE in rendered:
+        head, rest = rendered.split(WHY_OPEN, 1)
+        _, tail = rest.split(WHY_CLOSE, 1)
+        rendered = f"{head}{WHY_OPEN}\n{_why_block()}\n{WHY_CLOSE}{tail}"
+
     # --check exists because this script was referenced by nothing: not by the gate,
     # not by CI, and not by any test. The table it generates stayed correct only for
     # as long as someone remembered to run it, and the drift test beside it compared
@@ -783,7 +1016,7 @@ def main(argv: list[str] | None = None) -> int:
 
     readme.write_text(rendered, encoding="utf-8", newline="\n")
 
-    print(f"README results synced: {len(ROWS)} measured rows, 2 marked unmeasured")
+    print(f"README results synced: {len(ROWS)} measured rows, {len(UNMEASURED)} marked unmeasured")
     print(f"  gate status block: {N_GATES} gates, {N_MET} met")
     print(f"  shipped arm brier {shipped['brier']:.4f}, auc {shipped['auc']:.3f}")
     print(

@@ -486,14 +486,109 @@ def _gate4_arm() -> dict[str, Any] | None:
     than a section full of zeros. The reviewer travels with the numbers on purpose: these
     two are one fact, and a rate whose reviewer is one import away is a rate that gets
     quoted without them.
+
+    Two shapes reach here and both have to render. A review by something that is not a
+    person sits under ``arm`` and leaves the gate's verdict alone. A review by a person is
+    the gate, so its numbers sit at the top level of the receipt and there is no ``arm`` at
+    all. Reading only ``arm`` was correct until the day someone answered the form, at which
+    point it would have returned None and quietly deleted this section from the page on the
+    exact run that finally had something to put in it. ``is_the_gate`` is what the page
+    branches on, so neither shape has to be inferred from a missing key.
     """
     receipt = json.loads(
         (_ARTIFACTS / "GATE4_RECEIPT.json").read_text(encoding="utf-8")
     )
     arm = receipt.get("arm")
     if not arm:
-        return None
-    axes = arm["network_label_agreement"]["by_axis"]
+        if (receipt.get("reviewer") or {}).get("kind") != "human":
+            return None
+        return _gate4_review(receipt, receipt, is_the_gate=True)
+    return _gate4_review(receipt, arm, is_the_gate=False)
+
+
+def _gate_power() -> dict[str, Any]:
+    """The account of every gate that did not come back met, for the evaluation page.
+
+    Only the fields the page renders. The receipt also carries the long-form reason per
+    gate, and the console gets the one-line form instead, because a table cell holding a
+    paragraph is a paragraph nobody reads.
+    """
+    power = json.loads(
+        (_ARTIFACTS / "GATE_POWER_RECEIPT.json").read_text(encoding="utf-8")
+    )
+    room = next((g for g in power["gates"] if g["gate"] == 6 and "the_room_rule" in g), None)
+    return {
+        "n_gates": power["n_gates"],
+        "n_unmet": power["n_unmet"],
+        "every_unmet_gate_has_a_named_constraint": power[
+            "every_unmet_gate_has_a_named_constraint"
+        ],
+        "unmet": [
+            {
+                "gate": g["gate"],
+                "title": g["title"],
+                "verdict": g["verdict"],
+                "binding_constraint": g["binding_constraint"],
+                "bound_by": g["bound_by_in_one_line"],
+                "closure": g["closure"]["statement"],
+                "closure_kind": g["closure"]["kind"],
+            }
+            for g in power["gates"]
+            if not g["met"]
+        ],
+        "room_rule": (
+            {
+                "holds": room["the_room_rule"]["holds_on_every_measurable_split"],
+                "n_splits": room["the_room_rule"]["n_splits_checked"],
+                "truncated": room["the_room_rule"][
+                    "splits_whose_interval_is_truncated_by_the_ceiling"
+                ],
+                "per_split": [
+                    {
+                        "split": s["split"],
+                        "n_population": s["n_population"],
+                        "ceiling": s["ceiling"],
+                        "room": s["room_above_the_threshold"],
+                        "width": s["interval_width"],
+                        "fits": s["interval_fits_in_the_room"],
+                        "verdict": s["verdict"],
+                    }
+                    for s in room["the_room_rule"]["per_split"]
+                    if s["measurable"]
+                ],
+            }
+            if room
+            else None
+        ),
+    }
+
+
+def _gate4_review(
+    receipt: dict[str, Any], stats: dict[str, Any], *, is_the_gate: bool
+) -> dict[str, Any]:
+    """One review's numbers, shaped the same whoever produced them."""
+    axes = stats["network_label_agreement"]["by_axis"]
+    prior = receipt.get("prior_review")
+    return {
+        "is_the_gate": is_the_gate,
+        "prior_review": (
+            {
+                "kind": prior["reviewer"]["kind"],
+                "identity": prior["reviewer"]["identity"],
+                "decisive": prior["decisive"],
+                "observations_scored": prior["observations_scored"],
+                "rate": prior["rate"],
+            }
+            if prior
+            else None
+        ),
+        **_gate4_fields(receipt, stats, axes),
+    }
+
+
+def _gate4_fields(
+    receipt: dict[str, Any], arm: dict[str, Any], axes: dict[str, Any]
+) -> dict[str, Any]:
     return {
         "verdict": arm["verdict"],
         "observations_scored": arm["observations_scored"],
@@ -511,7 +606,7 @@ def _gate4_arm() -> dict[str, Any] | None:
         },
         "reviewer": arm["reviewer"],
         "gate_verdict_is_not_this": receipt["verdict"],
-        "why_the_gate_is_still_open": receipt["why"],
+        "why_the_gate_is_still_open": receipt.get("why"),
     }
 
 
@@ -792,6 +887,12 @@ def main(argv: list[str] | None = None) -> int:
                 # from `gate_summary` like every other gate, which is what keeps a review
                 # by something that is not a person from being published as the gate.
                 "gate4_arm": _gate4_arm(),
+                # Why each unmet gate is unmet. The page shows verdicts a few sections up
+                # and a reader who stops there leaves with four inconclusive rows and no
+                # idea whether that is a fact about the project or about the measurement.
+                # Read whole from the receipt rather than reshaped here, because the field
+                # names are the argument.
+                "gate_power": _gate_power(),
                 "receipt_sha256": {
                     "queue": _digest(_ARTIFACTS / "QUEUE_RECEIPT.json"),
                     "fusion": _digest(_ARTIFACTS / "FUSION_RECEIPT.json"),

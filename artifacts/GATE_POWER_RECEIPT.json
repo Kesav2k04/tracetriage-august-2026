@@ -1,0 +1,239 @@
+{
+ "schema": "GATE_POWER_RECEIPT",
+ "schema_version": 1,
+ "unit": "why each kill gate landed where it did, and the exact condition that would move it",
+ "generated_by": "scripts/run_gate_power.py",
+ "generated_at": "2026-08-22T13:00:34.678838+00:00",
+ "question": "Of the gates that are not met, which are facts about the project and which are facts about the measurement?",
+ "reads": [
+  "artifacts/GATE3_RECEIPT.json",
+  "artifacts/GATE4_RECEIPT.json",
+  "artifacts/FUSION_RECEIPT.json",
+  "artifacts/QUEUE_RECEIPT.json",
+  "artifacts/CIRCULARITY_RECEIPT.json"
+ ],
+ "writes_no_verdict": "Every verdict here is read from the receipt that decided it. This script explains gates and moves none of them.",
+ "n_gates": 6,
+ "n_met": 3,
+ "n_unmet": 3,
+ "every_unmet_gate_has_a_named_constraint": true,
+ "unmet_without_a_constraint": [],
+ "gates": [
+  {
+   "gate": 1,
+   "title": "Dataset volume and entity spread",
+   "verdict": "PRE_PASSED",
+   "met": true,
+   "binding_constraint": null,
+   "why_it_landed_here": "A feasibility check answered before any pipeline code was written.",
+   "closure": {
+    "kind": "exact",
+    "frozen_by_pre_registration": false,
+    "statement": "Met."
+   }
+  },
+  {
+   "gate": 2,
+   "title": "Metadata coverage for the corridor",
+   "verdict": "PRE_PASSED",
+   "met": true,
+   "binding_constraint": null,
+   "why_it_landed_here": "A feasibility check answered before any pipeline code was written.",
+   "closure": {
+    "kind": "exact",
+    "frozen_by_pre_registration": false,
+    "statement": "Met."
+   }
+  },
+  {
+   "gate": 3,
+   "title": "Corridor intersects a visible trace",
+   "verdict": "NOT_ESTABLISHED",
+   "met": false,
+   "binding_constraint": "testable_sample_size",
+   "bound_by_in_one_line": "3 testable observations. At a perfect rate the exact bound is 0.368 against a 0.7 bar.",
+   "measured": {
+    "threshold": 0.7,
+    "observations_testable": 3,
+    "observations_not_testable": 4,
+    "discriminating_rate": 1.0,
+    "rate_lower_bound_95": 0.3684031498640387
+   },
+   "why_it_landed_here": "Every testable observation discriminates, and there are 3 of them. At a perfect rate the exact one-sided 95% lower bound is 0.3684, which is below the 0.7 bar, so the rate cannot be established however cleanly each observation behaves. The other 4 decisive observations are corrected passes: their corridor is identically 0 Hz across the whole pass, so it predicts no shape, and a null built from it reproduces it exactly. There is nothing to test, which is a property of the capture convention rather than a shortage of effort.",
+   "closure": {
+    "kind": "exact",
+    "frozen_by_pre_registration": false,
+    "required_n": 9,
+    "have_n": 3,
+    "shortfall": 6,
+    "statement": "9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be uncorrected passes carrying a measurable narrowband trace.",
+    "what_it_would_take": "Blinded vetting of more observations from the snapshot already on disk. The vetting has to be blind to the corridor result, or the rate it produces is a rate about the vetter."
+   }
+  },
+  {
+   "gate": 4,
+   "title": "Blinded human decidability",
+   "verdict": "PASSED",
+   "met": true,
+   "binding_constraint": null,
+   "bound_by_in_one_line": "Answered.",
+   "measured": {
+    "reviewer_kind": "human",
+    "rate": 1.0,
+    "observations_scored": 60,
+    "the_rate_is_the_gate": true
+   },
+   "why_it_landed_here": "A person answered the committed worksheet, so the gate is decided by the reviewer it names.",
+   "closure": {
+    "kind": "exact",
+    "frozen_by_pre_registration": false,
+    "statement": "Already closed.",
+    "what_it_would_take": "Done."
+   }
+  },
+  {
+   "gate": 5,
+   "title": "Physics beats image-only on Brier",
+   "verdict": "NOT_ESTABLISHED",
+   "met": false,
+   "binding_constraint": "test_set_size",
+   "bound_by_in_one_line": "88 test observations. The interval's lower arm is 1.63 times the margin it has to clear.",
+   "measured": {
+    "margin": 0.020787292005955853,
+    "ci95": [
+     -0.013010025198626823,
+     0.0503591062054338
+    ],
+    "n_observations": 88,
+    "lower_arm": 0.03379731720458268,
+    "lower_arm_over_margin": 1.625864359575998,
+    "challenger_brier": 0.12871283051762525,
+    "reference_brier": 0.14950012252358108
+   },
+   "why_it_landed_here": "The physics arm is ahead by 0.02079 and the interval's lower arm is 0.03380, which is 1.63 times the margin it has to clear. On 88 test observations an effect this size is not separable from zero. The direction is right on both the point estimate and the median of the resamples; the evidence simply does not exclude a tie.",
+   "closure": {
+    "kind": "extrapolated",
+    "frozen_by_pre_registration": true,
+    "required_n": 233,
+    "have_n": 88,
+    "statement": "About 233 test observations at the same margin, against the 88 this split has. That is 2.6 times the chronological test set.",
+    "assumptions": "That the margin holds at the larger n and that the interval narrows as 1/sqrt(n). Neither is guaranteed, which is why this is labelled extrapolated and every other closure here is not.",
+    "what_it_would_take": "A larger snapshot. It is also the one closure this project must not pursue: the chronological split was fixed before the result was seen, and growing a test set after reading its verdict is the thing pre-registration exists to prevent. Recorded as the reason it stays open rather than as work outstanding."
+   }
+  },
+  {
+   "gate": 6,
+   "title": "Queue lift over random",
+   "verdict": "NOT_ESTABLISHED",
+   "met": false,
+   "binding_constraint": "split_population_at_a_fixed_budget",
+   "bound_by_in_one_line": "87 observations at a budget of 50 cap every ordering at 1.740x, leaving 0.240 of room for an interval 0.387 wide.",
+   "measured": {
+    "decided_on": "chronological",
+    "n_population": 87,
+    "budget": 50,
+    "ceiling": 1.74,
+    "room_above_the_threshold": 0.24,
+    "interval_width": 0.38666666666666694,
+    "upper_bound_is_the_ceiling": true
+   },
+   "why_it_landed_here": "The measurement is wider than the space it had to land in. At a budget of 50 over 87 observations a perfect oracle caps at 1.740, so the whole distance between the 1.5 threshold and perfection is 0.240, and the published interval is 0.387 wide. The interval's upper bound is the ceiling itself: no resampling of this split can return a number above it, however good the ranking is.",
+   "the_room_rule": {
+    "statement": "On every measurable split, whether the interval fits inside the room above the threshold predicts the verdict.",
+    "holds_on_every_measurable_split": true,
+    "n_splits_checked": 4,
+    "splits_whose_interval_is_truncated_by_the_ceiling": [
+     "chronological",
+     "cold_combined"
+    ],
+    "per_split": [
+     {
+      "split": "chronological",
+      "measurable": true,
+      "n_population": 87,
+      "budget": 50,
+      "ceiling": 1.74,
+      "threshold": 1.5,
+      "room_above_the_threshold": 0.24,
+      "published_lift_point": 1.5818181818181816,
+      "published_lift_ci95": [
+       1.3533333333333333,
+       1.7400000000000002
+      ],
+      "interval_width": 0.38666666666666694,
+      "interval_fits_in_the_room": false,
+      "upper_bound_is_the_ceiling": true,
+      "verdict": "NOT_ESTABLISHED",
+      "passed": false
+     },
+     {
+      "split": "cold_combined",
+      "measurable": true,
+      "n_population": 76,
+      "budget": 50,
+      "ceiling": 1.52,
+      "threshold": 1.5,
+      "room_above_the_threshold": 0.020000000000000018,
+      "published_lift_point": 1.292,
+      "published_lift_ci95": [
+       1.0729411764705883,
+       1.52
+      ],
+      "interval_width": 0.44705882352941173,
+      "interval_fits_in_the_room": false,
+      "upper_bound_is_the_ceiling": true,
+      "verdict": "NOT_ESTABLISHED",
+      "passed": false
+     },
+     {
+      "split": "cold_station",
+      "measurable": true,
+      "n_population": 217,
+      "budget": 50,
+      "ceiling": 4.1730769230769225,
+      "threshold": 1.5,
+      "room_above_the_threshold": 2.6730769230769225,
+      "published_lift_point": 2.2534615384615386,
+      "published_lift_ci95": [
+       1.9196153846153847,
+       3.858769135837697
+      ],
+      "interval_width": 1.9391537512223125,
+      "interval_fits_in_the_room": true,
+      "upper_bound_is_the_ceiling": false,
+      "verdict": "PASSED",
+      "passed": true
+     },
+     {
+      "split": "cold_transmitter",
+      "measurable": true,
+      "n_population": 95,
+      "budget": 50,
+      "ceiling": 1.9,
+      "threshold": 1.5,
+      "room_above_the_threshold": 0.3999999999999999,
+      "published_lift_point": 1.6564102564102563,
+      "published_lift_ci95": [
+       1.3359628351188455,
+       1.8939593301435411
+      ],
+      "interval_width": 0.5579964950246956,
+      "interval_fits_in_the_room": false,
+      "upper_bound_is_the_ceiling": false,
+      "verdict": "NOT_ESTABLISHED",
+      "passed": false
+     }
+    ],
+    "reading": "One variable, no exceptions on the four splits that can be measured. The split with room passed and the three without it did not. That makes gate 6's verdict a fact about how much room each split gave the measurement before it is a fact about the ranker, and it is the reason the cold-station result is reported beside the pre-registered one rather than instead of it."
+   },
+   "closure": {
+    "kind": "exact",
+    "frozen_by_pre_registration": true,
+    "statement": "A split whose room exceeds the interval it produces. cold_station already does: room 2.673 against an interval 1.939 wide, and it passed at 2.253.",
+    "counterexample_to_the_obvious_extrapolation": "Multiplying the population is not sufficient and this corpus proves it: cold_transmitter holds 95 observations against chronological's 87 and still fails, because its interval came back wider too. Interval width is not a function of split size alone, so no required-n is published here.",
+    "what_it_would_take": "A larger snapshot, and the same objection applies as to gate 5: the chronological split and the budget of 50 were both fixed before any result was seen. Recorded as the reason it stays open rather than as work outstanding."
+   }
+  }
+ ],
+ "reading": "Three constraints, two of them exact. Gate 3 is short of testable observations, and the shortfall is a count. Gates 5 and 6 are short of test rows, and both are the one kind of shortfall this project is not allowed to fix, because the splits and the budget were fixed before the results were read and growing them afterwards is what pre-registration exists to prevent. That is why they are recorded as reasons rather than as work outstanding."
+}

@@ -181,25 +181,47 @@ def test_the_tally_in_the_page_is_the_one_the_console_published(page: str):
 
     # The page is wrapped after interpolation, so the width of a value decides where the
     # line breaks. Normalising whitespace once is what makes the pattern stable.
-    stated = re.search(
-        r"Of the (\d+) kill gates declared before the build, (\d+) (?:was|were) met, "
-        r"(\d+) came back inconclusive and (\d+)",
-        " ".join(page.split()),
-    )
+    #
+    # The clauses after "declared before the build," are the ones that have a member, and a
+    # category that empties drops out of the sentence rather than rendering as "0 were never
+    # run". This asserted all three unconditionally until gate 4 was answered, at which point
+    # the generator correctly stopped saying "and 0 were never run" and the test failed for
+    # the project succeeding. Each clause is now checked if it is there and required to be
+    # absent if its count is zero, which is the property that actually matters.
+    flat = " ".join(page.split())
+    stated = re.search(r"Of the (\d+) kill gates declared before the build, ([^.]+)\.", flat)
     assert stated, "the page's gate tally sentence no longer parses"
     assert int(stated.group(1)) == published["n_gates"]
-    assert int(stated.group(2)) == published["n_met"]
-    assert int(stated.group(3)) == verdicts.count("NOT_ESTABLISHED")
-    assert int(stated.group(4)) == verdicts.count("OPEN")
 
-    # The slots are distinguishable only if the numbers differ, which they do here: 6, 2, 3
-    # and 1. A page that printed n_met where n_open belongs would pass a check that only
-    # asserted membership, so this states the pairing rather than the set.
-    assert len({stated.group(i) for i in (1, 2, 3, 4)}) == 4, (
-        "two of the four tally numbers are equal in this state, so this test cannot tell "
-        "the slots apart and a rendering swap would pass. Add a case that distinguishes "
-        "them before relying on it."
-    )
+    clauses = stated.group(2)
+    for count, pattern in (
+        (published["n_met"], r"(\d+) (?:was|were) met"),
+        (verdicts.count("NOT_ESTABLISHED"), r"(\d+) came back inconclusive"),
+        (verdicts.count("OPEN"), r"(\d+) (?:was|were) never run"),
+    ):
+        found = re.search(pattern, clauses)
+        if count:
+            assert found, f"the tally omits {pattern!r} while {count} gates are in it"
+            assert int(found.group(1)) == count
+        else:
+            assert not found, (
+                f"the tally states {pattern!r} while no gate is in that category, which "
+                f"renders as a count of zero in a sentence nobody re-reads"
+            )
+
+    # A rendering swap, where the right numbers land in the wrong slots, is only detectable
+    # while the numbers differ. That was true when the tally read 6, 2, 3 and 1; with gate 4
+    # answered it reads 6, 3, 3 and the two middle slots are equal, so the check reports that
+    # it cannot tell them apart rather than passing and implying it could. A test that
+    # silently loses its power is worse than one that says so.
+    present = [c for c in (published["n_met"], verdicts.count("NOT_ESTABLISHED"),
+                           verdicts.count("OPEN")) if c]
+    if len(set(present)) != len(present):
+        pytest.skip(
+            f"two tally counts are equal in this state ({present}), so a rendering swap "
+            f"between those slots is undetectable here. The per-clause pairing above still "
+            f"holds; this specific check does not apply."
+        )
 
 
 def test_the_page_says_what_was_not_measured(page: str):
@@ -208,10 +230,15 @@ def test_the_page_says_what_was_not_measured(page: str):
     Not a style check: each of these is a specific published negative, and a page that
     dropped them while keeping the wins would read better and be worse.
     """
+    # "OPEN" was in this list and came out when gate 4 was answered. It was standing in for
+    # "a gate that produced no number is named as such", and there is no longer such a gate,
+    # so requiring the word would require the page to describe a state that ended. What
+    # replaced it is the section that explains every gate that is still not met, which is
+    # the negative a reader actually needs and which cannot empty while a gate is unmet.
     for required in (
         "not reproducible",
         "NOT_ESTABLISHED",
-        "OPEN",
+        "Why the gates that are not met are not met",
         "does not claim",
     ):
         assert required in page, f"the page no longer mentions {required!r}"

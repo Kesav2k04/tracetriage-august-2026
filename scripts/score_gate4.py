@@ -464,6 +464,49 @@ def _label_agreement(
     }
 
 
+def earlier_review(out: Path, worksheet: dict[str, Any]) -> dict[str, Any] | None:
+    """A review already published against this same committed sample, if there is one.
+
+    A human answer is the gate rather than an arm of it, and ``tests/test_gate4.py`` holds
+    that ``arm`` is absent from a human receipt. Writing the human receipt over the top of
+    the model one would honour that and delete a measurement: ``scripts/sync_kill_gate.py``
+    quotes the model arm by seven numbers, and on the day a person finally answered, the
+    paragraph it generates would turn into "No review has been recorded". So the earlier
+    review is carried forward under a name no consumer of ``arm`` reads, and only when its
+    worksheet block is identical, because an arm scored against a different sample is not
+    evidence about this one.
+    """
+    if not out.exists():
+        return None
+    try:
+        previous = json.loads(out.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if previous.get("worksheet") != worksheet:
+        return None
+    earlier = previous.get("arm")
+    return earlier if isinstance(earlier, dict) else None
+
+
+def already_answered_by_a_person(out: Path, worksheet: dict[str, Any]) -> bool:
+    """Whether the receipt this run would overwrite carries a human verdict.
+
+    Scoring a model arm on top of a human one would move the gate's own verdict back to
+    NOT_RUN and drop the rate, which reads to every consumer as though the study had never
+    happened. That is a destructive edit dressed as a re-run, so it stops rather than
+    proceeds.
+    """
+    if not out.exists():
+        return False
+    try:
+        previous = json.loads(out.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if previous.get("worksheet") != worksheet:
+        return False
+    return (previous.get("reviewer") or {}).get("kind") == "human"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--bundle", type=Path, default=Path("D:/tracetriage_gate4"))
@@ -476,6 +519,14 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=None,
         help="the reviewer declaration. Defaults to REVIEWER.json in the bundle.",
+    )
+    ap.add_argument(
+        "--force",
+        action="store_true",
+        help=(
+            "score a non-human review over a receipt that already carries a human one. "
+            "Refused by default: it would move the gate's verdict back to NOT_RUN."
+        ),
     )
     args = ap.parse_args(argv)
 
@@ -658,9 +709,19 @@ def main(argv: list[str] | None = None) -> int:
     # The alternative is a flag every consumer has to remember to check, and the one that
     # forgets publishes a model's answers as a person's.
     stats["reviewer"] = reviewer
+    carried = earlier_review(args.out, payload["worksheet"])
     if reviewer["kind"] == "human":
         payload |= stats
+        if carried is not None:
+            payload["prior_review"] = carried
     else:
+        if already_answered_by_a_person(args.out, payload["worksheet"]) and not args.force:
+            raise SystemExit(
+                f"{args.out} already carries a human verdict on this worksheet, and this "
+                f"reviewer is {reviewer['kind']}. Scoring it would move the gate back to "
+                f"NOT_RUN and drop the rate a person produced. Pass --force if replacing "
+                f"the human review is really what you mean."
+            )
         payload |= {
             "verdict": "NOT_RUN",
             "why": why_not_run(reviewer),

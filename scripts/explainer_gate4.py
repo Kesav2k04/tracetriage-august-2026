@@ -1,4 +1,4 @@
-"""Manim scene: how gate 4 was made falsifiable, and why it is still open.
+"""Manim scene: how gate 4 was made falsifiable, and how it came out.
 
 Rendered to `apps/web/public/media/gate4-explainer.mp4` and served from the console's
 own origin, so the content security policy stays closed and there is no embed from a
@@ -9,11 +9,18 @@ review whose sample was committed to before anyone looked at it. That is the par
 reader cannot check by running the code, because the interesting claim is about the
 order events happened in, so it is the part worth drawing.
 
-The scene ends on the gate being open. That is deliberate and it is the reason the clip
-exists rather than a caption saying 0.950. A review was carried out, every number from it
-is published, and it does not answer the gate as written because the reviewer was not a
-person. A video that stopped one beat earlier would be the most misleading forty seconds
-on the site.
+The scene ends on the gate's verdict and on who produced it, in that order, and both are
+read from the receipt rather than written here. It ended on the literal string
+"Gate 4: OPEN" until a person answered the worksheet, at which point the closing frame
+would have said OPEN over a gate that had passed with "the reviewer was a human, not a
+person" underneath. Nothing caught it: the three checks on this scene's numbers looked for
+an `arm` in the receipt, a human answer does not produce one, and all three skipped. A
+rendered frame is the one surface a digest check cannot read.
+
+Who reviewed is still the beat the clip ends on rather than the rate. A review that clears
+the bar and a review that clears the bar independently are different claims, and this one
+is the first: the author reviewed a corpus he built, under a commitment made before he saw
+it. A version that stopped at 1.000 would be the most misleading forty seconds on the site.
 
 Render:
     manim -qh scripts/explainer_gate4.py Gate4Explainer
@@ -56,14 +63,19 @@ N_ITEMS = 72
 N_OBSERVATIONS = 60
 N_REPEATS = 12
 THRESHOLD = 0.80
-DECISIVE = 57
-RATE = 0.9500
-LOWER = 0.8758
-UPPER = 0.9862
-INTRA_IDENTICAL = 11
+DECISIVE = 60
+RATE = 1.0000
+LOWER = 0.9513
+UPPER = 1.0000
+INTRA_IDENTICAL = 8
 INTRA_PAIRS = 12
 COMMITMENTS_CHECKED = 72
-REVIEWER_KIND = "model"
+REVIEWER_KIND = "human"
+#: The gate's own verdict, which the closing frame states. It was the literal string
+#: "Gate 4: OPEN" until a person answered the worksheet, at which point the frame would
+#: have said OPEN over a passed gate with "the reviewer was a human, not a person" under
+#: it. Both follow the receipt now, and the test fails if the frame stops agreeing.
+VERDICT = "PASSED"
 
 #: One real commitment from the published manifest, truncated for the frame. The scene
 #: shows what a commitment looks like, so it uses one that exists rather than a
@@ -93,6 +105,7 @@ def _palette() -> dict[str, str]:
         "DIM": "text-03",
         "GRID": "ui-02",
         "OPEN": "verdict-not-measurable",
+        "PASS": "verdict-passed",
         "WARN": "verdict-failed",
         "ACCENT": "interactive-01",
         "PAPER": "ui-background",
@@ -111,6 +124,7 @@ def _palette() -> dict[str, str]:
 _P = _palette()
 INK, DIM, GRID = _P["INK"], _P["DIM"], _P["GRID"]
 OPEN, WARN, ACCENT = _P["OPEN"], _P["WARN"], _P["ACCENT"]
+PASS = _P["PASS"]
 PAPER, PANEL = _P["PAPER"], _P["PANEL"]
 
 
@@ -326,19 +340,32 @@ class Gate4Explainer(Scene):
         self.play(
             FadeOut(headline), FadeOut(interval), FadeOut(bar), FadeOut(agree), run_time=0.5
         )
-        verdict = Text("Gate 4: OPEN", font_size=42, color=OPEN, font=SANS)
+        _human = REVIEWER_KIND == "human"
+        verdict = Text(
+            f"Gate 4: {VERDICT}", font_size=42, color=PASS if _human else OPEN, font=SANS
+        )
         verdict.move_to(UP * 0.85)
         because = Text(
-            f"the reviewer was a {REVIEWER_KIND}, not a person",
+            "the reviewer was a person, which is what this gate asks for"
+            if _human
+            else f"the reviewer was a {REVIEWER_KIND}, not a person",
             font_size=24,
             color=INK,
             font=MONO,
         )
         because.next_to(verdict, DOWN, buff=0.44)
         rule = Text(
-            "so the numbers above are published as an arm, and the gate\n"
-            "keeps the verdict it had. The scorer will not write a rate\n"
-            "at all without a declaration of who produced it.",
+            (
+                "and not an independent one: the author reviewed a corpus\n"
+                "he built. What the commitment guarantees instead is that\n"
+                "the sample and the plates were fixed before he saw them."
+            )
+            if _human
+            else (
+                "so the numbers above are published as an arm, and the gate\n"
+                "keeps the verdict it had. The scorer will not write a rate\n"
+                "at all without a declaration of who produced it."
+            ),
             font_size=20,
             color=DIM,
             font=SANS,

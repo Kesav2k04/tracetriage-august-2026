@@ -30,7 +30,7 @@
    {
     "gate": 4,
     "title": "Blinded human decidability",
-    "verdict": "OPEN",
+    "verdict": "PASSED",
     "decided_in": "artifacts/GATE4_RECEIPT.json"
    },
    {
@@ -47,7 +47,7 @@
    }
   ],
   "n_gates": 6,
-  "n_met": 2,
+  "n_met": 3,
   "note": "Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run."
  },
  "splits": [
@@ -88,12 +88,12 @@
  "receipts": [
   {
    "name": "AGENT_RECEIPT.json",
-   "sha256": "ccfe2de242484fbf083128c5c1a0e865e0abccb67a4c7fd391d76b2774b0ff23",
-   "bytes": 29107
+   "sha256": "287ff5368cc2079a8f27841cf0cc0fa5299cde751112e751b10ef5569d97d3ea",
+   "bytes": 29194
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "c46114bc9706e44c636d5e908c96614a95d1a6b3202a956a97eda2e52efbc387",
+   "sha256": "c036bcf480108c575fc60930d2dbde56d4c690640adaf3274707602d2604da09",
    "bytes": 80953
   },
   {
@@ -123,7 +123,7 @@
   },
   {
    "name": "FILM_RECEIPT.json",
-   "sha256": "32cf6232493b8c55a14beef76af0d6fc7ef26c10c8abcbfe6640d6542b340840",
+   "sha256": "f966e5fb1e47d04c7be151c70259f235530d66d68dcee39a2a5b7ba62b38b737",
    "bytes": 2917
   },
   {
@@ -148,13 +148,18 @@
   },
   {
    "name": "GATE4_RECEIPT.json",
-   "sha256": "1e3492b559b4bebd417316a244155b96c7b6beb5dbda4248d092fb236d3c1c02",
-   "bytes": 40257
+   "sha256": "36282b4bf0ba44e17aeb37e091790d28199aec71d267ae3e19cd636a8ce540d2",
+   "bytes": 74956
   },
   {
    "name": "GATE4_WORKSHEET.json",
    "sha256": "44cc11bd27d624f146af2c2ee5e064b07f28beefcc56c6f7384103e42ed25e5f",
    "bytes": 11481
+  },
+  {
+   "name": "GATE_POWER_RECEIPT.json",
+   "sha256": "474ac3aa7a51ff804ffa1baecd2d3bd65dde26e4cd431396da2cd4d20cd9b557",
+   "bytes": 10778
   },
   {
    "name": "HERO_NULLS.json",
@@ -163,7 +168,7 @@
   },
   {
    "name": "LANGCHAIN_RECEIPT.json",
-   "sha256": "bfc9aebc6a4d926753f311f152881cf685cae6dc0286d27918af68cef5ea9756",
+   "sha256": "a288bfc931d5e41cde6031e609ef78247e8d6bacbee3dbf7b8bb441fce248041",
    "bytes": 4069
   },
   {
@@ -193,8 +198,8 @@
   },
   {
    "name": "OPERATOR_SESSION.json",
-   "sha256": "fddc48903104d5a615f960a3511f88db452bb92312f559066db2f8d1085e072f",
-   "bytes": 6781
+   "sha256": "69564bde019b678364db629e0b42da87f4b562b3dc7be94a08588f249e9228b4",
+   "bytes": 6829
   },
   {
    "name": "PHYSICS_VALIDATION.json",
@@ -213,8 +218,8 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "3a73217e7792aed9ba2e44bf90b639b5529fba7693633661723187380b2802bc",
-   "bytes": 4568
+   "sha256": "49d0fa038ce3b14c269c6f0a9c67cd1ee495645715c64fe7b98d59ef37770a2f",
+   "bytes": 4569
   },
   {
    "name": "SECOND_TRACE_SURVEY.json",
@@ -223,12 +228,12 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "5f54aa3d57fcb02ca7bf6d6f3d72a4afc792b53018f003e2e29091abe3bde729",
+   "sha256": "959fa7847fe2cbefc66bc2708b23c14baf76094d8f31f2dd2c6cf7dece428f25",
    "bytes": 1170
   },
   {
    "name": "SIGNOFF_RECEIPT.json",
-   "sha256": "d390c4378109beba2b4e269b9e3f93a768172de7ee073daa533a29cc5106fcf0",
+   "sha256": "6fd10d5884979b010a255e79bdd2855bdcd9a183a4872f73ac528e32ca276693",
    "bytes": 3547
   },
   {

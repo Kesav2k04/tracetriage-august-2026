@@ -332,6 +332,8 @@ def _gate4_arm(receipt: dict) -> str:
     """
     arm = receipt.get("arm")
     if not arm:
+        if (receipt.get("reviewer") or {}).get("kind") == "human":
+            return _gate4_human(receipt)
         return (
             "No review has been recorded. The receipt carries "
             f"`{receipt.get('verdict')}` and no rate."
@@ -362,6 +364,86 @@ def _gate4_arm(receipt: dict) -> str:
         f"hidden, which was never measured before. What it cannot establish is whether a "
         f"person can do it, because the instrument the gate names is a person and this was "
         f"not one."
+    )
+
+
+def _gate4_human(receipt: dict) -> str:
+    """The paragraph for the review the gate actually asks for.
+
+    Generated for the same reason the arm paragraph is: it carries eight numbers, and a
+    hand-written version would drift towards the flattering reading. It also has to say
+    what the earlier model review becomes once a person has answered, because the two
+    numbers invite being read as one and they are not: one is the gate, the other is a
+    measurement of the sample that the gate does not ask for.
+    """
+    reviewer = receipt["reviewer"]
+    intra = receipt["intra_rater"]
+    axes = receipt["network_label_agreement"]["by_axis"]
+    seen, shape = axes["visible_signal"], axes["target_consistent"]
+    verdict = receipt["verdict"]
+    settled = {
+        "PASSED": "clears the 0.80 threshold, so the gate is met",
+        "FAILED": (
+            "sits below the 0.80 threshold, so the gate is not met and the finding is "
+            "about the labelling protocol rather than about the model"
+        ),
+        "NOT_ESTABLISHED": (
+            "contains the 0.80 threshold, so the gate is not met: a point estimate above "
+            "the bar whose interval straddles it is published here as a failure, exactly "
+            "as it is for gates 3, 5 and 6"
+        ),
+    }.get(verdict, "is reported as it came back")
+    # A high decisive rate beside a low intra-rater rate is the one reading of this gate a
+    # sceptical reader arrives at unaided, so it is stated here rather than left for them to
+    # find. The two numbers answer different questions and the gap between them is a real
+    # limit on what the gate established: that the plates can be judged, not that the
+    # judgment is stable.
+    intra_rate = intra["rate_identical_on_all_three_axes"]
+    tension = ""
+    if receipt["rate"] - intra_rate >= 0.15:
+        tension = (
+            f" Those two numbers should be read together and they are not the same claim. "
+            f"Every plate supported a judgment, and on "
+            f"{intra['repeated_pairs_scored'] - intra['identical_on_all_three_axes']} of "
+            f"{intra['repeated_pairs_scored']} repeated plates the same reviewer reached a "
+            f"different judgment the second time. Decidability at {receipt['rate']:.4f} is "
+            f"what this gate asked for and what it establishes. Reliability at "
+            f"{intra_rate:.4f} is a separate property, it is the weaker of the two, and no "
+            f"claim here rests on it."
+        )
+    prior = receipt.get("prior_review")
+    also = ""
+    if prior:
+        also = (
+            f" A model answered the same committed sample before a person did, and that "
+            f"review is kept in `prior_review` rather than deleted: "
+            f"{prior['decisive']} of {prior['observations_scored']} decidable at "
+            f"{prior['rate']:.4f}, by {prior['reviewer']['identity']} It is not this gate "
+            f"and never was. What the two together allow, which neither allows alone, is a "
+            f"comparison of a model reviewer against a person on identical blinded plates, "
+            f"and it does not go the way a reader would guess: the model was less decisive "
+            f"({prior['rate']:.4f} against {receipt['rate']:.4f}) and more self-consistent "
+            f"({prior['intra_rater']['identical_on_all_three_axes']} of "
+            f"{prior['intra_rater']['repeated_pairs_scored']} repeated pairs against "
+            f"{intra['identical_on_all_three_axes']} of "
+            f"{intra['repeated_pairs_scored']}). Neither arm is the other's control and "
+            f"this is one reviewer of each kind, so it is published as an observation and "
+            f"not as a result."
+        )
+    return (
+        f"**A person has answered this worksheet and the gate is decided.** "
+        f"{receipt['decisive']} of {receipt['observations_scored']} first-occurrence "
+        f"observations were decidable, a rate of {receipt['rate']:.4f}, exact one-sided 95% "
+        f"[{receipt['rate_lower_bound_95']:.4f}, {receipt['rate_upper_bound_95']:.4f}], "
+        f"which {settled}. Intra-rater agreement is "
+        f"{intra['identical_on_all_three_axes']} of {intra['repeated_pairs_scored']} "
+        f"repeated pairs answered identically on all three axes, which bounds how far the "
+        f"first number can be trusted. Agreement with the network's own label is "
+        f"{seen['agreed_with_the_network_label']} of {seen['items_scored']} on the "
+        f"visible-signal axis and {shape['agreed_with_the_network_label']} of "
+        f"{shape['items_scored']} on the target-consistency axis, and neither of those is "
+        f"the network's question.{tension} The reviewer was **{reviewer['kind']}**: "
+        f"{reviewer['identity']} {reviewer['independence']}{also}"
     )
 
 

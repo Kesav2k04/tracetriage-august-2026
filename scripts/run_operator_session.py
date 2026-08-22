@@ -20,9 +20,11 @@ a demo actually breaks. The launchers resolve an interpreter. Both servers answe
 refusal refuses, the control passes, the live path measures a pass recorded today, and
 the refusal holds on a measurement that did not exist when the session started.
 
-Every expectation the document states is asserted here, including the two that must
-come back unmet: gate 4 is open and gate 6 is NOT_ESTABLISHED. A session that reports
-six of six gates met has been told something false, so this checks the number is four.
+Every expectation the document states is asserted here, including the gates that come
+back unmet. A session that reports six of six gates met has been told something false,
+so step 8 checks that the met tally is exactly the gates the verdicts leave. It names no
+gate and no count: this paragraph used to say "gate 4 is open" and the step used to check
+for four unmet, and both were wrong the day a person answered gate 4.
 
     .venv/Scripts/python.exe scripts/run_operator_session.py
     .venv/Scripts/python.exe scripts/run_operator_session.py --offline
@@ -231,14 +233,26 @@ def frozen_half() -> dict:
         # is the number `docs/BOB_DEMO.md` reads as if it were saying, and the receipt
         # says 2: four of the six are unmet, not two. A step that checks a gate tally
         # against a literal is the same defect it exists to catch, one level up.
+        unmet_phrase = (
+            f"gate {unmet[0]}"
+            if len(unmet) == 1
+            else "gates "
+            + ", ".join(str(g) for g in unmet[:-1])
+            + f" and {unmet[-1]}"
+        )
         _step(steps, 8, "gate_status",
               {"n_met": gates["n_met"], "n_gates": gates["n_gates"],
                "verdicts": {str(g["gate"]): g["verdict"] for g in gates["gates"]},
                "unmet": unmet,
                "gate_4": four["verdict"] if four else None,
                "gate_6": six["verdict"] if six else None},
-              "fewer gates met than there are gates, with gate 4 open and gate 6 not "
-              "established, and neither reported as met",
+              # The expectation is rendered from the verdicts for the same reason the
+              # assertion is. It read "with gate 4 open and gate 6 not established" until
+              # a person answered gate 4, at which point the receipt carried a sentence
+              # its own payload two lines above contradicted.
+              f"fewer gates met than there are gates: {gates['n_met']} of "
+              f"{gates['n_gates']} met, with {unmet_phrase} unmet, and the met tally "
+              f"equal to the gates those leave",
               gates["n_met"] < gates["n_gates"]
               and four is not None and four["verdict"] != "MET"
               and six is not None and six["verdict"] != "MET"

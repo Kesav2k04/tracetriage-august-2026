@@ -133,11 +133,17 @@ export const Gates: React.FC = () => (
       <Reveal delay={132}>
         <div style={{ maxWidth: 1080, display: "flex", flexDirection: "column", gap: 12 }}>
           <Body size={21}>{gates.note.display}</Body>
+          {/* This read "the N that were met are the feasibility checks answered before
+              any pipeline code existed", which was true while every met gate was a
+              feasibility check and became false the moment a substantive one passed: the
+              film then said all three met gates were feasibility, over a table showing
+              gate 4 PASSED two lines above it. The substantive count leads now and the
+              feasibility checks are the remainder, so the sentence holds whichever way
+              the tally moves. */}
           <Body size={21} colour={token.text01}>
-            The {gates.met.display} that were met are the feasibility checks
-            answered before any pipeline code existed. Of the{" "}
-            {gates.measured.display} that ask whether the idea works,{" "}
-            {gates.measuredPassed.display} passed.
+            Of the {gates.measured.display} that ask whether the idea works,{" "}
+            {gates.measuredPassed.display} passed. The rest of the met tally is
+            feasibility, answered before any pipeline code existed.
           </Body>
           {/* A tally with a zero in it and no scale beside it invites one reading,
               which is that the idea did not work. This is the quantity that decides

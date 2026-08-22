@@ -38,22 +38,21 @@
     "lower_95": 0.8827,
     "upper_95": 1.0
    },
-   "tool_calls": 47,
-   "repeated_calls": 9,
+   "tool_calls": 46,
+   "repeated_calls": 6,
    "server_refusals": 9,
    "hit_the_step_cap": 0,
    "fetched_the_answer": {
-    "successes": 23,
+    "successes": 22,
     "trials": 24,
-    "rate": 0.9583,
-    "lower_95": 0.8171,
-    "upper_95": 0.9979
+    "rate": 0.9167,
+    "lower_95": 0.7602,
+    "upper_95": 0.985
    },
-   "wrong_with_the_answer_in_front_of_it": [
-    "queue-total"
-   ],
+   "wrong_with_the_answer_in_front_of_it": [],
    "wrong_and_never_fetched_it": [
-    "obs-axis-derivation"
+    "obs-axis-derivation",
+    "queue-total"
    ],
    "reading": "Repeated calls are ones the loop refused because the policy had already made them, and server refusals are ones the server itself rejected; the first is a planning failure and the second is an argument failure, and summing them into one number would hide which. The fetch rate is the share of questions where the value ended up in something the policy read, so the two wrong answers can be separated into one that never looked and one that looked and chose a neighbouring field."
   },
@@ -152,8 +151,8 @@
   {
    "task_id": "gate-4-verdict",
    "question": "What is the verdict of kill gate 4?",
-   "expected": "OPEN",
-   "tools_answer": "OPEN",
+   "expected": "PASSED",
+   "tools_answer": "PASSED",
    "tools_correct": true,
    "tools_grounded": true,
    "tools_calls": 1,
@@ -178,8 +177,8 @@
   {
    "task_id": "gates-met",
    "question": "How many of this project's kill gates are met?",
-   "expected": "2",
-   "tools_answer": "2",
+   "expected": "3",
+   "tools_answer": "3",
    "tools_correct": true,
    "tools_grounded": true,
    "tools_calls": 1,
@@ -312,7 +311,7 @@
    "tools_answer": "14746092",
    "tools_correct": true,
    "tools_grounded": true,
-   "tools_calls": 2,
+   "tools_calls": 3,
    "tools_fetched_the_answer": true,
    "control_answer": "unknown",
    "control_correct": false,
@@ -325,7 +324,7 @@
    "tools_answer": "0.879634",
    "tools_correct": true,
    "tools_grounded": true,
-   "tools_calls": 1,
+   "tools_calls": 2,
    "tools_fetched_the_answer": true,
    "control_answer": "unknown",
    "control_correct": false,
@@ -348,11 +347,11 @@
    "task_id": "queue-total",
    "question": "How many observations does the review queue rank in total?",
    "expected": "407",
-   "tools_answer": "50",
+   "tools_answer": "The review queue has an insufficient limit to determine the total number of observations.",
    "tools_correct": false,
    "tools_grounded": true,
-   "tools_calls": 3,
-   "tools_fetched_the_answer": true,
+   "tools_calls": 1,
+   "tools_fetched_the_answer": false,
    "control_answer": "unknown",
    "control_correct": false,
    "control_grounded": true
@@ -399,11 +398,11 @@
   {
    "task_id": "receipt-gate4-verdict",
    "question": "What verdict does the receipt GATE4_RECEIPT.json record?",
-   "expected": "NOT_RUN",
-   "tools_answer": "NOT_RUN",
+   "expected": "PASSED",
+   "tools_answer": "PASSED",
    "tools_correct": true,
    "tools_grounded": true,
-   "tools_calls": 2,
+   "tools_calls": 1,
    "tools_fetched_the_answer": true,
    "control_answer": "unknown",
    "control_correct": false,
@@ -428,5 +427,5 @@
   "Whether a different model would behave the same way. One model, one seed, temperature zero, and this project has already measured that the same runtime is not reproducible run to run.",
   "Whether the tool arm would survive questions the tools cannot answer. Every task here is answerable from the five tools, so the study measures whether the policy uses them and not whether it knows when to stop."
  ],
- "receipt_sha256": "ccfe2de242484fbf083128c5c1a0e865e0abccb67a4c7fd391d76b2774b0ff23"
+ "receipt_sha256": "287ff5368cc2079a8f27841cf0cc0fa5299cde751112e751b10ef5569d97d3ea"
 }
