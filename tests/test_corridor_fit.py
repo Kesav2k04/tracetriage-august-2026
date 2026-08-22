@@ -1055,3 +1055,108 @@ def test_the_two_sigmas_in_the_receipt_come_from_where_they_say():
             "disagree, so one of them is not the estimator it claims to be"
         )
     assert checked >= 7
+
+
+# --------------------------------------------------------------------------------------
+# The image-level divisor, which collapsed once the row-level one was fixed.
+# --------------------------------------------------------------------------------------
+
+
+def test_a_mostly_dead_image_has_no_scale_rather_than_a_tiny_one():
+    """`spread = ... or 1e-9` turned a vanished denominator into a huge sigma.
+
+    Fixing the row divisor made a dead row normalise to exactly zero, which is right, and
+    that pushed the degeneracy here: an image more than half dead has a `zs` more than
+    half exact zeros, so its median absolute deviation is exactly 0 and Python's `or`
+    swapped in 1e-9. Measured on the first run over E16's pool, obs 14745697 came back at
+    sigma 3.09e10 with a null median of 1.57e10.
+
+    A3's three observations have no dead rows, so nothing caught it for the whole life of
+    the gate.
+    """
+    from pipeline.tracetriage.corridor_fit import _pixel_sigma_scale
+
+    zs = np.zeros((100, 200), dtype=np.float32)
+    zs[:20] = np.random.default_rng(0).normal(size=(20, 200))
+
+    _, spread_all = _pixel_sigma_scale(zs)
+    assert spread_all == 0.0, (
+        "80 dead rows out of 100 give an image-wide MAD of exactly zero, and the point "
+        "is that this returns it rather than substituting 1e-9"
+    )
+
+    live = np.zeros(100, dtype=bool)
+    live[:20] = True
+    _, spread_live = _pixel_sigma_scale(zs, live)
+    assert spread_live > 0.1, (
+        "measured over the rows that carry anything, the scale is an ordinary number"
+    )
+
+
+def test_measurable_rows_finds_exactly_the_dead_ones():
+    """A dead row is exactly zero across its width, which is arithmetic, not a tolerance."""
+    from pipeline.tracetriage.corridor_fit import measurable_rows
+
+    zs = np.zeros((6, 50), dtype=np.float32)
+    zs[1, 10] = 0.001
+    zs[3] = np.random.default_rng(1).normal(size=50)
+    assert measurable_rows(zs).tolist() == [False, True, False, True, False, False]
+
+
+def test_a_score_and_its_scale_come_from_the_same_rows():
+    """The numerator excluded masked rows and the denominator did not.
+
+    `_best_over_offsets` passed `row_mask` to `path_score` and computed the scale over
+    the whole image, so the sigma it returned was a ratio of two quantities measured over
+    different row sets. With half the image dead and the visible half clean, the two
+    differ by orders of magnitude.
+    """
+    from pipeline.tracetriage.corridor_fit import _pixel_sigma_scale
+
+    rng = np.random.default_rng(2)
+    zs = np.zeros((80, 300), dtype=np.float32)
+    zs[40:] = rng.normal(size=(40, 300))
+
+    visible = np.zeros(80, dtype=bool)
+    visible[40:] = True
+
+    _, whole = _pixel_sigma_scale(zs)
+    _, masked = _pixel_sigma_scale(zs, visible)
+    assert masked > 0.1
+    # At exactly half dead the whole-image MAD is not identically zero, it is a rounding
+    # artifact four orders of magnitude below the real scale. That is the point: the
+    # sigma it divides is inflated by the same factor, so the failure is graded rather
+    # than a clean crash, and a graded failure is the kind nobody notices.
+    assert masked / max(whole, 1e-12) > 1000.0, (
+        f"the unmasked scale is {whole:.3g} against a real {masked:.3g}. Any sigma "
+        f"divided by the first is inflated by their ratio"
+    )
+
+
+def test_an_image_with_no_measurable_row_refuses_instead_of_returning_a_number():
+    """No scale means no sigma. NaN reaches the caller's refusal path."""
+    import math
+
+    from pipeline.tracetriage.corridor_fit import _best_over_offsets, _pixel_sigma_scale
+
+    zs = np.zeros((60, 200), dtype=np.float32)
+    _, spread = _pixel_sigma_scale(zs, np.ones(60, dtype=bool))
+    assert spread == 0.0
+
+    from pipeline.tracetriage.physics import Corridor
+
+    corridor = Corridor(
+        fracs=[i / 59 for i in range(60)],
+        doppler_hz=[1000.0 * math.cos(i / 10) for i in range(60)],
+        half_width_hz=500.0,
+        elevation_deg=[45.0] * 60,
+        max_elevation_deg=45.0,
+        tca_frac=0.5,
+    )
+    sigma, off = _best_over_offsets(
+        zs, zs, corridor, 10.0, 100.0, 3, row_mask=np.ones(60, dtype=bool)
+    )
+    assert off is None
+    assert math.isnan(sigma), (
+        "a dead image must not come back with a finite sigma of any size"
+    )

@@ -114,3 +114,4 @@ docs/WAVE_D_PROMPT.md
 # The gate 3 pool build appends finished records here so a run that dies can resume.
 # The assembled receipt beside it is what gets committed.
 artifacts/*.partial.jsonl
+.bob/SESSION_STATE.md

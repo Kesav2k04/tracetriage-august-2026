@@ -707,10 +707,47 @@ def _base_columns(
     )
 
 
-def _pixel_sigma_scale(zs: np.ndarray) -> tuple[float, float]:
-    finite = zs[np.isfinite(zs)]
+def measurable_rows(zs: np.ndarray) -> np.ndarray:
+    """Rows that carry any variation at all, as a per-row boolean.
+
+    `normalised_rows` divides by `max(mad, MAD_FLOOR)`, and a row with no variation has
+    `lum == med` everywhere, so it comes out exactly zero across its whole width. Testing
+    for that exactly is not a tolerance choice: it is the arithmetic the normaliser
+    guarantees for a dead row and for nothing else.
+
+    A dead row is dead capture time. It carries no evidence about a trace, so it belongs
+    in neither the path score nor the scale the path score is divided by.
+    """
+    return np.any(zs != 0.0, axis=1)
+
+
+def _pixel_sigma_scale(
+    zs: np.ndarray, rows: np.ndarray | None = None
+) -> tuple[float, float]:
+    """The image's own pixel scale, over the rows the score is taken from.
+
+    `spread` used to end in ``or 1e-9``, which reads as a guard against dividing by zero
+    and is not one. An image more than half of whose rows are dead has a `zs` more than
+    half exact zeros, so its median absolute deviation is exactly 0, the ``or`` swapped in
+    1e-9, and sigmas came out around 1e10: measured at 3.09e10 on obs 14745697 in the
+    first run over E16's pool. It never fired on A3's three observations because none of
+    them has a dead row.
+
+    Returning 0.0 instead lets the caller say the scale could not be taken, which is what
+    is true. A sigma of thirty billion is not an overwhelming detection, it is a
+    denominator that vanished.
+
+    `rows` is the same mask the path score uses. Measuring the numerator over one row set
+    and the denominator over another is not a sigma at all, and that is what this did.
+    """
+    block = zs if rows is None else zs[rows]
+    if block.size == 0:
+        return 0.0, 0.0
+    finite = block[np.isfinite(block)]
+    if finite.size == 0:
+        return 0.0, 0.0
     baseline = float(np.median(finite))
-    spread = float(np.median(np.abs(finite - baseline)) * 1.4826) or 1e-9
+    spread = float(np.median(np.abs(finite - baseline)) * 1.4826)
     return baseline, spread
 
 
@@ -732,13 +769,23 @@ def _best_over_offsets(
     """
     n_rows = zs.shape[0]
     base = _base_columns(corridor, hz_per_px, origin, n_rows)
-    baseline, spread = _pixel_sigma_scale(zs)
+
+    # The score and the scale it is divided by must come from the same rows. A dead row
+    # scores nothing and must not be in the estimate either; an invisible row is already
+    # excluded from the score by `row_mask` and used to be counted in the scale.
+    live = measurable_rows(zs)
+    scored_rows = live if row_mask is None else (row_mask & live)
+    baseline, spread = _pixel_sigma_scale(zs, scored_rows)
+    if spread <= 0.0:
+        # No measurable row under the mask. There is no scale, so there is no sigma, and
+        # NaN reaches the caller's existing refusal path rather than a number.
+        return float("nan"), None
 
     best_sigma = -np.inf
     best_off_px: int | None = None
     for off_px in range(-bound_px, bound_px + 1):
         cols = np.rint(base + off_px).astype(int)
-        s = path_score(smoothed, cols, row_mask=row_mask)
+        s = path_score(smoothed, cols, row_mask=scored_rows)
         if math.isnan(s):
             continue
         sigma = (s - baseline) / spread
@@ -865,6 +912,11 @@ def calibrate_against_nulls(
         smoothed, zs, corridor, hz_per_px, origin, bound_px, row_mask=row_mask
     )
     if true_off is None:
+        # A NaN sigma here means the image had no measurable row under the visibility
+        # mask, which is a different refusal from failing to find an offset and is
+        # reported as one.
+        if isinstance(true_sigma, float) and math.isnan(true_sigma):
+            return _empty(None, "no_measurable_rows")
         return _empty(None, "no_offset_fit")
 
     span = float(np.ptp(np.asarray(corridor.doppler_hz, dtype=float)))

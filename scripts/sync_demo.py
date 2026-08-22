@@ -67,6 +67,45 @@ _cold6 = _g6["per_split"]["cold_station"]
 _pre_cold = precedent["conditions"]["cold"]["comparisons"]["granite_text_vs_random"]
 
 
+def _gate3_sentence() -> str:
+    """Gate 3 in one spoken sentence, whichever way it came back.
+
+    Four shapes, because a gate that clears its bar cannot be introduced with "the
+    corridor gate has only", and a rate below the bar is not "all of them discriminate".
+    """
+    scored = gate3["observations_scored"]
+    rate = gate3["discriminating_rate"]
+    hits = round(rate * scored)
+    bound = gate3["rate_lower_bound_95"]
+    bar = gate3["threshold"]
+    verdict = gate3["verdict"]
+
+    if verdict == "PASSED":
+        return (
+            f"The corridor gate discriminates on {hits} of {scored} testable "
+            f"observations, and the exact lower bound on that rate is {bound:.3f} "
+            f"against a {bar:.2f} bar, which clears it."
+        )
+    if verdict == "PASSED_UNGROUPED_ONLY":
+        return (
+            f"The corridor gate discriminates on {hits} of {scored} testable "
+            f"observations, which bounds at {bound:.3f} against a {bar:.2f} bar. That "
+            f"clears it over observations and not over independent station-nights, so "
+            f"it is reported rather than claimed."
+        )
+    if hits == scored:
+        return (
+            f"The corridor gate has only {scored} testable observations. All of them "
+            f"discriminate, and {scored} of {scored} still bound the rate at "
+            f"{bound:.3f} against a {bar:.2f} bar."
+        )
+    return (
+        f"The corridor gate discriminates on {hits} of {scored} testable observations, "
+        f"a rate of {rate * 100:.0f} percent, which bounds at {bound:.3f} against a "
+        f"{bar:.2f} bar."
+    )
+
+
 def _n_obs() -> int:
     return len(dataset["observations"])
 
@@ -178,16 +217,16 @@ SHOTS: list[dict] = [
         "id": 6,
         "beat": "And here is what it does not establish",
         "seconds": 28,
-        "screen": "The kill gate table, whole, with the three inconclusive rows in view.",
+        # No count here. A stage direction tells somebody what to point a camera at, and
+        # "the inconclusive rows" does that as well as a number does with nothing to go
+        # stale. It said "three" and had been wrong since gate 4 was answered.
+        "screen": "The kill gate table, whole, with the inconclusive rows in view.",
         "says": (
             "Six gates were set before any of this was built, and this is the part most "
             "demos cut. The interval on that lift runs from "
             f"{_chron6['lift_ci95'][0]:.2f} to {_chron6['lift_ci95'][1]:.2f}, which "
             f"straddles the threshold, so it reads {_g6['verdict']} rather than passed. "
-            "The corridor gate has only "
-            f"{gate3['observations_testable']} testable observations, all three "
-            f"discriminate, and three of three still bound the rate at "
-            f"{gate3['rate_lower_bound_95']:.3f} against a {gate3['threshold']:.2f} bar. "
+            f"{_gate3_sentence()} "
             "Retrieval over similar passes beats chance until you forbid the query's own "
             f"ground station, and then the margin is {_pre_cold['margin']:.4f} with an "
             "interval that spans zero."

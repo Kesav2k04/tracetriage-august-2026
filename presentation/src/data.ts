@@ -450,8 +450,10 @@ export const established = {
 // ---------------------------------------------------------------------------
 // The ceiling, shown under the gate tally.
 //
-// Four of the six gates read NOT_ESTABLISHED, and a tally alone does not say what
-// the measurement was up against. This is the quantity that explains it: on the
+// Most of the six gates read NOT_ESTABLISHED, and a tally alone does not say what
+// the measurement was up against. No count here: the tally on screen is read from the
+// receipts, and a second copy in a comment can only go stale. This one said four while
+// three did, from the day gate 4 was answered. This is the quantity that explains it: on the
 // pre-registered split, the budget and the number of conflicts in the population
 // cap every possible ordering, a perfect oracle included, only slightly above the
 // bar the gate asked for.
