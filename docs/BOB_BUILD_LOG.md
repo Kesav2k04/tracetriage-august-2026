@@ -7766,3 +7766,66 @@ asked for it. Pinned at 3.2.4 in `devDependencies` now, one line in the lockfile
 a new job with no timeout fails rather than inheriting the six-hour default. That assertion
 is why this change is two files: the workflow could not grow a job without the test naming
 what it is allowed to spend.
+
+## E13. The film was the one deliverable with no receipt, and the one binary nothing checked
+
+Every measurement in this repository has an artifact under `artifacts/` that a judge can
+open, and until this unit the presentation film did not. Its length, its beat list, how many
+figures it holds and which files those figures come from were written by hand into
+`presentation/REPORT.md`. The rendered 4.6 MB video sat committed next to a poster frame with
+nothing in the tree comparing either to anything. That is the shape this project refuses
+everywhere else: a number nobody can re-derive, beside a binary nobody can check.
+
+Worse, nothing judge-facing pointed at it. `README.md`, `FOR_JUDGES.md` and
+`docs/DEMO_SCRIPT.md` between them never used the word Remotion and never named the file. A
+118 second film, three verified renders, 453 tests holding every figure to a receipt key
+path, reachable only by someone who went looking through `presentation/`. Built and
+unreachable is the same as not built.
+
+**`artifacts/FILM_RECEIPT.json`.** Written by the pass that already regenerated the claim
+table, so there is one generator and one `--check`. It records the composition, every beat
+with its frames and seconds, the claim counts split into drawn and read-only-for-cross-checks,
+the nine committed JSON files the claims are read from, and the byte count and sha256 of the
+rendered film and the poster. `generated_at` is excluded from the comparison because it is the
+one field that would fail a check for having done nothing.
+
+**A third mode in the digest audit, and it was not a formality.** The audit hashes the
+working copy normalised to LF, which is what `.gitattributes` stores for a text file. The
+committed mp4 holds 63 `0d 0a` byte pairs that are not line endings, and normalising them
+produces `616b69fd...` against the file's real `9e33e256...`. Adding the two rows without a
+`Bytes.BINARY` mode would have reported a failure on a correct receipt, which is the exact
+inverse of the defect the audit was built for. `tests/test_receipt_digests.py` asserts those
+byte pairs are really there, so the mode cannot be deleted later as unnecessary by someone
+who reasons about it instead of measuring it.
+
+**`tests/test_film_receipt.py`.** The digest audit checks the two digests and nothing else in
+the receipt, so a `reads` list pointing at a file nobody publishes would sail through it.
+Seven tests: the frame count is the sum of the beats, the claim counts are one partition of
+one set, the per-file breakdown sums to the same total, every file in `reads` is in the
+checkout, the byte counts match `stat`, and the prose in `REPORT.md` names the same frame
+count and duration the receipt computes. The film's duration also carries a rule from outside
+this repository, so the three-minute ceiling from the Official Rules is asserted against the
+receipt rather than left in a comment.
+
+**Two rows on the pages a judge reads.** `FOR_JUDGES.md` gained a Remotion row in the stack
+table and a "Demo or presentation video" row in the requirements table, both generated, both
+reading their numbers from the new receipt and the Remotion version from
+`presentation/package.json`. The README gained a paragraph naming the file, with no typed
+numbers in it: the numbers live in the generated page, where a re-render moves them.
+
+`docs/REFERENCE.md` had already refused to document the receipt while it was untracked, which
+is the rule working: it describes the tree a clone receives, not the tree on this laptop.
+
+**And a link, which was the actual problem.** The colophon's link row now carries the film,
+pointed at the repository rather than served from `apps/web/public`: a second copy of a
+4.6 MB binary is 4.6 MB the release audit weighs twice for one artifact. That row already
+links four documents on the repository, so it is the row that exists for this. Every page of
+the console has it.
+
+**A dead import from E9, caught by the lint step that job installed.** Reordering the landing
+page in E9 removed both uses of `requirePrecedentComparison` and left the import, so
+`npm run lint` printed a warning that nothing failed on. Removing the import left the helper
+in `apps/web/lib/data.ts` with no caller at all, and its own docstring describing a landing
+page that no longer prints what it described. `.bob/rules.md` removes a component whose
+ablation does not change a judge-facing result, so it is gone: 35 lines, `tsc` clean, 211
+console tests unchanged. The lint step now prints nothing rather than one warning.

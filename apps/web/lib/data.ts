@@ -1011,41 +1011,6 @@ export function requirePrecedentArm(
   return found;
 }
 
-/**
- * One comparison of one condition, with the fields a sentence needs present.
- *
- * Same reason as `requirePrecedentArm`, one level deeper: the comparisons are a
- * Record, and the landing page now prints a margin and a comparison count from this
- * receipt rather than printing an arm against a random draw. A missing key must fail
- * the build, and a comparison the study marked unmeasurable must not be quoted as
- * though it had a margin, because that is the shape of the claim this replaced.
- */
-export function requirePrecedentComparison(
-  condition: "warm" | "cold",
-  key: string,
-): PrecedentComparison & { margin: number; n_comparisons: number } {
-  const found = precedent.conditions[condition].comparisons[key];
-  if (!found) {
-    throw new Error(
-      `the precedent study has no ${key} comparison in the ${condition} condition; ` +
-        `it holds ${Object.keys(
-          precedent.conditions[condition].comparisons,
-        ).join(", ")}.`,
-    );
-  }
-  if (
-    !found.measurable ||
-    found.margin === undefined ||
-    found.n_comparisons === undefined
-  ) {
-    throw new Error(
-      `the ${key} comparison in the ${condition} condition is not measurable, so it ` +
-        `has no margin to print: ${found.why ?? "no reason recorded"}.`,
-    );
-  }
-  return found as PrecedentComparison & { margin: number; n_comparisons: number };
-}
-
 /** The neighbour lists for one observation, or null when the study had no label for it. */
 export function precedentFor(
   obsId: number,

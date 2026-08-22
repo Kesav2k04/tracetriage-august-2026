@@ -312,7 +312,7 @@ def main() -> int:
         for label, argv in (
             ("presentation film matches its receipts", [NPM, "test", "--silent"]),
             (
-                "film report matches src/data.ts",
+                "film report and receipt match presentation/src",
                 [NPM, "run", "report", "--silent", "--", "--check"],
             ),
         ):

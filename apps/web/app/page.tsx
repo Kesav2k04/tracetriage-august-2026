@@ -18,7 +18,6 @@ import {
   provenance,
   queue,
   requirePrecedentArm,
-  requirePrecedentComparison,
   requireGate6Split,
   requireQueueSplit,
   showcaseIds,

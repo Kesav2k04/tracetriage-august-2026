@@ -35,6 +35,15 @@ receipts, so neither can drift from them. The page exists because the June 2026 
 not clone the repository: they opened the deployed console, and the document written for
 them was on the other side of a step they do not take.
 
+**A presentation film ships with the repository.**
+[`presentation/out/tracetriage-film.mp4`](presentation/out/tracetriage-film.mp4) is a silent
+Remotion film over the same receipts the console reads. Every figure it draws is resolved
+from a receipt key path when the film is built, so a number on screen cannot disagree with
+the artifact it came from, and a test pairs each one with the key it was read from.
+`artifacts/FILM_RECEIPT.json` records the composition and the digest of the rendered file,
+and `scripts/check_receipt_digests.py` checks the committed bytes against it on every gate
+run. [`presentation/REPORT.md`](presentation/REPORT.md) says what it claims, card by card.
+
 [![CI](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml)
 &nbsp;The badge runs the offline replay on a clean clone: see [Continuous integration](#continuous-integration).
 

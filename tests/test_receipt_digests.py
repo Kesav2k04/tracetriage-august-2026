@@ -1,13 +1,15 @@
-"""The digest audit, and the two ways it could pass while meaning nothing.
+"""The digest audit, and the three ways it could pass while meaning nothing.
 
 ``scripts/check_receipt_digests.py`` compares every digest a receipt records for a tracked
 file against that file's bytes as git publishes them. It exists because two receipts shipped
 a ``split_manifest_sha256`` that no committed file produces: the value was the manifest with
 CRLF endings, taken before git normalised the file.
 
-A checker like that fails in two quiet ways. It can pass because its table is empty or has
-silently shrunk, and it can pass because it is comparing something to itself. Both are
-checked here, and the second is checked by planting the original defect.
+A checker like that fails in three quiet ways. It can pass because its table is empty or has
+silently shrunk. It can pass because it is comparing something to itself. And it can compare
+the wrong bytes: the normalisation that makes a text digest platform-independent corrupts a
+binary subject, so the committed film has to be hashed as it sits. All three are checked
+here, and the second is checked by planting the original defect.
 """
 
 from __future__ import annotations
@@ -51,11 +53,11 @@ def test_the_table_is_not_empty_and_every_row_is_well_formed():
     a digest is deliberately removed from the audit, this number moves in the same commit
     and the reason lands in the diff beside it.
     """
-    assert len(CHECKS) == 8
+    assert len(CHECKS) == 10
     for receipt, field, file_rel, how, writer in CHECKS:
         assert receipt.startswith("artifacts/"), receipt
         assert field and not field.startswith("."), field
-        assert how in (Bytes.RAW, Bytes.TEXT), how
+        assert how in (Bytes.RAW, Bytes.TEXT, Bytes.BINARY), how
         assert (REPO / writer).exists(), f"{receipt} names a writer that is not here: {writer}"
         # The file may legitimately be absent in a partial clone, which the checker reports
         # as omitted. What may not happen is a path that was never plausible.
@@ -94,6 +96,39 @@ def test_it_actually_compares_and_would_catch_the_defect_that_created_it():
 
     # The tree is back the way it was, and that is asserted rather than assumed.
     assert receipt.read_bytes() == original
+
+
+def test_a_binary_subject_is_hashed_as_it_sits_and_the_distinction_is_real():
+    """The reason `Bytes.BINARY` exists, measured rather than argued.
+
+    The other rows hash the working copy normalised to LF, which is what git stores for a
+    text file. Doing that to a video rewrites byte pairs that are not line endings. This
+    asserts the committed film actually contains such pairs, so the mode is not a
+    hypothetical: normalising it produces a different digest, and a checker without the
+    mode would report a failure on a correct receipt rather than catching anything.
+    """
+    film = REPO / "presentation" / "out" / "tracetriage-film.mp4"
+    if not film.is_file():
+        pytest.skip("this checkout holds no rendered film")
+
+    data = film.read_bytes()
+    pairs = data.count(b"\r\n")
+    assert pairs > 0, (
+        "the committed film holds no CR LF byte pair, so this test can no longer tell a "
+        "raw digest from a normalised one. Re-check that Bytes.BINARY is still needed "
+        "rather than deleting this."
+    )
+    assert (
+        hashlib.sha256(data).hexdigest()
+        != hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
+    )
+
+    rows = [row for row in CHECKS if row[2].endswith("tracetriage-film.mp4")]
+    assert len(rows) == 1, rows
+    assert rows[0][3] == Bytes.BINARY, (
+        f"the film is audited as {rows[0][3]}, which normalises {pairs} byte pairs that "
+        "are not line endings"
+    )
 
 
 def test_every_sha256_field_that_names_a_file_is_either_audited_or_explained():

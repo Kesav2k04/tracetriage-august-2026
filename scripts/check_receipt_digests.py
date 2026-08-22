@@ -47,7 +47,7 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 
 
 class Bytes:
-    """How the recorded digest was taken, because the two are not interchangeable.
+    """How the recorded digest was taken, because the three are not interchangeable.
 
     ``RAW`` is ``sha256(path.read_bytes())``: the file exactly as it sits, line endings
     included. This is the form that broke.
@@ -57,10 +57,17 @@ class Bytes:
     stale when git normalises the file. Recording which form each field used is the whole
     content of this table: checking a TEXT digest against raw bytes would report a failure
     on a correct receipt.
+
+    ``BINARY`` is ``sha256(path.read_bytes())`` over a file git stores as binary.
+    ``text=auto`` in `.gitattributes` detects a binary file and leaves it alone, so the
+    working copy *is* what a clone receives and normalising it would corrupt the
+    subject: an mp4 holds 0d 0a byte pairs that are not line endings, and rewriting
+    them produces a digest of a file that has never existed.
     """
 
     RAW = "raw"
     TEXT = "text"
+    BINARY = "binary"
 
 
 #: (receipt, dotted field, file the digest is of, how it was taken, the writer).
@@ -126,6 +133,20 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
         Bytes.RAW,
         "scripts/run_langflow_check.py",
     ),
+    (
+        "artifacts/FILM_RECEIPT.json",
+        "render.sha256",
+        "presentation/out/tracetriage-film.mp4",
+        Bytes.BINARY,
+        "presentation/scripts/report-table.ts",
+    ),
+    (
+        "artifacts/FILM_RECEIPT.json",
+        "poster.sha256",
+        "presentation/out/tracetriage-film-poster.jpg",
+        Bytes.BINARY,
+        "presentation/scripts/report-table.ts",
+    ),
 ]
 
 
@@ -137,17 +158,23 @@ def _resolve(node: Any, dotted: str) -> Any:
     return node
 
 
-def _published(rel: str) -> bytes | None:
-    """The file's content as git stores it: the working copy with LF endings.
+def _published(rel: str, how: str) -> bytes | None:
+    """The file's content as git stores it.
 
-    `.gitattributes` sets `* text=auto eol=lf`, so this is what a clone receives, and it is
-    the same on every machine. Returning the raw working copy instead would make the check
-    agree with whichever tree happened to write the receipt.
+    For a text file that is the working copy with LF endings: `.gitattributes` sets
+    `* text=auto eol=lf`, so this is what a clone receives and it is the same on every
+    machine. Returning the raw working copy instead would make the check agree with
+    whichever tree happened to write the receipt.
+
+    For a binary one it is the working copy untouched, because `text=auto` detects a
+    binary file and stores it byte for byte. Normalising an mp4 would rewrite byte
+    pairs that are not line endings and hash a file that has never existed.
     """
     path = REPO / rel
     if not path.is_file():
         return None
-    return path.read_bytes().replace(b"\r\n", b"\n")
+    data = path.read_bytes()
+    return data if how == Bytes.BINARY else data.replace(b"\r\n", b"\n")
 
 
 def main() -> int:
@@ -172,7 +199,7 @@ def main() -> int:
             print(f"  [ -- ] {receipt_rel} {field}  omitted: the field is absent or null")
             omitted += 1
             continue
-        raw = _published(file_rel)
+        raw = _published(file_rel, how)
         if raw is None:
             print(f"  [ -- ] {receipt_rel} {field}  omitted: {file_rel} is not in this checkout")
             omitted += 1
@@ -189,13 +216,16 @@ def main() -> int:
 
         # The line-ending case is worth naming, because the fix is to re-run the writer
         # rather than to hunt for a changed measurement.
-        crlf = hashlib.sha256(raw.replace(b"\n", b"\r\n")).hexdigest()
-        why = (
-            " (the recorded value is this file with CRLF endings, so the receipt was "
-            "written before git normalised it: re-run the writer)"
-            if recorded == crlf
-            else ""
-        )
+        # It cannot arise for a binary subject, and asking would mean hashing a
+        # rewritten mp4 to answer a question that has no meaning for one.
+        why = ""
+        if how != Bytes.BINARY:
+            crlf = hashlib.sha256(raw.replace(b"\n", b"\r\n")).hexdigest()
+            if recorded == crlf:
+                why = (
+                    " (the recorded value is this file with CRLF endings, so the "
+                    "receipt was written before git normalised it: re-run the writer)"
+                )
         message = (
             f"{receipt_rel} {field} records {recorded[:16]} and {file_rel} hashes to "
             f"{actual[:16]}{why}. Writer: {writer}"

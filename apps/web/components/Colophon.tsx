@@ -157,6 +157,15 @@ export default function Colophon({
               (raw)
             </a>
             {" · "}
+            {/* The presentation film, on the repository rather than served from here.
+                It is 4.6 MB, and a second copy in the export would be 4.6 MB the
+                release audit weighs twice for one artifact. A judge who arrives at the
+                deployed URL had no signposted way to it at all, which is the worse of
+                the two problems: a film nothing links to is a film nobody watches. */}
+            <a href={`${REPO}/blob/main/presentation/out/tracetriage-film.mp4`}>
+              Film
+            </a>
+            {" · "}
             <a href={REPO}>Repository</a>
           </p>
         </div>

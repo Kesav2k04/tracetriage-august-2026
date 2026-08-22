@@ -64,6 +64,16 @@ gate4_bundle = _receipt("GATE4_BUNDLE.json")
 agent = _receipt("AGENT_RECEIPT.json")
 precedent = _receipt("PRECEDENT_RECEIPT.json")
 circularity = _receipt("CIRCULARITY_RECEIPT.json")
+# The presentation film, described by the sources that build it. Read here because the
+# film was the one deliverable in this repository with no receipt: its length and its
+# claim count were typed into a report, and the rendered file sat committed with nothing
+# comparing it to anything.
+film = _receipt("FILM_RECEIPT.json")
+_FILM = film["composition"]
+_FILM_CLAIMS = film["claims"]
+_REMOTION = json.loads(
+    (REPO / "presentation" / "package.json").read_text(encoding="utf-8")
+)["dependencies"]["remotion"]
 
 # The precedent study's cold condition is the negative result on this page that a reader is
 # most likely to be shown the flattering half of. Both halves are read from the receipt so
@@ -644,6 +654,17 @@ REQUIREMENTS: list[tuple[str, ...]] = [
         "Working prototype",
         "The static console under `apps/web`, deployed from this repository",
     ),
+    (
+        "Demo or presentation video",
+        "`docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated "
+        "from the receipts so no spoken number can drift from what the console shows. "
+        f"`presentation/out/tracetriage-film.mp4` is a rendered {_FILM['seconds']:g} "
+        f"second silent film over the same receipts: {_FILM['beats']} cards, {_FILM['frames']} "
+        f"frames, and {_FILM_CLAIMS['total']} figures each resolved from a receipt key "
+        f"path at build time rather than typed. `artifacts/FILM_RECEIPT.json` records its "
+        "digest and `scripts/check_receipt_digests.py`, a standing gate, checks the "
+        "committed bytes against it",
+    ),
     ("Public repository", "This one"),
 ]
 
@@ -1201,6 +1222,19 @@ STACK: list[tuple[str, ...]] = [
         "watsonx.ai",
         "`scripts/run_watsonx_check.py`",
         _WATSONX_CELL,
+    ),
+    (
+        "Remotion",
+        "`presentation/`, rendered offline",
+        f"The presentation film. {_FILM['beats']} cards, {_FILM['frames']} frames, "
+        f"{_FILM['seconds']:g} seconds at {_FILM['fps']} fps, no audio. Every figure on "
+        f"screen is resolved from a receipt key path at build time by "
+        f"`presentation/src/data.ts`, so a number in the film cannot disagree with the "
+        f"artifact it came from: {_FILM_CLAIMS['total']} claims over "
+        f"{len(film['reads'])} committed JSON files, of which {_FILM_CLAIMS['drawn']} are "
+        f"drawn and "
+        f"{_FILM_CLAIMS['read_but_not_drawn']} are read only for cross-checks. Remotion "
+        f"{_REMOTION}. `artifacts/FILM_RECEIPT.json`",
     ),
     (
         "Next.js, Vercel, WebGL",
