@@ -8,10 +8,17 @@ earlier one-observation version of this gate was withdrawn, noting that "a 70% r
 cannot be measured on one observation in any case", and the three-observation version
 was then accepted on the same logic twenty-eight lines later in the same file.
 
-These tests pin the bound and the verdict vocabulary. Reverting
-`scripts/run_gate3.py` to compare `hit_rate >= threshold` fails
-`test_three_of_three_does_not_establish_seventy_percent` and
-`test_receipt_verdict_is_not_established`.
+These tests pin the rule and not the answer. The arithmetic ones fix the bound at sample
+sizes that cannot change; the receipt ones recompute the verdict from the receipt's own
+counts, so a larger pool moves every number and this file still fails the moment a verdict
+stops following its bound. Reverting `scripts/run_gate3.py` to compare
+`hit_rate >= threshold` fails `test_three_of_three_does_not_establish_seventy_percent` and
+`test_the_receipt_verdict_follows_its_own_bound`.
+
+An earlier version asserted `verdict == "NOT_ESTABLISHED"` and `len(scored) == 3`. Both
+were true and neither was a check: the first would have had to be edited by whoever
+changed the verdict, and the second failed on a larger pool for the one reason that is not
+a defect.
 """
 
 from __future__ import annotations
@@ -84,20 +91,59 @@ def test_partial_success_uses_the_general_branch():
 
 
 @pytest.mark.skipif(not RECEIPT.exists(), reason="gate 3 receipt not generated")
-def test_receipt_verdict_is_not_established():
-    """The published verdict must match what the bound supports."""
+def test_the_receipt_verdict_follows_its_own_bound():
+    """The verdict is derived here rather than named.
+
+    This asserted ``verdict == "NOT_ESTABLISHED"`` while n was 3 and no larger pool
+    existed. That is a test of one run's answer rather than of the rule the run has to
+    obey, and it would have had to be edited by whoever changed the answer, which is the
+    worst moment to be editing the test that checks it. The rule is recomputed from the
+    receipt's own counts instead: whichever verdict word is published, the bound has to
+    support it.
+    """
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
-    assert receipt["verdict"] == "NOT_ESTABLISHED", (
-        "Gate 3's verdict must follow its lower bound. Got "
-        f"{receipt['verdict']!r} with rate_lower_bound_95="
-        f"{receipt.get('rate_lower_bound_95')!r} against threshold "
-        f"{receipt.get('threshold')!r}."
+    scored = receipt["observations_scored"]
+    rate = receipt["discriminating_rate"]
+    threshold = receipt["threshold"]
+
+    if not scored:
+        assert receipt["verdict"] == "UNMEASURABLE"
+        return
+
+    discriminating = round(rate * scored)
+    bound = rate_lower_bound(discriminating, scored)
+    assert bound == pytest.approx(receipt["rate_lower_bound_95"], abs=5e-5), (
+        "the published bound is not the one this receipt's own counts produce"
+    )
+
+    clears = bound >= threshold
+    assert receipt["clears_threshold"] is clears
+    assert receipt["clears_point_estimate"] is (rate >= threshold)
+
+    grouping = receipt["entity_grouping"]
+    if clears and grouping["grouped_clears_threshold"]:
+        expected = "PASSED"
+    elif clears:
+        expected = "PASSED_UNGROUPED_ONLY"
+    elif rate >= threshold or grouping["grouped_clears_point_estimate"]:
+        # Every observation behaved and the sample cannot resolve the bar. Gates 5 and 6
+        # report that as NOT_ESTABLISHED, and this gate uses their word, not FAILED.
+        expected = "NOT_ESTABLISHED"
+    else:
+        expected = "FAILED"
+    assert receipt["verdict"] == expected, (
+        f"verdict {receipt['verdict']!r} with rate {rate}, bound {bound:.4f} and "
+        f"threshold {threshold} should read {expected!r}"
     )
 
 
 @pytest.mark.skipif(not RECEIPT.exists(), reason="gate 3 receipt not generated")
-def test_receipt_records_both_the_point_estimate_and_the_bound():
-    """Publishing only the bound would hide a strong per-observation result."""
+def test_the_receipt_records_both_the_point_estimate_and_the_bound():
+    """Publishing only the bound would hide a strong per-observation result.
+
+    The grouped figures are recomputed from the grouped counts for the same reason the
+    ungrouped ones are: a bound nobody re-derives is a number, not a check.
+    """
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
     for key in (
         "discriminating_rate",
@@ -107,32 +153,72 @@ def test_receipt_records_both_the_point_estimate_and_the_bound():
     ):
         assert key in receipt, f"receipt is missing {key}"
 
-    assert receipt["discriminating_rate"] == 1.0
-    assert receipt["clears_point_estimate"] is True
-    assert receipt["clears_threshold"] is False
-    assert receipt["rate_lower_bound_95"] == pytest.approx(0.3684, abs=5e-5)
-
     grouping = receipt["entity_grouping"]
-    assert grouping["grouped_rate_lower_bound_95"] == pytest.approx(0.2236, abs=5e-5)
-    assert grouping["grouped_clears_threshold"] is False
+    groups = grouping["groups_scored"]
+    if groups:
+        flags = round(grouping["grouped_discriminating_rate"] * groups)
+        assert grouping["grouped_rate_lower_bound_95"] == pytest.approx(
+            rate_lower_bound(flags, groups), abs=5e-5
+        )
+        assert grouping["grouped_clears_threshold"] is (
+            grouping["grouped_rate_lower_bound_95"] >= receipt["threshold"]
+        )
 
 
 @pytest.mark.skipif(not RECEIPT.exists(), reason="gate 3 receipt not generated")
-def test_every_scored_observation_still_discriminates():
-    """The correction is to the rate claim, not to the per-observation evidence.
+def test_the_per_observation_evidence_is_reported_for_every_scored_observation():
+    """The per-observation invariants, over whatever the pool turned out to be.
 
-    Each observation still beats 200 scrambled corridors with none reaching it and
-    beats all four scaled-swing controls. Losing that in the rewrite would be a
-    worse error than the one being fixed.
+    This asserted ``len(scored) == 3``, which stopped being a check the moment the pool
+    could grow: it would fail on a larger run for the one reason that is not a defect.
+    What has to hold is that the receipt reports the same quantities for every
+    observation it scored, that the count it publishes is the count it scored, and that
+    anything it calls discriminating cleared the pre-registered margin floor.
     """
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
     scored = [
         o for o in receipt["observations"]
-        if o["null_calibration"]["p_value"] is not None
+        if o.get("null_calibration", {}).get("p_value") is not None
     ]
-    assert len(scored) == 3
+    assert len(scored) == receipt["observations_scored"], (
+        "the receipt's scored count is not the number of observations it scored"
+    )
+    if not scored:
+        return
+
+    discriminating = [o for o in scored if o["null_calibration"]["discriminates"]]
+    assert receipt["discriminating_rate"] == pytest.approx(
+        len(discriminating) / len(scored)
+    )
     for obs in scored:
         cal = obs["null_calibration"]
-        assert cal["discriminates"] is True, obs["obs_id"]
-        assert cal["n_at_least"] == 0, obs["obs_id"]
-        assert cal["p_value"] <= 0.05, obs["obs_id"]
+        for key in ("discriminates", "n_at_least", "p_value", "margin_in_null_sd",
+            "beats_reversed", "beats_scaled_swing"):
+            assert key in cal, f"obs {obs['obs_id']} is missing {key}"
+        if cal["discriminates"]:
+            assert cal["margin_in_null_sd"] >= 5.0, obs["obs_id"]
+            assert cal["beats_reversed"] is True, obs["obs_id"]
+            assert cal["beats_scaled_swing"] is True, obs["obs_id"]
+            assert cal["p_value"] <= 0.05, obs["obs_id"]
+
+
+@pytest.mark.skipif(not RECEIPT.exists(), reason="gate 3 receipt not generated")
+def test_the_receipt_says_which_rule_chose_its_observations():
+    """A rate means a different thing under a corridor-selected pool.
+
+    ``docs/E16_PREREGISTRATION.md`` fixes two pools and says only one decides the gate. A
+    receipt that did not name its pool would let the corridor-selected rate be read as
+    the gate's, which is the exact substitution the pre-registration exists to prevent.
+    """
+    receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
+    pool = receipt.get("pool")
+    if pool is None:
+        # The n = 3 receipt predates the field, and is A3's pool by construction.
+        pytest.skip("this receipt predates the pool field")
+    assert pool["name"] in ("a3", "pool_a", "pool_b")
+    assert pool["n_selected"] == receipt["observations_decisive"]
+    if pool["name"] == "pool_a":
+        raise AssertionError(
+            "the published gate 3 receipt was built from the corridor-selected pool, "
+            "which docs/E16_PREREGISTRATION.md says does not decide the gate"
+        )
