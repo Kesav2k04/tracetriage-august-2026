@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-22T11:12:54+05:30",
- "commit": "d6fbda65f3eebb6025fa1e83d48c5709ec496b48",
+ "measured_at_commit_date": "2026-08-22T11:58:34+05:30",
+ "commit": "ed16a24b0681a558fdb4855ce2e7d2660f4467d0",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -37,7 +37,7 @@
  "rows": [
   {
    "file": "apps/web/public/media/corridor-explainer-poster.jpg",
-   "bytes": 31382,
+   "bytes": 31509,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
@@ -49,7 +49,7 @@
   },
   {
    "file": "apps/web/public/media/corridor-explainer.mp4",
-   "bytes": 1635786,
+   "bytes": 1641819,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
@@ -61,7 +61,7 @@
   },
   {
    "file": "apps/web/public/media/gate4-explainer-poster.jpg",
-   "bytes": 42776,
+   "bytes": 46436,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
@@ -73,7 +73,7 @@
   },
   {
    "file": "apps/web/public/media/gate4-explainer.mp4",
-   "bytes": 2182638,
+   "bytes": 2136109,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": "one observation's corridor animation, rendered to video from the same overlay geometry and re-encoded",
@@ -1873,7 +1873,7 @@
   },
   {
    "file": "presentation/out/tracetriage-film-poster.jpg",
-   "bytes": 275349,
+   "bytes": 271401,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": null,
@@ -1885,7 +1885,7 @@
   },
   {
    "file": "presentation/out/tracetriage-film.mp4",
-   "bytes": 4850926,
+   "bytes": 4675644,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": null,
