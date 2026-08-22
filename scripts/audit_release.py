@@ -410,6 +410,14 @@ _WEIGHT_NOTES: list[tuple[str, str]] = [
         "inputs the offline suite needs. Removing any of it breaks the clean-clone claim.",
     ),
     (
+        "artifacts/GATE3_POOL.json",
+        "every observation in the snapshot with its own corridor-free `trace_q75`, "
+        "selected or not. docs/E16_PREREGISTRATION.md promises this file by name: it is "
+        "what lets a reader recut gate 3's pool at a different presence bar and check the "
+        "published verdict against their own. Dropping it turns the pre-registration's "
+        "main mitigation into a sentence nobody can run.",
+    ),
+    (
         "apps/web/public/waterfalls/",
         "the 25 shipped evidence cards. This is what the console displays; it is the "
         "product.",
