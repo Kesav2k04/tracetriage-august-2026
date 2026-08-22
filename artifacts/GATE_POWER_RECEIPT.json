@@ -3,7 +3,7 @@
  "schema_version": 1,
  "unit": "why each kill gate landed where it did, and the exact condition that would move it",
  "generated_by": "scripts/run_gate_power.py",
- "generated_at": "2026-08-22T13:00:34.678838+00:00",
+ "generated_at": "2026-08-22T16:03:58.480801+00:00",
  "question": "Of the gates that are not met, which are facts about the project and which are facts about the measurement?",
  "reads": [
   "artifacts/GATE3_RECEIPT.json",
@@ -51,22 +51,26 @@
    "verdict": "NOT_ESTABLISHED",
    "met": false,
    "binding_constraint": "testable_sample_size",
-   "bound_by_in_one_line": "3 testable observations. At a perfect rate the exact bound is 0.368 against a 0.7 bar.",
+   "bound_by_in_one_line": "3 testable observations, 3 discriminating. The exact bound is 0.368 against a 0.7 bar.",
    "measured": {
     "threshold": 0.7,
     "observations_testable": 3,
     "observations_not_testable": 4,
+    "observations_scored": 3,
+    "discriminating": 3,
     "discriminating_rate": 1.0,
-    "rate_lower_bound_95": 0.3684031498640387
+    "rate_lower_bound_95": 0.3684031498640387,
+    "grouped_rate_lower_bound_95": 0.22360679774997896,
+    "groups_scored": 2
    },
-   "why_it_landed_here": "Every testable observation discriminates, and there are 3 of them. At a perfect rate the exact one-sided 95% lower bound is 0.3684, which is below the 0.7 bar, so the rate cannot be established however cleanly each observation behaves. The other 4 decisive observations are corrected passes: their corridor is identically 0 Hz across the whole pass, so it predicts no shape, and a null built from it reproduces it exactly. There is nothing to test, which is a property of the capture convention rather than a shortage of effort.",
+   "why_it_landed_here": "Every testable observation discriminates, out of 3. The rate is 100%, above the 70% bar, and the exact one-sided 95% lower bound is 0.3684, which is below it, so the rate cannot be established at this sample size however cleanly each observation behaves. The other 4 decisive observations have a corridor that is identically 0 Hz across the whole pass, so it predicts no shape and a null built from it reproduces it exactly. There is nothing to test, which is a property of the capture convention rather than a shortage of effort.",
    "closure": {
     "kind": "exact",
     "frozen_by_pre_registration": false,
     "required_n": 9,
     "have_n": 3,
     "shortfall": 6,
-    "statement": "9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be uncorrected passes carrying a measurable narrowband trace.",
+    "statement": "9 testable observations, all discriminating. 0.05 ** (1/9) = 0.7169, which is the first n whose exact bound clears 0.7; at n = 8 it is 0.6877 and does not. That is 6 more than this corpus has vetted, and they have to be passes carrying a measurable narrowband trace.",
     "what_it_would_take": "Blinded vetting of more observations from the snapshot already on disk. The vetting has to be blind to the corridor result, or the rate it produces is a rate about the vetter."
    }
   },

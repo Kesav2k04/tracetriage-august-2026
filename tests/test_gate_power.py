@@ -404,3 +404,112 @@ def test_exactly_one_closure_is_an_extrapolation(receipt):
     extrapolated = next(g for g in receipt["gates"] if g["closure"]["kind"] == "extrapolated")
     assert extrapolated["gate"] == 5
     assert "every other closure here is not" in extrapolated["closure"]["assumptions"]
+
+
+# --------------------------------------------------------------------------------------
+# Gate 3's closure has four states. It used to have one.
+# --------------------------------------------------------------------------------------
+
+
+def _g3_receipt(verdict, scored, hits, bound, threshold=0.70, groups=None,
+                grouped_bound=None):
+    """The fields `_gate3` reads, and nothing else."""
+    return {
+        "threshold": threshold,
+        "verdict": verdict,
+        "observations_testable": scored,
+        "observations_not_testable": 4,
+        "observations_scored": scored,
+        "discriminating_rate": (hits / scored) if scored else 0.0,
+        "rate_lower_bound_95": bound,
+        "entity_grouping": {
+            "groups_scored": groups,
+            "grouped_rate_lower_bound_95": grouped_bound,
+        },
+    }
+
+
+def test_a_met_gate_3_is_not_described_as_short_of_anything():
+    """The state the original could not express at all.
+
+    Every sentence in the first version assumed the gate was open and short of
+    observations. A met gate would still have been published with a sample-size
+    shortfall and a paragraph explaining why its rate could not be established.
+    """
+    from scripts.run_gate_power import _gate3
+
+    g = _gate3(_g3_receipt("PASSED", scored=250, hits=230, bound=0.8790))
+    assert g["met"] is True
+    assert g["binding_constraint"] is None
+    assert g["closure"]["shortfall"] == 0
+    assert g["closure"]["kind"] == "closed"
+    assert "cannot be established" not in g["why_it_landed_here"]
+
+
+def test_a_rate_below_the_bar_is_not_called_a_sample_size_shortfall():
+    """The dangerous misdescription, and the reason this was worth fixing before the run.
+
+    A gate whose rate comes in under the threshold measured something. Calling that a
+    shortage of observations tells a reader it is an afternoon of vetting from closing,
+    and `_SHORTFALL_IN_A_PHRASE` renders it in exactly those words. No amount of vetting
+    moves a rate that is already below the bar towards it.
+    """
+    from scripts.run_gate_power import _gate3
+
+    g = _gate3(_g3_receipt("FAILED", scored=200, hits=90, bound=0.3900))
+    assert g["met"] is False
+    assert g["binding_constraint"] == "measured_rate_below_the_bar"
+    assert g["closure"]["kind"] == "not_a_shortfall"
+    assert g["closure"]["shortfall"] == 0
+    assert "larger pool" in g["closure"]["what_it_would_take"]
+    assert "measurement rather than a sample-size result" in g["why_it_landed_here"]
+
+
+def test_clearing_on_observations_but_not_on_groups_is_its_own_constraint():
+    """More of the same passes cannot close it, and the phrase has to say so."""
+    from scripts.run_gate_power import _gate3
+
+    g = _gate3(_g3_receipt(
+        "PASSED_UNGROUPED_ONLY", scored=180, hits=175, bound=0.9500,
+        groups=4, grouped_bound=0.4729,
+    ))
+    assert g["met"] is False
+    assert g["binding_constraint"] == "independent_episodes"
+    assert g["closure"]["have_n"] == 4
+    assert "more stations and more nights" in g["closure"]["what_it_would_take"]
+
+
+def test_an_imperfect_rate_is_counted_rather_than_called_perfect():
+    """"Every testable observation discriminates" was a hardcoded claim about the data.
+
+    It was true of three of three. The first observation that does not discriminate makes
+    it false, in a receipt whose whole purpose is that its sentences follow its numbers.
+    """
+    from scripts.run_gate_power import _gate3
+
+    g = _gate3(_g3_receipt("NOT_ESTABLISHED", scored=10, hits=8, bound=0.4930))
+    assert "8 of 10 testable observations discriminate" in g["why_it_landed_here"]
+    assert "Every testable observation" not in g["why_it_landed_here"]
+
+    perfect = _gate3(_g3_receipt("NOT_ESTABLISHED", scored=3, hits=3, bound=0.3684))
+    assert "Every testable observation discriminates" in perfect["why_it_landed_here"]
+    assert perfect["binding_constraint"] == "testable_sample_size"
+
+
+def test_every_constraint_gate_3_can_name_has_a_phrase():
+    """The reading paragraph raises on an unnamed constraint, so this must stay complete."""
+    from scripts.run_gate_power import _SHORTFALL_IN_A_PHRASE, _gate3
+
+    states = [
+        _g3_receipt("PASSED", 250, 230, 0.8790),
+        _g3_receipt("PASSED_UNGROUPED_ONLY", 180, 175, 0.95, groups=4,
+                    grouped_bound=0.4729),
+        _g3_receipt("NOT_ESTABLISHED", 3, 3, 0.3684),
+        _g3_receipt("FAILED", 200, 90, 0.3900),
+    ]
+    named = {_gate3(r)["binding_constraint"] for r in states} - {None}
+    missing = sorted(c for c in named if c not in _SHORTFALL_IN_A_PHRASE)
+    assert not missing, (
+        f"_gate3 can name {missing} and the reading paragraph has no phrase for them, so "
+        f"scripts/run_gate_power.py would raise SystemExit on a real result"
+    )

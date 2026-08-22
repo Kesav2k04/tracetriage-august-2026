@@ -95,40 +95,79 @@ def smallest_n_clearing(threshold: float, confidence: float = 0.95) -> int:
 
 
 def _gate3(receipt: dict[str, Any]) -> dict[str, Any]:
-    """Gate 3 is short of testable observations, and the shortfall is exactly countable."""
+    """What is actually holding gate 3 open, which is not always the same thing.
+
+    This used to assert one state: short of testable observations, perfect on the ones it
+    had. That was true of three of three and is not a property of the gate. A rate below
+    the bar is not a sample-size shortfall, and saying it is would tell a reader the gate
+    is an afternoon of vetting away from closing when no amount of vetting would close it.
+    """
     threshold = receipt["threshold"]
     testable = receipt["observations_testable"]
     not_testable = receipt["observations_not_testable"]
+    scored = receipt.get("observations_scored", testable)
+    rate = receipt["discriminating_rate"]
+    bound = receipt["rate_lower_bound_95"]
+    hits = round(rate * scored) if scored else 0
     needed = smallest_n_clearing(threshold)
-    return {
-        "gate": 3,
-        "title": "Corridor intersects a visible trace",
-        "verdict": receipt["verdict"],
-        "met": receipt["verdict"] in MET,
-        "binding_constraint": "testable_sample_size",
-        "bound_by_in_one_line": (
-            f"{testable} testable observations. At a perfect rate the exact bound is "
-            f"{receipt['rate_lower_bound_95']:.3f} against a {threshold} bar."
-        ),
-        "measured": {
-            "threshold": threshold,
-            "observations_testable": testable,
-            "observations_not_testable": not_testable,
-            "discriminating_rate": receipt["discriminating_rate"],
-            "rate_lower_bound_95": receipt["rate_lower_bound_95"],
-        },
-        "why_it_landed_here": (
-            f"Every testable observation discriminates, and there are "
-            f"{testable} of them. At a perfect rate the exact one-sided 95% lower bound is "
-            f"{receipt['rate_lower_bound_95']:.4f}, which is below the {threshold} bar, so "
-            f"the rate cannot be established however cleanly each observation behaves. The "
-            f"other {not_testable} decisive observations are corrected passes: their "
-            f"corridor is identically 0 Hz across the whole pass, so it predicts no shape, "
-            f"and a null built from it reproduces it exactly. There is nothing to test, "
-            f"which is a property of the capture convention rather than a shortage of "
-            f"effort."
-        ),
-        "closure": {
+    verdict = receipt["verdict"]
+    met = verdict in MET
+    grouping = receipt.get("entity_grouping") or {}
+
+    perfect = scored > 0 and hits == scored
+    counted = (
+        "Every testable observation discriminates"
+        if perfect
+        else f"{hits} of {scored} testable observations discriminate"
+    )
+
+    if met:
+        constraint = None
+        closure = {
+            "kind": "closed",
+            "frozen_by_pre_registration": False,
+            "required_n": needed,
+            "have_n": testable,
+            "shortfall": 0,
+            "statement": "Nothing. The gate is met.",
+            "what_it_would_take": "Nothing further: the interval clears the threshold.",
+        }
+        why = (
+            f"{counted}, and the exact one-sided 95% lower bound is {bound:.4f} against a "
+            f"{threshold} bar, so the interval clears it and the verdict follows the "
+            f"interval rather than the point estimate."
+        )
+    elif verdict == "PASSED_UNGROUPED_ONLY":
+        constraint = "independent_episodes"
+        groups = grouping.get("groups_scored")
+        closure = {
+            "kind": "exact",
+            "frozen_by_pre_registration": False,
+            "required_n": needed,
+            "have_n": groups if groups is not None else testable,
+            "shortfall": max(0, needed - (groups or 0)),
+            "statement": (
+                f"{needed} independent (station, date) episodes, all discriminating. The "
+                f"observation-level bound already clears {threshold}; the grouped one, "
+                f"over {groups} episodes, does not. The plan's rule is to group, so the "
+                f"observation-level pass is reported and not claimed."
+            ),
+            "what_it_would_take": (
+                "Observations from more stations and more nights, not more observations. "
+                "A hundred more passes over the same receiver on the same night is one "
+                "episode measured a hundred times."
+            ),
+        }
+        why = (
+            f"{counted}, and the observation-level bound of {bound:.4f} clears the "
+            f"{threshold} bar while the grouped bound over {groups} independent episodes "
+            f"does not. Observations from one receiver on one night share that receiver's "
+            f"local-oscillator error, so they are one systematic offset measured many "
+            f"times rather than many independent confirmations."
+        )
+    elif rate >= threshold:
+        constraint = "testable_sample_size"
+        closure = {
             "kind": "exact",
             "frozen_by_pre_registration": False,
             "required_n": needed,
@@ -140,14 +179,77 @@ def _gate3(receipt: dict[str, Any]) -> dict[str, Any]:
                 f"whose exact bound clears {threshold}; at n = {needed - 1} it is "
                 f"{0.05 ** (1 / (needed - 1)):.4f} and does not. That is "
                 f"{max(0, needed - testable)} more than this corpus has vetted, and they "
-                f"have to be uncorrected passes carrying a measurable narrowband trace."
+                f"have to be passes carrying a measurable narrowband trace."
             ),
             "what_it_would_take": (
                 "Blinded vetting of more observations from the snapshot already on disk. "
                 "The vetting has to be blind to the corridor result, or the rate it "
                 "produces is a rate about the vetter."
             ),
+        }
+        why = (
+            f"{counted}, out of {testable}. The rate is {rate * 100:.0f}%, above the "
+            f"{threshold * 100:.0f}% bar, and the exact one-sided 95% lower bound is "
+            f"{bound:.4f}, which is below it, so the rate cannot be established at this "
+            f"sample size however cleanly each observation behaves. The other "
+            f"{not_testable} decisive observations have a corridor that is identically "
+            f"0 Hz across the whole pass, so it predicts no shape and a null built from it "
+            f"reproduces it exactly. There is nothing to test, which is a property of the "
+            f"capture convention rather than a shortage of effort."
+        )
+    else:
+        # The one state the original could not express. A rate below the bar is a
+        # measurement, not a shortage, and more observations of the same kind move it
+        # towards the same answer.
+        constraint = "measured_rate_below_the_bar"
+        closure = {
+            "kind": "not_a_shortfall",
+            "frozen_by_pre_registration": False,
+            "required_n": needed,
+            "have_n": testable,
+            "shortfall": 0,
+            "statement": (
+                f"Nothing countable. The rate itself is {rate * 100:.0f}%, below the "
+                f"{threshold * 100:.0f}% bar, before any interval is taken. More "
+                f"observations narrow the interval around a number that is already under "
+                f"the threshold."
+            ),
+            "what_it_would_take": (
+                "A better corridor or a better presence statistic, not a larger pool. "
+                "This is the outcome the gate was written to be able to return."
+            ),
+        }
+        why = (
+            f"{counted}, a rate of {rate * 100:.0f}% against a {threshold * 100:.0f}% bar. "
+            f"The point estimate is below the threshold before any interval is taken, so "
+            f"this is a measurement rather than a sample-size result: the pool was fixed "
+            f"in docs/E16_PREREGISTRATION.md before the run, and the corridor did not land "
+            f"on the trace often enough."
+        )
+
+    return {
+        "gate": 3,
+        "title": "Corridor intersects a visible trace",
+        "verdict": verdict,
+        "met": met,
+        "binding_constraint": constraint,
+        "bound_by_in_one_line": (
+            f"{testable} testable observations, {hits} discriminating. The exact bound is "
+            f"{bound:.3f} against a {threshold} bar."
+        ),
+        "measured": {
+            "threshold": threshold,
+            "observations_testable": testable,
+            "observations_not_testable": not_testable,
+            "observations_scored": scored,
+            "discriminating": hits,
+            "discriminating_rate": rate,
+            "rate_lower_bound_95": bound,
+            "grouped_rate_lower_bound_95": grouping.get("grouped_rate_lower_bound_95"),
+            "groups_scored": grouping.get("groups_scored"),
         },
+        "why_it_landed_here": why,
+        "closure": closure,
     }
 
 
@@ -396,6 +498,14 @@ def _gate6(queue: dict[str, Any], circularity: dict[str, Any]) -> dict[str, Any]
 #: point of this receipt is that no unmet gate goes unexplained.
 _SHORTFALL_IN_A_PHRASE = {
     "testable_sample_size": "short of testable observations, and the shortfall is a count",
+    "independent_episodes": (
+        "short of independent station-nights rather than of observations, which is not a "
+        "shortfall more of the same passes can close"
+    ),
+    "measured_rate_below_the_bar": (
+        "not short of anything: its rate came in under the bar, which is a measurement "
+        "and not a sample size"
+    ),
     "no_human_reviewer": "short of a reviewer and nothing else",
     "test_set_size": "short of test rows",
     "split_population_at_a_fixed_budget": "short of test rows",
