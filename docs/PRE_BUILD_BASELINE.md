@@ -85,7 +85,7 @@ All four carry `"status": "DRAFT - not authoritative until Bob ratifies it"` and
 
 ## 6. Documents
 
-`docs/SATNOGS_API_RECON.md` (findings), `docs/KILL_GATE.md` (status board, 3 of 6 gates pre-measured), `docs/BOB_TASK_PROMPTS.md` (master prompt plus 7 acceptance-defined Wave A units and outlines for B, C, D), `docs/BOB_HANDOFF.md`, `docs/BOB_BUILD_LOG.md` (empty), a credit budget kept outside this repository, `docs/ACTOR_AND_PERMISSION_CONTRACT.md`, `docs/CLAIM_REGISTER.md` (empty), `.bob/rules.md`.
+`docs/SATNOGS_API_RECON.md` (findings), `docs/KILL_GATE.md` (status board, 3 of 6 gates pre-measured), a master prompt plus 7 acceptance-defined Wave A units and outlines for B, C and D, a rotation handoff, `docs/BOB_BUILD_LOG.md` (empty), a credit budget kept outside this repository, `docs/ACTOR_AND_PERMISSION_CONTRACT.md`, `docs/CLAIM_REGISTER.md` (empty), `.bob/rules.md`.
 
 ---
 
@@ -104,6 +104,6 @@ All four carry `"status": "DRAFT - not authoritative until Bob ratifies it"` and
 
 ## How the build proceeds from here
 
-Bob builds every lettered unit: A0 through A7, then waves B, C and D. Each unit is scoped to a single acceptance-defined deliverable, its result is recorded in `docs/BOB_BUILD_LOG.md` with the commit SHA and the tests that ran, and `docs/BOB_HANDOFF.md` carries exact state across trial-account rotations.
+Bob builds every lettered unit: A0 through A7, then waves B, C and D. Each unit is scoped to a single acceptance-defined deliverable, its result is recorded in `docs/BOB_BUILD_LOG.md` with the commit SHA and the tests that ran, and a handoff kept outside this repository carries exact state across trial-account rotations.
 
 Where hardening happens outside a Bob task, it is logged under "Operator-side hardening" in the build log against the unit it followed, so the history stays complete and a later unit does not overwrite it.

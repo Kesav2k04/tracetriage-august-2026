@@ -1,6 +1,6 @@
 # Bob operating rules for TraceTriage
 
-Read this file and `docs/BOB_HANDOFF.md` before every task. They are short on purpose.
+Read this file before every task. It is short on purpose. The rotation handoff and the pre-written unit prompts are kept outside this repository: they are build logistics rather than evidence about the product.
 
 ---
 
@@ -94,8 +94,8 @@ Two calibration facts from A3 that cost a rebuild if forgotten. **Time runs bott
 
 ## 6. How to run a task
 
-1. Inspect the repository and `docs/BOB_HANDOFF.md`. **Do not recreate finished files.**
-2. Work on **one acceptance-defined unit at a time**. The units are pre-written in `docs/BOB_TASK_PROMPTS.md` with their acceptance checks.
+1. Inspect the repository. **Do not recreate finished files.**
+2. Work on **one acceptance-defined unit at a time**. Every unit is written down with its acceptance checks before it starts, and `docs/BOB_BUILD_LOG.md` records what each one actually did.
 3. Before editing, state: the exact files you will create, the commands you will run, the acceptance checks, and your estimated build credit risk.
 4. Run the unit's tests before reporting completion.
 5. **Do not claim completion when an artifact, metric, or external validation is missing.** Say what is missing.
@@ -115,7 +115,7 @@ Stop and document the failure in `docs/KILL_GATE.md`. Do not hide it, do not com
 
 ## 9. Before you run out of credits
 
-Stop starting features at **3 credits remaining**. Then: run the full test and acceptance suite, update `docs/BOB_HANDOFF.md` with exact next steps, update `docs/BOB_BUILD_LOG.md`, Task history is not exported into this repository: `bob_sessions/` was deleted in E0 because it held one `.gitkeep`, git does not publish an empty directory, and the README named it as evidence. `docs/BOB_BUILD_LOG.md` is the record. The credit budget and the account-rotation procedure are kept outside this repository: they are build logistics, not evidence about the product, and a reader of the tracked tree gains nothing from them.
+Stop starting features at **3 credits remaining**. Then: run the full test and acceptance suite, write the exact next steps into the handoff kept outside this repository, update `docs/BOB_BUILD_LOG.md`, Task history is not exported into this repository: `bob_sessions/` was deleted in E0 because it held one `.gitkeep`, git does not publish an empty directory, and the README named it as evidence. `docs/BOB_BUILD_LOG.md` is the record. The credit budget and the account-rotation procedure are kept outside this repository: they are build logistics, not evidence about the product, and a reader of the tracked tree gains nothing from them.
 
 ## 10. Git
 
