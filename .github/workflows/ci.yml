@@ -155,3 +155,49 @@ jobs:
         # why this job needs no snapshot and no Python.
         working-directory: apps/web
         run: npm run build
+  presentation:
+    name: Presentation film, typecheck claim tests and report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # The film is the submission's presentation artifact and every number on screen is read
+    # from a receipt at build time. Until this job existed the 453 claim checks and the
+    # report generator ran only on one laptop, behind a `cd presentation` somebody had to
+    # remember. The local gate has rows for both, and it omits them when node_modules is
+    # absent, which is every clean clone. This is the job that makes the omission rare.
+    #
+    # The render itself is not here. `remotion render` downloads a headless Chromium and
+    # takes 150 seconds a pass, and what it would establish is that a video file can be
+    # produced from these sources. presentation/REPORT.md records three renders that agree
+    # byte for byte, and the file they produced is committed, so the claim already has
+    # evidence. What CI protects is the numbers, which is what these three steps check.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: presentation/package-lock.json
+
+      - name: Install pinned dependencies
+        working-directory: presentation
+        run: npm ci
+
+      - name: Type check
+        # src, test, scripts and remotion.config.ts. The generator under scripts/ was
+        # outside the project's include list when it was written, so nothing typechecked
+        # the file that rewrites a table in a tracked document.
+        working-directory: presentation
+        run: npx tsc --noEmit
+
+      - name: Claim tests
+        # Every figure the film draws, against the receipt key path it came from, plus the
+        # beat ordering and the spoken-duration bound.
+        working-directory: presentation
+        run: npm test
+
+      - name: Report table matches src/data.ts
+        # presentation/REPORT.md says its claim table is generated. This is the check that
+        # it still is.
+        working-directory: presentation
+        run: npm run report -- --check

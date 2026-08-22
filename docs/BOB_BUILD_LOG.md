@@ -7726,3 +7726,43 @@ asserts the flag is spelled the same in all three files, because a typo would le
 the skip or the gate row dead with no symptom. And it hands the skipped test a fabricated
 NOT_SIGNED receipt with the flag cleared and requires an `AssertionError`, so the assertions
 hiding behind the skip cannot be softened into something a refused sign-off satisfies.
+
+## E12. The film's 453 checks ran on one laptop, behind a `cd` somebody had to remember
+
+CI had three jobs: the offline replay, the live API contract and the static console. The
+presentation package was in none of them. Its 453 claim tests, which compare every figure
+the film draws against the receipt key path it came from, and the generator that rewrites
+the claim table in `presentation/REPORT.md`, ran only where someone typed
+`cd presentation` first. The standing gate got rows for both earlier in this wave, and
+those rows are omitted when `presentation/node_modules` is absent, which is every clean
+clone and every runner. So the checks existed and nothing scheduled them.
+
+The comment beside the console lint step already said what this is: a check that is not in
+CI is a check that stops working the week after it is written. That step was added the day
+`npm run lint` ran for the first time and found seven problems in a script that had been in
+`package.json` since the console was created.
+
+The new job runs `npm ci`, `npx tsc --noEmit`, `npm test` and `npm run report -- --check`.
+It does not render. `remotion render` downloads a headless Chromium and takes 150 seconds a
+pass, and what it would establish is that a video file can be produced from these sources.
+`presentation/REPORT.md` records three renders agreeing byte for byte and the file they
+produced is committed, so that claim already has evidence. What CI protects here is the
+numbers.
+
+Two things the job could not have run as the package stood.
+
+**The generator was outside its own project.** `presentation/tsconfig.json` included `src`,
+`test` and `remotion.config.ts`. `scripts/report-table.ts` was in none of them, so nothing
+typechecked the file that rewrites a table in a tracked document. It is in the include list
+now and `tsc --noEmit` is clean over it.
+
+**`vite-node` was never declared.** `npm run report` invokes it, and it was reachable only
+because `vitest` depends on it: `presentation/node_modules/.bin/vite-node` exists as a
+transitive artifact. A vitest release that stopped depending on it would have broken the
+report generator with an error about a missing binary, in a package whose own manifest never
+asked for it. Pinned at 3.2.4 in `devDependencies` now, one line in the lockfile.
+
+`tests/test_ci_workflow.py` asserts that the set of jobs equals the set of budgeted jobs, so
+a new job with no timeout fails rather than inheriting the six-hour default. That assertion
+is why this change is two files: the workflow could not grow a job without the test naming
+what it is allowed to spend.
