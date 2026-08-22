@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-22T11:58:34+05:30",
- "commit": "ed16a24b0681a558fdb4855ce2e7d2660f4467d0",
+ "measured_at_commit_date": "2026-08-22T15:28:29+05:30",
+ "commit": "c5d9e7d6a83e12ecda6149345d1084a6b5f07a00",
  "tracked_files": 440,
- "tracked_bytes": 43950602,
- "tracked_megabytes": 41.91,
+ "tracked_bytes": 43956440,
+ "tracked_megabytes": 41.92,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -70,8 +70,8 @@
  ],
  "by_directory_remainder": {
   "groups": 206,
-  "bytes": 3564637,
-  "megabytes": 3.4,
+  "bytes": 3570475,
+  "megabytes": 3.41,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
