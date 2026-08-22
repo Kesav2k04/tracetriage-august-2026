@@ -76,6 +76,16 @@ CRASHED = "CRASHED"
 #: that the gate is still looking for this exact string.
 SKIP_PREFIX = "[SKIP]"
 
+#: Published files this script does not rebuild because something else owns them. Kept
+#: separate from the files that need the waterfall imagery, so the note this script prints
+#: says which of the two reasons applies rather than asserting the wrong one.
+_CHECKED_BY_ANOTHER_BUILDER = {
+    "bob.json": "scripts/export_bob_units.py --check, in tests/test_bob_units_export.py",
+    "grounding_golden.json": (
+        "scripts/export_grounding_golden.py --check, in tests/test_grounding_parity.py"
+    ),
+}
+
 #: The exception class name, taken from the class rather than typed, so renaming it in
 #: `pipeline/tracetriage/splits.py` cannot leave this scanner matching nothing and
 #: silently reporting every unconfigured checkout as a stale artifact again.
@@ -361,16 +371,25 @@ def main(argv: list[str] | None = None) -> int:
             # Named rather than skipped. cards.json needs the waterfall PNGs, so a
             # JSON-only rebuild cannot produce it, and a check that quietly ignored it
             # would read as covering the directory.
+            #
+            # Two reasons a file can be uncovered here, and they are not the same reason.
+            # Folding them together made this line say bob.json needs the waterfall images,
+            # which it does not: it has its own builder and its own check, and a reader of
+            # that note would have concluded nothing was watching it.
             uncovered = sorted(
                 p.name
                 for p in published.iterdir()
                 if p.is_file() and p.name not in rebuilt_names
             )
-            if uncovered:
+            elsewhere = sorted(n for n in uncovered if n in _CHECKED_BY_ANOTHER_BUILDER)
+            needs_images = [n for n in uncovered if n not in _CHECKED_BY_ANOTHER_BUILDER]
+            if needs_images:
                 print(
                     "[NOTE] not checked here (needs the waterfall images): "
-                    + ", ".join(uncovered)
+                    + ", ".join(needs_images)
                 )
+            for name in elsewhere:
+                print(f"[NOTE] {name} is checked by {_CHECKED_BY_ANOTHER_BUILDER[name]}")
 
         if args.deep:
             # PHYSICS_VALIDATION.json is here rather than in the default set because

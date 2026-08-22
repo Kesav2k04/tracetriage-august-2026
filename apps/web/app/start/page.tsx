@@ -29,6 +29,7 @@ import Link from "next/link";
 
 import {
   agent,
+  bob,
   evaluation,
   fmt,
   fmtInterval,
@@ -39,7 +40,7 @@ import {
   requireGate6Split,
   showcaseIds,
 } from "@/lib/data";
-import { Note, Section, Stat, VerdictBadge } from "@/components/ui";
+import { Cell, Note, Section, Stat, Table, VerdictBadge } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Start here",
@@ -353,6 +354,61 @@ export default function StartPage() {
             </div>
           ))}
         </div>
+      </Section>
+
+      <Section
+        title="What IBM Bob built, and what it did not"
+        description={
+          "Read out of docs/BOB_BUILD_LOG.md by scripts/export_bob_units.py, so this "
+          + "table cannot drift from the log the way a typed count would."
+        }
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: "var(--sp-07)",
+            flexWrap: "wrap",
+            marginBottom: "var(--sp-06)",
+          }}
+        >
+          <Stat label="Bob-account units" value={String(bob.n_bob_units)} />
+          <Stat label="operator-side units" value={String(bob.n_operator_units)} />
+          <Stat label="dated units in the log" value={String(bob.n_dated_units)} />
+        </div>
+
+        <Table
+          head={["Unit", "What it built", "Bob task", "Files", "What failed first"]}
+          headAlign={["left", "left", "left", "right", "left"]}
+          caption={
+            "Every row names a dated entry in the build log. The task column is the "
+            + "identifier that ties the entry to a real task in the account."
+          }
+        >
+          {bob.units.map((unit) => (
+            <tr key={unit.unit}>
+              <Cell align="left" mono>
+                {unit.unit}
+              </Cell>
+              <Cell align="left">{unit.subject}</Cell>
+              <Cell align="left" mono>
+                {unit.bob_task_id ? (
+                  unit.bob_task_id.slice(0, 12)
+                ) : (
+                  <span
+                    style={{ color: "var(--text-03)" }}
+                    title="This entry records the workspace and the account but no task hash"
+                  >
+                    {unit.actor.toLowerCase()}
+                  </span>
+                )}
+              </Cell>
+              <Cell mono>{unit.files.length}</Cell>
+              <Cell align="left">{unit.what_failed ?? "nothing recorded"}</Cell>
+            </tr>
+          ))}
+        </Table>
+
+        <Note tone="limit">{bob.what_is_not_bobs}</Note>
       </Section>
 
       <Section

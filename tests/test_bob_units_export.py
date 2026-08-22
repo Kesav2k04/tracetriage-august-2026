@@ -1,0 +1,111 @@
+"""`apps/web/public/data/bob.json` is what the build log produces, and it says the hard part.
+
+The console shows what IBM Bob built because the criterion that leads on Bob had no evidence
+inside the console: two blind readers scored the entry independently and both wrote down that
+the word appeared twice on the whole site and both times incidentally. The table that answers
+them is only worth having if it cannot drift, so the numbers on it are parsed out of
+`docs/BOB_BUILD_LOG.md` at build time and this asserts the committed file is that parse.
+
+The second assertion is the one that matters more. Ten of the log's fifty-nine dated units
+are Bob's and forty-nine are a person working from Cursor and Claude Code, and a page that
+published the ten without the forty-nine would be reporting a fraction as a total. That is the
+exact defect this project already shipped once in `README.md`, which claimed Bob built the
+console, the calibration and abstention blocks and the test suite while the log beside it
+attributed all three to the operator.
+"""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[1]
+EXPORT = REPO / "scripts" / "export_bob_units.py"
+OUT = REPO / "apps" / "web" / "public" / "data" / "bob.json"
+
+
+@pytest.fixture(scope="module")
+def doc() -> dict:
+    assert OUT.exists(), f"{OUT.name} is missing. Run scripts/export_bob_units.py."
+    return json.loads(OUT.read_text(encoding="utf-8"))
+
+
+def test_the_committed_file_is_what_the_build_log_produces() -> None:
+    """The generator in check mode, so a log edit cannot leave the page behind."""
+    finished = subprocess.run(
+        [sys.executable, str(EXPORT), "--check"],
+        capture_output=True,
+        text=True,
+        cwd=str(REPO),
+    )
+    assert finished.returncode == 0, finished.stdout + finished.stderr
+
+
+def test_the_counted_units_are_the_ones_the_judge_document_counts(doc) -> None:
+    """One parse, two consumers. FOR_JUDGES and the console cannot disagree."""
+    import importlib.util
+
+    path = REPO / "scripts" / "sync_for_judges.py"
+    spec = importlib.util.spec_from_file_location("sync_for_judges_for_test", path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+
+    bob_ids, operator_ids = module._build_log_units()
+    # The list is in the log's order rather than sorted, so the sequence is asserted against
+    # the counter's own sequence and not against an alphabetisation of itself.
+    assert [unit["unit"] for unit in doc["units"]] == list(bob_ids)
+    assert doc["n_bob_units"] == len(bob_ids)
+    assert doc["n_operator_units"] == len(operator_ids)
+    assert doc["n_dated_units"] == len(bob_ids) + len(operator_ids)
+
+
+def test_the_operator_side_count_travels_with_the_bob_count(doc) -> None:
+    """The honest denominator is in the file, so a page cannot render one without the other."""
+    assert doc["n_operator_units"] > doc["n_bob_units"], (
+        "this assertion encodes the state that made the disclosure necessary; if Bob's share "
+        "has genuinely overtaken the operator's, update it and say so on the page"
+    )
+    for phrase in ("operator-side", "Cursor", "Claude Code"):
+        assert phrase in doc["what_is_not_bobs"], (
+            f"the disclosure no longer says {phrase!r}, so a reader cannot tell who did the "
+            "work the ten units do not cover"
+        )
+
+
+def test_every_unit_carries_something_a_reader_can_check(doc) -> None:
+    """A row with no files and no failure is a claim, not a record."""
+    thin = [
+        unit["unit"]
+        for unit in doc["units"]
+        if not unit["files"] and not unit["what_failed"]
+    ]
+    assert not thin, (
+        f"{thin} name neither a file they changed nor a failure they repaired, so the table "
+        "would be asserting that Bob did something rather than showing it"
+    )
+    for unit in doc["units"]:
+        assert unit["subject"], f"{unit['unit']} has no subject, so its row says only an id"
+
+
+def test_a_missing_task_hash_is_null_rather_than_invented(doc) -> None:
+    """Two of the ten record a workspace and an account and no hash. That has to survive.
+
+    A generator that filled the column with the account, or with the previous unit's hash,
+    would make the strongest field in the table the one least worth trusting.
+    """
+    hashes = [unit["bob_task_id"] for unit in doc["units"]]
+    assert any(value is None for value in hashes), (
+        "every unit now reports a task hash. If the log gained the two that were missing, "
+        "this is correct and the test should be updated; if the generator started filling "
+        "them in, it is not."
+    )
+    for value in hashes:
+        assert value is None or (
+            len(value) >= 16 and all(c in "0123456789abcdef" for c in value)
+        ), f"{value!r} is not a hexadecimal task id"

@@ -119,3 +119,65 @@ def test_the_old_heading_count_is_still_reported_as_the_correction(sync_module):
 
     assert str(sync_module._OLD_HEADING_COUNT) in published
     assert "second-level markdown headings" in published
+def test_the_readme_says_the_same_thing_as_the_log(sync_module):
+    """The two judge-facing documents cannot disagree about who built what.
+
+    They did. `FOR_JUDGES.md` carried the counted accounting while `README.md` said Bob
+    "builds every load-bearing subsystem: ingestion, physics, model interface, calibration,
+    abstention, ranking, the evidence console, the test suite", which names five things the
+    log attributes to the operator. Two blind readers found it independently and both said it
+    was the weakest thing in the entry, because the criterion it overclaims against is the one
+    that leads on Bob. Only `FOR_JUDGES.md` was checked, so only `FOR_JUDGES.md` stayed true.
+    """
+    readme = (REPO / "README.md").read_text(encoding="utf-8")
+    bob, operator = sync_module._build_log_units()
+
+    assert f"{len(bob)} dated" in readme, (
+        "README.md does not state the counted number of Bob units, so it can drift from the "
+        "log again"
+    )
+    assert f"A further {len(operator)} dated" in readme
+    for unit in bob:
+        assert unit in readme, f"unit {unit} is counted but not named in README.md"
+    for claim in ("builds every load-bearing subsystem", "every load-bearing subsystem"):
+        assert claim not in readme, (
+            f"README.md is back to claiming {claim!r}, which the build log contradicts: the "
+            "console, the calibration and abstention blocks and the fusion ladder are "
+            "operator-side in the actor field of their own headings"
+        )
+
+
+def test_the_readme_and_the_spec_agree_on_how_many_tools_exist():
+    """The count of built tools is read from the specification, not typed twice.
+
+    README said five built and five unbuilt, `FOR_JUDGES.md` said twelve and four, and the
+    specification says twelve and four. A reader who checks one document against the other
+    finds a contradiction before they find a tool.
+    """
+    import re
+
+    spec = (REPO / ".bob" / "TOOL_SPECS.md").read_text(encoding="utf-8")
+    head, _, tail = spec.partition("## Specified and not implemented")
+    assert tail, ".bob/TOOL_SPECS.md no longer separates the built tools from the unbuilt ones"
+
+    built = len(re.findall(r"^### `[a-z_]+`", head, flags=re.MULTILINE))
+    unbuilt = len(re.findall(r"^### `[a-z_]+`", tail, flags=re.MULTILINE))
+    assert built and unbuilt, f"read {built} built and {unbuilt} unbuilt tool headings"
+
+    # Each document is held to its own wording rather than to an either-or, because a check
+    # that accepts either phrase passes when one document carries both numbers and the other
+    # carries none, which is the shape of the defect this is here for.
+    expected = {
+        "README.md": (f"{built} tools that exist", f"{unbuilt} that were specified and were not"),
+        "FOR_JUDGES.md": (f"the {built} that", f"{unbuilt} that were specified and were not"),
+    }
+    for document, (built_phrase, unbuilt_phrase) in expected.items():
+        text = (REPO / document).read_text(encoding="utf-8")
+        assert built_phrase in text, (
+            f"{document} does not say {built_phrase!r}, so it does not state the {built} tools "
+            "the specification implements"
+        )
+        assert unbuilt_phrase in text, (
+            f"{document} does not say {unbuilt_phrase!r}, so it does not state the {unbuilt} "
+            "tools that were specified and not built"
+        )

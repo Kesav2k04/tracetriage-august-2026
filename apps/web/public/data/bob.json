@@ -1,0 +1,179 @@
+{
+ "schema": "BOB_UNITS",
+ "schema_version": "0.1.0",
+ "source": "docs/BOB_BUILD_LOG.md",
+ "generated_by": "scripts/export_bob_units.py",
+ "n_bob_units": 10,
+ "n_operator_units": 49,
+ "n_dated_units": 59,
+ "what_is_not_bobs": "The console, the calibration and abstention blocks, the fusion ladder and the review waves are operator-side, run from Cursor and Claude Code, and are labelled that way in the actor field of their own headings in the same log.",
+ "units": [
+  {
+   "unit": "A7",
+   "date": "2026-08-17",
+   "actor": "Account 3",
+   "subject": "End-to-end triage slice",
+   "bob_task_id": null,
+   "files": [
+    "scripts/run_triage_slice.py",
+    "scripts/render_evidence_card.py",
+    "scripts/run_baseline.py",
+    "artifacts/TRIAGE_RECEIPT.json",
+    "artifacts/evidence_card_14740031.html",
+    "artifacts/hoglr_model.pkl",
+    "docs/KILL_GATE.md",
+    "docs/BOB_BUILD_LOG.md",
+    "docs/BOB_HANDOFF.md"
+   ],
+   "what_failed": "_score_with_hoglr initially re-fit from corpus on every call (~11 min)."
+  },
+  {
+   "unit": "A6",
+   "date": "2026-08-17",
+   "actor": "Account 3",
+   "subject": "Image-only baselines (centre-energy + HOG+LR)",
+   "bob_task_id": null,
+   "files": [
+    "pipeline/tracetriage/baseline.py",
+    "scripts/run_baseline.py",
+    "tests/test_baseline.py",
+    "artifacts/BASELINE_RECEIPT.json",
+    "docs/PRIOR_ART_BASELINES.md",
+    "docs/BOB_BUILD_LOG.md",
+    "docs/BOB_HANDOFF.md"
+   ],
+   "what_failed": "Manifest observation records use waterfall_url (not waterfall), retrieved_at (not _retrieved_at), and have no status or end field."
+  },
+  {
+   "unit": "A5",
+   "date": "2026-08-17",
+   "actor": "Account 3",
+   "subject": "Label provenance builder",
+   "bob_task_id": null,
+   "files": [
+    "pipeline/tracetriage/provenance.py",
+    "tests/test_provenance.py",
+    "docs/LABEL_PROVENANCE.md",
+    "docs/BOB_BUILD_LOG.md",
+    "docs/BOB_HANDOFF.md"
+   ],
+   "what_failed": "__post_init__ had an over-strict invariant: \"UNLABELLED must not come from decisive waterfall_status\"."
+  },
+  {
+   "unit": "A0",
+   "date": "2026-08-16",
+   "actor": "Account 1",
+   "subject": "Ratify the data contracts",
+   "bob_task_id": "a309025a1c82bfb4e34d882d02fa4066",
+   "files": [
+    "contracts/source_observation.schema.json",
+    "contracts/waterfall_geometry.schema.json",
+    "contracts/triage_receipt.schema.json",
+    "contracts/split_manifest.schema.json",
+    "scripts/gate.py"
+   ],
+   "what_failed": "scripts/gate.py secret scan flagged itself because the bare ghp_| pattern matched the pattern literal in the script."
+  },
+  {
+   "unit": "A0b-INT",
+   "date": "2026-08-16",
+   "actor": "Account 1",
+   "subject": "Integration review of external contract change",
+   "bob_task_id": "a309025a1c82bfb4e34d882d02fa4066",
+   "files": [
+    "contracts/dataset_manifest.schema.json",
+    "contracts/waterfall_geometry.schema.json",
+    "contracts/split_manifest.schema.json",
+    "contracts/triage_receipt.schema.json",
+    "contracts/source_observation.schema.json",
+    "pyproject.toml",
+    "jsonschema>=4.23",
+    "tests/test_contracts.py"
+   ],
+   "what_failed": "None in the integration step. One correction applied: client_version added to required on the observations entry in dataset_manifest.schema.json."
+  },
+  {
+   "unit": "A1",
+   "date": "2026-08-16",
+   "actor": "Account 1",
+   "subject": "Immutable snapshot builder",
+   "bob_task_id": "0a6a254d9495683ad0ae23538da646b0",
+   "files": [
+    "pipeline/tracetriage/snapshot.py",
+    "tests/test_snapshot.py",
+    "contracts/dataset_manifest.schema.json",
+    "tests/test_contracts.py",
+    "docs/BOB_BUILD_LOG.md"
+   ],
+   "what_failed": "ruff: 31 lint errors on first pass (E501, UP017, F401, B017, SIM117, F841, I001)."
+  },
+  {
+   "unit": "A2",
+   "date": "2026-08-17",
+   "actor": "Account 2",
+   "subject": "Waterfall artifact parser",
+   "bob_task_id": "db67de0f0709c58bbc4155fdf78181c4",
+   "files": [
+    "pipeline/tracetriage/waterfall.py",
+    "tests/test_waterfall.py",
+    "contracts/waterfall_geometry.schema.json",
+    "docs/BOB_BUILD_LOG.md",
+    "scripts/_inspect_fixtures.py"
+   ],
+   "what_failed": "First implementation used label pixel-width to infer kHz-per-tick."
+  },
+  {
+   "unit": "A4",
+   "date": "2026-08-17",
+   "actor": "Account 3",
+   "subject": "Physics corridor module",
+   "bob_task_id": null,
+   "files": [
+    "pipeline/tracetriage/physics.py",
+    "tests/test_physics.py",
+    "scripts/validate_physics.py",
+    "artifacts/PHYSICS_VALIDATION.json",
+    "docs/BOB_BUILD_LOG.md",
+    "docs/BOB_HANDOFF.md"
+   ],
+   "what_failed": "First frozen test observation (ISS over Prague, 2024-01-01 12:00 UTC) was below the horizon — elevation -55.9°."
+  },
+  {
+   "unit": "B1",
+   "date": "17 Aug 2026",
+   "actor": "account 3",
+   "subject": "grouped splits, leakage audit",
+   "bob_task_id": "c3a0c9d2a43d8493ffcbe58ba4d78549",
+   "files": [
+    "pipeline/tracetriage/splits.py",
+    "scripts/build_splits.py",
+    "tests/test_splits.py",
+    "tests/test_split_guarantees.py",
+    "contracts/split_manifest.schema.json",
+    "tests/test_contracts.py",
+    "artifacts/SPLIT_MANIFEST.json",
+    "artifacts/LEAKAGE_AUDIT.json"
+   ],
+   "what_failed": "Cold-combined, version 1 (Bob). One-cold-one-warm observations went to train."
+  },
+  {
+   "unit": "C1",
+   "date": "2026-08-17",
+   "actor": "Account 3",
+   "subject": "Review-value queue and kill gate 6",
+   "bob_task_id": "132f11e96a87ebc5c7bd1a9196322bb1",
+   "files": [
+    "pipeline/tracetriage/queue.py",
+    "scripts/run_queue.py",
+    "contracts/queue_receipt.schema.json",
+    "tests/test_queue.py",
+    "artifacts/QUEUE_RECEIPT.json",
+    "scripts/gate.py",
+    "docs/KILL_GATE.md",
+    "docs/CLAIM_REGISTER.md",
+    "tests/test_contracts.py"
+   ],
+   "what_failed": "list(set(episode_of.values())) was non-deterministic (Python set iteration order is not guaranteed)."
+  }
+ ]
+}

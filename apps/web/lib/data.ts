@@ -16,6 +16,7 @@ import notesJson from "@/public/data/notes.json";
 import queueJson from "@/public/data/queue.json";
 import agentJson from "@/public/data/agent.json";
 import precedentJson from "@/public/data/precedent.json";
+import bobJson from "@/public/data/bob.json";
 
 export {
   NON_ACTIONABLE,
@@ -1017,3 +1018,37 @@ export function precedentFor(
 ): Record<string, PrecedentNeighbour[]> | null {
   return precedent.neighbours[String(obsId)] ?? null;
 }
+
+/**
+ * What IBM Bob built, read out of the build log rather than typed here.
+ *
+ * The criterion this answers leads on Bob, and for most of the build the only place that
+ * evidence lived was a markdown file in the repository. `scripts/export_bob_units.py`
+ * parses `docs/BOB_BUILD_LOG.md` with the same walk the FOR_JUDGES generator uses and
+ * writes the ten Bob-account units with the files each one changed and what failed before
+ * it was accepted. The operator-side count travels with them: 49 of the 59 dated units in
+ * that log are a person at Cursor and Claude Code, and a page that showed only the ten
+ * would be publishing a fraction as a total.
+ */
+export interface BobUnit {
+  unit: string;
+  date: string;
+  actor: string;
+  subject: string;
+  /** Null for the two units whose entry records a workspace and an account but no hash. */
+  bob_task_id: string | null;
+  files: string[];
+  what_failed: string | null;
+}
+
+export interface BobAccounting {
+  source: string;
+  generated_by: string;
+  n_bob_units: number;
+  n_operator_units: number;
+  n_dated_units: number;
+  what_is_not_bobs: string;
+  units: BobUnit[];
+}
+
+export const bob = bobJson as unknown as BobAccounting;

@@ -269,8 +269,9 @@ sequence, and every step writes a file that the next one reads.
 
 **IBM Granite writes the reviewer's first sentence, and a checker refuses most of what it
 writes.** Granite 3.1 dense 8B runs locally at Q4_K_M, temperature zero, and drafts one note
-per card from the evidence packet described in step 9. Of 25 cards, 11 drafts were accepted
-and 14 refused, and every refusal was an ungrounded number. In **9 of the 25** the model
+per card from the evidence packet described in step 9. Of 25 cards, 10 drafts were accepted
+and 15 refused on 17 violations: 14 ungrounded numbers, 2 claims the packet places at
+another time, and 1 overclaim. In **9 of the 25** the model
 wrote a downlink frequency in megahertz that was not this observation's, wrong by 10 kHz to
 1215 kHz. Each invented value lands within five percent of that observation's real downlink,
 which is the finding's own definition and also what makes it dangerous: the number looks
@@ -322,12 +323,14 @@ outcome beside passed, failed and inconclusive, and it carries no rate.
 
 ## How IBM Bob was used
 
-IBM Bob is the primary development tool for this project and builds every load-bearing subsystem: ingestion, physics, model interface, calibration, abstention, ranking, the evidence console, the test suite, and final release acceptance.
+IBM Bob is the primary development tool for this project and built the load-bearing pipeline. The log names which units those were rather than asserting a total: 10 dated Bob-account units, A7, A6, A5, A0, A0b-INT, A1, A2, A4, B1 and C1, covering the data contracts, the immutable snapshot, the waterfall artifact parser, the physics corridor, label provenance, the image-only baselines, the end-to-end triage slice, the grouped splits with their leakage audit, and the review-value queue with kill gate 6.
+
+A further 49 dated units in the same file are operator-side, run from Cursor and Claude Code, and are labelled that way in the actor field of their own headings: the console, the calibration and abstention blocks, the fusion ladder and the review waves are theirs, not Bob's. An earlier version of this section claimed Bob built all of it, including the console, the calibration and abstention work and the test suite, which is contradicted by the log it points at and by `FOR_JUDGES.md`. Both numbers here are counted from the log by `scripts/sync_for_judges.py` and checked against this file by `tests/test_bob_unit_count.py`.
 
 Bob's work is recorded, not asserted:
 
 - `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures and repairs, with actual build credit consumption
-- `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool contracts and MCP wiring each Bob task ran under, tracked so the conditions of the work are readable and not just its output. The specification separates the five tools that exist from the five that were specified and were not, naming for each of those the script that did its job instead, and a test fails if the registration ever points at a server that is not there
+- `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool contracts and MCP wiring each Bob task ran under, tracked so the conditions of the work are readable and not just its output. The specification separates the 12 tools that exist, 7 over committed receipts and 5 that measure live, from the 4 that were specified and were not, naming for each of those the script that did its job instead, and a test fails if the registration ever points at a server that is not there
 - exported task transcripts are **not included**. An earlier draft of this section said they were, pointing at a directory that held nothing but a placeholder file, which git does not publish at all. The directory is gone and the build log is the record; a test now fails if this file names a path that is missing or empty
 - a final Bob task inspects the release commit, runs the acceptance suite, repairs failures
   and generates a sign-off receipt. `scripts/signoff.py` runs ten checks at one commit and
