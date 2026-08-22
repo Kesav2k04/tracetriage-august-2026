@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Static evidence console for TraceTriage. No server, no database, no cloud inference, no credentials: everything it shows was measured offline and validated against a contract before it reached disk.",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
