@@ -199,6 +199,44 @@ def _check_live(sheet: Sheet, enabled: bool) -> None:
     )
 
 
+#: Generated documents that quote the receipts this script rewrites. Both are checked by the
+#: standing gate and by the offline suite, and both are checked before these receipts exist.
+DOCUMENTS_THAT_QUOTE_THE_RECEIPTS = ("sync_for_judges.py", "sync_docs.py")
+
+
+def refresh_documents_that_quote_the_receipts() -> list[str]:
+    """Re-run the generators whose input this script has just changed.
+
+    The gate runs first and the receipts are written last, so a run that reports every check
+    green leaves `FOR_JUDGES.md` and `docs/REFERENCE.md` stale by construction: the first
+    quotes the sign-off, the second carries a digest of every artifact, and four artifacts
+    move on every run because they record the commit and the time they were measured at. The
+    gate cannot catch it, because the thing that went stale did not exist when the gate ran.
+
+    That shipped: a sign-off commit was pushed on its own, CI regenerated both documents in a
+    clean clone and failed on both. Running them here means one commit carries the receipts
+    and the documents that quote them, which is also the only state in which the receipt's
+    recorded commit is HEAD's immediate parent rather than two behind.
+    """
+    lines = ["", "documents that quote these receipts:"]
+    for script in DOCUMENTS_THAT_QUOTE_THE_RECEIPTS:
+        path = REPO / "scripts" / script
+        if not path.exists():
+            lines.append(f"  [ -- ] {script}  not present in this checkout")
+            continue
+        finished = subprocess.run(
+            [str(PY), str(path)], capture_output=True, text=True, cwd=str(REPO)
+        )
+        output = (finished.stdout + finished.stderr).strip().splitlines()
+        tail = output[-1][:88] if output else ""
+        mark = "ok  " if finished.returncode == 0 else "FAIL"
+        lines.append(f"  [{mark}] {script}  {tail}")
+    lines.append(
+        "  Commit these with the receipts. A receipt committed alone leaves both stale."
+    )
+    return lines
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Final acceptance, on the release commit.")
     parser.add_argument(
@@ -359,6 +397,10 @@ def main(argv: list[str] | None = None) -> int:
         f"{counts[NOT_CHECKED]} not checked. Verdict: {doc['verdict']}."
     )
     print(f"written to {RECEIPT.relative_to(REPO).as_posix()}")
+
+    for line in refresh_documents_that_quote_the_receipts():
+        print(line)
+
     if not signed:
         print("\nThe receipt names what failed. Repair it and re-run; do not edit the receipt.")
     return 0 if signed else 1
