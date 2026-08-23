@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-23T01:39:16+05:30",
- "commit": "29766d2a166402b3161d6242a406dfda39de12a4",
- "tracked_files": 452,
- "tracked_bytes": 48578875,
- "tracked_megabytes": 46.33,
+ "measured_at_commit_date": "2026-08-23T05:43:47+05:30",
+ "commit": "ed07e1c3b24cf9d877728941fc5f8fc9368e1cdc",
+ "tracked_files": 457,
+ "tracked_bytes": 50665109,
+ "tracked_megabytes": 48.32,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,7 +13,7 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 7.0
+   "megabytes": 7.01
   },
   {
    "path": "presentation/out",
@@ -30,6 +30,10 @@
   {
    "path": "artifacts/DATASET_MANIFEST.json",
    "megabytes": 2.2
+  },
+  {
+   "path": "artifacts/GATE3_POOL_A_RECEIPT.json",
+   "megabytes": 1.97
   },
   {
    "path": "artifacts/GATE3_RECEIPT.json",
@@ -62,16 +66,12 @@
   {
    "path": "artifacts/SPLIT_MANIFEST.json",
    "megabytes": 0.21
-  },
-  {
-   "path": "flows/tracetriage_granite_agent.json",
-   "megabytes": 0.15
   }
  ],
  "by_directory_remainder": {
-  "groups": 218,
-  "bytes": 4078443,
-  "megabytes": 3.89,
+  "groups": 222,
+  "bytes": 4246195,
+  "megabytes": 4.05,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
@@ -86,6 +86,10 @@
   {
    "path": "artifacts/DATASET_MANIFEST.json",
    "megabytes": 2.202
+  },
+  {
+   "path": "artifacts/GATE3_POOL_A_RECEIPT.json",
+   "megabytes": 1.969
   },
   {
    "path": "artifacts/GATE3_RECEIPT.json",
@@ -130,10 +134,6 @@
   {
    "path": "artifacts/a3_overlays/overlay_14746048.png",
    "megabytes": 0.735
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14737118.png",
-   "megabytes": 0.734
   }
  ],
  "proposals": [

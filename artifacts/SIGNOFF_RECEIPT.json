@@ -1,23 +1,23 @@
 {
  "schema": "SIGNOFF_RECEIPT",
  "schema_version": "0.1.0",
- "measured_at_commit": "c5d9e7d6a83e12ecda6149345d1084a6b5f07a00",
- "measured_at_commit_date": "2026-08-22T15:28:29+05:30",
+ "measured_at_commit": "ed07e1c3b24cf9d877728941fc5f8fc9368e1cdc",
+ "measured_at_commit_date": "2026-08-23T05:43:47+05:30",
  "note_on_the_commit": "This receipt is written at the commit named above and then committed, so the commit it lands in is one later. It cannot name that one, and saying so is better than implying it measured itself.",
  "commits_behind_head_when_written": 0,
  "verdict": "SIGNED",
  "counts": {
-  "PASSED": 10,
+  "PASSED": 9,
   "FAILED": 0,
-  "NOT_CHECKED": 0
+  "NOT_CHECKED": 1
  },
  "checks": [
   {
    "check": "standing gates",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\gate.py",
    "status": "PASSED",
-   "detail": "26/26 standing gates pass",
-   "seconds": 256.3,
+   "detail": "27/27 standing gates pass",
+   "seconds": 239.8,
    "why_not_checked": null
   },
   {
@@ -41,15 +41,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run typecheck",
    "status": "PASSED",
    "detail": "> tsc --noEmit",
-   "seconds": 2.8,
+   "seconds": 2.4,
    "why_not_checked": null
   },
   {
    "check": "console tests",
    "command": "C:\\Program Files\\nodejs\\npm.CMD run test",
    "status": "PASSED",
-   "detail": "\u001b[2m   Duration \u001b[22m 1.16s\u001b[2m (transform 937ms, setup 0ms, collect 2.80s, tests 590ms, environment 3ms, prepare 2.94s)\u001b[22m",
-   "seconds": 2.4,
+   "detail": "\u001b[2m   Duration \u001b[22m 1.09s\u001b[2m (transform 779ms, setup 0ms, collect 2.31s, tests 585ms, environment 3ms, prepare 2.59s)\u001b[22m",
+   "seconds": 2.2,
    "why_not_checked": null
   },
   {
@@ -57,15 +57,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run build",
    "status": "PASSED",
    "detail": "34 index.html files emitted to apps/web/out",
-   "seconds": 23.2,
+   "seconds": 20.1,
    "why_not_checked": null
   },
   {
    "check": "release audit re-run at this commit",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\audit_release.py",
    "status": "PASSED",
-   "detail": "0 secret findings, 0 files short of their attribution, 41.92 MB tracked",
-   "seconds": 8.5,
+   "detail": "0 secret findings, 0 files short of their attribution, 48.32 MB tracked",
+   "seconds": 9.2,
    "why_not_checked": null
   },
   {
@@ -87,10 +87,10 @@
   {
    "check": "deployed console responds",
    "command": null,
-   "status": "PASSED",
-   "detail": "HTTP 200, 405,066 bytes from https://tracetriage.vercel.app",
-   "seconds": 1.5,
-   "why_not_checked": null
+   "status": "NOT_CHECKED",
+   "detail": "",
+   "seconds": null,
+   "why_not_checked": "needs the network, and every other check in this run is offline. Re-run with --check-live from a networked machine before submitting."
   }
  ],
  "what_a_not_checked_row_means": "The check could not run in this environment and its row says why. It is neither a pass nor a failure: folding it into either would misreport the run."
