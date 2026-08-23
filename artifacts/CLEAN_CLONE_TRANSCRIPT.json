@@ -1,10 +1,10 @@
 {
  "schema": "CLEAN_CLONE_TRANSCRIPT",
  "schema_version": "0.1.0",
- "run_at_utc": "2026-08-23T19:42:21Z",
+ "run_at_utc": "2026-08-23T20:06:49Z",
  "source_repo": "D:\\IBM August Challenge\\tracetriage-august-2026",
- "clone": "D:\\dev-cache\\cleanclone12\\tracetriage",
- "source_commit": "50c198e6287dda20232bdf885a3ed044346c65c0",
+ "clone": "D:\\dev-cache\\cleanclone13\\tracetriage",
+ "source_commit": "753faca546707c058a73c68283694a35f1be5442",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",
   "python": "3.12.13"
@@ -27,7 +27,7 @@
     "from_env": null,
     "why": "the directory --offline resolves wheels from. It is recorded as a path because the variable name alone does not say which cache a run used, and two caches on this machine hold different wheel sets."
    },
-   "interpreter": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe",
+   "interpreter": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe",
    "python_version": "3.12.13"
   }
  ],
@@ -90,8 +90,8 @@
    "artifact": "apps/web/public/data/provenance.json",
    "command": "scripts/build_console_data.py --skip-images",
    "exit_code": 0,
-   "sha256_committed": "f7465cd4149d63d1893a76cd60de5941d36df4bea4ba99b76bc994cb55667c80",
-   "sha256_rebuilt": "f7465cd4149d63d1893a76cd60de5941d36df4bea4ba99b76bc994cb55667c80",
+   "sha256_committed": "380a0b1f47121513b367a4275f457b0ae767d83256d98fb6cb3a2a2035c756b5",
+   "sha256_rebuilt": "380a0b1f47121513b367a4275f457b0ae767d83256d98fb6cb3a2a2035c756b5",
    "identical": true
   }
  ],
@@ -99,19 +99,19 @@
  "steps": [
   {
    "step": "git clone (local, --no-hardlinks)",
-   "command": "git clone --no-hardlinks D:\\IBM August Challenge\\tracetriage-august-2026 D:\\dev-cache\\cleanclone12\\tracetriage",
+   "command": "git clone --no-hardlinks D:\\IBM August Challenge\\tracetriage-august-2026 D:\\dev-cache\\cleanclone13\\tracetriage",
    "exit_code": 0,
    "seconds": 3.0,
    "needs_outside_the_repo": "the source clone. A judge would fetch from GitHub, which needs the network.",
    "output_tail": [
-    "Cloning into 'D:\\dev-cache\\cleanclone12\\tracetriage'...",
+    "Cloning into 'D:\\dev-cache\\cleanclone13\\tracetriage'...",
     "done."
    ],
    "offline_violation": false
   },
   {
    "step": "uv venv (an interpreter inside the clone)",
-   "command": "C:\\Users\\Kesav\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.EXE venv --python D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\dev-cache\\cleanclone12\\tracetriage\\.venv",
+   "command": "C:\\Users\\Kesav\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.EXE venv --python D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\dev-cache\\cleanclone13\\tracetriage\\.venv",
    "exit_code": 0,
    "seconds": 0.1,
    "needs_outside_the_repo": "the source interpreter, copied. uv venv does not reach the network.",
@@ -124,16 +124,16 @@
   },
   {
    "step": "uv pip install --offline -e .[full,dev,onnx] into the clone's environment",
-   "command": "C:\\Users\\Kesav\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.EXE pip install --python D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe --offline -e .[full,dev,onnx]",
+   "command": "C:\\Users\\Kesav\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.EXE pip install --python D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe --offline -e .[full,dev,onnx]",
    "exit_code": 0,
-   "seconds": 25.6,
+   "seconds": 36.6,
    "needs_outside_the_repo": "a warm uv cache. --offline resolves from it and never reaches the index, so this measures whether the pinned set can be rebuilt without the network, not whether it can be resolved from scratch.",
    "output_tail": [
     " + threadpoolctl==3.6.0",
     " + tifffile==2026.8.16",
     " + torch==2.13.0",
     " + torchvision==0.28.0",
-    " + tracetriage==0.1.0 (from file:///D:/dev-cache/cleanclone12/tracetriage)",
+    " + tracetriage==0.1.0 (from file:///D:/dev-cache/cleanclone13/tracetriage)",
     " + typing-extensions==4.16.0"
    ],
    "offline_violation": false
@@ -142,7 +142,7 @@
    "step": "npm ci --offline into the clone (from npm's own cache)",
    "command": "C:\\Program Files\\nodejs\\npm.CMD ci --offline --no-audit --no-fund",
    "exit_code": 0,
-   "seconds": 19.1,
+   "seconds": 16.6,
    "needs_outside_the_repo": "a warm npm cache. --offline builds the tree from the cached tarballs and never reaches the registry, so this measures whether the lockfile can be rebuilt without the network, not whether it can be fetched from scratch.",
    "output_tail": [
     "npm warn EBADENGINE Unsupported engine {",
@@ -156,21 +156,21 @@
   },
   {
    "step": "offline test suite, snapshot present",
-   "command": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
+   "command": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
    "exit_code": 1,
-   "seconds": 225.1,
+   "seconds": 212.3,
    "needs_outside_the_repo": null,
    "output_tail": [
-    "E        +  where 1 = CompletedProcess(args=['D:\\\\dev-cache\\\\cleanclone12\\\\tracetriage\\\\.venv\\\\Scripts\\\\python.exe', 'D:\\\\dev-cache\\\\cleancl...                 'reproducibility.'}\\n        \\n        On instance['model_checksum']:\\n            None\\n\", stderr='').returncode",
-    "tests\\test_freshness_outcomes.py:185: AssertionError",
+    "E        +  where 1 = CompletedProcess(args=['D:\\\\dev-cache\\\\cleanclone13\\\\tracetriage\\\\.venv\\\\Scripts\\\\python.exe', 'D:\\\\dev-cache\\\\cleancl...ch [SKIP] line above names what it needs.\\nat least one artifact is stale, and the lines above say which\\n\", stderr='').returncode",
+    "tests\\test_freshness_outcomes.py:210: AssertionError",
     "=========================== short test summary info ===========================",
     "FAILED tests/test_freshness_outcomes.py::test_a_missing_snapshot_skips_and_costs_nothing",
     "FAILED tests/test_freshness_outcomes.py::test_a_skipped_builder_does_not_make_the_run_evidence_of_nothing",
-    "2 failed, 1761 passed, 9 skipped, 14 deselected in 221.67s (0:03:41)"
+    "2 failed, 1761 passed, 9 skipped, 14 deselected in 208.78s (0:03:28)"
    ],
    "offline_violation": false,
    "counts": {
-    "summary_line": "2 failed, 1761 passed, 9 skipped, 14 deselected in 221.67s (0:03:41)",
+    "summary_line": "2 failed, 1761 passed, 9 skipped, 14 deselected in 208.78s (0:03:28)",
     "passed": 1761,
     "skipped": 9,
     "failed": 2,
@@ -179,21 +179,21 @@
   },
   {
    "step": "offline test suite, snapshot HIDDEN",
-   "command": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
+   "command": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe -m pytest -m not network and not ocr and not llm",
    "exit_code": 1,
-   "seconds": 183.6,
+   "seconds": 173.3,
    "needs_outside_the_repo": "the interpreter named in prerequisites_not_in_the_repository. This is a judge's case for the snapshot and not necessarily for the environment, and the earlier wording claimed nothing at all was needed while the command it recorded beside it named an interpreter that may sit outside the clone.",
    "output_tail": [
-    "E        +  where 1 = CompletedProcess(args=['D:\\\\dev-cache\\\\cleanclone12\\\\tracetriage\\\\.venv\\\\Scripts\\\\python.exe', 'D:\\\\dev-cache\\\\cleancl...n        FileNotFoundError: Manifest not found: D:\\\\tracetriage_data\\\\snap-stage1\\\\DATASET_MANIFEST.json\\n', stderr='').returncode",
-    "tests\\test_freshness_outcomes.py:185: AssertionError",
+    "E        +  where 1 = CompletedProcess(args=['D:\\\\dev-cache\\\\cleanclone13\\\\tracetriage\\\\.venv\\\\Scripts\\\\python.exe', 'D:\\\\dev-cache\\\\cleancl...ch [SKIP] line above names what it needs.\\nat least one artifact is stale, and the lines above say which\\n\", stderr='').returncode",
+    "tests\\test_freshness_outcomes.py:210: AssertionError",
     "=========================== short test summary info ===========================",
     "FAILED tests/test_freshness_outcomes.py::test_a_missing_snapshot_skips_and_costs_nothing",
     "FAILED tests/test_freshness_outcomes.py::test_a_skipped_builder_does_not_make_the_run_evidence_of_nothing",
-    "2 failed, 1730 passed, 40 skipped, 14 deselected in 182.53s (0:03:02)"
+    "2 failed, 1730 passed, 40 skipped, 14 deselected in 172.22s (0:02:52)"
    ],
    "offline_violation": false,
    "counts": {
-    "summary_line": "2 failed, 1730 passed, 40 skipped, 14 deselected in 182.53s (0:03:02)",
+    "summary_line": "2 failed, 1730 passed, 40 skipped, 14 deselected in 172.22s (0:02:52)",
     "passed": 1730,
     "skipped": 40,
     "failed": 2,
@@ -202,7 +202,7 @@
   },
   {
    "step": "lint (ruff check .)",
-   "command": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe -m ruff check .",
+   "command": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe -m ruff check .",
    "exit_code": 0,
    "seconds": 1.0,
    "needs_outside_the_repo": null,
@@ -213,9 +213,9 @@
   },
   {
    "step": "sync_kill_gate.py --check (generated document drift)",
-   "command": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe scripts/sync_kill_gate.py --check",
+   "command": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe scripts/sync_kill_gate.py --check",
    "exit_code": 0,
-   "seconds": 0.2,
+   "seconds": 0.1,
    "needs_outside_the_repo": null,
    "output_tail": [
     "KILL_GATE.md is in sync with the receipts"
@@ -224,9 +224,9 @@
   },
   {
    "step": "sync_readme_results.py --check (generated table drift)",
-   "command": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe scripts/sync_readme_results.py --check",
+   "command": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe scripts/sync_readme_results.py --check",
    "exit_code": 0,
-   "seconds": 0.4,
+   "seconds": 0.3,
    "needs_outside_the_repo": null,
    "output_tail": [
     "README results are current: 14 measured rows and 6 gate rows"
@@ -235,7 +235,7 @@
   },
   {
    "step": "check_contrast.py",
-   "command": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe scripts/check_contrast.py",
+   "command": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe scripts/check_contrast.py",
    "exit_code": 0,
    "seconds": 0.1,
    "needs_outside_the_repo": null,
@@ -246,7 +246,7 @@
   },
   {
    "step": "regenerate README.md",
-   "command": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe scripts/sync_readme_results.py",
+   "command": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe scripts/sync_readme_results.py",
    "exit_code": 0,
    "seconds": 0.3,
    "needs_outside_the_repo": null,
@@ -260,9 +260,9 @@
   },
   {
    "step": "regenerate docs/KILL_GATE.md",
-   "command": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe scripts/sync_kill_gate.py",
+   "command": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe scripts/sync_kill_gate.py",
    "exit_code": 0,
-   "seconds": 0.2,
+   "seconds": 0.1,
    "needs_outside_the_repo": null,
    "output_tail": [
     "KILL_GATE.md already in sync; nothing written"
@@ -271,9 +271,9 @@
   },
   {
    "step": "regenerate apps/web/public/data/provenance.json",
-   "command": "D:\\dev-cache\\cleanclone12\\tracetriage\\.venv\\Scripts\\python.exe scripts/build_console_data.py --skip-images",
+   "command": "D:\\dev-cache\\cleanclone13\\tracetriage\\.venv\\Scripts\\python.exe scripts/build_console_data.py --skip-images",
    "exit_code": 0,
-   "seconds": 0.4,
+   "seconds": 0.3,
    "needs_outside_the_repo": null,
    "output_tail": [
     "skipping imagery and cards.json (it needs the waterfall PNGs)"
@@ -284,7 +284,7 @@
    "step": "npx tsc --noEmit",
    "command": "C:\\Program Files\\nodejs\\npx.CMD tsc --noEmit",
    "exit_code": 0,
-   "seconds": 9.4,
+   "seconds": 6.2,
    "needs_outside_the_repo": null,
    "output_tail": [],
    "offline_violation": false
@@ -293,15 +293,15 @@
    "step": "npx vitest run",
    "command": "C:\\Program Files\\nodejs\\npx.CMD vitest run",
    "exit_code": 0,
-   "seconds": 6.8,
+   "seconds": 5.8,
    "needs_outside_the_repo": null,
    "output_tail": [
-    " \u00e2\u0153\u201c tests/grounding.test.ts (70 tests) 340ms",
-    " \u00e2\u0153\u201c tests/plot-helpers.test.ts (25 tests) 23ms",
+    " \u00e2\u0153\u201c tests/field-encoding.test.ts (8 tests) 70ms",
+    " \u00e2\u0153\u201c tests/plot-helpers.test.ts (25 tests) 25ms",
     " Test Files  13 passed (13)",
     "      Tests  221 passed (221)",
-    "   Start at  01:11:24",
-    "   Duration  2.07s (transform 1.73s, setup 0ms, collect 4.22s, tests 746ms, environment 4ms, prepare 10.62s)"
+    "   Start at  01:36:02",
+    "   Duration  1.93s (transform 1.94s, setup 0ms, collect 4.19s, tests 710ms, environment 6ms, prepare 10.10s)"
    ],
    "offline_violation": false
   },
@@ -309,7 +309,7 @@
    "step": "npx next build",
    "command": "C:\\Program Files\\nodejs\\npx.CMD next build",
    "exit_code": 0,
-   "seconds": 54.2,
+   "seconds": 45.0,
    "needs_outside_the_repo": null,
    "output_tail": [
     "+ First Load JS shared by all             103 kB",
@@ -324,14 +324,14 @@
  ],
  "suite_with_and_without_the_snapshot": {
   "with": {
-   "summary_line": "2 failed, 1761 passed, 9 skipped, 14 deselected in 221.67s (0:03:41)",
+   "summary_line": "2 failed, 1761 passed, 9 skipped, 14 deselected in 208.78s (0:03:28)",
    "passed": 1761,
    "skipped": 9,
    "failed": 2,
    "deselected": 14
   },
   "without": {
-   "summary_line": "2 failed, 1730 passed, 40 skipped, 14 deselected in 182.53s (0:03:02)",
+   "summary_line": "2 failed, 1730 passed, 40 skipped, 14 deselected in 172.22s (0:02:52)",
    "passed": 1730,
    "skipped": 40,
    "failed": 2,

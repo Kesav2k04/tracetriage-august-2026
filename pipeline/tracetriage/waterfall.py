@@ -158,7 +158,15 @@ _COLORBAR_MIN_RUN_PX = 5
 _CONF_OCR_CLEAN = 0.95   # labels read cleanly with OCR
 _CONF_OCR_NOISY = 0.75   # OCR read but partial / corrected
 
-# EasyOCR model directory: prefer env var, then the project-local cache.
+# Where EasyOCR reads its weights. The comment here said "then the project-local cache",
+# which the fallback is not: it is one machine's drive letter, and on any other environment
+# it resolves to nothing. That is survivable where the pages-directory default was not,
+# because OCR is an optional extra, `download_enabled=False` below means a wrong directory
+# raises the named NO_OCR_BACKEND rather than silently downloading, and every consumer
+# treats that as a third outcome instead of a failure. Left as it is rather than switched to
+# None: on this machine the weights are at the path below and nothing else points at them,
+# so changing the default would disable OCR here to tidy a string. Any other environment
+# sets EASYOCR_MODULE_PATH, which is easyocr's own variable.
 _EASYOCR_MODEL_DIR: str | None = os.environ.get(
     "EASYOCR_MODULE_PATH",
     "D:/cache/easyocr/model",

@@ -147,11 +147,13 @@ def test_naming_the_variable_alone_does_not_buy_a_skip(checker):
 
 #: What a skip is allowed to be waiting for, and nothing else. A `[SKIP]` line has to name
 #: the thing that would let the builder run, or a reader cannot act on it and cannot tell a
-#: designed refusal from a swallowed error. Two entries, because there are two absent inputs
-#: the repository deliberately does not carry: the 20 GB snapshot, addressed by the variable,
-#: and the trained model, which `artifacts/**/*` excludes. Adding a third is a deliberate
-#: act: it means a new class of input is missing from a clone, and that is worth arguing
-#: about rather than absorbing.
+#: designed refusal from a swallowed error. Three entries, one per input a clone legitimately
+#: lacks: the 20 GB snapshot, addressed by the variable; the trained model, which
+#: `artifacts/**/*` excludes; and the OCR backend, which the offline replay leaves out of its
+#: install because easyocr pulls torch. Every one of the three was found by a clean clone
+#: reporting it as a stale artifact. A fourth entry is a deliberate act rather than a
+#: formality: it means a new class of input is missing from a clone, and the question to ask
+#: first is whether the repository should be publishing it.
 #:
 #: The model-absent branch is not exercised from here, and that is stated rather than left
 #: to be discovered. This machine has the pickle, and the only ways to hide it from a
@@ -160,7 +162,11 @@ def test_naming_the_variable_alone_does_not_buy_a_skip(checker):
 #: for the test. Both cost more than they buy: the run that finds a regression here is
 #: `scripts/clean_clone_check.py`, which builds an environment that genuinely lacks the file,
 #: and `artifacts/CLEAN_CLONE_TRANSCRIPT.json` carries its output. It found this defect.
-_WHAT_A_SKIP_MAY_BE_WAITING_FOR = ("TRACETRIAGE_PAGES_DIR", "artifacts/hoglr_model.pkl")
+_WHAT_A_SKIP_MAY_BE_WAITING_FOR = (
+    "TRACETRIAGE_PAGES_DIR",
+    "artifacts/hoglr_model.pkl",
+    "OCR backend",
+)
 
 
 @_NEEDS_VENV
@@ -223,7 +229,7 @@ def test_a_skipped_builder_does_not_make_the_run_evidence_of_nothing():
 
 
 @_NEEDS_VENV
-def test_a_real_crash_still_fails(tmp_path):
+def test_a_real_crash_still_fails(checker, tmp_path):
     """A configured path with no pages in it is a builder crash, and it must still fail.
 
     This is the half of the fix that can quietly undo the check. The variable is set, so
@@ -234,8 +240,17 @@ def test_a_real_crash_still_fails(tmp_path):
     row, which held only while that builder ran first. A satellite-name exporter was added
     ahead of it, so with a bad path the exporter failed first, the split builder never ran,
     and this test failed while the behaviour it guards was correct. What matters is that a
-    configured-but-wrong path produces a failing row and no skip, whichever builder gets
-    there first, so that is what is checked.
+    configured-but-wrong path produces a failing row, whichever builder gets there first,
+    so that is what is checked.
+
+    It also required no `[SKIP]` anywhere in the run, and that was too strong. It held only
+    while the snapshot was the one thing a builder could be missing. An environment without
+    the OCR extra skips the hero-nulls exporter for a reason that has nothing to do with the
+    path under test, so a clean clone failed this test on correct behaviour. What the bad
+    path must not do is earn a skip *of its own*: a skip naming the variable would mean the
+    checker read "set to a directory with nothing in it" as "not set at all", which is the
+    defect this test exists for. So the run must produce a failing row and no skip that
+    names the variable.
     """
     finished = _run(str(tmp_path))
     out = (finished.stdout or "") + (finished.stderr or "")
@@ -249,7 +264,15 @@ def test_a_real_crash_still_fails(tmp_path):
         "a configured path with no pages in it produced no crashing builder, so either "
         f"every builder now tolerates an empty snapshot or the row text changed: {out}"
     )
-    assert "[SKIP]" not in out, out
+    misread_as_unset = [
+        line
+        for line in out.splitlines()
+        if line.startswith(checker.SKIP_PREFIX) and "TRACETRIAGE_PAGES_DIR" in line
+    ]
+    assert not misread_as_unset, (
+        "the variable is set, to a directory with no pages in it, and a builder skipped "
+        f"saying the variable is not set: {misread_as_unset}"
+    )
 
 
 def test_the_gate_looks_for_the_string_the_checker_prints(checker):

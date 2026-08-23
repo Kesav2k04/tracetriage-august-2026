@@ -91,6 +91,12 @@ _CHECKED_BY_ANOTHER_BUILDER = {
 #: silently reporting every unconfigured checkout as a stale artifact again.
 _NOT_CONFIGURED_MARKER = SplitsPathNotConfigured.__name__
 
+#: The degraded state `pipeline/tracetriage/waterfall.py` raises when there is no OCR
+#: backend to read a waterfall's axis labels with. A code rather than a message, which is
+#: what makes it safe to key a decision off: it is raised in exactly one situation and it
+#: exists to be read.
+_OCR_REFUSAL = "NO_OCR_BACKEND"
+
 
 def _builder_outcome(returncode: int, output: str) -> str:
     """Which of the three things happened to a builder this script spawned.
@@ -150,6 +156,31 @@ def _report_crash(subject: str, proc: subprocess.CompletedProcess) -> int:
         )
         if tail:
             print(f"        {tail[-1]}")
+        return 0
+    if _OCR_REFUSAL in output:
+        # The third absent input, and the one the offline replay creates on purpose.
+        # `scripts/clean_clone_check.py` installs `.[full,dev,onnx]` and not `.[ocr]`,
+        # because easyocr pulls torch, torchvision, opencv and scikit-image, and pyproject
+        # marks the tests that need it as excluded from the offline gate. So a clean clone
+        # has no OCR backend by design, `pipeline/tracetriage/waterfall.py` raises the named
+        # degraded state rather than guessing at an axis, and the hero-nulls exporter cannot
+        # start. That is the environment, not a stale artifact, and this row printed [FAIL]
+        # for it on every clean clone.
+        #
+        # Matched on the code rather than on a traceback. NO_OCR_BACKEND is a defined
+        # degraded state that exists to be read by something, and
+        # `tests/test_console_export.py` already keys the same third outcome off the same
+        # string for the same reason.
+        print(
+            f"{SKIP_PREFIX} {subject} needs an OCR backend, and this environment has none: "
+            f"{_OCR_REFUSAL}."
+        )
+        print(
+            "        Nothing it owns was compared and nothing it owns is known to be "
+            "stale. The offline replay installs .[full,dev,onnx] and leaves .[ocr] out on "
+            "purpose, because easyocr pulls torch."
+        )
+        print("          pip install -e .[ocr]   (then the weights it reads)")
         return 0
     print(f"[FAIL] {subject} does not run:")
     for line in tail[-6:]:
