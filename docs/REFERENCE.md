@@ -48,7 +48,7 @@ file that no longer exists in that form.
 | `LIVE_SHELF_RECEIPT.json` | LIVE_SHELF_RECEIPT | 1 | none | 2,653 | `26c7c431441925aa` | `scripts/build_live_shelf.py` | `test_live_shelf.py` |
 | `MOTION_AA_CONTROL.json` | tracetriage/motion-perf | 0.1.0 | none | 11,217 | `144edd40ad9380f9` | `scripts/measure_motion_perf.py` | **none** |
 | `MOTION_RECEIPT.json` | tracetriage/motion-perf | 0.1.0 | none | 13,006 | `7848414e2567859d` | `scripts/measure_motion_perf.py` | **none** |
-| `NARRATION_RECEIPT.json` | none declared | n/a | none | 14,193 | `acc0152060adf626` | `scripts/render_narration.py` | **none** |
+| `NARRATION_RECEIPT.json` | none declared | n/a | none | 14,193 | `acc0152060adf626` | `scripts/render_narration.py` | `test_receipt_digests.py` |
 | `OPERATOR_SESSION.json` | tracetriage/operator-session | 0.1.0 | none | 6,829 | `69564bde019b6783` | `scripts/run_operator_session.py` | `test_operator_session.py` |
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 63,045 | `6dc5302b24363528` | `pipeline/tracetriage/physics.py`, `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
 | `PRECEDENT_RECEIPT.json` | PRECEDENT_RECEIPT | 1 | none | 9,314 | `933ddb930cc60c23` | `scripts/build_console_data.py`, `scripts/check_receipt_digests.py`, `scripts/run_precedent_study.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_console_export.py`, `test_precedent.py`, `test_receipt_digests.py` |
@@ -67,7 +67,7 @@ Files under `artifacts/` that are logs, caches or rendered output rather than re
 
 Receipts no module in this repository names, which means nothing here rebuilds them: none.
 
-Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MOTION_RECEIPT.json`, `NARRATION_RECEIPT.json`, `THROUGHPUT_RECEIPT.json`.
+Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MOTION_RECEIPT.json`, `THROUGHPUT_RECEIPT.json`.
 
 ## Contracts
 

@@ -171,6 +171,17 @@ def test_every_sha256_field_that_names_a_file_is_either_audited_or_explained():
             "a downloaded waterfall, not a tracked file"
         ),
         ("CIRCULARITY_RECEIPT.json", "queue_receipt_sha256"): "an alias handled by source.sha256",
+        # The Kokoro weights that spoke the narration: 354 MB across two files, fetched
+        # from a release and deliberately not committed. Digested rather than merely named
+        # because the voice is a measurement input, so a reader who wants to know which
+        # weights produced the audio in the mp4 can check that they hold the same two
+        # files. The wavs those weights produced are tracked and are audited above.
+        ("NARRATION_RECEIPT.json", "renderer.model_sha256.kokoro-v1.0.onnx"): (
+            "a released model file this repository does not publish"
+        ),
+        ("NARRATION_RECEIPT.json", "renderer.model_sha256.voices-v1.0.bin"): (
+            "a released voice pack this repository does not publish"
+        ),
     }
     # The four split partitions, each a digest over that split's test-set observation ids
     # rather than over a file. scripts/build_splits.py calls them "what prove the partitions

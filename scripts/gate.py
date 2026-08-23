@@ -351,6 +351,26 @@ def main() -> int:
                 check(label, rc == 0, "" if rc == 0 else (lines[-1] if lines else "")[:70])
             )
 
+    # The narration track. `--check` re-reads the committed receipt, re-digests every wav
+    # it names and re-measures each one against its beat's frame budget, so it needs
+    # neither the 354 MB of speech weights nor a network. That is what makes it a standing
+    # gate rather than a step in the render.
+    #
+    # The check it adds that nothing else has: `check_receipt_digests.py` skips per-row
+    # digests inside a list, on the reasoning that a row digest is data rather than a claim
+    # about a tracked file. For eight of these rows that reasoning is wrong, because the
+    # wavs are committed, so without this the receipt could name audio the repository does
+    # not hold and every other gate would stay green.
+    rc, out = run([str(PY), str(REPO / "scripts" / "render_narration.py"), "--check"])
+    lines = [line for line in out.strip().splitlines() if line.strip()]
+    results.append(
+        check(
+            "narration audio matches its receipt",
+            rc == 0,
+            (lines[-1] if lines else "")[:70],
+        )
+    )
+
     # Artifact freshness. Every other check here can pass while a committed artifact
     # disagrees with the code that produced it, which is exactly what happened in D0:
     # LEAKAGE_AUDIT.json kept a PASS the builder could no longer emit, and a test was
