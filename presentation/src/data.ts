@@ -20,6 +20,7 @@ import attributionJson from "../../artifacts/ATTRIBUTION_AUDIT.json";
 import agentJson from "../../artifacts/AGENT_RECEIPT.json";
 import explainJson from "../../artifacts/EXPLAIN_RECEIPT.json";
 import circularityJson from "../../artifacts/CIRCULARITY_RECEIPT.json";
+import narrationJson from "../../artifacts/NARRATION_RECEIPT.json";
 
 import {
   Claim,
@@ -44,6 +45,7 @@ export const FILE = {
   agent: "artifacts/AGENT_RECEIPT.json",
   explain: "artifacts/EXPLAIN_RECEIPT.json",
   circularity: "artifacts/CIRCULARITY_RECEIPT.json",
+  narration: "artifacts/NARRATION_RECEIPT.json",
 } as const;
 
 const manifest = manifestJson as unknown;
@@ -52,6 +54,7 @@ const gate3 = gate3Json as unknown;
 const provenance = provenanceJson as unknown;
 const cards = cardsJson as unknown;
 const attribution = attributionJson as unknown;
+const narration = narrationJson as unknown;
 const agent = agentJson as unknown;
 const explain = explainJson as unknown;
 const circularity = circularityJson as unknown;
@@ -74,6 +77,8 @@ const ex = <T,>(path: string, format: (v: T) => string) =>
   read<T>(explain, FILE.explain, path, format);
 const ci = <T,>(path: string, format: (v: T) => string) =>
   read<T>(circularity, FILE.circularity, path, format);
+const na = <T,>(path: string, format: (v: T) => string) =>
+  read<T>(narration, FILE.narration, path, format);
 
 // ---------------------------------------------------------------------------
 // Beat 1. The corpus, and how much of it carries a human verdict.
@@ -559,6 +564,14 @@ export const colophon = {
   modification: at<string>(`${ROW}.modification_notice`, identity),
   station: at<number>(`${ROW}.ground_station`, identifier),
   obligationsSource: at<string>("obligations_source", identity),
+  // The voice, from the narration receipt rather than typed into the card. A film with a
+  // synthetic narrator that does not say so is asking a viewer to notice and wonder, and
+  // this project's whole argument is that a published fact names the file it came from.
+  // The three fields are the model, its licence, and what the transcription check found,
+  // so the disclosure carries its own evidence instead of a reassurance.
+  voiceModel: na<string>("renderer.model", identity),
+  voiceLicence: na<string>("renderer.licence", identity),
+  figuresHeard: na<number>("totals.figures_checked", identifier),
 } as const;
 
 /** Everything above, flattened, for the test to walk. */

@@ -24,7 +24,14 @@ Three things happen here, in this order.
    a spoken one by measuring the sound rather than the script.
 
 The receipt records the voice, the speed, the model digests, every duration and every
-figure check, so a reader can say which weights produced the audio in the mp4.
+figure check, so a reader can say which weights produced the audio in the mp4. It also
+records the versions of the four packages that decide how long a line takes to speak,
+because the weights are not the whole toolchain and assuming they were cost a day: the
+Physics line went from 17.5 seconds of speech to 25.2 across a dependency bump inside a
+compatible version range, same text, same voice, same speed. Every digest still matched,
+because both sides of that comparison were the committed files. So `--check` now speaks
+the longest line again and compares the bytes, which is the only question that catches a
+pipeline that no longer reproduces its own output.
 
 Both dependencies are optional and neither is needed to run the gate or build the
 console:
@@ -54,6 +61,7 @@ import os
 import re
 import shutil
 import sys
+import tempfile
 import wave
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -70,7 +78,15 @@ RECEIPT = REPO / "artifacts" / "NARRATION_RECEIPT.json"
 
 #: The voice, fixed. Kokoro is deterministic at a given voice and speed, so naming it
 #: here rather than passing it per run is what makes the audio reproducible.
-VOICE = "am_fenrir"
+#:
+#: Chosen by `scripts/cast_narration_voice.py`, not by ear. All thirteen male voices in
+#: these weights read the whole script and were ranked on figures heard, then lines
+#: overrunning their card, then word error rate, by a rule fixed before the run. Nine
+#: carried all 26 figures and four lost four each. Three of the nine overran no card, and
+#: this one had the lowest error rate of those three. `artifacts/VOICE_CASTING.json` holds
+#: the table with the losers in it. What that measurement does not cover is timbre, and
+#: nothing here pretends otherwise.
+VOICE = "am_eric"
 
 #: Slightly under one so the numbers land. At 1.0 the model runs the digits of a
 #: grouped figure together often enough that the transcription check catches it.
@@ -116,6 +132,28 @@ def sha256_of(path: Path) -> str:
 def wav_seconds(path: Path) -> float:
     with wave.open(str(path), "rb") as handle:
         return handle.getnframes() / float(handle.getframerate())
+
+
+#: The packages whose versions change how long a line takes to speak. kokoro-onnx does the
+#: chunking, espeakng-loader the phonemisation, onnxruntime the inference. soundfile only
+#: writes the container and is here because it decides the header the digest covers.
+_TIMING_PACKAGES = ("kokoro-onnx", "espeakng-loader", "onnxruntime", "soundfile")
+
+
+def _toolchain() -> dict[str, str]:
+    """What is installed, by name, for the packages that decide the audio's timing."""
+    import importlib.metadata as metadata  # noqa: PLC0415
+
+    found = {}
+    for name in _TIMING_PACKAGES:
+        try:
+            found[name] = metadata.version(name)
+        except metadata.PackageNotFoundError:
+            # Absent is a fact about this environment, and recording it as absent is more
+            # use than omitting the key: a receipt with no espeakng-loader row was made
+            # somewhere that phonemised differently.
+            found[name] = "absent"
+    return found
 
 
 def resolve_model_dir(explicit: str | None) -> Path:
@@ -410,12 +448,26 @@ def main() -> int:
                     "model": "kokoro-82M v1.0 (ONNX)",
                     "licence": "Apache-2.0",
                     "voice": VOICE,
+                    "voice_chosen_by": (
+                        "measurement, not preference. Every male voice in these weights "
+                        "read the whole script and was ranked by figures heard, then by "
+                        "lines overrunning their card, then by word error rate. "
+                        "artifacts/VOICE_CASTING.json holds the table, losers included."
+                    ),
                     "speed": SPEED,
                     "sample_rate_hz": SAMPLE_RATE,
                     "runs_offline": True,
                     "model_sha256": {
                         name: sha256_of(model_dir / name) for name in MODEL_FILES
                     },
+                    # The two weight files are not the whole toolchain, and assuming they
+                    # were cost a day. How long a line takes to speak depends on how
+                    # kokoro-onnx chunks it and how espeakng-loader phonemises it, so the
+                    # same text, voice and speed re-timed by eight seconds across a version
+                    # bump inside a compatible range. Recorded so the next disagreement
+                    # between this receipt and a fresh render is diagnosable rather than
+                    # mysterious.
+                    "toolchain": _toolchain(),
                 },
                 "verifier": {
                     "model": "faster-whisper small.en, int8, CPU",
@@ -506,12 +558,70 @@ def check(cues: list[dict[str, Any]]) -> int:
         if measured > cue["budgetSeconds"]:
             print(f"{cue['beat']}: {measured}s overruns its {cue['budgetSeconds']}s card")
             failures += 1
-    print(
-        f"{len(cues)} beats checked, {failures} failure(s)."
-        if failures
-        else f"{len(cues)} beats checked, all fit and all digests match."
-    )
+    reproduced, why = _reproduces_longest(cues, receipt)
+    if reproduced is False:
+        failures += 1
+    if failures:
+        print(f"{len(cues)} beats, {failures} failure(s). {why}")
+    else:
+        print(f"{len(cues)} beats fit, digests match. {why}")
     return 1 if failures else 0
+
+
+def _reproduces_longest(
+    cues: list[dict[str, Any]], receipt: dict[str, Any]
+) -> tuple[bool | None, str]:
+    """Speak the longest line again and compare the bytes. Three outcomes, not two.
+
+    Everything above compares the committed audio to the committed receipt, which cannot
+    tell the difference between an intact pipeline and one that no longer produces its own
+    output. It could not: the same text, voice and speed re-timed the Physics line from
+    17.5 seconds of speech to 25.2 across a dependency bump, and every digest here still
+    matched because both sides of the comparison were the old files.
+
+    The longest line is the subject rather than a random one, and the reason is not that it
+    is the one that drifted. Kokoro chunks a line that exceeds its context, so the longest
+    line is the one nearest that edge, and an edge is where a re-timing shows up first.
+
+    Returns True when the bytes match, False when they differ, and None when there was
+    nothing to ask: no weights on this machine, or no kokoro-onnx installed. None is not a
+    pass, and the caller prints which of the three it was.
+    """
+    try:
+        model_dir = resolve_model_dir(None)
+    except SystemExit:
+        return None, "No weights here, so no re-render."
+    try:
+        import soundfile  # noqa: PLC0415
+        from kokoro_onnx import Kokoro  # noqa: PLC0415
+    except ImportError:
+        return None, "No kokoro-onnx here, so no re-render."
+
+    longest = max(cues, key=lambda cue: len(cue["text"]))
+    row = next(r for r in receipt["beats"] if r["beat"] == longest["beat"])
+    kokoro = Kokoro(
+        str(model_dir / "kokoro-v1.0.onnx"), str(model_dir / "voices-v1.0.bin")
+    )
+    samples, rate = kokoro.create(
+        longest["text"], voice=VOICE, speed=SPEED, lang="en-us"
+    )
+    with tempfile.TemporaryDirectory() as scratch:
+        fresh = Path(scratch) / "fresh.wav"
+        soundfile.write(str(fresh), samples, rate)
+        digest = sha256_of(fresh)
+        seconds = round(wav_seconds(fresh), 3)
+    if digest == row["sha256"]:
+        return True, f"{longest['beat']} re-renders to the same bytes."
+    print(
+        f"{longest['beat']}: re-rendering it here does not reproduce the committed audio. "
+        f"committed {row['seconds']}s / {row['sha256'][:16]}, "
+        f"fresh {seconds}s / {digest[:16]}.\n"
+        f"  The receipt was made with {receipt['renderer'].get('toolchain')} and this "
+        f"environment has {_toolchain()}.\n"
+        "  If those differ, pin them back or re-render and re-verify the whole track: the "
+        "durations are published and a card can start overrunning without a word changing."
+    )
+    return False, f"{longest['beat']} no longer re-renders to its bytes."
 
 
 if __name__ == "__main__":

@@ -75,7 +75,7 @@ instead of leaving a stale figure inside an mp4.
 
 <!-- claim-table:start -->
 
-The film holds 137 claims. 26 of them are read and never drawn: they are there because the test uses them for cross-checks, such as the receipts' own sentences in `lift.statement` and `gate3Result.question`, `physics.dopplerVerdict`, which proves the chosen observation is one gate 3 could be asked of, and `reviewQueue.criteria.N.firedInCorpus`, the corpus-wide count the in-budget count is read against.
+The film holds 140 claims. 26 of them are read and never drawn: they are there because the test uses them for cross-checks, such as the receipts' own sentences in `lift.statement` and `gate3Result.question`, `physics.dopplerVerdict`, which proves the chosen observation is one gate 3 could be asked of, and `reviewQueue.criteria.N.firedInCorpus`, the corpus-wide count the in-budget count is read against.
 
 | Shown as | Value | File | Key |
 |---|---|---|---|
@@ -216,6 +216,9 @@ The film holds 137 claims. 26 of them are read and never drawn: they are there b
 | colophon.modification | `cropped to the spectrogram interior and re-encoded from PNG to WebP; the _thumb variants are additionally downscaled` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].modification_notice` |
 | colophon.station | `91` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].ground_station` |
 | colophon.obligationsSource | `DATA_LICENSE.md, the six items this project commits to per artifact` | artifacts/ATTRIBUTION_AUDIT.json | `obligations_source` |
+| colophon.voiceModel | `kokoro-82M v1.0 (ONNX)` | artifacts/NARRATION_RECEIPT.json | `renderer.model` |
+| colophon.voiceLicence | `Apache-2.0` | artifacts/NARRATION_RECEIPT.json | `renderer.licence` |
+| colophon.figuresHeard | `26` | artifacts/NARRATION_RECEIPT.json | `totals.figures_checked` |
 
 <!-- claim-table:end -->
 
@@ -246,6 +249,70 @@ The test cross-checks the picture against the number rather than trusting either
 signs, which is what the receipt's own note says about the frequency axis running against
 the Doppler sign. 113 pixels at 123.76 Hz per pixel is 13,985.15 Hz against a recorded
 offset of 13,985.15 Hz.
+
+### The voice
+
+The narrator is synthetic and the film says so on its own attribution card, read from
+`artifacts/NARRATION_RECEIPT.json` rather than typed: kokoro-82M v1.0, Apache-2.0, spoken
+offline, 26 figures transcribed back and matched. The licence is why it is this model and
+not a better-sounding hosted one. A film carrying a CC BY-SA waterfall should not also
+carry a voice whose terms a viewer cannot read, and nothing about the narration should
+require an account.
+
+Which of the thirteen male voices in those weights reads it was decided by measurement,
+because the property that matters is not which one somebody liked. It is whether the
+figures survive being spoken. `scripts/cast_narration_voice.py` had every candidate read
+the whole script, transcribed each beat back with faster-whisper, which never sees the
+script, and looked for each figure with the same whole-token matcher that verifies the
+shipped audio. The ranking rule was fixed before the run and is total: figures heard, then
+lines overrunning their card, then word error rate over the whole script, then the voice id
+alphabetically.
+
+Nine of the thirteen carried all 26 figures. Four lost four each and had roughly double the
+word error rate, so the metric discriminates rather than saturating. Three of the nine
+overran no card: `am_eric` at 0.034, `am_liam` at 0.037, `am_echo` at 0.040. `am_eric`
+therefore reads the film. `artifacts/VOICE_CASTING.json` holds every row including the
+losers.
+
+Two results in that table are worth reading rather than skipping. `am_michael` has the
+lowest word error rate of all thirteen, 0.028, and overruns five of the eight cards, which
+is exactly why fit is ranked above clarity: a line heard over the following card is worse
+than a line heard slightly less crisply. And `am_fenrir`, the voice that had been reading
+the film until this measurement existed, comes sixth and overruns its longest card. It was
+chosen because it sounded fine in a one-line sample, which is the failure this script
+replaces.
+
+What none of this measures is timbre, warmth, or whether a listener would rather hear a
+person. No automatic metric stands in for that, and the receipt says so in
+`what_this_does_not_establish`.
+
+### A published duration is a dependency
+
+Measuring the voices turned up a defect worth writing down, because it was invisible to
+every check here.
+
+The Physics line spoke in 17.5 seconds of speech under the toolchain that produced the
+committed audio, and 25.2 seconds under the one installed a few weeks later. Same text,
+same voice, same speed, same two model files with the same digests. Kokoro chunks a line
+that approaches its context limit, and the Physics line is the longest in the script, so a
+change in how a dependency phonemises or splits it re-times the whole beat. The extra 7.7
+seconds took it past the card it is spoken over.
+
+Nothing caught it. `--check` compared the committed audio against the committed receipt,
+and both sides of that comparison were the same old files, so every digest matched and the
+gate stayed green while the pipeline no longer produced its own output. The receipt recorded
+the two weight digests and nothing about the packages that decide the timing, so there was
+no version to compare either.
+
+Three changes, and the first two matter more than the third. `pyproject.toml` pins
+`kokoro-onnx` and `espeakng-loader` exactly rather than to a compatible range, with the
+reason written beside them, because a duration this repository publishes is a duration a
+minor version can move. The receipt records the versions of the four packages that decide
+timing. And `--check` now speaks the longest line again and compares the bytes, which is
+the only question that distinguishes an intact pipeline from one that merely still has its
+old output lying around. That check has three outcomes: it matched, it differed, or there
+were no weights on this machine to ask with, and the third is reported rather than counted
+as a pass.
 
 ## Commands
 
@@ -328,7 +395,7 @@ unpinned, the antialiasing changes and the digest with it.
 
 <!-- test-counts:start -->
 
-`npm test` collects 479 tests across 2 files, 465 in `test/claims.test.ts` and 14 in `test/narration.test.ts`, and every one of them passes. 16 are the scan that says no measurement was typed into a beat by hand, two per card.
+`npm test` collects 488 tests across 2 files, 474 in `test/claims.test.ts` and 14 in `test/narration.test.ts`, and every one of them passes. 16 are the scan that says no measurement was typed into a beat by hand, two per card.
 
 Those counts are written by `scripts/report-table.ts`, which runs the suite to get them, so `npm run report -- --check` fails when they go stale. They used to sit in a pasted transcript outside the generated region, where the number went 26 short and nothing in the repository could see it.
 

@@ -40,11 +40,18 @@ const Line: React.FC<{ label: string; value: string; delay: number }> = ({
  * Showing one SatNOGS waterfall carries six obligations under DATA_LICENSE.md.
  * Every line here is the repository's own audit row for the exact file the physics
  * beat displayed, so this card cannot say something the audit does not.
+ *
+ * The last two lines are about the voice rather than the image, and they belong on an
+ * attribution card for the same reason the others do. A viewer hearing a synthetic
+ * narrator and finding no statement about it has been left to guess, which is the
+ * opposite of what every other card here does. Both lines read from
+ * NARRATION_RECEIPT.json, so the disclosure is a claim with a file behind it: the model,
+ * its licence, and the number of figures a second model heard and matched.
  */
 export const Colophon: React.FC = () => (
-  <Frame eyebrow="Attribution" sources={[colophon.recordUrl]}>
+  <Frame eyebrow="Attribution" sources={[colophon.recordUrl, colophon.voiceModel]}>
     <Reveal delay={2}>
-      <Heading size={44}>The waterfall in this film, and where it came from.</Heading>
+      <Heading size={44}>What is in this film, and where it came from.</Heading>
     </Reveal>
 
     <div style={{ marginTop: 34, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -61,6 +68,16 @@ export const Colophon: React.FC = () => (
         label="modified again here"
         value="scaled to the frame, corridor overlay drawn on top, encoded to H.264"
         delay={44}
+      />
+      <Line
+        label="narrated by"
+        value={`${colophon.voiceModel.display}, ${colophon.voiceLicence.display}, spoken offline`}
+        delay={48}
+      />
+      <Line
+        label="narration checked"
+        value={`${colophon.figuresHeard.display} figures transcribed back and matched to their receipt`}
+        delay={52}
       />
     </div>
 

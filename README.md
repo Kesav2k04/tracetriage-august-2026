@@ -20,7 +20,7 @@
 **[Live console](https://tracetriage.vercel.app/)** &nbsp;·&nbsp;
 **[Judges start here](https://tracetriage.vercel.app/start/)** &nbsp;·&nbsp;
 **[For judges, in the repo](FOR_JUDGES.md)** &nbsp;·&nbsp;
-**[Presentation film](presentation/out/tracetriage-film.mp4)** &nbsp;·&nbsp;
+**[Presentation film, narrated](presentation/out/tracetriage-film.mp4)** &nbsp;·&nbsp;
 **[Point your own agent at it](docs/USE_WITH_YOUR_AGENT.md)**
 
 *AI Builders Challenge with IBM Bob · August 2026 · theme: Advance Space Exploration with AI*
