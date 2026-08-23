@@ -22,9 +22,10 @@ Why it parses the built output rather than the sources. The sources are TSX and 
 them measures what was typed, which is how `tests/test_console_routes.py` has to work
 because it is asking which routes exist. This is asking what the browser receives, and the
 answer to that lives in `apps/web/out`. That directory is `next build` output and is not
-tracked, so when it is absent these tests skip with the reason rather than passing quietly:
-a check that silently becomes a no-op on a fresh clone is worse than no check, because it
-reports green from an empty room.
+tracked, so when it is absent the two tests that read it skip with the reason rather than
+passing quietly: a check that silently becomes a no-op on a fresh clone is worse than no
+check, because it reports green from an empty room. The third test reads `globals.css`,
+which is tracked, so it runs everywhere and the skip does not cover it.
 """
 
 from __future__ import annotations
@@ -135,7 +136,10 @@ def _relative(page: Path) -> str:
     return page.relative_to(OUT).as_posix()
 
 
-pytestmark = pytest.mark.skipif(
+#: Applied per test rather than to the module. Two of the three tests read built HTML and
+#: cannot run without it; the third reads `globals.css`, which is tracked, so a module-wide
+#: skip took the one check a fresh clone could have made and made it a no-op as well.
+_NEEDS_THE_BUILD = pytest.mark.skipif(
     not _pages(),
     reason=(
         "apps/web/out is next build output and is not tracked. Run "
@@ -144,6 +148,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+@_NEEDS_THE_BUILD
 @pytest.mark.parametrize("page", _pages(), ids=_relative)
 def test_every_table_sits_in_a_focusable_named_scroll_region(page: Path) -> None:
     """A table that overflows must be scrollable without a mouse.
@@ -173,6 +178,7 @@ def test_every_table_sits_in_a_focusable_named_scroll_region(page: Path) -> None
         )
 
 
+@_NEEDS_THE_BUILD
 @pytest.mark.parametrize("page", _pages(), ids=_relative)
 def test_every_control_has_an_accessible_name(page: Path) -> None:
     """Every focusable control says what it is.
