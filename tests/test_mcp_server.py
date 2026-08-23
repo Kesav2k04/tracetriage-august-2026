@@ -827,11 +827,38 @@ def test_the_registration_names_the_servers_that_exist():
 def test_the_expensive_live_tools_are_not_auto_approved():
     """The two that spend somebody else's bandwidth have to ask.
 
-    `live_rank_observations` measures up to ten observations and `live_station` up to
-    eight, at two HTTP requests each, against an API run by volunteers. A standing
+    `live_rank_observations` measures up to `MAX_BUDGET` observations and `live_station` up
+    to `STATION_MAX_BUDGET`, at two HTTP requests each, against an API run by volunteers.
+    The numbers were spelled out here as ten and eight, and the second was never right:
+    the constant is six. The prose names the constants now, and the two values are pinned
+    below, so raising either ceiling has to be a deliberate edit to a test about somebody
+    else's bandwidth rather than a one-character change nothing reads. A standing
     permission for either is a standing permission to make twenty requests because an
     agent thought it would be useful.
     """
+    from pipeline.tracetriage import mcp_live
+
+    assert mcp_live.MAX_BUDGET == 10, mcp_live.MAX_BUDGET
+    assert mcp_live.STATION_MAX_BUDGET == 6, mcp_live.STATION_MAX_BUDGET
+
+    # `.bob/TOOL_SPECS.md` explains this list to whoever opens Bob, with a ceiling per row,
+    # and it said "up to eight observations" for a constant that is six. Nothing compared
+    # them, so the row is compared here.
+    spec = _SPECIFICATION.read_text(encoding="utf-8")
+    for tool, ceiling in (
+        ("live_rank_observations", mcp_live.MAX_BUDGET),
+        ("live_station", mcp_live.STATION_MAX_BUDGET),
+    ):
+        row = next(
+            (line for line in spec.splitlines() if line.startswith(f"| `{tool}` |")),
+            None,
+        )
+        assert row is not None, f"{_SPECIFICATION.name} has no cost row for {tool}"
+        assert str(ceiling) in row, (
+            f"{_SPECIFICATION.name} states a ceiling for {tool} that is not {ceiling}: "
+            f"{row.strip()!r}"
+        )
+
     registered = json.loads(_REGISTRATION.read_text(encoding="utf-8"))["mcpServers"]
     allowed = set(registered["tracetriage-live"].get("alwaysAllow", []))
     assert "live_rank_observations" not in allowed

@@ -19,6 +19,7 @@ because that is precisely the case that shipped.
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 from pathlib import Path
@@ -213,3 +214,62 @@ def test_every_embedded_image_carries_alt_text(rel: str):
     assert tag is not None, f"{rel} was extracted as an image and no tag carries it"
     alt = re.search(r'alt="([^"]*)"', tag)
     assert alt and alt.group(1).strip(), f"{rel} is embedded with no alt attribute"
+
+
+#: The README's own table of MCP surfaces, one row per server, keyed by the server name it
+#: backticks in the first cell. Parsed rather than quoted, because the claim under test is
+#: about the row a reader sees and not about a string kept here.
+def _mcp_rows() -> dict[str, str]:
+    text = (REPO / "README.md").read_text(encoding="utf-8")
+    rows: dict[str, str] = {}
+    for line in text.splitlines():
+        m = re.match(r"\|\s*`(tracetriage-[a-z]+)`\s*\|", line)
+        if m:
+            rows[m.group(1)] = line
+    return rows
+
+
+def test_the_readme_names_the_tools_that_are_actually_auto_approved():
+    """`alwaysAllow` is a standing permission, so a wrong list here is a wrong statement
+    about what an agent may do to somebody else's API without being asked.
+
+    The defect: the row for `tracetriage-live` listed all five tools and said "The first
+    three are the ones in `alwaysAllow`", which named `live_rank_observations`, the one tool
+    `tests/test_mcp_server.py::test_the_expensive_live_tools_are_not_auto_approved` exists
+    to keep out of that list, and omitted `live_check_claim`, which is in it. The judges'
+    page could not carry the same error, because `scripts/sync_for_judges.py` reads the list
+    out of `.bob/mcp.json`. This table is written by hand, so nothing compared it.
+
+    The assertion is on the clause that mentions `alwaysAllow`, not on the whole cell: a row
+    is free to name a withheld tool and say it is withheld, which is what both rows do, and
+    a check that read the whole cell could not tell that apart from claiming it is allowed.
+    """
+    registered = json.loads((REPO / ".bob" / "mcp.json").read_text(encoding="utf-8"))
+    rows = _mcp_rows()
+    assert set(rows) == set(registered["mcpServers"]), sorted(rows)
+
+    for server, spec in registered["mcpServers"].items():
+        allowed = set(spec.get("alwaysAllow", []))
+        assert allowed, f"{server} auto-approves nothing, so this test proves nothing"
+
+        row = rows[server]
+        # Clause boundaries are a semicolon or a full stop followed by a space. A bare full
+        # stop would split `.bob/mcp.json` in half, which is a path and not a sentence.
+        clauses = [c for c in re.split(r";|\.\s", row) if "alwaysAllow" in c]
+        assert clauses, (
+            f"the README row for {server} does not mention alwaysAllow at all, so a reader "
+            "cannot tell which of its tools an agent may call without being asked"
+        )
+        claim = " ".join(clauses)
+        named = set(re.findall(r"`([a-z_]+)`", claim))
+
+        missing = allowed - named
+        assert not missing, (
+            f"{server}: .bob/mcp.json auto-approves {sorted(missing)} and the README's "
+            f"alwaysAllow clause does not name them: {claim.strip()!r}"
+        )
+        extra = named - allowed
+        assert not extra, (
+            f"{server}: the README's alwaysAllow clause names {sorted(extra)}, which "
+            f".bob/mcp.json does not auto-approve: {claim.strip()!r}"
+        )

@@ -472,10 +472,15 @@ def tool_live_check_claim(
 # One station, mode by mode
 # ---------------------------------------------------------------------------
 
-#: How many observations `live_station` may measure. Lower than `MAX_BUDGET` on purpose:
-#: this tool is auto-approved in `.bob/mcp.json` and `live_rank_observations` is not, so the
-#: auto-approved ceiling has to be a number a volunteer-run API can absorb without anybody
-#: being asked first.
+#: How many observations `live_station` may measure. Lower than `MAX_BUDGET` on purpose,
+#: and the reason written here was wrong: it said this tool is auto-approved in
+#: `.bob/mcp.json`, and it is not. `alwaysAllow` there holds `live_list_observations`,
+#: `live_triage_observation` and `live_check_claim`, and
+#: `tests/test_mcp_server.py::test_the_expensive_live_tools_are_not_auto_approved` requires
+#: this one and `live_rank_observations` to stay out of it. The ceiling stands on the cost
+#: instead: a station question is only answerable across several DIFFERENT satellites, so
+#: the fetches are two per observation against an API run by volunteers, and six is enough
+#: to separate a receiver's error from an orbit's without asking them for twenty.
 STATION_MAX_BUDGET = 6
 STATION_DEFAULT_BUDGET = 5
 
@@ -637,10 +642,10 @@ def tool_live_station(
     if not 1 <= int(budget) <= STATION_MAX_BUDGET:
         raise ToolError(
             "BAD_ARGUMENTS",
-            f"budget must be between 1 and {STATION_MAX_BUDGET}, got {budget}. This tool is "
-            f"auto-approved for the demo, so its ceiling is lower than "
-            f"live_rank_observations' {MAX_BUDGET}: every observation is two HTTP fetches "
-            f"against a volunteer-run API.",
+            f"budget must be between 1 and {STATION_MAX_BUDGET}, got {budget}. The ceiling "
+            f"is lower than live_rank_observations' {MAX_BUDGET} because a station's error "
+            f"only separates from an orbit's across several different satellites, and "
+            f"every observation is two HTTP fetches against a volunteer-run API.",
         )
     n = DEFAULT_NULLS if n_nulls is None else int(n_nulls)
     if not 1 <= n <= 500:

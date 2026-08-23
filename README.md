@@ -615,8 +615,8 @@ tracetriage station 1696 --budget 6  # a station's own frequency error, across s
 
 | Surface | Answers from | Tools |
 |---|---|---|
-| `tracetriage-live` | the public SatNOGS API, now | 5 tools: `live_triage_observation`, `live_list_observations`, `live_rank_observations`, `live_station`, `live_check_claim`. The first three are the ones in `alwaysAllow` |
-| `tracetriage-evidence` | the receipts committed in this repository | 6 read-only tools plus `run_acceptance`, offline, enforced by parsing its own imports |
+| `tracetriage-live` | the public SatNOGS API, now | 5 tools: `live_triage_observation`, `live_list_observations`, `live_rank_observations`, `live_station`, `live_check_claim`. `alwaysAllow` in `.bob/mcp.json` covers `live_list_observations`, `live_triage_observation` and `live_check_claim`; the other two measure up to 10 and up to 6 observations at two HTTP fetches each, so they ask first |
+| `tracetriage-evidence` | the receipts committed in this repository | 7 tools, offline, the read-only property enforced by parsing its own imports. `alwaysAllow` covers the six that only read: `queue_top`, `queue_size`, `observation`, `check_claim`, `gate_status`, `receipt`; `run_acceptance` runs the standing gate, which writes the console build, so it asks |
 
 `.mcp.json` at the root registers both, so a client opened on a clone has them with nothing to
 configure. The live tools carry the `live_` prefix because a number measured this minute and a

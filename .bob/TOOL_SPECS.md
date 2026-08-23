@@ -43,8 +43,8 @@ it is also a standing permission, so the list is drawn on cost rather than on co
 
 | Not auto-approved | Why |
 |---|---|
-| `live_rank_observations` | up to ten observations, two requests each |
-| `live_station` | up to eight observations, two requests each |
+| `live_rank_observations` | up to 10 observations, two requests each |
+| `live_station` | up to 6 observations, two requests each |
 | `run_acceptance` | runs the full gate, minutes of CPU, and writes the console build |
 
 The three that ask are the three that spend somebody else's bandwidth or the operator's
