@@ -68,6 +68,25 @@ from scripts.run_gate3 import _geometry_of, _load_raw_obs  # noqa: E402
 
 logger = logging.getLogger("hero-nulls")
 
+
+def _resolve_snapshot(given: Path | None) -> Path:
+    """The snapshot root, from the flag or the environment, or the refusal that says which.
+
+    `--snapshot` defaulted to `Path("D:/tracetriage_data/snap-stage1")`. With the snapshot
+    genuinely absent, that produced `obs 14740031 is not in the snapshot at
+    D:\\tracetriage_data\\snap-stage1`, which reads as a snapshot missing an observation
+    rather than as a path belonging to somebody else's machine, and it made
+    `scripts/check_artifact_freshness.py` report this exporter's artifact as stale on a clean
+    clone: a SystemExit is not the designed refusal, so the checker classified it as a crash.
+    Same fix and same reasoning as `scripts/run_triage_slice.py`; the pages directory is the
+    snapshot's own subfolder, so one variable still addresses both.
+    """
+    if given is not None:
+        return given.resolve()
+    from pipeline.tracetriage.splits import _default_pages_dir
+
+    return _default_pages_dir().resolve().parent
+
 # Observation 14740031 is the subject. It is in gate 3's pool, it is one of the two
 # named cards the console already ships, and its
 # fitted offset is 13,985 Hz, which is 32 ppm and 113 pixels: large enough to see and
@@ -164,7 +183,13 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--obs", type=int, default=DEFAULT_OBS)
     ap.add_argument(
-        "--snapshot", type=Path, default=Path("D:/tracetriage_data/snap-stage1")
+        "--snapshot",
+        type=Path,
+        default=None,
+        help=(
+            "the snapshot root. Defaults to the parent of TRACETRIAGE_PAGES_DIR, and "
+            "refuses if that is unset."
+        ),
     )
     ap.add_argument(
         "--receipt", type=Path, default=REPO_ROOT / "artifacts/GATE3_RECEIPT.json"
@@ -219,11 +244,12 @@ def main() -> int:
         )
     want = row["null_calibration"]
 
-    raw = _load_raw_obs(args.snapshot, args.obs)
+    snapshot = _resolve_snapshot(args.snapshot)
+    raw = _load_raw_obs(snapshot, args.obs)
     if raw is None:
-        raise SystemExit(f"obs {args.obs} is not in the snapshot at {args.snapshot}")
+        raise SystemExit(f"obs {args.obs} is not in the snapshot at {snapshot}")
 
-    img = args.snapshot / "waterfalls" / f"waterfall_{args.obs}.png"
+    img = snapshot / "waterfalls" / f"waterfall_{args.obs}.png"
     if not img.exists():
         raise SystemExit(f"waterfall missing: {img}")
 

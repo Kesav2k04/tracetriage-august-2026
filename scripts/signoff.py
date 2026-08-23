@@ -37,6 +37,7 @@ Exit 0 means signed. Exit 1 means at least one check failed and the receipt says
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -174,6 +175,20 @@ def _check_live(sheet: Sheet, enabled: bool) -> None:
                 "with --check-live from a networked machine before submitting."
             ),
         )
+        # Recorded here as well, rather than only inside the enabled branch. A row that
+        # exists in one mode and is absent in the other is a row the receipt's own check
+        # list cannot require, and an absent row reads as a check nobody thought of.
+        sheet.record(
+            "deployed console is this tree",
+            None,
+            NOT_CHECKED,
+            "",
+            why_not_checked=(
+                "needs the network. It compares the served provenance.json against the "
+                "committed one, which is the only thing that tells a current deployment "
+                "from a stale one that still answers 200."
+            ),
+        )
         return
     started = time.monotonic()
     try:
@@ -188,6 +203,16 @@ def _check_live(sheet: Sheet, enabled: bool) -> None:
             f"{LIVE_URL} did not answer: {type(exc).__name__}",
             time.monotonic() - started,
         )
+        sheet.record(
+            "deployed console is this tree",
+            None,
+            NOT_CHECKED,
+            "",
+            why_not_checked=(
+                f"the console did not answer at all ({type(exc).__name__}), so which tree "
+                f"it was built from is not a question this run can decide"
+            ),
+        )
         return
     ok = code == 200 and "TraceTriage" in body
     sheet.record(
@@ -195,6 +220,82 @@ def _check_live(sheet: Sheet, enabled: bool) -> None:
         None,
         PASSED if ok else FAILED,
         f"HTTP {code}, {len(body):,} bytes from {LIVE_URL}",
+        time.monotonic() - started,
+    )
+    _check_deployed_is_this_tree(sheet)
+
+
+#: The console's provenance export, which is the one published file that changes whenever any
+#: receipt does. Comparing its bytes is the cheapest question that separates "the deployment
+#: answers" from "the deployment is this tree".
+_DEPLOYED_PROVENANCE = f"{LIVE_URL}/data/provenance.json"
+_COMMITTED_PROVENANCE = WEB / "public" / "data" / "provenance.json"
+
+
+def _check_deployed_is_this_tree(sheet: Sheet) -> None:
+    """Whether the live console is a build of the tree being signed, by digest.
+
+    Why this row exists. The row above reads HTTP 200 and looks for the product name in the
+    body, and it passed every time while the deployment sat 39 commits behind the repository:
+    a static export of an old tree answers 200 forever. On 2026-08-24 the deployed
+    `provenance.json` digested `a2eafbe0` where the committed one was `498344ac`, and every
+    number a judge could check against a receipt on that site was checkable against the
+    receipts of a different commit. Nothing on the site was wrong. The site was not this tree,
+    and no check could see the difference.
+
+    Why it belongs under --check-live and nowhere else. Vercel builds from `origin/main`, so
+    the only run in which this can pass is the release run: push the commit, wait for the
+    deployment to go READY, then sign. That is the order this flag is documented for. In any
+    other checkout the deployed build is whatever the owner last pushed, which is a fact about
+    somebody else's remote rather than about the tree in front of you, so a failure here would
+    be read as a defect in the repository.
+    """
+    started = time.monotonic()
+    try:
+        with urllib.request.urlopen(_DEPLOYED_PROVENANCE, timeout=20) as response:
+            served = response.read()
+            code = response.status
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        sheet.record(
+            "deployed console is this tree",
+            None,
+            NOT_CHECKED,
+            "",
+            time.monotonic() - started,
+            why_not_checked=(
+                f"{_DEPLOYED_PROVENANCE} did not answer: {type(exc).__name__}. The row "
+                f"above says whether anything answered at all; this one cannot decide "
+                f"between a stale deployment and an unreachable one, and guessing which "
+                f"would be the whole point of the row lost."
+            ),
+        )
+        return
+    if not _COMMITTED_PROVENANCE.is_file():
+        sheet.record(
+            "deployed console is this tree",
+            None,
+            NOT_CHECKED,
+            "",
+            time.monotonic() - started,
+            why_not_checked=(
+                f"{_COMMITTED_PROVENANCE.relative_to(REPO).as_posix()} is not in this tree, "
+                f"so there is nothing to compare the served bytes against"
+            ),
+        )
+        return
+    committed = _COMMITTED_PROVENANCE.read_bytes()
+    served_digest = hashlib.sha256(served).hexdigest()
+    committed_digest = hashlib.sha256(committed).hexdigest()
+    same = served_digest == committed_digest
+    sheet.record(
+        "deployed console is this tree",
+        None,
+        PASSED if same else FAILED,
+        (
+            f"HTTP {code}, served provenance.json sha256 {served_digest[:12]} against "
+            f"{committed_digest[:12]} committed"
+            + ("" if same else ". The deployment is not this tree: push, wait for READY.")
+        ),
         time.monotonic() - started,
     )
 

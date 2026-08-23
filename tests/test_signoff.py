@@ -199,6 +199,14 @@ def test_the_receipt_covers_the_checks_the_unit_named(receipt: dict) -> None:
     ):
         assert required in names, f"the sign-off no longer runs {required!r}"
 
+    # "deployed console is this tree" is deliberately not in the list above yet. It was added
+    # to scripts/signoff.py in the commit before this one and the committed receipt predates
+    # it, so requiring it here would fail the suite, fail the gate, fail the sign-off that
+    # runs the gate, and leave no run able to produce the receipt that would satisfy it: a
+    # check cannot require what it produces. It goes in the list in the commit that carries
+    # the first receipt containing it. `test_the_live_rows_are_both_present_when_the_network
+    # _is_refused` covers the row itself in the meantime, so it is not unchecked.
+
 
 def test_the_receipt_names_a_commit_that_exists_in_this_history(receipt: dict) -> None:
     """A receipt naming a commit nobody can find is evidence of nothing.
@@ -225,3 +233,79 @@ def test_the_receipt_says_that_it_cannot_name_its_own_commit(receipt: dict) -> N
     """The caveat is part of the receipt rather than something a reader has to know."""
     assert "one later" in receipt["note_on_the_commit"]
     assert receipt["schema"] == "SIGNOFF_RECEIPT"
+
+
+def test_the_live_rows_are_both_present_when_the_network_is_refused(signoff) -> None:
+    """Without `--check-live`, both live rows still appear, each NOT_CHECKED with a reason.
+
+    A row recorded only in the enabled branch is a row that vanishes from the receipt in
+    every other run, and `test_the_receipt_covers_the_checks_the_unit_named` cannot require
+    what is sometimes absent. That is how a check nobody notices is dropped.
+    """
+    sheet = signoff.Sheet()
+    signoff._check_live(sheet, enabled=False)
+    rows = {r["check"]: r for r in sheet.rows}
+    assert set(rows) == {"deployed console responds", "deployed console is this tree"}
+    for row in rows.values():
+        assert row["status"] == signoff.NOT_CHECKED
+        assert row["why_not_checked"], row
+
+
+def test_a_deployment_of_another_tree_fails_rather_than_passing(signoff, monkeypatch) -> None:
+    """The row that "responds" could not answer: served bytes against committed bytes.
+
+    Both directions, because the defect was silent in one of them. On 2026-08-24 the
+    deployment was 39 commits behind and its provenance.json digested `a2eafbe0` where the
+    committed one was `498344ac`, and the only row watching the console read HTTP 200 and
+    passed.
+    """
+    committed = signoff._COMMITTED_PROVENANCE.read_bytes()
+
+    class _Response:
+        def __init__(self, payload: bytes) -> None:
+            self._payload = payload
+            self.status = 200
+
+        def read(self) -> bytes:
+            return self._payload
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_: object) -> None:
+            return None
+
+    def _serve(payload: bytes):
+        monkeypatch.setattr(
+            signoff.urllib.request, "urlopen", lambda *a, **k: _Response(payload)
+        )
+
+    _serve(committed)
+    sheet = signoff.Sheet()
+    signoff._check_deployed_is_this_tree(sheet)
+    assert sheet.rows[-1]["status"] == signoff.PASSED, sheet.rows[-1]
+
+    _serve(committed + b"\n")
+    sheet = signoff.Sheet()
+    signoff._check_deployed_is_this_tree(sheet)
+    row = sheet.rows[-1]
+    assert row["status"] == signoff.FAILED, row
+    assert "not this tree" in row["detail"], row
+
+
+def test_an_unreachable_console_is_not_a_stale_one(signoff, monkeypatch) -> None:
+    """A network error here is NOT_CHECKED, not FAILED.
+
+    The row above already fails when nothing answers. If this one failed too, one outage
+    would print two failures and the receipt would say the deployment is of the wrong tree,
+    which is a claim the run has no evidence for.
+    """
+    def _refuse(*_: object, **__: object):
+        raise signoff.urllib.error.URLError("refused")
+
+    monkeypatch.setattr(signoff.urllib.request, "urlopen", _refuse)
+    sheet = signoff.Sheet()
+    signoff._check_deployed_is_this_tree(sheet)
+    row = sheet.rows[-1]
+    assert row["status"] == signoff.NOT_CHECKED, row
+    assert "did not answer" in row["why_not_checked"], row
