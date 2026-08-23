@@ -360,3 +360,73 @@ def test_the_omitted_row_reads_as_omitted_to_the_tool_that_parses_it():
     assert summary["n_omitted"] == 1, summary
     assert summary["n_fail"] == 0, summary
     assert summary["n_pass"] == 1, summary
+
+
+def test_the_resigned_digest_excuse_covers_the_digest_and_nothing_else(checker):
+    """The exemption has to be narrow, and it has to count what it used.
+
+    Four receipts are rewritten after the console payload exists, so their published
+    digest is one generation behind by construction. Excusing that is necessary. Excusing
+    a marked row's *name*, or a row nobody marked, would turn a stale payload into a pass,
+    which is the failure this checker exists to catch.
+    """
+    marked = {"name": "SIGNOFF_RECEIPT.json", "sha256": "a" * 64, "bytes": 10}
+    marked["rewritten_after_this_payload"] = True
+    plain = {"name": "QUEUE_RECEIPT.json", "sha256": "b" * 64, "bytes": 20}
+    plain["rewritten_after_this_payload"] = False
+
+    def pair(rows_a, rows_b):
+        import copy
+
+        return {"receipts": copy.deepcopy(rows_a)}, {"receipts": copy.deepcopy(rows_b)}
+
+    # A marked row whose digest moved: excused, and counted.
+    a, b = pair([marked], [{**marked, "sha256": "c" * 64, "bytes": 11}])
+    assert checker._excuse_resigned_digests(a, b) == 1
+    assert checker._first_difference(a, b) is None
+
+    # An unmarked row whose digest moved: still a failure.
+    a, b = pair([plain], [{**plain, "sha256": "c" * 64}])
+    assert checker._excuse_resigned_digests(a, b) == 0
+    assert checker._first_difference(a, b) is not None
+
+    # A marked row whose name moved: the digest is excused, the name is not.
+    a, b = pair([marked], [{**marked, "name": "SOMETHING_ELSE.json", "sha256": "c" * 64}])
+    assert checker._excuse_resigned_digests(a, b) == 1
+    assert checker._first_difference(a, b) is not None
+
+    # Marked on one side only: not excused, so the change in the marking is reported.
+    a, b = pair([marked], [{**marked, "rewritten_after_this_payload": False}])
+    assert checker._excuse_resigned_digests(a, b) == 0
+    assert checker._first_difference(a, b) is not None
+
+    # A row count that moved is a different failure and must not be swallowed.
+    a, b = pair([marked, plain], [marked])
+    assert checker._excuse_resigned_digests(a, b) == 0
+    assert checker._first_difference(a, b) is not None
+
+
+def test_the_marked_set_in_the_payload_is_the_set_the_signoff_writes(checker):
+    """One source for the four names, checked from the builder's side as well.
+
+    `tests/test_published_digests.py` checks the payload against the sign-off. This checks
+    the console builder's own constant against it too, because the builder is what writes
+    the marking and a third copy of a list is where the drift would start.
+    """
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    loaded = {}
+    for name in ("build_console_data", "signoff"):
+        spec = importlib.util.spec_from_file_location(name, repo / "scripts" / f"{name}.py")
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        loaded[name] = module
+
+    assert set(loaded["build_console_data"]._WRITTEN_AFTER_THIS_PAYLOAD) == set(
+        loaded["signoff"]._WRITTEN_BY_THIS_RUN
+    )

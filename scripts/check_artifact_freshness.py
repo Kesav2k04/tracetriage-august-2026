@@ -200,6 +200,39 @@ def _strip(doc: object) -> object:
     return doc
 
 
+#: The four receipts `scripts/signoff.py` rewrites after the console payload is built.
+#: `apps/web/public/data/provenance.json` marks them, and the reason is in its own
+#: `receipts_note`: each records the commit it was measured at, and no commit can record
+#: its own hash, so a payload cannot hold the digest of the committed SIGNOFF_RECEIPT.json.
+#:
+#: Without this, the sequence "sign off, commit the receipts" leaves this check red and the
+#: only way to green is a rebuild that invalidates the sign-off's own live check. With it,
+#: a marked row may differ in `sha256` and `bytes` and in nothing else, and the count of
+#: rows excused is printed, so an exemption that quietly grows is visible in the output.
+_RESIGNED = "rewritten_after_this_payload"
+
+
+def _excuse_resigned_digests(committed: object, rebuilt: object) -> int:
+    """Drop the digest of each marked receipt row from both sides. Returns how many."""
+    if not (isinstance(committed, dict) and isinstance(rebuilt, dict)):
+        return 0
+    left, right = committed.get("receipts"), rebuilt.get("receipts")
+    if not (isinstance(left, list) and isinstance(right, list) and len(left) == len(right)):
+        return 0
+    excused = 0
+    for a, b in zip(left, right, strict=True):
+        if not (isinstance(a, dict) and isinstance(b, dict)):
+            continue
+        # Marked on one side only is a real difference: leave it to be reported.
+        if a.get(_RESIGNED) is not True or b.get(_RESIGNED) is not True:
+            continue
+        for field in ("sha256", "bytes"):
+            a.pop(field, None)
+            b.pop(field, None)
+        excused += 1
+    return excused
+
+
 def _first_difference(a: object, b: object, path: str = "") -> str | None:
     if type(a) is not type(b):
         return f"{path or '<root>'}: committed {type(a).__name__}, rebuilt {type(b).__name__}"
@@ -383,13 +416,17 @@ def main(argv: list[str] | None = None) -> int:
                 rebuilt_names = set()
             else:
                 rebuilt_names = {p.name for p in rebuilt_data.iterdir() if p.is_file()}
+                excused = 0
                 for name in sorted(rebuilt_names):
                     a, b = published / name, rebuilt_data / name
                     if not a.exists():
                         print(f"[FAIL] {name} is built but not published")
                         return 1
                     if name.endswith(".json"):
-                        diff = _first_difference(_strip(_load(a)), _strip(_load(b)))
+                        left, right = _strip(_load(a)), _strip(_load(b))
+                        if name == "provenance.json":
+                            excused = _excuse_resigned_digests(left, right)
+                        diff = _first_difference(left, right)
                     else:
                         diff = None if a.read_bytes() == b.read_bytes() else "file contents differ"
                     if diff:
@@ -400,7 +437,13 @@ def main(argv: list[str] | None = None) -> int:
                         return 1
                 print(
                     f"[PASS] {len(rebuilt_names)} published files match what the console "
-                    "builder produces"
+                    f"builder produces"
+                    + (
+                        f", excusing the digest of {excused} receipt(s) the sign-off "
+                        f"rewrites after this payload"
+                        if excused
+                        else ""
+                    )
                 )
                 compared.append(f"apps/web/public/data ({len(rebuilt_names)} files)")
                 # Named rather than skipped. cards.json needs the waterfall PNGs, so a
