@@ -109,3 +109,28 @@ def test_a_missing_task_hash_is_null_rather_than_invented(doc) -> None:
         assert value is None or (
             len(value) >= 16 and all(c in "0123456789abcdef" for c in value)
         ), f"{value!r} is not a hexadecimal task id"
+
+
+def test_no_cited_file_is_a_dependency_specifier(doc) -> None:
+    """A "file" the table counts has to be shaped like a path.
+
+    The parse that fills this column matched anything between backticks holding a dot and
+    no whitespace, so `jsonschema>=4.23` out of "`pyproject.toml` (`jsonschema>=4.23`
+    added to runtime dependencies, accepted)" was published as a filename and unit A0b-INT
+    reported 8 files where a clone holds 7, under a column headed "Files" on the page a
+    judge opens first.
+
+    Two properties, because either one alone lets the next shape through: no comparison or
+    version operator anywhere in the string, and a suffix that starts with a letter. A
+    specifier's last dotted part is digits and a real suffix never is.
+    """
+    offenders: list[tuple[str, str]] = []
+    for unit in doc["units"]:
+        for cited in unit["files"]:
+            suffix = cited.rsplit(".", 1)[-1] if "." in cited else ""
+            if any(ch in cited for ch in "<>=!~,;*?\"'") or not suffix[:1].isalpha():
+                offenders.append((unit["unit"], cited))
+    assert not offenders, (
+        "these are counted as files and are not paths: "
+        + ", ".join(f"{unit} cites {cited!r}" for unit, cited in offenders)
+    )

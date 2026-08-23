@@ -88,13 +88,23 @@ def _task_id(body: str) -> str | None:
 
 
 def _files(body: str) -> list[str]:
-    """Paths named in the files field, as paths rather than as prose."""
+    """Paths named in the files field, as paths rather than as prose.
+
+    The extension has to start with a letter, and that one character is the whole fix for
+    a defect that reached the judges' start page. The old pattern accepted anything
+    between backticks that held a dot and no whitespace, so
+    ``` `jsonschema>=4.23` ``` in "pyproject.toml (`jsonschema>=4.23` added to runtime
+    dependencies, accepted)" came out as a filename: unit A0b-INT published 8 files where
+    a clone holds 7, under a column headed "Files". A version specifier's last dotted
+    part is always digits and a real suffix never is, so the class is excluded rather
+    than the one string.
+    """
     raw = _field(body, FILES_FIELDS)
     if not raw:
         return []
-    found = re.findall(r"`([^`\s]+\.[A-Za-z0-9]+)`", raw)
+    found = re.findall(r"`([^`\s]+\.[A-Za-z][A-Za-z0-9]*)`", raw)
     if not found:
-        found = re.findall(r"(?<![\w/`])([\w./-]+/[\w.-]+\.[A-Za-z0-9]+)", raw)
+        found = re.findall(r"(?<![\w/`])([\w./-]+/[\w.-]+\.[A-Za-z][A-Za-z0-9]*)", raw)
     seen: list[str] = []
     for path in found:
         if path not in seen:

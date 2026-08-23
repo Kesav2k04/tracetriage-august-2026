@@ -87,7 +87,6 @@
     "contracts/triage_receipt.schema.json",
     "contracts/source_observation.schema.json",
     "pyproject.toml",
-    "jsonschema>=4.23",
     "tests/test_contracts.py"
    ],
    "what_failed": "None in the integration step. One correction applied: client_version added to required on the observations entry in dataset_manifest.schema.json."
