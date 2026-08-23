@@ -1254,7 +1254,7 @@ export default function EvaluationPage() {
               What to check the download against
             </Cell>
             <Cell mono align="left">
-              {gate4Bundle.archive.bytes.toLocaleString()} B, sha256{" "}
+              {gate4Bundle.archive.bytes.toLocaleString("en-GB")} B, sha256{" "}
               {gate4Bundle.archive.sha256.slice(0, 24)}
             </Cell>
           </tr>

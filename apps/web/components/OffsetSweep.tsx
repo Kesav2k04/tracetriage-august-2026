@@ -170,7 +170,7 @@ export default function OffsetSweep({ sweep }: { sweep: OffsetSweepData }) {
           fontSize={12}
           fontFamily="var(--font-mono)"
         >
-          {sweep.peak_sigma.toFixed(2)}σ at {Math.round(peakHz).toLocaleString()} Hz
+          {sweep.peak_sigma.toFixed(2)}σ at {Math.round(peakHz).toLocaleString("en-GB")} Hz
         </text>
       </svg>
       <figcaption
@@ -180,8 +180,8 @@ export default function OffsetSweep({ sweep }: { sweep: OffsetSweepData }) {
           marginTop: "var(--sp-03)",
         }}
       >
-        {sweep.note} Scored at {sweep.n_scored.toLocaleString()} offsets,{" "}
-        {sweep.n_published.toLocaleString()} plotted.
+        {sweep.note} Scored at {sweep.n_scored.toLocaleString("en-GB")} offsets,{" "}
+        {sweep.n_published.toLocaleString("en-GB")} plotted.
       </figcaption>
     </figure>
   );
