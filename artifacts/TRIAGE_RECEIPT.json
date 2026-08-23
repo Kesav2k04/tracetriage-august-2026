@@ -4,7 +4,7 @@
   "snapshot_id": "snap-20260817-stage1",
   "model_checksum": "e669ebca7ddaefd6461100d62b0a697dc4bb0ca5712abba4fc8f314a07681995",
   "model_checksum_source": "artifacts/hoglr_model.pkl",
-  "generated_at": "2026-08-19T00:31:40.986070+00:00",
+  "generated_at": "2026-08-23T00:12:04.746319+00:00",
   "evidence": {
     "artifact_usable": true,
     "physics_available": true,
@@ -56,7 +56,8 @@
         "reversed_sigma": 0.5848309150237391,
         "beats_reversed": true,
         "odd_symmetry_residual_frac": 0.001107471044099025,
-        "discriminates": true
+        "discriminates": true,
+        "not_tested_reason": null
       },
       "corridor_span_hz": 17289.651679120747,
       "axis_sign": {
