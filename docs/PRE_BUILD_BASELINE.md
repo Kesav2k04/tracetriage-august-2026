@@ -20,6 +20,27 @@ ingestion, waterfall parsing, physics, the model ladder, calibration, abstention
 
 **`pipeline/tracetriage/` contains one empty `__init__.py`. Not a single line of production logic was written.**
 
+### What happened against this plan, which is not what this plan said
+
+Added because a plan published before the work and never reconciled with it afterwards is
+not evidence of anything, and this repository holds itself to reconciling exactly this kind
+of statement. Gate 3's withdrawal from PASSED is recorded with its cause in
+`docs/KILL_GATE.md`; this deviation was not recorded anywhere.
+
+The list above assigns thirteen subsystems to Bob. Of those, the console, the calibration
+and abstention blocks and the fusion ladder were built operator-side, and they are labelled
+that way in the actor field of their own headings rather than being quietly absorbed:
+`docs/BOB_BUILD_LOG.md:770` reads `### 17 Aug 2026 IST | operator | B2-B6 in one unit` and
+covers calibration and the fusion ladder. `FOR_JUDGES.md` and `README.md` have always named
+those four as operator work, so the accounting was published. What was missing is this
+sentence, saying that the accounting differs from the plan written before it.
+
+The cause is the one the next section names in advance: Bob's build budget is finite, and it
+ran out before the list did. That is a resource outcome rather than a discovery, and it does
+not move any measured number, because every measured claim resolves to an artifact and the
+artifacts name the unit that produced them. It does mean this page over-promised, and the
+two build logs are what correct it rather than the other way round.
+
 ### Why prepare anything at all
 
 Bob's build budget is finite. Budget spent rediscovering that `db.satnogs.org/api/observations/` returns 404, or that `end__lte=` is silently ignored, or that the waterfall does not span `samp-rate-rx`, is budget not spent on the model, the calibration, or the queue. The reconnaissance below consumed none of it and removes roughly a day of dead ends.
