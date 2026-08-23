@@ -67,6 +67,14 @@ desktop.ini
 # working brief, not part of the judged submission
 BOB_START_HERE.md
 
+# Adversarial review notes written against this repository. They quote internal
+# scoring and name planning documents that are not part of the submission, and a
+# single `git add -A` before the visibility flip would publish all of it. Excluded
+# by name rather than left to a catch-all, because there is no catch-all here that
+# would have caught it: scripts/gate.py fails on any `git status --porcelain`
+# output, so an untracked directory here also turns this repository's own gate red.
+internal_docs/
+
 # --- A3 investigation cache: API pages and waterfall PNGs, not evidence ---
 .a3_cache/
 
