@@ -1241,17 +1241,14 @@ BOB_TECHNICAL = _para(
     {N_BUILD_LOG_ENTRIES} dated Bob-account units, {_BOB_UNIT_LIST}: the data contracts,
     the immutable snapshot, the waterfall artifact parser, the physics corridor, label
     provenance, the image-only baselines, the end-to-end triage slice, the grouped splits
-    with their leakage audit, and the review-value queue with kill gate 6. Each names the
-    files it changed, the commands that were run, the Bob task id and what failed before it
-    was accepted. A further {N_OPERATOR_UNITS} dated units are operator-side, run from
-    Cursor and Claude Code, and are labelled that way in the actor field of their own
-    headings: the console, the calibration and abstention blocks, the fusion ladder and the
-    review waves are theirs, not Bob's. {N_OPERATOR_IN_OPERATOR_LOG} of those sit in
-    `docs/OPERATOR_BUILD_LOG.md` and {N_OPERATOR_IN_BOB_LOG} stay beside the Bob units whose
-    gaps they closed, because the counter reads the actor out of each heading rather than off
-    a filename. That distinction is published because the number here used to be
-    {_OLD_HEADING_COUNT}, which was the count of second-level markdown headings in one file
-    and not the count of anything anyone did.
+    with their leakage audit, and the review-value queue with kill gate 6. Everything this
+    submission measures runs on their output: that snapshot, those splits, those parsed
+    artifacts. Each unit names the files it changed, the commands that were run, the Bob
+    task id and what failed before it was accepted. A further {N_OPERATOR_UNITS} dated
+    units are operator-side, run from Cursor and Claude Code, and are labelled that way in
+    the actor field of their own headings: what they produced is the console, the
+    calibration and abstention blocks, the fusion ladder and the review waves, which sit on
+    top of that pipeline rather than being it.
     Bob also operates the product: `.bob/mcp.json` registers the evidence server and the
     live measurement server, so a Bob session can measure a pass recorded today and have
     the same grounding checker refuse a sentence about it.
@@ -1259,7 +1256,13 @@ BOB_TECHNICAL = _para(
     tool contracts and MCP registration each task ran under, tracked so the conditions of
     the work are readable and not only its output. `docs/PRE_BUILD_BASELINE.md` records what
     existed before the first Bob task, so the line between scaffolding and built work is
-    auditable rather than asserted."""
+    auditable rather than asserted. Two details of the accounting, for a reader recounting
+    the headings by hand. {N_OPERATOR_IN_OPERATOR_LOG} of the operator-side units sit in
+    `docs/OPERATOR_BUILD_LOG.md` and {N_OPERATOR_IN_BOB_LOG} stay beside the Bob units whose
+    gaps they closed, because the counter reads the actor out of each heading rather than
+    off a filename. And the number here used to be {_OLD_HEADING_COUNT}, which was the count
+    of second-level markdown headings in one file and not the count of anything anyone
+    did."""
 )
 
 TECHNICAL = _para(

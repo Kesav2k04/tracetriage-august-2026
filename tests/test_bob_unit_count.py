@@ -30,6 +30,19 @@ OPERATOR_LOG = REPO / "docs" / "OPERATOR_BUILD_LOG.md"
 BUILD_LOGS = (BUILD_LOG, OPERATOR_LOG)
 
 
+def _unwrapped(text: str) -> str:
+    """The text with its line breaks collapsed, for matching a phrase inside a paragraph.
+
+    Both judge-facing documents are hard wrapped by the generator, so a phrase this test
+    pins can straddle a line break and a raw ``in`` check fails on a page that says exactly
+    the right thing. That happened to "second-level markdown headings" when the paragraph
+    around it was reordered: the sentence was present and the assertion was not. Matching on
+    the unwrapped text pins the wording and stops pinning the wrap column, which no reader
+    sees. `tests/test_cli_note.py` normalises both sides for the same reason.
+    """
+    return " ".join(text.split())
+
+
 @pytest.fixture(scope="module")
 def sync_module():
     # The generator imports its sibling scripts by name, the way it is run from the
@@ -152,7 +165,7 @@ def test_the_template_line_is_not_a_unit(sync_module):
 
 def test_the_published_number_is_the_bob_unit_count(sync_module):
     """FOR_JUDGES carries the number the counter produces, not a typed one."""
-    published = (REPO / "FOR_JUDGES.md").read_text(encoding="utf-8")
+    published = _unwrapped((REPO / "FOR_JUDGES.md").read_text(encoding="utf-8"))
     bob, operator = sync_module._build_log_units()
 
     assert f"{len(bob)} dated Bob-account units" in published
@@ -164,7 +177,7 @@ def test_the_published_number_is_the_bob_unit_count(sync_module):
 
 def test_the_old_heading_count_is_still_reported_as_the_correction(sync_module):
     """The move from 60 to 10 carries its cause with it."""
-    published = (REPO / "FOR_JUDGES.md").read_text(encoding="utf-8")
+    published = _unwrapped((REPO / "FOR_JUDGES.md").read_text(encoding="utf-8"))
 
     assert str(sync_module._OLD_HEADING_COUNT) in published
     assert "second-level markdown headings" in published
@@ -178,7 +191,7 @@ def test_the_readme_says_the_same_thing_as_the_log(sync_module):
     was the weakest thing in the entry, because the criterion it overclaims against is the one
     that leads on Bob. Only `FOR_JUDGES.md` was checked, so only `FOR_JUDGES.md` stayed true.
     """
-    readme = (REPO / "README.md").read_text(encoding="utf-8")
+    readme = _unwrapped((REPO / "README.md").read_text(encoding="utf-8"))
     bob, operator = sync_module._build_log_units()
 
     assert f"{len(bob)} dated" in readme, (
