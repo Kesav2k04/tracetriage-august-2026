@@ -11,8 +11,13 @@ The tests below plant each thing the audit claims to find. A scan that misses a 
 is a scan whose zero means nothing, and the point of a mutation here is that it makes the
 zero mean something.
 
-`scan_secrets` is exercised against strings rather than against the repository, because
-writing a real-shaped credential into the tree would be committing one to make a point.
+`scan_secrets` is exercised two ways. Against strings, for the planted shapes below,
+because writing a real-shaped credential into the tree would be committing one to make a
+point. And against this repository for real, live, in the fixture: the cleanliness
+assertion used to read `artifacts/SECRET_SCAN.json` and assert that the file said clean,
+which is a check that can only pass. A scanner that had stopped scanning, or a key
+committed after the receipt was last written, left that assertion green. The scan now runs
+here and decides, and the committed receipt is required to agree with what it found.
 """
 
 from __future__ import annotations
@@ -46,7 +51,24 @@ def audit():
 
 
 @pytest.fixture(scope="module")
-def secret_scan() -> dict:
+def secret_scan(audit) -> dict:
+    """A live scan of this working tree and its history, not the committed receipt.
+
+    Module-scoped because it walks every tracked text file and then reads
+    `git log --all -p`, which is seconds rather than milliseconds. History is included
+    on purpose: a credential committed once and deleted in the next commit is still in
+    the blob, and that is the case the working-tree walk cannot see.
+    """
+    return audit.scan_secrets(skip_history=False)
+
+
+@pytest.fixture(scope="module")
+def committed_secret_scan() -> dict:
+    """What `artifacts/SECRET_SCAN.json` currently publishes.
+
+    Kept as a separate fixture so the two can be compared. On its own it asserts nothing:
+    it is the claim, and `secret_scan` above is the measurement.
+    """
     return json.loads((_ARTIFACTS / "SECRET_SCAN.json").read_text(encoding="utf-8"))
 
 
@@ -66,9 +88,43 @@ def weight() -> dict:
 
 
 def test_the_secret_scan_is_clean_and_says_what_it_covered(secret_scan: dict) -> None:
-    assert secret_scan["clean"] is True
-    assert secret_scan["n_findings"] == 0
+    """Run the scan over this tree, now, and require it to find nothing.
+
+    The failure message names the findings rather than the count, because a count tells a
+    reader a secret exists and not which file to open.
+    """
     assert secret_scan["schema"] == "SECRET_SCAN"
+    assert secret_scan["findings"] == [], (
+        f"{secret_scan['n_findings']} credential-shaped strings in this tree or its "
+        f"history: {secret_scan['findings'][:5]}"
+    )
+    assert secret_scan["clean"] is True
+    assert secret_scan["env_files_tracked"] == []
+    assert secret_scan["env_example_credential_shaped_values"] == []
+    # A scan that walked nothing also finds nothing. These two are what make the zero
+    # above a measurement, and both are read off the same run that produced it.
+    assert secret_scan["coverage"]["text_files_scanned"] > 100
+    assert secret_scan["coverage"]["history"]["scanned"] is True
+    assert secret_scan["coverage"]["history"]["commits"] > 1
+    assert len(secret_scan["rules"]) == 14
+
+
+def test_the_committed_receipt_agrees_with_a_live_scan(
+    secret_scan: dict, committed_secret_scan: dict
+) -> None:
+    """The published receipt has to match what the scanner says today.
+
+    Not a byte comparison. The receipt is written at one commit and committed at the next,
+    so its `commit` field and its history counts are behind HEAD by design, the same
+    reason `scripts/gate.py` does not check the sign-off receipt for freshness. What must
+    not drift is the answer: the same rule set, and the same verdict.
+    """
+    assert committed_secret_scan["rules"] == secret_scan["rules"], (
+        "the committed receipt was produced by a different rule set than the scanner "
+        "now has, so its clean verdict describes a different question"
+    )
+    assert committed_secret_scan["clean"] == secret_scan["clean"]
+    assert committed_secret_scan["n_findings"] == secret_scan["n_findings"]
 
 
 def test_the_attribution_audit_leaves_no_incomplete_file(attribution: dict) -> None:

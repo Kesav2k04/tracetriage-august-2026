@@ -79,14 +79,29 @@ jobs:
         # receipt that moved without the page being regenerated.
         run: .venv/bin/python scripts/sync_for_judges.py --check
 
-      - name: Secret scan
+      - name: Release audit, which is the secret scan that can find things
+        # This step used to be an inline grep, and that grep could not fire on a JSON
+        # file. Its pattern required `=` between the key and the value while
+        # --include="*.json" sat in the same command, and JSON writes a colon. Tested on
+        # two planted files: it exited clean over `"api_key": "sk_live_..."` and over an
+        # Authorization header holding a bearer token. It also read four suffixes and
+        # never looked at the history, so a credential committed once and removed in the
+        # next commit passed it and stayed public in the blob.
+        #
+        # scripts/audit_release.py was already in this repository and was reachable only
+        # by hand. Fourteen credential shapes rather than one keyword pattern, every
+        # tracked text file rather than four suffixes, `git log --all -p` as well as the
+        # working tree, and an allowlist where each entry carries the reason it is there.
+        # It exits non-zero when the scan is not clean or when a redistributed file is
+        # missing its attribution, so this needs no wrapper around it.
+        #
+        # --out-dir sends the three receipts to a scratch path. Writing them into
+        # artifacts/ here would leave the runner's tree dirty for no gain: the committed
+        # receipts are refreshed deliberately at a release commit, and
+        # tests/test_release_audit.py already requires them to agree with a live scan.
         run: |
-          if grep -rInE "(api[_-]?key|secret|password|token)[[:space:]]*=[[:space:]]*['\"][A-Za-z0-9_-]{16,}" \
-             --include="*.py" --include="*.ts" --include="*.tsx" --include="*.json" \
-             --exclude-dir=.venv --exclude-dir=node_modules . ; then
-            echo "::error::possible secret committed"; exit 1
-          fi
-          echo "secret scan clean"
+          mkdir -p "$RUNNER_TEMP/release-audit"
+          .venv/bin/python scripts/audit_release.py --out-dir "$RUNNER_TEMP/release-audit"
 
   network-recon:
     name: Live API contract (informational)

@@ -158,3 +158,35 @@ def test_ci_runs_the_node_the_deploy_runs(workflow):
             f"CI sets up Node {pin} and apps/web/package.json pins {declared}, so a "
             "green run is not evidence about the runtime Vercel builds on"
         )
+
+
+def test_the_secret_scan_in_ci_is_the_one_that_can_find_things(workflow):
+    """CI must run the fourteen-shape audit, not a keyword grep.
+
+    The step used to be an inline `grep -rInE` whose pattern required `=` between the key
+    and the value, with `--include="*.json"` in the same command. JSON writes a colon, so
+    that grep could not fire on a JSON file at all: run against a planted file holding
+    `"api_key": "sk_live_..."` it exited clean. It also read four suffixes and never
+    looked at the history, so a credential committed once and deleted in the next commit
+    passed it and stayed public in the blob.
+
+    `scripts/audit_release.py` was already here and was reachable only by hand. This
+    asserts CI reaches it, and that nothing has put the grep back.
+    """
+    steps = workflow["jobs"]["offline-replay"]["steps"]
+    runs = [s.get("run") or "" for s in steps]
+    audits = [r for r in runs if "scripts/audit_release.py" in r]
+    assert audits, (
+        "no step in the offline job runs scripts/audit_release.py, so the only secret "
+        "scan in CI is whatever is left of the keyword grep"
+    )
+    for line in audits:
+        assert "--out-dir" in line, (
+            "the audit writes its three receipts into artifacts/ by default, which leaves "
+            "the runner's tree dirty; send them to a scratch path"
+        )
+    for line in runs:
+        assert "api[_-]?key" not in line, (
+            "the inline keyword grep is back in the workflow. It cannot match a JSON "
+            "file, which is the failure it was removed for."
+        )
