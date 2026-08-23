@@ -1,28 +1,38 @@
 # The TraceTriage presentation film
 
-A 118 second silent film for the IBM AI Builders August 2026 entry, rendered with
-Remotion at 1920 by 1080 and 30 frames a second. It is built to be read with the sound
-off and presented live.
+A 142 second narrated film for the IBM AI Builders August 2026 entry, rendered with
+Remotion at 1920 by 1080 and 30 frames a second. It still reads with the sound off, and
+it no longer has to.
 
-Every number on screen is read at build time from a receipt in this repository. Nothing
-is typed from having read a document, and a test fails if that stops being true. This
-report says what the film claims, where each figure came from, how to preview it, how to
-re-render it, and what the verification actually printed.
+The first cut was silent on purpose, because it was written to be presented live with a
+person talking over it. The submission is watched by a judge with nobody in the room, so
+the film carries its own narration. That is the one design decision this report reverses,
+and it is worth being exact about what changed: the earlier note about `--muted` was
+about an *accidental* silent AAC track Remotion adds by default, not about a rule. The
+brief sets no constraint on audio. It caps the video at three minutes, and this runs 38
+seconds inside that.
+
+Every number on screen is read at build time from a receipt in this repository, and every
+number spoken out loud is read from the same claim the card draws. Nothing is typed from
+having read a document, and a test fails if that stops being true. This report says what
+the film claims, where each figure came from, how the narration is held to the same rule,
+how to preview it, how to re-render it, and what the verification actually printed.
 
 ## What it says, beat by beat
 
-The film is eight cards, cut rather than crossfaded, 3540 frames in total.
+The film is eight cards, cut rather than crossfaded, 4260 frames in total. Each card carries one spoken line, held off the cut at both ends so a line is never heard over the
+card after it.
 
 | # | Card | Frames | Seconds | What it says |
 |---|---|---|---|---|
 | 1 | Title | 0 to 149 | 0.0 to 5.0 | TraceTriage, a ranked review queue for satellite radio captures that volunteers recorded and nobody read. The snapshot id and the data licence sit in the footer. |
-| 2 | The problem, in counts | 150 to 569 | 5.0 to 19.0 | 2,727 observations in the snapshot, 2,500 with a waterfall image, 739 with a decisive human verdict, 1,988 with none. A grid of 2,727 cells in the snapshot's own fetch order, lit where a verdict exists. |
-| 3 | The product | 570 to 1169 | 19.0 to 39.0 | 407 observations ranked by review value, with the first 50 as the budget. The four the per-station cap displaced are drawn in the caution token at the budget line. Then what the top 50 turned out to be carrying: 17 stale catalogue frequencies, 3 model and label disagreements, 0 dead captures, with the third criterion marked as one that never fires on this corpus. |
-| 4 | The physics | 1170 to 1889 | 39.0 to 63.0 | Observation 14740031's real waterfall, from the console's own public directory. Three overlays arrive in order: the commanded receive frequency as a vertical dashed line, the pass geometry at zero offset spanning 17,290 Hz, then the same curve sliding 113 pixels onto its best match. The measurement is the gap: +13,985 Hz, +32.05 ppm. Then gate 3, which asked whether that corridor lands on a visible trace: 3 of 3 discriminated, a 95% lower bound of 0.37 against a threshold of 0.70, NOT ESTABLISHED. |
-| 5 | The result | 1890 to 2459 | 63.0 to 82.0 | Gate 6's wording, quoted from its receipt. Conflicts found in the 50 examined out of 87 decisively labelled: 12.6 expected by random, 14 by first in first out, 20 by the ranked queue, against 22 in the whole population. Then the lift on one axis: a threshold at 1.50, first in first out at 1.11, a point estimate of 1.58, and a 95% interval from 1.35 to 1.74 drawn straddling the threshold. NOT ESTABLISHED, direction spans_threshold. |
-| 6 | The gates | 2460 to 2909 | 82.0 to 97.0 | All six kill gates with the file each was decided in and the receipt's own verdict word. Then the tally: 3 of 6 met, and of the 4 that ask whether the idea works, 1 passed, the rest of the met tally being the feasibility checks answered before any pipeline code existed. Then the scale that tally sits on, from `artifacts/CIRCULARITY_RECEIPT.json`: the 22 conflicts that exist at this budget cap every possible ordering, a perfect oracle included, at 1.74 against a bar of 1.50, so the whole distance between the bar and perfection is 0.24. |
-| 7 | What holds | 2910 to 3359 | 97.0 to 112.0 | The three results that came back decided, read from `artifacts/AGENT_RECEIPT.json`, `artifacts/EXPLAIN_RECEIPT.json` and the held-out split of `artifacts/QUEUE_RECEIPT.json`. The evidence tools change what a local Granite model gets right, 22 of 24 against 2 of 24 with no tools, paired exact one sided 0.000001 over 20 discordant pairs. The grounding checker caught 525 of 525 planted falsehoods and refused 0 of 175 clean drafts. On ground stations the queue was never fitted to, lift is 2.25 with a 95% interval of 1.92 to 3.86, above the bar rather than spanning it, and the receipt records PASSED. |
-| 8 | Attribution | 3360 to 3539 | 112.0 to 118.0 | The six obligations `DATA_LICENSE.md` accepts for the waterfall the film displayed, read from that file's own row in `artifacts/ATTRIBUTION_AUDIT.json`: record URL, artifact URL, retrieval timestamp, sha256, licence, licence URL and modification notice, plus the notice this film adds. ShareAlike is stated: the film contains a SatNOGS waterfall, so the film carries CC BY-SA 4.0 rather than the repository's code licence. |
+| 2 | The problem, in counts | 150 to 689 | 5.0 to 23.0 | 2,727 observations in the snapshot, 2,500 with a waterfall image, 739 with a decisive human verdict, 1,988 with none. A grid of 2,727 cells in the snapshot's own fetch order, lit where a verdict exists. |
+| 3 | The product | 690 to 1349 | 23.0 to 45.0 | 407 observations ranked by review value, with the first 50 as the budget. The four the per-station cap displaced are drawn in the caution token at the budget line. Then what the top 50 turned out to be carrying: 17 stale catalogue frequencies, 3 model and label disagreements, 0 dead captures, with the third criterion marked as one that never fires on this corpus. |
+| 4 | The physics | 1350 to 2249 | 45.0 to 75.0 | Observation 14740031's real waterfall, from the console's own public directory. Three overlays arrive in order: the commanded receive frequency as a vertical dashed line, the pass geometry at zero offset spanning 17,290 Hz, then the same curve sliding 113 pixels onto its best match. The measurement is the gap: +13,985 Hz, +32.05 ppm. Then gate 3, which asked whether that corridor lands on a visible trace: 3 of 3 discriminated, a 95% lower bound of 0.37 against a threshold of 0.70, NOT ESTABLISHED. |
+| 5 | The result | 2250 to 2939 | 75.0 to 98.0 | Gate 6's wording, quoted from its receipt. Conflicts found in the 50 examined out of 87 decisively labelled: 12.6 expected by random, 14 by first in first out, 20 by the ranked queue, against 22 in the whole population. Then the lift on one axis: a threshold at 1.50, first in first out at 1.11, a point estimate of 1.58, and a 95% interval from 1.35 to 1.74 drawn straddling the threshold. NOT ESTABLISHED, direction spans_threshold. |
+| 6 | The gates | 2940 to 3419 | 98.0 to 114.0 | All six kill gates with the file each was decided in and the receipt's own verdict word. Then the tally: 3 of 6 met, and of the 4 that ask whether the idea works, 1 passed, the rest of the met tally being the feasibility checks answered before any pipeline code existed. Then the scale that tally sits on, from `artifacts/CIRCULARITY_RECEIPT.json`: the 22 conflicts that exist at this budget cap every possible ordering, a perfect oracle included, at 1.74 against a bar of 1.50, so the whole distance between the bar and perfection is 0.24. |
+| 7 | What holds | 3420 to 4079 | 114.0 to 136.0 | The three results that came back decided, read from `artifacts/AGENT_RECEIPT.json`, `artifacts/EXPLAIN_RECEIPT.json` and the held-out split of `artifacts/QUEUE_RECEIPT.json`. The evidence tools change what a local Granite model gets right, 22 of 24 against 2 of 24 with no tools, paired exact one sided 0.000001 over 20 discordant pairs. The grounding checker caught 525 of 525 planted falsehoods and refused 0 of 175 clean drafts. On ground stations the queue was never fitted to, lift is 2.25 with a 95% interval of 1.92 to 3.86, above the bar rather than spanning it, and the receipt records PASSED. |
+| 8 | Attribution | 4080 to 4259 | 136.0 to 142.0 | The six obligations `DATA_LICENSE.md` accepts for the waterfall the film displayed, read from that file's own row in `artifacts/ATTRIBUTION_AUDIT.json`: record URL, artifact URL, retrieval timestamp, sha256, licence, licence URL and modification notice, plus the notice this film adds. ShareAlike is stated: the film contains a SatNOGS waterfall, so the film carries CC BY-SA 4.0 rather than the repository's code licence. |
 
 Beat 5 is not softened. The film says the point estimate clears the threshold and the
 interval does not, and beat 6 states the tally as 3 of 6.
@@ -251,7 +261,9 @@ Re-render the film and the poster frame:
 
 ```
 cd presentation
-npm run render      # remotion render Film out/tracetriage-film.mp4 --concurrency=4 --muted --pixel-format=yuv420p
+npm run narration   # build the script and captions from the film's own claims
+python ../scripts/render_narration.py --model-dir <kokoro weights>
+npm run render      # remotion render Film out/tracetriage-film.mp4 --concurrency=4 --pixel-format=yuv420p
 npm run poster      # remotion still Film out/tracetriage-film-poster.jpg --frame=1730 --jpeg-quality=92
 ```
 
@@ -263,9 +275,11 @@ npm test            # vitest run
 npx tsc --noEmit    # the key paths are resolved in TypeScript, so this is a real check
 ```
 
-The film reads eight files outside this package and writes nothing outside
-`presentation/`. It does not need the console to be built, a network connection, a GPU or
-a model runtime.
+The film reads eight files outside this package for its figures and eight wav files from
+`apps/web/public/audio` for its voice, and writes nothing outside `presentation/`. It does
+not need the console to be built, a network connection or a GPU. Re-rendering the
+*narration* does need a model runtime, which is why the wavs are committed: a reader who
+wants the mp4 back does not have to fetch 354 MB of speech weights to get it.
 
 ## Verification, as it printed
 
@@ -273,7 +287,7 @@ a model runtime.
 
 ```
 > tracetriage-presentation@1.0.0 render
-> remotion render Film out/tracetriage-film.mp4 --concurrency=4 --muted --pixel-format=yuv420p
+> remotion render Film out/tracetriage-film.mp4 --concurrency=4 --pixel-format=yuv420p
 
 Getting composition
 Composition          Film
@@ -341,19 +355,30 @@ width=1920
 height=1080
 pix_fmt=yuv420p
 r_frame_rate=30/1
-nb_frames=3540
+nb_frames=4260
+[/STREAM]
+[STREAM]
+codec_name=aac
+sample_rate=48000
+channels=2
 [/STREAM]
 [FORMAT]
-nb_streams=1
-duration=118.000000
-size=4850926
+nb_streams=2
+duration=142.058667
+size=11108910
 [/FORMAT]
 ```
 
-One stream and no audio track, 1920 by 1080, exactly 30 frames a second, 3540 frames,
-118.0 seconds, which is 62 seconds inside the competition's three-minute ceiling. `nb_streams=1` is the line that matters for the no-audio requirement:
-Remotion adds a silent AAC track unless `--muted` is passed, and the first render of this
-film had one.
+Two streams, 1920 by 1080, exactly 30 frames a second, 4260 frames, 142.06 seconds, which
+is 38 seconds inside the competition's three-minute ceiling.
+
+`nb_streams=2` is now the line that matters, and it is asserted rather than read. The video
+block above selects `v:0`, so it cannot see whether there is any audio at all: a render
+that 404s on every wav still produces a correct video stream of the right length. This
+film rendered silent twice during the narration work and every check passed both times,
+because the frame count happened to move in the same commit. `claims.test.ts` now probes
+`a:0` separately and fails when the stream is missing, which is the check that would have
+caught it on its own.
 
 The test asserts the same four properties when the file exists and ffprobe is on the path,
 and says which one is missing rather than passing quietly when either is not.
@@ -368,8 +393,8 @@ three runs.
 
 | File | What it is |
 |---|---|
-| `presentation/out/tracetriage-film.mp4` | The film. 4,850,926 bytes, 118.0 s, 1920x1080, 30 fps, h264, no audio. |
-| `presentation/out/tracetriage-film-poster.jpg` | Poster frame at frame 1730, the physics beat with both curves and the measurement on screen. 275,349 bytes. |
+| `presentation/out/tracetriage-film.mp4` | The film. 11,108,910 bytes, 142.06 s, 1920x1080, 30 fps, h264 video and AAC narration, 48 kHz stereo. |
+| `presentation/out/tracetriage-film-poster.jpg` | Poster frame at frame 1730, the physics beat with both curves and the measurement on screen. 234,868 bytes. |
 | `presentation/src/data.ts` | Every claim, with its file and key path. The single place a number enters the film. |
 | `presentation/src/claim.ts` | The path resolver and the formatters. |
 | `presentation/src/theme.ts` | The console's tokens, copied from `globals.css` and checked against it by the test. |

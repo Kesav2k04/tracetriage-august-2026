@@ -226,6 +226,24 @@ def main(argv: list[str] | None = None) -> int:
         print("[FAIL] the committed manifest carries no frozen_at to pin the rebuild to")
         return 1
 
+    # Three outcomes, not two, and that is the whole point of this check's shape.
+    #
+    # It used to return the moment a builder could not run, and the builder that needs
+    # the 20 GB snapshot ran first, so on any machine without the snapshot the function
+    # returned before reaching the builders that need nothing. That is why a check
+    # described as the strongest anti-staleness gate in the repository had never once
+    # run in CI: it reported success from a line that had compared nothing.
+    #
+    # So a builder that cannot run is recorded in `skipped`, a comparison that ran is
+    # recorded in `compared`, and only a real difference sets `failed`. The summary at
+    # the end prints both lists, and it refuses to report a pass when `compared` is
+    # empty, because "nothing was stale" and "nothing was checked" are different
+    # sentences and only one of them is evidence.
+    failed = False
+    compared: list[str] = []
+    skipped: list[str] = []
+    snapshot = True
+
     with tempfile.TemporaryDirectory(prefix="tracetriage-freshness-") as tmp:
         # HERO_NULLS.json is deterministic and carries no timestamp, so it compares
         # exactly. It is also the artifact whose generator defaults had drifted away
@@ -311,6 +329,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"[PASS] {len(rebuilt_names)} published files match what the console "
                     "builder produces"
                 )
+                compared.append(f"apps/web/public/data ({len(rebuilt_names)} files)")
                 # Named rather than skipped. cards.json needs the waterfall PNGs, so a
                 # JSON-only rebuild cannot produce it, and a check that quietly ignored it
                 # would read as covering the directory.
@@ -381,6 +400,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                     return 1
                 print(f"[PASS] {name} matches what the builder produces")
+                compared.append(name)
 
         # TRIAGE_RECEIPT.json earned its place the same way HERO_NULLS did. It was
         # written on 2026-08-17 and D1 added five fields to the corridor summary it
@@ -417,6 +437,7 @@ def main(argv: list[str] | None = None) -> int:
                 print("          python scripts/render_evidence_card.py")
                 return 1
             print("[PASS] TRIAGE_RECEIPT.json matches what the slice produces")
+            compared.append("TRIAGE_RECEIPT.json")
 
         if args.deep:
             # PHYSICS_VALIDATION.json is here rather than in the default set because
@@ -445,6 +466,7 @@ def main(argv: list[str] | None = None) -> int:
                         print(f"        {diff}")
                         return 1
                     print("[PASS] PHYSICS_VALIDATION.json matches what the validator produces")
+                    compared.append("PHYSICS_VALIDATION.json")
                 else:
                     print(
                         "[NOTE] the validator ignored A4_OUT_PATH, so this comparison "
@@ -473,7 +495,29 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"        {diff}")
                 return 1
             print("[PASS] GATE3_RECEIPT.json matches what the runner produces")
+            compared.append("GATE3_RECEIPT.json")
 
+    # The summary is the part a reader should be able to act on. A count of what was
+    # compared is the only thing that distinguishes a clean run from a run that did
+    # nothing, so it is printed either way and it decides the exit code.
+    print()
+    if compared:
+        print(f"compared {len(compared)}: {', '.join(compared)}")
+    if skipped:
+        print(f"not compared here {len(skipped)}: {', '.join(skipped)}")
+        print(
+            f"        Set {_PAGES_DIR_ENV} to the snapshot's pages folder to check those."
+        )
+    if failed:
+        print("at least one artifact is stale, and the lines above say which")
+        return 1
+    if not compared:
+        print(
+            "nothing was compared, so this is not a pass. Every builder was skipped, "
+            "which means this run is no evidence that any artifact is current."
+        )
+        return 1
+    print(f"{len(compared)} artifact(s) match their builders")
     return 0
 
 

@@ -124,8 +124,8 @@
   },
   {
    "name": "FILM_RECEIPT.json",
-   "sha256": "5527afe8b51c8a750270e310eb597c30f3918ce9eed54f41ca8bbe651a0b8a60",
-   "bytes": 2917
+   "sha256": "488d1a0b54e8d5d03f8386d7de5c46fc3234f7141c78b27dfcd1c22398fd49e6",
+   "bytes": 4984
   },
   {
    "name": "FONT_PAINT_RECEIPT.json",
@@ -211,6 +211,11 @@
    "name": "MOTION_RECEIPT.json",
    "sha256": "7848414e2567859de6ec3da143eba2a4d951780ec878a0da5a07dfbbfb3d03aa",
    "bytes": 13006
+  },
+  {
+   "name": "NARRATION_RECEIPT.json",
+   "sha256": "d64951167a183477dfbab5d6006a75fbb30656914bd16011f9e93a41b52063c5",
+   "bytes": 14535
   },
   {
    "name": "OPERATOR_SESSION.json",

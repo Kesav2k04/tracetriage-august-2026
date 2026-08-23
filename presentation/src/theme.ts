@@ -67,5 +67,18 @@ export const FPS = 30;
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
 
+/**
+ * Silence held either side of a spoken line, in seconds.
+ *
+ * Here rather than in `narration.ts` because `Film.tsx` needs the lead-in to place
+ * the audio and `narration.ts` needs both to compute each beat's speech budget, and
+ * `narration.ts` already imports `BEATS` from `Film.tsx`. Putting them beside FPS is
+ * what keeps that from becoming an import cycle, which it was for one commit.
+ *
+ * The tail is what stops a line being spoken over the cut into the next card.
+ */
+export const LEAD_IN_SECONDS = 0.35;
+export const TAIL_SECONDS = 0.3;
+
 /** The margin the console uses on a full-bleed page, scaled to 1080p. */
 export const MARGIN = 96;

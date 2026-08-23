@@ -506,6 +506,40 @@ describe("the rendered file", () => {
     expect(stream.r_frame_rate).toBe(`${FPS}/1`);
     expect(Number(stream.nb_frames)).toBe(FILM_FRAMES);
   });
+
+  it("carries the narration track, which nothing here used to check", () => {
+    // This test exists because the film rendered silent twice and everything passed.
+    // The block above selects v:0, so it cannot see whether there is any audio at
+    // all: a render that 404s on every wav still produces a correct video stream of
+    // the right length. Both silent renders were caught by a frame count that
+    // happened to move at the same time, which is luck rather than a check.
+    if (!existsSync(OUT)) return;
+    let probe: string;
+    try {
+      probe = execFileSync(
+        "ffprobe",
+        [
+          "-v",
+          "error",
+          "-select_streams",
+          "a:0",
+          "-show_entries",
+          "stream=codec_type,channels,sample_rate",
+          "-of",
+          "json",
+          OUT,
+        ],
+        { encoding: "utf-8" },
+      );
+    } catch {
+      console.warn("ffprobe is not on PATH, so the audio track was not checked");
+      return;
+    }
+    const streams = JSON.parse(probe).streams;
+    expect(streams, "the film has no audio stream").toHaveLength(1);
+    expect(streams[0].codec_type).toBe("audio");
+    expect(Number(streams[0].channels)).toBeGreaterThanOrEqual(1);
+  });
 });
 
 describe("the film can draw every verdict the receipts hold", () => {

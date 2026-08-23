@@ -77,6 +77,18 @@ onnx = [
     "onnx>=1.17",
     "onnxruntime>=1.20",
 ]
+# The film's narration track, and the instrument that checks it. Kokoro 82M speaks the
+# lines and faster-whisper transcribes the result so every spoken figure can be checked
+# against the receipt it came from. Optional because neither is needed to run the gate,
+# build the console or reproduce a measurement: they produce one media artifact, and the
+# committed wavs plus artifacts/NARRATION_RECEIPT.json are what a reader checks instead.
+# The Kokoro weights are 354 MB and are not committed; scripts/render_narration.py names
+# the two commands that fetch them.
+narration = [
+    "kokoro-onnx>=0.4",
+    "faster-whisper>=1.1",
+    "soundfile>=0.12",
+]
 # The LangChain adapter in pipeline/tracetriage/langchain_tools.py. Optional on purpose,
 # for the same reason as the vector index: it adapts tools that already exist and reach the
 # same handlers, so a clean clone without it installs, runs the suite and reproduces every

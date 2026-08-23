@@ -38,6 +38,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { BEATS, FILM_FRAMES } from "../src/Film";
+import { NARRATION } from "../src/narration";
 import { ALL_CLAIMS, FILE } from "../src/data";
 import { FPS, HEIGHT, WIDTH } from "../src/theme";
 
@@ -144,12 +145,17 @@ const receipt = (): Record<string, unknown> => ({
     seconds: round3(FILM_FRAMES / FPS),
     width: WIDTH,
     height: HEIGHT,
-    audio: false,
+    // Derived, and it was the literal `false` for one commit after the narration
+    // landed. A receipt whose job is to stop REPORT.md drifting cannot itself hold a
+    // typed claim about the film: the mp4 had an AAC stream and this field said it
+    // did not. It is now a function of whether every beat has a line to speak.
+    audio: BEATS.every((beat) => NARRATION[beat.name] !== undefined),
   },
   beats: BEATS.map((beat) => ({
     name: beat.name,
     frames: beat.durationInFrames,
     seconds: round3(beat.durationInFrames / FPS),
+    narration: NARRATION[beat.name]?.text ?? null,
   })),
   claims: {
     total: Object.keys(ALL_CLAIMS).length,

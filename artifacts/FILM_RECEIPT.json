@@ -1,58 +1,66 @@
 {
  "schema": "FILM_RECEIPT",
  "schema_version": 1,
- "generated_at": "2026-08-22T23:45:33.719Z",
+ "generated_at": "2026-08-23T08:53:42.674Z",
  "generated_by": "presentation/scripts/report-table.ts",
  "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so REPORT.md and this receipt cannot disagree about the same film.",
  "composition": {
   "beats": 8,
-  "frames": 3540,
+  "frames": 4260,
   "fps": 30,
-  "seconds": 118,
+  "seconds": 142,
   "width": 1920,
   "height": 1080,
-  "audio": false
+  "audio": true
  },
  "beats": [
   {
    "name": "Title",
    "frames": 150,
-   "seconds": 5
+   "seconds": 5,
+   "narration": "TraceTriage. Which satellite passes are worth a reviewer's time."
   },
   {
    "name": "Problem",
-   "frames": 420,
-   "seconds": 14
+   "frames": 540,
+   "seconds": 18,
+   "narration": "Volunteers point radios at satellites, then judge what came back by eye. This frozen snapshot holds two thousand seven hundred and twenty seven captures. Only 739 carry a decisive verdict. The rest were recorded, and nobody read them."
   },
   {
    "name": "Queue",
-   "frames": 600,
-   "seconds": 20
+   "frames": 660,
+   "seconds": 22,
+   "narration": "So the queue ranks 407 observations by what a reviewer would learn, and spends a fixed budget of 50 on the top of it. Not the loudest signals. The ones where the evidence disagrees with itself: 17 stale catalogue frequencies, and 3 where the model and the network label do not match."
   },
   {
    "name": "Physics",
-   "frames": 720,
-   "seconds": 24
+   "frames": 900,
+   "seconds": 30,
+   "narration": "The shape is the test. From this pass's own orbital elements, propagated with S G P 4, the expected Doppler curve spans seventeen thousand two hundred and ninety hertz. Slide that curve 113 pixels and it lands on the trace. The gap is the measurement: plus thirteen thousand nine hundred and eighty five hertz, plus 32.05 parts per million. This station had already taken the Doppler out, and nothing in the observation record says so."
   },
   {
    "name": "Result",
-   "frames": 570,
-   "seconds": 19
+   "frames": 690,
+   "seconds": 23,
+   "narration": "The gate written down in advance asked the queue to find one and a half times as many conflicts as random ordering at the same budget. It found 20 where random expects 12.6. That is a lift of 1.58. The interval runs 1.35 to 1.74, so it straddles the bar, and this is published as not established."
   },
   {
    "name": "Gates",
-   "frames": 450,
-   "seconds": 15
+   "frames": 480,
+   "seconds": 16,
+   "narration": "Six gates, with their thresholds, written down before anything was measured. 3 of 6 were met. A point estimate above the bar whose interval crosses it counts as a failure here, which is stricter than the brief asked for."
   },
   {
    "name": "Established",
-   "frames": 450,
-   "seconds": 15
+   "frames": 660,
+   "seconds": 22,
+   "narration": "Three results did come back decided. Read-only evidence tools take a local Granite model from 2 of 24 right to 22 of 24. The grounding checker caught 525 of 525 planted falsehoods, and refused 0 of 175 clean drafts. On ground stations the queue was never fitted to, lift is 2.25, and that one passes."
   },
   {
    "name": "Colophon",
    "frames": 180,
-   "seconds": 6
+   "seconds": 6,
+   "narration": "The waterfall in this film is a public SatNOGS capture, cited and licensed."
   }
  ],
  "claims": {
@@ -85,13 +93,13 @@
  ],
  "render": {
   "path": "presentation/out/tracetriage-film.mp4",
-  "bytes": 4754228,
-  "sha256": "4d92cd4de25ccee0cec00a6850fb06703824ffd4afbe3bf165fa344b0e28b166"
+  "bytes": 11108910,
+  "sha256": "99ee32f81fd05747dc466c311480cd4a533c04ae4e1518d526faf130e9895d5e"
  },
  "poster": {
   "path": "presentation/out/tracetriage-film-poster.jpg",
-  "bytes": 293847,
-  "sha256": "b9a4ff57585c0e6680a45d8eee88d9a180a227a35ead09872da813bb8459fc05"
+  "bytes": 234868,
+  "sha256": "3336210b0a70bad8cc9e7d5500654d7ddcbbdc937c5e7c1ec3b35f8679c249ab"
  },
  "what_this_does_not_measure": [
   "Whether the film is any good, or whether a viewer follows it.",

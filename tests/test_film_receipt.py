@@ -152,6 +152,42 @@ def test_the_report_and_the_receipt_describe_the_same_film(film: dict) -> None:
     )
 
 
+def test_the_reports_beat_table_names_the_windows_the_receipt_computes(film: dict) -> None:
+    """Every row of the hand-written beat table, against the beat list.
+
+    The test above catches the total moving. It cannot catch a beat inside the film
+    getting longer while the total stays put, and it cannot catch what actually happened
+    when the narration went in: six of the eight beats were retimed at once, and the
+    table went on printing the old windows beside prose that was still correct.
+
+    So each row's frame window is recomputed from the receipt's own beat list and looked
+    for in the document. A retimed beat now fails here rather than leaving a reader with
+    a timecode that points at the wrong card.
+    """
+    report = REPO / "presentation" / "REPORT.md"
+    if not report.is_file():
+        pytest.skip("presentation/REPORT.md is not in this checkout")
+
+    text = report.read_text(encoding="utf-8")
+    fps = film["composition"]["fps"]
+    start = 0
+    missing = []
+    for beat in film["beats"]:
+        end = start + beat["frames"] - 1
+        window = f"{start} to {end}"
+        span = f"{start / fps:.1f} to {(end + 1) / fps:.1f}"
+        if window not in text:
+            missing.append(f"{beat['name']}: frames {window!r}")
+        if span not in text:
+            missing.append(f"{beat['name']}: seconds {span!r}")
+        start = end + 1
+
+    assert not missing, (
+        "REPORT.md's beat table does not name these windows, so it is describing a "
+        "different cut: " + "; ".join(missing)
+    )
+
+
 def test_what_it_does_not_measure_is_stated_rather_than_implied(film: dict) -> None:
     """Every receipt here carries its own limits, and an empty list is not a limit."""
     limits = film["what_this_does_not_measure"]
