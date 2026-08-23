@@ -451,7 +451,34 @@ def main(argv: list[str] | None = None) -> int:
         # than from this script's idea of which one it should be, so the rebuild
         # compares like with like.
         triage_path = ARTIFACTS / "TRIAGE_RECEIPT.json"
-        if triage_path.exists():
+        # The slice re-applies a trained model rather than training one, and the pickle it
+        # reads is caught by `artifacts/**/*` in .gitignore and never re-included, so a
+        # clone does not have it. Without it the slice still runs and writes a receipt whose
+        # `model_checksum` is null, which its own schema rejects, so the builder exits
+        # non-zero and this row printed [FAIL] on every fresh clone. A 1 MB input the
+        # repository deliberately does not publish being absent is not a stale receipt.
+        #
+        # Checked as a precondition rather than read out of the traceback. The words a
+        # schema rejection produces are the same whether the cause is an absent model or a
+        # real regression in the receipt's shape, and `_builder_outcome` cannot separate
+        # them: it earns NOT_CONFIGURED only for the designed pages-directory refusal with
+        # the variable unset, and in the clone's snapshot-present pass the variable is set.
+        model_path = ARTIFACTS / "hoglr_model.pkl"
+        if triage_path.exists() and not model_path.exists():
+            print(
+                f"{SKIP_PREFIX} the triage slice needs artifacts/hoglr_model.pkl, which "
+                f"this repository does not publish."
+            )
+            print(
+                "        Nothing it owns was compared and nothing it owns is known to be "
+                "stale. Rebuild the model first:"
+            )
+            print(
+                "          python scripts/run_baseline.py --save-model "
+                "artifacts/hoglr_model.pkl"
+            )
+            skipped.append("TRIAGE_RECEIPT.json")
+        elif triage_path.exists():
             committed_triage = _load(triage_path)
             rebuilt_triage = pathlib.Path(tmp) / "TRIAGE_RECEIPT.json"
             proc = subprocess.run(
@@ -467,19 +494,26 @@ def main(argv: list[str] | None = None) -> int:
                 encoding="utf-8", errors="replace",
             )
             if proc.returncode != 0:
-                return _report_crash("the triage slice", proc)
-            diff = _first_difference(
-                _strip(committed_triage), _strip(_load(rebuilt_triage))
-            )
-            if diff:
-                print("[FAIL] TRIAGE_RECEIPT.json is stale. First difference:")
-                print(f"        {diff}")
-                print("        Rebuild it, then regenerate the card:")
-                print("          python scripts/run_triage_slice.py")
-                print("          python scripts/render_evidence_card.py")
-                return 1
-            print("[PASS] TRIAGE_RECEIPT.json matches what the slice produces")
-            compared.append("TRIAGE_RECEIPT.json")
+                # Recorded and carried past, the way every builder above this one is. It
+                # used to return here, which is the shape the comment on `_report_crash`
+                # describes: the first builder that could not run decided the exit code and
+                # the two rows below it never ran at all.
+                if _report_crash("the triage slice", proc):
+                    return 1
+                skipped.append("TRIAGE_RECEIPT.json")
+            else:
+                diff = _first_difference(
+                    _strip(committed_triage), _strip(_load(rebuilt_triage))
+                )
+                if diff:
+                    print("[FAIL] TRIAGE_RECEIPT.json is stale. First difference:")
+                    print(f"        {diff}")
+                    print("        Rebuild it, then regenerate the card:")
+                    print("          python scripts/run_triage_slice.py")
+                    print("          python scripts/render_evidence_card.py")
+                    return 1
+                print("[PASS] TRIAGE_RECEIPT.json matches what the slice produces")
+                compared.append("TRIAGE_RECEIPT.json")
 
         if args.deep:
             # PHYSICS_VALIDATION.json is here rather than in the default set because
@@ -547,9 +581,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"compared {len(compared)}: {', '.join(compared)}")
     if skipped:
         print(f"not compared here {len(skipped)}: {', '.join(skipped)}")
-        print(
-            f"        Set {_PAGES_DIR_ENV} to the snapshot's pages folder to check those."
-        )
+        # The remedy is per skip and no longer stated here. This line used to say to set
+        # TRACETRIAGE_PAGES_DIR, which is right for the snapshot skips and wrong for the
+        # triage slice's, whose remedy is rebuilding a model the repository does not
+        # publish. One instruction printed under a mixed list is wrong for part of it.
+        print("        Each [SKIP] line above names what it needs.")
     if failed:
         print("at least one artifact is stale, and the lines above say which")
         return 1

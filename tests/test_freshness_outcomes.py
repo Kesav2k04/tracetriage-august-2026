@@ -145,15 +145,40 @@ def test_naming_the_variable_alone_does_not_buy_a_skip(checker):
     assert checker._builder_outcome(1, banner) == checker.CRASHED
 
 
+#: What a skip is allowed to be waiting for, and nothing else. A `[SKIP]` line has to name
+#: the thing that would let the builder run, or a reader cannot act on it and cannot tell a
+#: designed refusal from a swallowed error. Two entries, because there are two absent inputs
+#: the repository deliberately does not carry: the 20 GB snapshot, addressed by the variable,
+#: and the trained model, which `artifacts/**/*` excludes. Adding a third is a deliberate
+#: act: it means a new class of input is missing from a clone, and that is worth arguing
+#: about rather than absorbing.
+#:
+#: The model-absent branch is not exercised from here, and that is stated rather than left
+#: to be discovered. This machine has the pickle, and the only ways to hide it from a
+#: subprocess are to move a file the repository does not track, which leaves the tree broken
+#: if the test is interrupted, or to add an environment variable to the checker that exists
+#: for the test. Both cost more than they buy: the run that finds a regression here is
+#: `scripts/clean_clone_check.py`, which builds an environment that genuinely lacks the file,
+#: and `artifacts/CLEAN_CLONE_TRANSCRIPT.json` carries its output. It found this defect.
+_WHAT_A_SKIP_MAY_BE_WAITING_FOR = ("TRACETRIAGE_PAGES_DIR", "artifacts/hoglr_model.pkl")
+
+
 @_NEEDS_VENV
 def test_a_missing_snapshot_skips_and_costs_nothing():
-    """Exit 0, a [SKIP] line per snapshot-dependent builder, the variable named each time.
+    """Exit 0, a [SKIP] line per builder that cannot start, each naming what it needs.
 
     The count is not pinned to one any more. It was, and that encoded "exactly one builder
     needs the snapshot", which held until a satellite-name exporter was added beside the
     split builder. Two correct skips then failed a test whose point was that a skip is not
-    a failure. What has to be true is that every builder which cannot start says so and
-    names the variable that would let it, so that is what is asserted.
+    a failure.
+
+    The assertion then required every skip to name `TRACETRIAGE_PAGES_DIR`, which encoded
+    the next assumption: that the snapshot is the only thing a clone can be missing. It is
+    not. `artifacts/hoglr_model.pkl` is excluded by `artifacts/**/*`, the triage slice reads
+    it rather than training one, and without it the slice writes a receipt whose
+    `model_checksum` is null and fails its own schema. On a fresh clone that printed [FAIL]
+    and this test failed on a builder behaving correctly. So what is required is that each
+    skip names something from a short, explicit list of things a clone can legitimately lack.
     """
     finished = _run(None)
     out = finished.stdout or ""
@@ -161,7 +186,7 @@ def test_a_missing_snapshot_skips_and_costs_nothing():
     skips = [line for line in out.splitlines() if line.startswith("[SKIP]")]
     assert skips, out
     for skip in skips:
-        assert "TRACETRIAGE_PAGES_DIR" in skip, skip
+        assert any(need in skip for need in _WHAT_A_SKIP_MAY_BE_WAITING_FOR), skip
     assert "[FAIL]" not in out, out
     # "nothing it owns" rather than "nothing here". The old wording said "nothing here is
     # stale", which was true of the whole run only while the script returned at the first

@@ -24,7 +24,6 @@ vertical, station M0EYT/2E0NOG, NORAD 63214).  Rationale:
 Usage
 -----
     python scripts/run_triage_slice.py \\
-        --snapshot   D:/tracetriage_data/snap-stage1 \\
         --obs-id     14740031 \\
         --out        artifacts/TRIAGE_RECEIPT.json \\
         --seed       42
@@ -110,6 +109,30 @@ def _a3_correction_status(obs_id: int) -> str:
 # ---------------------------------------------------------------------------
 # Snapshot helpers
 # ---------------------------------------------------------------------------
+
+def _resolve_snapshot(given: Path | None) -> Path:
+    """The snapshot root, from the flag or from the environment, or a stated refusal.
+
+    This defaulted to ``Path("D:/tracetriage_data/snap-stage1")``, one machine's drive
+    letter in a published script, and the failure it produced on any other checkout was
+    ``FileNotFoundError: Manifest not found: D:\\...``. That reads like a corrupt snapshot
+    rather than like a path from somebody else's computer, and it had a second cost:
+    `scripts/check_artifact_freshness.py` classifies a builder that raises anything other
+    than `SplitsPathNotConfigured` as CRASHED, so on a fresh clone the triage-slice row
+    printed [FAIL] and two tests in `tests/test_freshness_outcomes.py` failed. A 20 GB data
+    plane that is deliberately outside the repository being absent is not staleness.
+
+    So the same refusal `pipeline/tracetriage/splits.py` already raises for the pages
+    directory, for the same reason and naming the same variable. The pages directory is the
+    snapshot's own subfolder, so one variable addresses both and there is no second thing
+    to configure.
+    """
+    if given is not None:
+        return given.resolve()
+    from pipeline.tracetriage.splits import _default_pages_dir
+
+    return _default_pages_dir().resolve().parent
+
 
 def _load_manifest(snapshot_dir: Path) -> dict[str, Any]:
     manifest_path = snapshot_dir / "DATASET_MANIFEST.json"
@@ -365,8 +388,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="End-to-end triage slice for one observation."
     )
-    parser.add_argument("--snapshot", type=Path,
-                        default=Path("D:/tracetriage_data/snap-stage1"))
+    parser.add_argument("--snapshot", type=Path, default=None,
+                        help="the snapshot root. Defaults to the parent of "
+                             "TRACETRIAGE_PAGES_DIR, and refuses if that is unset.")
     parser.add_argument("--obs-id", type=int, default=14740031,
                         help="SatNOGS observation ID to triage")
     parser.add_argument("--out", type=Path,
@@ -380,7 +404,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     obs_id = args.obs_id
-    snapshot_dir = args.snapshot.resolve()
+    snapshot_dir = _resolve_snapshot(args.snapshot)
 
     # ── 1. Load manifest entry ────────────────────────────────────────────────
     logger.info("Loading manifest from %s", snapshot_dir)
