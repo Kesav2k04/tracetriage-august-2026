@@ -97,6 +97,7 @@ gate4 = _receipt("GATE4_RECEIPT.json")
 #: reviewer has to be sent. Read here so this page names an archive that exists at a
 #: digest somebody can check, rather than describing an instrument nobody can reach.
 gate4_bundle = _receipt("GATE4_BUNDLE.json")
+throughput = _receipt("THROUGHPUT_RECEIPT.json")
 agent = _receipt("AGENT_RECEIPT.json")
 precedent = _receipt("PRECEDENT_RECEIPT.json")
 circularity = _receipt("CIRCULARITY_RECEIPT.json")
@@ -1339,7 +1340,28 @@ FEASIBILITY_TWO = _para(
     tracked files as of commit `{AUDIT_COMMIT}`, `artifacts/SECRET_SCAN.json` reports
     {secrets["n_findings"]}
     credential-shaped {_plural(secrets["n_findings"], "value", "values")} across the history
-    it scanned, and the console is a static export, so hosting it costs nothing."""
+    it scanned, and the console is a static export apart from the one function that serves the
+    live measurement, so hosting it costs nothing at this size."""
+)
+
+#: Scale was the one feasibility question with a measured answer and no published number.
+#: `artifacts/THROUGHPUT_RECEIPT.json` has been gate-checked against its inputs since it was
+#: written and appeared in neither judge-facing document, so a reader was asked to take
+#: scalability on trust while the receipt sat in the tree.
+FEASIBILITY_THREE = _para(
+    f"""Scale is measured rather than asserted. The dominant stage is the corridor fit at
+    {throughput["headroom"]["seconds_per_observation"]:.2f} seconds an observation, which is
+    {throughput["headroom"]["observations_per_day_one_core"]:,} observations a day on one
+    core, against the {throughput["headroom"]["network_observations_per_day"]:,} captures a
+    day the network produced across the span this snapshot covers. That is
+    {throughput["headroom"]["headroom_multiple"]:.1f} times the whole network's daily output
+    on a single core, or {throughput["headroom"]["cores_to_keep_up"]:.3f} of one to keep up,
+    and `artifacts/THROUGHPUT_RECEIPT.json` names the artifact each timing was taken from.
+    Ingestion is the slower half at
+    {throughput["what_ingestion_costs"]["seconds_per_observation"]:.2f} seconds an
+    observation, and it is slow on purpose: that figure is dominated by the
+    {throughput["what_ingestion_costs"]["request_interval_seconds"]}-second courtesy interval
+    this project holds between requests to a volunteer-run API."""
 )
 
 IMPACT = _para(
@@ -1664,6 +1686,8 @@ matching its receipt.
 {FEASIBILITY_ONE}
 
 {FEASIBILITY_TWO}
+
+{FEASIBILITY_THREE}
 
 #### Real-World Impact
 

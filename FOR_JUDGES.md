@@ -237,7 +237,17 @@ switched off.
 
 The repository is 48.32 MB across 457 tracked files as of commit `ed07e1c`,
 `artifacts/SECRET_SCAN.json` reports 0 credential-shaped values across the history it
-scanned, and the console is a static export, so hosting it costs nothing.
+scanned, and the console is a static export apart from the one function that serves the
+live measurement, so hosting it costs nothing at this size.
+
+Scale is measured rather than asserted. The dominant stage is the corridor fit at 1.26
+seconds an observation, which is 68,702 observations a day on one core, against the 6,380
+captures a day the network produced across the span this snapshot covers. That is 10.8
+times the whole network's daily output on a single core, or 0.093 of one to keep up, and
+`artifacts/THROUGHPUT_RECEIPT.json` names the artifact each timing was taken from.
+Ingestion is the slower half at 1.82 seconds an observation, and it is slow on purpose:
+that figure is dominated by the 0.4-second courtesy interval this project holds between
+requests to a volunteer-run API.
 
 #### Real-World Impact
 

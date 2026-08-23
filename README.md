@@ -40,13 +40,16 @@
 | **The pre-registered result** | Queue lift **1.582x**, 95% CI [1.353, 1.740], reported **NOT ESTABLISHED** because the interval contains the 1.5 threshold. On held-out stations the same queue reaches **2.253x** and **PASSES**. Both are published at the same size. |
 | **How IBM Bob was used** | Primary development tool. **10 dated Bob-account units** built the data contracts, the frozen snapshot, the waterfall parser, the physics corridor, the grouped splits and the review-value queue. `docs/BOB_BUILD_LOG.md` names each one with its files, commits, failures and repairs. |
 | **What makes it unusual** | Six kill gates with numeric thresholds were written down **before anything was measured**, and a gate is met only when a 95% interval clears its threshold, so a point estimate above the bar whose interval straddles it is published as a failure. Every gate that is not met carries a computed reason and an exact condition that would close it. |
+| **Whether it scales** | Measured, not asserted. The dominant stage ranks **68,702 observations a day on one core** against the **6,380** a day the network produced over this snapshot's span: **10.8x** the whole network's output on a single core, or 0.093 of one to keep up. `artifacts/THROUGHPUT_RECEIPT.json`. |
 | **Check it in 60 seconds** | `pip install -e .` then `tracetriage triage 14740031`, which measures an observation recorded today against the same physics the queue ranks on. Sixty seconds is a warm pip cache; a cold one needs one online install first. |
 
 **Everything a judge needs to score this is mapped, twice.** The
 [start page](https://tracetriage.vercel.app/start/) is the console version and
-[`FOR_JUDGES.md`](FOR_JUDGES.md) is the repository version. Both are generated from the
-receipts by `scripts/sync_for_judges.py`, so neither can drift from the numbers it quotes,
-and `scripts/gate.py` fails if either does.
+[`FOR_JUDGES.md`](FOR_JUDGES.md) is the repository version. Neither can drift from the
+numbers it quotes, by two different mechanisms rather than one: `FOR_JUDGES.md` is written
+by `scripts/sync_for_judges.py` from the receipts, and the start page reads them through
+`apps/web/lib/data`, which `scripts/build_console_data.py` generates from the same
+receipts. `scripts/gate.py` carries a row for each and fails if either drifts.
 
 ## What the submission asks for, and where it is
 
@@ -219,15 +222,23 @@ stay unlabelled rather than being coerced into a negative class.
 
 **Granite writes the first sentence, and a checker refuses most of what it writes.** Granite
 3.1 dense 8B runs locally at Q4_K_M, temperature zero. Of 25 cards, 10 drafts were accepted
-and 15 refused on 17 violations. In **9 of the 25** the model wrote a downlink frequency in
-megahertz that was not this observation's, wrong by 10 kHz to 1215 kHz, and each invented
-value lands within five percent of the real one, which is what makes it dangerous: the
-number looks like the number that belongs there. The checker is measured in both directions,
+and 15 refused on 17 violations. The checker is measured in both directions,
 because a checker that refuses everything catches every adversarial draft: **525 of 525**
 adversarial checks refused for the reason they were built to trip, and **0 of 175** clean
 checks refused. Generation turned out not to be reproducible at temperature zero, so the
 text a reviewer sees is frozen into a committed fixture and the disagreement rate is
 published beside it. Full method in `artifacts/EXPLAIN_RECEIPT.json`.
+
+**The hallucination has a shape, and it is the dangerous shape.** In **9 of the 25** cards
+Granite wrote a downlink frequency in megahertz that was not this observation's, wrong by
+10 kHz to 1215 kHz, and every invented value landed **within five percent** of the real
+one. That is the result worth carrying to another corpus. A wrong number that looks nothing
+like the right one is caught by whoever reads it; a wrong number within five percent of the
+right one is not, and on telemetry the difference between 437.05 MHz and 437.06 MHz is the
+difference between a satellite and nothing. It is why the checker compares every numeric
+token against the packet rather than scoring the sentence, and why refusing 15 of 25 drafts
+is the system working rather than the model failing. `artifacts/EXPLAIN_RECEIPT.json` lists
+each case with the value written and the value measured.
 
 **The agent is measured against a control, which is the point.** `pipeline/tracetriage/agent.py`
 drives the five MCP tools from the local Granite model over real stdio JSON-RPC and
