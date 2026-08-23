@@ -48,7 +48,11 @@ ordering had to win in was 0.240 wide.
 | Can an agent query the evidence? | `python scripts/mcp_server.py` on stdio | An MCP handshake, 7 tools over committed receipts and 4 receipt resources. One tool is the grounding checker |
 | Does the repository hold together? | `python scripts/gate.py` | The standing gates, one line each |
 
-**None of the seven needs a GPU, a model runtime or a network connection.**
+**Six of the seven need no GPU, no model runtime and no network connection, and
+the live measurement is the exception on purpose.** That row fetches one waterfall from the
+public SatNOGS API, without a credential, because a check that measures an observation
+recorded today cannot be offline and still be that check. Every number this page prints comes
+from the other six.
 `tracetriage note` reads frozen drafts and the verdicts the checker recorded against them.
 `scripts/run_agent_study.py` and `scripts/run_explanations.py` publish from committed
 fixtures and talk to a model only under `--freeze`, which is a step for re-measuring rather
@@ -153,25 +157,27 @@ than asserting a total. `docs/BOB_BUILD_LOG.md` carries 10 dated Bob-account uni
 A6, A5, A0, A0b-INT, A1, A2, A4, B1, C1: the data contracts, the immutable snapshot, the
 waterfall artifact parser, the physics corridor, label provenance, the image-only
 baselines, the end-to-end triage slice, the grouped splits with their leakage audit, and
-the review-value queue with kill gate 6. Everything this submission measures runs on their
-output: that snapshot, those splits, those parsed artifacts. Each unit names the files it
-changed, the commands that were run, the Bob task id and what failed before it was
-accepted. A further 49 dated units are operator-side, run from Cursor and Claude Code, and
-are labelled that way in the actor field of their own headings: what they produced is the
-console, the calibration and abstention blocks, the fusion ladder and the review waves,
-which sit on top of that pipeline rather than being it. Bob also operates the product:
-`.bob/mcp.json` registers the evidence server and the live measurement server, so a Bob
-session can measure a pass recorded today and have the same grounding checker refuse a
-sentence about it. `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the
-standing instructions, tool contracts and MCP registration each task ran under, tracked so
-the conditions of the work are readable and not only its output.
-`docs/PRE_BUILD_BASELINE.md` records what existed before the first Bob task, so the line
-between scaffolding and built work is auditable rather than asserted. Two details of the
-accounting, for a reader recounting the headings by hand. 47 of the operator-side units
-sit in `docs/OPERATOR_BUILD_LOG.md` and 2 stay beside the Bob units whose gaps they
-closed, because the counter reads the actor out of each heading rather than off a
-filename. And the number here used to be 60, which was the count of second-level markdown
-headings in one file and not the count of anything anyone did.
+the review-value queue with kill gate 6. That snapshot, those splits and those parsed
+artifacts are what every measurement in this submission is computed from, including the
+operator-side work named next: the fusion head and the calibration run on Bob's splits
+rather than instead of them. Each unit names the files it changed, the commands that were
+run, the Bob task id and what failed before it was accepted. A further 49 dated units are
+operator-side, run from Cursor and Claude Code, and are labelled that way in the actor
+field of their own headings: what they produced is the console, the calibration and
+abstention blocks, the fusion ladder and the review waves, which sit on top of that
+pipeline rather than being it. Bob also operates the product: `.bob/mcp.json` registers
+the evidence server and the live measurement server, so a Bob session can measure a pass
+recorded today and have the same grounding checker refuse a sentence about it.
+`.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions,
+tool contracts and MCP registration each task ran under, tracked so the conditions of the
+work are readable and not only its output. `docs/PRE_BUILD_BASELINE.md` records what
+existed before the first Bob task, so the line between scaffolding and built work is
+auditable rather than asserted. Two details of the accounting, for a reader recounting the
+headings by hand. 47 of the operator-side units sit in `docs/OPERATOR_BUILD_LOG.md` and 2
+stay beside the Bob units whose gaps they closed, because the counter reads the actor out
+of each heading rather than off a filename. And the number here used to be 60, which was
+the count of second-level markdown headings in one file and not the count of anything
+anyone did.
 
 The pipeline is measured rather than demonstrated. 2727 observations from snapshot
 `snap-20260817-stage1`, 4 splits of which 3 hold out stations or transmitters the model

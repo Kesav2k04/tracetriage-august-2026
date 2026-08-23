@@ -1248,9 +1248,10 @@ BOB_TECHNICAL = _para(
     {N_BUILD_LOG_ENTRIES} dated Bob-account units, {_BOB_UNIT_LIST}: the data contracts,
     the immutable snapshot, the waterfall artifact parser, the physics corridor, label
     provenance, the image-only baselines, the end-to-end triage slice, the grouped splits
-    with their leakage audit, and the review-value queue with kill gate 6. Everything this
-    submission measures runs on their output: that snapshot, those splits, those parsed
-    artifacts. Each unit names the files it changed, the commands that were run, the Bob
+    with their leakage audit, and the review-value queue with kill gate 6. That snapshot, those splits and those
+    parsed artifacts are what every measurement in this submission is computed from,
+    including the operator-side work named next: the fusion head and the calibration run on
+    Bob's splits rather than instead of them. Each unit names the files it changed, the commands that were run, the Bob
     task id and what failed before it was accepted. A further {N_OPERATOR_UNITS} dated
     units are operator-side, run from Cursor and Claude Code, and are labelled that way in
     the actor field of their own headings: what they produced is the console, the
@@ -1608,7 +1609,11 @@ mission-operations queue has: of everything that came down, what does a person o
 |---|---|---|
 {_table(CHECKS)}
 
-**None of the {N_CHECKS_LOWER} needs a GPU, a model runtime or a network connection.**
+**Six of the {N_CHECKS_LOWER} need no GPU, no model runtime and no network connection, and
+the live measurement is the exception on purpose.** That row fetches one waterfall from the
+public SatNOGS API, without a credential, because a check that measures an observation
+recorded today cannot be offline and still be that check. Every number this page prints comes
+from the other six.
 `tracetriage note` reads frozen drafts and the verdicts the checker recorded against them.
 `scripts/run_agent_study.py` and `scripts/run_explanations.py` publish from committed
 fixtures and talk to a model only under `--freeze`, which is a step for re-measuring rather
