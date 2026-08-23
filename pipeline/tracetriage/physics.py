@@ -38,10 +38,18 @@ about closest approach), so a visual check cannot find the defect:
 
 FREE CONSTANT OFFSET
 ====================
-The three uncorrected observations in A3 sat 14.0, 2.4 and 1.8 kHz off the
-predicted curve.  The corridor is NOT assumed to be centred on rx-freq.
-``FREQ_OFFSET_SEARCH_HZ`` (±20 kHz) is the stated search range that A7 and the
-model scan over, which clears the largest measured offset by about 40 percent.
+The three uncorrected observations in A3 sat 14.0, 7.1 and 7.1 kHz off the
+predicted curve (``curved_offset_hz`` in ``artifacts/a3_overlays/summary.json``:
+-13,985.1 Hz on 14740031, and +7,148.9 Hz on both 14745664 and 14745929).  The
+corridor is NOT assumed to be centred on rx-freq.  ``FREQ_OFFSET_SEARCH_HZ``
+(±20 kHz) is the stated search range that A7 and the model scan over, which
+clears the largest measured offset by 43 percent.
+
+Do not read the smaller two off ``vertical_column_offset_hz``, which is where an
+earlier version of this note took them: that field is the offset of the *vertical*
+hypothesis, the one these three observations reject, and it gives 2.4 and 1.8 kHz
+for the same two records. The two fields answer different questions and only one
+of them is the offset of the corridor being fitted.
 
 FREQUENCY TERMS THAT ARE OMITTED, WITH THEIR SIZES
 ==================================================
@@ -211,10 +219,17 @@ TLE_MAX_EPOCH_AGE_DAYS: float = 10.0
 SGP4_MAX_MISSING_FRACTION: float = 0.5
 
 # Stated search range for the free constant frequency offset (Section 5.4 of the
-# task prompt).  The three uncorrected observations sat 14.0, 2.4 and 1.8 kHz off
-# the predicted curve, so ±20 kHz covers the largest of those with about 40
-# percent to spare. It is not a wide margin; widen it if a larger offset turns
-# up at snapshot scale.
+# task prompt).  The three uncorrected observations sat 14.0, 7.1 and 7.1 kHz off
+# the predicted curve, measured as ``curved_offset_hz`` in
+# artifacts/a3_overlays/summary.json, so the largest is 13,985.1 Hz and 20,000 /
+# 13,985.1 = 1.4301, which is 43 percent of headroom. It is not a wide margin;
+# widen it if a larger offset turns up at snapshot scale.
+#
+# The margin was always computed against the right maximum, because 14.0 kHz is
+# the largest of the three either way. What was wrong until this was corrected is
+# the other two figures: they read 2.4 and 1.8 kHz, which is
+# ``vertical_column_offset_hz`` on the same two records, so the derivation quoted
+# the offsets of the hypothesis those observations reject.
 FREQ_OFFSET_SEARCH_HZ: float = 20_000.0
 
 # SPACE-S4: elevation floor for a scorable image row, in degrees.
@@ -1059,7 +1074,7 @@ def corridor_columns(
         Total height of the (cropped) plot region in pixels.
     freq_offset_hz :
         Free constant offset to apply (search range ±FREQ_OFFSET_SEARCH_HZ).
-        The uncorrected traces sat 14.0, 2.4 and 1.8 kHz off the predicted curve.
+        The uncorrected traces sat 14.0, 7.1 and 7.1 kHz off the predicted curve.
 
     Returns
     -------

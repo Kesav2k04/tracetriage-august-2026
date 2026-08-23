@@ -779,8 +779,26 @@ class TestConstants:
         assert CORRECTED_CORRIDOR_HZ < UNCORRECTED_CORRIDOR_HZ
 
     def test_search_range_covers_measured_offsets(self):
-        # The three measured offsets were 14.0, 2.4 and 1.8 kHz.
-        measured_max_offset = 14_000.0
+        """Read the offsets out of A3's receipt rather than pinning them here.
+
+        This test used to assert against a hardcoded ``14_000.0`` copied from a
+        comment that named the wrong two of the three offsets: 2.4 and 1.8 kHz,
+        which are ``vertical_column_offset_hz``, where the corridor's own offset is
+        ``curved_offset_hz`` and reads 7.1 kHz on both. The assertion passed either
+        way, because the maximum was right and only the smaller two were wrong, so a
+        pinned constant could not have found it. Reading the field the constant is
+        derived from can.
+        """
+        summary = json.loads(
+            _A3_SUMMARY_PATH.read_text(encoding="utf-8")
+        )
+        offsets = [
+            abs(float(r["curved_offset_hz"]))
+            for r in summary
+            if r.get("verdict") == "UNCORRECTED" and r.get("curved_offset_hz") is not None
+        ]
+        assert offsets, "A3's summary must hold at least one UNCORRECTED offset"
+        measured_max_offset = max(offsets)
         assert measured_max_offset < FREQ_OFFSET_SEARCH_HZ, (
             f"FREQ_OFFSET_SEARCH_HZ ({FREQ_OFFSET_SEARCH_HZ:.0f} Hz) must exceed "
             f"the largest measured offset ({measured_max_offset:.0f} Hz)."

@@ -12,10 +12,13 @@ its best-fit location, not its deviation from the prediction row by row.
 Three facts drive the design.
 
 **The absolute downlink frequency is not known.** A3 measured its three
-uncorrected traces sitting 14.0, 2.4 and 1.8 kHz off the predicted curve. At
-400 MHz, 14 kHz is 35 parts per million, which is an ordinary figure for a
-cubesat oscillator, and the SatNOGS transmitter frequency a station tunes to is
-community-maintained and can be stale. So a constant frequency offset has to be
+uncorrected traces sitting 14.0, 7.1 and 7.1 kHz off the predicted curve
+(``curved_offset_hz``: -13,985.1 Hz, +7,148.9 Hz, +7,148.9 Hz). On the 436.400 MHz
+downlink all three carry, that is 32.0, 16.4 and 16.4 parts per million, which is
+an ordinary figure for a cubesat oscillator, and the SatNOGS transmitter frequency
+a station tunes to is community-maintained and can be stale. The smaller two read
+2.4 and 1.8 kHz here until 2026-08-23, which is ``vertical_column_offset_hz``, the
+offset of the hypothesis those three observations reject. So a constant frequency offset has to be
 fitted per observation rather than assumed to be zero. Unit A7 left
 ``freq_offset_hz`` at its ``0.0`` default, which is why the corridor it checked
 sat 3.7 kHz away from the trace it was supposed to contain.

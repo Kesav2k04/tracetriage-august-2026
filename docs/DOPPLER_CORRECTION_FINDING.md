@@ -132,10 +132,27 @@ numbers, not pushed into whichever answer was more convenient.
    their intensity rises and falls with elevation across the pass, visible in
    `overlay_14745602.png`. This is argued from evidence, not settled by it.
 5. **The constant frequency offset is unexplained.** The uncorrected traces sit
-   14.0, 2.4 and 1.8 kHz off the predicted curve. A transmitter sitting a few
-   kHz from nominal is the ordinary explanation, but it is not verified here.
-   The matched filter absorbs it by design, so the verdict does not depend on
-   it, but A4 must not assume the corridor is centred on `rx-freq`.
+   14.0, 7.1 and 7.1 kHz off the predicted curve: `curved_offset_hz` is
+   -13,985.1 Hz on 14740031 and +7,148.9 Hz on both 14745664 and 14745929, which
+   is -32.1, +16.4 and +16.4 ppm of the 436.400 MHz downlink. A transmitter
+   sitting a few kHz from nominal is the ordinary explanation, but it is not
+   verified here. The matched filter absorbs it by design, so the verdict does
+   not depend on it, but A4 must not assume the corridor is centred on `rx-freq`.
+
+   The two 7.1 kHz figures are **identical to the decimal**, and that is not a
+   coincidence: 14745664 and 14745929 were recorded by the same ground station
+   (1696) three minutes apart, so they share a receiver and therefore one
+   local-oscillator error and one stale catalogue frequency. That is the
+   measurement behind the dependence argument in `docs/KILL_GATE.md`, and it only
+   works with these numbers.
+
+   This item read "14.0, 2.4 and 1.8 kHz" until 2026-08-23. Those two smaller
+   values are `vertical_column_offset_hz` on the same two records, which is the
+   offset of the vertical hypothesis these three observations reject, not the
+   offset of the curve being fitted. Reading them made the two station-1696
+   offsets look different when they are the same, which is the wrong way round
+   for the argument above. `docs/KILL_GATE.md` carried the correct pair
+   throughout, sign-flipped by `AXIS_SIGN_CONVENTION` as it documents.
 
 ## Reproducing
 

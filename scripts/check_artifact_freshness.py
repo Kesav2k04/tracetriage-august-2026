@@ -125,9 +125,13 @@ def _builder_outcome(returncode: int, output: str) -> str:
 def _report_crash(subject: str, proc: subprocess.CompletedProcess) -> int:
     """Print why a builder produced nothing, and the exit code that reading deserves.
 
-    Returns 0 for a missing snapshot and 1 for a crash. The caller returns it directly:
-    with no snapshot there is nothing further to compare, so the run stops either way, and
-    the difference is only whether stopping counts against anything.
+    Returns 0 for a missing snapshot and 1 for a crash. The caller no longer returns
+    either one directly. It used to, on the reasoning that with no snapshot there was
+    nothing further to compare, and that reasoning was wrong: two of the builders below
+    need no snapshot at all, and the first one that did need it ran first, so its refusal
+    returned out of the function before they were reached. That is why this whole check
+    had never run in CI. A caller now records the skip, keeps going, and lets the builders
+    that can run decide the exit code.
     """
     output = ((proc.stdout or "") + (proc.stderr or "")).strip()
     tail = output.splitlines()
@@ -137,12 +141,12 @@ def _report_crash(subject: str, proc: subprocess.CompletedProcess) -> int:
             f"set to it here."
         )
         print(
-            "        Nothing was compared and nothing here is stale. The snapshot is 20 "
-            "GB and lives outside the repository."
+            "        Nothing it owns was compared and nothing it owns is known to be "
+            "stale. The snapshot is 20 GB and lives outside the repository."
         )
         print(
             f"        Set {_PAGES_DIR_ENV} to its pages folder and run again to check "
-            f"freshness for real."
+            f"those artifacts for real."
         )
         if tail:
             print(f"        {tail[-1]}")
@@ -223,46 +227,6 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     with tempfile.TemporaryDirectory(prefix="tracetriage-freshness-") as tmp:
-        cmd = [
-            str(PY),
-            str(REPO / "scripts" / "build_splits.py"),
-            "--out-dir",
-            tmp,
-            "--frozen-at",
-            str(frozen_at),
-        ]
-        proc = subprocess.run(
-            cmd, cwd=REPO, capture_output=True, text=True,
-            encoding="utf-8", errors="replace",
-        )
-        if proc.returncode != 0:
-            return _report_crash("the split builder", proc)
-        if args.verbose:
-            print(proc.stdout.strip().splitlines()[-1] if proc.stdout else "")
-
-        rebuilt_dir = pathlib.Path(tmp)
-        for name, committed in (
-            ("SPLIT_MANIFEST.json", committed_manifest),
-            ("LEAKAGE_AUDIT.json", _load(audit_path)),
-        ):
-            rebuilt_path = rebuilt_dir / name
-            if not rebuilt_path.exists():
-                print(f"[FAIL] the builder no longer emits {name}")
-                return 1
-            diff = _first_difference(_strip(committed), _strip(_load(rebuilt_path)))
-            if diff:
-                print(f"[FAIL] {name} is stale. First difference:")
-                print(f"        {diff}")
-                print(
-                    "        Rebuild it, then regenerate provenance:\n"
-                    f'        .venv\\Scripts\\python.exe scripts\\build_splits.py '
-                    f'--frozen-at "{frozen_at}"\n'
-                    "        .venv\\Scripts\\python.exe scripts\\build_console_data.py "
-                    "--skip-images"
-                )
-                return 1
-            print(f"[PASS] {name} matches what the builder produces")
-
         # HERO_NULLS.json is deterministic and carries no timestamp, so it compares
         # exactly. It is also the artifact whose generator defaults had drifted away
         # from what shipped.
@@ -280,16 +244,143 @@ def main(argv: list[str] | None = None) -> int:
                 encoding="utf-8", errors="replace",
             )
             if proc.returncode != 0:
-                return _report_crash("the hero nulls exporter", proc)
-            diff = _first_difference(_strip(_load(hero_path)), _strip(_load(rebuilt_hero)))
-            if diff:
-                print("[FAIL] HERO_NULLS.json is stale. First difference:")
-                print(f"        {diff}")
-                print("        Rebuild it, then regenerate provenance:")
-                print("          python scripts/export_hero_nulls.py")
-                print("          python scripts/build_console_data.py --skip-images")
+                if _report_crash("the hero nulls exporter", proc):
+                    failed = True
+                else:
+                    skipped.append("HERO_NULLS.json")
+            else:
+                diff = _first_difference(
+                    _strip(_load(hero_path)), _strip(_load(rebuilt_hero))
+                )
+                if diff:
+                    print("[FAIL] HERO_NULLS.json is stale. First difference:")
+                    print(f"        {diff}")
+                    print("        Rebuild it, then regenerate provenance:")
+                    print("          python scripts/export_hero_nulls.py")
+                    print(
+                        "          python scripts/build_console_data.py --skip-images"
+                    )
+                    failed = True
+                else:
+                    print("[PASS] HERO_NULLS.json matches what the exporter produces")
+                    compared.append("HERO_NULLS.json")
+
+        # The published copies under apps/web/public/data are derived artifacts too,
+        # and nothing compared them against their sources until now. That gap shipped:
+        # artifacts/HERO_NULLS.json was corrected in D2 and the published copy stayed
+        # three times too heavy for a whole commit, because the artifact and the copy
+        # are written by different scripts and only one of them was re-run.
+        published = REPO / "apps" / "web" / "public" / "data"
+        if published.is_dir():
+            rebuilt_data = pathlib.Path(tmp) / "data"
+            proc = subprocess.run(
+                [
+                    str(PY),
+                    str(REPO / "scripts" / "build_console_data.py"),
+                    "--skip-images",
+                    "--data-dir",
+                    str(rebuilt_data),
+                ],
+                cwd=REPO, capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
+            )
+            if proc.returncode != 0:
+                if _report_crash("the console data builder", proc):
+                    failed = True
+                else:
+                    skipped.append("apps/web/public/data")
+                rebuilt_names = set()
+            else:
+                rebuilt_names = {p.name for p in rebuilt_data.iterdir() if p.is_file()}
+                for name in sorted(rebuilt_names):
+                    a, b = published / name, rebuilt_data / name
+                    if not a.exists():
+                        print(f"[FAIL] {name} is built but not published")
+                        return 1
+                    if name.endswith(".json"):
+                        diff = _first_difference(_strip(_load(a)), _strip(_load(b)))
+                    else:
+                        diff = None if a.read_bytes() == b.read_bytes() else "file contents differ"
+                    if diff:
+                        print(f"[FAIL] apps/web/public/data/{name} is stale. First difference:")
+                        print(f"        {diff}")
+                        print("        Rebuild it:")
+                        print("          python scripts/build_console_data.py --skip-images")
+                        return 1
+                print(
+                    f"[PASS] {len(rebuilt_names)} published files match what the console "
+                    "builder produces"
+                )
+                # Named rather than skipped. cards.json needs the waterfall PNGs, so a
+                # JSON-only rebuild cannot produce it, and a check that quietly ignored it
+                # would read as covering the directory.
+                #
+                # Two reasons a file can be uncovered here, and they are not the same reason.
+                # Folding them together made this line say bob.json needs the waterfall images,
+                # which it does not: it has its own builder and its own check, and a reader of
+                # that note would have concluded nothing was watching it.
+                uncovered = sorted(
+                    p.name
+                    for p in published.iterdir()
+                    if p.is_file() and p.name not in rebuilt_names
+                )
+                elsewhere = sorted(n for n in uncovered if n in _CHECKED_BY_ANOTHER_BUILDER)
+                needs_images = [n for n in uncovered if n not in _CHECKED_BY_ANOTHER_BUILDER]
+                if needs_images:
+                    print(
+                        "[NOTE] not checked here (needs the waterfall images): "
+                        + ", ".join(needs_images)
+                    )
+                for name in elsewhere:
+                    print(f"[NOTE] {name} is checked by {_CHECKED_BY_ANOTHER_BUILDER[name]}")
+
+        cmd = [
+            str(PY),
+            str(REPO / "scripts" / "build_splits.py"),
+            "--out-dir",
+            tmp,
+            "--frozen-at",
+            str(frozen_at),
+        ]
+        proc = subprocess.run(
+            cmd, cwd=REPO, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+        )
+        if proc.returncode != 0:
+            if _report_crash("the split builder", proc):
                 return 1
-            print("[PASS] HERO_NULLS.json matches what the exporter produces")
+            # The snapshot is absent, so the two artifacts this builder owns cannot be
+            # compared here and the triage slice below cannot run either. Recorded and
+            # stepped over rather than returned from: the checks above needed no snapshot
+            # and have already run.
+            skipped.extend(["SPLIT_MANIFEST.json", "LEAKAGE_AUDIT.json"])
+            snapshot = False
+        if snapshot:
+            if args.verbose:
+                print(proc.stdout.strip().splitlines()[-1] if proc.stdout else "")
+
+            rebuilt_dir = pathlib.Path(tmp)
+            for name, committed in (
+                ("SPLIT_MANIFEST.json", committed_manifest),
+                ("LEAKAGE_AUDIT.json", _load(audit_path)),
+            ):
+                rebuilt_path = rebuilt_dir / name
+                if not rebuilt_path.exists():
+                    print(f"[FAIL] the builder no longer emits {name}")
+                    return 1
+                diff = _first_difference(_strip(committed), _strip(_load(rebuilt_path)))
+                if diff:
+                    print(f"[FAIL] {name} is stale. First difference:")
+                    print(f"        {diff}")
+                    print(
+                        "        Rebuild it, then regenerate provenance:\n"
+                        f'        .venv\\Scripts\\python.exe scripts\\build_splits.py '
+                        f'--frozen-at "{frozen_at}"\n'
+                        "        .venv\\Scripts\\python.exe scripts\\build_console_data.py "
+                        "--skip-images"
+                    )
+                    return 1
+                print(f"[PASS] {name} matches what the builder produces")
 
         # TRIAGE_RECEIPT.json earned its place the same way HERO_NULLS did. It was
         # written on 2026-08-17 and D1 added five fields to the corridor summary it
@@ -326,70 +417,6 @@ def main(argv: list[str] | None = None) -> int:
                 print("          python scripts/render_evidence_card.py")
                 return 1
             print("[PASS] TRIAGE_RECEIPT.json matches what the slice produces")
-
-        # The published copies under apps/web/public/data are derived artifacts too,
-        # and nothing compared them against their sources until now. That gap shipped:
-        # artifacts/HERO_NULLS.json was corrected in D2 and the published copy stayed
-        # three times too heavy for a whole commit, because the artifact and the copy
-        # are written by different scripts and only one of them was re-run.
-        published = REPO / "apps" / "web" / "public" / "data"
-        if published.is_dir():
-            rebuilt_data = pathlib.Path(tmp) / "data"
-            proc = subprocess.run(
-                [
-                    str(PY),
-                    str(REPO / "scripts" / "build_console_data.py"),
-                    "--skip-images",
-                    "--data-dir",
-                    str(rebuilt_data),
-                ],
-                cwd=REPO, capture_output=True, text=True,
-                encoding="utf-8", errors="replace",
-            )
-            if proc.returncode != 0:
-                return _report_crash("the console data builder", proc)
-            rebuilt_names = {p.name for p in rebuilt_data.iterdir() if p.is_file()}
-            for name in sorted(rebuilt_names):
-                a, b = published / name, rebuilt_data / name
-                if not a.exists():
-                    print(f"[FAIL] {name} is built but not published")
-                    return 1
-                if name.endswith(".json"):
-                    diff = _first_difference(_strip(_load(a)), _strip(_load(b)))
-                else:
-                    diff = None if a.read_bytes() == b.read_bytes() else "file contents differ"
-                if diff:
-                    print(f"[FAIL] apps/web/public/data/{name} is stale. First difference:")
-                    print(f"        {diff}")
-                    print("        Rebuild it:")
-                    print("          python scripts/build_console_data.py --skip-images")
-                    return 1
-            print(
-                f"[PASS] {len(rebuilt_names)} published files match what the console "
-                "builder produces"
-            )
-            # Named rather than skipped. cards.json needs the waterfall PNGs, so a
-            # JSON-only rebuild cannot produce it, and a check that quietly ignored it
-            # would read as covering the directory.
-            #
-            # Two reasons a file can be uncovered here, and they are not the same reason.
-            # Folding them together made this line say bob.json needs the waterfall images,
-            # which it does not: it has its own builder and its own check, and a reader of
-            # that note would have concluded nothing was watching it.
-            uncovered = sorted(
-                p.name
-                for p in published.iterdir()
-                if p.is_file() and p.name not in rebuilt_names
-            )
-            elsewhere = sorted(n for n in uncovered if n in _CHECKED_BY_ANOTHER_BUILDER)
-            needs_images = [n for n in uncovered if n not in _CHECKED_BY_ANOTHER_BUILDER]
-            if needs_images:
-                print(
-                    "[NOTE] not checked here (needs the waterfall images): "
-                    + ", ".join(needs_images)
-                )
-            for name in elsewhere:
-                print(f"[NOTE] {name} is checked by {_CHECKED_BY_ANOTHER_BUILDER[name]}")
 
         if args.deep:
             # PHYSICS_VALIDATION.json is here rather than in the default set because
