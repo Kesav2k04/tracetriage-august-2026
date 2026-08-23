@@ -592,9 +592,11 @@ The `full` extra is what reproducing the receipts needs, and it is an extra rath
 dependency so the base install is 166 MB instead of 4,643 MB. Measuring one live observation
 wants none of it.
 
-That pytest selector is the offline replay, and it is the gate: `ocr` needs a system binary and
-`llm` needs the local model runtime, neither of which exists on a clean runner, so a run
-including them would fail for reasons that say nothing about the replay path. Everything that
+That pytest selector is the offline replay, and it is the gate: `ocr` needs the `[ocr]` extra
+and the weights easyocr reads, and `llm` needs the local model runtime, neither of which
+exists on a clean runner, so a run including them would fail for reasons that say nothing
+about the replay path. The `[ocr]` extra is left out of the replay's install on purpose,
+because easyocr declares torch, torchvision, opencv and scikit-image as its own dependencies. Everything that
 publishes a number runs inside it. Commands elsewhere in this repository use the Windows
 interpreter path because that is the machine they were recorded on;
 `.github/workflows/ci.yml` runs the whole path on Ubuntu and is the version to copy.
