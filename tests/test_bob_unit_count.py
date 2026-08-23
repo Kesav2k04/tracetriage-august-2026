@@ -21,6 +21,13 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 BUILD_LOG = REPO / "docs" / "BOB_BUILD_LOG.md"
+OPERATOR_LOG = REPO / "docs" / "OPERATOR_BUILD_LOG.md"
+
+#: Both logs, because the count is a count of units and not of files. The single log was
+#: split by actor on 2026-08-23 at 538,186 bytes, past the 512 KiB above which GitHub serves
+#: markdown as unformatted source, and a check that kept reading one path would have gone
+#: green while reporting 12 units instead of 59.
+BUILD_LOGS = (BUILD_LOG, OPERATOR_LOG)
 
 
 @pytest.fixture(scope="module")
@@ -42,9 +49,51 @@ def sync_module():
 def _headings() -> list[str]:
     return [
         line
-        for line in BUILD_LOG.read_text(encoding="utf-8").splitlines()
+        for log in BUILD_LOGS
+        for line in log.read_text(encoding="utf-8").splitlines()
         if re.match(r"^#{2,3}\s", line)
     ]
+
+
+def test_both_logs_render_on_github():
+    """Neither log may cross the size above which GitHub stops formatting markdown.
+
+    The defect this pins. `docs/BOB_BUILD_LOG.md` reached 538,186 bytes, past GitHub's
+    512 KiB markdown ceiling, so the badge in `README.md` and every reference to it in
+    `FOR_JUDGES.md` pointed a judge at the sole evidence for this challenge's one mandatory
+    requirement and GitHub served it as unformatted source. Nothing failed: the file was
+    valid markdown, every claim in it was true, and the one surface it had to work on was
+    the one it had stopped working on.
+    """
+    ceiling = 512 * 1024
+    for log in BUILD_LOGS:
+        assert log.exists(), f"{log.name} is missing and the unit count reads it"
+        size = len(log.read_bytes())
+        assert size < ceiling, (
+            f"{log.name} is {size:,} bytes against GitHub's {ceiling:,} markdown ceiling, "
+            f"so it renders as plain source. Split it by actor the way "
+            f"docs/OPERATOR_BUILD_LOG.md was."
+        )
+
+
+def test_the_split_is_by_actor_and_not_by_file(sync_module):
+    """No Bob-account unit may sit in the operator log.
+
+    The split moved the Wave D and Wave E units out. If a Bob unit ever lands there the
+    counts still come out right, because the counter reads the actor and not the filename,
+    and the file a judge opens to score Bob's work would quietly be missing one.
+    """
+    stray = [
+        unit
+        for unit, is_bob in sync_module._units_in("docs/OPERATOR_BUILD_LOG.md")
+        if is_bob
+    ]
+    assert not stray, f"{stray} carry a Bob account and are in the operator log"
+
+    bob, _ = sync_module._build_log_units()
+    in_bob_log = {unit for unit, _ in sync_module._units_in("docs/BOB_BUILD_LOG.md")}
+    missing = sorted(set(bob) - in_bob_log)
+    assert not missing, f"{missing} are counted as Bob units and are not in the Bob log"
 
 
 def test_every_counted_unit_has_a_date_and_a_bob_account(sync_module):

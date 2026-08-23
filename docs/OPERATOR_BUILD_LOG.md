@@ -1,0 +1,5810 @@
+# Operator build log
+
+The operator-side counterpart of [`BOB_BUILD_LOG.md`](BOB_BUILD_LOG.md). Every unit below
+ran from Cursor or Claude Code rather than from a Bob account, and each heading says so in
+its actor field: `Wave D` or `Wave E` where the Bob log says `Account 1` to `Account 3`.
+
+47 of this project's 49 dated operator-side units are here, in the order they ran, with the
+review narrative that belongs to them. The other two, A0b and B2-B6, are in the Bob log
+because they closed gaps in the Bob units they sit between.
+
+The two logs were one file until 2026-08-23, by which point it held 538,186 bytes. GitHub
+serves markdown as unformatted source above 512 KiB, so the file a judge opens to score
+"How IBM Bob was used" could not be read as a document. The split is by actor, which is the
+distinction the actor field exists to record.
+
+Heading shape is the Bob log's, which states it once under `## Format`. The units here are
+at `##` depth rather than `###`, because they were appended as top-level sections:
+
+    ## <date IST> | <actor> | <unit id>: <title>
+
+`scripts/sync_for_judges.py` reads both files and counts 10 Bob-account units against 49
+operator-side ones. `tests/test_bob_unit_count.py` fails if either number stops matching.
+
+---
+
+## 2026-08-19 IST | Wave D | D0 (partial): ENG-B1, ENG-B2, ENG-B3
+
+**Task given:** Read both expert reviews, list every BLOCKING and SERIOUS finding with a
+first assessment, and fix the blocking ones in order starting with ENG-B1. Three
+corrections applied before starting: (1) engineering review undercounts itself at ten
+SERIOUS; the file has eleven headings; seven BLOCKING and twenty SERIOUS remain across
+both reviews; (2) SPACE-B4 and SPACE-B5 are not documentation-only; changing the
+discriminates criterion or adding the reversal control rewrites GATE3_RECEIPT.json and
+propagates to HERO_NULLS.json and then to build_console_data; (3) the plate's caption
+was typed prose and was already fixed (C7h).
+
+**Findings assessed:** all seven BLOCKING and twenty SERIOUS findings read and assessed.
+None rejected on first read; all checked against the code and receipts before any change.
+
+**Files changed:**
+- `scripts/build_console_data.py` (ENG-B1: named absence instead of fabricated zero)
+- `apps/web/components/PassTimeSeries.tsx` (ENG-B2: derive crossing from data)
+- `apps/web/app/observation/[id]/page.tsx` (ENG-B2: caption describes design, not outcome)
+- `pipeline/tracetriage/splits.py` (ENG-B3: pages_dir threaded through, raise on empty,
+  vacuity gate, test_set_untouched result changed to ASSERTED_NOT_MEASURABLE_HERE,
+  reject_vacuous_checks_in_audit added)
+- `scripts/build_splits.py` (ENG-B3: pass pages_dir to build_leakage_audit)
+- `tests/test_console_export.py` (ENG-B1 tests: three new, one call-site test)
+- `tests/test_split_guarantees.py` (ENG-B3 tests: five new, plus import added)
+
+**Reproduction of each finding before fixing:**
+
+ENG-B1 reproduced: `320 of 407 queue entries have no corridor row, starting at rank 61
+(obs_id 14732116)`. With the old `or 0.0` path, that card carries `fitted_offset_hz: 0.0`
+and `fitted_px == predicted_px`. Confirmed.
+
+ENG-B2 reproduced: built the console, read the aria-label on observation 14744250. Doppler
+series is -5870.4 Hz to -7227.6 Hz with no sign change. The label said "crossing zero at
+the same instant elevation peaks". Confirmed.
+
+ENG-B3 reproduced: called `check_field_classification(Path("Z:/does/not/exist"))` directly.
+Returned `{'passed': True, 'n_examined': 0, 'n_records': 0, 'unclassified': []}`. Confirmed.
+
+**Tests added:** 39 new passing tests (3 for ENG-B1, 0 separate for ENG-B2 since the
+TypeScript change is covered by the build and typecheck, 5 for ENG-B3 path handling, plus
+existing tests that now exercise the fixed paths).
+
+**Commands run:**
+```
+.venv\Scripts\python.exe -m pytest tests/test_console_export.py tests/test_split_guarantees.py -v --tb=short
+.venv\Scripts\python.exe -m ruff check scripts/build_console_data.py scripts/build_splits.py pipeline/tracetriage/splits.py tests/test_console_export.py tests/test_split_guarantees.py --fix
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" --tb=no -p no:warnings
+npx tsc --noEmit -p tsconfig.json   (from apps/web, exit 0)
+```
+
+**Suite result:** 784 passed, 1 xfailed, 2 deselected. Was 745 collected (744 passed, 1 xfailed).
+
+**SPACE-S7 pricing decision recorded:** Run Option 1 at n_boot=50,000. Option 2 (narrow the
+decision rule to one pre-registered split) is post-hoc selection and is not an option. The
+50,000-draw run is within the RAM and time budget. Run after SPACE-B1, SPACE-B2, SPACE-B4/B5
+and ENG-S8 are closed.
+
+**ENG-S9 decision recorded:** Add Vitest after ENG-S8 lands. Covers the five degenerate
+cases the reviewer named (one-sample series, zero-length pass, pole-enclosing horizon circle,
+antimeridian crossing, negative-elevation sample through all three consumers). Gate the
+TypeScript build in scripts/gate.py first.
+
+**Commit:** 6052bad
+
+**Outcome:** partial. Three BLOCKING findings closed with tests. Four BLOCKING (SPACE-B1,
+SPACE-B2, SPACE-B4/B5) and twenty SERIOUS remain.
+
+---
+
+## 2026-08-19 IST | Wave D | D0b: the leakage remainder, and the rebuild nobody ran
+
+**Task given:** verify the D0 commit mechanically rather than on its report, then close what
+the verification found.
+
+**Verification of D0 first, because a self-report is not a gate:** `scripts/gate.py` returns
+8/8 with exit 0, `ruff check .` returns "All checks passed" over the whole repo (the D0 note
+that ruff was reading `.tsx` files as Python does not reproduce; the config selects E, F, I,
+UP, B, SIM and excludes `scripts/recon` only), `tests/test_split_guarantees.py` runs 30 and
+`tests/test_console_export.py` runs 17 with zero skips, and both commits are authored
+`Kesav2k04 <kesavk659@gmail.com>` with no trailer. ENG-B3's three-part suggested fix is
+implemented as filed, and the ENG-B1 fix correctly uses `is None` rather than truthiness, so
+a genuine 0.0 Hz fit is still publishable.
+
+**What the verification found, all of it downstream of one thing D0 did not do: rebuild the
+artifact.**
+
+1. Half of the sibling SERIOUS finding was open. `REVIEW_ENGINEERING.md:382` names two code
+   paths, `splits.py:1110-1123` and `1339-1360`. D0 changed the second. The manifest emitter
+   still wrote `passed: true, n_examined: 1349` for `test_set_untouched`, so the next rebuild
+   would have produced one artifact saying the property cannot be measured from inside the
+   build and another publishing a measured count of it. `split_manifest.schema.json` pinned
+   `passed` to `const: true` and `n_examined` to integer minimum 1, so the honest shape was
+   not representable there at all.
+2. The vacuity gate that ran was a copy of the one the tests exercised.
+   `build_leakage_audit` repeated the predicate inline instead of calling
+   `reject_vacuous_checks_in_audit`, and `test_split_guarantees.py` said so in a comment: the
+   synthetic rows meant "the gate cannot be exercised through a real build call here". The
+   build ran one gate, the suite tested another, and they could drift with nothing failing.
+3. The null introduced in D0 slipped both gates. The predicate was `n_examined == 0`, and
+   `None == 0` is False, so a row reporting `PASS` with no examination at all was accepted.
+   Measured before the fix: `reject_vacuous_checks_in_audit` returned without raising on
+   `{"result": "PASS", "n_examined": None}`. `reject_vacuous_checks` was worse on the manifest
+   side: `v.get("n_examined", 0) < 1` compares None with an int, so it would have died with a
+   TypeError rather than naming the check.
+4. The published artifact still carried the defect and no standing gate could see it.
+   `LEAKAGE_AUDIT.json` still read `test_set_untouched PASS 1349 0`, which is exactly what the
+   review's reproduce command prints, and `provenance.json` pinned its digest. `gate.py` runs
+   pytest, ruff, a contract status check, a clean-tree check, a gate-6 verdict check, a secret
+   grep, a build-log check and an identity check. It never rebuilds an artifact and diffs it,
+   so 8/8 green coexisted with a published artifact contradicting its own generator.
+5. A pre-existing test was passing on the stale artifact.
+   `test_splits.py::TestLeakageAuditStructure::test_audit_rows_have_n_examined` asserts
+   `row["n_examined"] > 0` on every audit row, and its fixture reads the committed file. With
+   the artifact rebuilt it fails with `TypeError: '>' not supported between instances of
+   'NoneType' and 'int'`. So the suite was green on a file the code could no longer produce.
+   It now permits a null only on a row whose result names it, which is the property worth
+   asserting.
+6. The rebuild would have crashed. `scripts/build_splits.py:163` maps a result string to a
+   status label with a dict lookup, and `ASSERTED_NOT_MEASURABLE_HERE` was not a key, so the
+   first attempt to regenerate exited 1 with `KeyError`. The line below it formatted
+   `n_examined` with `:5d`, which a null cannot satisfy either. The summary line then counted
+   the asserted row among the claimed guarantees that "hold with zero crossings", which is the
+   tally the review asked to fix.
+
+**What changed:**
+- `contracts/split_manifest.schema.json` to 0.4.0 (breaking). New `$defs/leakage_assertion`:
+  requires `result: ASSERTED_NOT_MEASURABLE_HERE`, forbids `passed`, requires `n_examined`
+  null, requires four 64-hex `test_id_digests` and a non-empty rationale, with
+  `additionalProperties: false`. `test_set_untouched` references it instead of
+  `leakage_check`. Added optional `rebuilt_at`.
+- `pipeline/tracetriage/splits.py`: `ASSERTED_NOT_MEASURABLE_HERE` as one module constant used
+  by both artifacts; the manifest entry rewritten to the assertion shape; `reject_vacuous_checks`
+  now distinguishes an assertion from a vacuous measurement, and refuses an assertion that
+  carries a number; the audit gate treats null and zero alike on a PASS row; the inline copy
+  replaced by a call to the shared function; the fail-fast loop no longer assumes every entry
+  has `passed`, and raises when an entry states no outcome at all; `frozen_at` is pinnable and
+  `rebuilt_at` is always emitted.
+- `scripts/build_splits.py`: `--frozen-at`, the status map and count formatting handle the
+  third outcome, and the closing tally counts measured guarantees separately from the
+  asserted one.
+- `apps/web/components/PassTimeSeries.tsx`: the label asserted that the crossing happens at
+  the elevation peak whenever a crossing existed. It now measures that too, with one sample
+  of tolerance, and reports the offset in seconds when they do not coincide.
+
+**The rebuild, and what it proves:**
+```
+.venv\Scripts\python.exe scripts\build_splits.py --frozen-at "2026-08-17T16:11:19.249864+00:00"
+```
+`frozen_at` preserved at 2026-08-17T16:11:19.249864+00:00, `rebuilt_at` recorded separately,
+the four `test_id_digests` byte-identical, and every partition id list byte-identical. The
+diff on `SPLIT_MANIFEST.json` is `rebuilt_at`, the four changed fields of one entry and
+nothing else; the diff on `LEAKAGE_AUDIT.json` is three fields of one row. The console
+rebuild changed only the three digests and the contract version in `provenance.json`.
+
+The two builders have to run as a pair, in this order. `rebuilt_at` is a write time, so the
+manifest digest moves on every rebuild even when nothing else does, and `provenance.json`
+carries that digest. A freshness gate should diff with `rebuilt_at` excluded, or it will
+report drift on every run.
+
+**Tests added: 14.** Five in `test_contracts.py` (a pass on the unmeasurable check, an
+assertion carrying a count, an assertion carrying a pass, missing or too few digests, a
+malformed digest). Seven in `test_split_guarantees.py`, including one that patches the shared
+gate and asserts the build path reaches it, which an inline copy cannot satisfy. Two in
+`test_splits.py`: the two artifacts must agree on the unmeasurable check and on digests
+recomputed from the ids published beside them, and the freeze date must still be the freeze.
+
+**Suite result:** 8/8 standing gates pass, exit 0. 799 tests selected, up from 785.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q -p no:warnings
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\build_splits.py --frozen-at "2026-08-17T16:11:19.249864+00:00"
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+npx tsc --noEmit   (from apps/web, exit 0)
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+**Still open, and named rather than quietly carried:** `gate.py` has no artifact freshness
+step, so nothing mechanical would have caught item 4. The cheapest form is a rebuild into a
+temporary directory with the freeze pinned, then a diff against the committed artifact,
+ignoring `rebuilt_at`. It belongs with the ENG-S9 work that adds the TypeScript build to the
+gate, and it is worth more than either test suite it would sit beside. The label change
+in PassTimeSeries.tsx also has no test, for the same reason ENG-B2 had none: there is no
+TypeScript test framework yet. It is verified by `tsc --noEmit` and by reading the two
+branches, and the degenerate cases belong in the ENG-S9 Vitest work.
+
+---
+
+## E1 — SPACE-B1 and SPACE-B2: unparseable TLE epoch and silent SGP4 error drop
+
+**Task:** Close the two physics BLOCKING findings from `docs/REVIEW_SPACE.md`.
+
+**Gate at start:** 8/8, exit 0, tree clean.
+
+### SPACE-B1: Unparseable TLE epoch propagated silently
+
+`tle_epoch_datetime` catches all exceptions and returns `None`. The staleness gate at
+`corridor_for_obs:628` was guarded by `if tle_epoch is not None:`, so a garbage epoch year
+caused the gate to be skipped entirely. Propagation ran from a satellite that SGP4 accepted
+but computed from a wrong epoch (year `XX` defaulted to year 2000 under the two-digit mapping).
+The result came back `degraded=None` with a corridor displaced 8.2 half-widths from truth
+(16,477 Hz peak deviation on obs 14740031 per the reviewer's run).
+
+The module's stated contract at `physics.py:48-56` promises a named reason code for every
+degrade state. A garbage epoch is not "epoch age unknown"; it is "this TLE must not be
+propagated". The silent fallthrough was the one gap.
+
+**Fix:** invert the guard: `if tle_epoch is None: return _fail("UNPARSEABLE_TLE_EPOCH")`.
+The staleness check now runs only when the epoch parsed. Added `UNPARSEABLE_TLE_EPOCH` to the
+degraded states docblock.
+
+**Reproduce before fix:**
+```
+.venv\Scripts\python.exe -c "from pipeline.tracetriage.physics import tle_epoch_datetime
+print(tle_epoch_datetime('1 25544U 98067A   XX001.50000000  .00002182  00000-0  44988-4 0  9992'))"
+# → None  (the guard skips the staleness check; propagation runs; degraded=None)
+```
+
+### SPACE-B2: SGP4 partial-error counts bound and dropped
+
+`propagate_pass` returns four lists: `fracs, dops, els, errs`. The `errs` list accumulates
+the non-zero SGP4 error codes for failed samples. `corridor_for_obs` bound the return value
+correctly at line 643 but never referenced `errs` again, and `PhysicsResult` had no field
+for it. A corridor built on 22 percent of a pass (the reviewer's example) returned
+`degraded=None` with `np.interp` clamping to the nearest surviving value across every gap,
+producing a flat vertical segment where the physics produced nothing. `build_console_data.py`
+already published `n_sgp4_errors` and `n_samples_propagated` on cards — both are sourced from
+a second `pass_geometry` call, not from `PhysicsResult` — so the production console had the
+counts while the physics object that computes the corridor did not.
+
+**Fix:** add `n_sgp4_errors: int | None` and `n_samples_propagated: int | None` to
+`PhysicsResult`. After propagation, compute `missing_frac = len(errs) / N_SAMPLES`; if it
+exceeds `SGP4_MAX_MISSING_FRACTION = 0.5`, return `_fail("SGP4_PARTIAL_ERROR")`. Added
+`SGP4_MAX_MISSING_FRACTION` as a named constant with a comment explaining the
+`np.interp`-clamping consequence. Added `SGP4_PARTIAL_ERROR` to the degraded states docblock.
+The `_fail` helper carries both counts (which are `None` before propagation reaches that point).
+
+**Reproduce before fix:**
+```
+.venv\Scripts\python.exe -c "from pipeline.tracetriage.physics import PhysicsResult
+print(list(PhysicsResult.__dataclass_fields__.keys()))"
+# → no n_sgp4_errors or n_samples_propagated
+grep -n "errs" pipeline/tracetriage/physics.py
+# → errs collected at line 643, no second reference
+```
+
+### What changed
+
+- `pipeline/tracetriage/physics.py`:
+  - Degraded states docblock: added `UNPARSEABLE_TLE_EPOCH` and `SGP4_PARTIAL_ERROR`.
+  - New constant `SGP4_MAX_MISSING_FRACTION = 0.5`.
+  - `PhysicsResult` dataclass: `n_sgp4_errors: int | None` and `n_samples_propagated: int | None`.
+  - `corridor_for_obs`:
+    - Step 5: invert epoch guard, return `UNPARSEABLE_TLE_EPOCH` when `tle_epoch is None`.
+    - Step 6: record `n_sgp4_err = len(errs)`, `n_propagated = len(fracs)` immediately after
+      propagation; return `SGP4_PARTIAL_ERROR` when `missing_frac > SGP4_MAX_MISSING_FRACTION`.
+    - All three explicit `PhysicsResult(...)` constructions updated with the two new fields.
+    - `_fail` helper carries `n_sgp4_err` and `n_propagated` so partial-failure paths report
+      what they computed before failing.
+
+- `tests/test_physics.py`:
+  - Import `SGP4_MAX_MISSING_FRACTION`.
+  - `TestDegradedStates`: two tests for SPACE-B1 — `test_unparseable_tle_epoch_returns_named_code`
+    (corrupts the year field, asserts `UNPARSEABLE_TLE_EPOCH` and `uncorrected is None`) and
+    `test_unparseable_tle_epoch_does_not_raise`.
+  - New class `TestSgp4ErrorSurfacing` (6 tests for SPACE-B2): field existence, zero-error
+    clean pass, constant in-range, patched partial failure above threshold degrades with the
+    right code and counts, patched partial failure below threshold succeeds with counts on the
+    result.
+
+### No artifact rebuild needed
+
+`corridor_for_obs` feeds `build_console_data.py`, which reads only `physics.degraded` and
+`physics.uncorrected`. The new fields on `PhysicsResult` are not serialised to `cards.json`.
+The `n_sgp4_errors` and `n_samples_propagated` columns in `cards.json` come from the separate
+`build_pass_geometry` path (`pass_geometry` → `PassGeometry.error_codes`), which is unchanged.
+`SPLIT_MANIFEST.json`, `LEAKAGE_AUDIT.json`, and `provenance.json` are not touched.
+
+**Tests added: 8.** Two in `TestDegradedStates` (SPACE-B1). Six in `TestSgp4ErrorSurfacing`
+(SPACE-B2).
+
+**Suite result:** 806 passed, 1 xfailed, 0 failed, lint clean. Gate at end: 8/8, exit 0.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\gate.py              # 8/8 before starting
+.venv\Scripts\python.exe -m pytest tests/test_physics.py::TestDegradedStates::test_unparseable_tle_epoch_returns_named_code tests/test_physics.py::TestSgp4ErrorSurfacing -v  # 8 new tests FAIL (import error before fix)
+# [implement fixes]
+.venv\Scripts\python.exe -m pytest tests/test_physics.py::TestDegradedStates::test_unparseable_tle_epoch_returns_named_code tests/test_physics.py::TestDegradedStates::test_unparseable_tle_epoch_does_not_raise tests/test_physics.py::TestSgp4ErrorSurfacing -v  # 8 passed
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q  # 806 passed, 1 xfailed
+.venv\Scripts\python.exe -m ruff check .              # All checks passed
+.venv\Scripts\python.exe scripts\gate.py              # 7/8 (uncommitted; expected)
+```
+
+---
+
+## 2026-08-19 IST | Wave D | D1: the gate-3 criterion left out the number that separates the physics from its own sign error
+
+**Task given:** close SPACE-B4 and SPACE-B5, the two remaining BLOCKING findings that touch
+gate 3.
+
+**Verification of E1 first.** `scripts/gate.py` returns 8/8 exit 0 on `c7e4ebc`. The E1 report
+claimed no artifact rebuild was required; that claim is correct, and now it is measured rather
+than argued. Over all 2,750 snapshot records: **0 records have an unparseable TLE epoch as
+stored, and 0 records produce any non-zero SGP4 error code.** The degrade census is 2,713
+clean and 37 `STALE_TLE`, unchanged from before E1. Both new codes are guards against faults
+this corpus does not contain, which is worth writing down: `SGP4_MAX_MISSING_FRACTION = 0.5`
+is exercised only by the tests that patch it, the same shape as the SERIOUS finding about
+`TLE_MAX_EPOCH_AGE_DAYS` never being exercised. The tests do patch both branches, so the
+constant is not unexercised in the way that finding describes.
+
+**SPACE-B4. The criterion was the p-value; the p-value cannot tell truth from an inversion.**
+`discriminates` was `p_value <= 0.05` and `beats_scaled is not False` and not at bound.
+`margin_over_best_null` was computed, published in the KILL_GATE table, and never consulted.
+Fix: the margin is now expressed in standard deviations of the observation's own null sigma
+distribution and is part of the criterion, with a floor of **5.0 null standard deviations**
+fixed before rescoring and recorded in `THRESHOLD_RATIONALE`. Null standard deviations rather
+than raw sigma for two reasons: the bar cannot then be cleared by rescaling, and the scale
+comes from the wrong corridors rather than from the right ones. Five is the conventional
+discovery floor, not a number chosen to fit these three observations.
+
+**SPACE-B5. The reversal control was dropped on an argument that inverted its own premise.**
+The premise is right: a Doppler curve is near odd-symmetric about closest approach. That is
+exactly why `D(1-f) = -D(f)`, so time reversal **is** the sign flip. The pair cancels, which is
+why no visual check finds them, and each one alone is maximally wrong. Fix: `reverse_corridor`
+is restored as a scored control, `beats_reversed` is required to be True in the criterion, and
+`odd_symmetry_residual_frac` is measured per observation and carried in the receipt so the
+premise is data rather than a comment. The paragraph is corrected in both
+`corridor_fit.py` and `docs/KILL_GATE.md`.
+
+**Measured, on the real waterfalls, under identical rules:**
+
+| obs | variant | sigma | margin (null sd) | p | beats reversal | discriminates |
+|---|---|---|---|---|---|---|
+| 14740031 | true | 2.024 | +188.8 | 0.005 | yes | yes |
+| 14740031 | inverted | 0.590 | +2.9 | 0.005 | no | no |
+| 14740031 | reversed | 0.585 | +3.1 | 0.005 | no | no |
+| 14745664 | true | 1.539 | +148.6 | 0.005 | yes | yes |
+| 14745664 | inverted | 0.398 | -1.4 | 0.050 | no | no |
+| 14745664 | reversed | 0.397 | -2.0 | 0.070 | no | no |
+| 14745929 | true | 1.652 | +161.8 | 0.005 | yes | yes |
+| 14745929 | inverted | 0.411 | +1.3 | 0.005 | no | no |
+| 14745929 | reversed | 0.413 | +0.9 | 0.005 | no | no |
+
+Two of the six wrong-sign variants clear the p-value at exactly the published 0.005, which is
+the finding restated as a measurement. The 5.0 floor sits 48 times above the worst wrong
+variant and 30 times below the weakest true one, so it is not a knife edge. Odd-symmetry
+residuals are 0.11, 1.35 and 1.59 percent of swing, reproducing the reviewer's numbers
+independently.
+
+**The verdict does not move.** Gate 3 stays NOT_ESTABLISHED with a per-observation rate of
+1.000 and a Clopper-Pearson lower bound of 0.3684 against a 0.70 threshold. The stricter
+criterion strengthens the per-observation evidence without touching the rate claim, which is
+the outcome the finding predicted.
+
+**What changed:**
+- `pipeline/tracetriage/corridor_fit.py`: corrected module docstring paragraph;
+  `margin_null_sd_min = 5.0` with its rationale; `reverse_corridor`;
+  `odd_symmetry_residual_frac`; five new `NullCalibration` fields, all reported in
+  `summary()`; the reversal scored inside `calibrate_against_nulls`; `discriminates` extended.
+  The two new criteria are required to be measured and clear rather than "not False", because
+  a criterion that cannot be evaluated cannot contribute evidence.
+- `artifacts/GATE3_RECEIPT.json` and `artifacts/HERO_NULLS.json` rescored.
+- `docs/KILL_GATE.md`: the false paragraph replaced, the table now leads with the margin in
+  null standard deviations, the wrong-sign variants published as their own table, and the
+  p-value described as a necessary and very weak condition.
+- `apps/web/public/data/`: KILL_GATE.md copy, hero_nulls.json and the provenance digests.
+
+**Tests added: 11**, in `tests/test_corridor_fit.py`. Two classes. The true corridor clears the
+floor; an inverted corridor does not discriminate and fails `beats_reversed`; a reversed
+corridor does not discriminate; the true corridor beats its own reversal; raising only the
+margin floor turns the gate to False while the p-value stays at its floor, which isolates the
+new criterion; one null gives no spread, so the margin is None and that is not a pass;
+reversal of an odd curve equals the sign flip; the residual is near zero for an odd curve,
+above 0.9 for a ramp, and None with no swing; reversal preserves the value distribution.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\run_gate3.py
+.venv\Scripts\python.exe scripts\export_hero_nulls.py
+.venv\Scripts\python.exe scripts\sync_kill_gate.py --check
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+---
+
+## 2026-08-19 IST | Wave D | D2: the console had no gate, and a generator that did not reproduce its own artifact
+
+ENG-S8 and ENG-S9, closed together because they are the same defect at two levels: a
+standing gate that reported 8/8 while two whole classes of regression were outside it.
+
+**ENG-S9. `apps/web` had no test runner.** `tsc --noEmit` and `next build` were the
+entire net, and neither can see a wrong number. Every defect this console has actually
+shipped was arithmetic: the pole seam, the antimeridian unwrap, a negative-elevation
+sample drawn as if it were above the horizon. Vitest now runs over the pure functions,
+node environment, no jsdom and no setup file, because those functions import nothing by
+design. Components stay out of scope: `next build` already fails on one that cannot
+render and `tsc` already fails on a wrong prop. The gap being closed is the arithmetic.
+
+**53 tests in two files.** `tests/projection.test.ts` (30) covers `projectSky` clamping,
+`unwrapLongitudes` at the seam, `wrapLabel`, `horizonCircle` at the poles, `projectGround`
+corners, the `niceStep` ladder, degenerate `groundBounds` spans and `stationLonInFrame`.
+`tests/plot-helpers.test.ts` (23) covers the path builder, `sampleAt`, `niceCeil`,
+`timeSeriesCursorX` and `boundsForPass`.
+
+**The defect the tests forced out.** `WaterfallViewer.pathFrom` and
+`CorridorHero.polyline` were near-identical copies, both untestable because importing
+either component drags in the whole data module, and both chose the SVG command with
+`i === 0 ? "M" : "L"`. A series whose first sample is missing, which is what a failed
+SGP4 step or a NaN row produces, yielded a path beginning with `L`. A path with no moveto
+draws nothing at all: no error, no warning, an empty overlay over a real waterfall, which
+reads as "the physics found nothing" rather than as a bug. There is now one
+`svgPolyline` in `apps/web/lib/plot-path.ts` that picks the command by whether a point
+has been emitted, skips a gap instead of interpolating across it, refuses a non-finite
+coordinate, and takes the precision as an argument so a series already rounded at export
+time is not rounded twice.
+
+**Three of my own expectations were wrong rather than the code**, which is worth
+recording because each one nearly became a "fix":
+`unwrapLongitudes([170, -170, 170, -170])` is `[170, 190, 170, 190]`, not an accumulating
+ramp, because each step is 20 degrees the short way and a propagated pass cannot move 340
+degrees between samples; `wrapLabel(540)` returns `-180`, which names the same meridian as
+`180`; and `niceStep` holds a graticule to seven lines only up to a span of 630 degrees,
+above which it returns 90 and draws more. All three are now asserted as the code behaves,
+with the reason in a comment, so a later change has to be deliberate.
+
+**And one fixture lied.** The first `boundsForPass` fixture invented `alt_km`,
+`station_lat_deg` and `station_lon_deg`; an `as never` cast let it compile, and four tests
+then failed at run time inside the function under test, reading index 1 of undefined. The
+real type is `TrackGeometry` with `altitude_km`, `station_lat` and `station_lon`. The cast
+silenced the one check that would have named the wrong field. It is now typed as
+`Partial<TrackGeometry>` and imported from the component, so a renamed field breaks the
+test at compile time.
+
+**ENG-S8. Nothing rebuilt an artifact and diffed it.** In D0 that let
+`LEAKAGE_AUDIT.json` keep a `PASS` the builder could no longer emit, with every gate
+green, and it let a test pass because its fixture read that stale file.
+`scripts/check_artifact_freshness.py` rebuilds `SPLIT_MANIFEST.json`,
+`LEAKAGE_AUDIT.json` and `HERO_NULLS.json` into a scratch directory with `--frozen-at`
+pinned, strips the write-time fields, and names the first field that differs.
+
+**What it caught on its first run, before any of it was committed.**
+`scripts/export_hero_nulls.py` defaulted to `--draw 32 --decimals 1`, while the shipped
+`artifacts/HERO_NULLS.json` holds 6 drawn paths at zero decimals. The documented command,
+run as documented, rewrote every coordinate in the file: a 10,132-line diff over an
+artifact whose numbers were never in question. The 6-and-zero decision was measured (16
+nulls at full precision is 63.3 kB against a 40.2 kB gzipped home document) and it lived
+nowhere except the shell history of whoever ran it. The defaults are now the shipped
+decision, with the measurement in the comment, and the rebuilt file is byte-identical to
+the committed one.
+
+The check cannot run in CI and says so: CI has no observation snapshot. `--deep` also
+rescores gate 3, which needs the waterfall PNGs and a few minutes, and belongs before a
+submission rather than in a per-unit loop.
+
+**The gate grew from 8 checks to 12.** Console typecheck, console build and console tests
+are three lines rather than one, because a type error and a wrong projection are different
+failures. A missing `apps/web/node_modules` is reported as a FAIL rather than skipped: a
+skipped check that reads as a pass is the same defect one level up. `artifacts match their
+builders` is the fourth. CI gained a `console` job (`npm ci`, typecheck, test, build) on
+Node 20, which needs no snapshot and no Python because everything the export reads from
+`apps/web/public/data` is committed.
+
+**What changed:**
+- `apps/web/lib/plot-path.ts`: new, one `svgPolyline`.
+- `apps/web/components/WaterfallViewer.tsx`, `CorridorHero.tsx`: both copies delegate to
+  it, at 2 decimals and raw respectively, which is what each was already doing.
+- `apps/web/components/PassReplay.tsx`, `PassTimeSeries.tsx`: `sampleAt`, `niceCeil` and
+  `timeSeriesCursorX` exported so the cursor and the series cannot disagree untested.
+- `apps/web/vitest.config.ts`, `apps/web/tests/`: new.
+- `apps/web/package.json`: `test` and `test:watch` scripts, vitest 3 as a dev dependency.
+- `scripts/check_artifact_freshness.py`: new.
+- `scripts/export_hero_nulls.py`: `--draw` 32 to 6, `--decimals` 1 to 0.
+- `scripts/gate.py`: four new checks.
+- `.github/workflows/ci.yml`: the `console` job.
+
+**Tests added: 53.**
+
+**Commands run:**
+```
+cd apps\web && npm run typecheck
+cd apps\web && npm run build
+cd apps\web && npm run test
+.venv\Scripts\python.exe scripts\check_artifact_freshness.py
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+817 passed, 1 xfailed, ruff clean, 53 console tests, 12/12 standing gates.
+
+---
+
+## 2026-08-19 IST | Wave D | D3: four contracts that validated a document from any version, and a drift test that read the label
+
+ENG-S1, ENG-S2, ENG-S4 and ENG-S6. Four findings, one shape: a check that ran and
+reported on something adjacent to the thing it was supposed to check.
+
+**ENG-S1. Six of eight contracts had an open root, and only two pinned the version.**
+Closed now, with one deliberate exception. The rule applied, stated here because the
+next person will need it: bump the contract version when a correct writer has to emit
+something new, and do not bump when the change only rejects documents no writer in this
+repository produces. Under that rule `fusion_receipt`, `dataset_manifest`,
+`annotation_record` and `waterfall_geometry` keep their versions and no artifact had to
+be rewritten, while `triage_receipt` goes to 0.3.0 and `split_manifest` to 0.5.0,
+because `schema_version` is newly required in both and neither document carried one.
+
+Per contract, measured before the change so a tightening could not reject a real
+document:
+
+| Contract | Root | Version pin | Undeclared root keys found |
+| --- | --- | --- | --- |
+| `fusion_receipt` | closed | 0.1.0, was a bare string type | `contract` |
+| `triage_receipt` | closed | 0.3.0, newly required | `model_checksum_source` |
+| `split_manifest` | closed | 0.5.0, newly required | six the builder emits |
+| `waterfall_geometry` | closed | 0.2.2, declared not required | none |
+| `dataset_manifest` | closed | 0.2.1, already pinned | none |
+| `annotation_record` | already closed | 0.1.0, was a semver pattern | none |
+| `queue_receipt` | already closed | 0.3.0, already pinned | none |
+| `source_observation` | open, with a reason | 0.2.1, already pinned | 24, all upstream |
+
+`source_observation` is the exception and the reason is measured: it describes a SatNOGS
+API observation record, and 24 fields the API sends today are undeclared here
+(`archive_url`, `archived`, `demoddata`, `observer`, `payload`, `station_name`, and
+eighteen transmitter, vetted and waterfall-status keys). Closing that root would reject
+every record in the snapshot and turn an upstream field addition into a failed build. It
+now declares `open_root_reason`, which is a sentence a reviewer can disagree with rather
+than an omission nobody sees, and the new test accepts an open root only when that
+sentence is there.
+
+A semver `pattern` is worth naming separately, because it looks like a version check and
+is not: it proves the string is shaped like a version and says nothing about which one.
+`annotation_record` had that. `fusion_receipt` declared only that the version was a
+string, which does not even do that much.
+
+**26 tests added for it**, all parametrised so a ninth contract is covered the day it is
+written: the root is closed or explains itself; the version property exists, is a
+const, and equals the contract version; every committed artifact validates and claims
+the pinned version; and the reviewer's two mutations (a prehistoric version, an extra
+root key) are rejected on all five committed documents.
+
+**ENG-S2. Nested receipt reads bypassed the guard.** `_require` covered the `splits`
+list and nothing inside it, so five measured blocks could be renamed in the receipt,
+validate cleanly, and be published as null. The export now mirrors the contract's own
+conditional in `_split_for_console`: a split that is not degraded must carry `counts`,
+`arms`, `comparisons`, `selective` and `test_positive_rate`, and only `ensemble` and
+`ood` stay optional. The `split_result` definition is closed as well, and the two fields
+the receipt carried undeclared (`test_positive_rate`, `train_positive_rate`) are now
+declared, so the rename fails at the writer rather than at the reader.
+
+**The measurement that changed the design.** `multiplicity_adjusted` is an empty map in
+two of the five splits, and `_require` correctly refused to publish it, which failed the
+build. Reading `run_fusion.py` says why: an entry is added only for a comparison whose
+nominal interval cleared zero in either direction, so an empty map means no comparison in
+that split needed correcting. That is a measurement, not an absence. It gets
+`_require_present`, a second guard that demands the key and accepts an empty value, with
+the reason beside it. Requiring non-emptiness there would have been the same error as
+`.get()`, pointing the other way.
+
+`degraded` needed the same treatment for the opposite reason: null means the split ran,
+so `_require` would reject the good case, and `.get()` cannot tell a clean run from a
+renamed key.
+
+Nothing published moved. `evaluation.json` is byte-identical after the change, which is
+the outcome that says the receipt was right and only the guard was missing.
+
+**And the page states the absence.** A missing selective curve used to remove the whole
+risk and coverage section: no heading, no note, no warning tone, nothing in the DOM. It
+now renders the section with a limit note naming which split has no curve, and
+distinguishing a degraded split from a build problem.
+
+**ENG-S4. The drift test asserted the metric name, not its value.** The test ended at
+`assert cells[0] in registered`. The value was parsed on the line above and never
+compared, while the file docstring claimed that the value quoted in README.md must equal
+the value in the artifact the row points at. The reviewer changed the AUC row to 0.999
+against 0.111 and the whole suite stayed green.
+
+Two checks now, deliberately different in strength:
+
+- `scripts/sync_readme_results.py --check` regenerates the table from the receipts into
+  memory, compares it against the file, and names the first differing line. It is exact,
+  because the generator knows where each number comes from. It is wired into
+  `scripts/gate.py` and into CI beside the lint step, which is what the script needed
+  most: it was referenced by nothing at all, not by the gate, not by CI, not by a test,
+  so its table stayed correct only while someone remembered to run it.
+- `test_every_registered_claim_matches_its_artifact`, which was an xfail pointing at a
+  task that had already passed, now compares every number in the results tables against
+  the artifact its row cites, at the precision it is quoted to. Measured coverage: 15
+  rows, 49 numbers, all found. Four rows cannot be compared, are listed by name with a
+  reason, and the test fails if that set changes.
+
+**A limit found by testing the test, and kept rather than hidden.** Of the reviewer's two
+fabricated numbers the number search catches 0.999 and misses 0.111, because some value
+in FUSION_RECEIPT.json rounds to 0.111 at three decimals. Appearing somewhere in a large
+receipt is a weak net, which is exactly why the exact check sits beside it. The test
+asserts the catch it really achieves, and the docstring says which one it cannot.
+
+**ENG-S6. The guard was tested five times and never at a call site.** Five new tests
+assert on the published files instead: no card carries a corridor block without a fitted
+offset, every clean split in `evaluation.json` publishes every measured block, a renamed
+block raises during the export, a degraded split is allowed to have no results, and a
+split with no `degraded` key at all is a failure rather than a clean split with null
+everywhere.
+
+**What the freshness check caught while this was being built**, which is the second time
+it has paid for itself:
+
+1. `artifacts/TRIAGE_RECEIPT.json` was two units stale. It was written on 2026-08-17 and
+   D1 added five fields to the corridor summary it embeds, so the committed receipt
+   disagreed with the code that writes it while every gate passed. Regenerated in 14
+   seconds, and no existing value moved: the diff is the five D1 fields,
+   `offset_at_bound`, `corridor_span_hz`, the version and the timestamp. It is now
+   covered by the check.
+2. `apps/web/public/data/hero_nulls.json` was still the 32-draw file. D2 corrected
+   `artifacts/HERO_NULLS.json` and the published copy stayed three times too heavy for a
+   whole commit, because the artifact and the copy are written by different scripts and
+   only one was re-run. The check now rebuilds the console data into a scratch directory
+   and diffs every published file, which needed a `--data-dir` argument on
+   `build_console_data.py`.
+3. `--skip-images` was documented as rebuilding the JSON only, and it skips
+   `cards.json`, which is JSON. That file genuinely needs the waterfall PNGs, because
+   `export_observation` parses each one for its geometry, so the help text now says so
+   and the freshness check prints `cards.json` as not checked rather than passing over
+   the directory as if it were covered.
+
+**One more of the same shape, fixed in passing.** `scripts/run_triage_slice.py` validated
+its receipt against a relative `contracts/triage_receipt.schema.json` inside an
+`if schema_path.exists()`. Run from any other directory the contract was not found and
+validation was skipped silently, which is the ENG-B3 defect in a second place. It is now
+anchored to the repository, and a missing contract is a failure.
+
+**What changed:**
+- `contracts/`: all eight touched. Six roots closed, one root documented as open, four
+  version pins added or corrected, nine root properties declared, `split_result` closed.
+- `pipeline/tracetriage/splits.py`: `SPLIT_MANIFEST_SCHEMA_VERSION`, emitted.
+- `scripts/run_triage_slice.py`: emits `schema_version`, and the contract path is
+  anchored.
+- `scripts/build_console_data.py`: `_require_present`, `_split_for_console`,
+  `--data-dir`, corrected `--skip-images` help.
+- `scripts/sync_readme_results.py`: `--check`.
+- `scripts/check_artifact_freshness.py`: covers `TRIAGE_RECEIPT.json` and every published
+  console file, and names what it cannot check.
+- `scripts/gate.py`: the README check. 13 standing gates.
+- `apps/web/app/evaluation/page.tsx`: the stated absence.
+- `.github/workflows/ci.yml`: the README check.
+- `artifacts/SPLIT_MANIFEST.json`, `artifacts/TRIAGE_RECEIPT.json` and the published
+  console data, all regenerated.
+- `docs/WAVE_D_PROMPT.md`, `docs/BOB_HANDOFF.md`, `BOB_START_HERE.md`: the gate count was
+  written in three places as 8 or 7. They now name the checks and say to read the count
+  the script prints.
+
+**Tests added: 35.** 26 contract, 5 export, 4 claim drift, and the xfail is gone rather
+than deferred again.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\build_splits.py --frozen-at "2026-08-17T16:11:19.249864+00:00"
+.venv\Scripts\python.exe scripts\run_triage_slice.py
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+.venv\Scripts\python.exe scripts\check_artifact_freshness.py
+.venv\Scripts\python.exe scripts\sync_readme_results.py --check
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+cd apps\web && npm run typecheck && npm run test && npm run build
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+851 passed, 0 failed, no expected failures left, ruff clean, 53 console tests, 13 of 13
+standing gates.
+
+---
+
+## 2026-08-19 IST | Wave D | D4: three instruments disagreed about the horizon, and two types promised more than the data
+
+ENG-S3, ENG-S5, ENG-S7 and the two declarations in ENG-S8 at REVIEW_ENGINEERING.md:462.
+All four are console defects, and three of them were invisible in production for the
+same reason: the code that would have shown them is a code path nobody was measuring.
+
+**ENG-S3. Below-horizon elevation was rendered three different ways on one page.**
+Three consumers of the same `elevation_deg` series:
+
+| Consumer | Was | Now |
+| --- | --- | --- |
+| `SkyPlot` | broke the polyline at a negative sample, with the reason in a comment | unchanged, but the test moved into the projection |
+| `PassTimeSeries` | clamped with `Math.max(0, deg)`, drawing a flat segment along zero | breaks the subpath, so the panel has a gap where the sky plot has one |
+| `PassReplay` | called `projectSky` behind a finiteness guard, so the cursor sat pinned to the horizon ring while the track it traced had a gap | hides the cursor for those instants |
+
+`projectSky` now returns `null` below the horizon and the policy lives there, so a
+fourth consumer inherits it rather than choosing again. Three shipped observations have
+below-horizon samples (14742034 and 14742036 with five each, 14736746 with one), so all
+three renderings were on the site.
+
+**Two things fell out of moving it.** `SkyPlot` asked for a cardinal label at -7.5
+degrees elevation, meaning just outside the horizon ring, and the clamp inside
+`projectSky` turned that into exactly the point at 0: N, E, S and W were sitting on the
+ring on top of their own spokes, and the intent was in the number and never on the
+screen. Chrome now has its own function, `skyChromePoint`, which does not clamp, and
+`skyRadius` is the one definition of the elevation-to-radius map that the graticule
+also uses. Second, the rise, set and closest-approach markers each called the
+projection twice per attribute, six calls for three markers; they are three consts now,
+and a marker whose sample is below the horizon is not drawn at all rather than drawn on
+the rim where the satellite was not.
+
+`svgPolyline` gained a `breakOnGap` argument for the elevation panel. It is off by
+default because the two overlay callers have dense series filtered upstream, where one
+dropped column is a rendering detail; it is on where a gap is a measurement. The D2
+test named "skips a gap rather than interpolating across it" overstated what the
+default does, which is joining across the gap without inventing a point inside it, and
+is renamed to say that.
+
+**ENG-S5. The replay readout was a live region mutated up to sixty times a second.**
+`aria-live="polite"` was chosen because assertive "would interrupt on every frame of
+playback", which answers interruption and not volume: polite does not interrupt, and it
+still queues. `REPLAY_MS` is 12,000, so one press of Replay wrote on the order of 700
+batches across seven nodes, five of which change every frame.
+
+The region is now `off` while values are moving and `polite` when they stop, with
+`aria-atomic` so a batch is not read as seven fragments. Moving covers both cases: the
+animation loop, and a mouse drag on the scrubber, which fires continuously too. A drag
+sets a `scrubbing` flag with a 200 ms trailing edge, so the plot follows every event
+while the announcement happens once, at the position the reader settled on. Stopping is
+what announces, through one effect: the end of a run, a press of Pause, and the end of
+a drag all route through it. Without that a completed replay would say nothing at all,
+because every change happened inside a region that was off.
+
+A keyboard step on the slider is one event and is left alone. It announces once, which
+is correct, and throttling it would delay the only feedback a keyboard user gets.
+
+**ENG-S7. A released WebGL context cannot be re-acquired.** The per-image cleanup
+called `WEBGL_lose_context.loseContext()`. A force-lost context stays lost until
+something calls `restoreContext`, and `getContext` on the same canvas returns that same
+lost context, so any second run of the init effect compiled nothing and landed in the
+shader-failure branch for good: the plain image, no controls. `next.config.mjs` sets
+`reactStrictMode`, so in the dev server every effect mounts, cleans up and mounts again,
+which means the shader path was dead in development and a developer reading that file
+would have concluded the opposite. The production build was unaffected, which is why
+`next build` and the deployed site both looked right.
+
+The context is now acquired once per canvas, cached on a ref, reused across runs of the
+effect, and released in an unmount-only effect. The per-image cleanup deletes the
+texture, buffer, vertex array and program, which is what it owns. The live-context cap
+of about 16 is still respected: the release moved, it did not disappear.
+
+`preventDefault()` on `webglcontextlost` is gone, and that is the honest direction.
+Calling it asks the browser for a `webglcontextrestored` event that nothing here
+listens for, so it requested a context that could never come back and left a blank
+canvas behind live controls. Falling back to the plain image is what this component was
+designed to do. Supporting a real restore would need a generation counter in the
+effect deps plus a timeout that falls back when the restore never arrives, and that is
+written down in the comment rather than half-built.
+
+**ENG-S8 at :462. Two type declarations a cast and three assertions papered over.**
+
+`Card` typed `image`, `width` and `height` as optional and the observation page reached
+past them with `card.image!`, `card.width!` and `card.height!`. The invariant does hold
+in the exporter, so this was not live, but the same file already had the right answer
+in `PassGeometry`, a union written specifically so that reading a field without
+checking `degraded` is a type error. `Card` is now that union too:
+`{obs_id, degraded: string}` or `{obs_id, degraded: null} & CardMeasurements`, measured
+against the shipped file first (all 25 clean cards carry all 26 keys, and the degraded
+branch of the exporter writes exactly two).
+
+**And the narrowing that does not work.** `if (!card.degraded)` does not select a union
+member here, because the degraded member types `degraded` as `string` and an empty
+string is falsy, so a truthiness guard leaves that member in and every measured field
+stays unreachable. That is why the three assertions existed: the guard the author wrote
+looked like it narrowed and did not. There is now an `isBuilt` predicate comparing
+against null, used by the observation page, the provenance page and `showcaseIds`, and
+the three non-null assertions are gone.
+
+`threshold` was declared `string | number` and is an object in all three criteria. The
+home page rendered it correctly only by casting inside a branch the compiler believed
+unreachable: with `string | number`, `typeof x === "object"` narrows to `never`, a cast
+on `never` is permitted, and the only branch that ever executed was the one an editor
+would offer to delete as dead code. Acting on that hint would have rendered all three
+thresholds as `[object Object]`. The type includes `Record<string, number>` now, the
+guard narrows for real, and the cast is gone.
+
+**One more of the same shape, found while doing it.** `FusionSplit` typed `arms` and
+`comparisons` as always present, and the export writes null for both when a split is
+degraded. Unlike `Card` this one could really happen, and `Object.entries(null)` throws
+during the export, which is at least loud. Both are nullable now, and the evaluation
+page has a stated absence at the top: every number on it is measured on the
+chronological split, so a degraded chronological split means the page has nothing to
+show and says so.
+
+**What changed:**
+- `apps/web/lib/projection.ts`: `projectSky` returns null below the horizon;
+  `skyChromePoint` and `skyRadius` added.
+- `apps/web/components/SkyPlot.tsx`: polyline asks the projection, cardinals and
+  graticule use the chrome helpers, three markers are three consts.
+- `apps/web/components/PassTimeSeries.tsx`: no clamp, and the elevation series is a
+  path with breaks.
+- `apps/web/components/PassReplay.tsx`: cursor hidden below the horizon; the live
+  region is off while values move, with one announcement per stop.
+- `apps/web/components/WaterfallCanvas.tsx`: context cached and released only on
+  unmount, no `preventDefault` on loss.
+- `apps/web/lib/plot-path.ts`: `breakOnGap`.
+- `apps/web/lib/data.ts`: `Card` union, `CardMeasurements`, `isBuilt`, nullable
+  `FusionSplit` results, corrected `threshold`.
+- `apps/web/app/observation/[id]/page.tsx`, `app/provenance/page.tsx`, `app/page.tsx`,
+  `app/evaluation/page.tsx`: narrowing instead of assertions and casts.
+
+**Tests added: 6**, for 59 console tests in total: null below the horizon including the
+smallest sample in the corpus and NaN, zero kept as on the horizon rather than below
+it, the chrome point outside the ring that the clamp used to prevent, agreement between
+the two projections where a sample is legal, subpaths on `breakOnGap`, and the
+one-negative-sample series that is the mechanism all three consumers now share.
+
+**Commands run:**
+```
+cd apps\web && npx tsc --noEmit
+cd apps\web && npm run test
+cd apps\web && npm run build
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+851 passed, ruff clean, 59 console tests, 13 of 13 standing gates.
+
+**Noted rather than fixed:** `npm run lint` does not run. ESLint 9 is installed against
+an `.eslintrc` file and exits telling you to migrate to the flat config. It is not one
+of the standing gates, so nothing depended on it, and the migration is a config change
+with its own review rather than a line in this unit.
+
+---
+
+## 2026-08-19 IST | Wave D | D5: the elevation reference was rounding, the unrounded one was never used, and a published median was two waves stale
+
+SPACE-S1 and SPACE-S2, plus a live claim-drift defect the work surfaced.
+
+**SPACE-S1. The physics validation's reference is quantised to one degree.** All 200
+`max_altitude` values in the corpus are integers. A uniform rounding error on
+[-0.5, 0.5] has mean absolute value 0.250 and standard deviation 0.289; the artifact
+reports mean absolute 0.243 and a signed standard deviation of 0.363. So the published
+0.243 degrees is mostly the API's rounding, and reading it as agreement to a quarter of
+a degree claims a resolution the reference does not have. The artifact now carries
+`distribution.reference_quantisation`, which counts the integer-valued records and says
+in words that the comparison bounds the error near half a degree and resolves nothing
+finer.
+
+**And the docstring claim was half wrong, which matters more.** `geodetic_normal` said
+the geocentric-reference defect was "invisible in the mean error against the reported
+elevation and visible in the variance". I re-ran the whole A4 validation with the
+station position vector substituted for the geodetic normal, over the same 200 records:
+
+| up reference | mean signed | sd | mean abs | median abs | p95 abs | within 1 deg |
+| --- | --- | --- | --- | --- | --- | --- |
+| geodetic normal (shipped) | +0.0035 | 0.3632 | 0.2437 | 0.2258 | 0.4685 | 99.50% |
+| position vector (the defect) | -0.0329 | 0.3696 | 0.2495 | 0.2100 | 0.5220 | 99.50% |
+
+The mean moves 0.0364 degrees against a standard error of 0.0257, which is 1.4 sigma.
+The variance ratio is 1.036 against an F critical value near 1.28 at 199 and 199 degrees
+of freedom. So it is invisible in the variance as well, and the docstring now says that:
+this check could not have found the defect either way, because one degree of reference
+rounding is larger than the whole effect. The per-observation difference is signed from
+-0.1915 to +0.1691 degrees, which is the cancellation mechanism and is correct. Every
+number here reproduces the reviewer's independently.
+
+**SPACE-S2. The unrounded fields were never used.** `docs/SATNOGS_API_RECON.md:272` and
+the task prompt both required validating against `max_altitude`, `rise_azimuth` and
+`set_azimuth`. Only `max_altitude` was validated, and it is the one of the three that
+rounding destroys. `rise_azimuth` and `set_azimuth` are present on 200 of 200 records
+and are the only independent check on the azimuth convention and the local
+East/North/Up basis, which the project asserted without evidence until now.
+
+`scripts/validate_physics.py` runs it, and it passes:
+
+| | n | mean signed | sd | median abs | p95 abs | max abs | within 1 deg | within 3 deg |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| rise azimuth | 200 | -0.007 | 0.321 | 0.268 | 0.479 | 1.962 | 99.5% | 100% |
+| set azimuth | 200 | -0.030 | 0.306 | 0.265 | 0.487 | 1.142 | 99.5% | 100% |
+
+**With the counterfactuals in the artifact rather than in a sentence**, because an
+agreement reported without the size of a wrong answer has no scale: swapping the `atan2`
+arguments gives a median absolute error of 93.9 degrees, and mirroring the azimuth about
+north gives 27.0 degrees, against 0.268 for the shipped convention. Both are computed on
+the same records by the same code, so they cannot drift away from the number they exist
+to scale.
+
+This is also the check that could have caught the up-vector defect, which is why it sits
+beside the elevation comparison in the same artifact and the same run.
+
+**The drift the work exposed.** The README and the claim register both said "median 0.21
+deg, p99 0.61 deg" for the elevation comparison. The artifact they cite says 0.2249 and
+0.5276. Git shows exactly what happened:
+
+| commit | artifact median | artifact p99 |
+| --- | --- | --- |
+| `0f21ce7` (the commit the register pins) | 0.2082 | 0.6060 |
+| `7fbb980` (the C7 geodetic normal fix) | 0.2249 | 0.5276 |
+
+The artifact was regenerated and the prose was not, for two waves. Corrected to 0.22 and
+0.53, with the register's commit and verification date updated, and three new register
+rows for the quantisation statement, the azimuth agreement and its counterfactuals.
+
+**Why the new drift test did not catch it, and what does now.** The number search added
+in D3 looks for each quoted value anywhere in the cited artifact, and
+`PHYSICS_VALIDATION.json` carries 200 per-observation records of four numbers each, so
+both stale figures matched some row by coincidence. Excluding record arrays was tried and
+produces false alarms instead, because `FUSION_RECEIPT.json` keeps its per-split
+summaries in an array of objects and the selective-risk claim genuinely cites one point
+of a curve. So the broad net stays as the broad net, and the hand-written table gets an
+exact check of its own: `test_established_claims_are_derived_from_their_artifacts`
+recomputes all six checkable established claims from their artifacts rather than
+searching for them. Recomputing means counting the verdicts (4 corrected, 3 uncorrected,
+17 undecidable, 24 total), checking that the three partition the pool, confirming
+`rigctl-port` is 4532 on all 24 and `doppler-correction-per-sec` null on all 24, finding
+the strongest corrected and uncorrected matches by argmax rather than by memory, and
+reading the median and p99 out of the distribution block.
+
+One reading was ambiguous and is now pinned. "17 of 24, scoring 0.7 to 3.5 sigma" is the
+range over every score the 17 unresolved observations produced in both orientations
+(0.727 to 3.536). The best-score-per-observation range starts at 0.983, so the row is
+correct under the reading it states and would be wrong under the other one. The test
+states which.
+
+**What changed:**
+- `scripts/validate_physics.py`: the azimuth comparison with both counterfactuals, the
+  reference-quantisation block, an `A4_OUT_PATH` override so the freshness check can
+  rebuild into a scratch directory, and a corrected module docstring.
+- `pipeline/tracetriage/physics.py`: the `geodetic_normal` docstring, with the A/B table.
+- `artifacts/PHYSICS_VALIDATION.json`: regenerated. The elevation distribution is
+  unchanged to every published digit; the file gains the two new blocks.
+- `README.md`: the corrected median and p99, the quantisation caveat, and a new row for
+  the azimuth agreement.
+- `docs/CLAIM_REGISTER.md`: the corrected row with its real commit, and three new rows.
+- `scripts/check_artifact_freshness.py`: `PHYSICS_VALIDATION.json` under `--deep`,
+  because a rebuild propagates 200 passes several times over and takes minutes.
+- `tests/test_claim_drift.py`: the derivation test, the quantisation test and the
+  azimuth test, and the search's own limit written into its docstring.
+
+**Tests added: 3.** All six established claims recomputed, the quantisation declared, and
+the azimuth agreement measured against its counterfactuals.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\validate_physics.py
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+.venv\Scripts\python.exe scripts\sync_readme_results.py --check
+.venv\Scripts\python.exe scripts\check_artifact_freshness.py --deep
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr" -q
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+854 passed, ruff clean, and the deep freshness check confirms all six artifacts match
+their builders, including the regenerated physics validation and an unchanged gate 3.
+
+---
+
+## 2026-08-19 IST | Wave D | D6: a threshold that was a round number, rows nobody could see, and a global constant measured on three observations
+
+SPACE-S3, SPACE-S4 and SPACE-S5, the last three SERIOUS findings in the space review's
+first half.
+
+**SPACE-S3. `TLE_MAX_EPOCH_AGE_DAYS` was 14 because two weeks is a fortnight.** The
+comment beside it described a tolerance it did not compute. It is now derived, and the
+derivation is written where the number lives: a 500 Hz share of the 1200 Hz corrected
+corridor half-width, divided by the measured peak Doppler slope of 119.4 Hz/s, is 4.2
+seconds of timing error, which at orbital velocity is 31 km along track. Published SGP4
+along-track growth of 1 to 3 km per day puts the bound between 10.5 and 31 days, so 10 is
+the conservative end of its own interval rather than the middle of nothing. Two new
+constants carry the intermediate quantities so neither can drift silently:
+`PEAK_DOPPLER_SLOPE_HZ_PER_S = 119.4` and `TLE_AGE_TOLERANCE_HALF_WIDTHS = 0.25`.
+
+Changing 14 to 10 is inert on the data in hand, and the artifact says so rather than
+leaving it implied. `PHYSICS_VALIDATION.json` now publishes
+`distribution.tle_epoch_age`: over 199 propagated records the epoch age runs from 0.42 to
+3.837 days with a median of 0.743, and 0 records sit above the threshold at either value.
+A bound nothing has approached is a bound and not a filter, which is the honest reading.
+
+`test_stale_tle_threshold_reasonable` asserted `3 <= threshold <= 30`. Every plausible
+value satisfies that, so the test could not fail; three tests replace it, covering the
+derived bound, the 0.33 half-widths the previous value would have allowed, and the
+published inertness.
+
+**SPACE-S4. The scorer averaged rows where the satellite had not risen.** A SatNOGS
+observation window is scheduled around a pass rather than clipped to it, so windows open
+and close below the local horizon. Measured over the 150 records the console builds from,
+propagated at 512 samples: 26 windows (17.3 percent) contain at least one below-horizon
+sample, the mean below-horizon fraction is 0.257 percent and the worst window spends
+16.60 percent of its rows there. Over the 200 records of the A4 validation corpus, 38 of
+199 (19.1 percent), with elevation at window start averaging 13.01 degrees (sd 13.19,
+minimum -5.87). Those rows cannot hold a trace: the line of sight passes through the
+Earth. They were entering `path_score`, `rows_detected`, the residual percentiles and the
+`detect_frac` denominator.
+
+`Corridor` now carries `elevation_deg`, and `visible_rows` turns it into a per-row mask
+against a stated floor of 0 degrees. Zero is the geometric horizon and the weakest floor
+that can be defended, because SatNOGS publishes no per-station mask and a real station is
+masked well above it by terrain.
+
+**Four details decide whether the fix is a fix.**
+
+*One row-to-fraction map.* `corridor_columns` had the inversion inline. It is now
+`image_row_fracs`, used by the column map and the elevation map both. Two copies are two
+chances to mask the opposite end of the image from the curve being masked, and an
+inverted mask is invisible in every summary: the count of dropped rows comes out
+identical either way. A test paints an asymmetric window and asserts the mask lands on
+the bottom rows, which is where the pass starts.
+
+*The mask is built once from the true corridor and handed to every null.* The null
+builders construct fresh corridors, so a mask derived inside the scorer would have given
+each null the whole image while the truth was masked. A margin measured over two
+different row sets is not a margin, and both versions produce plausible sigmas. All five
+same-window builders now carry the elevation series through, including the mismatched
+control, which borrows the donor's curve and keeps this image's rows.
+
+*`min_valid` is measured against the masked rows.* Charging a horizon mask against the
+same 80 percent budget that catches a corridor running off the plot edge would turn every
+low window into a NaN, which is how a fix comes to look like a regression.
+
+*The denominator is the visible rows, and the count is published.*
+`rows_masked_below_horizon` is a required field on `CorridorFit`, so every writer has to
+state it, and `detect_frac` divides by `rows_total` minus that count. A new
+`MOSTLY_BELOW_HORIZON` degradation covers a window with fewer than 8 visible rows; it is
+inert on both corpora, since the worst window still leaves 1284 rows of 1540.
+
+**What ships is unchanged, and that was checked rather than assumed.** At real image
+heights, 1 of the 25 console cards carries a below-horizon row and it carries exactly
+one, 1 row of 1549. Of the 24 A3 observations, the same one, 1 row of 1603. All seven
+gate-3 decisive observations and the hero observation carry none. Rerunning gate 3
+produced 24 differences against the committed receipt and every one of them is the new
+field arriving with the value 0. `HERO_NULLS.json` came out byte-identical, and the hero
+exporter's seven agreement checks against the receipt still pass at sigma 2.024118.
+
+The first attempt to measure the A3 exposure returned "0 of 24" because the A3 summary
+carries no image height and every row was skipped. That is an unmeasurable quantity
+reading as a clean result, so the heights came from the cached waterfall PNGs instead and
+all 24 were measured.
+
+**SPACE-S5. `AXIS_SIGN_CONVENTION` sat under a heading reading "do not re-derive".** The
+axis direction is a property of the client that rendered the image, not of the pass, and
+it is applied as one global constant. A3 fitted it per observation, and it is only
+measurable on the 3 uncorrected passes of the 7 decisive ones:
+
+| obs | family | station | sigma at +1 | sigma at -1 | ratio |
+| --- | --- | --- | --- | --- | --- |
+| 14740031 | 1.6 | 91 | 1.986 | 25.102 | 12.6x |
+| 14745664 | 2.1.2 | 1696 | 1.184 | 15.142 | 12.8x |
+| 14745929 | 2.1.2 | 1696 | 1.407 | 15.943 | 11.3x |
+
+On the 4 corrected observations the corridor is identically 0 Hz across the pass, so it
+mirrors onto itself and the two signs tie within 1.18x. A3 took the argmax there anyway
+and it returned +1 twice, which is noise published as a measurement rather than evidence
+against the constant. The scope of the real evidence is 3 observations, one UTC night
+(2026-08-09, 23:32 to 23:50 UTC), 2 stations, one downlink frequency (436.4 MHz) and 2
+client families. Every figure above was re-read from the artifact before being used.
+
+**The evidence base is now stated beside the constant, and the reach of the assumption is
+a published number.** `run_gate3` writes `axis_sign_scope` into the receipt: the snapshot
+holds 2750 observations across 20 distinct client families, 1032 come from a family the
+sign was measured on, and 1718 inherit it. The README row cites those numbers because the
+claim register test refused the ones it could not find in the artifact, which is the test
+working: the first version of the row quoted a corpus count that lived only in a shell
+command.
+
+**And the constant is re-measured per observation rather than asserted.**
+`measure_axis_sign` scores the shipped orientation against its mirror under identical
+rules, with the same horizon mask and the same bounded offset search, and reports
+`measurable: false` with a named reason when the corridor has too little swing to tell
+the two apart. Gate 3 and the triage slice both publish it. On the three measurable
+observations it agrees with the constant at 3.43x, 3.87x and 4.01x. Those ratios are
+smaller than A3's because the estimator is different: A3 searched offsets across the whole
+image width with its own normalisation, while this is bounded at 50 ppm and masked. Only
+the direction is comparable between the two, and the direction agrees.
+
+`client_family` moved from the A3 script into `physics.py`, beside the constant it
+qualifies, because the evidence base and the grouping rule drifting apart is the failure
+this is meant to prevent. Verified identical to the version it replaced on all 150
+records of the corpus, zero disagreements, including the build-suffix and
+`client_metadata` fallback paths.
+
+**Tests added: 27.** Fifteen for the horizon mask, twelve for the axis sign. Every one of
+them was checked against the defect it describes: nine mutations were applied to the
+sources and each was caught by the test that names the property.
+
+| mutation | caught by |
+| --- | --- |
+| the mask is always all-True | the mask lands on the pass-start rows |
+| the elevation row map is inverted | the mask lands on the pass-start rows |
+| `min_valid` charged over the whole image | the mask is not charged as leaving the plot |
+| `detect_frac` divides by the image height | the denominator is the rows that could hold a trace |
+| null builders drop the elevation series | the null builders carry the window elevation |
+| nulls derive their own mask | every null is scored on the same rows as the truth |
+| a family claims evidence it does not have | the evidence base is derived from the artifact |
+| the measurability threshold raised past the evidence | the threshold is not tuned to the data |
+| the sign is reported as the constant regardless | the measurement can disagree with the constant |
+
+**One defect in this unit's own work, caught before it ran.** The first version of the
+gate-3 axis-sign call passed `geom.hz_per_px` and `rx_hz`, which are loop variables from
+the earlier prepare loop rather than the observation being scored. Every observation would
+have been measured against the last prepared geometry. The scoring loop reads everything
+from its own entry; so does this now.
+
+**What changed:**
+- `pipeline/tracetriage/physics.py`: the derived epoch-age bound with its two intermediate
+  constants, `HORIZON_MASK_ELEVATION_DEG`, `image_row_fracs`, `corridor_row_elevation`,
+  `visible_rows`, `elevation_deg` on `Corridor`, `client_family`,
+  `axis_sign_evidence`, `AXIS_SIGN_MEASURED_FAMILIES`, `AXIS_SIGN_MEASURABLE_RATIO`, and
+  the evidence base written into the axis-sign comment.
+- `pipeline/tracetriage/corridor_fit.py`: `row_mask` through `path_score` and
+  `_best_over_offsets`, the mask built once in `fit_offset` and `calibrate_against_nulls`,
+  masking in `measure_residuals`, the visible denominator and `MIN_VISIBLE_ROWS` in
+  `fit_corridor`, `rows_masked_below_horizon` on `CorridorFit` and in `summary()`,
+  `invert_corridor` and `measure_axis_sign`.
+- `scripts/run_gate3.py`: the per-observation `axis_sign` block and the `axis_sign_scope`
+  census.
+- `scripts/run_triage_slice.py`: the same per-observation block.
+- `scripts/export_hero_nulls.py`: the same mask the gate uses, so the drawn nulls stay the
+  measured ones.
+- `scripts/a3_doppler_investigation.py`: imports `client_family` instead of duplicating it.
+- `scripts/validate_physics.py`: the epoch-age distribution block.
+- `artifacts/GATE3_RECEIPT.json`, `artifacts/TRIAGE_RECEIPT.json`,
+  `artifacts/PHYSICS_VALIDATION.json`, `apps/web/public/data/provenance.json` and the
+  console's register copy: regenerated.
+- `README.md` and `docs/CLAIM_REGISTER.md`: the axis-sign row and four register rows.
+- `tests/test_physics.py`, `tests/test_corridor_fit.py`: 27 tests.
+
+**Commands run:**
+```
+.venv\Scripts\python.exe scripts\run_gate3.py
+.venv\Scripts\python.exe scripts\run_triage_slice.py --obs-id 14740031
+.venv\Scripts\python.exe scripts\export_hero_nulls.py
+.venv\Scripts\python.exe scripts\build_console_data.py --skip-images
+.venv\Scripts\python.exe scripts\check_artifact_freshness.py --deep
+.venv\Scripts\python.exe -m pytest -m "not network and not ocr"
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe scripts\gate.py
+```
+
+883 passed, ruff clean, the deep freshness check passes all eight artifacts including the
+gate-3 and physics rebuilds, and the standing gate reports 12 of 13 with only the
+uncommitted working tree outstanding.
+
+## 2026-08-19 IST | Wave D | D7: a correction over the wrong family, a bootstrap that grouped nothing, a footprint that spanned the world, and one claim withdrawn
+
+The last four SERIOUS findings in the space review, all eleven MINOR ones, and a retraction
+that came out of fixing the first two.
+
+**SPACE-S6, review `:544`. Every published gate-5 interval resampled groups of size 1.0.**
+The bootstrap was grouped, the receipt said so, and on this test set the grouping did
+nothing: 88 episodes over 88 observations. Measured on the same corpus, an episode ICC
+cannot be estimated at all (the estimator needs more observations than groups), while the
+paired Brier differences give a station ICC of **0.2471** with a design effect of
+**1.3741**. A grouped interval that resamples singletons is an ungrouped interval reported
+under a name that implies otherwise.
+
+`clustered_paired_bootstrap` now resamples both groupings and publishes both intervals, and
+the bound the verdict is read from is their **union**, meaning the worse end of each.
+
+The union is not a formality, and what it exposed is not what the review expected. On the
+chronological corridor comparison the two nominal intervals are 0.02816 and 0.02823 wide,
+which is the same width to four decimals, and the station-clustered one sits about 0.0013
+higher rather than wider. Corrected over 21 comparisons the observation-level interval is
+-0.00050 to +0.04364 while the station-clustered interval is +0.00297 to +0.04874, so the
+grouping the review argued was too narrow is the one whose lower bound crosses zero, and
+the station grouping alone would still clear it. The union is right because it is
+conservative whichever way the two fall, not because clustering was going to be the
+decisive term. On gate 5's own comparison the station interval is the wider one
+(-0.01301 against -0.01241 at the lower end), so the direction is not even consistent
+between two comparisons on the same partition, which is the argument for measuring both
+rather than reasoning about which should be wider. `clustering_diagnostics` reuses the one-way random-effects ICC
+already in `queue.py` rather than writing a second one, and every corrected entry carries
+`clustering`, `ci_adjusted_episode`, `ci_adjusted_station` and `governing_interval`.
+
+A cruder cross-check is published beside it. `design_effect_sensitivity` widens the interval
+by the normal-theory factor implied by the measured design effect, which is a different
+approximation from resampling stations directly. Where the two disagree the receipt says so
+in `ablation_conclusion.fragility` rather than leaving a reader to notice. That list is empty
+on this run, and empty for a reason worth stating: the corrected rule retains no block, so
+there is no verdict left to qualify. The test that reads it asserts exactly that, rather than
+passing over an empty list as though the criterion had been satisfied.
+
+**SPACE-S7, review `:607`. The correction stopped at the split boundary while the rule
+ranged across splits.** The ablation rule is a disjunction: retain a block if an arm
+containing it beats image-only on any split above the 300-row training floor. Three splits
+clear that floor, seven comparisons run on each, so the rule reads **21**. The correction
+was running over 7. The receipt's own justification for preferring the corrected rule
+already said the ladder runs comparisons on each of four splits, so the accounting
+contradicted the text beside it.
+
+Two consequences, both measured rather than argued.
+
+*The endpoint has to be resolvable.* A Bonferroni correction over 21 comparisons reads the
+0.119th percentile of the bootstrap distribution. At 4,000 draws that endpoint is the
+**fifth-smallest resample**, which is a quantile the bootstrap does not have the resolution
+to report; the interval comes back looking like any other interval. **16,800** draws are the
+minimum that puts 20 draws in the tail. The shipped run uses **50,000**, which puts 59.5
+there, and every corrected interval now publishes `percentile_resolution` with the count
+that would resolve it. The 2,000-draw cap on the risk-coverage bootstraps is gone: measured
+at 1.07 ms per draw on this corpus, 50,000 draws cost under a minute per comparison.
+
+*The eligible splits are counted before anything is fitted.* `eligible_split_names` reads
+the manifest and the decisive rows, never a score, because a family size that depended on
+which result looked good is the failure a correction exists to prevent. The size-matched
+control is excluded by name and the reason is published, and `in_multiplicity_family` with
+`family_exclusion_reason` now marks the one reported interval that is outside the family
+(`image_only_vs_prior_only`, a sanity check rather than a claim), which closes review
+`:928`.
+
+**The retraction this produced.** Correcting over 21 comparisons on the union interval moves
+the corridor block's Brier margin across zero. On the chronological split the margin is
+unchanged at **+0.02026** and the corrected interval is **-0.00050 to +0.04874**, which does
+not clear zero, where over 7 comparisons on the episode interval it was +0.00296 to +0.03976
+and did. The same arm's risk-coverage margin of **+0.05736** does survive the same
+correction, at **+0.01192 to +0.11887**. Nothing in the measurement moved: the point
+estimates are identical and the nominal endpoints shifted by less than 0.002 on the Brier
+comparison and less than 0.001 on the risk-coverage one.
+
+So the corrected ablation rule, which reads Brier comparisons, now retains no block beyond
+image and recommends `image_only`. `docs/KILL_GATE.md` carries the withdrawal in its failure
+log and the claim register carries the row.
+
+**What the retraction exposed about the word "shipped".** The first fix pointed the
+selective-prediction block at the arm the corrected rule recommends. That deleted
+`image_corridor`'s risk-coverage comparison from all four splits, which is a measurement
+`KILL_GATE.md` cites, and it would have published `image_only` as the shipped arm while
+`scripts/run_queue.py` ranked the queue with image and corridor. Two different questions had
+been sharing one field: what the product ships is a decision, and what the ablation
+recommends is a measurement. They agreed until this correction.
+
+They are now separate. `SHIPPED_ARM` and `SHIPPED_ARM_BLOCKS` live in
+`pipeline/tracetriage/fusion.py`, with the blocks read off `ARM_LADDER` so an arm's name and
+its feature set cannot come apart, and both scripts import them. `ablation_conclusion`
+reports `shipped_arm` for the product, `recommended_arm` for the rule, and
+`shipped_arm_vs_recommendation` for the difference, with the two measured reasons the ranker
+was not rebuilt: the narrower arm is not established as better either, and the shipped arm's
+risk-coverage margin does survive the same correction on the same split, which is the metric
+closest to what a review queue does. That comparison was not promoted into the ablation rule
+after the fact, and the note is generated from the receipt's own numbers rather than typed.
+
+The guard that used to abort the run when the two disagreed is gone, because its premise was
+backwards. What ships is set by the constant the ranker reads, so the risk-coverage figures
+describe the shipped arm by construction; what can differ is whether the ablation still
+supports every block in it. Aborting on that would have left the pipeline unable to publish
+its own most useful result.
+
+**Review `:659`. The ground track's footprint spanned 360 degrees on a shipped page.** On
+observation 14744250 the satellite is 62.28 degrees north at 1518 km, so its horizon circle
+has a half-angle of 36.14 degrees and encloses the pole. A circle enclosing a pole covers
+every longitude, so framing the plot to it drew the whole world on 378 px and left the
+15.5-degree ground track occupying **4.1 percent** of the width.
+
+Pole enclosure is the exact trigger, `|latitude| + half-angle >= 90`, and it fires on **1 of
+25** shipped cards. A ratio test between the footprint and the track cannot substitute:
+measured over the same cards that ratio has a median of 5.2 and a maximum of 17.2, so a cap
+of 3 would clip 23 of 25. The frame is now built from the track and the station, the
+footprint widens it only when the result still shows the pass, the polygon is clipped to the
+plot with `clipPath`, and the caption and the aria label say why it was clipped.
+`MIN_TRACK_WIDTH_FRACTION = 0.06` is a backstop for a case the pole test does not catch, and
+it is inert on everything that ships today: the smallest non-polar track share is 6.7
+percent. A circle that straddles the antimeridian without enclosing a pole is unwrapped
+instead of clipped, so it draws as one arc.
+
+**Review `:721`. Two sigmas on different scales, one docstring claiming they were
+comparable.** A3 normalises per column band; `corridor_fit` normalises against the median and
+MAD of the whole image. The ratio between them runs from **0.869 to 12.401** across the seven
+decisive observations, so it is not a rescaling and no conversion exists. The trap it sets is
+worse than a scale difference: on obs 14740031 A3's *vertical* sigma of 2.83 exceeds this
+gate's *curved* sigma of 2.02, so a reader comparing the two artifacts concludes a straight
+line beats the Doppler curve, which inverts what both artifacts otherwise agree on. The
+comparability claim is deleted, `KILL_GATE.md` states the inversion, and every observation in
+the gate-3 receipt carries `a3_reference.sigma_scale_ratio_to_fit` beside
+`sigma_comparability`.
+
+**Review `:757` (MINOR). The frame conversion's omissions are named in size order.**
+`eci_to_ecef` applies GMST1982 with no UT1 correction and no polar motion, so what it
+produces is a pseudo-Earth-fixed frame. The docstring listed "no polar motion, no nutation
+corrections", which named a term that does not apply (GMST1982 is the correct rotation angle
+for the TEME frame SGP4 emits) and omitted the largest one that does. The three real
+omissions are now given in size order with their magnitudes: UT1 minus UTC is bounded at
+0.9 s by leap-second policy, which is 0.003760 degrees of rotation, 451 m of displacement and
+0.052 degrees of pointing error at 500 km slant range; polar motion is roughly 10 m; the
+pseudo-Earth-fixed to WGS-84 difference is smaller again. The first is a quarter of the
+geodetic up-vector error C7 fixed and 45 times the second. No code changed.
+
+**A gap this pass did not close.** `artifacts/QUEUE_RECEIPT.json` does not record which arm
+ranked the queue. It cannot disagree with the fusion receipt any more, because `run_queue.py`
+imports the same constant, but a reader of the queue receipt alone still cannot see what
+produced the ordering. Adding it needs a queue-contract version bump, which is a change to a
+closed object in a schema this pass had no other reason to touch.
+
+**The other ten MINOR findings, closed or recorded with the measurement.** Two were already
+fixed by earlier waves, which the review could not see: the sky plot's cardinal labels
+(`:814`) sit 11.0 px outside the ring because D4 split `skyChromePoint` out of `projectSky`
+precisely so the chrome could ask for a negative elevation, and the closest-approach marker
+(`:969`) already inherits `projectSky`'s below-horizon policy, so it is dropped rather than
+clamped to the rim.
+
+*Frequency terms that are omitted (`:782`).* Every term beyond first-order Doppler and the
+free constant offset now appears in the module docstring with its size: second-order Doppler
+0.140 Hz at 436.4 MHz, gravitational shift 0.022 Hz, ionosphere 0.31 Hz at 436 MHz and
+0.98 Hz at 137 MHz for a 30 TECU slant change across a 300 s pass, troposphere under 1 Hz.
+Against half-widths of 1,200 and 2,000 Hz the largest is 0.05 percent of the band. One term
+is larger and still omitted on purpose: tropospheric refraction raises apparent elevation by
+0.16 degrees at 5 degrees and 0.55 degrees at the horizon, which is three times the geodetic
+effect C7 fixed, and it is left out because the reference it would be checked against is
+itself a geometric prediction. Applying it to one side of that comparison would add a bias.
+
+*The ground track's aspect ratio (`:839`).* The two axes are scaled independently to fill
+the box, so a footprint computed as a spherical locus is drawn into a frame that does not
+preserve its shape. Equalising the scales would waste most of the plot on a short pass, so
+the frame stays and the distortion is now labelled: `groundAxisScales` reports degrees per
+pixel on each axis and the ratio between them, and the plot's accessible label carries both.
+Measured across the 25 shipped cards the vertical stretch runs 0.5046 (14744250) to 1.6342
+(14735743), and 14733024 sits at 1.0081, so the sentence is chosen by the number rather than
+asserted: below 2 percent it says the footprint is drawn close to its true shape. The first
+version of that test asserted no card was at equal scale and failed on the data, which is the
+only reason the caption is not now telling one reader in twenty-five about an ellipse that
+is a circle.
+
+*Gate 1's page-count arithmetic (`:861`).* The plan said 400 cursor pages was "roughly 15
+minutes at 0.4 s spacing". At 0.4 s, 400 pages is 2.7 minutes, and the spacing is not what
+sets the wall clock. Measured over the 110 pages of the stage-1 snapshot, the interval
+between finished pages has a median of 27.1 s (mean 45.5, p10 23.7, p90 33.1) and the whole
+fetch took 82.6 minutes; each page carries 22.7 waterfall downloads at a median of 0.98 s,
+so the images are the cost. At that rate 400 pages is 3.0 hours, not 15 minutes. The budget
+conclusion is unchanged because disk was the binding constraint, but a 15-minute figure makes
+a resumable fetch look optional.
+
+*The downlink drift cross-check (`:880`), measured and not available.* SatNOGS publishes
+`transmitter_downlink_drift`, which is part of what the free constant offset absorbs, and
+comparing the two would move gate 3 toward the position test its name implies. It cannot be
+run on the pool that decides the gate. The field is present on 29 of the 200 validation
+records (-12.5 to +44.0 ppm) and on 2 of the 7 gate-3 observations: 14746048 at +4,573 ppb
+and 14746118 at -252 ppb. Both are corrected passes. On the 3 testable observations, the ones
+carrying the +32.0, -16.4 and -16.4 ppm fitted offsets, the field is absent, so the
+comparison the review asks for has no row to run on. Recorded rather than implemented,
+because a cross-check available on none of the decisive observations would be a feature with
+no measurement behind it.
+
+*The design-effect convention (`:908`).* The ICC denominator uses the size-adjusted `n0`
+while the design effect uses the plain mean group size. Both are published for every
+grouping. Measured on the gate-5 station grouping: mean 2.5143 against `n0` 2.4445, giving
+design effects of 1.3741 and 1.3569, a 1.27 percent difference, and the convention in use is
+the larger of the two, which is the conservative direction for a widening. Unchanged, and
+now stated where it is computed.
+
+*The interval outside the corrected family (`:928`).* `image_only_vs_prior_only` is
+published on every split and is not in the family of 21. It is now marked
+`in_multiplicity_family: false` with a reason, and the contract requires the reason whenever
+the flag is false, so an uncounted interval cannot sit beside a corrected family unexplained.
+
+*Spectral inversion (`:948`).* `transmitter_invert` reverses the sense of the observed
+frequency excursion on an inverting linear transponder, which would flip the axis sign for a
+reason unrelated to the client version that `AXIS_SIGN_CONVENTION` is scoped by. It is set on
+1 of 200 validation records and on none of the 7 gate-3 observations. The interaction is now
+recorded beside the constant, and it is not acted on, because applying a correction on one
+record with no measurable corridor would be a correction nothing has verified.
+
+*Truncated windows (`:969`).* One of the 199 propagated validation records has its
+culmination at the edge of its window, so its SGP4 maximum is a window boundary value being
+compared against an API pass maximum. `culmination_inside_window` now flags it per record and
+`distribution.culmination_window` reports the effect: 198 rows contain their culmination,
+1 does not (14745603), and the median absolute error over the rows that do is 0.2258 degrees
+against 0.2249 for all of them. The flag changes nothing published, which is the point of
+measuring it rather than asserting it.
+
+*Mean Earth radius with an ellipsoidal height (`:994`).* A real inconsistency, and smaller
+than a pixel here. The half-angle at 500 km is 22.016, 21.993 and 21.981 degrees for the
+polar, mean and equatorial radii; at the 1,518 km of the highest shipped card it is 36.174,
+36.140 and 36.123. The comment used to call the mean radius "the right one" and now gives
+those numbers and says the choice is stated rather than defended.
+
+**Contract.** `contracts/fusion_receipt.schema.json` now declares the clustered-bootstrap
+and cross-split-correction fields instead of letting open objects tolerate them, and it
+requires three things a receipt could previously omit: `percentile_resolution` on every
+corrected interval, `fragility` on the ablation, and `shipped_arm_vs_recommendation` with a
+statement of at least 40 characters. A grouping that reports an unmeasurable ICC must carry
+the reason, because a null correlation with no reason reads as an absence of clustering when
+it means the opposite. The version stays at 0.1.0 on the same reasoning as the D3
+tightening: the writer in this repository emits every newly required field, so no document
+had to be rewritten.
+
+---
+
+## 2026-08-19 IST | Wave D | D0c: a BLOCKING finding closed without the test its acceptance required, and two ledgers that undercount
+
+`REVIEW_ENGINEERING.md:89` (ENG-B2, the accessible label asserting a zero crossing that
+did not happen) was fixed in D0 and refined in D0b. Neither entry added a test, and both
+say why: no TypeScript test framework existed in this repository until D2 brought Vitest
+in. Once it did, the finding was never retro-tested. Wave D's own acceptance says a
+BLOCKING finding is resolved when a test fails without the fix, so on that criterion this
+one was still open while the wave counted it closed.
+
+**The fix was real, the coverage was not.** `apps/web/components/PassTimeSeries.tsx`
+already conditioned the sentence on the series: `iCross` is the first sign change,
+`crossesZero` is `iCross > 0`, and the third branch says the recording window lies on one
+side of closest approach. Nothing exercised any of the three branches. The built page for
+observation 14744250 confirms the fix ships, read straight out of `out/`:
+
+```
+Elevation and Doppler shift against pass time over 284 seconds. Elevation rises to 37.1
+degrees and falls back. The Doppler shift runs from -5870 Hz to -7228 Hz. The recording
+window lies entirely on one side of closest approach, so the Doppler shift does not cross
+zero within it.
+```
+
+**Why the label had to move before it could be tested.** It was assembled inline in the
+component body, so testing it meant rendering the component, and `vitest.config.ts` keeps
+components out of scope by design: node environment, no DOM, no React. Three exported pure
+functions now carry the arithmetic, following the `niceCeil` and `timeSeriesCursorX`
+precedent in the same file: `indexOfPeakElevation`, `indexOfFirstSignChange` and
+`passTimeSeriesLabel`. The rendered string is unchanged. The quotation above is from a
+build after the extraction, and the endpoints in the test fixture are the endpoints on the
+shipped card.
+
+**The mutation check.** Replacing `const crossesZero = iCross > 0` with
+`const crossesZero = dops !== null`, which is the endpoint-derived behaviour the finding
+described, turns one test in `tests/series-label.test.ts` red and leaves the other 80
+green. The failing assertion is the one that matters: the label must not contain the
+substring "crossing zero" for a series that does not cross zero.
+
+**The console suite is larger than the handoff says.** 81 tests across 4 files, up from 70
+before this entry. The handoff has claimed 53 since C6.
+
+**The review counts, verified by grep rather than by summary line.** `REVIEW_SPACE.md`
+carries 5 BLOCKING, 9 SERIOUS and 11 MINOR headings, which matches its own summary.
+`REVIEW_ENGINEERING.md` carries 3 BLOCKING, 11 SERIOUS and 13 MINOR. C7h already recorded
+that the engineering review undercounts its own SERIOUS by one, and the handoff line was
+never corrected after it: it still says ten. Corrected totals across both documents are 8
+BLOCKING, 20 SERIOUS, 24 MINOR, 52 findings.
+
+**What is still open in the reviews.** All 8 BLOCKING and all 20 SERIOUS findings are
+closed. Ten MINOR findings in the engineering review are closed by nothing and cited
+nowhere: `:498`, `:555`, `:565`, `:587`, `:598`, `:614`, `:626`, `:641`, `:652`, `:684`.
+Two more were closed incidentally by work aimed at other findings and are recorded nowhere
+as closed: `:528` by D7's pole-enclosure and antimeridian work, and `:543` by D2's
+`svgPolyline`. Wave D's acceptance covers BLOCKING and SERIOUS only, so these do not hold
+the unit open. They are listed with their line numbers so a later pass does not spend the
+time rediscovering which ones they are.
+
+**Three closures that name no file, recorded as debt rather than repaired here.** SPACE
+`:861`, `:994` and `:782` are recorded in D7 with their measurements and without naming the
+file, symbol or test that carries the change. For `:861` and `:994` the measurement is the
+substance. `:782` states that the omitted frequency terms now appear in a module docstring
+and does not say which module. The D7 entry also has no files-changed list, no commands
+block and no test count, which is the only Wave D entry missing all three.
+
+**One number to check in the final acceptance unit, not a regression from this entry.** The
+build emits 30 `index.html` files, where the wave prompt's acceptance line says 33 pages.
+The extraction here cannot change a page count, and no page-count assertion exists in the
+suite to catch a drift either way.
+
+**Files changed:** `apps/web/components/PassTimeSeries.tsx`,
+`apps/web/tests/series-label.test.ts` (new, 11 tests).
+**Commands run:** `npx vitest run`, `npx tsc --noEmit`, `npx next build`,
+`.venv\Scripts\python.exe scripts\gate.py`.
+**Tests:** console suite 81 of 81 pass. `npx tsc --noEmit` clean. `npx next build` exits 0.
+The offline Python suite and all 13 standing gates were green before and after.
+**Failures and repairs:** none in the run. The repair is the missing coverage itself.
+**Outcome:** accepted. ENG-B2 now has a test that fails without its fix, which was the last
+outstanding item in the wave's BLOCKING and SERIOUS acceptance criteria.
+
+---
+
+## 2026-08-19 IST | Wave D | D8: the failure modes that had no name, and four that had no test
+
+The failure-injection unit, taken against `docs/DEGRADED_STATE_RECON.md` rather than
+against the twelve-item list on its own. Recon first, because the list says what must be
+named and says nothing about what is already named. Measured at `a41b87e`: five modes were
+covered, three were tested against the wrong input, and four had no test at all.
+
+**Two modes had no name in the code, and both were emitting a name that belonged to
+something else.**
+
+`physics.py` returned `MISSING_STATION` when the pass window would not parse, with a
+comment saying timing is always present so the failure could be handled gracefully. The
+station coordinates are checked twelve lines above and are present in that case, so a
+reader who trusted the reason went to the wrong field. It now returns
+`UNPARSEABLE_PASS_WINDOW`, and a second guard returns `NONPOSITIVE_PASS_WINDOW` for a
+window that ends at or before it starts, which nothing checked at all. That case would
+have put every sample at the same instant and produced a corridor one column wide, with
+nothing in the record marking it as wrong.
+
+`waterfall.py`'s `_load_rgb` accepted anything PIL could decode. A complete JPEG or GIF
+went on into layout detection and came back as `UNKNOWN_LAYOUT`, which names the layout and
+sends the reader after a client that draws its axes differently. It now raises
+`UNSUPPORTED_IMAGE_FORMAT` on a decodable non-PNG, checked after the integrity verify and
+before the pixels are touched, so the format is decided before the blank test can claim the
+image. The download-time magic check in `snapshot.py` calls the same file `TRUNCATED`, which
+is false for a complete image in another format, and that one is left alone: it guards the
+bytes as they arrive, and its enum is pinned in `dataset_manifest.schema.json`.
+
+**Four modes had a name and no test.** `NO_AXIS_DETECTED` was covered only by
+`assert degraded in ("NO_AXIS_DETECTED", "UNKNOWN_LAYOUT")` on a black image, which passes
+whichever the code returns. `HTTP_ERROR` has two producers and the only test injected a 500
+response, so the transport-exception branch, which is the one a machine with no route
+takes, was never entered. `MODEL_ARTIFACT_MISSING` reaches the triage receipt and nothing
+asserted it. The empty-test-partition guard in `run_queue.py` was referenced by no test at
+all, and the alternative to its named reason is a lift over zero candidates, which is a
+ratio of two zeros dressed as a gate result.
+
+`tests/test_failure_injection.py` covers those six modes in 20 tests. Three of them are
+controls rather than assertions about failure: a measurable axis is not degraded, a PNG is
+not rejected for its format, and a record with no station coordinates still reports the
+station. Without the third, the rename would have been free to widen.
+
+**Two extractions, for the same reason as D0c.** `model_checksum_and_source` came out of
+`run_triage_slice.main`, and the empty-partition path was reached by patching
+`fit_arm_for_split` rather than by building a fitted arm, so the guard under test is the
+real one in the real function.
+
+**The mutation check.** Restoring `MISSING_STATION` on the two window guards and disabling
+the format check turns six of the 20 red: four in `TestPassWindow` and two in
+`TestUnsupportedImageFormat`. The other fourteen pin behaviour that already existed and were
+never going to move under that mutation, which is what a coverage test is for.
+
+**One mode of the twelve is not done, and it is not hidden.** Nothing counts the traces in
+a waterfall. A second satellite in the same image is scored as noise around the first, and
+`corridor_fit` reports `TRACE_NOT_MEASURABLE` only when too few rows carry a usable
+maximum. There is no test for it in this entry because there is no named reason to assert
+yet, and an expected failure standing in for missing code is what D2 removed from this
+suite. Building it needs a per-row multi-peak detector and, more to the point, a
+measurement of how often it fires across the 2,500 shipped waterfalls, because a detector
+that fires on half the corpus is wrong and one that fires on none is untested. That is the
+next piece of this unit rather than a note for later.
+
+**Also still open, from the recon and unchanged here.** Eleven reason constants the code
+can emit that no test asserts: `NO_OCR_BACKEND`, `SGP4_ERROR`, `CORRIDOR_LEFT_PLOT`,
+`TRACE_NOT_MEASURABLE`, `NO_VALID_MEMBERS`, `DISPLACED_STATION_CAP`,
+`DISPLACED_TRANSMITTER_CAP`, `MISCONFIGURED_CLIENT_SUSPECTED`, `DEAD_CAPTURE_CONFIRMED`,
+`OUT_OF_DISTRIBUTION` and, until this entry, `MODEL_ARTIFACT_MISSING`.
+
+**Files changed:** `pipeline/tracetriage/physics.py`, `pipeline/tracetriage/waterfall.py`,
+`scripts/run_triage_slice.py`, `tests/test_failure_injection.py` (new, 20 tests),
+`docs/DEGRADED_STATE_RECON.md` (added in the preceding commit).
+**Commands run:** `.venv\Scripts\python.exe -m pytest tests/test_failure_injection.py -q`,
+`.venv\Scripts\python.exe -m ruff check .`, `.venv\Scripts\python.exe -m pytest -q`,
+`.venv\Scripts\python.exe scripts\gate.py`.
+**Tests:** 20 of 20 in the new file. Full offline suite green. Lint clean. All 13 standing
+gates green.
+**Failures and repairs:** the first version of the two queue tests asserted
+`gate6_result["reason"]`, and the field is `not_measurable_reason`. Caught by the tests
+themselves, not by reading, which is the argument for asserting the value rather than the
+shape.
+**Outcome:** partial. Six of the twelve modes now have a test that names the reason, two of
+those needed the reason to exist first, and the multiple-trace mode is not built.
+
+---
+
+## 2026-08-19 IST | Wave D | D9: the [UNMEASURED] hatch pointed nowhere, and one row said "same gate"
+
+The claim-register unit's remaining sub-ask. `tests/test_claim_drift.py` skips any README
+row whose value is the literal `[UNMEASURED]` marker. That is right for a genuinely
+unmeasured metric, and it also means a README where every cell said `[UNMEASURED]` would
+pass the whole suite while telling a reader nothing had been measured. That is what the
+README did until C7, so the hatch needed a floor rather than removal.
+
+**Two tests, one in each direction.** The first requires every `[UNMEASURED]` row to name
+a gate, and requires that gate's verdict to be one that produced no number at all, OPEN or
+NOT_MEASURABLE. A row citing gate 3 would be hiding a measured result behind an absence,
+because gate 3 came back inconclusive with numbers attached. The second requires the
+reverse: every gate whose verdict says no number exists has to appear as an absence in the
+results tables. Without it, deleting the two gate-4 rows would leave a README that reads
+as though everything had been measured, and every remaining number would still match its
+receipt, so the suite would stay green.
+
+**The verdicts are read, not typed.** Both tests take them from
+`apps/web/public/data/provenance.json`, the console's own gate summary, which
+`build_console_data.py` builds from the receipts and refuses to write on an unrecognised
+verdict. A list of gate statuses typed into a test would be a second source of truth and
+would drift from the first.
+
+**The first test failed on the first run, which is why it exists.** The second
+`[UNMEASURED]` row read "Same gate. The console reports it as OPEN rather than as a
+value." It names no gate at all: it is correct only for a reader who happens to have read
+the row above it, and rows move when the table is regenerated. It now names gate 4
+explicitly. `scripts/sync_readme_results.py` was the fix site rather than the README,
+because the table is generated, and `--check` is clean after the regeneration.
+
+**Mutation check.** Rewriting the gate-4 citations to gate 3 fails the first test on the
+verdict. Deleting both `[UNMEASURED]` rows fails both, the first on its own guard against
+comparing nothing and the second on gate 4 no longer being named anywhere. The README was
+restored by running its generator, which is the third time this wave that a generated file
+was the right place to fix something and the file itself was the wrong one.
+
+**Files changed:** `tests/test_claim_drift.py` (2 tests added),
+`scripts/sync_readme_results.py`, `README.md` (regenerated).
+**Commands run:** `.venv\Scripts\python.exe scripts\sync_readme_results.py`,
+`.venv\Scripts\python.exe scripts\sync_readme_results.py --check`,
+`.venv\Scripts\python.exe -m pytest tests/test_claim_drift.py -q`.
+**Tests:** 9 of 9 in that file, up from 7.
+**Failures and repairs:** the "same gate" row, described above. No code defect.
+**Outcome:** accepted. The `[UNMEASURED]` marker can no longer be used without naming a
+gate that produced no number, and a gate that produced no number can no longer go unnamed.
+
+---
+
+## 2026-08-19 IST | Wave D | D8b: the twelfth failure mode, and the bound that separates a satellite from interference
+
+The mode D8 left open. Nothing counted the traces in a waterfall, so a second carrier was
+averaged into the background the first one is measured against, and an image with two
+satellites read as an image with one satellite and noisier surroundings.
+
+**Finding a second peak is easy and useless.** 61 of the 182 measurable decisive
+observations carry a second peak above the fitter's own detection bar in at least 30
+percent of their rows. A detector that stopped there would report a second satellite in a
+third of the corpus. What makes the question answerable is that a real trace cannot move
+faster than Doppler allows: `max_coherent_jump_px` converts
+`PEAK_DOPPLER_SLOPE_HZ_PER_S = 119.4`, the slope D6 derived for the TLE staleness bound,
+into each image's own pixels through its Hz per pixel and its seconds per row, and adds
+half the matched-filter width because the smoothing moves a peak by that much on its own.
+With that bound, **10 of 182 (5.5 percent)** fire. The median second peak in this corpus
+moves 7.09 pixels per row against a median allowance of 1.82.
+
+**No new tunable.** `z_min = 4.0` is the fitter's detection bar, the exclusion window is
+`search_window_factor` times the corridor half-width so a peak the fit is already following
+cannot count twice, and `min_detect_frac = 0.30` is the share of rows the primary must
+itself appear in. The only new quantity is the physics bound above.
+
+**What the survey says about the corpus, which is worth more than the detector.** 543 of
+743 decisive observations (73.1 percent) cannot be measured for this at all: fewer than
+eight rows carry a single pixel at `z_min`. That is the same fact as `detect_frac_curved`
+being 0.0 across most of the feature cache, and it is the honest frame for every image
+statistic this project publishes. The detector speaks about 182 observations, not 743, and
+the receipt says so in its own `states` block.
+
+**Two caveats recorded with the 10, not underneath them.** Station 91 contributes 4 of the
+10, across 4 different satellites inside 4.5 hours of one night, which reads as a persistent
+interferer at one station rather than four second satellites. The remaining 6 are at 6
+distinct stations and all 10 are distinct satellites. One of the 10, 14733003, is labelled
+`without-signal`: not necessarily a wrong label, because the label speaks about the target
+and another satellite's carrier can share the image. That is the disagreement the queue
+exists to rank, and it is the first time this pipeline could see it.
+
+**Deliberately not wired into the feature matrix.** The route a measurement like this
+normally takes is `extract_corridor_features.py`, `corridor_features.json`, `features.py`,
+which is how `flat_row_frac` reached the model and the queue's conflict reasons. Going there
+means refitting, which moves the published numbers behind gates 5 and 6. Closing a failure
+mode is not a licence to move a gate, so the survey stands as its own receipt and the wiring
+is a decision to take on its own terms.
+
+**Mutation check, both halves.** Dropping the coherence bound turns
+`test_interference_is_not_a_second_trace` red: 86 percent of that image's rows carry a
+second peak and it is noise. Dropping the exclusion window turns
+`test_one_trace_is_not_two` and `test_a_peak_inside_the_search_window_is_the_same_trace`
+red, because one carrier then counts as two. Ten tests cover the detector, three of them
+controls: a single trace, a peak inside the window, and an image with no detection at all,
+which must come back unmeasurable rather than clean.
+
+**The survey is not in the artifact-freshness check.** It reads the 4 GB snapshot, which no
+clean clone and no CI runner has, and `scripts/check_artifact_freshness.py` says the same
+about itself. It is deterministic, so a second run over the same snapshot writes identical
+bytes. Its file is 345,808 bytes, which the D4 repository-weight audit should see.
+
+**Files changed:** `pipeline/tracetriage/corridor_fit.py`,
+`scripts/measure_second_trace.py` (new), `tests/test_failure_injection.py` (10 tests
+added, 30 in the file), `docs/DEGRADED_STATE_RECON.md`,
+`artifacts/SECOND_TRACE_SURVEY.json` (new).
+**Commands run:** `.venv\Scripts\python.exe scripts\measure_second_trace.py
+--decisive-only`, `.venv\Scripts\python.exe -m pytest tests/test_failure_injection.py -q`,
+`.venv\Scripts\python.exe -m ruff check .`, `.venv\Scripts\python.exe scripts\gate.py`.
+**Tests:** 30 of 30 in the failure-injection file. Full offline suite green. Lint clean.
+**Failures and repairs:** the first estimate of what the coherence bound buys was wrong. I
+put it at 92 percent from the share of images with any second peak, then computed it and
+found 33.5 percent, because clearing the row-fraction bar is a different question from
+having a second peak somewhere. The number in this entry is the computed one.
+**Outcome:** accepted. All twelve failure modes now have a named reason and a test that
+asserts it.
+
+---
+
+## 2026-08-19 IST | Wave D | D11: the secret scan the gate was not doing, and 74 files that owe an attribution
+
+The repository goes public on 25 August, so this unit is about what a stranger can find in
+it and what the licence obliges it to carry. `scripts/audit_release.py` writes three
+receipts: `artifacts/SECRET_SCAN.json`, `artifacts/ATTRIBUTION_AUDIT.json` and
+`artifacts/REPO_WEIGHT.json`.
+
+**The standing gate's secret check is narrower than it reads.** It greps the working tree
+for three patterns: two GitHub token shapes and a private-key header. Two consequences. A
+key of any other kind passes, and, worse, a key committed once and removed in the next
+commit passes forever while the blob stays in the history. The scan now carries **14
+credential shapes** and reads both: 175 text files and 245,710 lines in the working tree,
+then 132 commits and 10.1 MB of patch text. **Zero findings in either.** No `.env` is
+tracked. `.env.example` carries four populated values and none is credential-shaped:
+`TRACETRIAGE_CONTACT_EMAIL`, `TRACETRIAGE_USER_AGENT`, `TRACETRIAGE_REQUEST_DELAY` and
+`TRACETRIAGE_DATA_DIR`. The first version of that check flagged all four, which was the
+check being wrong rather than the file: SatNOGS asks for a contact in the user agent, so
+the email is there deliberately. The test is now the shape of the value or the name of the
+key, and the receipt records non-secret keys by name without republishing their values.
+
+**Matches are redacted in the receipt.** A scan that prints the credential it found into a
+committed file has moved the problem rather than reported it, so a finding carries the
+rule, the location, the first six characters and the length.
+
+**The attribution audit checks the obligations, not the licence file.** `DATA_LICENSE.md`
+commits this project to six things per redistributed artifact: attribution, the source URL
+of the record, the source URL of the waterfall, the retrieval timestamp, a sha256 of the
+retrieved bytes, and a notice of every modification. Checking that a licence file exists
+proves none of them. Every tracked image and video is now resolved back to its observation
+in `DATASET_MANIFEST.json` and checked against all six: **78 media files tracked, 74
+SatNOGS-derived across 43 observations and 22 ground stations, 0 incomplete.** The other 4
+are test fixtures that resolve to no observation, and the receipt says that rather than
+passing them silently.
+
+The modification notice is recorded per location, because "resized" and "recoloured and
+overlaid" are different claims: the console's waterfalls are cropped and re-encoded to
+WebP with the thumbnails additionally downscaled, the A3 overlays have the predicted
+corridor drawn over the spectrogram, and the explainer video is that same overlay geometry
+rendered and re-encoded.
+
+**One real gap, closed.** The console's colophon credits SatNOGS and links the licence, so
+the obligation was met in the markup. It was not in any receipt, which means no script
+could check it and a judge reading the data files would not find it.
+`provenance.json` now carries a `data_licence` block with the name, the URL, the
+attribution string and a pointer to `DATA_LICENSE.md`, read out of the snapshot manifest
+rather than typed, because the licence a snapshot was taken under is a property of that
+snapshot.
+
+**Repository weight, as a proposal and not a deletion.** 30.75 MB across 253 tracked
+files. `artifacts/a3_overlays` is 16.45 MB of it, `apps/web` 4.56 MB, `tests/fixtures`
+3.46 MB, `DATASET_MANIFEST.json` 2.25 MB. Nothing is proposed for removal and each group
+carries its reason: the overlays are the visual evidence for the A3 finding, the fixtures
+are what makes the offline suite runnable from a clean clone, and the shipped waterfalls
+are what the console renders. A 30 MB repository is not a judging problem. Deleting the
+evidence behind a published claim to make it 14 MB would be.
+
+**Files changed:** `scripts/audit_release.py` (new), `scripts/build_console_data.py`,
+`apps/web/public/data/provenance.json` (regenerated),
+`artifacts/SECRET_SCAN.json`, `artifacts/ATTRIBUTION_AUDIT.json`,
+`artifacts/REPO_WEIGHT.json` (all new).
+**Commands run:** `.venv\Scripts\python.exe scripts\audit_release.py`,
+`.venv\Scripts\python.exe scripts\build_console_data.py --skip-images`,
+`.venv\Scripts\python.exe -m ruff check .`.
+**Tests:** no new tests. The three receipts are the evidence, and each is regenerable.
+**Failures and repairs:** the `.env.example` check, described above. Eight long lines that
+lint caught.
+**Outcome:** accepted. Zero secrets in the tree and in the history, every redistributed
+file carries all six obligations, and the weight question is answered with sizes instead of
+a guess.
+
+---
+
+## 2026-08-19 IST | Wave E | E0: the console had never been live, and the gate could never have been green
+
+Two failures that no test in this repository could see, because both were outside it.
+
+**The deployment served nothing, for eleven consecutive production deployments.**
+`vercel.json` sat at `apps/web/vercel.json` while the project's root directory is the
+repository root, so the host never read it. Every deployment reported READY after finishing
+in under 300 milliseconds with no install step and no build step, and
+`https://tracetriage.vercel.app/` answered 404 to every request. Two claims were silently
+false for the whole period: that the console was reachable, and that the five security
+headers declared in that file were being served. The file was syntactically perfect and in
+a plausible place, which is why nothing caught it.
+
+The file moves to the repository root and gains the two commands the host was missing, so
+the deployment is reproducible from the repository rather than from a panel setting.
+`tests/test_deploy_contract.py` pins the relationship that broke: the output directory named
+in the contract is the directory the export writes. Putting a second copy back under
+`apps/web` fails it, and so does renaming the output directory. **Verified after the push:
+all six routes answer 200, all five headers are served, and an anonymous request from
+outside the browser gets the page.**
+
+**The offline gate could never have been green in CI, on any commit.**
+`tests/test_a_windows_drive_letter_is_not_a_url_scheme` asserted the basename of a
+backslash-separated path. A backslash is an ordinary character in a POSIX path, so on the
+`ubuntu-latest` runner the workflow declares, that basename is the whole string and the
+assertion raises. `resolve_store_path` does not split paths and never claimed to; its claim
+is that a drive letter is not read as a one-character URL scheme, which holds identically on
+both platforms, so that is what the test now asserts.
+
+Then the whole gate was run on real Linux rather than argued about: a fresh clone into
+Ubuntu 24.04 under WSL, a pinned environment built by uv, `ruff check .`,
+`pytest -m "not network and not ocr"` and `sync_readme_results.py --check`. **957 passed, 30
+skipped, 2 deselected, in 162 seconds, with lint and the README check clean.** The 30 skips
+are the snapshot-dependent tests, which is the correct behaviour where no snapshot exists.
+
+**Three README claims that were false or stale.** `bob_sessions/` was described as holding
+exported task histories; it held one `.gitkeep` and git does not publish empty directories,
+so on GitHub the sentence pointed at nothing. The results table cited `FUSION_RECEIPT.json`
+and `QUEUE_RECEIPT.json` as bare filenames, which resolve nowhere from the repository root.
+And the status banner still said a quoted value was not compared against its artifact, which
+task D2 had closed: editing the AUC row from 0.875 to 0.999 turns three tests red, verified
+by mutation. `tests/test_readme_claims.py` extracts every backticked repository path from the
+README and requires each to exist, to carry something, and to be published by git; a guard
+test fails if the extractor stops matching, so it cannot pass over an empty list.
+
+The generator also stopped typing the gate tally. It said two gates were inconclusive while
+three were, in the paragraph that introduces the evidence table, so the count is now read
+from the same function the console publishes it from.
+
+**Files changed:** `vercel.json` (moved from `apps/web/`), `tests/test_deploy_contract.py`
+(new), `tests/test_annotate.py`, `tests/test_readme_claims.py` (new), `README.md`,
+`scripts/sync_readme_results.py`, `bob_sessions/` (deleted).
+**Tests:** 4 new for the deploy contract, 31 for the README's paths.
+**Outcome:** accepted. The console is live and publicly reachable, and the offline gate is
+green on the platform the workflow runs on.
+
+---
+
+## 2026-08-19 IST | Wave E | E1: a local Granite model writes the reviewer's note, and a checker refuses most of them
+
+The console shows a reviewer numbers. What they need first is the sentence those numbers add
+up to: what disagrees with what, where to look in the image, and what would settle it. That
+sentence is worth generating and it is exactly the kind of sentence a language model will
+invent, so the generation is not the interesting part of this unit. The checker is.
+
+**The arrangement.** `pipeline/tracetriage/explain.py` builds an evidence packet for one
+observation out of the committed console data, twenty-six fields printed at fixed
+precision, and hands over nothing else: no image, no retrieval, no tool call.
+`pipeline/tracetriage/granite.py` sends that packet to **IBM Granite 3.1 dense 8B**, running
+locally through Ollama at Q4_K_M, at temperature zero with a fixed seed. The draft comes
+back and the checker decides whether it may ship. Nothing is retried.
+
+**What the model did with it.** Of 25 cards, **11 drafts were accepted and 14 refused, a 56
+percent refusal rate, and every refusal was an ungrounded number.** In **9 of the 25** the
+model wrote a downlink frequency in megahertz that was not this observation's: 436.2 for a
+true 436.4, 436.12 for 436.15, 401.53 for 401.52. Errors from 10 kHz to 1215 kHz. Each one
+lands within five percent of that observation's real downlink, which is the finding's own
+definition and also what makes it dangerous: a reviewer shown an unchecked note would read a
+number that looks like the number that belongs there, in a sentence that reads like the rest
+of the card.
+
+**Corrected on 2026-08-19 after review, and the correction is the point of writing it down.**
+This paragraph first read "437.215 for 436.15, 2401.975 for a 401-megahertz pass" and called
+every one of the nine a real amateur satellite frequency. Neither of those two values appears
+in the receipt: they were written from memory in an entry about a model writing numbers from
+memory. And four of the nine are not amateur frequencies at all, two being 137 MHz
+meteorological downlinks and two at 401 MHz, while the receipt classifies no bands and cannot
+support a claim about them. The examples above are now read from
+`artifacts/EXPLAIN_RECEIPT.json` and the surviving claim is the one it measures.
+
+**The checker is measured in both directions, which is the point.** A checker that refuses
+everything catches every adversarial draft and is worthless. So the receipt carries a
+detection rate over drafts built to break exactly one rule, and a false-refusal rate over
+drafts that break none, both computed over every observation rather than over whichever card
+happens to be first: **525 of 525 adversarial checks refused for the reason they were built
+to trip, and 0 of 175 clean checks refused.** A check is one draft against one observation's
+packet, so those totals are 21 adversarial drafts and 7 clean ones against each of 25
+packets. Calling them drafts, as this entry first did, overstated the suite twenty-five-fold
+against an `explain.py` a reader can count; the receipt now publishes the per-observation
+counts beside the totals. Detection means the expected code fired, not merely that something
+was refused, because a checker that refuses everything for one reason would otherwise score
+1.0.
+
+**Generation is not reproducible, and the first version of this unit assumed it was.** Same
+prompt, same weights, temperature zero, fixed seed: **36 percent of drafts differed when the
+prompts were repeated inside one process, and 56 percent differed in a fresh process after
+asking the runtime to unload the model. About one repeat in nine crossed the checker's accept
+or refuse decision.** One freeze produced no differences at all over 75 repeats, so the
+instability is itself variable and cannot be retried away. The consequence is architectural:
+the text a reviewer sees is frozen into `tests/fixtures/granite_notes.json` and committed,
+every later step reads that file, and the disagreement rate is published beside it.
+
+**One HTTP write verb now exists in this repository, and the rule that forbade them is
+stronger for it.** A local model needs a POST because that is the shape of the runtime's API.
+The rule is now an exemption of one named file with an asserted count of one call site, the
+destination is proved to be loopback before the URL is built, and a second test walks the
+annotation store's import closure to prove it cannot reach the module that can POST. The scan
+also gained the three methods that take the verb as an argument and the verb spelled as a
+string literal, because `request("POST", ...)` writes and an attribute-name scan never saw
+it.
+
+**An adversarial review broke the first two versions of the number check, and both are worth
+recording.** The first accepted any literal that appeared anywhere in the rendered packet, so
+`6490` was grounded by the digits inside a receiver frequency of 436490000 while the true
+offset was 6904: a digit transposition passed with no violation at all. The second compared
+the converted value without reading the unit, so an offset of 6904 Hz written as "6.9 MHz"
+passed, an error of three orders of magnitude. Tokenising, and requiring the unit the
+conversion produces, closes both, and `adversarial_drafts` now builds a case for each out of
+the packet under test rather than from a typed constant.
+
+The same review found the confirmation rule admitting four assertions through an allow list
+that had grown by observation rather than by argument: "the offset is large and confirms a
+catalogue drift", "means confirmed mistuning", "requires confirmed identity", "after
+confirmation of the pass". The indicative and the participle now assert regardless of what
+precedes them, and only the bare verb, the gerund and the noun are read in context. All four
+are in the adversarial suite.
+
+**What this does not measure.** Whether an accepted note is useful. Grounding is a property
+of the numbers in a sentence, not of the sentence being worth reading, and nothing here asks
+a reviewer. Kill gate 4's blinded study is the instrument for that and it is still OPEN.
+
+**Files changed:** `pipeline/tracetriage/explain.py`, `pipeline/tracetriage/granite.py`,
+`scripts/run_explanations.py` (all new), `apps/web/components/ReviewerNote.tsx` (new),
+`apps/web/lib/data.ts`, `apps/web/app/observation/[id]/page.tsx`,
+`tests/test_explain.py`, `tests/test_explain_receipt.py`,
+`apps/web/tests/reviewer-note.test.ts` (all new), `tests/test_annotate.py`, `pyproject.toml`
+(new `llm` marker), `.github/workflows/ci.yml`, `scripts/gate.py`,
+`artifacts/EXPLAIN_RECEIPT.json`, `tests/fixtures/granite_notes.json`,
+`apps/web/public/data/notes.json` (all new), `apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/run_explanations.py --freeze --repeats 2`,
+`scripts/run_explanations.py --measure-drift --unload` three times,
+`scripts/run_explanations.py`, `scripts/build_console_data.py --skip-images`,
+`python -m ruff check .`, `python -m pytest -m "not network and not ocr and not llm"`,
+`npm run typecheck`, `npm run test`, `npm run build`.
+**Tests:** 1027 offline Python tests collected and passing, up from 981; 93 console tests, up
+from 81.
+**Failures and repairs:** the percentage transform was unreachable, because a percent sign is
+not a word character and the unit pattern required a trailing word boundary, so a
+probability of 0.999999 written as "100%" was refused. `provenance.json` was found listing
+`CLEAN_CLONE_TRANSCRIPT.json`, which git does not track, so a clean clone would regenerate a
+different file list; the entry is gone until that unit lands.
+**Outcome:** accepted, with the refusal rate published rather than tuned away.
+
+---
+
+## 2026-08-19 IST | Wave E | E3: the evidence is a set of tools, and two registrations were lying
+
+Everything this project measured lives in files, and reading a number out of one means
+knowing which file holds it. A reviewer has the console for that. An agent does not, so the
+evidence is now an MCP server: five read-only tools over the committed receipts and the
+console payload, speaking newline-delimited JSON-RPC 2.0 on stdin and stdout, which is what
+an MCP stdio transport is.
+
+`queue_top` returns the ranked queue with the reason each row was flagged, capped at 50 rows.
+`observation` returns one observation's evidence packet, its digest, and the note that
+shipped for it including the codes that refused a generated draft. `gate_status` returns the
+kill gates and their verdicts, read from the receipt. `receipt` returns a receipt's scalar
+summary and the size of each collection inside it rather than the file: `QUEUE_RECEIPT.json`
+is 253,883 bytes and its summary renders to 558 characters, because a tool that spends a
+client's whole context on rows nobody asked for is a tool nobody calls twice.
+
+`check_claim` is the one worth having. Give it an observation id and a sentence and it runs
+the grounding checker from unit E1 over that sentence against that observation's own fields,
+returning GROUNDED or REFUSED with a violation code per problem. It is an import of the same
+function, asserted by a test, not a second implementation: an agent writing about an
+observation can have its prose checked by the same code that refused 14 of this project's own
+25 generated drafts, before a human reads it.
+
+**Two files in `.bob/` were making claims that were false, and both were public.**
+`.bob/mcp.json` registered a server at `tracetriage.mcp_server`, a module that was never
+written, so an agent that trusted the registration got an import error and a reader who
+trusted it got an impression of a capability that did not exist. `.bob/TOOL_SPECS.md`
+specified five tools, said plainly that none existed yet, and then nothing ever moved: the
+work each one described was done by a script instead. The honest sentence was never written
+down, so the specification read as a plan in progress a month after it had been overtaken.
+
+Both now say what is true. The registration names the server that exists, and the
+specification has an implemented section listing the five tools the server advertises, and a
+section titled for what it is: specified and not implemented, naming for each one the script
+that did its job. Five tests hold that arrangement in place, and each was checked by mutation:
+putting the old nonexistent module back, declaring an environment variable the server never
+reads, renaming a documented tool, citing a script that does not exist, and moving a planned
+tool into the implemented list each turn exactly one test red.
+
+**No dependency, and it is run rather than argued.** The server imports nothing outside the
+standard library, so it adds nothing to the offline install and any Python 3.11 or newer
+answers it. The test spawns it with `-S` and `-E`, which drops site-packages and the ambient
+environment, and asserts the handshake and the tool list still come back. Adding a numpy
+import to the server turns that test red while every other test in the file still passes,
+which is the only version of this claim worth making.
+
+The environment block is gone, and its absence is checked in both directions: a variable the
+config declares must appear in the server source, and a variable the server reads must appear
+in the config. A declared variable the server ignores tells a reader the behaviour is
+configurable when it is not.
+
+**The rest of the properties are asserted against the source, not the documentation.** An AST
+walk fails on any network write verb and on any filesystem write, so read-only is a property
+of the file rather than a sentence about it. The import scan fails if the server ever reaches
+the module that can POST. Every tool closes its schema with `additionalProperties: false`,
+because a schema that accepts anything is not a schema. Every failure returns a named reason
+code (`EVIDENCE_FILE_MISSING`, `UNKNOWN_OBSERVATION`, `BAD_LIMIT`, `EMPTY_CLAIM`,
+`BAD_RECEIPT_NAME`, `UNKNOWN_RECEIPT`, `UNKNOWN_TOOL`, `BAD_ARGUMENTS`) rather than an empty
+payload, because an empty result reads like a measurement. A receipt name containing a
+separator or a parent reference is refused before it becomes a path.
+
+Most of the tests drive the real transport through string buffers rather than calling the
+handlers, because calling a handler tests the tool and not the server, and one drives the
+whole conversation through a subprocess. A malformed line comes back as a parse error and the
+session continues, which a client depends on and no unit test of a handler would notice.
+
+**Files changed:** `scripts/mcp_server.py`, `tests/test_mcp_server.py` (both new),
+`.bob/mcp.json`, `.bob/TOOL_SPECS.md`.
+**Commands run:** the server as a subprocess over stdio for the handshake, the tool list, a
+queue read, a gate read and an unknown observation; the same under `-S -E`;
+`python -m pytest tests/test_mcp_server.py`; `python -m ruff check`.
+**Tests:** 21, of which 5 are the registration and specification drift tests added with the
+two repairs.
+**Outcome:** accepted. The evidence is callable, the registration launches, and the
+specification says which half of it was built.
+
+---
+
+## 2026-08-19 IST | Wave E | E4: a clean clone broke the receipt, and a review broke the server
+
+Two independent checks, run against the two commits above rather than against a description
+of them, and both found something.
+
+**A receipt that could not survive a commit.** `artifacts/EXPLAIN_RECEIPT.json` recorded
+HEAD's commit date under `generated_at_commit`. The reasoning written beside it was that a
+commit date does not churn between two runs, which is true and is not enough: it churns once
+per commit, so from the moment anything else was committed the published receipt disagreed
+with what the publisher produced. The idempotence test beside it passed on this machine for
+exactly as long as no further commit existed, and a clean clone is always at a later commit
+than the publish, so a judge would have hit it and the author never would. It failed on the
+first clone taken after the push: 1047 passed, 1 failed.
+
+The field is gone. What replaces it is provenance by content: the sha256 of the frozen
+drafts, beside the prompt contract digest that was already there, so the receipt is a pure
+function of two committed inputs and two runs at any two commits produce identical bytes. A
+new test walks the receipt for anything shaped like a timestamp and requires each one to
+appear in the frozen fixture, which is the general form of the defect rather than the one
+field that had it. Reinstating a value read from git turns it red as soon as one more commit
+exists. The console's `notes.json` carried the same stamp and now carries the freeze date,
+which is data rather than an accident of when the publisher ran.
+
+**Eleven findings against the evidence server, one of them fatal to a session.** The tool
+arm caught `ToolError` and `TypeError`, and the read loop caught only a JSON parse error, so
+six ordinary inputs killed the process with no response written at all: an observation id
+passed as a string, which is the likeliest mistake an agent makes; a receipt name of `.`,
+which passed the name guard, existed, and raised inside `read_text`; and a **batch request,
+which is valid JSON-RPC 2.0**, along with a bare `5` and a `null`, all of which parsed
+cleanly and then met `.get` on something that is not a dict. For a stdio server the blast
+radius of one raised exception is the client's whole session.
+
+All six now answer. Every argument that has to be an integer goes through one converter that
+returns a named reason, a frame that is not an object gets an invalid-request error, a batch
+is answered as a batch with notifications taking no slot, and an unforeseen exception inside
+a handler becomes `TOOL_FAILED` with the exception type and this checkout's path removed
+from the message, because a message a client receives should not carry a host filesystem
+path. The blanket clause is deliberate and its test raises something unclassified to prove
+it.
+
+**The rest of that review, each with a test.** The server's own docstring claimed it refuses
+to start when an advertised evidence file is missing; what existed was a per-call reason
+code, which is weaker, because a client that has completed a handshake and read a tool list
+has been told those tools work. Startup validation now exists and returns 2 with nothing
+written. `queue_top` ranked all 407 observations while only the 25 with imagery have an
+evidence packet, so a client walking the top fifty into `observation` was refused on 26 of
+them by a message that pointed it back at `queue_top`; every row now carries
+`has_evidence_packet` and the payload carries the count, and the test asserts both kinds are
+present so it cannot pass vacuously. The receipt name guard rejected a separator and a
+parent reference and let `C:foo.json` through, which is drive-relative on Windows and
+resolves outside the repository entirely; it is containment now rather than a blocklist,
+asking where the path landed instead of listing tricks. `LEAKAGE_AUDIT.json` is a JSON array
+and the dict-only summariser returned two empty objects with no error, which is the empty
+answer that reads like a measurement, on the audit least able to afford one.
+
+The disk half of the read-only scan named five write methods and missed six writes that an
+AST walk sees plainly, including `open(p, "w").write(x)`, `os.remove` and `json.dump`. It
+names fourteen now, reads `open`'s mode argument, and treats `.write` as a write with one
+named receiver exempted and its call site count asserted at one, so a second write to the
+stream fails the test rather than inheriting the exemption. That forced the transport's two
+response writers into one, which is better anyway. A new test feeds the scan eleven write
+shapes and four benign ones, because a list of names is worth only what its entries cover.
+
+Three smaller ones: `isinstance(True, int)` is true in Python, so a bool cleared the integer
+guard and returned one row; the schema advertised `maximum: 50` while the handler capped
+silently, so a validating client refused what the server accepted, and a limit above the cap
+is now refused with the cap named; and the comment above `MAX_QUEUE_LIMIT` argued for
+twenty-five while the constant was fifty.
+
+**Files changed:** `scripts/mcp_server.py`, `tests/test_mcp_server.py`,
+`scripts/run_explanations.py`, `tests/test_explain_receipt.py`, `apps/web/lib/data.ts`,
+`artifacts/EXPLAIN_RECEIPT.json`, `apps/web/public/data/notes.json`,
+`apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/run_explanations.py`, `scripts/build_console_data.py
+--skip-images`, `python -m ruff check .`, `python -m pytest -m "not network and not ocr and
+not llm"`, the eleven killer frames replayed through the server as a subprocess in one
+session, `npm run typecheck`, `npm run test`, `npm run build`.
+**Tests:** 1064 offline Python tests collected, up from 1027, and 93 console tests. The MCP
+file went from 21 tests to 31.
+**Outcome:** accepted. Every finding closed with a test, and the two that were claims about
+the source rather than about behaviour are now claims the source is checked against.
+
+---
+
+## 2026-08-19 IST | Wave E | E5: a page for judges, generated, and the false sentence it found
+
+A judge reads one file. That makes it the file most worth keeping honest and the one least
+likely to be re-derived, which is the combination that produces a stale submission page:
+written early when the numbers are provisional, then never revisited while the pipeline runs
+again. `FOR_JUDGES.md` is generated from the receipts by `scripts/sync_for_judges.py`. Every
+number in it is read from a file under `artifacts/`, `--check` fails if the committed page
+differs by one character, and both `scripts/gate.py` and the CI offline-replay job run that
+check.
+
+The page maps each judged criterion and each submission requirement to the file that carries
+the evidence, opens with four commands a sceptic can run, and ends with the section that
+matters more than the rest: what the project does not claim. The kill-gate tally, the
+inconclusive count, the refusal rate, the non-reproducibility rates and the queue's interval
+containing its own threshold are all in it, because a page that lists only wins is the
+failure this project is built to avoid.
+
+**The clean-clone transcript it reads.** `scripts/clean_clone_check.py` clones the repository
+into a fresh directory, refuses every non-loopback socket by replacing `socket.connect`,
+`connect_ex` and `getaddrinfo` through a `sitecustomize` on `PYTHONPATH`, and runs the gate
+from there. **14 of 15 steps pass at commit `ca324f6`, and all three regenerable artifacts
+come back byte-identical.** The one failure is the offline dependency install, which needs an
+index or a warm cache and is recorded with its reason rather than hidden. The offline suite
+runs twice, once with the 4 GB snapshot directory present and once with it hidden, because
+the presence of that directory on this machine would otherwise conceal every test that only
+passes with a warm cache: **1059 passed with it, 1029 passed and 30 skipped without it.** The
+page quotes the second pair, which is a judge's case, and a test pins that choice of column
+so a later edit cannot quietly switch to the flattering one.
+
+**A review of the page found a sentence that was false, and it was mine.** The README, this
+log's E1 entry and the E1 commit message all said that every one of the nine invented
+downlink frequencies was a real amateur satellite frequency. Four are not: two sit in the
+137 MHz meteorological downlink band and two at 401 MHz, and the receipt classifies no bands
+at all, so the claim was both wrong and unsupported by the artifact it cited. The E1 entry
+also gave two example values, 437.215 and 2401.975, that appear nowhere in the receipt: they
+were written from memory, in an entry about a language model writing numbers from memory.
+Both are corrected in place, the correction is stated where the original stood, and the
+surviving claim is the one the receipt measures: each invented value lands within five
+percent of that observation's real downlink, which is what makes it dangerous, because the
+number looks like the number that belongs there.
+
+**A headline that overstated a suite twenty-five-fold.** The receipt reported 525
+`adversarial_drafts` and 175 `control_drafts`. Those are checks, not drafts: 21 adversarial
+drafts and 7 clean ones against each of 25 observations' packets, against an `explain.py` in
+which a reader counts 17 packet-independent cases and four built from the packet. The keys are
+`adversarial_checks` and `control_checks` now, the per-observation counts are published beside
+them, and a test asserts the totals factorise, so neither number can be read as the other.
+
+**Six more findings against the generator, each of which would have surfaced at the worst
+time.** The page died at import when the frequency case list was empty, which is the day the
+checker finds nothing wrong: the success condition for the unit was the failure condition for
+its page. It divided refusals by `observations` rather than by what the checker decided on,
+and reported an occurrence count as an observation count, both of which are equal today and
+wrong in the flattering direction the moment one row is not decided. It typed "two" cold
+splits where the manifest has three, "about one repeat in nine" where the receipt carries two
+measured flip rates, "1.5x" where the gate's own wording carries the threshold, "eleven
+receipts" where there are 17, and "five and five" tools where the specification can be
+counted. All are derived now, and the threshold is parsed out of the gate's wording with a
+pattern that fails loudly rather than falling back to a constant.
+
+**And the page's own absence read as a pass.** Five of the six tests in
+`tests/test_for_judges.py` skip when `FOR_JUDGES.md` is missing, so a page that was never
+generated and never committed produced five skips and no failure: the third-outcome mistake
+this project has made before, absence folding into correctness. One test now asserts the page
+exists, is longer than two kilobytes, and is published by git, with no skip in it. The path
+check that runs over everything the page cites never ran over the page itself, which is the
+same defect one level up.
+
+One claim in that review was rejected after checking. `SECRET_SCAN.json` carrying a commit
+two behind HEAD is not the defect the receipt purity fix addressed: a secret scan is a
+measurement of a particular history, so recording which commit it measured is correct
+provenance, and nothing asserts that file is byte-reproducible from a later commit. Re-running
+`scripts/audit_release.py` belongs in the release sequence and is recorded there instead.
+
+**Files changed:** `FOR_JUDGES.md`, `scripts/sync_for_judges.py`, `tests/test_for_judges.py`,
+`scripts/clean_clone_check.py`, `artifacts/CLEAN_CLONE_TRANSCRIPT.json` (all new),
+`scripts/gate.py`, `.github/workflows/ci.yml`, `scripts/run_explanations.py`,
+`tests/test_explain_receipt.py`, `artifacts/EXPLAIN_RECEIPT.json`, `README.md`,
+`docs/CLAIM_REGISTER.md`, `apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/clean_clone_check.py --clone-dir D:/_cleanclone`,
+`scripts/run_explanations.py`, `scripts/build_console_data.py --skip-images`,
+`scripts/sync_for_judges.py`, `scripts/sync_readme_results.py --check`,
+`python -m ruff check .`, `python -m pytest -m "not network and not ocr and not llm"`,
+`npm run typecheck`, `npm run test`, `npm run build`.
+**Tests:** 1072 offline Python tests pass, up from 1064, and 93 console tests. 8 new register
+rows.
+**Outcome:** accepted. The README now links the live console, which it never did, and names
+the note layer, the checker and the evidence server in the sequence they run.
+
+## 2026-08-19 IST | Wave E | E6: an instrument for the gate nobody could run, and the pass that was unreachable
+
+Gate 4 asks whether a human, shown the waterfall and nothing else, can decide the thing the
+model is being scored on. It has been OPEN since the gate document was written, and OPEN was
+the honest word for it, because the study needs a person and the repository held no way to run
+one. A gate that cannot be run is not a stop-rule. It is a paragraph.
+
+`scripts/build_gate4_worksheet.py` builds the bundle: a balanced sample from the snapshot or,
+when the snapshot is absent, from the 25 observations the console ships, one PNG per opaque
+item id, a form with three axes and no label anywhere in it, and a repeated subset that carries
+two item ids for the same observation so intra-rater agreement falls out of the answers without
+telling the reviewer which items are repeats. `scripts/score_gate4.py` reads the filled form
+and writes `artifacts/GATE4_RECEIPT.json`. The committed bundle is 72 items over 60 unique
+observations with 12 repeated, and it lands outside the checkout, at `D:/tracetriage_gate4`.
+
+**The sample is committed to rather than promised.** A study whose sample is chosen after the
+answers are in is not blinded, and no amount of prose in a README fixes it. What the repository
+commits is one sha256 per item, taken over a random 32-byte salt, the item id, the observation
+id and the digest of the image file. The salt and the mapping are written outside the
+repository. Nobody can invert 72 hashes without the salt; afterwards the scorer re-hashes every
+image from disk, recomputes every commitment, refuses outright if one fails, and then publishes
+the salt in the receipt so that any reader can repeat the check. The claim that the order, the
+sample and the pictures were all fixed in advance is therefore checkable rather than asserted.
+
+**A pass was arithmetically impossible at the first sample size, and a test found it.** The
+bundle started at 8 unique observations. The exact one-sided Clopper-Pearson lower bound for
+8 successes in 8 trials is 0.688, which is below the gate's 0.80 threshold, so the PASSED
+branch could not be reached by any set of answers a reviewer could give: the instrument could
+only ever have returned NOT_ESTABLISHED or FAILED. The test that asks whether all three
+measured verdicts are reachable is what caught it.
+
+**The same analysis one step further, which a review supplied and I had not done.** Raising the
+bundle to 36 observations made PASSED reachable and left it out of reach of any rate a real
+corpus is likely to have. At 36 the lower bound only clears 0.80 at 34 of 36, which is 0.944,
+so a corpus whose true decisive rate is 0.90 would have returned NOT_ESTABLISHED however the
+review went: the study could not have answered its own question. At 60 observations the bound
+clears at 54, and a true rate of 0.90 gives 0.8121. So the committed bundle is 60 observations
+and 12 repeats, the manifest publishes `what_this_sample_size_can_establish` computed from the
+same bounds the verdict reads, and a test asserts that the published minimum is minimal and
+that a 0.90 corpus can clear the threshold. The cost of the change was reviewer minutes and it
+was paid before anyone had spent any. One number in this entry was wrong before that check: it
+said 34 of 36 gives 0.795, which is the bound for 33 of 36. Corrected here, and the arithmetic
+is now computed into the manifest rather than typed into prose.
+
+**Byte-identical repeats handed the pairs to anyone with `sha256sum`.** A repeated
+observation appeared twice under two item ids, written with `shutil.copyfile`, so the two files
+were byte-identical: 45 files, 36 distinct digests, 9 groups of two, and those 9 groups were
+exactly the 9 repeats. No salt, no key, no repository. The gate metric survived it, because it
+scores first occurrences only, but intra-rater agreement did not, and that number is the
+ceiling this gate puts on its own decisive rate: a reviewer who notices the duplicate can
+reproduce their earlier answer deliberately, which moves the ceiling the wrong way. Worse, the
+test that guarded the design was the test that defeated it, because it asserted byte identity
+as a proxy for depicting the same image. Each item is now re-encoded through PIL with its own
+item id in a PNG text chunk, so 72 files have 72 distinct digests and 60 distinct pixel
+digests, and the test asserts pixel identity for a repeat and byte distinctness across the
+bundle. The manifest states what remains: a reviewer who decodes and hashes pixels can still
+group the repeats, and a bundle built from the console source can be matched against the
+repository's own tracked waterfalls. Neither is defended against, and both are written down.
+
+**The commitment bound the mapping and not the stimulus.** `verify_commitments` recomputed
+each hash from the digest the key carried, and then blamed a mismatch on "the key was written
+after the manifest, or the image changed". The second was undetectable: every file in the
+bundle could have been replaced and all 45 commitments would still have verified, because
+nothing re-read the images. The scorer now re-hashes each file from the bundle before it scores
+anything, refuses if one differs, publishes the count in the receipt, and treats a deleted
+bundle as an instrument failure rather than a verified one. A preregistration that does not
+bind what the reviewer saw is half a preregistration.
+
+**NOT_RUN is a fourth outcome and the scorer will not collapse it.** An unfilled worksheet
+publishes `verdict: NOT_RUN`, no rate, and the sentence that says which file was empty. Folding
+absence into FAILED would manufacture the measurement the gate is missing, and this project has
+made that mistake before in the other direction. Two failure modes are kept apart on purpose: a
+missing response file raises `NotRun` and writes an honest receipt, while a commitment that
+does not verify raises `ScoringError`, exits non-zero and writes no receipt at all, because a
+tampered key means the numbers have no provenance and a receipt would launder them.
+
+**Four smaller things a review found, each of which reads as a number rather than an
+error.** The receipt copied five worksheet fields and dropped the availability per class, so a
+run whose source held no `unknown` observations would have published `source: console` and
+nothing about a missing class, against a gate whose wording asks for a balanced sample: the
+receipt now carries the availability, the request and the measured balance, and the test that
+checks balance runs against the committed manifest rather than only against the console
+fixture. A key that was not readable JSON escaped both `except` clauses as a bare traceback,
+which by the script's own taxonomy should have been an instrument failure. Two rows answering
+the same item were silently deduplicated by a dict comprehension, so the later answer won and
+nothing counted the rows. And the label-agreement rate excluded items the reviewer answered
+`unsure` on without saying so, which conditions the rate on their own confidence in the
+flattering direction; both exclusion counts are published beside it now and the totals are
+asserted to account for every observation.
+
+**The manifest can no longer be replaced by accident.** The builder writes
+`artifacts/GATE4_WORKSHEET.json` by default, so a judge running it out of curiosity would have
+replaced the preregistration with a newer one and nothing would have recorded that the sample
+changed. It refuses now unless `--force` is passed, and the refusal is tested to leave the
+existing file untouched.
+
+**The leak scan failed on the manifest's own disclosure.** The first version read the committed
+file as text and asserted that `waterfall_status` did not appear in it. It does appear, inside
+the list of the four things the manifest says it withholds from the reviewer. The scan now runs
+over the values with every prose field dropped, and asserts separately, positively, that the
+disclosure names all four, because a manifest that hides a field without saying so is worse
+than one that names it. The same test walks all 25 shipped observation ids, five field names
+and every image digest in the key.
+
+**The clean clone now builds its environment inside the clone.** The earlier run's offline
+install exited 2 in 0.3 seconds because `uv pip install --offline` with no `--python` found a
+chocolatey shim pointing at a `c:\python312` that does not exist, and never reached dependency
+resolution. The step was labelled as the expected cost of going offline, so a local PATH defect
+was recorded as an accepted limitation while every later step ran against this machine's
+site-packages. Naming the interpreter was the whole fix. The second attempt then failed for a
+real reason, which the transcript prints: `polars` was not in the uv cache, the cache lives on
+a system drive with 262 MB free, and `--offline` can only read what the cache holds. The run
+records the cache location in either branch now, so a reader can tell a cold cache from a
+missing one.
+
+**Files changed:** `scripts/build_gate4_worksheet.py`, `scripts/score_gate4.py`,
+`tests/test_gate4.py`, `artifacts/GATE4_WORKSHEET.json`, `artifacts/GATE4_RECEIPT.json` (all
+new), `scripts/run_gate3.py`, `scripts/clean_clone_check.py`,
+`artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `docs/KILL_GATE.md`, `docs/CLAIM_REGISTER.md`.
+**Commands run:** `scripts/build_gate4_worksheet.py`, `scripts/score_gate4.py`,
+`scripts/clean_clone_check.py --clone-dir D:/_cleanclone`, `python -m ruff check .`,
+`python -m pytest -m "not network and not ocr and not llm"`, `scripts/gate.py`.
+**Tests:** 37 new tests in `tests/test_gate4.py`. 8 new register rows.
+**Outcome:** accepted, and the gate stays OPEN. The instrument exists, the sample is committed,
+and the two blind readers have not sat down yet. That is a person's afternoon, not a code
+change, and nothing in this entry pretends otherwise. Six of the eleven repairs above came from
+a review that ran against the built bundle rather than the code, which is the only place three
+of them were visible: the leak needed `sha256sum` over 45 files, the sizing needed the bounds
+function evaluated at the size that was actually built, and the stimulus binding needed
+somebody to ask what the commitment would fail to notice.
+
+## 2026-08-19 IST | Wave E | E7: an agent over the evidence server, and the control that makes it a measurement
+
+An agent demonstration is a transcript, and a transcript cannot separate a model that read the
+tool output from one that answered from memory and happened to be right. The two halves this
+project needed were already here: five read-only MCP tools over stdio, and a local Granite model
+that writes a reviewer note and is refused most of the time for writing numbers nothing supports.
+E7 joins them into a loop and then measures the join.
+
+`pipeline/tracetriage/agent.py` is the loop. It speaks the transport the server speaks, which is
+newline-delimited JSON-RPC and nothing else, so the client needs no package and the server's
+no-dependency property stays observable from the one place it matters. The policy gets the tool
+menu read out of the server at run time rather than a list typed into a prompt, emits one JSON
+object per turn, and is capped at 6 steps.
+
+`scripts/run_agent_study.py` is the study. **24 questions, each put to the same model
+twice: once with the tools and once with no tools at all.** Ground truth is derived from the
+files the console ships, by a different code path than the tools use, and for the observation
+questions it is derived from the card and then cross-checked against the packet the tool serves,
+so a rounding difference between the two fails the build rather than grading a correct answer
+wrong.
+
+**With the tools: 22 of 24 correct**, exact 95
+percent interval [0.7602, 0.985], the expected tool
+called on 24 of 24
+questions, and every number in every answer present in something the agent had read.
+**Without them: 2 of 24**, with
+18 questions declined as unknown and 3 answers carrying a number
+nothing supported. Of the 20 questions the arms disagreed on, the tool
+arm was right on 20 and the control arm on
+0, which is an exact one-sided p of
+1e-06 by McNemar's test, computed with `math.comb` so a reader can check
+it at this sample size by hand.
+
+**Read the control's two successes rather than its rate.** One is a question with two allowed
+answers, GROUNDED or REFUSED, which a coin gets right half the time. The other is a count it
+guessed correctly, and the receipt marks that answer ungrounded, because the number appeared
+nowhere it had read. That is the same check the reviewer-note layer applies to a sentence,
+pointed at an agent's final answer, and it is what stops a lucky guess reading as knowledge.
+
+**A question the tools could not answer was being scored against the policy.** The receipt tool
+publishes a receipt's top-level scalars and the sizes of its collections, so "how many drafts did
+the checker refuse" had no answer in any tool output: the count lives inside a nested object. The
+model's wrong reply to it was counted as a policy failure until the study started proving, for
+every question, that the expected answer is a value in the result of one named reference call.
+All 24 pass that check now, the unanswerable question
+was replaced by three the receipt tool can serve, and a test mutates the check to confirm it
+still refuses an impossible question. The containment test walks the payload's leaves rather than
+matching substrings, because the digits of a refused count appear inside an observation id.
+
+**The two failures are published as two shapes, not one rate.** On one question the value was in
+front of it and it answered from a neighbouring field: it read the queue's
+`review_budget.n_observations` and answered 50 where the queue's `available` says 407. On the
+other it never fetched the value at all and wrote a sentence of prose citing a different tool.
+The receipt separates them with `answer_was_in_what_it_read`, which is derived rather than
+labelled, because a policy that never looked and a policy that looked and chose wrong are
+different defects and only the second is about reading.
+
+**The loop's own failure mode, counted rather than smoothed away.** The first version of the
+prompt appended tool results with no closing instruction, and the policy called `queue_top` six
+times in a row and never answered. Two changes fixed it: the history is a delimited block ending
+in an explicit "reply with one JSON object now, and if a result above already contains the
+answer, give the answer", and a call the policy has already made is refused by the loop rather
+than paid for twice. That refusal is recorded as a step and counted:
+47 calls in the study, 29 answered, 9 refused
+by the loop as repeats and 9 refused by the server for their arguments. Two
+numbers rather than one, because a repeat is a planning failure and a bad argument is not.
+
+**A live test that could never have run.** `tests/test_explain.py`'s llm-marked test asks the
+installed model for a note and checks it. `tests/conftest.py` blocks sockets for any test without
+the `network` marker, and that test does not carry one, so the guard fired before the runtime was
+reached and the test could only ever skip: a deferred test that outlived its blocker. Both live
+tests carry both markers now, and both pass against the running model. The offline gate excludes
+`network`, `ocr` and `llm`, so nothing moved into it.
+
+**The console page came second, on purpose.** `/agent` shows both arms with the same weight:
+the four cells of the paired table rather than a summary of them, the split between calls the
+loop refused as repeats and calls the server refused for their arguments, and a per-question
+table carrying both answers so a reader can disagree with any single grade. The join across arms
+happens in `scripts/build_console_data.py` from the receipt, because a page that re-paired the
+arms by index would be a second implementation of the study's design with nothing testing it.
+Ten vitest cases assert the payload against the arm summaries it was aggregated from.
+
+**Files changed:** `pipeline/tracetriage/agent.py`, `scripts/run_agent_study.py`,
+`tests/test_agent.py`, `tests/fixtures/agent_runs.json`, `artifacts/AGENT_RECEIPT.json` (all
+new), `README.md`, `FOR_JUDGES.md`, `scripts/sync_for_judges.py`, `docs/CLAIM_REGISTER.md`,
+`tests/test_explain.py`, `apps/web/public/data/provenance.json`, `apps/web/app/agent/page.tsx`,
+`apps/web/tests/agent-study.test.ts`, `apps/web/public/data/agent.json`,
+`apps/web/lib/data.ts`, `apps/web/components/Nav.tsx`, `scripts/build_console_data.py`.
+**Commands run:** `scripts/run_agent_study.py --freeze`, `scripts/run_agent_study.py`,
+`scripts/build_console_data.py --skip-images`, `scripts/sync_for_judges.py`,
+`python -m ruff check .`, `python -m pytest -m "not network and not ocr and not llm"`,
+`python -m pytest -m llm`, `scripts/gate.py`.
+**Tests:** 33 new offline tests in `tests/test_agent.py`, 10 new console tests, and one live test
+that now runs. 4 new register rows.
+**Outcome:** accepted. The receipt is published from the frozen runs, so it regenerates with no
+model and no network, and it states what it does not measure: these are lookups with one correct
+token, one model, one seed, and every question is answerable from the five tools, so nothing here
+measures whether the policy knows when to stop.
+
+---
+
+## 2026-08-19 IST | Wave E | E8: precedent retrieval, and the condition that takes the result away
+
+The question is the one a reviewer asks before opening anything: do the passes most like this
+one carry the same recorded outcome? Four arms over one pool of
+743 decisively labelled observations, top 5 each: an IBM Granite embedding
+of the evidence card, seven standardised numbers under Euclidean distance, the station's own
+recent passes, and a uniform draw from the same pool. Every arm sees only what is knowable
+before the waterfall is opened, so none of them is a detector, and none of them is allowed to
+see a label field: a test walks the rendered card for every excluded name rather than trusting
+the builder.
+
+**The result is two numbers and only the second one answers the question.** Warm, where a
+neighbour may come from the query's own station, the embedding agrees 0.6175 of the time
+against a chance level of 0.5314, a margin of 0.0861 whose Bonferroni-adjusted interval
+[0.0368, 0.1437] clears zero over seven comparisons. Cold, which forbids the query's own
+station and its own satellite, the same arm reaches 0.5610 against 0.5268 and its adjusted
+interval [-0.0249, 0.1141] spans zero. In this corpus the outcome is partly a property of who
+recorded it, so the warm column measures the retriever plus the station and the cold column
+measures the retriever. The console page carries both at the same weight, with the chance level
+in the same table, because the warm number is the one a demo would show.
+
+**The embedding is not established as better than seven numbers.** Warm margin 0.0242 with an
+adjusted interval of [-0.0181, 0.0655], cold margin 0.0127 with [-0.0455, 0.0732]. A 278M
+embedding of a rendered card and `frequency_mhz, max_elevation_deg, pass_minutes,
+station_latitude, station_longitude` plus the local hour as a sine and cosine pair are
+indistinguishable at this sample size. That is a result about this corpus at n=743 rather than
+about embeddings, and it is published rather than dropped.
+
+**The arm with no cold definition is published as an absence rather than a zero.** The
+station's own recent passes cannot exist under a condition that excludes the station, so cold
+scores 0 queries and writes `agreement_at_k: null` beside a sentence naming why. Warm it scores
+686 of 743, with 57 queries whose station had fewer than five other passes counted as undefined
+rather than as disagreements. An arm that scored 0.0 there would have looked like a measured
+failure of the strongest warm baseline.
+
+**The index is checked rather than trusted.** The published numbers come from exact cosine
+search. chromadb is the second implementation: recall at 5 against exact search is 0.9989 in
+both conditions over all 743 queries, and the cold condition is answered by a metadata filter
+inside the index rather than by discarding neighbours afterwards, so the filter and the
+exclusion rule are checked against each other rather than assumed to agree. `chromadb` is an
+optional extra in `pyproject.toml`, so a clean clone without it skips that one check and still
+reproduces every published number.
+
+**One HTTP write site, still one.** The embedder needed a second `httpx.post` and the claim
+register says this repository has exactly one write verb at one asserted call site, checked by
+`tests/test_annotate.py`. Adding the second call would have been the cheaper edit and would
+have made a published claim false, so the generator and the embedder now share one `_post`
+helper and the loopback guard runs once, before the URL is built, for both callers.
+
+**Two defects found while wiring it to the console.** The page reads `conditions.warm` and
+`conditions.cold` by name while `lib/data.ts` typed them as `Record<string, PrecedentCondition>`,
+which made six reads possibly-undefined and would have rendered a missing cold column as blank
+cells rather than as an absence: the same defect as publishing a null in place of a
+measurement, wearing a type. The type names both conditions now and
+`scripts/build_console_data.py` refuses to write `precedent.json` without both, with an empty
+condition rejected the same way `_require` rejects any empty container. Two tests drop each
+condition in turn and assert the export goes red.
+
+**Files changed:** `pipeline/tracetriage/precedent.py`, `scripts/run_precedent_study.py`,
+`tests/test_precedent.py`, `tests/fixtures/precedent_retrievals.json`,
+`artifacts/PRECEDENT_RECEIPT.json`, `apps/web/app/precedent/page.tsx`,
+`apps/web/public/data/precedent.json` (all new), `pipeline/tracetriage/granite.py`,
+`scripts/build_console_data.py`, `tests/test_console_export.py`, `apps/web/lib/data.ts`,
+`apps/web/components/Nav.tsx`, `apps/web/app/observation/[id]/page.tsx`,
+`apps/web/public/data/provenance.json`, `pyproject.toml`, `README.md`, `FOR_JUDGES.md`,
+`scripts/sync_for_judges.py`, `docs/CLAIM_REGISTER.md`.
+**Commands run:** `scripts/run_precedent_study.py --freeze`, `scripts/build_console_data.py
+--skip-images`, `scripts/sync_for_judges.py`, `python -m ruff check .`, `python -m pytest -m
+"not network and not ocr and not llm"`, `npm run typecheck`, `npm run test`.
+**Tests:** 25 offline tests in `tests/test_precedent.py`, 2 in `tests/test_console_export.py`.
+5 new register rows.
+**Outcome:** accepted. The receipt regenerates from the frozen retrievals with no model, no
+index and no snapshot, and it states in its own text that it measures agreement with a silver
+network label rather than with the sky, that it says nothing about images, and that whether a
+reviewer shown these neighbours decides better is kill gate 4's territory and still open.
+
+---
+
+## 2026-08-19 IST | Wave D | D12: a reference page that found three untested receipts, and a shot list that cannot go stale
+
+The prompt's unit D5, generated documentation and the demo. Two generators, and the first one
+found something on its first run.
+
+**`docs/REFERENCE.md`, and nothing in it is typed.** The page answers the question a judge
+asks while tracing a number back to the code: what writes this artifact, what contract
+validates it, what test asserts it. Every cell is read off the tree. A module's purpose is the
+first sentence of its own docstring, and a module with no docstring gets the words **no module
+docstring** rather than an empty cell, because an empty cell in a generated table reads as
+"nothing to say". The builder column is the set of non-test modules whose source names the
+file, which is a fact about the code rather than a table someone maintained. The contract
+column is matched by identifier against the receipt's own `schema` field, so a receipt naming
+a schema no contract declares shows as `none` rather than as a guess. Each row carries the
+first sixteen hex characters of the committed bytes, so a receipt rebuilt without regenerating
+this page fails `--check`.
+
+**What it found: three receipts no test named.** `SECRET_SCAN.json`, `ATTRIBUTION_AUDIT.json`
+and `REPO_WEIGHT.json` carry the strongest sentences in the repository (zero secrets, every
+redistributed file attributed, nothing tracked a judge does not need) and the "named in tests"
+column came back empty for all three. A scanner that had stopped scanning would have published
+`clean: true` and no gate would have moved: the shape gate 3 had before it was withdrawn.
+`tests/test_release_audit.py` now plants one credential per pattern against all fourteen
+rules, feeds four benign lines that must not match, requires every allowlist entry to carry a
+reason longer than a phrase, and mutates one attribution obligation to prove that `clean` is
+computed rather than constant. The credentials are planted as strings rather than written into
+the tree, because committing a real-shaped key to make a point about key scanning is a bad
+trade. One of those tests failed on its first run: the planted JWT was two characters short of
+the pattern's own minimum, which is the test being wrong rather than the scanner, and it is
+recorded here because a planted sample that does not match is the failure mode of the whole
+approach.
+
+**A weight table that did not add up to its own tree.** `by_directory` is the fifteen largest
+groups, and the field name reads as a partition. Summing the column gave 29.39 MB of a tree the
+same run measured at 31.33 MB: 6.2 percent unaccounted, with nothing on the page to attribute
+it to, which is a truncation that reads as a measurement. The receipt now carries
+`by_directory_remainder` with the group count, the bytes and a sentence saying what it is, and
+the test asserts the two close. Re-measured at this commit: 295 tracked files, 32.36 MB, of
+which the fifteen largest groups are 30.29 MB and the remaining 123 groups are 2.08 MB. The
+audit had last run at `0e663e2`, fifteen files ago, which is the E6a finding recurring, and it
+is why `scripts/signoff.py` in D13 re-runs it rather than reading it.
+
+**`docs/DEMO_SCRIPT.md`, generated from the receipts.** Seven shots, 154 seconds against a
+180-second ceiling and a 165-second target that leaves room for a retake. The five constraints
+are the competition's own: under three minutes, open with the pitch, show it running against
+real input and real output, one flow end to end, no narration over slides. The sixth is this
+project's: every number spoken is read from a committed receipt at generation time. That
+matters here more than anywhere else in the repository, because the video is public and
+unversioned and the claim register's rule 4 says drift there cannot be recovered after
+submission. The flow is the one the prompt names: the plate opens, the observation page is the
+middle, the queue reorder is the product and the verdict follows it. The inconclusive gate 3
+verdict gets sixteen seconds at shot 3, before the product, because a demo that hides it and a
+console that publishes it are not the same submission.
+
+**The test goes the other way from `--check`.** `--check` compares the committed page against
+the generator and cannot catch the generator, which is the gap `tests/test_for_judges.py`
+exists to close for the judges' page. `tests/test_demo_script.py` re-reads every numeric token
+in every spoken line from the artifact that shot cites, walking the payload's leaves at the
+precision the script quoted rather than matching substrings, because a receipt holds enough
+digits that "appears somewhere in the file" can be satisfied by an unrelated observation id.
+Three tokens are exempt and named: the ceiling, the target and the word "three" in "three
+minutes", which belong to the script rather than to a receipt. Two mutations prove the checks
+can fail: padding a shot past the target has to stop the generator, and moving the queue's
+lift in the receipt has to move the spoken line.
+
+**Files changed:** `scripts/sync_docs.py`, `scripts/sync_demo.py`, `docs/REFERENCE.md`,
+`docs/DEMO_SCRIPT.md`, `tests/test_reference_sync.py`, `tests/test_demo_script.py`,
+`tests/test_release_audit.py` (all new), `scripts/audit_release.py`, `scripts/gate.py`,
+`README.md`, `FOR_JUDGES.md`, `artifacts/SECRET_SCAN.json`,
+`artifacts/ATTRIBUTION_AUDIT.json`, `artifacts/REPO_WEIGHT.json`,
+`apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/audit_release.py --skip-history`, `scripts/sync_docs.py`,
+`scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/build_console_data.py
+--skip-images`, `python -m ruff check .`, `python -m pytest -m "not network and not ocr and
+not llm"`, `scripts/gate.py`.
+**Tests:** 40 new offline tests across three files. Two new standing gates: the reference page
+and the demo script each fail the gate when they drift.
+**Outcome:** accepted. The demo capture itself is the remaining step and it is last by
+instruction, after the external review pass. The script is what the capture is recorded
+against, and it is checked rather than trusted.
+
+---
+
+## 2026-08-19 IST | Wave D | D12a: the credential scanner found the test that tests it
+
+Three defects in D12's own work, all found by checks that already existed, which is the
+outcome a standing gate is for.
+
+**The secret gate fired on `tests/test_release_audit.py`.** Planting one credential per
+pattern put a private-key header and a full JWT into a tracked file as literals, and both the
+gate's three-pattern grep and the audit's own fourteen-pattern scan found them. A test written
+to prove a credential scanner works, which commits a credential-shaped string to make the
+point, is the thing it was written to prevent. Every planted value is now assembled from
+fragments at runtime, so the pattern matches the value and no literal in the file matches the
+scanner. The comment above them says not to join them back up, because the obvious tidy-up is
+the regression. The other eight planted values were already safe by accident, and now they are
+safe on purpose.
+
+**A test that filled the disk.** The reference-page tests mutate a copy of the tree rather than
+the repository, and the first copy took `artifacts/` whole, so `hog_cache/hog.npy` went into
+the system temporary directory once per test. The suite errored with `[WinError 112] There is
+not enough space on the disk`, and it put weights on `C:`, which this project's rules forbid.
+The generator globs `artifacts/*.json` and reads `.py` under three source roots and never
+descends further, so the copy is now exactly that: a few hundred kilobytes instead of thirty
+megabytes.
+
+**A weight report the audit's own re-run kept moving.** `audit_release.py` measures the
+tracked tree, and its three receipts are part of that tree, so the first run after their
+content changes reports the previous sizes and the second settles. That is recorded in the
+function's own docstring and it is why the count moved from 295 files to 302 across these
+runs: seven files landed between them. It is left as a real measurement of the whole tree
+rather than excluding its own siblings, because a judge cloning the repository gets the whole
+tree.
+
+**Files changed:** `tests/test_release_audit.py`, `tests/test_reference_sync.py`,
+`artifacts/SECRET_SCAN.json`, `artifacts/ATTRIBUTION_AUDIT.json`, `artifacts/REPO_WEIGHT.json`,
+`FOR_JUDGES.md`, `docs/REFERENCE.md`, `apps/web/public/data/provenance.json`.
+**Commands run:** `git grep -lIE` with the gate's own pattern, `scripts/audit_release.py
+--skip-history`, `scripts/sync_for_judges.py`, `scripts/build_console_data.py --skip-images`,
+`scripts/sync_docs.py`, `scripts/sync_demo.py`, `python -m ruff check .`, `python -m pytest`.
+**Tests:** no new tests. Three existing checks did the work.
+**Outcome:** accepted. The secret scan is clean at zero findings over the working tree and the
+history, and the gate's grep returns nothing.
+
+---
+
+## 2026-08-19 IST | Wave D | D10: the clean clone published a number it had read off its own previous run
+
+The prompt's unit D3, the clean-clone reproduction with the network refused. The instrument
+was built in E4 and E6b; this closes the unit at the release commit and records what three
+runs of it found.
+
+**A parser that read the wrong line.** `_pytest_counts` searched the whole captured output
+for `(\d+) passed` and took the first match. That is fine while every test passes and wrong
+the moment one does not: a failing test prints its own assertion output before pytest's
+summary, and the test that failed was `tests/test_for_judges.py`, whose assertion prints the
+committed judges' page. That page carries the sentence "1116 passed, 30 skipped, from the
+clean clone". So the transcript published 1116 and 30 in **both** columns: numbers copied out
+of the previous run's prose by way of a failure message, matching neither of the two suites
+that had just run. The counts come from the summary line and nowhere else now, the line
+itself is published beside them so a reader can disagree, and output with no summary line is
+`unparsed` with a reason rather than a guess. Five tests feed the parser the exact shapes that
+produced each version of the defect, including the traceback that poisoned it.
+
+**The two columns are now checked against each other.** Identical columns are what the bug
+produced and also what a run that never hid the snapshot would produce, so
+`tests/test_clean_clone.py` asserts that hiding the snapshot skips strictly more tests than
+leaving it in place. With the snapshot: 1227 passed, 6 skipped. Without it: 1197 passed, 36
+skipped. The thirty tests that move are the snapshot-bound ones, which is what the column was
+always supposed to show.
+
+**A stale document the run found before the gate did.** The clone rebuilt
+`apps/web/public/data/provenance.json` and got different bytes, because the release audit had
+been re-run and its three receipts committed without rebuilding the console, so the committed
+provenance carried the previous digests. That is the artifact-freshness gate's own territory
+and it was caught here first, by a run that rebuilds rather than compares. The two FOR_JUDGES
+failures in the transcript above have the same single cause: the judges' page quotes the
+transcript's own suite counts, and it had not been regenerated after the transcript moved.
+
+**Which cache, not which variable.** The offline install failed on `torch` and then on
+`jsonschema`. The transcript recorded `UV_CACHE_DIR` or the words "uv's default location",
+which names a setting rather than the thing the run depended on. `UV_CACHE_DIR` is unset on
+this machine, uv's default resolves to the user profile on `C:`, and this project keeps its
+caches on `D:`, so the install was resolving against a cache that had never seen these wheels.
+Setting it to `D:/dev-cache/uv-cache` moved the failure to a different package rather than
+fixing it: neither cache on this machine holds the full pinned set offline. The transcript
+records the resolved path, whether it exists, and where the value came from, so the next
+reader can tell a missing cache from a wrong one. The prerequisite is unchanged and honest: a
+judge needs one networked install before this run reproduces.
+
+**What a clean clone can and cannot rebuild, unchanged and still named.** `README.md` and
+`docs/KILL_GATE.md` regenerate to identical bytes. Four artifacts are snapshot-bound and say
+so by name with their builder and what they need: `GATE3_RECEIPT.json`, `HERO_NULLS.json`,
+`corridor_features.json` and the HOG cache. The network is refused by a `sitecustomize.py` on
+`PYTHONPATH` that raises on any non-loopback `connect`, `connect_ex` or `getaddrinfo`; the
+Node steps get a dead proxy and telemetry off, which is weaker, and the transcript says so
+rather than implying parity.
+
+**Files changed:** `scripts/clean_clone_check.py`, `tests/test_clean_clone.py` (new),
+`artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `FOR_JUDGES.md`,
+`apps/web/public/data/provenance.json`, `apps/web/public/data/CLAIM_REGISTER.md`,
+`docs/REFERENCE.md`.
+**Commands run:** `scripts/clean_clone_check.py --clone-dir D:\_cleanclone` three times,
+`scripts/build_console_data.py --skip-images`, `scripts/sync_for_judges.py`,
+`scripts/sync_docs.py`, `python -m ruff check .`, `python -m pytest`.
+**Tests:** 10 new offline tests in `tests/test_clean_clone.py`.
+**Outcome:** accepted. The transcript in this commit describes the previous commit, which is
+inherent: the run reads a clone of a commit and its output is committed after. The run at the
+release commit is recorded in the entry that follows.
+
+---
+
+## 2026-08-20 IST | Wave D | D13: final acceptance, and the two credentials the history still held
+
+The prompt's unit D6. Inspect the release commit, run every acceptance check, repair what
+fails, generate the sign-off receipt.
+
+**`scripts/signoff.py` runs the checks rather than remembering them.** The standing gate, the
+acceptance checks the gate does not cover (the 26 contrast pairs, the kill-gate document
+against its receipts), the console typecheck, tests and build with the emitted page count read
+off the tree rather than parsed out of the log, the release audit re-run rather than read, the
+commit identity, the working tree, and the deployed console. Each row records the command, the
+exit code, a line of output and how long it took, and `artifacts/SIGNOFF_RECEIPT.json` carries
+all of them.
+
+**Three outcomes, not two.** A check that could not run here is `NOT_CHECKED` with a stated
+reason, and the sheet refuses to record one without a reason. The live-console row is the case
+that needs it: it is the only check that touches the network, and folding a skipped network
+check into `FAILED` manufactures a regression while folding it into `PASSED` is a lie. The
+verdict counts the three separately and refuses to sign while any check has failed. Four tests
+prove the refusal works, including one that builds a sheet of eight passes and one failure and
+asserts the count moves.
+
+**The first sign-off in a repository was unreachable.** The gate checks that a signed receipt
+exists; the sign-off runs the gate and then writes that receipt. So the check failed on the
+absence of the file the run was about to create, and no first receipt could ever be produced.
+The sign-off sets a flag, the gate omits that one row when it sees it, and it prints the
+omission rather than counting the check green. A check quietly treated as passing is the defect
+this whole file exists to prevent, so the omission is visible in the gate's own output.
+
+**The working-tree check failed on the receipts the same run had just written.** The release
+audit rewrites three receipts immediately before the tree is inspected, and only the sign-off's
+own receipt was named as allowed to be dirty. The four are named one by one now rather than
+matched by a pattern over `artifacts/`, because a pattern would hide a receipt the run did not
+write, which is exactly what the check is for.
+
+**Two credential shapes in the history, from the test that proves the scanner works.** The
+full scan, which reads the history and not only the working tree, returned two findings in the
+D12 commit: a private-key header and a sample JWT, both planted as test fixtures to prove the
+fourteen patterns match what they name. D12a split them into fragments in the working tree and
+that is where the working-tree check stops. The blob stayed in the history, which is precisely
+the case the scanner's own docstring was written for: "a rotated key that was committed once
+and removed in the next commit passes that check and is still public forever."
+
+Two ways to close it were available. A scoped allowlist naming that commit and those two
+rules, published in the receipt, is non-destructive and leaves the strings reachable in a
+repository that goes public on 25 August. Rewriting was destructive but the commits were not
+pushed: `origin/main` was seven commits behind, so no published history existed to rewrite.
+The rewrite was chosen, because the standing rule is that nothing lands in the repository that
+a judge does not need, and a credential-shaped blob is something a judge does not need and
+that a judge's own scanner would flag.
+
+It was done with a backup tag first, a tree filter over the unpushed range only, and one
+check that decides whether it worked: **the tree hash at the tip is unchanged**,
+`dce8b4f695a56cc`, so the final content is byte-identical and only the intermediate blob
+moved. The scan over every commit in the rewritten range returns nothing. The commit ids the
+receipts had recorded no longer exist, so the release audit, the clean clone and the sign-off
+were all re-run afterwards rather than left pointing at commits that had been replaced.
+
+**What the clean clone found on the way.** Its first run at the rewritten tip failed one test:
+`docs/REFERENCE.md` was one line behind, because D13b added four receipt names to
+`scripts/signoff.py` and that changed the page's "named by" column. Three separate defects in
+this wave have that same shape, a commit that looked finished with one generated document a
+run behind, and all three were caught after the commit rather than before it. The handoff now
+says to run the gate before every commit, in those words, because the rule was not written
+down and the cost was three repair commits.
+
+**Files changed:** `scripts/signoff.py`, `tests/test_signoff.py` (both new),
+`scripts/gate.py`, `docs/BOB_HANDOFF.md`, `README.md`, `FOR_JUDGES.md`,
+`artifacts/SIGNOFF_RECEIPT.json`, `artifacts/SECRET_SCAN.json`,
+`artifacts/ATTRIBUTION_AUDIT.json`, `artifacts/REPO_WEIGHT.json`,
+`artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `docs/REFERENCE.md`,
+`apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/signoff.py --check-live`, `git filter-branch` over the unpushed
+range, `scripts/audit_release.py`, `scripts/clean_clone_check.py`, every generator with and
+without `--check`, `python -m ruff check .`, `python -m pytest`, `scripts/gate.py`.
+**Tests:** 10 new offline tests in `tests/test_signoff.py`. One new standing gate: a signed
+sign-off receipt has to be present.
+**Outcome:** accepted. Wave D is closed. What remains is outside the repository: the demo
+video, recorded against `docs/DEMO_SCRIPT.md`, and making the repository public on 25 August.
+
+## 2026-08-20 IST | Wave D | D14: a review pass from a judge's seat, and what it found
+
+Wave D closed and the submission was read once more end to end, from the position of someone
+scoring it against the challenge criteria with no prior knowledge of the build. Ten findings
+came back. Two were presentation, three were documents that had drifted from their own
+generators, and five were measurement gaps a reader could reasonably ask about and the
+repository could not answer. All ten are closed here.
+
+**The judges' page printed the passes and dropped the failure.** The offline-suite row read
+"1208 passed, 36 skipped", generated from a transcript whose own summary line reads "1 failed,
+1208 passed, 36 skipped". The generator loaded the dict and read two of its three counts. A
+summary that reports only what went right is not a summary, so `SUITE_RESULT` now leads with
+the failure when there is one, and a paragraph under the table names the failing test by
+reading it out of the transcript's output tail rather than from a list kept beside it. When
+the count is zero the page says so with the zero rather than saying nothing.
+
+**The console's first screen said NOT_ESTABLISHED and nothing else.** The pre-registered
+split's inconclusive verdict was the whole lede, and the held-out cold-station split, where
+the same queue clears the threshold, was four sections down. That order is defensible and the
+screen was not: a reader who left after the lede left believing the queue had not worked
+anywhere. Both splits now sit at one size, each with its verdict badge, its interval and a
+label saying which one decides the gate. The hero figure came down one step, from
+`--type-display-03` to `clamp(3rem, 6.5vw, 5.25rem)`, because two numbers at the old size put
+the headline below the fold at 1280. A product line and a link into the queue sit above them,
+which the page had never had: it opened on a measurement of a thing it had not yet named.
+
+**The README had no images.** The corrected and uncorrected Doppler cases are the finding the
+whole project rests on, they are visually obvious, and for the entire build they sat in
+`artifacts/a3_overlays/` being cited by a table row. Both overlays are embedded now with the
+sigma figures beside them. `tests/test_readme_claims.py` gained three tests: that at least two
+images are embedded, that each resolves to a tracked non-empty file, and that each carries alt
+text. A broken image is a worse existence claim than a broken path, because it renders as a
+torn icon on the page a judge lands on first and no backtick check sees it.
+
+**A 154-word blockquote became two tables.** The status paragraph carried the verdicts, the
+tally, the reason gate 3 was downgraded and a description of how drift is caught, all in one
+breath, and it counted the two feasibility gates in the same sentence as the four that test
+whether the idea works. "Two of six met" reads better than "none of the four that matter,
+yet", which is why the two groups are separated now. The block is generated by
+`scripts/sync_readme_results.py` between comment markers and the gate checks it, so the tally
+cannot drift from the receipts. `TITLES` and `THRESHOLDS` moved into
+`scripts/sync_kill_gate.py` and both documents read them, because the second copy of a
+threshold is the one that goes stale.
+
+**Two measured results were not in the results table.** The ablation's shipped-versus-
+recommended disagreement and the precedent study's head-to-head against seven standardised
+numbers were both in `docs/CLAIM_REGISTER.md` and neither was in the README. Both are findings
+against the project's own preferred answer. A results table that lists only the comparisons
+that went the right way is a selection of the evidence.
+
+**The queue's circularity was never named.** `composite_score` weights disagreement at 0.40,
+safe offset magnitude at 0.35 and flat-row fraction at 0.15, and the three conflict criteria
+threshold those same three quantities. Ninety percent of the score's weight sits on quantities
+the target is defined from, so a lift above 1.0 is close to guaranteed by construction, and
+nothing in the repository said so. `scripts/run_circularity_check.py` now bounds it, reading
+`artifacts/QUEUE_RECEIPT.json` and nothing else: no snapshot, no network, no model. It
+reproduces the published 1.5818 from that file before computing anything, and refuses to write
+if it cannot.
+
+Four numbers came out of it. The ceiling: a budget of 50 over 87 observations holding 22
+conflicts caps any ordering at 1.740x, so the whole distance between the 1.5x threshold and a
+perfect oracle is 0.240, and the queue found 20 of the 22. Restricting the target to the two
+criteria the model does not enter gives 1.557x with a 95% interval of [1.268, 1.755], still
+NOT_ESTABLISHED, on the same ordering and the same population. Restricting it to the model's
+own disagreement leaves 3 conflicts, all of which the queue finds inside the budget, and a
+saturated lift equals population over budget whatever the count was: 1.740x with a narrow
+interval around a constant. The verdict machinery would have printed PASSED there, which would
+have put the strongest-looking verdict in the file on the least information, so saturation
+gets a fourth outcome, `NOT_INFORMATIVE`. And a random-ordering control lands at 0.999235 over
+2,000 seeded permutations, which is the floor the whole comparison rests on.
+
+**Two IBM technologies were used and never claimed.** The console is built on IBM Carbon (the
+Gray 100 lightness ramp, the type scale, the 8px steps, the productive motion curves, written
+as custom properties rather than pulled in as a component library) and sets every word in IBM
+Plex, self-hosted. Neither appeared anywhere in the README. A new section names all five IBM
+pieces with the file that carries each, and says plainly that two of the five rows are results
+rather than choices: Granite's drafts are refused more often than accepted and the Granite
+embedding does not beat seven numbers.
+
+**Two counts disagreed across judge-facing documents, and both were right.** The demo script
+said 2,727 observations and 739 decisive; the README's gate 3 scope row said 2,750; the
+precedent study said 743 queries. The API pages on disk hold 2,750 rows and the dataset holds
+2,727, because the ingest fetched whole pages and stopped at its 2,500-waterfall target
+part-way through the last one, which had already been written complete. Twenty-three rows were
+never stored, four of them decisive.
+
+Both censuses read the pages rather than the manifest. `_axis_sign_scope` in
+`scripts/run_gate3.py` now filters against `artifacts/DATASET_MANIFEST.json` and publishes
+both counts with the reason for the difference; the coverage figures moved from 1032/2750 to
+1023/2727. `_load_snapshot` in `scripts/run_precedent_study.py` does the same, which meant
+re-freezing the study over 739 observations instead of 743. Every conclusion held: warm against
+random still survives correction (margin 0.0880, adjusted [0.0343, 0.1546]), cold still does
+not (0.0398, [-0.0139, 0.1115]), and the head-to-head against the numeric baseline is still
+indistinguishable in both conditions. The alternative was to write a sentence explaining why
+one study ran on a different population, and one corpus is worth more than one sentence.
+
+`tests/test_precedent.py` had the label mix typed into it as 464 and 279, so it failed on the
+fourth decimal of a chance level rather than on anything about the study. It reads the mix from
+the receipt now.
+
+**Two notes in the shot list named shots by number and both were wrong.** D12b moved the
+inconclusive verdicts from third to sixth, and the "what is deliberately not in it" bullet kept
+saying shot 3 gave them sixteen seconds early, before the product. The recording note pointed
+the scrub-handle instruction at the model shot. Both are looked up by what the shot is now, and
+`tests/test_demo_script.py` asserts the lookup lands where the shot list says and that no note
+names a shot that does not exist. A mutation test swaps a beat and requires the note to move.
+
+**A pytest node id read as a broken path.** `tests/test_for_judges.py` extracts every backticked
+token that looks like a path and requires it to exist and be tracked. The failing test named in
+the new suite paragraph is a node id, not a path. It splits on the double colon now and checks
+both halves, because the selector is a claim too: a reader who runs a named test and gets "no
+tests ran" has been sent nowhere as surely as by a missing file.
+
+**Files changed:** `scripts/run_circularity_check.py`, `tests/test_circularity.py`,
+`artifacts/CIRCULARITY_RECEIPT.json` (all new), `README.md`, `FOR_JUDGES.md`,
+`docs/CLAIM_REGISTER.md`, `docs/DEMO_SCRIPT.md`, `docs/REFERENCE.md`, `scripts/gate.py`,
+`scripts/sync_readme_results.py`, `scripts/sync_kill_gate.py`, `scripts/sync_for_judges.py`,
+`scripts/sync_demo.py`, `scripts/run_gate3.py`, `scripts/run_precedent_study.py`,
+`artifacts/GATE3_RECEIPT.json`, `artifacts/PRECEDENT_RECEIPT.json`,
+`tests/fixtures/precedent_retrievals.json`, `tests/test_readme_claims.py`,
+`tests/test_precedent.py`, `tests/test_demo_script.py`, `tests/test_for_judges.py`,
+`apps/web/app/page.tsx`, `apps/web/app/globals.css`, `apps/web/public/data/`.
+**Commands run:** `scripts/run_circularity_check.py` with and without `--check`,
+`scripts/run_gate3.py`, `scripts/run_precedent_study.py --freeze`,
+`scripts/build_console_data.py --skip-images`, every generator with and without `--check`,
+`python -m ruff check .`, `python -m pytest -m "not network and not ocr and not llm"`,
+`npx tsc --noEmit`, `npx vitest run`, `npx next build`, `scripts/gate.py`.
+**Tests:** 12 new in `tests/test_circularity.py`, 3 in `tests/test_readme_claims.py`, 2 in
+`tests/test_demo_script.py`. One new standing gate: the circularity bound has to match the
+queue receipt.
+**Outcome:** accepted. One new dependency on the reader: the CI badge added to the README
+reports whatever the last run on `main` did, and nobody here can query the Actions API to see
+it. It wants one look after the repository goes public.
+
+## 2026-08-20 IST | Wave D | D14a: two of the six console pages could not be reached from the console
+
+The lede screenshot taken to check D14 showed four items in the side rail. The console has
+six pages. `/agent/` and `/precedent/` were built, deployed, answered 200 and were named in
+`README.md` as two of six, and no link on the site went to either.
+
+`apps/web/components/Nav.tsx` listed all six and was imported by nothing.
+`apps/web/components/Rail.tsx`, which renders on every page, listed four. The dead file
+almost certainly took the place of the live one in a refactor and kept being updated.
+
+Nothing in the repository could catch it. `next build` emitted all six routes. The deploy
+contract test checks the output directory. The live-route check requests each page by URL and
+gets 200. Every screenshot was taken by navigating straight to the page. A route is
+unreachable only to someone who arrives at the top and looks for it, and no check was doing
+that. The agent study and the precedent study are two of the four things this submission is
+judged on, and a judge who read the console rather than the README would never have found
+either.
+
+The two links are in the rail with icons, `Nav.tsx` is deleted rather than left as a second
+list that disagrees, and `tests/test_console_routes.py` enumerates the page files under
+`apps/web/app` and requires each route to appear in the rail. It checks the other direction
+too, so a rail link to a route that is not built fails before a judge finds it by clicking,
+and it ties the README's page count to the number the rail actually reaches.
+
+**Files changed:** `apps/web/components/Rail.tsx`, `apps/web/components/Icon.tsx`,
+`apps/web/components/Nav.tsx` (deleted), `tests/test_console_routes.py` (new),
+`docs/REFERENCE.md`.
+**Commands run:** `npx tsc --noEmit`, `npx vitest run`, `npx next build`,
+`python -m pytest`, `python -m ruff check .`, `scripts/gate.py`.
+**Tests:** 10 new offline tests in `tests/test_console_routes.py`.
+**Outcome:** accepted.
+## 2026-08-20 IST | Wave D | D14b: a green suite could not be published, and the setup only worked on one platform
+
+Three small things a judge would have hit, found by reading the front of the submission the
+way one is read.
+
+**A clean run had no field for its own zero.** The clean-clone parser pulls counts out of
+pytest's summary line, and pytest omits an outcome whose count is zero. So a run with nothing
+failing published no `failed` key at all, and `scripts/sync_for_judges.py`, which was taught
+in D14 to refuse a suite count it cannot read in full, refused. The refusal was right for a
+missing measurement and wrong for a measured zero, and only the parser can tell those apart:
+a summary line that parsed and carries no "failed" says zero failed. It writes the zero out
+now. An unparseable run still refuses.
+
+**The setup instructions only worked on Windows.** `## Setup` gave
+`.venv/Scripts/python.exe` with no other form, and opened with a sentence about directing
+caches to a `D:` path, which is a rule about this machine and means nothing to a judge on a
+clone. It now gives the POSIX path with the Windows one beside it, states plainly that the
+rest of the repository is written with the Windows path because that is where the commands
+were recorded, and points at the CI workflow as the version that runs on Ubuntu. The console
+build is separated out, because it needs no Python at all.
+
+**The failed offline install said "read the tail".** The judges' page said the install failed
+"for the reason its own output tail gives", which is true and asks a reader to go and get it.
+The reason is one line in a receipt the page already loads, and it changes what the failure
+means: `torch==2.13.0` is a 2.5 GB wheel that is not in the local package cache, which is a
+cold-cache problem, not a resolution that cannot be satisfied. The generator reads the package
+name out of the tail and names it.
+
+**What the fresh clean clone found.** Re-run at `85db087`: 15 of 16 steps, the only failure
+being that offline install, and both pytest passes green, 1,285 with the snapshot and 1,255
+with 30 skipped without it. The previous transcript reported 13 of 16 with one failing test,
+and that test was the stale `docs/REFERENCE.md` that D13 had already fixed.
+
+Warming the cache so the install succeeds was considered and not done. It needs the torch
+wheel, C: has 5.3 GB free, and moving the uv cache to D: would make the receipt depend on a
+shell variable nobody sets persistently. The failure is disclosed with its cause instead.
+
+**Files changed:** `scripts/clean_clone_check.py`, `scripts/sync_for_judges.py`, `README.md`,
+`FOR_JUDGES.md`, `tests/test_clean_clone.py`, `tests/test_readme_claims.py`,
+`docs/REFERENCE.md`.
+**Commands run:** `scripts/clean_clone_check.py`, every generator, `python -m pytest`,
+`python -m ruff check .`, `scripts/gate.py`.
+**Tests:** 1 new in `tests/test_clean_clone.py` for the measured zero.
+**Outcome:** accepted.
+## 2026-08-20 IST | Wave D | D14c: the clean clone re-run at the release commit
+
+The transcript a judge reads was measured at `79243ea`, several commits back, and it reported
+one failing test and 13 of 16 steps. That test was the stale `docs/REFERENCE.md` D13 had
+already fixed, so the page was carrying a repaired failure as a current one.
+
+Re-run at `cc6c8f9`: **15 of 16 steps**, both pytest passes green, 1,286 with the snapshot
+present and 1,256 with 30 skipped when it is hidden. The only failing step is still the
+offline `uv pip install`, and it fails because a wheel is missing from the local package
+cache and the run refuses the index. The judges' page names the package the run reached
+first. D14b recorded that as `torch==2.13.0` from a diagnostic run; this run names
+`pyarrow==25.0.1`, because uv reports whichever download it gets to first and the order is
+not fixed. The cause is the same and the page reads it from the receipt rather than from a
+sentence, so it stays right whichever package it is.
+
+The README's generated-documentation section listed five documents and stopped there. It now
+also names the two things generated and checked the same way without being documents:
+`apps/web/public/data/`, written in full by `scripts/build_console_data.py` and diffed by
+`scripts/check_artifact_freshness.py`, and `artifacts/CIRCULARITY_RECEIPT.json`, recomputed
+from the queue receipt because a bound on a measurement goes stale the moment the measurement
+is re-run.
+
+**Files changed:** `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `FOR_JUDGES.md`, `README.md`,
+`docs/REFERENCE.md`, `apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/clean_clone_check.py`, every generator,
+`scripts/build_console_data.py --skip-images`, `scripts/gate.py`.
+**Tests:** none new. 1,288 offline tests pass here and 1,256 in the clone with the snapshot
+hidden.
+**Outcome:** accepted.
+
+## 2026-08-20 IST | Wave D | D15: what three judge-seat reviews found in the statistics
+
+Three reviews ran against the release commit `13bc4ae`, one on the documents, one on the
+live console, one on the code and the statistics. The last returned ten findings, every one
+confirmed by running the code rather than by reading it. Nine are real. This entry is the
+measurement half and D15a below is the console half; both shipped in `880ea04`, because the
+pages read a payload the measurement half writes and splitting them would leave a commit
+whose console build fails.
+
+**A published upper bound sat above its own ceiling.** `compute_lift` resamples episodes and
+gives each draw a budget of `round(budget / n * drawn_n)`. Rounding down on a draw whose
+product falls under .5 makes that draw more selective than the real measurement, and a more
+selective draw has a higher ceiling: the best any ordering can score is `drawn_n /
+drawn_budget` once conflicts are scarcer than the budget. 7.92% of chronological draws
+exceeded 87/50 = 1.740, and the published 95% upper bound was 1.7547, which is exactly
+93/53. `docs/CLAIM_REGISTER.md` stated 150 lines away that this budget caps any ordering at
+1.740, so the register contradicted itself.
+
+The fix is the exact integer ceiling, `-(-budget * drawn_n // n)`, not `math.ceil(budget / n
+* drawn_n)`. That product is 50.000000000000007 at `drawn_n == n`, so `math.ceil` returns 51
+and a draw identical to the population reviews one row more than the population did, which
+is the same defect with its sign flipped. Seven bootstrap tests caught that in one run.
+
+Every point estimate is unchanged and every verdict is unchanged. The chronological interval
+is now [1.3533, 1.7400], with the upper bound exactly at the ceiling.
+
+**The lift is reproduced by a one-line sort, and no baseline was that sort.** 19 of the 22
+conflicts on the chronological split are `STALE_CATALOGUE_FREQ`, which thresholds
+`abs(fitted_offset_ppm)`. Sorting the same 87 rows on that quantity alone, at-bound zeroed,
+finds the same 20 conflicts and scores the same 1.5818x. The four declared baselines were
+random, observation-id order, model confidence and the physics classifier's probability, and
+none of them is the single feature that defines 86% of the target.
+
+It is now the fifth baseline. `_N_ORDERING_COMPARISONS` goes 4 to 5, which widens the
+Bonferroni correction on every comparison on the baselines page including the ones the queue
+wins. The result is published whichever way it falls, and it falls as indistinguishable
+under both groupings: episode [-4, +4] conflicts, station [-3, +3]. The composite score's
+other three terms are not established as buying anything on this split.
+
+**The random-ordering control could not fail.** It never called `compute_lift`. It computed
+`found / expected` inline, where `expected` is the exact mean of `found` under a uniform
+shuffle, so its answer was 1.0 by identity. Probed four ways it returned 1.0 with the queue
+reversed, with every conflict flag inverted, and with `compute_lift` replaced by a function
+that raises. The test asserted `abs_error < 0.01`, so it could not have failed for any
+defect in the ranking, the grouping, the bootstrap or the ratio. `FOR_JUDGES.md` sold it as
+the floor the whole comparison rests on.
+
+Every permutation now goes through `compute_lift` at the smallest bootstrap it will accept,
+because only the point lift is read. That buys a second thing worth more than the floor
+check: a permutation test. **0 of 2,000 seeded shuffles of the same population found as many
+conflicts inside the budget as the shipped queue did**, a p-value of 0.0005, which is the
+smallest 2,000 permutations can report. It answers the question the bootstrap does not,
+without the threshold, and it is the first direct evidence in this project that the ordering
+is not noise. It is on the landing page.
+
+**One of the three conflict criteria fires on nothing.** `DEAD_CAPTURE` thresholds
+`flat_row_frac` at 0.15 and the highest value in the whole 407-row queue is 0.1371. Four
+published sentences implied it fired, including "the two criteria the model does not enter",
+which described one criterion. The receipt now publishes `criteria_fired` per criterion with
+the count, the number of rows the quantity was measurable on, and the largest value observed,
+and the prose downstream is generated from it. Two weights are published where there was one:
+0.90 on quantities the definition names, 0.75 on quantities a conflict in this corpus is
+actually defined from. A reader given only the first is told the loop is worse than it is.
+
+**The ceiling was computed for the split that needed it least.** `cold_combined` holds 20
+conflicts in 76 observations at a budget of 50, so a perfect oracle scores 76/50 = 1.520x
+against a 1.500x bar. That split's NOT_ESTABLISHED could not have been anything else, and
+README and register presented it as a substantive result about generalisation. The bound now
+runs on all four splits and marks a split not informative when its oracle has under 0.10 of
+room. `cold_station`, the one split that passes, gets a bound for the first time: 4.173x.
+
+**A union of two intervals discarded a missing one.** `_target` took `min` and `max` across
+the episode and station intervals without checking the station verdict. `compute_lift`
+returns `[nan, nan]` when the station bootstrap falls short, and `min(1.35, nan)` is 1.35, so
+a nan vanishes, the narrower episode-only interval gets published under a label saying it is
+the union of two, and a NOT_ESTABLISHED can become a PASSED with nobody touching a threshold.
+`measure_gate6_split` has the third branch; this file had two. Mirrored, and tested by
+forcing the station arm to fail.
+
+**The cold retrieval condition excluded a station id, not a site.** Nine sites in the
+739-observation pool run between two and four station ids from identical coordinates, one of
+them four ids at (49.2316, -121.7593), covering 22 ids and 210 observations. The stated
+reason for the cold condition is that a misconfigured station produces empty waterfalls for
+weeks, which is a property of a physical site and its operator. 22.76% of Granite's cold
+neighbours came from the query's own site, against 0.89% for a random draw: 25 times chance,
+under a condition written to forbid it. Both the rendered card and the numeric feature vector
+carry the coordinates, so both model arms could find them trivially.
+
+`is_candidate` now excludes on rounded coordinates as well, the chroma metadata filter got
+the same clause, and the fixture was re-frozen over 739 observations. It costs the cold
+result rather than helping it: Granite's cold agreement moves 0.5608 to 0.5543 and its cold
+margin 0.0398 to 0.0260. The review's own estimate had the sign the other way, which is what
+re-retrieving rather than re-scoring the existing list answers.
+
+**The register's headline precedent claim was an eighth comparison nobody made.** "Similarity
+carries the outcome when the station is allowed, and stops carrying it when it is not" is a
+statement about warm minus cold, asserted from one interval excluding zero and another
+spanning it. That is not a test of the difference. It is now computed as the paired per-query
+difference, declared in the family, and `N_COMPARISONS` is derived from the pair lists rather
+than being a hand-maintained 7 sitting 300 lines above them. **The drop is 0.0639 with a
+Bonferroni-adjusted interval of [0.0160, 0.1182] over 8 comparisons, so it excludes zero and
+the sentence is backed.** Every other interval in the study widened to make room for it, and
+the two that survived correction still do.
+
+**The axis-sign census counted 227 observations with no waterfall.** `AXIS_SIGN_CONVENTION`
+applies where a waterfall was rendered. The census counted all 2,727 stored rows and
+published 1,704 as inheriting the constant, of which 208 are rows it is never applied to. The
+error was conservative and the block's own 16-line docstring is entirely about picking the
+right denominator, which makes it the wrong kind of wrong. It now filters on
+`waterfall_sha256` and publishes both counts with the difference named: 1,496 with an image,
+1,704 over everything. It also reads `artifacts/DATASET_MANIFEST.json` rather than the API
+pages, so a judge without the 4 GB snapshot can regenerate `GATE3_RECEIPT.json`, and it
+cross-checks the manifest against the pages when they are present rather than trusting a
+copied field.
+
+**The review budget's rationale carried a count the corpus no longer had.** It said the
+chronological test set holds 88 decisively labelled observations and 50 is about 57%
+coverage. It holds 87. Both figures are derived from the split that was measured now, and an
+absent count is named rather than defaulted.
+
+**Files changed:** `pipeline/tracetriage/queue.py`, `pipeline/tracetriage/precedent.py`,
+`scripts/run_queue.py`, `scripts/run_circularity_check.py`, `scripts/run_precedent_study.py`,
+`scripts/run_gate3.py`, `scripts/build_console_data.py`, `scripts/sync_readme_results.py`,
+`scripts/sync_for_judges.py`, `contracts/queue_receipt.schema.json`, five receipts,
+`tests/test_queue_lift_bootstrap.py`, `tests/test_circularity.py`, `tests/test_precedent.py`,
+`README.md`, `FOR_JUDGES.md`, `docs/CLAIM_REGISTER.md`, `docs/REFERENCE.md`,
+`apps/web/public/data/`, `apps/web/lib/data.ts`.
+**Commands run:** `run_queue.py`, `run_circularity_check.py`, `run_precedent_study.py
+--freeze`, `run_gate3.py`, every generator, `build_console_data.py --skip-images`,
+`check_artifact_freshness.py`, `python -m pytest`, `ruff check`.
+**Tests:** 27 new. The ceiling invariant is parametrised over five populations and was
+verified to fail on the old rounding before the fix landed; the alignment of the register's
+two weight figures, the inert-criterion census, the per-split ceilings, the permutation
+control, the forced station failure, the site exclusion, the derived comparison count and the
+warm-cold difference each have one. 1,315 offline tests pass, none skipped. [Corrected in D15g: the count is 1,313 selected of 1,317 collected with 4 deselected. Nothing under `tests/` changed between this commit and D15g, so 1,315 was a misread of the summary line rather than a different tree.]
+**Outcome:** accepted. Nine of the ten findings were real; the tenth, that the lede's verdict
+cards render stacked rather than side by side, is what `apps/web/app/globals.css:676`
+documents as deliberate and is not a defect.
+
+## 2026-08-20 IST | Wave D | D15a: what the same reviews found on the console
+
+The console half of D15, shipped in the same commit `880ea04` because the pages read a
+payload the measurement half writes. Thirteen findings from a pass over the live site at
+1440 and 390, ranked by what a judge would hit first.
+
+**The one passing result was the one that broke the layout.** `IntervalBar` computed its
+percentages without clamping them. The cold-station interval runs to 3.896 on a domain that
+stops at 2.5, so the band was drawn from 71% to 170% of its own track, escaped by 382px, and
+put a horizontal scrollbar on the whole document: at 390px the page measured 735px across,
+nearly double the viewport, every card truncated mid-word and the axis label sat off screen.
+It is the only bar on the site that does this and it is the site's best number.
+
+Clamping alone would redraw an interval as though it ended at the axis, which is a quieter
+version of the same lie, so a value outside the domain now gets a hatched marker on the edge
+it left through, the border is dropped on that side, and a caption states the full extent.
+The accessible label already carried the real numbers and still does.
+
+**The landing page never said Granite, or IBM, or AI.** The only IBM strings on it were a
+footer note about Plex the typeface and Carbon the colour theme, while `granite3.1-dense:8b`
+carries the agent page at 22 of 24 with tools against 2 of 24 without, and the Granite
+embedding is the strongest arm on the precedent page. For a judge arriving from an IBM
+challenge listing, the strongest IBM evidence in the submission was two clicks away and
+unsignposted. The lede now carries a stack line naming both models with both results, each
+linking to the page it was measured on, and both figures are read from the console data
+rather than typed, so the sentence cannot drift from the study.
+
+**Ten seconds on the first screen read "this failed."** GATES MET 2 of 6, NOT ESTABLISHED,
+and "the gate is not met" were all above the fold, and the measured win was about 1,600px
+down. The permutation result from the measurement half goes beside them at the same weight:
+0 of 2,000 random orderings matched the queue, and the reason the interval spans the
+threshold is that a budget of 50 over 87 caps every possible ordering at 1.740x, so the whole
+scale is 0.240 wide. The failure stays exactly where it was.
+
+**Fifteen column headers sat on the opposite edge from their own cells.** "What it means" on
+the home page was 1,257px from its content, "What the console shows" on the provenance page
+1,008px, "Why it is here" in the queue 386px. `Table` defaults to first column left and the
+rest right, which is right for figures and wrong for a column of sentences, and the
+`headAlign` prop whose doc comment describes this exact bug was passed by five of twenty-one
+call sites. Nothing in the suite could catch it: `tsc` accepts a missing optional prop and
+`next build` renders it happily.
+
+All twenty-one call sites now declare their alignment, and a new vitest reads the sources,
+pairs each `head={[...]}` with the `<Cell>` alignments in the first row of its body and
+requires them to agree. It has one exemption, the Brier column, whose cell is declared left
+and lays its contents out flush right, and the exemption carries its reason. Removing one
+`headAlign` was checked to fail it.
+
+**The rail's "Replay" was a dead end pointing away from the real replay.** `/replay/` has no
+buttons and no body links; the twelve-second pass playback that drives four synchronised
+instruments is on an observation page. The entry is "Baselines" now, which is what the page
+is, and the page links into an observation for the playback.
+
+**The scrub handle was 800 to 1,150px below two of the four instruments it drives.** At a
+900px viewport a reader dragging the clock could not see the sky plot or the ground track,
+while the caption told them one clock drove all four. The reason given for putting it last
+was that the cursors it drives should already be in the document, and they are either way:
+the effect that finds them runs after the whole tree commits. The controls are above the
+instruments now and stick to the top of the viewport for the whole scroll.
+
+**"Two gates decide whether this project earned its claims, and neither one passed"** sat on
+the same screen as a sidebar reading GATES MET 2 of 6, with the reconciliation at the bottom
+of the page. It is inline now: the two that are met are the feasibility gates, pre-passed
+before this work started.
+
+**The footer dumped raw markdown.** `/data/KILL_GATE.md` is 54 KB of pipe-table source
+rendered at full width by the browser. Each of the three now links to the rendered file on
+the repository with a quieter raw link beside it, because the console has to keep working
+when the repository is not reachable and because these files are checked byte for byte.
+
+**A pasted link rendered as a bare text card.** No `og:image`, and `twitter:card` was
+`summary` with no image. `scripts/build_og_image.py` draws a 1200x630 card from the queue and
+circularity receipts, set in IBM Plex decompressed out of the vendored `@fontsource` package,
+using the same Carbon Gray 100 values `globals.css` defines. Both verdicts appear at one
+size: a preview card carrying only the split that passed would be the one place in this
+project that shows a win without the failure beside it. It has a `--check` mode and a
+standing gate, which makes nineteen.
+
+**The 404 was stock Next.** Its injected style is `body{color:#000;background:#fff}` with a
+dark-scheme branch, and this app sets no `color-scheme`, so on a light-mode machine it
+painted a white content area inside dark chrome with no way back. The most likely way to
+reach it is an observation id that exists in the corpus and is not one of the twenty-five the
+console ships, so the page says that and offers the ones that are.
+
+**Two smaller things.** The overlay control truncated its own default value to "Fitted,
+predicted and ce" at 1440, on the one control that explains the three lines over the flagship
+image; its grid track was 9rem. And the queue's empty state said "clear the filter to see
+them" when nothing cleared both filters: the search box's x clears the search and leaves the
+chip. There is a clear-all in the control bar when either is set, and the empty state's
+sentence is now the button.
+
+**What the review found sound, so nobody touches it:** no console errors or warnings on any
+page, every route 200, no dead links, correct playback timing and restart, all five waterfall
+controls properly label-associated, and a 133ms load.
+
+**Not a defect.** The lede's two verdict cards render stacked rather than side by side. That
+is what `apps/web/app/globals.css:676` documents as deliberate: the pair reads top to bottom
+in the order they should be weighed rather than left to right by whichever is larger, and the
+column is 354px against the roughly 728px two cards would need.
+
+**Files changed:** `apps/web/components/ui.tsx`, `apps/web/components/Rail.tsx`,
+`apps/web/components/Colophon.tsx`, `apps/web/components/QueueTable.tsx`,
+`apps/web/components/WaterfallViewer.tsx`, `apps/web/components/PassReplay.tsx`,
+`apps/web/app/page.tsx`, `apps/web/app/evaluation/page.tsx`, `apps/web/app/replay/page.tsx`,
+`apps/web/app/provenance/page.tsx`, `apps/web/app/observation/[id]/page.tsx`,
+`apps/web/app/layout.tsx`, `apps/web/app/not-found.tsx`, `apps/web/app/globals.css`,
+`apps/web/lib/data.ts`, `apps/web/tests/table-alignment.test.ts`,
+`scripts/build_og_image.py`, `scripts/gate.py`, `README.md`.
+**Commands run:** `npx tsc --noEmit`, `npx vitest run`, `npx next build`,
+`scripts/build_og_image.py`, `scripts/gate.py`.
+**Tests:** 4 new under vitest, 107 pass across 7 files. 35 pages build.
+**Outcome:** accepted.
+
+## 2026-08-20 IST | Wave D | D15b: the clean clone re-run at the D15 head
+
+The transcript a judge reads was measured at `cc6c8f9`, before the twenty-seven tests D15
+added and before the receipts it re-froze, so the page reported counts for a tree three
+commits back.
+
+Re-run at `dc30a8a`: **15 of 16 steps**, both pytest passes green, **1,313** with the
+snapshot present and **1,283** with 30 skipped when it is hidden. The only failing step is
+still the offline `uv pip install`, and the package it names moved from `pyarrow==25.0.1`
+to `torch==2.13.0` between runs. That is not a different failure: uv reports whichever
+download it reaches first and the order is not fixed. The judges' page reads the name out
+of the step's own output tail, so it stays right whichever wheel it is.
+
+**Files changed:** `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, `FOR_JUDGES.md`,
+`docs/REFERENCE.md`, `apps/web/public/data/provenance.json`.
+**Commands run:** `scripts/clean_clone_check.py`, every generator,
+`scripts/build_console_data.py --skip-images`.
+**Tests:** none new.
+**Outcome:** accepted.
+
+## 2026-08-20 IST | Wave D | D15g: the council check, and the number the landing page got wrong
+
+D14 and D15 ran three internal reviews that hunted for defects and closed thirty-two
+between them. Each was pointed at one area. This one reads the whole entry the way a
+first-time reader meets it, from `README.md` inward, and reports what that reader finds
+rather than what a subsystem does.
+
+Four seats, each given the repository from `README.md` inward, the live console at its six
+routes, and the demo video treated as absent because it is. None saw another's report,
+none was told what the earlier reviews had found, and each was asked
+to verify claims by opening the file the claim names rather than reading the prose around
+it. Two were briefed as ordinary judges and two as sceptics.
+
+### Where the four agreed
+
+Each seat rated the entry area by area and said what it would change first. The ratings are
+not recorded here, and that is deliberate. Four readers' opinions are not an instrument:
+there is no artifact behind an opinion, nothing to re-run, and no file a later reader could
+open to check it. This log publishes a number when a receipt can be opened against it, and
+a panel's score is the one number in this project that could never have one. What the four
+produced that does hold up is a list of defects, and every one of them is below or in D15i.
+
+The agreement is the useful part. All four rated the engineering and the novelty the same
+way, and all four named the same two ceilings: the AI's actual job is small, and the thing
+the project would most want to claim has not been measured. Three of the four named running
+kill gate 4 as the single change that would buy the most, one called it "an afternoon that
+converts the weakest criterion into the strongest", and the fourth asked for a throughput
+figure instead. Nobody asked for more code. Three of the four also put the same area last,
+practicality and whether a person can use this, which is where the next unit goes.
+
+On the question the sceptic seats were told to press, whether publishing mostly
+NOT_ESTABLISHED reads as rigour or as failure, both said rigour, and one wrote it down as
+"projects that failed do not build the instrument that would have caught them". The
+qualification both attached is the tally: two gates met sounds like a third of the work
+succeeded, and both met gates are feasibility checks pre-passed before any pipeline code.
+
+### The landing page printed a number that could not be true
+
+Three of the four seats found it independently, and two named it as the one change to make
+before submitting. `apps/web/app/page.tsx` bound the permutation sentence's population to
+`primary.n_queue_examined`, which is the review budget, so the first screen of the console
+read "random orderings of the same 50 observations" and then "a budget of 50 over 50 caps
+every possible ordering at 1.740x". Fifty conflicts in fifty observations at a budget of
+fifty caps at 1.0, so the sentence contradicted itself in its own next clause, in the
+paragraph whose code comment says it exists to put the strongest evidence on the first
+screen.
+
+The reachable-wrong-field part is the real defect. `scripts/build_console_data.py` did not
+publish the circularity receipt's `reproduction` block at all, so the payload held no field
+carrying 87 and the only population-shaped number in scope was the budget. It publishes the
+block now, `apps/web/lib/data.ts` types it, and the sentence reads its population, its
+budget and its conflict count from it. The README always had this right, which is why no
+generator check caught it: the console and the document are written by different paths.
+
+### Four wrong intervals in the file that exists to stop wrong numbers
+
+One seat read `docs/CLAIM_REGISTER.md` against the receipts it cites and found `[1.920,
+3.896]` in two rows whose source is `artifacts/QUEUE_RECEIPT.json`, where the cold_station
+bound is 3.858769. The string `3.89` appears nowhere in that receipt. Adding the register's
+own check found three more nobody had looked for: the chronological upper bound still read
+1.755 in two rows after D15's ceiling fix moved it to 1.740, cold_transmitter read [1.340,
+1.913] against a receipt holding [1.336, 1.894], and gate 5's Brier margin read [-0.01268,
+0.05029] against [-0.01301, 0.05036]. The README had gate 5 right and the register did not.
+
+`docs/KILL_GATE.md` carried the same rot in a per-split table typed in C2 and never
+re-derived: eight cells across four splits, including both of cold_station's upper bounds
+and two `n_decisive` counts that were gate 5's population rather than the queue's. That
+table is generated now, between markers, from `gate6.per_split` and
+`per_split_summaries`. The C2 measurement blockquote above it keeps its 1.755 with the
+correction stated underneath, because a dated record that is quietly edited is not a
+record.
+
+`tests/test_claim_drift.py` gains the check that would have caught all of it:
+`test_every_registered_interval_is_in_the_artifact_its_row_cites` pulls every bracketed
+pair out of the register's value column and requires both endpoints to be in the artifact
+that row cites, at the precision quoted. 10 rows and 13 intervals today, with floors, a
+named exemption for the row that records what a superseded document said, and a named
+unresolvable for the row whose artifact cell is prose rather than a path. Putting 3.896
+back turns it red, verified before the fix landed. The existing checks all read the
+README's tables; nothing had ever read the register against itself.
+
+### Five things the first two minutes did not say
+
+**The first screen named IBM once and Granite not at all.** The README opened with the
+submission line, the console URL, a pointer to the judges' page, and then a gate table
+whose headline reads "none passed". The first mention of Granite was 160 lines down and the
+IBM stack table 290 lines down. That is the defect D15a fixed on the console's landing page,
+still live on the document a judge opens first. A generated `What it produced` block now
+sits above the status block: the queue over 407 observations, the agent study at 22 of 24
+against 2 of 24 with its exact p, the checker's 11 emitted and 14 refused with 525 of 525
+adversarial drafts caught and 0 of 175 clean ones refused, and the precedent search on the
+Granite embedding reported indistinguishable. Every figure is read from a receipt by the
+script that writes the block, and the status follows it unchanged.
+
+**The judges' page did not use the judges' vocabulary.** Five headings, none of them the
+four the Official Rules name, with the fourth criterion split across two sections and no
+note that both score into one box. The headings are the criteria now, each quoting the
+rules' own sentence. Technical Execution also says something about IBM Bob for the first
+time: the section scored against "effective use of IBM Bob" had its Bob evidence a hundred
+lines below it, and it now opens with the build log's 50 dated entries, the three `.bob/`
+files and the pre-build baseline, with the entry count read from the log rather than typed.
+The page's own tally sentence stopped rounding up: it said two gates were met and left out
+that both are PRE_PASSED feasibility checks, which is what `README.md` says plainly two
+screens away and what a seat named as the one place the judges' page is softer than the
+README. Both generators also stopped wrapping on hyphens, which was rendering `cold-station`
+as `cold- station`.
+
+**Two of the five checks worth running first looked like they needed a model.** They do not:
+`scripts/run_agent_study.py` and `scripts/run_explanations.py` publish from committed
+fixtures and only talk to the local runtime under `--freeze`. Nothing said so, and a judge
+whose command fails concludes the project does not run.
+
+**The console had no signposted way to the page written for judges.** A judge who arrives at
+the deployed URL rather than the repository, which is the review path the June retrospective
+in `docs/SUBMISSION_CHECKLIST.md` describes, had a repository link in the footer and nothing
+pointing at `FOR_JUDGES.md`. It is the first link in that row now.
+
+**A test count no run produces.** The handoff, the submission checklist and the D15 entry
+carried 1,315. The suite collects 1,317, deselects 4 by the marker expression and passes
+1,313, and nothing under `tests/` changed between D15 and here, so it was a misread. All
+three numbers are published together, because one count of a run with a deselection in it
+does not say which of the three it is.
+
+### What was corrected in the paperwork
+
+`docs/SUBMISSION_CHECKLIST.md` still described wave A as the current state, still listed
+`bob_sessions/` as evidence Bob was primary after E0 deleted it, still called the README's
+Bob section a skeleton, and gave two different dates for making the repository public. The
+handoff named two remaining items when there are four, and the one it omitted is the
+eligibility condition: without the IBM SkillsBuild certificate the entry is not scored at
+all. The two procedure documents that still told a future builder to export task history
+into the deleted directory say what happened to it instead.
+
+### What the seats asked for and this unit did not do
+
+Kill gate 4, named by three of four as the change that would buy the most. It is a
+person's afternoon with a blinded 72-item worksheet that already exists and commits to its
+sample in advance, and it is the reason Implementation & Feasibility scores 3. A throughput
+figure, so scale has a number rather than an architecture argument. The demo video, which is
+scored zero and cannot be recovered by reading the repository. Making the repository public,
+without which every link in every document 404s for a judge. None of the four is a code
+change and all four are outside what this session can do.
+
+**Files changed:** `README.md`, `FOR_JUDGES.md`, `docs/KILL_GATE.md`,
+`docs/CLAIM_REGISTER.md`, `docs/SUBMISSION_CHECKLIST.md`, `docs/REFERENCE.md`,
+`docs/BOB_HANDOFF.md`, `docs/BUILD_BUDGET.md`, `docs/BOB_BUILD_LOG.md`, `.bob/rules.md`,
+`apps/web/app/page.tsx`, `apps/web/lib/data.ts`, `apps/web/components/Colophon.tsx`,
+`apps/web/public/data/`, `scripts/build_console_data.py`, `scripts/sync_kill_gate.py`,
+`scripts/sync_for_judges.py`, `scripts/sync_readme_results.py`,
+`tests/test_claim_drift.py`.
+**Commands run:** every generator with and without `--check`,
+`scripts/build_console_data.py --skip-images`, `npx tsc --noEmit`, `npx vitest run`,
+`npx next build`, `ruff check`, `python -m pytest`, `scripts/gate.py`.
+**Tests:** 2 new. The register-interval check was verified to fail on the 3.896 it was
+built for before the fix landed, and it found three drifts on its first run that no reader
+had reported. 1,315 offline tests collected of 1,319, 4 deselected, all passing.
+**Outcome:** accepted. The review is recorded by what it found rather than by what it
+rated: four seats, four defects named here, four more in D15i.
+
+## 2026-08-20 IST | Wave D | D15i: the four findings the seats' full reports carried
+
+D15g was written from the seats' headline findings, the defects each named first. Their
+full reports arrived afterwards and carried four more, all real.
+
+**Two origin claims were false as written.** `README.md` said "no data fetched from another
+origin" in its opening block and "No font is requested from another origin" in the IBM stack
+table. The served HTML carries a stylesheet link and a preconnect to `use.typekit.net`,
+which delivers the two licensed display faces. The console has always disclosed this
+correctly: the colophon names Adobe Fonts as the one third-party origin and gives the reason,
+and `/provenance/` measures the bytes and lists both hosts in the content security policy.
+The site was honest and the README was not. Both sentences say what is true now: no
+measurement comes from another origin, exactly one third-party request exists, nothing
+carrying a number depends on it, and every face that carries a measurement is Plex served
+from here.
+
+**The console's tally rounded up the same way the judges' page did.** The colophon said "Two
+of the six gates it set itself were met" and stopped, while `README.md` says two screens away
+that both are feasibility gates answered before any pipeline code. A seat named the console
+and the judges' page as the two surfaces that flatter the result and the README as the one
+that does not. The colophon reads its counts from the gate summary now, including how many
+were PRE_PASSED, and says that of the four gates asking whether the idea works, none passed
+on the split that decides it.
+
+**Nothing tested the sentence that was wrong.** A seat asked for a console test asserting the
+lede's denominator is the population, because the binding D15g fixed had nothing holding it.
+`apps/web/tests/lede-population.test.ts` is six tests over both halves: the paragraph reads
+`n_population`, `budget` and `n_conflicts` from the reproduction block and does not name
+`n_queue_examined` at all, and the payload publishes that block with a budget strictly below
+its population, which is the assertion the defect could not have survived. Reverting the
+binding was checked to fail it.
+
+**A judge learned what SatNOGS is 90 lines in.** Two seats said the same thing: the README
+opens with a badge that cannot resolve while the repository is private, then a status block
+whose first sentence reads as a failed project, and the problem statement arrives after two
+tables of verdicts. The opening now says in six lines what the network is, how big the
+backlog is, what the queue does about it and that it writes nothing back. The bottleneck
+figure is the one every seat quoted independently, 426 of 600 sampled observations with no
+decisive verdict, and it has a register row now pointing at
+`docs/SATNOGS_API_RECON.md` section 5. The CI badge moved below the judges' pointer, because
+until 25 August it renders as a broken image and it was the first thing on the page.
+
+**Files changed:** `README.md`, `docs/CLAIM_REGISTER.md`, `docs/REFERENCE.md`,
+`apps/web/app/layout.tsx`, `apps/web/components/Colophon.tsx`,
+`apps/web/tests/lede-population.test.ts` (new), `apps/web/public/data/`.
+**Commands run:** `scripts/build_console_data.py --skip-images`, `scripts/sync_docs.py`,
+every generator with `--check`, `npx tsc --noEmit`, `npx vitest run`, `npx next build`,
+`ruff check`, `python -m pytest`, `scripts/gate.py`.
+**Tests:** 6 new under vitest, 113 pass across 8 files. Reverting the lede binding was
+verified to fail the new file before the entry was written.
+**Outcome:** accepted. These are defects the seats found, closed as found. Nothing here
+re-runs the review that found them.
+
+## 2026-08-20 IST | Wave D | D16: the palette derived from the data, and what the probe found
+
+**The console read as a generic dark dashboard, and the fix had to be a derivation.** The
+theme was Carbon Gray 100 with an indigo cast and Carbon Blue 50 as the accent, which is a
+defensible pair of choices and looked like every other dark analytics page. Changing it by
+taste would have replaced one preference with another, so the palette was worked out from the
+input instead.
+
+**The input has no colour in it.** Measured across the 25 committed waterfalls, the largest
+difference between any pixel's brightest and darkest channel is 1 part in 255 and the mean is
+0.01. The instrument records intensity and no hue. That gives the rule the whole design now
+runs on: grey is measured, colour is computed. The waterfall stays as published and every
+coloured mark on top of it is something the pipeline derived, so the observation and the
+inference never share a channel.
+`tests/test_hero_window.py::test_every_published_waterfall_is_achromatic` asserts it per
+image, because a future snapshot rendered through a colour map would make the claim false
+while every other test stayed green.
+
+**A documented rationale was resting on a false premise.** `globals.css` said
+`--verdict-passed` was chosen to sit in the same family as "the viridis ramp the waterfalls
+are rendered in". They are not rendered in viridis; they are grey, and the console was
+applying the ramp itself. The note is recorded in the stylesheet rather than deleted.
+
+**Carbon still owns the structure.** Every neutral is its Carbon Gray 100 original converted
+to OKLCH, held at exactly its Carbon lightness, given chroma 0.009 at hue 70 and converted
+back. No ratio moves: `text-01` on the ground is 16.45:1 as Carbon ships it and 16.46:1 here,
+`text-03` 5.45 and 5.45, `ui-04` 3.60 and 3.60, and the largest movement across seventeen
+neutrals is 0.01. The accents are samples off `inferno`, with the ramp position written beside
+each token, because the home plate is rendered through that same 17-stop matplotlib table.
+Inferno was picked for three properties rather than a look: monotonic in lightness, so a value
+encoded by hue is also encoded by contrast; safe under all three common colour-vision
+deficiencies; and the map matplotlib ships for spectrograms.
+
+**One verdict carries a hue and it is red.** Appendix F reserves red for a warning and amber
+for a caution, and Carbon assigns grey to unknown or pending, which together rule out drawing
+a cleared gate in the brightest thing the ramp has, since that is yellow. `PASSED` is the
+page's strongest neutral instead, and the four states are separated by the marker's form as
+well as its value. `OPEN` was drawing a filled disc, the shape reserved for a decided verdict,
+and now takes the dash: gate 4 has no measurement to be inconclusive about. `PRE_PASSED` was
+drawing in the grey reserved for something that could not be measured while
+`provenance.json` counts it as met, and now takes the passed ink.
+
+**The plate was a flat block until it was windowed.** Its intensities occupy a fifth of the
+range the file can hold, so handed straight to a colour map four fifths of the ramp went on
+values that do not occur. The window starts at the noise floor rather than at a percentile:
+the modal level is 51 of 255, exactly 0.2000, and it holds 23.3% of the frame, which is a
+receiver's floor quantised. From there to the 99.5th percentile at 0.4078 gives slope 4.8113
+and intercept -0.9623, with 30.7% of the frame rendering black and 0.47% white. It is linear,
+so no pixel changes rank against another. `tests/test_hero_window.py` re-derives both
+constants from the committed image.
+
+**The comment was wrong before the test was.** The clamped-black share went into the
+component's comment as 7.4%, computed with a strict `<` that excluded the modal level itself.
+The window maps that level to exactly zero, so it renders black too: 30.7%, wrong by a factor
+of four. The test was written first, it failed, and the comment was corrected rather than the
+bound loosened.
+
+**Motion, and it costs no JavaScript.** The reveal on scroll is `animation-timeline: view()`,
+the ledger stagger is an `animation-delay` multiplied by a row index, the digit reveal is a
+`clip-path` inset, the link underline is a gradient sized on one axis and the table row
+marker is a `scaleX` on a pseudo-element. Every one composites. Nothing animates a colour, a
+size or a custom property a descendant reads.
+
+**The reveal was dead on arrival and nothing could have caught it.** It was written
+`main > section` while every section is a child of `.shell`, so the selector matched zero
+elements: the stylesheet looked correct, the build passed, the type check passed and the page
+had no reveal. `apps/web/audit/motion-probe.js` is new and reports two things a build cannot
+see, the count the selector reached and every element that did not end fully opaque after a
+full scroll. A matched count of zero is a failure and not a clean run, which is the whole
+reason it reports the count at all.
+
+**The landing page had a third of its first screen empty.** `components/GateLedger.tsx` puts
+the six kill gates and their verdicts there, read from `provenance.json`'s `gate_summary`
+including the counts in its caption, so a gate that changes verdict changes the strip and the
+provenance page together or neither. It also teaches the verdict vocabulary before a reader
+reaches a table that depends on it, and it adds a link to `/evaluation/`.
+
+### The defect the accessibility probe was hiding
+
+`apps/web/audit/a11y-probe.js` reported 662 of 706 nodes on the landing page below their
+contrast floor, against a page that renders correctly. The cause was not the palette. The page
+ground had become a gradient set through the `background` shorthand, which resets
+`background-color` to transparent, so neither `body` nor `html` carried an opaque colour
+anywhere. The probe's walk for a background found none and fell back to inventing white, then
+compared bone-white body text against it.
+
+**The claim register was carrying a number that could not have been true.** "1,475 text nodes
+measured, 0 below requirement", dated 2026-08-18, was measured before the gradient existed.
+The gradient silently invalidated it and nothing re-ran the probe, which is the same shape as
+an exemption outliving its reason.
+
+Three fixes, and the middle one is the durable one:
+
+1. `body` now sets `background-color: var(--ui-background)` under the gradient. It is the
+   gradient's own first stop, so no pixel moves, and an engine that cannot parse the gradient
+   now paints the theme's ground rather than the canvas default.
+2. `backgroundOf` returns `null` instead of inventing white, and the probe reports
+   `unresolved_background` as a third outcome. Folding it into failures manufactures a
+   regression and folding it into passes hides a real one.
+3. A background layer sized to zero on an axis paints nothing and is not treated as an
+   obstruction. Without that, the new hover underline, a gradient held at `background-size:
+   0% 1px` until hover, made 41 links on one page unmeasurable.
+
+**Two real contrast failures came out of the same run**, the same mistake in two places.
+`.skip-link` was white on the accent: 3.34:1 on the old Carbon blue, already under its floor
+and unnoticed because the link is invisible until focused, and 2.00:1 on the amber. The
+queue's active filter chip and its count badge were the same pair. Both now carry the plate's
+ground as their ink at 9.09:1. The landing page's explainer video had no accessible name: the
+fallback paragraph inside it describes the clip, but a browser that can play the video never
+exposes that paragraph, so a screen reader announced "video".
+
+**Measured after the fixes, over seven page types on the built export at 1440x900:** 2,235
+text nodes, 0 below requirement, 0 with an unresolvable background, 193 focusable elements
+with 0 missing a focus ring, one `h1` per page, 0 skipped heading levels, 0 unlabelled media,
+0 console errors on any page. The reveal matched 7 elements on the landing page with 0
+unfinished after a full scroll, and the reduced-motion pass left 0 reveals, 0 staggers and 0
+digit wipes unfinished.
+
+### Gate 4, and why it is still open
+
+The instrument has been ready since 2026-08-19 and the gate stayed `OPEN`. The blocker was
+not the study, it was the form: 72 rows of CSV typed by hand beside an image viewer.
+`scripts/gate4_review.html` is that protocol with the friction removed, and it is constrained
+by what it must not do. It reads nothing but `images/G4-NNN.png` and makes no network request,
+so it cannot reveal a label. It gives `unsure` the same size, colour and distance as `yes` and
+`no`, because a form that makes the decisive answers easier to click measures the form. It has
+no back button, because the 12 repeated items only measure intra-rater agreement if the
+reviewer cannot look up the first answer. It writes every answer to localStorage as it is
+made. And it shows the plate at native resolution in a scrolling frame: fitting an
+832x1603 image into 82vh scaled it to 0.46, and a trace two or three levels above the noise
+floor does not survive that, so a fitted plate would have pushed answers toward `unsure` and
+biased the exact number the gate measures.
+
+The scorer was exercised end to end against a synthetic response set written outside the
+repository, which verified the commitments, the exact interval and all three reported numbers.
+The receipt was not touched: the real `artifacts/GATE4_RECEIPT.json` still reads `NOT_RUN`,
+because **no human has reviewed the bundle and writing anything else would manufacture the
+measurement this gate is missing.** The study needs a person, about 30 minutes, and it is the
+one thing standing between this gate and a verdict.
+
+**Files changed:** `apps/web/app/globals.css`, `apps/web/app/page.tsx`,
+`apps/web/audit/a11y-probe.js`, `apps/web/audit/motion-probe.js` (new),
+`apps/web/components/GateLedger.tsx` (new), `apps/web/components/CorridorHero.tsx`,
+`apps/web/components/Colophon.tsx`, `apps/web/components/QueueTable.tsx`,
+`apps/web/components/WaterfallViewer.tsx`, `apps/web/components/ui.tsx`,
+`apps/web/lib/format.ts`, `scripts/check_contrast.py`, `scripts/gate4_review.html` (new),
+`tests/test_hero_window.py` (new), `README.md`, `docs/CLAIM_REGISTER.md`.
+**Commands run:** `scripts/check_contrast.py -v`, `python -m pytest`, `ruff check`,
+`npx tsc --noEmit`, `npx vitest run`, `npx next build`, both audit probes over seven pages
+through a driver, `scripts/score_gate4.py` against a synthetic response set with `--out`
+pointed outside the repository, `scripts/sync_docs.py`, `scripts/gate.py`.
+**Tests:** 54 new under pytest in `tests/test_hero_window.py`. 26 of 26 contrast pairs meet
+their floor. The clamped-black assertion was written before the comment it checks and failed
+it.
+**Outcome:** the palette is a derivation with two checks behind it, the accessibility claim is
+measured again on a probe that can no longer invent a background, and gate 4 is one human
+review from a verdict.
+
+## 2026-08-20 IST | Wave D | D17: whether it would keep up with the network
+
+**The README had nothing on scalability, and it is a quarter of the score.** Criterion 4
+is practicality, scalability and potential for real-world use, three of four judge seats
+scored it lowest, and the file did not contain a rate for what SatNOGS produces, a cost
+per observation, or therefore any answer to the only scalability question that has an
+honest form: does the thing keep up.
+
+**All three were already measurable from artifacts in the repository.** Every stored
+observation's `waterfall_url` embeds the capture time the station wrote into the object
+key, so the snapshot carries the network's own rate. Two stages recorded `elapsed_s`
+against `n_requested` over the same 743 observations. And `DATASET_MANIFEST.json` records
+`built_at` and `completed_at` around a run that fetched 110 pages and 2,500 images, so
+the difference is the fetch cost. `scripts/measure_throughput.py` computes all of it and
+writes `artifacts/THROUGHPUT_RECEIPT.json`; `scripts/gate.py` re-runs it with `--check`,
+because every figure in it is derived from another artifact and goes stale when that one
+is re-run.
+
+| | Measured |
+|---|---|
+| Network output | 6,380 observations with a waterfall per day, over 2,500 captures spanning 9.40 hours |
+| Cost per observation | 1.2576 s single-threaded at the dominant stage, 743 in 934.4 s |
+| One core | 68,702 observations a day |
+| Headroom | 10.77x |
+| Ingestion | 1.8197 s per observation, wall clock |
+
+**The last row is the finding.** Fetching an observation costs 1.447 times what
+processing it does, and that cost is a 0.4-second courtesy interval plus a 1.7 MB image
+download. Neither is a property of this pipeline. The project is not compute-bound at
+network scale, which also names its deployment: run at the ground station, where the
+waterfall is already on disk and there is no public API to be polite to.
+
+**A scalability claim with no boundary is not a measurement**, so four are stated in the
+receipt and in the README. The capture span is 9.40 hours inside one day, so the day rate
+is one observation of the network's rate and not a long-run average. The 1.2576 s covers
+the corridor fit and the second-trace survey only, and excludes SGP4, the fusion forward
+pass and the queue sort, all cheaper, and Granite, which is not per observation. Both
+stages were timed single-threaded on one machine, so the core count is a division rather
+than a measured parallel speed-up. And nothing in it is a latency claim: the queue is a
+batch reading order and no part of this project answers inside a pass.
+
+The script refuses rather than reporting a subset: if a waterfall URL no longer carries a
+parseable capture time it raises with the count and the first three ids, because a rate
+computed over an unstated subset is the failure this repository keeps finding.
+
+**Also in this entry.** The README described the fifth console page as "the offline
+replay". That page is titled "The queue against the baselines" and its nav label is
+"Baselines", and the same phrase is used twice more in the file to mean the CI clean-clone
+run, so one phrase named two different things and neither match was the page. It now says
+what the page is.
+
+**Files changed:** `scripts/measure_throughput.py` (new),
+`artifacts/THROUGHPUT_RECEIPT.json` (new), `scripts/gate.py`, `README.md`,
+`docs/CLAIM_REGISTER.md`.
+**Commands run:** `scripts/measure_throughput.py`, `--check`, `python -m pytest`,
+`ruff check`, `scripts/gate.py`.
+**Tests:** the register's three new rows are checked by `tests/test_claim_drift.py`
+against the receipt they cite.
+**Outcome:** the repository now answers the scalability question with three measured
+numbers and four stated boundaries, and the answer is that ingestion costs more than
+inference.
+
+## 2026-08-20 IST | Wave D | D18: the clip in the middle of the page was still the old palette
+
+**Three files carried a second copy of the palette, and all three were stale.** The link
+preview card, the architecture diagram and the Manim explainer scene each held their own
+hardcoded hex strings under a comment saying they matched `apps/web/app/globals.css`. They
+did, once. The stylesheet then moved from a Carbon-blue-accented navy to a warm graphite
+with an inferno accent ramp, and none of the three moved with it, so the card a pasted
+link renders, the diagram in the README and a 24-second clip embedded halfway down the
+landing page were all drawing a colour scheme the rest of the site had abandoned. Each now
+reads the `:root` block at run time and refuses if a token it needs was renamed.
+
+**The clip is the one a reader actually sees.** It explains the corridor measurement:
+white for the fitted corridor, amber for the same pass geometry at zero frequency offset,
+grey dashes for the commanded receive frequency, which is the same series-to-ink mapping
+the console's observation viewer uses. On the old palette it was Carbon blue against amber,
+which is the pairing the site no longer has anywhere.
+
+**The poster had to come from the same frame, and that frame was not recorded.** Re-cutting
+a thumbnail at a guessed timestamp changes what the page shows before you scroll without
+anyone deciding to. So the previous poster was matched against every frame of the previous
+render at quarter-second steps and then refined to 1/60 s: t = 18.55 s, mean absolute
+difference 1.5 levels out of 255, which is JPEG noise rather than a different moment. The
+new poster is cut at the same time and shows the full readout: 61 px, 5,648 Hz, 13.0 ppm,
+and the scale it was computed at.
+
+| | Before | After |
+|---|---|---|
+| Clip | 1,646,670 B | 1,613,559 B, 1920x1080, 24.000 s, 1440 frames |
+| Poster | 24,761 B | 31,237 B, 960x540, cut at t = 18.55 s |
+
+**The register keeps the old row rather than editing it.** The 2026-08-18 row recorded
+1,646,670 B served from the deployed origin with an in-browser and curl check. That check
+happened, and the bytes it checked are no longer the committed ones, so the row is marked
+superseded, the measured replacement is a separate row, and a third row states plainly
+that the new bytes have not been served yet because Vercel builds from the push that
+carries them. Overwriting the first row would have turned a real check into a claim about
+files that had never been requested.
+
+**Files changed:** `apps/web/public/media/corridor-explainer.mp4`,
+`apps/web/public/media/corridor-explainer-poster.jpg`, `scripts/explainer_corridor.py`,
+`scripts/build_og_image.py`, `apps/web/public/og.png`, `docs/CLAIM_REGISTER.md`,
+`docs/REFERENCE.md`, `FOR_JUDGES.md`, `artifacts/ATTRIBUTION_AUDIT.json`,
+`artifacts/REPO_WEIGHT.json`, `artifacts/SECRET_SCAN.json`.
+**Commands run:** `manim -qh scripts/explainer_corridor.py CorridorExplainer`, `ffprobe`,
+`ffmpeg`, `scripts/build_og_image.py`, `scripts/audit_release.py`,
+`scripts/build_console_data.py`, `npm run build`, `scripts/sync_docs.py`,
+`scripts/sync_for_judges.py`, `ruff check`, `scripts/gate.py`.
+**Tests:** `tests/test_release_audit.py` re-checks attribution over 79 tracked media
+files, and the OG card's own `--check` mode compares regenerated bytes.
+**Outcome:** every surface that draws the palette now derives it from one file, and the
+two media byte counts in the register are the two files in the tree.
+
+## 2026-08-20 IST | Wave D | D19: the landing page was blank for most of a second
+
+**The stagger looked broken and was not.** A screenshot of the first screen caught the
+gate ledger mid-sweep: two rows up, the third faint, three missing. Six rows with a
+240 ms animation and a 395 ms worst-case delay have finished 635 ms after the first style
+resolution, so a screenshot taken 1.6 s after load should show six. Reading the animation
+instead of the pixels said why: `startTime` was 1660 ms, `first-contentful-paint` was
+1680 ms, and the animation had started exactly on time. The page had not.
+
+**First paint was 1.6 s from a local static server with nothing on the wire.** Document
+response at 5 ms, DOMContentLoaded at 160 ms, load at 245 ms, first paint at 1628 ms.
+
+**Two wrong answers came first, and both were measured before being believed.** A single
+A/B on a preconnect showed 1716 ms against 264 ms, which looked like the whole finding.
+Five interleaved rounds killed it: 948, 228 and 280 ms medians across three variants, all
+bimodal, every variant producing both a 200 ms and a 950 ms run. Under an emulated 150 ms
+RTT it was 980 against 1004, also null. The reason is embarrassing and worth writing down:
+`app/layout.tsx` already had a preconnect with `crossOrigin`, so the experiment compared
+one preconnect against two.
+
+**Blocking each font source in turn separated it, five interleaved rounds each:**
+
+| Variant | Median first contentful paint |
+|---|---|
+| as served | 956 ms |
+| licensed font host blocked | 152 ms |
+| self-hosted faces blocked | 944 ms |
+| both blocked | 144 ms |
+
+**It is `font-display`.** The Adobe Fonts kit declares all 90 of its faces at
+`font-display: auto`, and auto tells Chrome to hold text unpainted for up to three seconds
+while the face loads. `document.fonts` reads the descriptor per family: the two faces used
+in the first viewport, `neue-haas-grotesk-display` and `din-2014-narrow`, are auto; `IBM
+Plex Sans` and `IBM Plex Mono`, which this repository serves itself, are swap and hold
+nothing. Three query parameters on the kit URL were tried against the live stylesheet and
+all 90 rules still came back auto.
+
+**There is no CSS-only fix, and that is a property of the cascade rather than an opinion.**
+`font-display` is a descriptor inside an `@font-face` rule, and a rule this project does
+not write cannot be overridden from outside it. The fix is one setting in the Adobe Fonts
+web project, which lives in an account rather than in this repository. The three options
+that do live here were all rejected for a stated reason: copying the kit's signed font
+URLs into a local `@font-face` breaks on the next republish and is against the licence;
+loading the kit from script trades the blank screen for a headline that reflows after
+hydration, which is a layout shift instead of a wait; and moving the first screen onto
+IBM Plex gives up the display face exactly where it does the most work.
+
+**So it is published instead of hidden.** The provenance page carried the sentence "a
+blocked font host costs the lettering and not the reading", which is true of a host that
+is blocked, because the block period expires and Plex paints, and false of one that is
+slow. Both now appear, with the three medians.
+
+**A third probe, in the same shape as the other two.** `apps/web/audit/paint-probe.js`
+returns the paint timings and one row per font family with its `display` descriptor,
+whether it is used in the first viewport, and therefore whether it holds the paint. Its
+stated limit is the one that nearly fooled this entry: it cannot tell a cold load from a
+warm one, and running it over three pages in one browser gives 1628 ms then 208 ms then
+192 ms purely from the HTTP cache. The millisecond count is a single draw; the list of
+families set to block is the finding, and that does not depend on the cache.
+
+**Files changed:** `apps/web/audit/paint-probe.js` (new), `apps/web/app/layout.tsx`,
+`apps/web/app/provenance/page.tsx`, `docs/CLAIM_REGISTER.md`.
+**Commands run:** the interleaved A/B harnesses, `curl` against the kit stylesheet with
+three query variants, `npm run build`, `ruff check`, `scripts/gate.py`.
+**Tests:** the probe is the test; nothing else in the repository can see a blank first
+screen, because the build, the type check, the suite and both other probes all pass on one.
+**Outcome:** the cost is measured, attributed to the one descriptor that causes it, and
+recorded next to the line someone will otherwise try to fix first.
+
+## 2026-08-20 IST | Wave D | D20: the ground moved from stone to sky
+
+**The brief was a premium, space-grade palette, and half of it was not available.** The
+accent ramp is not a preference: every accent token is a stop off matplotlib's inferno
+because inferno is the colormap the waterfalls are rendered through, which is measured,
+tested and published. Repainting it would break the one thing about this palette that is
+checkable. So the accents stayed and the ground moved.
+
+**A hue rotation, not a redesign.** Every neutral keeps the OKLCH lightness Carbon Gray 100
+gives it and only its hue and chroma change: hue 70 to hue 305, and a chroma that now falls
+as lightness rises rather than sitting flat at 0.009. That last part is the difference
+between a dark theme that looks synthetic and one that reads as a sky: 0.030 in the darkest
+three steps, 0.004 in the lightest, so the void carries the colour and the ink carries
+almost none. `--text-04` still carries none at all.
+
+**One lightness did change, and it is the only one.** The page ground went from Carbon's
+L 0.200 to L 0.182. That direction is free in the only sense that matters here: a darker
+ground can only raise a ratio measured against it.
+
+| | Carbon | warm, hue 70 | plum, hue 305 |
+|---|---|---|---|
+| text-01 on the page ground | 16.45 | 16.46 | **17.11** |
+| text-03 on a rule | 3.49 | 3.49 | **3.50** |
+| ui-04 as a component boundary | 3.60 | 3.60 | **3.73** |
+| link-01 in prose | | 9.09 | **9.46** |
+
+Largest drift attributable to the rotation alone, across the whole ramp: **0.026**, which is
+rounding. All 26 pairs in `scripts/check_contrast.py` meet their floor, and the a11y probe
+reports 0 of 2,249 text nodes below requirement across seven page types, with 0 unresolved
+backgrounds and 0 focusable elements without a focus ring.
+
+**Why 305 and not something warmer or bluer.** It is the one hue on the page that is a
+preference, and it is named as one, but what it is chosen against is not. Hue 305 sits
+roughly opposite the inferno ramp on the hue circle, far from the red the failed verdict
+owns and far from blue, so gold on it reads as emission against a void and nothing competes
+with the one hue that carries meaning. Wine and oxblood were rejected for a stated reason:
+a red-adjacent ground sits under the failed verdict's red and takes its signal away.
+
+**Four candidates were rendered on the real page before one was chosen**, at hue 305 and
+312 with dark chroma from 0.016 to 0.044, against the warm ground as the control. A hex
+string cannot tell anyone whether a cast reads as depth or as a tinted grey, and the
+strongest candidate lost: at chroma 0.044 the panels stop being instrument chrome and start
+being purple furniture.
+
+**Everything that draws the palette was regenerated rather than edited.** The architecture
+diagram, the link preview card and the Manim explainer all read the `:root` block at run
+time as of D18, so a single stylesheet edit moved all three: 17,626 bytes of SVG, a 41,316
+byte card, and a re-rendered 1,635,786 byte clip with its poster re-cut at the same
+t = 18.55 s. That is what D18 bought, one entry later.
+
+**The register keeps the warm row.** It recorded a measurement that was taken, so it is
+marked superseded and the plum measurement is its own row, with the ground's lightness
+change named as the reason the ratios moved up.
+
+**Files changed:** `apps/web/app/globals.css`, `scripts/check_contrast.py`, `README.md`,
+`scripts/build_architecture_diagram.py`, `scripts/build_og_image.py`,
+`scripts/explainer_corridor.py`, `docs/architecture.svg`, `apps/web/public/og.png`,
+`apps/web/public/media/corridor-explainer.mp4` and its poster, `docs/CLAIM_REGISTER.md`.
+**Commands run:** the OKLCH re-tint and the four-candidate render harness,
+`scripts/check_contrast.py -v`, `scripts/build_architecture_diagram.py`,
+`scripts/build_og_image.py`, `manim render -qh`, `ffmpeg`, `npm run build`, both audit
+probes over seven pages, `python -m pytest`, `ruff check`, `scripts/gate.py`.
+**Tests:** `tests/test_contrast.py` and `tests/test_hero_window.py` pass, the second
+because the waterfalls are still achromatic and the display window still derives from the
+committed image, neither of which a ground colour can change.
+**Outcome:** the ground reads as deep space with gold emission, every contrast ratio on the
+page went up rather than down, and the one hue that is a preference is still the only one.
+
+## 2026-08-20 IST | Wave D | D21: the diagram fits on this machine and nowhere else
+
+**The README embeds `docs/architecture.svg`, so judges read it on github.com.** A
+standalone SVG carries no `@font-face`, so `font-family="IBM Plex Sans, system-ui,
+sans-serif"` resolves to whatever the reader's machine has, and almost no reader has Plex
+installed. The generator wrapped each stage's detail at `(w - 32) / 5.05` characters,
+where 5.05 is Plex Sans's own average advance at font-size 11.5.
+
+**Measured, by substituting the font away and asking the renderer.** Every text run's
+`getComputedTextLength` against the box it sits in, over three fallback stacks:
+
+| Stack | Runs inside a box | Overflowing | Worst |
+|---|---|---|---|
+| Segoe UI and Consolas | 44 | 0 | |
+| DejaVu Sans and DejaVu Sans Mono | 44 | 4 | +44px |
+| Verdana and Courier New | 44 | 4 | +47px |
+
+DejaVu runs about 5.84 px per character, not 5.05, and DejaVu is what a Linux reader and
+several rendering paths get. Four lines ran past the right edge of their panels in a
+diagram that is the README's main illustration.
+
+**Two changes, and the second one is the more important.** The divisor is now 6.0, which
+clears every fallback measured with room left. And `wrap(...)[:3]` was silently dropping a
+fourth line: a box is three lines tall, so a longer detail lost text with nothing anywhere
+to notice it. It now refuses with the stage key, the line count and the lines. Widening
+the wrap pushed two stages to a second line, which is exactly the case that would have
+been truncated one sentence later.
+
+After the change: 45 runs, 0 overflow on all three stacks, and 0 runs past the canvas edge
+including the strapline, which sits outside every box and was not covered by the first
+measurement.
+
+**What this generalises to.** Three files in this repository now read the palette out of
+`globals.css` so a colour cannot drift. This is the same class of defect one level down: a
+generator that measures with a metric it cannot guarantee the reader has. The fix is not a
+better estimate, it is an estimate that is wrong in the safe direction plus a refusal when
+the estimate stops holding.
+
+**Files changed:** `scripts/build_architecture_diagram.py`, `docs/architecture.svg`.
+**Commands run:** the three-stack overflow harness, `scripts/build_architecture_diagram.py`,
+`--check`, `ruff check`, `scripts/gate.py`.
+**Tests:** the gate already runs the diagram's `--check`, which regenerates and compares
+bytes, so a wrap change that is not committed fails there.
+**Outcome:** the diagram fits its boxes in the fonts a reader actually has, and a detail
+too long for a box stops the build instead of losing a line.
+
+## 2026-08-20 IST | Wave D | D22: three reviews, and the fix two of them agreed on was wrong
+
+**Two independent reviewers found the same defect in `scripts/gate4_review.html` and
+proposed the same repair, and it would have cost the review.** The completion check
+requires all three axes to carry a value; the comment above it described a conditional
+rule ("artifact_usable always, and when it is yes, at least one of the other two"). Both
+reviewers concluded the code was wrong and both proposed relaxing it so that
+`artifact_usable: no` records with the other two blank.
+
+Tested against the scorer rather than reasoned about. `score_gate4.py`'s `read_responses`
+validates every field of any row that has been touched at all, so a row with two blanks
+fails with `visible_signal is '', and the form allows ['no', 'unsure', 'yes']` and the
+whole file is refused. A reviewer would have answered 72 plates over half an hour, run the
+scorer, and been told the file cannot be scored, with no way to recover what they thought.
+
+**The code was right and the comment was the defect**, which is the opposite of what the
+convergence of two reviews suggested. There is also nothing a reviewer cannot answer: an
+unreadable plate is `artifact_usable: no`, `visible_signal: unsure`,
+`target_consistent: na`, and all three are offered. Enforcing the decisive rule in the
+button would have been worse than an extra keypress, because it would refuse to record an
+honest three-unsure row, which is the bias the instrument exists to measure rather than
+produce. The comment now says all of that, including that two reviewers read the old one
+and both proposed a change that does not survive contact with the scorer.
+
+**Seconds per item, because it cannot be measured afterwards.** The README has carried
+"Human minutes per confirmed finding [UNMEASURED]" since the results table was written,
+and the only instrument that can produce its input is a reviewer in front of these plates.
+The review page now records the time from a plate appearing to an answer being committed,
+and `score_gate4.py` publishes a `reviewer_pace` block if the column is present and
+nothing if it is not. Nothing on screen shows a clock, no answer is timed out, and the
+verdict path never reads the value. Verified end to end with a synthetic 72-row file:
+median, mean, fastest, slowest, total minutes, and a count of rows without timing kept
+separate rather than folded in as zero. What the receipt says it is not, in the block
+itself: this is one reviewer's pace, and minutes per confirmed finding needs it multiplied
+by a share of opened observations that carry something, which the queue measures and this
+gate does not.
+
+**Three files published gate 4's status as a literal `OPEN` while its receipt said
+`NOT_RUN`.** `build_console_data.py`'s `_DECIDED_IN_DOCS`, `sync_kill_gate.py`'s
+`_STATIC_ROWS[4]`, and a paragraph plus a whole bullet of `sync_for_judges.py`. So
+answering the worksheet would have moved the receipt and changed nothing a reader sees
+until someone noticed and hand-edited three files. This repository already fixed exactly
+this for gate 3 and left a comment about it a few lines above the one that was still
+wrong.
+
+All three now read the receipt. `NOT_RUN` maps to `OPEN` in one declared place per file
+rather than as a coincidence between them, an unrecognised verdict stops the sync instead
+of being published as OPEN, and the judges' page has a sentence for each of the four
+verdicts the receipt can carry. Verified by regenerating everything: the only byte that
+changed is gate 4's `decided_in`, from `docs/KILL_GATE.md` to
+`artifacts/GATE4_RECEIPT.json`, which is now where the verdict comes from.
+
+**A test that could only pass while the measurement was missing.**
+`test_claim_drift.py::test_every_unmeasured_row_names_a_gate_that_produced_no_number`
+asserted two things: every `[UNMEASURED]` row must cite a gate whose verdict produced no
+number, and the row list must be non-empty. Both README markers cite gate 4, and gate 4
+is the only gate with a no-number verdict, so the moment it was scored the test became
+unsatisfiable: keeping the rows fails the first assertion, deleting them fails the second.
+The non-empty check is now conditional on such a gate existing, and when none does it
+asserts the opposite, that no row still says `[UNMEASURED]`. Proven by simulation rather
+than by reading: with gate 4 patched to `NOT_ESTABLISHED` in `provenance.json`, the test
+fails with "the hatch outlived the absence it was for" and names both rows to remove, then
+passes again once the patch is reverted.
+
+**Five smaller findings, all confirmed before being touched.** A live test's docstring
+(`tests/test_contrast.py`) described a "deep indigo cast" and had been wrong through two
+palettes, indigo then warm graphite, and is now plum. `docs/BOB_HANDOFF.md`, whose stated
+job is carrying exact state between sessions, carried the same wrong hue and a
+stale 0.03. `docs/WAVE_D_PROMPT.md` the same phrase. `globals.css`'s `.hero-corridor`
+comment still explained the white stroke by reference to viridis and "the interface blue",
+neither of which the page has had since D16, a few hundred lines below the header comment
+that narrates catching that exact drift elsewhere. And `tests/test_hero_window.py`
+asserted `spread.max() <= 2` against a claim of "1 part in 255" published in three files:
+measured across all 50 committed waterfalls the largest spread is exactly 1, so the bound
+is now 1. A bound looser than the claim it protects protects nothing.
+
+**What still needs a human, and in what order.** The review itself, about half an hour.
+Then `scripts/score_gate4.py`. Then, and this is the part nothing here can do: if the
+verdict stops being NOT_RUN, `scripts/run_agent_study.py` refuses to run, because the gate
+4 question's expected answer is read live from the receipt and compared against the frozen
+fixture. Re-freezing needs the local Granite runtime, and the frozen answer is currently
+NOT_RUN, so the headline "22 of 24 correct with tools" may become 21 of 24 and both the
+README and the judges' page move with it. Two more: the two `[UNMEASURED]` README rows have
+to come out, which the amended test now names, and `test_for_judges.py`'s pairwise-distinct
+tally assertion fails on PASSED alone, because 6, 3, 3, 0 is not four distinct numbers.
+
+**Files changed:** `scripts/gate4_review.html`, `scripts/score_gate4.py`,
+`scripts/build_console_data.py`, `scripts/sync_kill_gate.py`, `scripts/sync_for_judges.py`,
+`tests/test_claim_drift.py`, `tests/test_contrast.py`, `tests/test_hero_window.py`,
+`apps/web/app/globals.css`, `docs/BOB_HANDOFF.md`, `docs/WAVE_D_PROMPT.md`, and the
+regenerated `FOR_JUDGES.md`, `KILL_GATE.md` and console payload.
+**Commands run:** a Playwright drive of the review page reading the CSV it downloads, the
+scorer against a synthetic 72-row bundle at a scratch output path, `sync_kill_gate.py
+--check`, `check_artifact_freshness.py`, the future-state simulation, `python -m pytest`,
+`ruff check`, `npm run build`, `scripts/gate.py`.
+**Tests:** `tests/test_gate4.py` (36) and the two amended test modules pass;
+`artifacts/GATE4_RECEIPT.json` was never written, and still reads NOT_RUN.
+**Outcome:** the instrument produces a file the scorer accepts, records the one quantity
+that cannot be recovered later, and the day it is answered three files follow the receipt
+instead of needing an editor.
+
+## 2026-08-20 IST | Wave D | D23: the probe was right by coincidence
+
+**A review found that `paint-probe.js` asked a tag list which fonts hold the first
+paint.** The list was `h1, h2, h3, h4, p, a, span, li, td, th`, which omits `dt`, `dd`,
+`button`, `label`, `figcaption` and `caption`. The home page's hero readout is a `<dl>`
+whose `<dt>` sets the Adobe-hosted label face, above the fold, in the same component this
+probe's docstring was written about.
+
+**The reviewer called it currently harmless and was half right.** On the landing page two
+nearby `<p>` elements use the same family, so it still got flagged. On the other two pages
+it did not:
+
+| Page | Tag list | Elements that paint text |
+|---|---|---|
+| `/` | din-2014-narrow, neue-haas-grotesk-display | unchanged |
+| `/evaluation/` | neue-haas-grotesk-display | **din-2014-narrow**, neue-haas-grotesk-display |
+| `/observation/14740031/` | neue-haas-grotesk-display | **din-2014-narrow**, neue-haas-grotesk-display |
+
+So a blocking font family was going unreported on two of three pages measured, and the one
+page where it was reported was reported correctly by accident.
+
+**A longer tag list would be the same defect with a longer list.** The question the probe
+asks is which families paint text above the fold, and that is a property of elements that
+have text rather than of their tag names. It now walks every element under `body` and
+keeps the ones with a direct non-empty text node child. `textContent` would not do:
+a `<div>` wrapping the page carries the text of everything under it and would report the
+wrapper's inherited family for content it does not paint.
+
+**Two things from the same review that are not defects.** `.instrument-title` was reported
+as dead CSS; it is used three times in `apps/web/app/observation/[id]/page.tsx`, and a grep
+that misses the app directory is how live CSS gets deleted. And the chroma ramp was
+reported as not perfectly monotonic, with `hover-ui` at 0.0314 sitting above `field-01`
+at 0.0308; that is 8-bit hex rounding on two values a bucket apart, `hover-ui` appears in
+no checked pair, and no ratio moves.
+
+**One thing worth keeping from it.** The tightest non-exempt pair in the whole table is
+`--text-03` on `--ui-01` at 4.59:1, a margin of 0.09 over its floor, smaller than either
+declared exemption's distance from its own. `scripts/check_contrast.py` now says so, since
+a table where every row reads PASS does not say which row is nearly not passing.
+
+**Files changed:** `apps/web/audit/paint-probe.js`, `scripts/check_contrast.py`.
+**Commands run:** the probe over three pages before and after, `ruff check`,
+`scripts/check_contrast.py -v`, `scripts/gate.py`.
+**Outcome:** the probe reports what it claims to report on every page rather than on the
+one where the markup happened to agree with its tag list.
+
+## 2026-08-20 IST | Wave E | E1: a measurement that can be pointed at this morning's pass
+
+**Everything in this repository read a frozen snapshot until today.** 2,727 observations
+taken on 2026-08-17, every waterfall on disk, every number in a receipt. That is the right
+shape for a claim and the wrong shape for a person: a station operator wondering whether
+last night's pass was off frequency has an observation id and no snapshot, and nothing here
+could take one. `pipeline/tracetriage/live.py` takes one, and the rest of this entry is the
+four things that turned out to be wrong or missing on the way.
+
+**The corridor a live observation gets scored against cannot be looked up.** Gate 3 reads
+each observation's CORRECTED / UNCORRECTED verdict from `artifacts/a3_overlays/summary.json`,
+which was produced with a human in the loop. Nobody annotates an observation recorded an hour
+ago. The first draft of `live.py` did not notice the gap: it scored `phys.corrected`
+unconditionally, and the failure was silent in the worst way. `physics.py` sets the corrected
+corridor's Doppler to zeros, `calibrate_against_nulls` refuses to build nulls for a corridor
+with no swing to scramble, and so the first live run came back with a confident-looking
+-13,981 Hz, -32.11 ppm, `sigma: 0.35` and `n_nulls: 0`. Nothing raised. Nothing in the output
+said the number had no shape evidence behind it.
+
+Measured properly, that observation has no signal at all: 2.5 sigma against an 8 sigma floor.
+SatNOGS's own `waterfall_status` for it reads `with-signal`, which is worth knowing about that
+flag.
+
+So the mode is now measured, by the rule that produced those annotations, moved out of
+`scripts/a3_doppler_investigation.py` into `pipeline/tracetriage/doppler_mode.py` so that code
+shipped in a wheel can ask the question. Two hypotheses scored as whole paths at three filter
+widths, a verdict only when all three agree and one leads by 3 sigma. **Replayed over all 24
+annotated observations it reproduces all 24 verdicts**, and that is not a tautology: A3 scored
+through its own `normalised_rows`, whose MAD floor of 1e-6 `corridor_fit` has since replaced
+with one grey level. `sigma_curved` matches A3's committed value to the decimal on all seven
+decisive rows.
+
+Two things deliberately did NOT move with it. A3 keeps its own `normalised_rows`, because its
+receipt was measured through the old floor and replaying it has to reproduce it.
+`smooth_columns` and `path_score` are imported from `corridor_fit` instead of duplicated, but
+only after checking line by line that they are the same functions: identical apart from a
+leading underscore, and identical at `row_mask=None`.
+
+**UNRESOLVED returns rather than raises, and that is the load-bearing choice.** 17 of those 24
+observations settle nothing. A tool that threw on those could not rank a queue at all, because
+ranking needs a comparable result for every entry and the empty ones are most of a real queue.
+Every measurement field comes back None rather than 0: a zero offset beside a null p-value
+reads as a confident measurement of no error, which is the opposite of what happened. The two
+sigmas are still there, so a caller can see how close it came.
+
+**The live path reproduces gate 3's receipt digit for digit.** `fit_corridor` rather than
+`fit_offset`, which is what it called first: both return the same offset, only the full fitter
+also returns how much of the image supported it. On two of the three uncorrected observations
+the receipt reads `detect_frac: 0.0` and `degraded: TRACE_NOT_MEASURABLE` beside a p-value of
+0.005, which is not a contradiction (the null comparison scores a path's mean brightness and
+never asks a pixel to clear a floor) and is exactly the caveat a stranger pointing this at
+their own station needs. Reporting the offset without it would publish the gate's number
+without the gate's reservation. `tests/test_live.py` asserts 13,985.148 Hz and -7,148.936 Hz
+twice, sigma 2.024 / 1.539 / 1.652, p = 0.004975 over 200 nulls, at a relative tolerance of
+1e-9.
+
+**Two API defects the first version could not reach.** "Newest first" includes passes that have
+not happened yet: on station 1696 every one of the first eighteen records was `status: future`
+with no image, so a `queue` that over-fetched three times its budget and filtered locally
+measured nothing and said nothing about why. `list_observations` now takes `require_waterfall`
+and pages until the budget is filled, bounded by `max_pages`. That change is what first reached
+the second page, and the second page immediately raised
+`httpx.UnsupportedProtocol: Request URL is missing an 'http://' or 'https://' protocol`:
+`extract_next_cursor` returns the cursor value rather than a URL, deliberately, so the next URL
+has to be rebuilt from the base and the filters the way `snapshot.py` does it. Both bugs were
+unreachable while the first page always satisfied the limit.
+
+**Two MCP servers, and the boundary is in the config where a reader can see it.**
+`scripts/mcp_server.py` advertises five properties and each one is a test, and "offline" is
+checked by parsing that file's imports and refusing `httpx`. Adding a network tool to it would
+not have weakened that claim by degrees, it would have deleted it. So the live tools are a
+separate server, `pipeline/tracetriage/mcp_live.py`, prefixed `live_` so that no tool call can
+confuse a number measured now with one that was scored, and `.mcp.json` at the repository root
+registers both, so a judge who clones this gets both with no setup.
+
+The transport is shared rather than copied: `pipeline/tracetriage/mcp_transport.py` now holds
+the JSON-RPC dispatch, the batch handling, the notification rule and the six named error paths,
+each of which exists because an input ended a session once. That move was forced by packaging
+rather than chosen for tidiness, because a `pip install` ships the package and not `scripts/`.
+
+**The move broke a test in the way a good test breaks.** The read-only scan asserted that
+`scripts/mcp_server.py` contains exactly one exempt `sink.write`, and after the transport left
+it contained zero, so the count failed rather than passing over an empty file. Lowering the
+number to 0 would have been the wrong fix: the writer had not gone away, it had gone somewhere
+the scan was not looking. The scan now parses both files.
+
+**Packaging: 166 MB instead of 4,643 MB**, measured by summing installed files per distribution
+in this project's own virtualenv, of which torch alone is 4,171 MB. `torch`, `torchvision`,
+`scikit-learn`, `scikit-image`, `matplotlib`, `polars`, `pyarrow` and `opencv-python-headless`
+moved into a `full` extra, which is safe because every heavy import in this package is already
+inside a function: `baseline.py` and `fusion.py` are the only two modules that reach
+scikit-learn and scikit-image at all. CI, the clean-clone check and the README setup line all
+install `.[full,...]` now, so the closure a judge reproduces is byte-for-byte the one that was
+there before.
+
+**The axis was the thing standing between a light install and a useful one.** Reporting an
+offset in Hz needs frequency per pixel, nothing in an observation's metadata gives it (the
+waterfall does not span `samp_rate_rx`, measured earlier), and the only reader this project
+had was easyocr, which declares torch, torchvision, opencv and scikit-image as its own
+dependencies. So the 166 MB install could have measured a pixel offset and nothing else,
+which is not an answer anyone asked for.
+
+`pipeline/tracetriage/glyph_axis.py` reads the same labels with numpy, scipy and pillow. It
+works because these labels are not photographs of text: SatNOGS renders its waterfalls
+server-side with matplotlib, so every digit comes out as one of a handful of bitmaps,
+measured at exactly 10 rows tall, all 3,793 of them, and 6 to 8 columns wide across the 400
+images behind the committed set. Recognising a bitmap that
+has been seen before is a dictionary lookup. Templates are frozen by
+`scripts/build_glyph_templates.py`, labelled by easyocr, and **measured over 500 random
+waterfalls the matcher derives an axis on 496 of them, 99.2 percent, with zero label sets
+that are not an arithmetic progression over the tick positions.**
+
+**Four things went wrong on the way there, and each one is a finding.**
+
+*The digit 3 is not one connected component.* At this size its middle stroke meets the upper
+and lower bowls only diagonally, so `ndimage.label` with its default four-connectivity cuts
+it into a 4-row piece and a 6-row piece. Both fail the digit-height filter and disappear, and
+the label `30` reads as `0`: a wrong value on that tick rather than a missing one, which is
+the exact failure this module exists to avoid. It cost 30 kHz on the last tick of 14740031 and
+moved that image's axis by 0.25 percent. Eight-connectivity fixes it, and cannot merge two
+digits, because adjacent digits in a label are separated by 1 to 3 blank columns.
+
+*The label band contains the axis title.* A first height floor of 6 fed capital F, lower-case
+z and the parentheses of "Frequency (kHz)" to a digit matcher. They do not produce wrong
+digits, because they fail the match, but they made easyocr read a different number of
+characters than there were components in **601 label groups**, against 108 in the build that
+produced the committed file, which is how the
+height distribution came to be measured at all. Digits are 10 rows and everything else in the
+band is 9 or fewer.
+
+*easyocr is not ground truth at this glyph size, and the committed axis for one observation
+is wrong because of it.* On 14736773 it read the centre tick as `562`, so
+`artifacts/a3_overlays/summary.json` holds an axis derived through a label of 562 kHz where
+the value is 0. The first version of the template builder treated any disagreement between
+images as fatal on the reasoning that a wrong template rescales the axis silently. That
+reasoning holds; the assumption behind it, that a single easyocr reading could be trusted,
+does not. A bitmap is now frozen only when at least three independent images read it and 80
+percent agree.
+
+*And the obvious test for the whole thing was the wrong test.* Comparing the matcher's Hz/px
+against the committed value at a relative tolerance of 1e-9 failed on 9 of 24 observations,
+and reading those failures is what produced the two findings above. The axis is now checked
+against its own structure instead: a matplotlib linear axis puts evenly spaced ticks at an
+arithmetic progression of round values, which is a property neither reader can fake and
+neither is needed to establish. That check is what caught the connectivity bug, on
+`[-30000, -20000, -10000, 0, 10000, 20000, 0]`.
+
+**Templates cover 0, 1, 2, 3, 4, 6 and 8.** Five, seven and nine almost never appear on a kHz
+axis labelled in round steps, and a bitmap is not frozen on fewer than three readings. A label
+containing an uncovered digit is dropped whole, and the builder refuses to write a set in
+which any unfrozen bitmap would classify as some other digit: on the committed set, 7 bitmaps
+were seen and not frozen and 0 of them would be misread.
+
+**Two packaging defects the wheel found and no test would have.** The console entry point read
+`pipeline.tracetriage.cli:main`, and the wheel ships `pipeline/tracetriage` as the top-level
+package `tracetriage`, so the built wheel installed cleanly and gave a `tracetriage` command
+that raised ModuleNotFoundError on every invocation. And both refusal messages told a reader
+to `pip install tracetriage[ocr]` to get an axis, which stopped being true the moment the
+glyph reader landed: the base install reports Hz, and the extra is only the neural reader.
+Verified by installing the wheel into a fresh virtualenv with `--no-deps` and running the
+console script, which prints its help with no dependencies at all and refuses `mcp-live` with
+a named reason rather than a traceback.
+
+**Files added:** `pipeline/tracetriage/live.py`, `doppler_mode.py`, `mcp_transport.py`,
+`mcp_live.py`, `cli.py`, `glyph_axis.py`, `scripts/build_glyph_templates.py`,
+`tests/test_live.py`, `tests/test_glyph_axis.py`, `docs/USE_WITH_YOUR_AGENT.md`, `.mcp.json`.
+**Files changed:** `pyproject.toml` (entry point, extras), `scripts/mcp_server.py`,
+`scripts/a3_doppler_investigation.py`, `pipeline/tracetriage/waterfall.py`,
+`tests/test_mcp_server.py`, `.github/workflows/ci.yml`, `scripts/clean_clone_check.py`,
+`README.md`, `docs/REFERENCE.md`.
+**Commands run:** the 24-observation mode replay, `tests/test_live.py`,
+`tests/test_mcp_server.py`, `tests/test_glyph_axis.py`, both servers driven over stdio by hand,
+`tracetriage triage` and `tracetriage station` against the live API, `ruff check`,
+`scripts/sync_docs.py`, the offline suite.
+**Outcome:** the same measurement gate 3 was scored on, reachable from any agent, on an
+observation that did not exist when the gate ran, from a 166 MB install that needs no model
+weights. Measured live on station 1696 while writing this: -28.26 ppm across two distinct
+satellites, spread -28.43 to -28.10, which is what a receiver error looks like and what an
+orbit error does not.
+
+### Zero nulls had five causes and one name
+
+Round-tripping a measurement of each verdict through the JSON an agent consumes turned up a
+flat spot. `nulls.n` comes back as 0 for five different reasons: the corridor is flat because
+the station corrected the capture, the pass swings under the 3 kHz floor, the true corridor did
+not fit at any offset in the bound, no scrambled corridor scored finitely, or the mode was
+UNRESOLVED so no corridor was ever selected. The first two are refusals the method makes on
+purpose. The next two are failures to measure. They were indistinguishable in the output.
+
+Worse, the `reading` paragraph attached to the nulls block described the permutation test in
+the present tense whether or not it had run, and the CLI printed the flat-corridor explanation
+whenever the verdict was CORRECTED and "none, no fit was scored" otherwise. A grazing
+low-elevation pass, which is ordinary on a live queue, therefore got a sentence that was
+simply wrong about why its p-value was missing.
+
+`calibrate_against_nulls` already documented all four of its own conditions in comments, so the
+information existed and only the output threw it away. Each of the four `return _empty(...)`
+branches now names itself, the reason is required rather than optional, and `live.py` carries a
+fifth key for the UNRESOLVED case that never reaches `corridor_fit` at all. Both prose tables,
+the JSON one and the terminal one, are keyed by that reason, and a test asserts that the set of
+reasons the code can produce and the sets the two tables cover are the same, so a new branch
+cannot be added without prose. A missing key would otherwise raise KeyError while serialising.
+
+One thing deliberately not done: the reason is not added to `NullCalibration.summary()`.
+`check_artifact_freshness.py` rebuilds `artifacts/GATE3_RECEIPT.json` and diffs it against the
+committed copy, and adding a key there would change the frozen receipt to record something it
+never needed. The top-level field already carries it.
+
+**Checked:** all three verdicts present in the snapshot re-measured end to end, JSON
+serialised and re-parsed, the evidence line read back from the rendered text. CORRECTED reports
+`flat_corridor`, UNRESOLVED reports `mode_unresolved`, UNCORRECTED reports `null` with nine
+nulls and p = 0.1000. `tests/test_live.py` 9 passed.
+
+### The install nobody had installed
+
+Everything in the agent guide starts with a console script. Every MCP registration in it is
+`"command": "tracetriage"`, every framework example shells out to `tracetriage triage`, and
+the first two lines of the one-minute version are `pip install tracetriage` and
+`tracetriage triage 14740031`. All of it rests on one claim: that an install of this project
+produces a working `tracetriage`.
+
+It did not. Two separate reasons, and the first one had already been found and fixed at the
+wrong layer.
+
+`[project.scripts]` used to read `pipeline.tracetriage.cli:main`. The wheel target ships
+`pipeline/tracetriage` as top-level `tracetriage`, so the `pipeline` prefix exists only in a
+checkout, and that entry point built, installed and raised `ModuleNotFoundError` on every
+invocation. Fixing it to `tracetriage.cli:main` made `--help` work, and `--help` was as far as
+the check went. `--help` imports argparse and nothing else.
+
+The measurement path still had six imports written the checkout way, three of them lazy
+imports inside functions:
+
+    corridor_fit.py:69   from pipeline.tracetriage.physics import (
+    features.py:54,55    from pipeline.tracetriage.{physics,splits} import ...
+    features.py:298      from pipeline.tracetriage.physics import rx_freq_of
+    fusion.py:40         from pipeline.tracetriage.features import (
+    fusion.py:485        from pipeline.tracetriage.queue import intraclass_correlation
+    baseline.py:806      from pipeline.tracetriage.waterfall import parse_waterfall
+
+`corridor_fit` is on the live path, so `tracetriage triage <id>` and the live MCP server both
+died the moment they tried to measure. Not in this repository, though: every test here runs
+with the repository root as the working directory, where `pipeline.tracetriage` resolves
+perfectly well. 1,385 passing tests could not see it. The way to see it is to leave the
+repository, which is what a judge does.
+
+Relative imports (`from .physics import ...`) are right in both, and the test that holds it
+is an `ast` walk over every shipped module rather than a grep, because five docstrings and
+Sphinx references in this package quote the checkout spelling deliberately, and a grep cannot
+tell those from an import statement. The walk also catches the lazy imports, which is where
+half of them were.
+
+Proof, since a passing suite had already proved nothing here: build the wheel, install it into
+a fresh virtualenv with base dependencies only, `cd` somewhere else, and measure. 13,985 Hz,
+32.05 ppm, p = 0.0050 over 200 own-Doppler nulls, on 166 MB with no torch anywhere near it.
+
+**The refusal was pointing the wrong way.** `No module named 'pipeline'` came back as
+"tracetriage triage needs a dependency that is not installed", followed by advice to install
+the project. Installing the project is what produced the error. A missing third-party package
+and a first-party module that will not import are both `ImportError` and want opposite
+advice, so the reason is classified before it is printed, and the live MCP server answers
+`BUILD_BROKEN` where it used to answer `DEPENDENCY_MISSING`.
+
+**`pip install tracetriage` returns 404.** The project is not on PyPI and that command was
+quoted in 11 places, one of which was the first line a judge runs. The guide now clones and
+runs `pip install -e .`, and says in a sentence that PyPI does not have it. Publishing is
+available and is not mine to do.
+
+### The axis said OCR read it, and no OCR was installed
+
+A base install has no easyocr. The template matcher reads the axis, which is the entire reason
+166 MB is enough to answer in Hz, and the claim register says so. The output said
+`derivation: "axis_ticks_ocr"`, in the JSON an agent parses and in the line a person reads.
+
+`derivation` has carried that value since before a second reader existed, and frozen
+comparisons are made against it, so renaming it would rewrite history to fix a label. A
+sibling field names the reader that actually ran: `glyph_templates`, `easyocr`, or
+`caller_supplied` when labels were passed in. Not "auto", which is what the caller asked for
+rather than what happened, and recording a request in a field that asks what ran is how a
+measurement gets replaced by a constant.
+
+Three details worth keeping. The field is a trailing defaulted field on a frozen dataclass, so
+no existing caller has to know about it. It is not added to `WaterfallGeometry.to_dict()`,
+whose docstring says it matches a schema, for the same reason the zero-null reason stayed out
+of `NullCalibration.summary()`: something downstream compares those bytes. And it has to be
+bound before the branch that sets it, because that branch does not run at all when a caller
+supplies labels, which is how the frozen fixtures and gate 3's replay work; ruff does not
+flag a possibly-unbound name, and the suite would have found it as a `NameError` in the
+replay.
+
+`hz_per_px` is 123.76237623762377 before and after, to the last digit. This moved a label and
+not a measurement.
+
+### One correction
+
+The claim register row for the five zero-null reasons said two refusals and three measurement
+failures. It is three and two: `flat_corridor`, `swing_below_floor` and `mode_unresolved` are
+refusals, `no_offset_fit` and `no_null_scored` are failures, and `tests/test_live.py` asserts
+that split against the readings. The row disagreed with the test it cites.
+
+### Two documents a judge opens, neither of which knew the surface existed
+
+`README.md` and `FOR_JUDGES.md` mentioned MCP five times between them and every one of those
+was the offline receipts server. No mention of the `tracetriage` command, the live server, or
+`docs/USE_WITH_YOUR_AGENT.md`. The agent guide is a good page that nothing linked to.
+
+README's generated regions are fenced with HTML comments, so the new section goes in the prose
+outside them. `FOR_JUDGES.md` is generated in full, so its table gained a row in
+`scripts/sync_for_judges.py` instead of in the file, and the generator moved its own heading
+from "Five checks worth running first" to "Six" without being asked, which is the machinery a
+previous entry here put in after the heading counted four while the table carried five.
+
+### The station example a judge cannot reproduce
+
+The guide printed one run of `tracetriage station 1696 --budget 6`: two satellites agreeing to
+a third of a part per million, and prose concluding that agreement across distinct satellites
+is what points at a receiver rather than an orbit. Run today from the installed wheel, the same
+command measured three satellites spanning 40 ppm and changing sign.
+
+Both are correct. `station` measures the station's recent queue and eleven days had passed, so
+these are different passes of different satellites. The defect is what the prose did with the
+first one: it read as the general case when it was one day's passes, and the command a judge is
+invited to type contradicts it in thirty seconds.
+
+Both runs are now printed, dated, with the disagreement described as a result rather than
+apologised for. Deleting the agreeing run would hide a real measurement; re-recording it as
+today's numbers would be the same mistake with a fresher date. The claim register row now says
+separability is shown possible on one station on one day, not shown general, and points at the
+confound the command already prints: a median over mixed corrected and uncorrected captures is
+only sound if the station's correction is unbiased, and nothing here measures that.
+
+## 2026-08-21 IST | Wave E | E2: the font setting reached the wrong family, and the demo died at step 9
+
+**The Adobe setting was applied and it did not touch either face this console uses.** The
+note in `layout.tsx` said the 956 ms blank first screen had one fix, a setting in the Adobe
+Fonts web project, and that there was no substitute for it because `font-display` cannot be
+overridden from outside the rule that declares it. The setting was applied. The kit now
+serves 18 faces at `swap` and 72 at `auto`, and the 18 are `acumin-pro`, a family this
+console does not use: `neue-haas-grotesk-display` and `din-2014-narrow` are both still
+`auto`. Grouping every `@font-face` in the fetched kit by family is a one-line check, and it
+is the only reason this was not shipped as fixed.
+
+**The sentence was right about CSS and wrong about the browser.** `font-display` controls a
+sequence and it is not the only lever on that sequence. The licensed families are no longer
+named in `--font-display` or `--font-label` at all. A head script appends the kit at
+`media="print"`, which fetches it without blocking the render, flips the media to `all` on
+load, and adds `html.fonts-ready` only once `document.fonts.load` has resolved for each face
+a page renders. Plex paints at once and the licensed face replaces it in one reflow.
+
+**The obvious version of that is worse than the bug.** Loading the kit non-blocking and
+stopping there means the moment its rules apply, every heading resolves to a family that has
+not downloaded, `auto` starts its block period, and text that had already painted goes
+invisible under the reader. A blank first screen is at least obvious. Holding the family out
+of the token until the file is in memory is what avoids it, and it is the reason this is two
+changes rather than one.
+
+**Measured three ways from one build, because two conditions cannot tell a fix from a fast
+morning.** `scripts/build_font_ab.py` writes three copies of the export: as it ships, with
+the head script replaced by the blocking link that shipped until today, and with the kit
+pointed at a closed port. Five interleaved rounds each, a fresh browser context per
+navigation, one uncompressed loopback server. First contentful paint: **596 ms before,
+236 ms after, 200 ms with no third-party font at all.** The after case is on the floor rather
+than near it, and its fastest round, 192 ms, beats the floor's slowest, 232 ms.
+
+**Both costs are published, including the one that is not a byte count.** Cumulative layout
+shift is 0.0115 after against 0 before, identical in all five rounds: the reflow when the
+licensed face arrives, an eighth of the 0.1 that counts as good, and exactly what `swap`
+would have caused. And 15,543 bytes on the five pages that render only two of the three
+faces, because the script waits for all three everywhere: 44,536 before against 60,079 after
+on `/evaluation/`. The alternative is a per-route face list computed at build time, which buys
+15 KB on a page that has already painted and costs a build step that can be wrong about what
+a page renders.
+
+**The face list was wrong and every page reported clean.** The first version waited for
+`neue-haas-grotesk-display` at 400, which no page renders, and never waited for
+`din-2014-narrow` at 400, which three pages do. `apps/web/audit/font-swap-probe.js` reported
+no unloaded face on all eight pages, and it was right: by the time a probe can run, anything
+rendered has finished loading. The question a probe can answer is whether the script waited,
+not whether the load finished. So the script publishes what it waited for in a `data-fonts`
+attribute and the probe compares the page against that. Three faces waited for, three faces
+rendered anywhere, checked at 1440 and 420 px wide.
+
+**A number this project published on 2026-08-18 was low by a face.** The provenance page said
+the licensed typefaces cost 43,598 bytes cold, over one stylesheet and two faces. The landing
+page rendered three faces when that was written. The figure came from curl against two URLs
+rather than from a page load, which is why nothing caught it: 60,082 bytes is what the page
+fetches.
+
+### The Bob paste died at step 9, and nothing here could have known
+
+**`docs/BOB_DEMO.md` is one paste and it needed a Bob account to check.**
+`scripts/run_operator_session.py` runs the same twelve steps as a client instead: both
+servers launched through the `.bob` launchers, JSON-RPC on stdin and stdout, every call and
+every reading written to `artifacts/OPERATOR_SESSION.json`. It is not a Bob session and the
+receipt says so in a field rather than a footnote. What Bob adds is choosing which tool
+answers each step, and here the calls are a list in a Python file. What this establishes is
+everything under that choice, which is where a demo breaks.
+
+**Step 9 had no `status` argument, so the network answered with passes that had not
+happened.** Five observations dated two days ahead, `status: future`, `has_waterfall: false`
+on every one, because a waterfall exists only after a station records something. A session
+following the old wording stopped there with nothing to measure and no reason given. With
+`status="good"` the same call returns finished passes minutes old, four of five with images.
+
+**The paragraph about step 8 said two gates were unmet. Four are.** The step now reads the
+verdicts and checks the count against the list rather than against a literal: its first
+version asserted `n_met == 4` because the document reads as though it says so, and the
+receipt says 2. Gate 3, gate 5 and gate 6 are `NOT_ESTABLISHED`, gate 4 is `OPEN`, and the
+two that are met are both `PRE_PASSED`, which counts as met and is not the same as measured.
+
+**The run: twelve of twelve.** The live half measured observation 14839732 from
+station PF_DE_UHF_X_DIPOLE, recorded at 2026-08-21T05:15:44Z and measured at
+2026-08-21T05:23:48+00:00, a 1,733,330 byte image whose sha256 is in the
+receipt. The verdict is `UNRESOLVED` because the best path it found is 1.5 sigma against an
+8 sigma floor, on an axis read at 0.94 confidence, and step 10
+records that reason: its first version reported `offset_ppm` and `p_value` and nothing else,
+which made an informative refusal look like a tool that returned nothing.
+
+### Gate 4: everything except the asking
+
+**The gate was not open because the instrument was missing.** It was open because the 72
+plates a reviewer has to look at were on the machine that built them.
+`scripts/pack_gate4_bundle.py` re-hashes every image on disk, recomputes all
+72 commitments against `artifacts/GATE4_WORKSHEET.json`, refuses
+outright if one fails, and writes one file: `tracetriage_gate4_bundle.zip`,
+113,238,991 bytes, sha256 `d474a1f23643ba3a9a5c92f4`. The
+protocol and the review page are published at `/gate4/worksheet.md` and `/gate4/review.html`,
+copied by that script so the version a judge reads cannot drift from the version in the
+bundle, and the same handoff is on the console's evaluation page and in `FOR_JUDGES.md`.
+
+**The plates are the one thing here that does not get compressed.** Lossless re-encoding
+keeps the pixels and breaks the digests, which spends the commitment to save about a quarter
+of the bytes. Lossy re-encoding and downscaling both smooth the faint traces the reviewer is
+being asked to judge, which answers the gate's question by degrading its stimulus. So the
+archive stays whole, travels as one file, and is checked on arrival against a published
+digest rather than against the word of whoever sent it.
+
+**What is left is a person, and that is now the only thing left.** Answer 72 items, return
+one CSV, and `scripts/score_gate4.py` does the rest. Until that file exists the verdict is
+what the receipt says.
+
+### The lint script had never run
+
+**`npm run lint` printed a stack trace on every commit this console has ever had.** The
+script and both eslint dependencies were in `package.json` from the day the console was
+created, and there was no eslint config file of any kind, so ESLint 9 refused before it read
+a line of source. Nothing noticed because CI ran `typecheck`, `test` and `build` and not
+this.
+
+**Its first successful run found seven things, and one of them was a suppression that
+suppressed nothing.** `WaterfallCanvas` disables `no-img-element` over the fallback `<img>`,
+deliberately, because the waterfalls are measured intensities and `next/image` would
+re-encode them. The reason was wrapped onto the directive across three comment lines, so the
+"next line" the directive applied to was the second line of its own explanation: the rule
+fired anyway and the directive was itself reported as unused. Two warnings out of one wrapped
+comment, and the whole class of thing a type checker cannot see. The rest: an unescaped
+apostrophe in `ClaimChecker`, two imports nothing used, and a triple-slash reference in a
+file the framework writes, which is now ignored rather than fought. Lint is in CI as of this
+unit, because a check that is not in CI is a check that stops working the week after it is
+written.
+
+**The console's own test suite caught the next one.** `tests/table-alignment.test.ts` reads
+every table in the console and fails when a header sits on a different edge from its own
+cells. The gate 4 handoff table added here had a right-aligned header over left-aligned
+cells, and the test named the file, the line and the column.
+
+### Three stale generated files, found by running the standing gate
+
+`apps/web/public/data/provenance.json` at commit 1f630a0 recorded
+`CLEAN_CLONE_TRANSCRIPT.json` as 17,444 bytes at `a8497849`. The committed transcript is
+17,100 bytes at `5b53d107`. The transcript was re-run last night and the provenance file was
+regenerated before it landed, so the commit whose subject is the clean clone shipped a wrong
+digest for the clean clone. Nothing downstream reads that field, which is why nothing caught
+it.
+
+**Two more were stale before today, and neither is a number.** `apps/web/public/og.png`
+and `docs/architecture.svg` both failed their own `--check` at commit 1f630a0, which is
+before anything in this unit was written: checked out at that commit with today's artifacts
+absent, `build_og_image.py --check` reported the committed card at `eccecf8bb599` against a
+fresh `2f0a737059da`, and the diagram was out of date too. The cause in both cases is the
+palette. It changed twice in wave D and these two files are the only generated artefacts
+that draw with it rather than reading from it, so nothing that runs on a receipt could
+notice. Both are regenerated here: the card carries the same two numbers it did, 1.58x not
+established and 2.25x passed, on the current ground.
+
+**The standing gate is what found all three, and it had not been run since wave E started.**
+18 of 21 before this paragraph, 21 of 21 after. A gate that is only run at the end of a wave
+is a gate that reports a wave's worth of drift at once.
+
+### The overnight units, named here because they have no unit of their own
+
+Commits 9d71832, 4717161 and 1f630a0 shipped the grounding checker running in the reader's
+browser, the ranked queue drawn on the GPU behind the first screen, the motion layer, the
+`.bob/mcp.json` registration, the LangChain adapter over the MCP registry, and the stack
+table on the judges' page. They were written without a dated unit in this log. This paragraph
+is the record of which commits carry them and that they were operator-side, rather than a
+retrospective narrative written after the fact.
+
+## 2026-08-21 IST | Wave E | E3: gate 4 was answered by something that is not a person
+
+**The task.** There is nobody to send the gate 4 bundle to, so the instruction was to finish
+the gate anyway. Two things could be true at once and only one of them was: the review can be
+carried out, and the gate cannot be met by carrying it out this way. Gate 4 is titled blinded
+**human** decidability. So the work was to run the review honestly, publish everything it
+measured, and make it structurally impossible for those numbers to be read as the gate's.
+
+**The scorer refuses to publish a rate that has no author.** `scripts/score_gate4.py` guarded
+the sample thoroughly and said nothing about who looked at it: the commitment binds which
+images, in which order, with which digests, before anyone opens them, and none of that names
+a reviewer. A receipt carrying a decisive rate, an interval and an intra-rater figure reads as
+a study whoever produced it. It now requires a `REVIEWER.json` in the bundle declaring `kind`,
+`identity`, `procedure` and `independence`, refuses on a missing field, and refuses on a
+`kind` it has no handling for rather than falling through to the first branch. For
+`kind != "human"` every number goes under `arm` and the top-level `verdict` stays `NOT_RUN`.
+That is what keeps `sync_kill_gate.py`, `sync_for_judges.py`, `sync_readme_results.py`, the
+console's gate table and the MCP `gate_status` tool correct without any of them knowing this
+distinction exists. The alternative was a flag every consumer has to remember, and the one
+that forgets publishes a model's answers as a person's.
+
+**The review, and why it was split into twelve.** 72 items, three axes each, twelve
+consecutive blocks of six, each block a freshly spawned subagent with no conversation context,
+given the three questions from `worksheet.md` verbatim, the six image paths and nothing else.
+No block could read the key, the network's label or any model output. The repeat pairs are at
+least six items apart in worksheet order and a block spans five, so no block could see both
+halves of a pair: verified against the key, minimum separation 6, maximum 56, all 12 pairs
+cross-block. That keeps the intra-rater figure a comparison of two genuinely independent
+reads rather than a memory test.
+
+**What it measured.** 57 of 60 first-occurrence
+observations decidable, a rate of 0.9500, exact one-sided 95%
+[0.8758, 0.9862] against the 0.80
+threshold. The three that were not: G4-018, G4-020, G4-028, two of them plates
+where the reviewer saw a faint diagonal it could not separate from render texture and one
+where full-width banding left nothing narrowband to judge. Intra-rater
+11 of
+12 pairs identical on all three axes, and each of
+those pairs was read by two different blocks. As an arm that is PASSED. As the gate it is
+nothing, and the receipt says so in the field every consumer reads.
+
+**The label agreement was comparing two different questions and reading as one.** The receipt
+published one rate, `visible_signal` against the network's `waterfall_status`, and the first
+run returned 25 of 38. Read plainly
+that says the silver labels this project trains against are wrong a third of the time. It does
+not say that. `visible_signal` asks whether anything is above the noise anywhere in the frame;
+the network label says whether the observation shows the target. A fixed local carrier is a
+yes to the first and a no to the second, so of 18 plates the network calls without-signal the
+reviewer saw a trace in 13, by construction. Adding `target_consistent` was meant to fix that
+and it swapped it: 13 of 33, which
+is near chance, because that axis wants a smooth curve drifting across frequency and of 18
+plates the network calls with-signal the reviewer called 12 not pass-shaped. That is what a
+packet burst parked near zero offset looks like under a rubric asking for Doppler. So neither
+axis asks the network's question, they miss it in opposite directions, and both are now
+published with their confusion matrices and neither is named the right one. This is a real
+finding about the instrument's wording rather than about the labels, and it is the first thing
+a human arm should fix.
+
+**The orientation note was wrong for half the review.** Blocks 1 to 6 were told time runs down
+the vertical axis. Block 6 reported that its plates label time as increasing upward, so block
+7 was given a direction-agnostic note and asked to read the axis furniture: frequency across,
+time bottom to top, earliest at the bottom. Blocks 8 to 12 got that, stated correctly. It
+cannot change an answer, because a drifting trace drifts under a vertical flip and neither a
+constant-frequency carrier nor a full-width instantaneous band changes class under one, and
+the published protocol in `worksheet.md` states no orientation at all. It is recorded in
+`REVIEWER.json` under `protocol_change_mid_study` because it happened mid-study, and a
+protocol that changed silently is worse than one that changed.
+
+**Two defects in the packer, both found by answering the worksheet.** `PACKED` copied
+`responses.csv` out of the bundle, and the bundle is where a review is carried out, so the
+moment anyone answered it the shipped archive started carrying their judgments: the next
+reviewer would open a form already filled in, which is not a blinded review of anything. The
+form is now generated empty from the committed item list, so it cannot carry a previous
+reviewer's answers and cannot list an item the sample does not contain. Second, every entry
+went in with `ZipFile.write`, which records each file's modification time, so the archive was
+a different file after any touch and the sha256 published beside it was never reproducible. It
+read as a checkable claim and was not one. Every entry now carries a fixed 1980-01-01
+timestamp: two consecutive packs of the same bundle produce the same
+113,238,991 bytes and the same digest
+`c426e1d978b66cf6`, measured. `tests/test_gate4_bundle.py` pins both.
+
+**Where the numbers landed.** `docs/KILL_GATE.md` gate 4 now has a generated block between two
+markers, rendered by `sync_kill_gate.py` from the receipt, so the arm's seven numbers cannot
+drift by hand; the section's three static sentences that claimed the instrument had not been
+run were corrected; the table row and the heading still read OPEN, because the gate is not
+met. `FOR_JUDGES.md` and the README results row branch on the arm being present.
+`apps/web/public/data/evaluation.json` carries `gate4_arm`, so the evaluation page prints the
+rate, the intra-rater ceiling and both label-agreement axes without a literal in the TSX, and
+the page's own claim that the gate is open "because nobody has been asked" is gone.
+
+**What is still open, stated as the gate states it.** A person has not read the worksheet. The
+bundle is one file with a reproducible digest, the protocol and the review page are on the
+web, and the arm above says the sample is not the obstacle. That is the whole of what could be
+closed without a reader.
+
+## 2026-08-21 IST | Wave E | E4: the motion layer, and the four things it does not do
+
+**The ask.** Raise the console's motion and 3D work: GSAP, Lenis, CSS 3D, WebGL, Manim,
+generative imagery, use the GPU, and all of it world class. The survey came back saying the
+console had one animation dependency and two hand-written WebGL2 components, which made it
+sound like a blank canvas. Reading the files said otherwise: the hero already stages its
+argument as a scroll-driven draw, sixteen null corridors sweeping and missing before the
+fitted one lands, on `animation-timeline` with no JavaScript at all. So the job was not to
+add a motion layer. It was to raise the one that exists and to be able to prove the raise
+cost nothing.
+
+**A measurement harness first, and its own control found two ways it could lie.**
+`scripts/serve_dist.py` serves a build with gzip, because an uncompressed static server
+inflates this site's JavaScript about three times and points the work at whichever file is
+largest raw. `scripts/measure_motion_perf.py` drives lighthouse at two builds, interleaved,
+and compares them **as pairs** rather than as medians. Run first as an A/A with both origins
+serving byte-identical builds, it reported first paint "every one of them the same sign" on
+deltas of -0.15 ms and +0.62 ms, and largest paint deltas spanning -305 ms to +612 ms. Sign
+consistency is not evidence at a fraction of a millisecond, and largest contentful paint on
+this harness cannot support a claim at all: its own A/A range is wider than any change worth
+making. That control is committed as `artifacts/MOTION_AA_CONTROL.json` and every later run
+reads its ranges as the floor, so a delta inside the floor is published as inside it.
+
+**The deep field: light instead of dots, depth that reads as depth, a camera.** Four changes
+to `components/DeepField.tsx`, none of which adds a dependency, a request or a byte of CSS.
+The fragment stage draws two lobes rather than one, a tight core inside a wide halo, so with
+the additive blend the halos of crowded ranks sum into a brightness that is itself the
+density: measured, 144 to 160 lit pixels after against 187 to 207 before at the same mean
+alpha, which is the same total light redistributed into cores and glow rather than spread
+evenly. The measured Doppler offset now drives brightness as well as size, so a point
+swimming forward reads as nearer instead of as more important. The field recedes and fades as
+the hero leaves, driven from `scrollY` read once per frame inside the loop that was already
+running, so it costs no layout and no per-frame custom property. And 407 points now arrive in
+rank order over 1.5 s, centre outward, which is the queue's own ordering rather than a
+shuffle that looks busy.
+
+**One uniform in two stages is one precision.** The first build of that linked with
+"Precisions of uniform 'uScroll' differ between VERTEX and FRAGMENT shaders" and drew nothing.
+The fragment stage declares `precision mediump float`; the vertex stage defaults to `highp`.
+The component's own link-error log turned an empty canvas into a one-line fix. The second
+build failed for a different reason worth writing down: the comment explaining the first fix
+used backticks, and the shader source is a template literal, so the comment ended the shader.
+
+**A probe, because every cheap check here is wrong.** `apps/web/audit/deep-field-probe.js`.
+The DOM proves nothing: a failed context, a failed compile, a link failure and a spiral
+outside clip space all leave an identical canvas, and three of those four have happened to
+this component. A screenshot proves little, because the canvas is full-width behind the hero
+and contains the nav and the heading. And one pixel count is not a measurement: the field
+animates on its own, so the first attempt compared one sample either side of a scroll on a
+build with no recession in it and the count fell 16% anyway. The probe samples six times at
+each scroll position and reports the ranges. Before: 187-207 at the top, 178-194 scrolled,
+overlapping, recession not measured, and the probe says so. After: 144-160 against 70-97, no
+overlap, and the scroll channel the loop writes to the canvas moves 0.00 to 0.80.
+
+**A forced layout came out of every frame.** `draw()` called `resize()`, and `resize()` called
+`getBoundingClientRect()`, so the loop asked the layout engine sixty times a second for a
+number that changes when the window changes. It is a ResizeObserver now, which also covers
+the case the old window listener never saw: the hero's height depends on its own content, so
+the canvas box can change without the window changing.
+
+**Two tokens found a use and one was deleted.** `--ease-draw` and `--dur-draw-02` were
+declared with a comment saying Carbon's curves are right for a control that responds to a
+click and wrong for a mark that draws itself, and then the hero's corridor was given
+`--ease-expressive-standard` and a typed `1100ms`. Both eases are eases-out; the expressive
+curve keeps 12% of its distance for the last 40% of its time and `--ease-draw` keeps 2%, so
+the corridor now arrives and stops rather than creeping the last few pixels into place. The
+nulls keep the productive entrance, because they are a field filling in rather than a line
+being drawn. `--ease-spring` is gone rather than kept for later: nothing referenced it, and a
+spring overshoots, which on this site means a mark landing past the value its receipt
+contains for about 120 milliseconds.
+
+**A second Manim explainer, and it ends on the gate being open.**
+`scripts/explainer_gate4.py`, 37 seconds, published at
+`apps/web/public/media/gate4-explainer.mp4` and embedded in the gate 4 section of
+`/evaluation`. The subject is the part of gate 4 a reader cannot check by running the code,
+because the claim is about the order events happened in: one salted sha256 per item, the salt
+and the mapping outside the repository, and a scorer that re-hashes every image from disk and
+recomputes all 72 commitments before it reads a single answer. It closes on **Gate 4: OPEN**,
+the reviewer was a model and not a person. A version of this clip that stopped one beat
+earlier, on the rate, would be the most misleading thirty-seven seconds this site could
+serve, and `tests/test_explainer_gate4_values.py` asserts that closing frame is in the scene
+along with all eleven numbers it shows. The commitment on screen is a real one from the
+published manifest, and there is a test for that too: a fabricated digest in a video about not
+fabricating things is the one mistake this project cannot make.
+
+**What it cost, measured against the A/A floor.** Cumulative layout shift and total blocking
+time are unchanged on all three pages, exactly zero difference in both. First paint on the
+landing page moved -2.1 ms, which is
+outside the control's 0.17 ms range with all
+three pairs the same sign, and is 2 ms and reported rather than claimed. Every other delta on
+every other page is inside the floor. Lighthouse performance stays at 1.00.
+
+**Four things this unit declined to build, each for a reason rather than for time.**
+
+*GSAP.* It was asked for by name and there is nowhere on this site it earns its 24 kB. The
+sequencing it would do is already done by CSS scroll timelines, which run on the compositor,
+need no hydration and animate a static export with zero script. Replacing them with a
+JavaScript timeline is a downgrade that happens to be more fashionable.
+
+*CSS 3D on the hero plate.* The idea was to float the corridor above the spectrogram in z, so
+the measurement and the observation separate in depth, which is the site's central
+distinction. It is disqualified by projection: a layer translated in z under perspective is
+scaled, so the corridor would no longer sit on the trace it was fitted to. A parallax that
+displaces a fitted curve from its own evidence is the interface lying about a measurement.
+
+*CSS 3D on the kill-gate ledger.* Rows racking into place with a rotateX resolving to flat.
+Rejected on two counts: those rows animate on a timer in the first screen, so it would put a
+rasterised 3D transform on text during first paint, and the design foundation's own line is
+"ornament: none. An instrument has no motifs."
+
+*Easing the replay clock.* The unused draw tokens would have fitted the cursor that sweeps
+four instruments on `/replay`. That clock maps to real elapsed seconds and the readout beside
+it prints them. Easing it would make the number wrong for the duration of the ease.
+
+*Generated imagery.* The stylesheet's own argument against a Lottie file settles this: every
+animated pixel on this site draws a measurement, and a generated background would be the only
+thing on the page tracing to nobody.
+
+
+## E5. Depth and a counting number, and what the last unit got right by declining them
+
+This unit was asked to add the four things the previous one turned down, so it starts by
+saying which of those refusals survived contact and which did not. Two stand exactly as
+written. One was wrong. One was wrong in a way that took three measured defects to find.
+
+**GSAP is in, and the reason the last entry gave against it was a good reason for the job it
+imagined.** That entry said the sequencing GSAP would do is already done by CSS scroll
+timelines, and that is true: the stagger was rebuilt with a JavaScript timeline and then
+deleted again, because `.lede-verdict` already arrives in order from `globals.css` at 90ms and
+140ms. A second entrance on an element that has one is not an improvement. What survives is
+the one thing a scroll timeline cannot express at all: CSS cannot animate the content of a
+text node, so the two lift figures on the landing page now count to the value their receipt
+holds instead of appearing with it. The 24 kB objection is answered by measurement rather than
+by argument. First Load JS shared across all routes is unchanged at 102 kB, the landing page
+moved 113 to 114 kB, and gsap and ScrollTrigger sit in a chunk fetched after first paint that
+the page is complete without.
+
+**Counting a number that a receipt fixed is a place a display can disagree with its own
+evidence, so the arithmetic has rules and tests rather than an easing curve.** A counter never
+shows a value above its target, not for one frame, which means truncating and not rounding:
+rounding carries a frame above the target near the end, and above the target is the one place
+a number here may never be. It shows exactly the digits the page printed, and it finishes on
+the target's own string rather than a reformat of it. The target is parsed out of the text the
+server rendered, so it cannot drift from the receipt that produced the markup. Fourteen tests
+in `apps/web/tests/choreography.test.ts` cover it, and two of them walk the whole progress
+range rather than sampling it.
+
+**Lenis and GSAP now share one clock.** Each was running its own `requestAnimationFrame`,
+which does the work twice a frame and leaves the two reading the scroll a tick apart. GSAP's
+ticker drives Lenis, Lenis's scroll event drives ScrollTrigger, and `lagSmoothing(0)` is off
+because a late frame otherwise makes GSAP skip ahead, which on a scroll-linked tween reads as
+the page jumping. The standalone loop still exists and runs until the choreography chunk
+arrives, so scrolling never depends on it.
+
+**CSS 3D is in on chrome, and both of the exclusions the last entry argued for stand.** The
+hero plate is still flat, for the reason that entry gave: a layer translated in z under
+perspective is scaled, so the corridor would stop sitting on the trace it was fitted to, and
+an interface that displaces a fitted curve from its own evidence is lying about a measurement.
+The kill-gate ledger is still flat, for the reason that entry gave. What was wrong was
+treating those two cases as an argument against depth anywhere. A perspective scales
+everything inside it, so the rule is not "no 3D", it is that depth may not contain a
+measurement: it goes on stat plates and counts, never on a plot, a waterfall, a ground track,
+a figure, or an SVG whose coordinates came off a receipt. The lift is `translate3d(0, -2px,
+6px)` at 900px of perspective, which is a 0.7 percent scale, under where Chrome re-rasterises
+text visibly. It is gated on `(hover: hover) and (pointer: fine)` together, because a touch
+screen reports itself hover-capable often enough that either alone hands a phone a state it
+cannot leave.
+
+**Three defects, each found by measuring rather than by reading.**
+
+The counter pinned its own width first. A number that gains a digit moves whatever sits beside
+it, so the element was measured once and the width written back as an inline `min-width`. It
+measured 339.54px on both figures, because `.lede-number` is a block filling its grid column
+and its width never depended on its text: there was no shift to prevent. The pin was worse
+than useless. It was a desktop measurement frozen into an inline style, so a reader who
+narrowed the window afterwards kept a 339px floor on a column with less than 339px to give.
+
+The depth lift did not work, and the hover shadow beside it did, from one rule. GSAP writes
+its transform inline and an inline transform beats a stylesheet, so the finished entrance left
+`transform: matrix(1, 0, 0, 1, 0, 0)` on the tile permanently and `:hover` could never reach
+the property. `clearProps` hands the element back when the tween ends, which also means the
+settled DOM is what the server sent.
+
+It still did not work on `.lede-verdict`, and that one cannot be fixed from the hover side.
+Those tiles carry `animation: reveal-in ... both`, and `reveal-in` ends on `transform: none`.
+A filled keyframe outranks an author declaration for as long as the page lives, so the
+computed transform is the identity matrix forever and no `:hover` rule below it will ever
+apply. Depth moved to the counts, which carry no animation, and the tile markup says why.
+
+**A gradient was written and then measured out.** A flat fill at one lightness reads as a hole
+cut in the page rather than a surface, so the stat plate was lit from above with white at
+0.022. `--text-03` on `--ui-01` is 4.56:1 against a floor of 4.5, and `check_contrast.py` says
+in its own docstring that this is the tightest pair on the console that is not exempt.
+`.stat-label` is that pair. The composite is #202938 and it takes the label to 4.28:1, which
+fails, and the contrast gate cannot see it happen: that script reads token pairs, and a
+gradient is not a token. The budget was 0.06 of a ratio and the gradient spent 0.28 of it. The
+light went onto a one pixel edge instead, which is the same cue on the boundary rather than
+behind a caption. Anything that wants a lighter ground there has to move the label to
+`--text-02` first, at 8.93:1.
+
+`Stat` also stopped carrying its padding, ground and border as inline styles. That is why every
+stat on this console was a flat rectangle no sheet could reach: an inline style wins, so the
+depth layer could address the tile's transform and shadow and not its background. The computed
+values did not change, they moved somewhere that can be overridden.
+
+**Measured cost.** Cumulative layout shift is zero across a full scroll of the landing page
+with the counter and the entrance both running. 26 of 26 contrast pairs meet their floor, 19
+neutral tokens still match their derivation at hue 262, 211 console tests pass where there
+were 197, and typecheck, lint and the export are clean.
+
+
+## E6. Three fragilities in the harness layer, and the one that failed a gate somewhere else
+
+Nothing here is a feature. Three things were found by reproducing a failure rather than by
+reading code, and one of them had been failing a standing gate under a name that pointed at
+the wrong file.
+
+**Six static file servers outlived the run that started them, and what that cost was a
+console build.** The evidence was six `python -m http.server` processes still alive on ports
+8101, 8102 and 8103 hours after the font paint measurement had finished, each with a working
+directory inside `apps/web/out`, and `next build` failing with `EBUSY: resource busy or
+locked, rmdir ...apps\web\out`. The standing "console build" gate was red for a reason with
+nothing to do with the console. `scripts/build_font_ab.py` built the three conditions and
+then printed three shell commands of the form `cd <dir> && python -m http.server <port>`.
+Two separate defects sat in that one line. Nothing owned the processes' lifetime, so any run
+that ended without someone remembering left them behind. And the `cd` is what held the
+export open: on Windows, a process whose working directory is inside a directory keeps a
+handle on it, so the leak did not merely occupy three ports, it made the next export
+undeletable.
+
+The script serves them itself now. `--out --serve` holds all three on their ports for the
+length of one run through a context manager whose teardown is registered before anything can
+raise, so an exception, a Ctrl-C or a `SystemExit` takes every server with it, and a set of
+three that cannot bind its last port releases the two it already bound. The directory is
+handed to the handler with `directory=` rather than entered, so no process stands inside an
+export. The printed fallback, for the case where someone wants the servers outside a run,
+names `--directory` and no longer says `cd`. `tests/test_font_ab_serving.py` binds a real
+port to check this, in a child interpreter, because `conftest.py` blocks sockets in the suite
+and the subject of the test is a socket. It asserts the port is free after a clean exit,
+after an exception and after a KeyboardInterrupt, and that the working directory never moved.
+Mutating the fix so that teardown happens after the yield instead of during the unwinding
+passes the first of those and fails the other two, which is the shape the leak had.
+
+**A missing snapshot read as a stale artifact.** With `TRACETRIAGE_PAGES_DIR` unset,
+`scripts/check_artifact_freshness.py` printed `[FAIL] the builder itself does not run` and
+exited 1. Nothing was stale. `scripts/build_splits.py` refuses without the snapshot on
+purpose, because the snapshot is 20 GB and lives outside the repository, and the checker had
+two outcomes available for a question with three answers. Every machine without the snapshot
+therefore reported a regression it had not measured, which is the same defect as a green tick
+over a real one, pointing the other way.
+
+There are three outcomes now. `_builder_outcome` returns RAN, NOT_CONFIGURED or CRASHED. The
+middle one exits 0 with a `[SKIP]` line that names the variable, says nothing was compared
+and says nothing is stale. A builder that crashed for any other reason still exits 1, and
+earning the skip needs both the refusal's own class name and the variable name in the output,
+so a crash that happens to echo the startup banner does not buy one. The class name is read
+off the exception class rather than typed, so renaming it cannot leave the scanner matching
+nothing. `scripts/gate.py` omits that row using the `[ -- ]` form it already had for the
+sign-off receipt, which keeps the tally at the end equal to the number of checks actually
+performed instead of scoring a question nobody could ask in that checkout.
+`tests/test_freshness_outcomes.py` covers all three, and the one that matters most is the
+crash: a third outcome that swallowed real failures would be a worse trade than the defect it
+replaced. Checked both ways by hand as well. With the snapshot configured every artifact
+still reports PASS, and with the variable pointed at a directory holding no pages the builder
+falls over on an empty table and the check still fails.
+
+**CI was piling up runs, had no time budget, and downloaded a GPU build of torch onto a
+runner with no GPU.** Four changes to `.github/workflows/ci.yml`. A `concurrency` group keyed
+on the ref cancels a superseded run, because three commits in ten minutes otherwise held three
+runners and sent two failure notifications about a tree that no longer existed, and the
+notification a reader learns to ignore is the one that mattered. Every job carries a
+`timeout-minutes` now, 30, 10 and 15, because a step that wedges rather than fails holds a
+runner until the six-hour default expires and says nothing while it does. The offline job
+resolved `torch` and `torchvision` against the default index, which on Linux is the CUDA
+wheel and roughly 2.5 GB of `nvidia-*` packages, and the rule for this project is that CI
+measures on CPU: `--torch-backend=cpu` points those two at
+`https://download.pytorch.org/whl/cpu` and leaves every other dependency on PyPI, with the
+package set unchanged. And the job that reaches the live SatNOGS API now runs daily and on
+request rather than on every commit, since running it per push spends a stranger's rate limit
+to re-answer a question that only changes when upstream changes.
+
+`tests/test_ci_workflow.py` asserts each of those against the parsed workflow, including that
+the extras are still `full`, `dev` and `onnx`. Making CI cheaper and installing less are
+different changes and only the first one was wanted: a run that quietly stopped installing
+the onnx extra would be faster and would no longer test what a judge reproduces. Two things
+that follow are stated rather than hidden. The daily schedule triggers all three jobs, not
+only the live one, which costs one rebuild a day and buys notice of an upstream dependency
+break before a commit finds it. And that test needs PyYAML, which is not in the `dev` extra,
+so it skips where the parser is absent rather than reading the workflow with a regex.
+
+## E7. Why continuous integration had failed twenty times running
+
+Every push to this repository since it was created has failed CI, and every check has passed
+on the machine that pushed it. Both facts were true at once, and the reason is that three of
+the checks were asking a different question on the runner than they asked here.
+
+**A hash of a text file was two different hashes.** `core.autocrlf` is true and there was no
+`.gitattributes`, so the working tree on Windows held CRLF while the repository and the Linux
+runner held LF. This project publishes receipts that hash a file's raw bytes, and a line
+ending is a byte. Measured on `tests/fixtures/agent_runs.json`, 85137 bytes on disk with 2020
+CRLF pairs: hashed as it sat there it is `a162fbc3dcfd...aa6d791c2b7ae`, which is what
+`AGENT_RECEIPT.json` carried, and hashed with LF endings it is `e9759ff65d8d...2ebe1b392c995`,
+which is what CI computed. CI was right. Locally the file and the receipt were wrong together,
+which is the only reason it looked fine: the receipt was published from a byte sequence that
+existed on one machine.
+
+226 tracked text files held CRLF. `tests/test_grounding_parity.py` hashes a `.py` file rather
+than a fixture, so this reached source and not only data, and there was no narrower subset
+where a rule would have worked. Everything text is pinned to LF now, binaries are excluded
+because a normalised waterfall image is a corrupted one, and the two `.cmd` launchers are
+pinned to CRLF in both directions instead, so a hash of one is reproducible either way.
+
+Then the receipts that held a Windows hash were regenerated from the normalised tree:
+`AGENT_RECEIPT`, `PRECEDENT_RECEIPT`, `CIRCULARITY_RECEIPT`, the grounding answer key, the
+nine published console files and every generated page. **The measurements did not move.**
+Granite retrieval is still 0.6181 against 0.5922, circularity is still 1.557x [1.264, 1.740]
+NOT_ESTABLISHED over 19 conflicts. Each receipt changed one or two lines and every one of them
+was a digest field. That is the test of whether this was a line-ending fix or an accident.
+
+One thing this exposed and did not fix: the generators write CRLF on Windows, because Python's
+text mode translates on write. Git stores LF, so what is committed is right, but a receipt
+hashed in the same session it was generated in would read the wrong bytes. The writers should
+pass `newline="\n"`.
+
+**A depth-one clone cannot see the commit a receipt names.** `actions/checkout@v4` defaults to
+`fetch-depth: 1`, so the runner held only the tip. Five tests assert that a receipt names a
+commit present in this history: `SECRET_SCAN`, `ATTRIBUTION_AUDIT` and `REPO_WEIGHT` all name
+3a734031, the sign-off names 4d380b48, and the clean-clone transcript names its own. Both
+commits exist. The runner could not see them, so the check that a receipt is not pointing at a
+commit nobody has was passing here for the wrong reason and failing there for the right one.
+The offline job now clones the full history. The other two jobs read no history and stay
+shallow.
+
+**`npm ci` was refusing before it started.** EUSAGE in thirteen seconds: "lock file's
+picomatch@2.3.2 does not satisfy picomatch@4.0.5". The lock file and `package.json` had
+diverged, and nothing local caught it because a developer runs `npm install` or `npm run
+build` against an existing `node_modules` and never runs `npm ci` at all. It is in sync again
+and `npm ci --dry-run` exits 0. Worth naming the gap rather than the fix: the clean-clone check
+clones and does not install, so this class of defect had nowhere to surface.
+
+**The type check had never run.** `mypy pipeline` exits 2 with "Source file found twice under
+different module names", because the same file is reachable as the distribution names it and
+as the repository lays it out, and mypy refuses rather than choose. The step has always had
+`continue-on-error` set, so exit 2 and a clean run looked identical. With
+`explicit_package_bases` it checks 26 files and reports 50 errors. Those 50 are now visible
+and not fixed, which is a unit of its own; what changed here is that the check runs.
+
+**Two things that made the noise worse.** Nothing cancelled a superseded run, so three pushes
+in ten minutes held three runners and sent notifications about trees that no longer existed,
+and the notification a reader learns to ignore is the one that mattered. And the live-API job
+reached the public SatNOGS API on every commit, which is the job most likely to be red for a
+reason nobody here can fix. There is a concurrency group now, every job has a timeout, and the
+live job runs daily or on request.
+
+**Two local gates were failing for reasons that had nothing to do with their subject.** The
+console build gate failed with `EBUSY: resource busy or locked, rmdir` on `apps/web/out`,
+because `scripts/build_font_ab.py` printed three `cd <dir> && python -m http.server <port>`
+commands whose lifetime nothing owned. One run left six alive, still holding 8101, 8102 and
+8103 hours later, and a process whose working directory sits inside an export holds a Windows
+handle on it. Serving now happens inside a context manager that stops every server on every
+exit path, and the directory is handed to the handler rather than entered, so no handle is
+taken. A leaked server is a nuisance; a leaked handle is a false regression somewhere else.
+
+And the artifact freshness gate reported `[FAIL] the builder itself does not run` whenever
+`TRACETRIAGE_PAGES_DIR` was unset, which is a stale-artifact verdict on a tree where nothing
+was stale. It has a third outcome now. The first version of that outcome read the traceback,
+and that was wrong in a way worth recording: `_default_pages_dir` raises the same exception
+whether the variable is absent or set to a path that does not exist, and both messages carry
+the class name and the variable name, so a typo in the variable earned a skip, exited 0, and
+left the freshness check silently disabled behind a green gate. The environment decides now,
+not the text. Set means asked, and a bad address is a failure.
+
+**One observation, not fixed.** `tests/test_operator_session.py` regenerates
+`artifacts/OPERATOR_SESSION.json`, and `REFERENCE.md` records that file's size and digest, so
+one test changes a file another test verifies. On the runner the regenerated file is 7,008
+bytes against a committed 6,781, and the two fail together.
+
+## E8. The two reasons CI stayed red, and why both diffs looked like nothing
+
+E7 named three causes and fixed them, and the pipeline stayed red. Two more were
+underneath, and what they have in common is that neither one shows up as a wrong value.
+Both are orderings.
+
+**The install.** `npm ci` failed with a complaint about picomatch:
+
+```
+Invalid: lock file's picomatch@2.3.2 does not satisfy picomatch@4.0.5
+Missing: picomatch@2.3.2 from lock file
+```
+
+The lock was regenerated by a clean install and npm accepted it here, including under
+npm 10.8.2, which is the version `actions/setup-node` gives a node 20 job. So the lock was
+not malformed. The cause is four lines higher in the same log, in a warning:
+
+```
+npm warn Conflicting peer dependency: @types/node@26.2.0
+npm warn peerOptional @types/node@"^20.19.0 || >=22.12.0" from vite@7.3.6
+```
+
+The pin was `22.10.2`. It satisfies neither branch of that range: below 22.12.0, and not a
+20.x. So npm could not use the installed copy for vite's optional peer, went to the registry
+for one, took 26.2.0, and built an ideal tree with an extra node in it. A different walk
+hoists picomatch differently, and the error surfaced on the package that moved rather than
+on the one that caused it to move.
+
+The part worth keeping is what that says about the lock. An unsatisfiable optional peer makes
+the resolved tree a function of what the registry calls latest at the moment npm runs, which
+is the opposite of what a lock file is for. The pin is 22.20.1 now and the clean install
+emits no ERESOLVE at all.
+
+**The page.** `test_reference_sync` failed with a diff of two lines:
+
+```
+- | `corridor_features.json` | CORRIDOR_FEATURES | 0.1.0 | ... 527,163 ...
++ | `corridor_features.json` | CORRIDOR_FEATURES | 0.1.0 | ... 527,163 ...
+```
+
+Both are 411 characters and identical byte for byte. Nothing had changed except position,
+because comparing `pathlib.Path` objects is case-insensitive on Windows and case-sensitive on
+POSIX. `artifacts/` holds one lowercase name among thirty uppercase ones, so the page listed
+`corridor_features.json` sixth when generated here and last when generated on the runner. The
+page was right on both machines and could not be right on both at once. Every path sort in
+the generators takes `key=lambda p: p.as_posix()` now, which is byte order everywhere.
+
+That one had reached two committed files, this page and the receipts list inside
+`provenance.json`, and it had been latent in eleven more sites that read snapshot pages and
+font files whose names happen not to differ by case.
+
+**A measurement I had backwards.** Earlier in the session I recorded that every tracked text
+blob was LF. Counting them directly says the opposite: 312 of 315 store CRLF, and
+`artifacts/EXPLAIN_RECEIPT.json` is 24,725 bytes holding 898 of them. That is why receipts
+disagreed with CI rather than with each other. It also means the `newline="\n"` change across
+42 builders is the fix rather than a tidy-up, because git leaves an existing CRLF blob alone
+instead of renormalising it, so each file settles to LF the first time its builder rewrites it
+and the sync gates catch the receipt in the same commit.
+
+**A method note.** One offline run reported 88 failures, most of them `git ls-files failed`.
+Nothing was broken. A loop of 315 `git cat-file` calls was running against the same repository
+while pytest collected. The rule already written down here is not to edit source while the
+suite runs, and it needs widening: do not run anything against the tree while the suite runs.
+A clean rerun on a quiet tree returned exit 0 and zero failures, and the 88 would have been
+a day of chasing tests that were never wrong.
+
+## E9. The submission read as a project that failed, and the fix was ordering
+
+A blind council pass came back well below my own read of the entry, and the gap turned out
+not to be about any measurement. Every judge-facing surface led with an
+inconclusive verdict. `README.md` opened on the tally, `FOR_JUDGES.md` opened on the tally,
+the landing page put the pre-registered `NOT_ESTABLISHED` on the first screen, the rail
+carried a persistent "2 of 6 met" badge, and the film's last card before the colophon was
+the gate table. A reader met four qualifications before a single piece of evidence that
+the system works.
+
+Nothing in this unit changed a count, a verdict or an interval. What changed is the order
+they arrive in, and one thing that had been measured and never stated at verdict weight.
+
+**The finding that was buried.** On the pre-registered split, a budget of 50 over 87
+observations holding 22 conflicts caps every possible ordering at 1.740x, including a
+perfect oracle. The gate asked for 1.5x. So the entire distance between the bar and
+perfection is 0.240, the queue reached 1.582x, and 0 of 2000 random orderings of the same
+observations matched it, a permutation p of 0.0005. That was in
+`artifacts/CIRCULARITY_RECEIPT.json` and on one section of one page. It is now stated
+wherever the tally is: `/start`, `/evaluation`, the README, the judges' page and the film's
+gate card. It is a finding about the instrument, derived from the population and the budget
+rather than from the result, and it is the answer to the only question a reader has after
+seeing four NOT_ESTABLISHED rows.
+
+**A page written for the reader who has three minutes.** `/start` is new and is the first
+item in the rail. Four sections: what was measured and holds, what was pre-registered and
+what it came back as, the four judged criteria quoted from the Official Rules with the page
+that answers each, and a three-stop route through the console. Every figure on it resolves
+from a receipt at build time, so it cannot drift from the pages it points at.
+
+**Prose that was true and was not about satellites.** The provenance page spent 890 words,
+46% of the page, on five font bullets. Every substantive claim in them survives in two
+bullets: 60,082 bytes over two hosts, the content security policy, 956 ms against 152 ms
+with the font host blocked, 236 ms against a 200 ms floor, CLS 0.0115. The rest points at
+`artifacts/FONT_PAINT_RECEIPT.json`. The colophon's typography paragraph went from 191
+words to 62 and it appears on every page. The gate 4 plates note went from 130 to 95 and
+kept both re-encoding arguments. A caption that printed a bare boolean now says where the
+three conflict criteria were written down. Four documents that exist for whoever builds
+this next and for nobody judging it are untracked, with the reason recorded in
+`.gitignore`.
+
+**The one fake claim is gone.** `docs/USE_WITH_YOUR_AGENT.md` carried a row reading
+"watsonx Orchestrate to orchestrate/toolkits/*.yaml". That directory has never existed in
+this repository. It is deleted and replaced with a LangFlow row and an explicit note that
+no such directory was ever built.
+
+**Two integrations that were claims became integrations.** `pipeline/tracetriage/watsonx.py`
+was 311 lines with no caller. `scripts/run_watsonx_check.py` now builds the same evidence
+packet and the same prompt the local Granite backend gets, sends it to watsonx, and runs
+the reply through `explain.verify_note`. It records one of three outcomes with a date, so
+this checkout commits `NOT_CHECKED` for observation 14746092 with no credentials present,
+and a machine with credentials commits `RAN` or `FAILED`. LangFlow was installed for real
+into a separate `.venv-langflow`, two flows were built from component objects, dumped with
+LangFlow's own serialiser, then loaded back with `run_flow_from_json` and executed. The
+grounding flow returns GROUNDED on the clean draft and refuses the other for an ungrounded
+number. The agent flow runs and its answer does not carry the tool-only fact: Granite emits
+a tool call as text and LangFlow's agent node does not execute it. That is published as a
+finding about the client rather than hidden, and it is the contrast with 22 of 24 through
+the MCP harness.
+
+Three things had to be fixed to make `--check` possible at all, and all three were
+`Graph.dump()` being non-deterministic: random five-character node id suffixes, unstable
+edge order, and an embedded timestamp. Splitting the suffix on the last hyphen was the
+wrong tool, because LangFlow's alphabet includes a hyphen and the split left
+`TraceTriageEvidenceTools-Pz` behind. An end-anchored five-character pattern is correct.
+
+**The film closed on the wrong thing too.** It ran seven cards and ended the argument on
+the gate table, so 103 seconds of evidence finished on four inconclusive verdicts and never
+said what had been decided. There is an eighth card now, `Established`, and it runs after
+the tally rather than before it. Three results: the evidence tools change what a local
+Granite model gets right, 22 of 24 against 2 of 24, paired exact one sided 0.000001 over
+20 discordant pairs; the grounding checker caught 525 of 525 planted falsehoods and refused
+0 of 175 clean drafts; on ground stations the queue was never fitted to, lift is 2.25 with
+an interval of 1.92 to 3.86 and the receipt records PASSED. `test/claims.test.ts` now pins
+the order, so an edit that puts the wins first fails a test instead of passing quietly.
+
+The film is 3540 frames, 118.0 seconds, 4,923,473 bytes, one stream and no audio track,
+which is 62 seconds inside the competition's three-minute ceiling. It was rendered three
+times, twice at concurrency 4 and once at concurrency 2, and md5 is
+`ba57a3cd01a93557e4bf2aa799ede4bd` on all three. The upper bound in the duration test moved
+from 105 seconds to the 160 the demo script budgets, and the reason is written into the
+test: what changed is the film's content, and the ceiling it is measured against is the
+rules'.
+
+**A threshold I nearly moved for the wrong reason.** `scripts/run_queue.py` writes a budget
+rationale whose last sentence states the cold-split budget as a function call over a field
+name, and that expression renders verbatim on the landing page. I rewrote it in plain
+English and then reverted, because the string lives in `artifacts/QUEUE_RECEIPT.json` and
+changing the generator without re-running the pipeline would put a builder and its receipt
+into disagreement, which is the exact drift this repository is built to prevent. Re-running
+the queue cascades into every receipt that hashes it. The expression stays.
+
+**453 checks that nobody was running.** The film's test file was reachable only by
+remembering to change directory into `presentation/`. The gate runs it now, along with
+`npm run report -- --check`, which fails if the claim table in `presentation/REPORT.md` is
+no longer what `src/data.ts` produces. That table said it was generated and the generator
+was not in the tree; `presentation/scripts/report-table.ts` is, and it rewrites the region
+between two markers and counts the claims rather than restating a count. Both rows are
+omitted rather than failed when `presentation/node_modules` is absent, for the same reason
+the LangFlow row is: a clean clone cannot answer the question, and a FAIL there would
+manufacture a regression nobody caused. The gate is 26 checks now, up from 24.
+
+**The line-ending trap, caught by a generator rather than by CI.** Every edit made through
+a Python script wrote the file back with CRLF, because `Path.write_text` translates on
+Windows. Git normalises on commit so nothing would have reached the repository wrong, but
+`npm run report -- --check` compared a CRLF working copy against an LF region and failed.
+Twelve files were converted back. This is the same class as the twenty consecutive red CI
+runs `.gitattributes` was written for, and the thing worth recording is that the generator
+caught it in one run where the receipts would not have: none of them hash a file this unit
+touched.
+
+**The gate.** 26 checks, 25 passing before the commit, the one failure being the
+uncommitted tree itself. `artifacts match their builders` runs rather than being omitted,
+because `TRACETRIAGE_PAGES_DIR` points at the real snapshot. Ruff clean, `tsc --noEmit`
+clean in both packages, the console builds with `/start` in the route list, and the offline
+suite passes.
+
+## E10. Two receipts published a digest no committed file produces
+
+A blind scan of judge-facing prose came back with thirteen field names sitting inside
+English sentences on the console, all of them in receipt-derived strings. Fixing them meant
+re-running the generators, and before doing that I checked whether the generators reproduce
+what they had already written. That check is what this entry is about. The prose was the
+smaller half.
+
+**`run_queue.py` reproduces every number and one field moved.** Re-running it with no
+changes rewrote `artifacts/QUEUE_RECEIPT.json` byte for byte except `generated_at` and
+`split_manifest_sha256`, which went from `bdb159ca...` to `c0f8cd3a...`. Every measurement,
+every interval, every bootstrap: identical. So the generator is deterministic and something
+was wrong with that one field.
+
+`artifacts/SPLIT_MANIFEST.json` hashes to `c0f8cd3a...`, on disk and as a git blob. It
+hashes to `bdb159ca...` only with CRLF line endings. The receipt was written on 2026-08-20
+on a Windows working tree where the manifest still held CRLF; `.gitattributes` normalises it
+to LF on commit, and nothing re-derived the digest afterwards. **The shipped receipt named a
+digest that no committed file in this repository produces.** A judge running `sha256sum` on
+the file the receipt names would have got a mismatch. `artifacts/FUSION_RECEIPT.json`
+carried the same value for the same reason.
+
+This is the failure `.gitattributes` was written for, one level up. That file fixed the
+bytes and left the numbers *about* the bytes behind, and nothing here caught it: the
+freshness check rebuilds a different set of artifacts, the sync gates compare documents to
+receipts rather than receipts to bytes, and every test that reads a fixture reads it through
+the same translating call that hid the problem. Twenty-six gates were green over it.
+
+**`scripts/check_receipt_digests.py`.** Every sha256 a receipt records for a tracked file,
+against `git show HEAD:<path>` rather than against the working copy, because the working
+copy is the thing that went wrong and a check reading it would pass on the machine that
+wrote the bad value. Eight entries. Each records whether the digest was taken over
+`read_bytes` or `read_text`, because the second form is endings-immune and checking it
+against raw bytes would report a failure on a correct receipt. `tests/test_receipt_digests.py`
+plants the original defect and requires a failure, asserts the table's length so a row
+cannot be dropped in passing, and enumerates every sha256-shaped field in every receipt,
+requiring each to be either audited or in an exclusion list with a reason. It is the
+twenty-seventh standing gate.
+
+**A second generator whose defaults are not the shipped decision.** `run_fusion.py` writes
+`n_boot` into its receipt, and the committed value is 50,000 while the script's default was
+10,000. A bare `python scripts/run_fusion.py` rebuilds the artifact with a fifth of the
+resamples and moves every published interval, and nothing in the tree recorded which command
+had produced the committed file. I caught it by comparing the interval the re-run printed
+against the committed one and finding them close but not equal. That is exactly the
+HERO_NULLS failure `scripts/check_artifact_freshness.py` documents, in a second generator.
+The default is 50,000 now.
+
+**The prose, and the three sentences left alone.** Ten of the thirteen leaks were rewritten
+in the generator that emits them: the concentration note printed a Python list
+(`['transmitter_uuid']`) and now names the cap, the replay conclusion printed a snake_case
+verdict and a JSON boolean inside a sentence and now says what it means, the cold-split
+budget rule was a function call and is now a clause, and the same for the circularity target
+rows, the selective-risk column, the agent study's reading, the precedent study's limits and
+the corridor note on every observation page.
+
+Three were left exactly as they are, and the reason is written beside them in
+`pipeline/tracetriage/queue.py`. `image_corridor`, `offset_at_bound` and `flat_row_frac` sit
+inside the `CONFLICT_CRITERIA` descriptions, and that block is what `fixed_before_measuring`
+is a claim about. The console prints the flag, the pre-registration rests on it, and a reader
+who diffed a description against an earlier copy and found different words would be right to
+read the definition as having moved after the results were seen. Tidier prose is not worth
+putting a doubt next to the one property this project is built on.
+
+**A near miss worth recording.** Every edit made through a Python script writes the file back
+with CRLF on Windows, because `Path.write_text` translates. Git normalises on commit so
+nothing reaches the repository wrong, but a cross-runtime `--check` compares the working copy
+and fails. Twelve files were converted back by hand earlier in the session. The rule now is
+to sweep the changed set for `\r\n` before running any gate, and it is the same root cause as
+the digest defect above: on this platform, anything that reads a file as bytes and anything
+that reads it as text disagree, and only one of them is what git publishes.
+
+## E11. One failed sign-off could never be undone
+
+Adding the twenty-seventh gate broke the twenty-sixth. `scripts/signoff.py` runs the standing
+gate and writes its receipt afterwards, and `tests/test_signoff.py` asserts the committed
+receipt says SIGNED. The gate runs that suite. So the first sign-off that failed for any
+reason left NOT_SIGNED on disk, and every later run failed the gate on the receipt it was
+about to replace. The verdict was self-sustaining and no amount of fixing the real problem
+would clear it.
+
+`scripts/gate.py` already had the answer for its own sign-off row: `signoff.py` exports
+`TRACETRIAGE_SIGNOFF_IN_PROGRESS`, the gate sees it and prints the row as omitted rather than
+counting it green. The test never consulted the flag. It does now, on that one test, with the
+reason printed as the skip message. The other ten tests in the file still run: a stale receipt
+is still a well-formed receipt, and the structural checks about refusal are exactly the ones
+that must not go quiet.
+
+An exemption with nothing measuring it is how the first one got in, so
+`test_the_skip_is_narrow_and_the_check_underneath_it_still_refuses` does two things. It
+asserts the flag is spelled the same in all three files, because a typo would leave either
+the skip or the gate row dead with no symptom. And it hands the skipped test a fabricated
+NOT_SIGNED receipt with the flag cleared and requires an `AssertionError`, so the assertions
+hiding behind the skip cannot be softened into something a refused sign-off satisfies.
+
+## E12. The film's 453 checks ran on one laptop, behind a `cd` somebody had to remember
+
+CI had three jobs: the offline replay, the live API contract and the static console. The
+presentation package was in none of them. Its 453 claim tests, which compare every figure
+the film draws against the receipt key path it came from, and the generator that rewrites
+the claim table in `presentation/REPORT.md`, ran only where someone typed
+`cd presentation` first. The standing gate got rows for both earlier in this wave, and
+those rows are omitted when `presentation/node_modules` is absent, which is every clean
+clone and every runner. So the checks existed and nothing scheduled them.
+
+The comment beside the console lint step already said what this is: a check that is not in
+CI is a check that stops working the week after it is written. That step was added the day
+`npm run lint` ran for the first time and found seven problems in a script that had been in
+`package.json` since the console was created.
+
+The new job runs `npm ci`, `npx tsc --noEmit`, `npm test` and `npm run report -- --check`.
+It does not render. `remotion render` downloads a headless Chromium and takes 150 seconds a
+pass, and what it would establish is that a video file can be produced from these sources.
+`presentation/REPORT.md` records three renders agreeing byte for byte and the file they
+produced is committed, so that claim already has evidence. What CI protects here is the
+numbers.
+
+Two things the job could not have run as the package stood.
+
+**The generator was outside its own project.** `presentation/tsconfig.json` included `src`,
+`test` and `remotion.config.ts`. `scripts/report-table.ts` was in none of them, so nothing
+typechecked the file that rewrites a table in a tracked document. It is in the include list
+now and `tsc --noEmit` is clean over it.
+
+**`vite-node` was never declared.** `npm run report` invokes it, and it was reachable only
+because `vitest` depends on it: `presentation/node_modules/.bin/vite-node` exists as a
+transitive artifact. A vitest release that stopped depending on it would have broken the
+report generator with an error about a missing binary, in a package whose own manifest never
+asked for it. Pinned at 3.2.4 in `devDependencies` now, one line in the lockfile.
+
+`tests/test_ci_workflow.py` asserts that the set of jobs equals the set of budgeted jobs, so
+a new job with no timeout fails rather than inheriting the six-hour default. That assertion
+is why this change is two files: the workflow could not grow a job without the test naming
+what it is allowed to spend.
+
+## E13. The film was the one deliverable with no receipt, and the one binary nothing checked
+
+Every measurement in this repository has an artifact under `artifacts/` that a judge can
+open, and until this unit the presentation film did not. Its length, its beat list, how many
+figures it holds and which files those figures come from were written by hand into
+`presentation/REPORT.md`. The rendered 4.6 MB video sat committed next to a poster frame with
+nothing in the tree comparing either to anything. That is the shape this project refuses
+everywhere else: a number nobody can re-derive, beside a binary nobody can check.
+
+Worse, nothing judge-facing pointed at it. `README.md`, `FOR_JUDGES.md` and
+`docs/DEMO_SCRIPT.md` between them never used the word Remotion and never named the file. A
+118 second film, three verified renders, 453 tests holding every figure to a receipt key
+path, reachable only by someone who went looking through `presentation/`. Built and
+unreachable is the same as not built.
+
+**`artifacts/FILM_RECEIPT.json`.** Written by the pass that already regenerated the claim
+table, so there is one generator and one `--check`. It records the composition, every beat
+with its frames and seconds, the claim counts split into drawn and read-only-for-cross-checks,
+the nine committed JSON files the claims are read from, and the byte count and sha256 of the
+rendered film and the poster. `generated_at` is excluded from the comparison because it is the
+one field that would fail a check for having done nothing.
+
+**A third mode in the digest audit, and it was not a formality.** The audit hashes the
+working copy normalised to LF, which is what `.gitattributes` stores for a text file. The
+committed mp4 holds 63 `0d 0a` byte pairs that are not line endings, and normalising them
+produces `616b69fd...` against the file's real `9e33e256...`. Adding the two rows without a
+`Bytes.BINARY` mode would have reported a failure on a correct receipt, which is the exact
+inverse of the defect the audit was built for. `tests/test_receipt_digests.py` asserts those
+byte pairs are really there, so the mode cannot be deleted later as unnecessary by someone
+who reasons about it instead of measuring it.
+
+**`tests/test_film_receipt.py`.** The digest audit checks the two digests and nothing else in
+the receipt, so a `reads` list pointing at a file nobody publishes would sail through it.
+Seven tests: the frame count is the sum of the beats, the claim counts are one partition of
+one set, the per-file breakdown sums to the same total, every file in `reads` is in the
+checkout, the byte counts match `stat`, and the prose in `REPORT.md` names the same frame
+count and duration the receipt computes. The film's duration also carries a rule from outside
+this repository, so the three-minute ceiling from the Official Rules is asserted against the
+receipt rather than left in a comment.
+
+**Two rows on the pages a judge reads.** `FOR_JUDGES.md` gained a Remotion row in the stack
+table and a "Demo or presentation video" row in the requirements table, both generated, both
+reading their numbers from the new receipt and the Remotion version from
+`presentation/package.json`. The README gained a paragraph naming the file, with no typed
+numbers in it: the numbers live in the generated page, where a re-render moves them.
+
+`docs/REFERENCE.md` had already refused to document the receipt while it was untracked, which
+is the rule working: it describes the tree a clone receives, not the tree on this laptop.
+
+**And a link, which was the actual problem.** The colophon's link row now carries the film,
+pointed at the repository rather than served from `apps/web/public`: a second copy of a
+4.6 MB binary is 4.6 MB the release audit weighs twice for one artifact. That row already
+links four documents on the repository, so it is the row that exists for this. Every page of
+the console has it.
+
+**A dead import from E9, caught by the lint step that job installed.** Reordering the landing
+page in E9 removed both uses of `requirePrecedentComparison` and left the import, so
+`npm run lint` printed a warning that nothing failed on. Removing the import left the helper
+in `apps/web/lib/data.ts` with no caller at all, and its own docstring describing a landing
+page that no longer prints what it described. `.bob/rules.md` removes a component whose
+ablation does not change a judge-facing result, so it is gone: 35 lines, `tsc` clean, 211
+console tests unchanged. The lint step now prints nothing rather than one warning.
+
+## E14. The weakest criterion had a guide nobody could reach
+
+Three of four blind seats put practicality and feasibility last of the four areas, and the
+reason every one of them gave was the same: nobody had asked whether the queue helps a
+person. `docs/USE_WITH_YOUR_AGENT.md` is 354 lines answering the adjacent question, how to
+point this at observations of your own, and it existed only in the repository, which a
+reader who meets the console first has no reason to open. The console's answer for that
+criterion talked about the static export, the baselines and the provenance page: all true,
+all about the artifact rather than about using it.
+
+The guide is served from the console's own origin now, through the step that already copies
+`KILL_GATE.md`, `CLAIM_REGISTER.md` and `C2_PREREGISTRATION.md` into
+`apps/web/public/data`, and `/start` links it from the Implementation and Feasibility row
+where it does the most work. One sentence, one file, and the criterion that scored lowest
+now names something a reader can act on.
+
+**And the copies were unchecked.** Four markdown files are duplicated into the export and
+nothing compared a copy to its source. Editing one of the four under `docs/` without
+re-running the exporter would leave the console serving a document that no longer exists in
+the repository, with every gate green: the copy is still valid markdown and the page linking
+it still resolves. `tests/test_console_export.py::test_every_document_the_console_serves_is_the_document_in_docs`
+compares them byte for byte and fails with the command that fixes it. It also fails if a
+served file has no source at all, which is the other direction the drift can go.
+
+## E15. A gate passed, and the surfaces describing it went on saying it had not
+
+Gate 4 asks whether a person can decide from these plates. Nobody had ever answered it, so
+every surface in the repository had been written against a single state: the study was never
+run, the verdict was `OPEN`, and the tally was 2 of 6. When a person did answer it, in one
+sitting through the console's own review form, the scorer produced `PASSED` at 60 of 60 with
+an exact one-sided 95% lower bound of 0.9513 against a 0.80 bar, and the tally moved to 3 of
+6 in every place that computes it.
+
+The places that compute it were fine. The places that describe it were not.
+
+**Six that a judge would have read first.** The README's gate 4 cell said "never run, so it carries no rate" in the
+column next to the word `PASSED`, because the generator branched on `_g4.get("arm")` and a
+human review does not write an `arm`: it writes the receipt's top level and moves the earlier
+model review to `prior_review`. The evaluation page was headed "Gate 4 needs a person, and
+here is what to send them" over a table reading PASSED. `docs/BOB_DEMO.md` told a judge that
+step 8 has to come back with two of six met and gate 4 `OPEN`. The operator session receipt
+recorded the expectation "with gate 4 open and gate 6 not established" beside a payload
+listing gate 4 as passed. The film's beat 6 said the two met gates were both feasibility
+checks. `GATE_POWER_RECEIPT.json` opened its summary with "Four constraints, three of them
+exact. Gate 4 is short of a reviewer and nothing else."
+
+Each one was true when it was written and none of them was reachable from the verdict.
+
+**What changed is where the sentences come from.** The gate 4 README cell is three branches
+on who answered rather than two. The evaluation page's heading and lede are ternaries on
+`gate4_arm.is_the_gate`. The operator session renders both its assertion and the sentence
+beside it from the verdicts it just read, and its step 8 names no gate and no count. The gate
+power receipt's `reading` paragraph is built from the gates list: it counts the unmet ones,
+counts how many closures are exact, and groups the ones pre-registration will not let this
+project close. `docs/BOB_DEMO.md` now says outright that the paragraph has been wrong twice
+and to check `gate_status` instead of it.
+
+**The invariant that was missing.** A closure that says "short of test rows" and a closure
+that says "short of test rows we are not allowed to collect" are different claims, and the
+difference was carried in a sentence rather than in a field. Every closure now declares
+`frozen_by_pre_registration`, and `tests/test_gate_power.py` asserts which gates carry it,
+that exactly one closure is an extrapolation, and that the summary paragraph names every
+unmet gate and no met one. One of those tests flips a verdict by hand and requires the
+paragraph to stop naming that gate, because a sentence that happens to be right today is not
+the same as one that follows the data.
+
+**And the render was stale under passing digests.** The gate 4 explainer clip ended on
+`Gate 4: OPEN`, and the three tests guarding its values had been written to skip when the
+receipt held no `arm`. A human answer removes the `arm`, so all three skipped and reported
+green over a video contradicting the page it sits on. The guard now reads the top-level
+receipt first and skips only when neither shape is present, and it asserts the closing
+frame's verdict word against the receipt.
+
+Twenty-six of twenty-seven standing gates pass, the twenty-seventh being the uncommitted
+tree this entry is part of.
+
+## E16. Gate 3 is short of observations, and the obvious way to get them is circular
+
+Gate 3 asks whether the expected Doppler corridor lands on a visible trace. Three testable
+observations, three discriminated, and the exact one-sided 95% lower bound on a perfect
+rate at n = 3 is 0.3684 against a 0.70 bar. The first n whose perfect rate clears the bar
+is 9. So the gate is short of six observations and nothing else, and
+`artifacts/GATE_POWER_RECEIPT.json` records that as an exact closure that pre-registration
+does not freeze: unlike gates 5 and 6, closing it moves no split and no budget. The
+snapshot holds 2,500 waterfalls already on disk.
+
+**Then the obvious way to get them turned out to be the problem.** A3 labelled an
+observation `UNCORRECTED` when `sigma_curved - sigma_vertical >= 3.0`, which is a statement
+about how well the predicted corridor fits the image. Growing the testable pool with that
+rule and then asking whether the corridor discriminates is selection on a quantity
+correlated with the outcome. The bigger n would have meant less than the small one.
+
+So the unit is a pre-registration rather than a re-run. `docs/E16_PREREGISTRATION.md`,
+committed before `run_gate3.py` was pointed at anything, fixes two pools.
+`scripts/build_gate3_pool.py` builds both over every snapshot observation with a waterfall
+on disk, writing a row for each one it could not measure and why, because the denominator
+is a claim too.
+
+- **Pool A** is A3's rule verbatim, published for comparability and explicitly not the gate.
+- **Pool B** decides it, and its membership reads no Doppler prediction: a predicted swing
+  large enough to tell a curve from a line, a trace visible by a per-row presence
+  statistic, and a vertical line that does not fit. The first is computed before the image
+  is opened. The last is the corridor-free test for a station that Doppler-corrected the
+  capture, whose corridor is identically 0 Hz and predicts nothing.
+
+**The presence bar was set wrong first and the wrong reasoning is in the document.** 6.0,
+argued from the maximum of W Gaussian columns sitting near `sqrt(2 ln W)`, about 3.7 at
+these widths. Measured on a twelve-observation timing probe the noise ceiling under this
+normalisation is nearer 2.0, and 6.0 excluded observation 14740031, whose matched filter
+reaches 25.1 sigma on the same image. The probe's twelve rows are in the pre-registration,
+because they are the only observations that were looked at before the pool rule was fixed.
+
+**The independence is a test, not a sentence.** `in_pool_b` exists as its own function so
+`tests/test_gate3_pool.py` can parse its AST and fail if `sigma_curved`,
+`sigma_curved_by_sign`, `curved_offset_hz` or `verdict` appear anywhere in it. A second
+test fails if any `pool_b` assignment in the module bypasses that function, which is what
+would otherwise leave the first test guarding code nobody calls. That second test caught
+its own matcher: the first version matched every subscript ending in `pool_b` and so fired
+on `payload["counts"]["pool_b"] = after`, a tally.
+
+`--recut` re-derives pool B at another bar from a finished run's own numbers without
+opening an image, which is how the verdict's sensitivity to the bar gets published rather
+than described.
+
+**What is committed here is the method, not a result.** The pre-registration says the
+number is published whichever way it goes, and that if the rate itself comes in under 0.70
+the gate is recorded as failed. A gate that only reports when it passes is not a gate.
+
+**And the rules state the judged criteria twice.** The Official Rules score four at 1 to 5
+for a maximum of 20. The challenge page lists five, adding Real-World Impact and
+shortening the fourth to Feasibility. `FOR_JUDGES.md` and `/start` answered the first list
+only, so a judge working from the challenge page would have looked for a heading that was
+not there over evidence that was. Both lists are answered now, with the extra criterion
+given its own heading and the same evidence under it.
+
+## E17. Two divisors collapsed, and the gate that came back was the interesting one
+
+E16 committed a method. This ran it, and the run found the method's own instrument broken
+twice before it found a result.
+
+**The first collapse was in the pool statistic.** The pre-registration requires reading
+pool B's marginal distribution before the gate is pointed at it, and the reading was
+absurd: a median `trace_q75` of 4.72, a 90th percentile of 22,666,664 and a maximum of
+89,000,000. A z-score of 89 million is not a trace. `_normalised_rows` divided each row by
+`max(MAD, 1e-6)`, and a blank or saturated row has MAD exactly 0, so the floor turned the
+emptiest row in an image into the largest value in it. The statistic was inverted
+precisely where it degenerated, and a mostly-blank waterfall could outrank a 25 sigma
+detection by six orders of magnitude.
+
+Fixing it is not a change to the rule. Section 3 defines the statistic as each row scored
+against its own median and MAD; a row whose MAD is zero has no z-score, not an infinite
+one, so the floor was never the statistic the document specified. Rows below the
+quantisation step are dropped and counted as `n_rows_unmeasurable`, an image with no
+measurable row is refused rather than scored low, and `TRACE_Q75_MIN` stays at 3.5,
+because the defect only ever inflated the statistic and so could only ever have added
+members. Pool B went from 321 to 303 and its 90th percentile from 22,666,664 to 10.79. All
+of that is committed as an amendment inside `docs/E16_PREREGISTRATION.md`, before either
+pool was scored, with a test that fails if that ordering ever stops holding in git.
+
+**The second collapse was hiding behind the first, and it was worse.** With the dead rows
+finally reading zero instead of enormous, the gate scorer started returning sigmas of
+3.09e10. `_best_over_offsets` normalised by
+
+```python
+spread = float(np.median(np.abs(finite - baseline)) * 1.4826) or 1e-9
+```
+
+Python reads `0.0` as falsy, so a genuinely zero spread silently became 1e-9. The same
+line had a second fault: the numerator and the denominator were computed over different
+row sets, so an image half of whose rows were dead was scored with a scale taken from the
+whole. Both are gone. A zero spread returns NaN, `calibrate_against_nulls` refuses with
+`no_measurable_rows`, and the A3 three-observation receipt reproduces bit for bit
+afterwards, which is the check that this moved the degenerate cases and nothing else.
+
+Neither defect was reachable on A3's three observations. Both were reachable the moment
+the pool was 303. A guard written as a floor is a guard that behaves correctly on data
+that never tests it.
+
+**The result.** Pool B, the pre-registered one: 303 selected, 0 unpreparable, 289 scored,
+224 discriminating at 77.5%, and an exact one-sided 95% lower bound of 0.7309, which
+clears the 0.70 bar. Over the 68 independent (ground station, UTC date) episodes those 289
+span, the grouped bound is 0.3662 and does not. The plan groups before it decides, so the
+verdict is `PASSED_UNGROUPED_ONLY` and the gate is not counted as met. A ground station's
+local-oscillator error is common to every pass it records, so many observations from one
+receiver on one night are one systematic offset measured many times.
+
+**And pool A is why E16 existed.** Same scorer, same nulls, same grouping rule, the only
+difference being that pool A is selected on `sigma_curved - sigma_vertical >= 3.0`, which
+is a corridor result. It gives 308 selected, 307 scored, 95.1% discriminating, a bound of
+0.9258, and over 74 episodes a grouped bound of 0.7505. It clears the bar both ways. It
+reads PASSED.
+
+That is the whole argument made concrete. Had the pool been grown the obvious way, this
+project would be publishing a passed gate 3 tonight. The 17.6-point gap between the two
+rates is the size of the selection effect on this corpus, and it is now a measurement
+rather than a caution. The pre-registration named pool B as the deciding one before either
+was scored, which is the only reason that sentence can be written at all.
+
+**Fourteen observations had no p-value and no reason.** Testable, scored, nothing came
+back. `calibrate_against_nulls` names every branch it can refuse on and the CLI and the
+live path both print the name, but `NullCalibration.summary()` dropped
+`not_tested_reason`, so the one consumer a judge reads was the only one showing a blank.
+The receipt carries `no_p_value_by_reason` now, and the writer raises rather than
+bucketing an unnamed branch as unknown, because a branch added later without naming itself
+is exactly how the field goes quiet again.
+
+**More than half the pool is unresolved to the mode reader.** Of the 289 scored, 136 are
+UNCORRECTED to `doppler_mode.verdict_from_scores` and 126 of those discriminate, at 92.6%.
+The other 153 are UNRESOLVED: neither the curved nor the vertical hypothesis cleared an
+8 sigma floor. 98 of them discriminate anyway, at 64.1%. The pool rule never reads a mode,
+so this is a decomposition of the scored set rather than a selection within it, and the
+receipt says `decides_the_gate: false` beside it. The pooled rate stays the gate's. But it
+is the more interesting half of the result: a matched filter with an ephemeris behind it
+finds a trace on 98 images where a two-hypothesis comparison could not resolve one, and
+the pooled 77.5% hides that entirely.
+
+**Four generated surfaces asserted their own conclusion.** They were written when gate 3
+had one possible outcome and they hardcoded it.
+
+- The KILL_GATE summary row rendered ", so a 70% rate is not established" unconditionally.
+  With a bound of 0.731 against a 0.70 bar it printed the bound that clears the bar and the
+  sentence denying it, in the same cell, at the top of the document a judge reads first.
+- `run_gate_power.py` derived gate 3 from one assumed state. Its binding constraint is
+  `independent_episodes` now, its `have_n` is 68 episodes rather than 3 observations, and
+  its shortfall is 0: what it needs is not more observations but observations that are not
+  the same receiver on the same night.
+- The demo script's spoken line was half generated and half typed. It would have read
+  "303 testable observations, all three discriminate" on camera.
+- The sensitivity table computed its verdict from the observation-level bound alone, so at
+  the pre-registered bar it printed PASSED against a receipt saying
+  `PASSED_UNGROUPED_ONLY`. A robustness table that disagrees with the receipt at the
+  published row is not corroboration.
+
+All four derive four states now, and `tests/test_verdict_vocabulary.py` fails if a surface
+invents a word for a verdict that the receipts do not use.
+
+**The sensitivity sweep, since the bar is the one degree of freedom.** Over 3.5, 4.0, 5.0,
+6.0 and 8.0 the discriminating rate stays between 75.0% and 79.8% while the scored count
+falls from 289 to 42. The observation-level verdict does change at 6.0, and it changes
+because the interval widens on 76 observations rather than because the rate moved. The
+grouped bound clears at no bar. Bars below the one that was scored report NOT SCORED
+rather than a number, because a looser bar selects observations this run never scored and
+a rate over the ones it happens to have is a rate over a biased subset.
+
+**A unanimity that was true of three.** The frequency-axis sign is remeasured per
+observation by scoring the corridor as shipped and mirrored. On A3's three every
+remeasurement agreed with `AXIS_SIGN_CONVENTION`, so the test asserted unanimity. Over
+E16's pool it is not unanimous, and the disagreements are not noise in the ratio: no
+agreeing ratio falls within 20% of a tie. Both terms of the dissenting ratios are noise
+instead. Their best orientation reaches under 1.0 sigma against a median of 2.11 among the
+agreeing, so neither orientation detects anything and the ratio is decisive-looking
+arithmetic over nothing. The property that holds is stronger than unanimity over
+everything: every observation with a detection agrees. Conditioning on that would be
+circular if it were used to excuse a disagreement, so it is not. Every dissenter is
+published with both its sigmas, and the test fails if one ever turns up on an observation
+that does discriminate.
+
+**The live path's reproduction claim was reaching the receipt sideways.** The replay was
+built from A3's 24 observations, so it compared whatever the two sets shared: 3 while the
+receipt was A3's pool, 1 after E16 rebuilt it, and the test failed on its own floor. The
+floor was right to fail, and raising it would have been the wrong repair, because the set
+being sampled was never the receipt's. It walks the receipt's own observations now, in
+obs_id order so the sample is not chosen on the result.
+
+Doing that exposed a real divergence: on obs 14730584 the gate fitted 5,906.219475941733 Hz
+and `live.measure` returned nothing. Neither is wrong. The live path measures the mode
+first and declines on UNRESOLVED, because it answers a human asking about one observation.
+The gate fits the uncorrected corridor on every pool member, because filtering the pool by
+a mode verdict afterwards would put the annotation back in. With 153 of the scored set
+UNRESOLVED that is a third of the receipt rather than one odd row, so the claim is stated
+at the precision it holds: the live path reproduces the gate digit for digit wherever both
+score a corridor, and names its reason where it does not. Both halves are asserted,
+because the first alone would be satisfied by a live path that quietly declined
+everything.
+
+**The agent study was re-frozen rather than regraded.** One of its 24 questions asks what
+verdict `GATE3_RECEIPT.json` records, and the study refuses to grade an old answer against
+a changed expectation: *the data moved under the study; re-freeze rather than regrading old
+answers.* So both arms were run again against the local Granite model. The headline did not
+move: 22 of 24 with the tools against 2 of 24 without, p = 1e-06 over 20 discordant pairs.
+The tool arm read the new verdict in one call where it had needed two.
+
+**The README printed two different verdicts for gate 3, eleven lines apart.** The
+substantive gate table read `NOT_ESTABLISHED` and the closure table below it read
+`PASSED_UNGROUPED_ONLY`. Both generated. The first goes through the console summary, where
+the verdict is bucketed so a three-state chip can render it, and `_verdict_cell`'s own
+docstring says the opposite: "the verdict token as written, not prettified ... the strings
+the receipts carry". It reads the receipt's word now, through the
+`verdict_in_the_receipt` field the console already records whenever it buckets one.
+
+Fixing that exposed the second half. The headline sentence is assembled from three counts,
+passed, inconclusive and never run, and a verdict in none of those buckets is not an error:
+it is a gate that silently vanishes. The sentence would have said three of four and named
+no fourth. There are four buckets now and an assertion that they sum to the number of
+substantive gates, which fails the build rather than dropping a gate from a summary.
+
+**The film says the old verdict, on a committed video, and it had three defects on one
+card.** Every number in it is read from a receipt at build time. The sentences holding
+those numbers were typed, so on the current receipt the physics beat rendered "All 224
+discriminated, which puts the 95% lower bound at 0.73 against a threshold of 0.70. That is
+not enough to clear it." 224 is not all of 289, and 0.73 clears 0.70.
+
+Two more in the display layer, both worse for being invisible:
+
+- `verdict.display.replace("_", " ")` replaces only the first `_` in JavaScript.
+  `PASSED_UNGROUPED_ONLY` renders as "passed ungrouped_only".
+- `VerdictMark` has branches for PASSED, PRE_PASSED, NOT_ESTABLISHED and FAILED and falls
+  through to a flat dash, which is its glyph for "not measurable". A gate measured on 289
+  observations would have been marked unmeasurable, in a video, with the whole suite green,
+  because no test ever asked whether the film could draw the verdicts the receipts hold.
+
+The sentence is derived now, the mark has a branch for a bound that cleared over
+observations and not over episodes, and `KNOWN_VERDICTS` is exported so a test can assert
+the set against what the receipts actually contain rather than against what the component
+happens to handle.
+
+**A tally keyed on a sentence with a number in it.** The new axis-sign block came back
+with 62 distinct `not_measurable_by_reason` keys, every one the same reason with a
+different ratio inside the prose: "the two orientations score within 1.07x of each other",
+"... within 1.04x ...", and so on down. That is not a tally, it answers nothing, and it put
+62 near-identical sentences into a receipt a judge might open. Each key is now the reason with its
+digits normalised out, and the ratio goes out as a distribution, because a dead tie and
+a 1.9x win under a 2.0x bar are different situations and neither was legible before.
+
+**What the remeasurement actually found.** 175 of the 289 scored observations can orient an
+axis at all; the rest tie between the two orientations by less than the 2.0x separation
+this treats as decisive. Of the 175, 173 agree with `AXIS_SIGN_CONVENTION` and 2 do not.
+Among the 171 that both orient and discriminate, agreement is 171 of 171. The two
+dissenters reach 0.83 and 1.00 sigma in their best orientation against a median of 2.11
+among the agreeing, so neither detects anything in either direction.
+
+**The offset sweep, published.** The matched filter evaluates every whole-pixel offset
+inside the frequency bound and keeps the maximum. The rest of that curve is the most direct
+evidence in the project that the corridor is on the trace rather than near it, and it was
+being computed and discarded on every observation. `offset_sweep` is the primitive now and
+`_best_over_offsets` is `np.argmax` over it, so the peak the console draws *is* the fitted
+offset by construction rather than by agreement between two loops. The scoring geometry
+that both the sweep and the null calibration need, the smoothed image, the origin, the
+pixel bound and the horizon row mask, comes out of `calibrate_against_nulls` into
+`scoring_setup` for the same reason: a second reconstruction of it in the console builder
+could put the peak somewhere the receipt does not, and both would look right alone.
+
+The chart is server-rendered SVG and ships no JavaScript. A corridor that were merely near
+the trace would give a flat sweep with no peak to find, so the shape is the claim.
+
+**Two receipts were not JSON, and only a bundler noticed.** `json.dumps` writes the bare
+tokens `NaN`, `Infinity` and `-Infinity` unless told not to. None of them is in the JSON
+grammar, and `json.loads` reads them straight back, so a project whose consumers are all
+Python can carry one indefinitely without finding out.
+
+This one carried two. `artifacts/GATE3_POOL.json` had a NaN in the `trace_q75` block of
+four observations, `run_gate3.py` copied one of them into `artifacts/GATE3_RECEIPT.json`,
+and both files stopped being readable by `jq`, by a browser's `JSON.parse`, and by anything
+else a judge would reach for. The whole argument of this project is that a reader can open
+a receipt and check a number, and the two most important receipts in it could only be
+opened by the language that wrote them.
+
+It surfaced because the presentation film imports the receipt through a bundler whose JSON
+plugin is strict. The error it produced was "Failed to parse JSON file" with no line
+number.
+
+Both writers pass `allow_nan=False` now, so a non-finite value stops the write rather than
+being emitted, and non-finite values are converted to null first, with a log line naming
+each one, because a receipt that quietly turned numbers into nulls would be worse than one
+that refuses to write. `tests/test_artifacts_are_json.py` reads every JSON file under
+`artifacts/`, `apps/web/public/data/`, `tests/fixtures/` and `contracts/` the way a parser
+that is not Python's would, and prints the offending line numbers when one fails.
+
+The pool was rebuilt to clear it, and membership was compared before and after to show that
+this changed a serialisation and not a selection.

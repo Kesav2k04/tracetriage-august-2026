@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 38 JSON artifacts, 8 contracts, 55 scripts, 29 package modules and 1395 test functions across 75 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 38 JSON artifacts, 8 contracts, 55 scripts, 29 package modules and 1399 test functions across 75 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -185,10 +185,10 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_artifacts_are_json.py` | 3 | Every committed artifact has to be JSON, not Python's dialect of it. |
 | `tests/test_base_rates.py` | 7 | Check the documented base rates against a corpus that actually exists. |
 | `tests/test_baseline.py` | 47 | Tests for the A6 image-only baseline module. |
-| `tests/test_bob_unit_count.py` | 9 | The Bob unit count is a count of units, not of markdown headings. |
+| `tests/test_bob_unit_count.py` | 11 | The Bob unit count is a count of units, not of markdown headings. |
 | `tests/test_bob_units_export.py` | 5 | `apps/web/public/data/bob.json` is what the build log produces, and it says the hard part. |
 | `tests/test_centre_energy_feature.py` | 14 | Guards on the centre-energy feature itself, not on the pipeline around it. |
-| `tests/test_ci_workflow.py` | 6 | What CI must keep doing, asserted against the workflow rather than against a memory. |
+| `tests/test_ci_workflow.py` | 7 | What CI must keep doing, asserted against the workflow rather than against a memory. |
 | `tests/test_circularity.py` | 21 | The circularity analysis has to reproduce the gate before it is allowed to bound it. |
 | `tests/test_claim_drift.py` | 11 | Every public number must come from a generated artifact, not a keyboard. |
 | `tests/test_clean_clone.py` | 11 | The clean-clone transcript, and the counts it publishes. |
@@ -242,7 +242,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_readme_claims.py` | 5 | Every repository path the README names must exist and carry something. |
 | `tests/test_receipt_digests.py` | 5 | The digest audit, and the three ways it could pass while meaning nothing. |
 | `tests/test_reference_sync.py` | 10 | `docs/REFERENCE.md` is generated, and the generator has to notice things changing. |
-| `tests/test_release_audit.py` | 9 | The three release-audit receipts, and whether the checks that produced them can fail. |
+| `tests/test_release_audit.py` | 10 | The three release-audit receipts, and whether the checks that produced them can fail. |
 | `tests/test_review_documents.py` | 2 | The two independent reviews, and whether they describe themselves correctly. |
 | `tests/test_selective_and_ood.py` | 26 | Tests for selective prediction (B4) and out-of-distribution scoring (B5). |
 | `tests/test_signoff.py` | 11 | The sign-off receipt, and whether it could ever say NOT_SIGNED. |

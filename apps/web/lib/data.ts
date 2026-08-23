@@ -1095,9 +1095,12 @@ export function precedentFor(
  * evidence lived was a markdown file in the repository. `scripts/export_bob_units.py`
  * parses `docs/BOB_BUILD_LOG.md` with the same walk the FOR_JUDGES generator uses and
  * writes the ten Bob-account units with the files each one changed and what failed before
- * it was accepted. The operator-side count travels with them: 49 of the 59 dated units in
- * that log are a person at Cursor and Claude Code, and a page that showed only the ten
- * would be publishing a fraction as a total.
+ * it was accepted. The operator-side count travels with them: 49 of the 59 dated units are
+ * a person at Cursor and Claude Code, and a page that showed only the ten would be
+ * publishing a fraction as a total. Those 49 are counted across two files. The Wave D and
+ * Wave E units moved to `docs/OPERATOR_BUILD_LOG.md` once the single log passed the size
+ * above which GitHub stops rendering markdown, and the counter reads the actor out of each
+ * heading rather than off a filename, so the totals did not move when the file was cut.
  */
 export interface BobUnit {
   unit: string;

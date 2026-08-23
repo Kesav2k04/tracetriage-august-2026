@@ -155,11 +155,13 @@ waterfall artifact parser, the physics corridor, label provenance, the image-onl
 baselines, the end-to-end triage slice, the grouped splits with their leakage audit, and
 the review-value queue with kill gate 6. Each names the files it changed, the commands
 that were run, the Bob task id and what failed before it was accepted. A further 49 dated
-units in the same file are operator-side, run from Cursor and Claude Code, and are
-labelled that way in the actor field of their own headings: the console, the calibration
-and abstention blocks, the fusion ladder and the review waves are theirs, not Bob's. That
+units are operator-side, run from Cursor and Claude Code, and are labelled that way in the
+actor field of their own headings: the console, the calibration and abstention blocks, the
+fusion ladder and the review waves are theirs, not Bob's. 47 of those sit in
+`docs/OPERATOR_BUILD_LOG.md` and 2 stay beside the Bob units whose gaps they closed,
+because the counter reads the actor out of each heading rather than off a filename. That
 distinction is published because the number here used to be 60, which was the count of
-second-level markdown headings in the file and not the count of anything anyone did. Bob
+second-level markdown headings in one file and not the count of anything anyone did. Bob
 also operates the product: `.bob/mcp.json` registers the evidence server and the live
 measurement server, so a Bob session can measure a pass recorded today and have the same
 grounding checker refuse a sentence about it. `.bob/rules.md`, `.bob/TOOL_SPECS.md` and
@@ -346,7 +348,10 @@ thing to argue about.
 ## How IBM Bob was used
 
 `docs/BOB_BUILD_LOG.md` has an entry per unit: what was asked, what came back, what failed and
-what repaired it. `.bob/rules.md` is the standing instruction set Bob worked to, and
+what repaired it. It holds every Bob-account unit and nothing else of consequence, because
+the operator-side waves were moved to `docs/OPERATOR_BUILD_LOG.md` once the single file
+passed the size above which GitHub stops rendering markdown.
+`.bob/rules.md` is the standing instruction set Bob worked to, and
 `.bob/TOOL_SPECS.md` specifies the project's own MCP tools, with the 12 that
 were built separated from the 4 that were specified and were not, each of
 those naming the script that did its job instead.

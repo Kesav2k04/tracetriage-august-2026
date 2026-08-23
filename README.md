@@ -197,17 +197,21 @@ immutable snapshot, the waterfall artifact parser, the physics corridor, label p
 image-only baselines, the end-to-end triage slice, the grouped splits with their leakage audit,
 and the review-value queue with kill gate 6.
 
-A further 49 dated units in the same file are operator-side, run from Cursor and Claude Code,
-and are labelled that way in the actor field of their own headings: the console, the
-calibration and abstention blocks, the fusion ladder and the review waves are theirs, not
-Bob's. An earlier version of this section claimed Bob built all of it, which is contradicted by
-the log it points at. Both numbers are counted from the log by `scripts/sync_for_judges.py` and
-checked against this file by `tests/test_bob_unit_count.py`.
+A further 49 dated units are operator-side, run from Cursor and Claude Code, and are labelled
+that way in the actor field of their own headings: the console, the calibration and abstention
+blocks, the fusion ladder and the review waves are theirs, not Bob's. 47 of them are in
+`docs/OPERATOR_BUILD_LOG.md` and 2 stay beside the Bob units whose gaps they closed. An
+earlier version of this section claimed Bob built all of it, which is contradicted by the log
+it points at. Both numbers are counted from the two logs by `scripts/sync_for_judges.py`,
+which reads the actor out of each heading rather than off a filename, and checked against this
+file by `tests/test_bob_unit_count.py`.
 
 Bob's work is recorded, not asserted:
 
 - `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures and repairs,
-  with actual build credit consumption
+  with actual build credit consumption. `docs/OPERATOR_BUILD_LOG.md` is its operator-side
+  counterpart, split out when the single file passed the size above which GitHub stops
+  rendering markdown
 - `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool
   contracts and MCP wiring each Bob task ran under, so the conditions of the work are readable
   and not just its output. The specification separates the 12 tools that exist, 7 over

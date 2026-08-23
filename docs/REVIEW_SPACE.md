@@ -24,7 +24,7 @@ Counts: 5 BLOCKING, 9 SERIOUS, 11 MINOR.
 > **What happened to these findings.** This is an adversarial pre-ship review. It was
 > commissioned to find defects, so every line below is something that was wrong at the
 > commit named above, not something that is wrong now. The work that answers them runs
-> in `docs/BOB_BUILD_LOG.md` from Wave D (2026-08-19) onward, under the identifiers the
+> in `docs/OPERATOR_BUILD_LOG.md` from Wave D (2026-08-19) onward, under the identifiers the
 > log assigns. This file is the list of what was found; the build log is what was done
 > about it.
 

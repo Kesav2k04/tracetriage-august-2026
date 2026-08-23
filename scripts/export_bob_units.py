@@ -183,7 +183,9 @@ def collect() -> dict[str, Any]:
         "what_is_not_bobs": (
             "The console, the calibration and abstention blocks, the fusion ladder and the "
             "review waves are operator-side, run from Cursor and Claude Code, and are "
-            "labelled that way in the actor field of their own headings in the same log."
+            "labelled that way in the actor field of their own headings. Most of them are "
+            "in docs/OPERATOR_BUILD_LOG.md, which is where the Wave D and Wave E units "
+            "went when the single log outgrew the size GitHub will render."
         ),
         "units": units,
     }

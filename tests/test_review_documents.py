@@ -66,8 +66,13 @@ def test_the_review_says_where_its_findings_were_answered(rel: str) -> None:
         f"{rel} has no status block, so a reader meets its BLOCKING findings with nothing "
         "saying the work that answers them exists"
     )
-    assert "docs/BOB_BUILD_LOG.md" in text, (
-        f"{rel} names no file where the answering work is recorded"
+    # Either log answers this. The findings below were closed in Wave D and Wave E, whose
+    # units moved to docs/OPERATOR_BUILD_LOG.md when the single build log passed the size
+    # above which GitHub stops rendering markdown. Naming one path here would have failed a
+    # review that correctly points at the log its own findings were answered in.
+    logs = ("docs/BOB_BUILD_LOG.md", "docs/OPERATOR_BUILD_LOG.md")
+    assert any(log in text for log in logs), (
+        f"{rel} names neither of {logs}, so it says nowhere the answering work is recorded"
     )
     heading = text.index("## Findings")
     assert text.index("What happened to these findings") < heading, (
