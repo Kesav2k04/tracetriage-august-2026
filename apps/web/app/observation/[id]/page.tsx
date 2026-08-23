@@ -17,6 +17,7 @@ import {
   noteById,
   notes,
   precedentFor,
+  satelliteName,
   showcaseIds,
 } from "@/lib/data";
 import OffsetSweep from "@/components/OffsetSweep";
@@ -130,6 +131,10 @@ export default async function ObservationPage({
           }}
         >
           <Tag>{card.station_name ?? `station ${card.ground_station}`}</Tag>
+          {/* Name first, catalogue number after it. The number is the join key
+              every receipt here uses, so it stays; on its own it told a reader
+              which integer this pass was of and not what. */}
+          <Tag>{satelliteName(card.satellite)}</Tag>
           <Tag>NORAD {card.norad_cat_id}</Tag>
           <Tag>{card.transmitter_mode ?? "mode unknown"}</Tag>
           <Tag tone="muted">label: {card.waterfall_status}</Tag>
@@ -499,8 +504,19 @@ export default async function ObservationPage({
             "page, and under the second condition it does not beat chance."
           }
         >
+          {/* "Satellite (NORAD)" rather than "Satellite": precedent.json records a
+              neighbour's satellite as its catalogue integer, and this page now names
+              the query's own satellite in its header, so a bare heading put a name and
+              a number under the same word. */}
           <Table
-            head={["Condition", "Neighbour", "Station", "Satellite", "Start", "Network label"]}
+            head={[
+              "Condition",
+              "Neighbour",
+              "Station",
+              "Satellite (NORAD)",
+              "Start",
+              "Network label",
+            ]}
             headAlign={["left", "right", "right", "right", "left", "left"]}
           >
             {(["warm", "cold"] as const).flatMap((condition) =>
@@ -533,7 +549,8 @@ export default async function ObservationPage({
           <Note tone="limit">
             This pass carries the network label <strong>{card.waterfall_status}</strong>,
             station {card.ground_station ?? "not recorded"}, satellite{" "}
-            {card.norad_cat_id ?? "not recorded"}. Counting how many neighbours match that
+            {satelliteName(card.satellite)} (NORAD{" "}
+            {card.norad_cat_id ?? "not recorded"}). Counting how many neighbours match that
             label is one draw and settles nothing on its own. The neighbours link to the
             network rather than to this console, because most of them are outside the
             shipped set and the console carries no imagery for them.

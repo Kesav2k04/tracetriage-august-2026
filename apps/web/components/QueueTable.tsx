@@ -8,9 +8,9 @@
  * rather than renumbering. A table that renumbered its rows under a filter would
  * be showing a ranking nobody measured.
  *
- * Rows are windowed, because 407 rows of six cells each is a 2,400-node table and
- * a reader looks at the top of it. "Show all" is one click away and the filter
- * counts always describe the whole set, not the window.
+ * Rows are windowed, because 407 rows of eight cells each is a table of over 3,000
+ * nodes and a reader looks at the top of it. "Show all" is one click away and the
+ * filter counts always describe the whole set, not the window.
  */
 
 import Link from "next/link";
@@ -22,6 +22,7 @@ import {
   type QueueReason,
   type QueueRow,
 } from "@/lib/queue-view";
+import { satelliteName } from "@/lib/format";
 import { Cell, Table, Tag } from "./ui";
 
 const PAGE = 60;
@@ -70,7 +71,14 @@ export default function QueueTable({
       ) {
         return false;
       }
-      if (needle && !String(entry.obs_id).includes(needle)) return false;
+      if (needle) {
+        // Id or name, one field. A reader who came for FRONTIERSAT and a reader who
+        // came for 14746092 are asking the same question of the same row, and a
+        // search box that only took the integer would have made the name a label
+        // rather than a way in.
+        const hay = `${entry.obs_id} ${satelliteName(entry.satellite)}`.toLowerCase();
+        if (!hay.includes(needle.toLowerCase())) return false;
+      }
       return true;
     });
   }, [entries, filter, query]);
@@ -178,12 +186,11 @@ export default function QueueTable({
             color: "var(--text-02)",
           }}
         >
-          Observation id
+          Observation or satellite
           <input
             type="search"
-            inputMode="numeric"
             value={query}
-            placeholder="14746092"
+            placeholder="14746092 or SNUGLITE"
             onChange={(event) => {
               setQuery(event.target.value);
               setLimit(PAGE);
@@ -195,7 +202,7 @@ export default function QueueTable({
               padding: "var(--sp-02) var(--sp-03)",
               font: "inherit",
               fontFamily: "var(--font-mono)",
-              width: "9rem",
+              width: "13rem",
             }}
           />
         </label>
@@ -256,7 +263,7 @@ export default function QueueTable({
             lineHeight: 1.6,
           }}
         >
-          No row matches{query.trim() ? ` observation ${query.trim()}` : " this filter"}.
+          No row matches{query.trim() ? ` "${query.trim()}"` : " this filter"}.
           That is an empty result, not a failure: the queue holds{" "}
           <span className="num">{entries.length}</span> rows and none of them meet the
           condition you asked for.{" "}
@@ -287,6 +294,7 @@ export default function QueueTable({
         head={[
           "Rank",
           "Observation",
+          "Satellite",
           "Score",
           "Why it is here",
           "Label",
@@ -294,6 +302,7 @@ export default function QueueTable({
           "Offset ppm",
         ]}
         headAlign={[
+          "left",
           "left",
           "left",
           "right",
@@ -334,6 +343,11 @@ export default function QueueTable({
                   </span>
                 )}
               </Cell>
+              {/* The name beside the number, not instead of it. The catalogue id is
+                  the join key every receipt in this repository uses and the name is
+                  what a reader recognises, so a row carrying only one of the two was
+                  either unreadable or unverifiable. */}
+              <Cell align="left">{satelliteName(entry.satellite)}</Cell>
               <Cell mono>{entry.score.toFixed(4)}</Cell>
               <Cell align="left">
                 <span

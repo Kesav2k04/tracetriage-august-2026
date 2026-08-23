@@ -243,6 +243,11 @@
    "bytes": 5025
   },
   {
+   "name": "SATELLITE_NAMES.json",
+   "sha256": "196ad682c56350b8dbf21aa4e60e36b8908ff2913266a27c95e1af6597f86951",
+   "bytes": 12328
+  },
+  {
    "name": "SECOND_TRACE_SURVEY.json",
    "sha256": "ef43f2ad5bc160be50b60877778f202436d3809db586814a314ff39789fadc62",
    "bytes": 334073

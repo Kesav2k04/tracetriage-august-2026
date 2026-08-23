@@ -29,6 +29,8 @@ import type { QueueReason } from "./queue-view";
 
 export interface QueueEntry {
   obs_id: number;
+  /** The `tle0` name line of the element set this pass was propagated from. */
+  satellite: string;
   rank: number;
   score: number;
   reasons: QueueReason[];
@@ -166,6 +168,15 @@ export interface CardMeasurements {
   ground_station: number | null;
   station_name: string | null;
   norad_cat_id: number | null;
+  /**
+   * The satellite's name, verbatim from the snapshot's `tle0`.
+   *
+   * Not nullable, unlike its neighbours here, and that is the exporter's contract
+   * rather than an oversight: `scripts/build_console_data.py` refuses to write a card
+   * whose record carries no name, because a card headed by a catalogue integer alone
+   * is the thing this field exists to end.
+   */
+  satellite: string;
   transmitter_uuid: string | null;
   transmitter_mode: string | null;
   waterfall_status: string | null;
@@ -192,7 +203,7 @@ export function isBuilt(
   return card.degraded === null;
 }
 
-export { fmt, fmtInterval, verdictColour, type Verdict } from "./format";
+export { fmt, fmtInterval, satelliteName, verdictColour, type Verdict } from "./format";
 
 import type { Verdict } from "./format";
 

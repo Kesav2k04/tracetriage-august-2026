@@ -45,6 +45,8 @@ export const NON_ACTIONABLE: ReadonlySet<QueueReason> = new Set([
  */
 export interface QueueRow {
   obs_id: number;
+  /** The satellite's name, `tle0` verbatim. Rendered through `satelliteName`. */
+  satellite: string;
   rank: number;
   score: number;
   reasons: QueueReason[];

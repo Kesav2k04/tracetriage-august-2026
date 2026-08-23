@@ -305,6 +305,19 @@ def export_observation(
     thumb_path = _IMG_DIR / f"{obs_id}_thumb.webp"
     thumb.save(thumb_path, format="WEBP", quality=74, method=6)
 
+    # The name of the thing the pass was of. Read from the snapshot record's own tle0,
+    # the same field and the same key the live path publishes at live.py:555, and
+    # required rather than defaulted: a card headed by a catalogue integer alone is what
+    # this field exists to end, and a null here would restore it silently for one row.
+    satellite = str(record.get("tle0") or "").strip()
+    if not satellite:
+        raise ValueError(
+            f"observation {obs_id} has no tle0 in the snapshot record, so this card "
+            f"would name no satellite. The console publishes the name beside the "
+            f"catalogue number on every surface; an empty one there reads as an "
+            f"unnamed pass rather than as a field that moved."
+        )
+
     out: dict[str, Any] = {
         "obs_id": obs_id,
         "degraded": None,
@@ -326,6 +339,7 @@ def export_observation(
         "ground_station": record.get("ground_station"),
         "station_name": record.get("station_name"),
         "norad_cat_id": record.get("norad_cat_id"),
+        "satellite": satellite,
         "transmitter_uuid": record.get("transmitter_uuid"),
         "transmitter_mode": record.get("transmitter_mode"),
         "waterfall_status": record.get("waterfall_status"),
@@ -826,9 +840,23 @@ def build_gate_summary(queue: dict[str, Any], fusion: dict[str, Any]) -> dict[st
     }
 
 
-def trim_queue_entry(entry: dict[str, Any]) -> dict[str, Any]:
+def trim_queue_entry(entry: dict[str, Any], satellite: str) -> dict[str, Any]:
+    """One queue row, with the name of the satellite it is a pass of.
+
+    ``satellite`` is required rather than defaulted. Every ranked observation has a
+    ``tle0`` in the snapshot the queue was built from, so an absent name means the
+    snapshot moved and not that the pass was of nothing; a row that published an empty
+    name would put that mistake on the page as a property of the data.
+    """
+    if not satellite.strip():
+        raise ValueError(
+            f"observation {entry['obs_id']} has no satellite name. "
+            f"artifacts/SATELLITE_NAMES.json carries one per ranked observation; "
+            f"re-run scripts/export_satellite_names.py against the snapshot."
+        )
     return {
         "obs_id": entry["obs_id"],
+        "satellite": satellite,
         "rank": entry["rank"],
         "score": round(entry["score"], 6),
         "reasons": entry["reasons"],
@@ -927,11 +955,19 @@ def main(argv: list[str] | None = None) -> int:
     manifest = _load("SPLIT_MANIFEST.json")
     corridor = _load("corridor_features.json")
     corridor_by_obs = {r["obs_id"]: r for r in corridor["rows"]}
+    # The satellite behind each ranked observation, read from a receipt rather than
+    # from the snapshot, because this builder has to run in a clean clone that holds
+    # no snapshot. scripts/export_satellite_names.py is the half that needs one.
+    satellites = _load("SATELLITE_NAMES.json")
+    satellite_by_obs = {int(k): v for k, v in _require(satellites, "names").items()}
 
     data_dir.mkdir(parents=True, exist_ok=True)
 
     # ---- queue -----------------------------------------------------------
-    entries = [trim_queue_entry(e) for e in queue["queue"]]
+    entries = [
+        trim_queue_entry(e, satellite_by_obs.get(int(e["obs_id"]), ""))
+        for e in queue["queue"]
+    ]
     (data_dir / "queue.json").write_text(
         json.dumps(
             {

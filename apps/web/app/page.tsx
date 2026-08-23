@@ -775,6 +775,7 @@ export default function QueuePage() {
           // payload the browser has to parse before it can filter anything.
           entries={queue.entries.map((entry) => ({
             obs_id: entry.obs_id,
+            satellite: entry.satellite,
             rank: entry.rank,
             score: entry.score,
             reasons: entry.reasons,

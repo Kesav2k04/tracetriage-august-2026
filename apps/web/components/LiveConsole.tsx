@@ -26,6 +26,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { satelliteName } from "@/lib/format";
+
 /** The measurement payload, as `LiveMeasurement.to_dict` writes it. */
 type Measurement = {
   observation?: {
@@ -362,7 +364,7 @@ function Measured({ data, source }: { data: Measurement; source: "live" | "shelf
           </p>
           <h2 className="live-result-title">
             <span className="mono">{observation.id}</span>{" "}
-            <span className="live-result-sat">{observation.satellite}</span>
+            <span className="live-result-sat">{satelliteName(observation.satellite)}</span>
           </h2>
           <p className="live-result-sub">
             station <span className="mono">{observation.station}</span>{" "}

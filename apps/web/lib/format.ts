@@ -40,6 +40,24 @@ export function fmt(value: number | null | undefined, digits = 3): string {
   return value.toFixed(digits);
 }
 
+/**
+ * The satellite's name, without the line marker its own format prescribes.
+ *
+ * The payloads carry `tle0` verbatim, because that is what the snapshot recorded and
+ * what the live path publishes, and a three-line element set numbers its lines: the
+ * name line arrives as "0 OBJECT E". Dropping the marker is display, so it happens
+ * here rather than in the data, and it happens in one place so the queue table, the
+ * observation pages and the live console cannot disagree about the same satellite.
+ *
+ * Only a leading "0 " goes. A name is never rewritten beyond that, and a value that
+ * carries no marker is returned untouched.
+ */
+export function satelliteName(tle0: string | null | undefined): string {
+  const raw = (tle0 ?? "").trim();
+  if (raw === "") return "not recorded";
+  return raw.startsWith("0 ") ? raw.slice(2).trim() : raw;
+}
+
 export function fmtInterval(
   interval: [number, number] | null | undefined,
   digits = 3,

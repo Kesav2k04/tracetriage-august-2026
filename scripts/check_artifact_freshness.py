@@ -25,8 +25,8 @@ folding the first into the second manufactures a regression on every machine tha
 hold the snapshot. A builder that crashes for any other reason still fails.
 
 Covered by default: SPLIT_MANIFEST.json, LEAKAGE_AUDIT.json, HERO_NULLS.json,
-TRIAGE_RECEIPT.json and every file a JSON-only console rebuild emits under
-apps/web/public/data. cards.json is the one published file this cannot check, because
+SATELLITE_NAMES.json, TRIAGE_RECEIPT.json and every file a JSON-only console rebuild
+emits under apps/web/public/data. cards.json is the one published file this cannot check, because
 it needs the waterfall PNGs, and the check says so rather than passing over it. The
 hero artifact earned its place the hard way. Its generator defaulted to 32 drawn paths
 and one decimal while the shipped file carried 6 and zero, so a bare rebuild tripled the
@@ -282,6 +282,48 @@ def main(argv: list[str] | None = None) -> int:
                 else:
                     print("[PASS] HERO_NULLS.json matches what the exporter produces")
                     compared.append("HERO_NULLS.json")
+
+        # SATELLITE_NAMES.json is the one receipt the console builder reads that comes
+        # straight out of the snapshot, so it is the one that can drift without any
+        # code changing: a snapshot rebuilt over a different window renames rows. It is
+        # checked here rather than left to the console diff, because the console diff
+        # reads it as an input and a stale input compares clean against itself.
+        names_path = ARTIFACTS / "SATELLITE_NAMES.json"
+        if names_path.exists():
+            rebuilt_names_receipt = pathlib.Path(tmp) / "SATELLITE_NAMES.json"
+            proc = subprocess.run(
+                [
+                    str(PY),
+                    str(REPO / "scripts" / "export_satellite_names.py"),
+                    "--out",
+                    str(rebuilt_names_receipt),
+                ],
+                cwd=REPO, capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
+            )
+            if proc.returncode != 0:
+                if _report_crash("the satellite name exporter", proc):
+                    failed = True
+                else:
+                    skipped.append("SATELLITE_NAMES.json")
+            else:
+                diff = _first_difference(
+                    _strip(_load(names_path)), _strip(_load(rebuilt_names_receipt))
+                )
+                if diff:
+                    print("[FAIL] SATELLITE_NAMES.json is stale. First difference:")
+                    print(f"        {diff}")
+                    print("        Rebuild it, then rebuild the console payloads:")
+                    print("          python scripts/export_satellite_names.py")
+                    print(
+                        "          python scripts/build_console_data.py --skip-images"
+                    )
+                    failed = True
+                else:
+                    print(
+                        "[PASS] SATELLITE_NAMES.json matches what the exporter produces"
+                    )
+                    compared.append("SATELLITE_NAMES.json")
 
         # The published copies under apps/web/public/data are derived artifacts too,
         # and nothing compared them against their sources until now. That gap shipped:

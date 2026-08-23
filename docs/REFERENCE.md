@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 39 JSON artifacts, 8 contracts, 56 scripts, 29 package modules and 1401 test functions across 75 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 40 JSON artifacts, 8 contracts, 57 scripts, 29 package modules and 1406 test functions across 76 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -52,8 +52,9 @@ file that no longer exists in that form.
 | `OPERATOR_SESSION.json` | tracetriage/operator-session | 0.1.0 | none | 6,829 | `69564bde019b6783` | `scripts/run_operator_session.py` | `test_operator_session.py` |
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 63,045 | `6dc5302b24363528` | `pipeline/tracetriage/physics.py`, `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
 | `PRECEDENT_RECEIPT.json` | PRECEDENT_RECEIPT | 1 | none | 9,314 | `933ddb930cc60c23` | `scripts/build_console_data.py`, `scripts/check_receipt_digests.py`, `scripts/run_precedent_study.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_console_export.py`, `test_precedent.py`, `test_receipt_digests.py` |
-| `QUEUE_RECEIPT.json` | QUEUE_RECEIPT | 0.3.0 | `contracts/queue_receipt.schema.json` | 259,290 | `4204193634349fa8` | `scripts/annotate.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/gate.py`, `scripts/run_agent_study.py`, `scripts/run_circularity_check.py`, `scripts/run_gate_power.py`, `scripts/run_langchain_check.py`, `scripts/run_queue.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_circularity.py`, `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_demo_script.py`, `test_gate_power.py`, `test_kill_gate_sync.py`, `test_mcp_server.py`, `test_queue_concentration.py`, `test_receipt_digests.py`, `test_reference_sync.py` |
+| `QUEUE_RECEIPT.json` | QUEUE_RECEIPT | 0.3.0 | `contracts/queue_receipt.schema.json` | 259,290 | `4204193634349fa8` | `scripts/annotate.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/export_satellite_names.py`, `scripts/gate.py`, `scripts/run_agent_study.py`, `scripts/run_circularity_check.py`, `scripts/run_gate_power.py`, `scripts/run_langchain_check.py`, `scripts/run_queue.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_circularity.py`, `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_demo_script.py`, `test_gate_power.py`, `test_kill_gate_sync.py`, `test_mcp_server.py`, `test_queue_concentration.py`, `test_receipt_digests.py`, `test_reference_sync.py`, `test_satellite_names.py` |
 | `REPO_WEIGHT.json` | REPO_WEIGHT | 0.1.0 | none | 5,025 | `185cbef0ed54b3c5` | `scripts/audit_release.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
+| `SATELLITE_NAMES.json` | SATELLITE_NAMES/1 | n/a | none | 12,328 | `196ad682c56350b8` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/export_satellite_names.py` | `test_satellite_names.py` |
 | `SECOND_TRACE_SURVEY.json` | SECOND_TRACE_SURVEY | 0.1.0 | none | 334,073 | `ef43f2ad5bc160be` | `scripts/audit_release.py`, `scripts/build_architecture_diagram.py`, `scripts/clean_clone_check.py`, `scripts/measure_second_trace.py`, `scripts/measure_throughput.py` | `test_failure_injection.py` |
 | `SECRET_SCAN.json` | SECRET_SCAN | 0.1.0 | none | 1,170 | `09fd429ab1fc9989` | `scripts/audit_release.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_reference_sync.py`, `test_release_audit.py` |
 | `SIGNOFF_RECEIPT.json` | SIGNOFF_RECEIPT | 0.1.0 | none | 3,624 | `fff2af1a59b94981` | `scripts/gate.py`, `scripts/signoff.py` | `test_signoff.py` |
@@ -142,6 +143,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/export_bob_units.py` | Export the Bob-account units from the build log for the console to render. |
 | `scripts/export_grounding_golden.py` | Export what the Python grounding checker decides, so the TypeScript port can be held to it. |
 | `scripts/export_hero_nulls.py` | Export the null corridors gate 3 actually scored, as drawable pixel paths. |
+| `scripts/export_satellite_names.py` | The satellite name behind every observation the console ranks. |
 | `scripts/extract_corridor_features.py` | Extract per-observation corridor measurements and cache them for the fusion head. |
 | `scripts/extract_hog_cache.py` | Cache HOG feature vectors for the decisive corpus. |
 | `scripts/gate.py` | Mechanical verification of a Bob unit. |
@@ -246,6 +248,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_reference_sync.py` | 10 | `docs/REFERENCE.md` is generated, and the generator has to notice things changing. |
 | `tests/test_release_audit.py` | 10 | The three release-audit receipts, and whether the checks that produced them can fail. |
 | `tests/test_review_documents.py` | 2 | The two independent reviews, and whether they describe themselves correctly. |
+| `tests/test_satellite_names.py` | 5 | The console names the satellite behind every observation it ranks. |
 | `tests/test_selective_and_ood.py` | 26 | Tests for selective prediction (B4) and out-of-distribution scoring (B5). |
 | `tests/test_signoff.py` | 11 | The sign-off receipt, and whether it could ever say NOT_SIGNED. |
 | `tests/test_snapshot.py` | 48 | Tests for pipeline/tracetriage/snapshot.py — unit A1 acceptance. |
