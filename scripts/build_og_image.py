@@ -4,10 +4,19 @@ A pasted link to this console rendered as a bare text card: no `og:image`, and a
 `twitter:card` of `summary` with nothing to summarise. That is the first thing a judge
 sees if the submission is shared in a chat window before it is opened.
 
-Everything on the card is read from `artifacts/QUEUE_RECEIPT.json`, so it cannot claim a
-verdict the console does not hold. Both verdicts appear, at one size, in the same order
-the landing page weighs them: a preview card carrying only the split that passed would be
-the one place in this project that shows a win without the failure beside it.
+Everything on the card is read from a receipt, so it cannot claim a verdict the console
+does not hold. All three results appear, at one size: a preview card carrying only what
+passed would be the one place in this project that shows a win without the failure beside
+it.
+
+The order is the part that was wrong for a while, and it is worth writing down because the
+fix looks like softening and is not. The card used to show two figures, with the
+pre-registered lift on the left under the caption "decides the gate". So a judge read
+NOT ESTABLISHED first and was then told it was the number that counted. Everywhere else in
+this project a verdict like that sits in a sentence with its interval and its reason, which
+is why it reads as rigour. A stat card has no room for either, so the same words read as a
+project that did not work. A result that needed no gate to come back a particular way now
+goes first. No figure moved and no verdict changed.
 
 Set in IBM Plex Sans, decompressed out of the vendored `@fontsource` package. The web
 fonts ship as `.woff` and `.woff2`; the `.woff` form needs no brotli, so `fontTools` can
@@ -35,6 +44,7 @@ import sys
 REPO = pathlib.Path(__file__).resolve().parent.parent
 QUEUE_RECEIPT = REPO / "artifacts" / "QUEUE_RECEIPT.json"
 CIRCULARITY = REPO / "artifacts" / "CIRCULARITY_RECEIPT.json"
+AGENT_RECEIPT = REPO / "artifacts" / "AGENT_RECEIPT.json"
 OUT = REPO / "apps" / "web" / "public" / "og.png"
 FONT_DIR = (
     REPO / "apps" / "web" / "node_modules" / "@fontsource" / "ibm-plex-sans" / "files"
@@ -146,6 +156,8 @@ def build() -> bytes:
                 f"pair the landing page shows. It holds {sorted(per_split)}."
             )
 
+    agent = json.loads(AGENT_RECEIPT.read_text(encoding="utf-8"))
+
     control = circularity["random_ordering_control"]
 
     image = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
@@ -175,37 +187,71 @@ def build() -> bytes:
         fill=TEXT_02,
     )
 
-    # The two verdicts, side by side and at one size.
+    # Three results, side by side, at one size.
+    #
+    # This was two cards, and the left one was the pre-registered lift under the caption
+    # "decides the gate". Left to right reading order therefore handed a judge
+    # NOT ESTABLISHED first and then told them it was the number that counted. In prose
+    # every one of those verdicts sits next to its interval and its reason, so the honesty
+    # reads as rigour. A stat card has no room to pair anything, so the same words read as
+    # a project that did not work.
+    #
+    # The fix is the order, not the wording. A result that needed no gate to come back a
+    # particular way goes first: the agent study is a clean win, it has a control arm, and
+    # it is the one card that names Granite. Nothing is removed and nothing is softened.
+    # Both lift figures still appear, still at the same size as each other and as the win,
+    # which is the rule this project applies everywhere else.
     card_top = 336
     card_height = 168
-    gap = 28
-    card_width = (WIDTH - 2 * MARGIN - gap) // 2
-    pair = [
-        ("PRE-REGISTERED SPLIT", per_split["chronological"], "decides the gate"),
-        ("HELD-OUT STATIONS", per_split["cold_station"], "same queue, unseen sites"),
+    gap = 22
+    card_width = (WIDTH - 2 * MARGIN - 2 * gap) // 3
+    # Sized for three columns rather than two. The pair fitted a 62px figure; "22/24" in
+    # a third of the width does not, and a clipped number on the card that is supposed to
+    # carry the win would be worse than no card.
+    number = _font(600, 50, mono=True)
+    note_font = _font(400, 18)
+
+    tools = agent["arms"]["tools"]["correct"]
+    control_arm = agent["arms"]["control"]["correct"]
+    trio = [
+        (
+            "GRANITE, WITH THE TOOLS",
+            f"{tools['successes']}/{tools['trials']}",
+            "PASSED",
+            f"vs {control_arm['successes']}/{control_arm['trials']} alone  ·  "
+            f"p = {agent['paired']['exact_p_one_sided']:g}",
+        ),
+        (
+            "PRE-REGISTERED SPLIT",
+            f"{per_split['chronological']['lift_point']:.2f}x",
+            per_split["chronological"]["verdict"],
+            "the interval straddles the bar",
+        ),
+        (
+            "HELD-OUT STATIONS",
+            f"{per_split['cold_station']['lift_point']:.2f}x",
+            per_split["cold_station"]["verdict"],
+            "same queue, unseen sites",
+        ),
     ]
-    for index, (heading, split, note) in enumerate(pair):
+    for index, (heading, figure, verdict, note) in enumerate(trio):
         left = MARGIN + index * (card_width + gap)
         draw.rectangle(
             [left, card_top, left + card_width, card_top + card_height],
             fill=UI_01,
             outline=BORDER,
         )
-        colour = _verdict_colour(split["verdict"])
+        colour = _verdict_colour(verdict)
         draw.rectangle([left, card_top, left + 4, card_top + card_height], fill=colour)
-        draw.text((left + 28, card_top + 22), heading, font=label, fill=TEXT_03)
+        draw.text((left + 22, card_top + 20), heading, font=label, fill=TEXT_03)
+        draw.text((left + 22, card_top + 46), figure, font=number, fill=TEXT_01)
         draw.text(
-            (left + 28, card_top + 50),
-            f"{split['lift_point']:.2f}x",
-            font=number,
-            fill=TEXT_01,
-        )
-        draw.text(
-            (left + 28, card_top + 124),
-            f"{split['verdict'].replace('_', ' ')}  ·  {note}",
+            (left + 22, card_top + 110),
+            verdict.replace("_", " "),
             font=small,
             fill=colour,
         )
+        draw.text((left + 22, card_top + 136), note, font=note_font, fill=TEXT_03)
 
     footer = (
         f"tracetriage.vercel.app   ·   IBM Granite, run locally   ·   "

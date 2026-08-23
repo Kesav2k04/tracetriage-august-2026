@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="apps/web/public/og.png" alt="TraceTriage: a review queue, and the measurement that says how much it is worth. Two figures side by side, 1.58x on the pre-registered split reported as not established, and 2.25x on held-out stations reported as passed." width="820">
+<img src="apps/web/public/og.png" alt="TraceTriage: a review queue, and the measurement that says how much it is worth. Three results at one size: Granite answering 22 of 24 with the evidence tools against 2 of 24 without, PASSED; the pre-registered split at 1.58x, NOT ESTABLISHED because the interval straddles the bar; and held-out stations at 2.25x, PASSED." width="820">
 
 # TraceTriage
 
@@ -16,11 +16,6 @@
 [![IBM Granite](https://img.shields.io/badge/IBM%20Granite-3.1%208B%2C%20local-0f62fe?style=flat-square)](pipeline/tracetriage/granite.py)
 [![IBM Carbon](https://img.shields.io/badge/IBM%20Carbon-design%20system-0f62fe?style=flat-square)](apps/web/app/globals.css)
 [![MCP](https://img.shields.io/badge/MCP-2%20servers%2C%20read--only-8a3ffc?style=flat-square)](docs/USE_WITH_YOUR_AGENT.md)
-<br>
-[![Python 3.12](https://img.shields.io/badge/python-3.12-3776ab?style=flat-square)](pyproject.toml)
-[![Static export](https://img.shields.io/badge/console-static%20export%2C%20no%20server-24a148?style=flat-square)](https://tracetriage.vercel.app/provenance/)
-[![Code MIT](https://img.shields.io/badge/code-MIT-24a148?style=flat-square)](LICENSE)
-[![Data CC BY-SA 4.0](https://img.shields.io/badge/data-CC%20BY--SA%204.0-24a148?style=flat-square)](DATA_LICENSE.md)
 
 **[Live console](https://tracetriage.vercel.app/)** &nbsp;·&nbsp;
 **[Judges start here](https://tracetriage.vercel.app/start/)** &nbsp;·&nbsp;
@@ -41,7 +36,8 @@
 | **What it is** | A ranked, read-only review queue over public SatNOGS satellite radio observations. It reads the waterfall image and the orbital physics together, works out which unreviewed passes would teach a reviewer the most, and puts them in order. It writes nothing back. A human still decides. |
 | **The problem it serves** | Of 600 observations sampled from this snapshot, **426 carry no decisive human verdict at all**. Ground-station networks are how university and cubesat missions are actually operated, and an unreviewed pass is telemetry nobody read. |
 | **What the AI does** | IBM Granite 3.1 8B, run locally, writes the reviewer's first sentence, and a grounding checker throws away 15 of every 25 drafts. Granite embeddings retrieve precedents. Five read-only MCP tools take a local agent from **2 of 24 correct to 22 of 24**. |
-| **The result that decides it** | Queue lift **1.582x**, 95% CI [1.353, 1.740], reported **NOT ESTABLISHED** because the interval contains the 1.5 threshold. On held-out stations the same queue reaches **2.253x** and **PASSES**. Both are published at the same size. |
+| **What holds without a gate** | Three results that needed no verdict to come back a particular way. Granite answers **22 of 24** evidence questions with the five read-only tools and **2 of 24** without, one-sided exact p = 1e-06 over 20 discordant pairs. The grounding checker catches **525 of 525** planted falsehoods and refuses **0 of 175** clean drafts. On ground stations the queue was never fitted to, lift is **2.253x** and the gate **PASSES**. |
+| **The pre-registered result** | Queue lift **1.582x**, 95% CI [1.353, 1.740], reported **NOT ESTABLISHED** because the interval contains the 1.5 threshold. On held-out stations the same queue reaches **2.253x** and **PASSES**. Both are published at the same size. |
 | **How IBM Bob was used** | Primary development tool. **10 dated Bob-account units** built the data contracts, the frozen snapshot, the waterfall parser, the physics corridor, the grouped splits and the review-value queue. `docs/BOB_BUILD_LOG.md` names each one with its files, commits, failures and repairs. |
 | **What makes it unusual** | Six kill gates with numeric thresholds were written down **before anything was measured**, and a gate is met only when a 95% interval clears its threshold, so a point estimate above the bar whose interval straddles it is published as a failure. Every gate that is not met carries a computed reason and an exact condition that would close it. |
 | **Check it in 60 seconds** | `pip install -e .` then `tracetriage triage 14740031`, which measures an observation recorded today against the same physics the queue ranks on. |
@@ -62,7 +58,71 @@ and `scripts/gate.py` fails if either does.
 | Selected challenge theme | [Selected challenge theme](#selected-challenge-theme) |
 | How IBM Bob was used | [How IBM Bob was used](#how-ibm-bob-was-used) |
 | Working prototype | [Live console](https://tracetriage.vercel.app/), and `tracetriage triage` for a live measurement |
-| The judged criteria, one by one | [`FOR_JUDGES.md`](FOR_JUDGES.md) |
+| The judged criteria, one by one | [`FOR_JUDGES.md`](FOR_JUDGES.md), and row by row below |
+
+Each judged criterion has its own heading rather than a page to search:
+
+| Criterion | Answered in |
+|---|---|
+| Technical Execution | [`FOR_JUDGES.md`](FOR_JUDGES.md#technical-execution), and the [pipeline table](#ai-approach-and-architecture) |
+| Innovation | [`FOR_JUDGES.md`](FOR_JUDGES.md#innovation) |
+| Challenge Fit | [Selected challenge theme](#selected-challenge-theme), then [`FOR_JUDGES.md`](FOR_JUDGES.md#challenge-fit) |
+| Implementation and Feasibility | [`FOR_JUDGES.md`](FOR_JUDGES.md#implementation-and-feasibility), and [Setup](#setup) |
+| Real-World Impact | [`FOR_JUDGES.md`](FOR_JUDGES.md#real-world-impact) |
+
+---
+
+## What it decides, in one picture
+
+```mermaid
+flowchart LR
+  OBS["A SatNOGS pass<br/>waterfall image + record"]
+  IMG["What the image shows<br/>detected trace"]
+  ORB["What the orbit predicts<br/>SGP4 Doppler corridor"]
+  CMP{"Do they<br/>agree?"}
+  TOP["Top of the queue<br/>with the reason and the fields"]
+  LOW["Further down<br/>or an abstention with a code"]
+  REV(["A human decides.<br/>Nothing is written back."])
+
+  OBS --> IMG --> CMP
+  OBS --> ORB --> CMP
+  CMP -- "no, and both are measurable" --> TOP
+  CMP -- "yes, or the evidence is insufficient" --> LOW
+  TOP --> REV
+  LOW --> REV
+```
+
+The ten-stage pipeline that implements this is
+[further down](#ai-approach-and-architecture), drawn from the tree by a script that refuses
+to draw a box until the module and the receipt it names both exist.
+
+---
+
+## The gap this ranks on
+
+Both rows below are published SatNOGS waterfalls, unmodified on the left and annotated on
+the right by `scripts/a3_doppler_investigation.py`. The record cannot tell them apart. The image
+can.
+
+<table>
+<tr>
+<td width="50%"><img src="artifacts/a3_overlays/overlay_14746118.png" alt="Observation 14746118: the received energy follows a straight vertical line, and the predicted uncorrected Doppler curve drawn in red misses it entirely." width="100%"></td>
+<td width="50%"><img src="artifacts/a3_overlays/overlay_14740031.png" alt="Observation 14740031: the received energy follows the predicted Doppler curve drawn in red, sweeping across about 16 kHz, while the corrected-hypothesis corridor drawn in magenta sits empty." width="100%"></td>
+</tr>
+<tr>
+<td><b>14746118, corrected.</b> The trace is a straight vertical line: 54.2 sigma against
+7.3 for the swept curve. The station's software had already removed the Doppler shift
+before writing the image, and nothing in the observation record says so.</td>
+<td><b>14740031, uncorrected.</b> The trace follows the predicted curve across about 16 kHz:
+25.1 sigma against 2.8 for the best vertical line. The same fields, the same client,
+the opposite convention.</td>
+</tr>
+</table>
+
+A detector that assumes one of these two shapes is wrong on the other half of the corpus,
+and the observation record gives it no way to choose. That is the gap this queue ranks on.
+
+Full method, margins and open questions: **`docs/DOPPLER_CORRECTION_FINDING.md`**.
 
 ---
 
@@ -383,9 +443,12 @@ the condition.
 
 ## Measured results
 
-### Established, with receipts
+<details>
+<summary><b>Established, with receipts. The two Doppler rows above, plus the metadata that cannot reveal correction status.</b></summary>
 
-These are generated from frozen artifacts and registered in `docs/CLAIM_REGISTER.md`.
+These are generated from frozen artifacts and registered in `docs/CLAIM_REGISTER.md`,
+which also carries the pass-geometry validations against the network's own reported
+altitude and azimuth, and the per-observation axis-direction census.
 
 | Metric | Value | Receipt |
 |---|---|---|
@@ -393,46 +456,21 @@ These are generated from frozen artifacts and registered in `docs/CLAIM_REGISTER
 | Metadata cannot reveal correction status | `doppler-correction-per-sec` null and `rigctl-port` `4532` on 24 of 24, in both groups | `artifacts/a3_overlays/summary.json` |
 | Strongest corrected match | vertical carrier at 54.2 sigma against 7.3 for the swept curve | `artifacts/a3_overlays/overlay_14746118.png` |
 | Strongest uncorrected match | swept curve at 25.1 sigma against 2.8 for the best vertical line | `artifacts/a3_overlays/overlay_14740031.png` |
-| Observations with no measurable narrowband trace | 17 of 24 vetted `with-signal`, scoring 0.7 to 3.5 sigma | `artifacts/a3_overlays/summary.json` |
-| Pass geometry against reported max_altitude | median 0.22 deg, p99 0.53 deg, 99.5% within 1 deg, 199 of 200. The reference is integer-valued on all 200 records, so this bounds the error near half a degree and resolves nothing finer | `artifacts/PHYSICS_VALIDATION.json` |
-| Pass azimuth against reported rise and set azimuth | median 0.27 deg at rise and 0.27 deg at set, max 1.96 deg, 100% within 3 deg, on an unrounded reference. Swapping the atan2 arguments gives 93.9 deg and mirroring the azimuth gives 27.0 deg | `artifacts/PHYSICS_VALIDATION.json` |
-| Frequency axis direction, re-measured per observation | the shipped convention wins on all 3 observations where it is measurable; the other 4 are corrected passes whose flat corridor cannot orient an axis at all. It was measured on 2 of the 20 client families in the dataset. The constant applies where a waterfall was rendered, which is 2,500 of the 2,727 stored observations: 1,004 of those come from a measured family and 1,496 inherit it. Over all 2,727 rows the figures are 1,023 and 1,704, and both pairs are published because the second counts 227 observations with no image | `artifacts/GATE3_RECEIPT.json` |
 
-The first two are the reason this project exists. A reviewer cannot tell from an
-observation record whether its waterfall was Doppler corrected, the two cases
-produce completely different expected traces, and the difference is measurable
-from the image. That gap between what the record says and what the image
-supports is what TraceTriage ranks on.
+The first two rows are the reason this project exists, and they are shown rather than
+described [above](#the-gap-this-ranks-on).
 
-Both rows below are published SatNOGS waterfalls, unmodified on the left and annotated on
-the right by `scripts/a3_doppler_investigation.py`. The record cannot tell them apart. The image
-can.
 
-<table>
-<tr>
-<td width="50%"><img src="artifacts/a3_overlays/overlay_14746118.png" alt="Observation 14746118: the received energy follows a straight vertical line, and the predicted uncorrected Doppler curve drawn in red misses it entirely." width="100%"></td>
-<td width="50%"><img src="artifacts/a3_overlays/overlay_14740031.png" alt="Observation 14740031: the received energy follows the predicted Doppler curve drawn in red, sweeping across about 16 kHz, while the corrected-hypothesis corridor drawn in magenta sits empty." width="100%"></td>
-</tr>
-<tr>
-<td><b>14746118, corrected.</b> The trace is a straight vertical line: 54.2 sigma against
-7.3 for the swept curve. The station's software had already removed the Doppler shift
-before writing the image, and nothing in the observation record says so.</td>
-<td><b>14740031, uncorrected.</b> The trace follows the predicted curve across about 16 kHz:
-25.1 sigma against 2.8 for the best vertical line. The same fields, the same client,
-the opposite convention.</td>
-</tr>
-</table>
-
-A detector that assumes one of these two shapes is wrong on the other half of the corpus,
-and the observation record gives it no way to choose. That is the gap this queue ranks on.
-
-Full method, margins and open questions: **`docs/DOPPLER_CORRECTION_FINDING.md`**.
+</details>
 
 ### Measured, with receipts
 
 Every cell below is read from a receipt under `artifacts/` and registered in
 `docs/CLAIM_REGISTER.md`. Of the 6 kill gates, 3 were met and 3 came back inconclusive.
 The rows for the gates that produced no number say so rather than being left out.
+
+<details>
+<summary><b>14 measured rows, every one read from a receipt. Brier 0.1292 against 0.1495 image-only, queue lift 1.582x NOT_ESTABLISHED, cold-station 2.253x PASSED, gate 4 PASSED at 60 of 60.</b></summary>
 
 | Metric | Value | Receipt |
 |---|---|---|
@@ -451,11 +489,18 @@ The rows for the gates that produced no number say so rather than being left out
 | Granite text embedding against seven standardised numbers | Indistinguishable in both conditions. Warm margin +0.0260, adjusted interval [-0.0169, +0.0660]; cold margin +0.0168, [-0.0406, +0.0783]. Both span zero over 739 queries resampled by 116 ground stations | `artifacts/PRECEDENT_RECEIPT.json` |
 | Blinded human decidability rate | **PASSED**. 60 of 60 first-occurrence observations decidable, rate 1.0000, exact one-sided 95% [0.9513, 1.0000] against a 0.80 threshold. Intra-rater agreement is 8 of 12 repeated plates, which is the weaker of the two numbers and no claim rests on it | `artifacts/GATE4_RECEIPT.json` |
 
+</details>
+
 ### Still unmeasured, and named as such
+
+<details>
+<summary><b>One row, named rather than left out: human minutes per confirmed finding.</b></summary>
 
 | Metric | Value | Why |
 |---|---|---|
 | Human minutes per confirmed finding | `[UNMEASURED]` | Half of it is now measured and the other half is not. One reviewer spent 47.1 minutes over 72 blinded plates, a median of 25.0 seconds each. Turning that into minutes per confirmed finding needs the share of opened observations that carry something, and no study here measures it on a human who opened them. |
+
+</details>
 
 ### What the queue's own construction guarantees
 
@@ -470,6 +515,9 @@ here. Either way a lift above 1.0 is close to guaranteed by construction.
 reading the queue receipt and nothing else: no snapshot, no network, no model. It
 reproduces the published 1.5818x from that file before computing anything.
 
+<details>
+<summary><b>7 questions about how much room the measurement had, and what the answers bound.</b></summary>
+
 | Question | Answer |
 |---|---|
 | What is the most any ordering could score here? | 1.740x. A budget of 50 over 87 observations holding 22 conflicts caps a perfect oracle there, so the whole distance between the 1.5x threshold and perfection is 0.240 |
@@ -479,6 +527,8 @@ reproduces the published 1.5818x from that file before computing anything.
 | How often does a random ordering match the queue? | 0 times in 2,000 seeded shuffles of the same population, a permutation p-value of 0.0005, which is the smallest this test can report at 2,000 permutations |
 | Does the statistic score a shuffle at 1.0? | 0.9992 over the same 2,000 permutations, 5th to 95th percentile 0.712 to 1.265. Each one is scored by `compute_lift`, the function gate 6 itself is measured with, so a defect in it moves this number |
 | Which split has the least room to be measured in? | `cold_combined`: 20 conflicts in 76 observations at a budget of 50 caps every ordering at 1.520x against a 1.5x bar. That is 0.020 of room and a published **NOT_ESTABLISHED**, so its verdict is a fact about the budget and the receipt marks it not informative |
+
+</details>
 
 That the queue generalises. Restricting the target to the criteria the model does not
 enter removes one loop and leaves another: on this corpus that restriction reduces to
@@ -549,28 +599,21 @@ number this project was scored on must not be confusable by an agent reading a t
 
 ## How this repository keeps itself honest
 
-Every number in this file is generated from a frozen artifact under `artifacts/` and carries a
-row in `docs/CLAIM_REGISTER.md`. The checks that hold it:
+Every number in this file is generated from a frozen artifact under `artifacts/` and carries
+a row in `docs/CLAIM_REGISTER.md`. Three checks do most of the work:
 
 - **Claims are compared against artifacts, not against a register.** `tests/test_claim_drift.py`
   reads each quoted value out of the receipt it came from. Editing the AUC row from 0.875 to
   0.999 turns three tests red.
-- **Six documents are generated and fail the gate when they drift.** `README.md`'s results
-  tables, `docs/KILL_GATE.md`, `FOR_JUDGES.md`, `docs/REFERENCE.md`, `docs/DEMO_SCRIPT.md` and
-  the gate reasons above. Each generator takes `--check`, which regenerates into memory and
-  exits non-zero on any difference. Editing one by hand is the defect they exist to catch.
-- **The console cannot show a number the receipts do not carry.** `apps/web/public/data/` is
-  written in its entirety by `scripts/build_console_data.py`, and
-  `scripts/check_artifact_freshness.py` rebuilds every payload into a scratch directory and
-  diffs it.
-- **CI is the offline replay written out as a claim a runner tests.**
-  `.github/workflows/ci.yml` builds the pinned environment on a clean Ubuntu clone, runs the
-  suite with every network-marked test excluded, regenerates the documents from the receipts
-  and fails on any difference, scans for credential-shaped strings, then typechecks and builds
-  the console. A second job runs the live API tests and is informational: an upstream change
-  should surface somewhere, and it must never block the offline gate.
-- **`scripts/gate.py` runs all of it at once**, and `scripts/signoff.py` refuses to sign a
-  release while any check has failed.
+- **Seven documents are generated and fail the gate when they drift.** Each generator takes
+  `--check`, which regenerates into memory and exits non-zero on any difference. Editing one
+  by hand is the defect they exist to catch.
+- **`scripts/gate.py` runs 28 standing checks at once**, and `scripts/signoff.py` refuses to
+  sign a release while any of them has failed.
+
+The rest, including what CI rebuilds on a clean Ubuntu clone and how the console is stopped
+from showing a number the receipts do not carry, is in
+[`FOR_JUDGES.md`](FOR_JUDGES.md#seven-checks-worth-running-first).
 
 ## Further reading
 
