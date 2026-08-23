@@ -144,8 +144,14 @@ def main() -> int:
         # output exists. So they are re-run, and an all-skipped result is a failure
         # rather than a pass. A row that reports green from an empty room is the defect
         # this repository has hit more than once.
-        rc, out = run([str(PY), "-m", "pytest", "tests/test_console_accessibility.py", "-q"])
+        # No -q here, deliberately. pyproject's addopts already passes it, and a second
+        # one makes it -qq, which suppresses the summary line entirely: the run printed
+        # 53 dots, exit 0, and the word "passed" never appeared, so the check below
+        # declared a passing suite unmeasured. The row failed while the tests were green.
+        rc, out = run([str(PY), "-m", "pytest", "tests/test_console_accessibility.py"])
         tail = out.splitlines()[-1][:70] if out.strip() else f"pytest did not report (exit {rc})"
+        # An all-skipped run says "53 skipped" and never says "passed", which is the
+        # outcome this has to catch. A partly-skipped run still says "passed" and is fine.
         measured = "passed" in out
         results.append(
             check(
