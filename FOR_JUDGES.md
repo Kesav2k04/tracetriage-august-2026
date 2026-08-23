@@ -261,11 +261,12 @@ observations, 12 of them repeated under a second item id so intra-rater agreemen
 out of the answers, and it commits one salted sha256 per item so the sample provably
 predates the review. `scripts/score_gate4.py` scores the filled form against a 0.80
 threshold using the same exact bounds gate 3 reads. `artifacts/GATE4_RECEIPT.json` says
-`PASSED`: 60 of 60 first-occurrence observations were decidable, a rate of 1.000, 95%
-[0.951, 1.000], and the whole interval clears the threshold. What the gate does not
-establish is anything about a second reader: one person's judgment is one person's
-judgment, and the instrument is reproducible from its seed so that a second reader can be
-run rather than argued about.
+`PASSED` for the decidability of the sample, which is a narrower question than the one
+above: 60 of 60 first-occurrence observations were decidable, a rate of 1.000, 95% [0.951,
+1.000], and the whole interval clears the threshold. What the gate does not establish is
+anything about a second reader: one person's judgment is one person's judgment, and the
+instrument is reproducible from its seed so that a second reader can be run rather than
+argued about.
 
 **What it takes to close it, exactly.** The protocol and the review page are committed at
 `apps/web/public/gate4/worksheet.md` and `apps/web/public/gate4/review.html`, which the
@@ -274,10 +275,10 @@ carries the same handoff. The 72 plates are not published: 113 MB of full-resolu
 waterfalls, and every way of shrinking them changes what the reviewer is being asked to
 judge, so they travel as one file. `scripts/pack_gate4_bundle.py` re-hashed every image on
 disk, recomputed all 72 commitments against `artifacts/GATE4_WORKSHEET.json`, and wrote
-`tracetriage_gate4_bundle.zip`: 113,238,991 bytes, sha256 `c426e1d978b66cf62a8d024a`. A
-reviewer checks what arrives against that digest, opens the page, answers 72 items and
-returns one CSV. Nothing else is missing, and until that CSV exists the verdict stays as
-the receipt reports it.
+`tracetriage_gate4_bundle.zip`: 113,238,991 bytes, sha256
+`c426e1d978b66cf62a8d024a2305c30ee374d3711eef91912a4bf181f4535643`. A reviewer checks what
+arrives against that digest, opens the page, answers 72 items and returns one CSV. Nothing
+else is missing, and until that CSV exists the verdict stays as the receipt reports it.
 
 ## Why the gates that are not met are not met
 

@@ -40,7 +40,7 @@
 | **The pre-registered result** | Queue lift **1.582x**, 95% CI [1.353, 1.740], reported **NOT ESTABLISHED** because the interval contains the 1.5 threshold. On held-out stations the same queue reaches **2.253x** and **PASSES**. Both are published at the same size. |
 | **How IBM Bob was used** | Primary development tool. **10 dated Bob-account units** built the data contracts, the frozen snapshot, the waterfall parser, the physics corridor, the grouped splits and the review-value queue. `docs/BOB_BUILD_LOG.md` names each one with its files, commits, failures and repairs. |
 | **What makes it unusual** | Six kill gates with numeric thresholds were written down **before anything was measured**, and a gate is met only when a 95% interval clears its threshold, so a point estimate above the bar whose interval straddles it is published as a failure. Every gate that is not met carries a computed reason and an exact condition that would close it. |
-| **Check it in 60 seconds** | `pip install -e .` then `tracetriage triage 14740031`, which measures an observation recorded today against the same physics the queue ranks on. |
+| **Check it in 60 seconds** | `pip install -e .` then `tracetriage triage 14740031`, which measures an observation recorded today against the same physics the queue ranks on. Sixty seconds is a warm pip cache; a cold one needs one online install first. |
 
 **Everything a judge needs to score this is mapped, twice.** The
 [start page](https://tracetriage.vercel.app/start/) is the console version and
@@ -206,9 +206,9 @@ than leaving a picture of a pipeline this repository no longer has.
 | 5 | Model ladder | Centre-energy heuristic, then HOG with regularised logistic regression, then a corridor matched filter, then a fusion head over image plus metadata plus physics. Each rung is compared against the one below with a grouped bootstrap, and a rung that does not improve is dropped by the ablation. | `artifacts/FUSION_RECEIPT.json` |
 | 6 | Calibration | Temperature or isotonic fitting on a later time period than training, then a selective-prediction curve trading a risk ceiling against coverage. | `artifacts/FUSION_RECEIPT.json` |
 | 7 | Queue | Ranks the test partition, deduplicates repeated observations of one pass episode, and measures lift against random, against first-in-first-out and against an image-only uncertainty ordering at the same budget. | `scripts/run_queue.py` |
-| 8 | Console | Projects the receipts into the JSON the site reads, refusing to substitute a null for a field it could not find. A Next.js static export: no server, no database, no runtime fetch, no credentials. | `scripts/build_console_data.py` |
+| 8 | Console | Projects the receipts into the JSON the site reads, refusing to substitute a null for a field it could not find. A Next.js static export: no database and no credentials, and no runtime fetch on any page except the live console, which calls one Python function (`api/live.py`, declared in `vercel.json`). | `scripts/build_console_data.py` |
 | 9 | Reviewer note | Builds a closed evidence packet of 26 printed fields for one observation and sends it to a local IBM Granite model. The only HTTP write verb in this repository, and it refuses any destination that is not loopback. | `pipeline/tracetriage/granite.py` |
-| 10 | Evidence server | Exposes the queue, one observation's packet, the gate verdicts, a receipt summary and the grounding checker itself as five read-only MCP tools over stdio, with no dependency outside the standard library. | `scripts/mcp_server.py` |
+| 10 | Evidence server | Exposes the queue and its size, one observation's packet, the gate verdicts, a receipt summary and the grounding checker itself as six read-only MCP tools over stdio, plus `run_acceptance`, which runs the standing gate and therefore writes the console build and is the one tool left out of `alwaysAllow`. No dependency outside the standard library. | `scripts/mcp_server.py` |
 
 **Evaluation is grouped, never random.** Random image splits leak station, satellite and
 rendering patterns. Bootstrap intervals are computed over orbital episodes or ground
@@ -313,9 +313,13 @@ outcome in this checkout is `NOT_CHECKED` because no IBM Cloud credential is set
 three are reported with their intervals or their reasons rather than left out because they are
 unflattering.
 
-**The console is eight pages and no server.** A static export: no database, no credential, and
-no measurement fetched from another origin. It makes exactly one third-party request, the Adobe
-Fonts stylesheet for two display faces, and nothing carrying a number depends on it.
+**The console is eight static pages and one function.** A static export: no database and no
+credentials. Seven of the eight pages fetch nothing at runtime and make exactly one third-party
+request between them, the Adobe Fonts stylesheet for two display faces, which nothing carrying a
+number depends on. The eighth is the live console, and it is the exception worth stating plainly
+rather than rounding off: it calls `api/live.py`, a Python serverless function declared in
+`vercel.json`, which fetches one waterfall from the public SatNOGS API on demand and measures it.
+No number this project was scored on comes from that path.
 Eight pages: a start page mapping each judged criterion to the page answering it, the review queue, a
 live console measuring an observation recorded in the last few hours, the evaluation with every
 gate including the ones that did not pass, the agent study beside its control arm, the precedent
@@ -592,8 +596,8 @@ tracetriage station 1696 --budget 6  # a station's own frequency error, across s
 
 | Surface | Answers from | Tools |
 |---|---|---|
-| `tracetriage-live` | the public SatNOGS API, now | `live_triage_observation`, `live_list_observations`, `live_rank_observations` |
-| `tracetriage-evidence` | the receipts committed in this repository | 5 read-only tools, offline, enforced by parsing its own imports |
+| `tracetriage-live` | the public SatNOGS API, now | 5 tools: `live_triage_observation`, `live_list_observations`, `live_rank_observations`, `live_station`, `live_check_claim`. The first three are the ones in `alwaysAllow` |
+| `tracetriage-evidence` | the receipts committed in this repository | 6 read-only tools plus `run_acceptance`, offline, enforced by parsing its own imports |
 
 `.mcp.json` at the root registers both, so a client opened on a clone has them with nothing to
 configure. The live tools carry the `live_` prefix because a number measured this minute and a

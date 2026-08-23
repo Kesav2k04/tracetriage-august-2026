@@ -1023,8 +1023,14 @@ def _gate4_state(receipt: dict) -> str:
     span = ""
     if lower is not None and upper is not None:
         span = f", 95% [{lower:.3f}, {upper:.3f}]"
+    # The verdict names its own estimand. The paragraph opens by saying the gate's
+    # question, whether a note helps a reviewer, is unmeasured, and then prints a verdict
+    # ten lines later. A judge skimming meets the verdict without the qualifier and reads
+    # the usefulness claim as established. What passed is decidability, and the word for
+    # that belongs in the same clause as the word PASSED, not two sentences after it.
     measured = (
-        f"`artifacts/GATE4_RECEIPT.json` says `{verdict}`: {decisive} of {scored} "
+        f"`artifacts/GATE4_RECEIPT.json` says `{verdict}` for the decidability of the "
+        f"sample, which is a narrower question than the one above: {decisive} of {scored} "
         f"first-occurrence observations were decidable, a rate of {rate:.3f}{span}"
     )
     if verdict == "PASSED":
@@ -1079,7 +1085,7 @@ GATE4_HANDOFF_PARA = _para(
     all {gate4_bundle["commitments_checked"]} commitments against
     `artifacts/GATE4_WORKSHEET.json`, and wrote
     `{gate4_bundle["archive"]["name"]}`: {gate4_bundle["archive"]["bytes"]:,} bytes, sha256
-    `{gate4_bundle["archive"]["sha256"][:24]}`. A reviewer checks what arrives against that
+    `{gate4_bundle["archive"]["sha256"]}`. A reviewer checks what arrives against that
     digest, opens the page, answers {gate4_bundle["n_items"]} items and returns one CSV.
     Nothing else is missing, and until that CSV exists the verdict stays as the receipt
     reports it."""

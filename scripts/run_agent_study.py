@@ -1,7 +1,7 @@
 """Ask the same questions twice, with the evidence server and without it, and grade both.
 
 An agent demonstration is a transcript, and a transcript cannot tell a policy that read the
-tool output from one that guessed. So this runs a paired study: 22 questions whose answers are
+tool output from one that guessed. So this runs a paired study: 24 questions whose answers are
 derived from the files the console ships, each put to the same local Granite model twice, once
 with the five MCP tools available over real stdio JSON-RPC and once with no tools at all.
 
