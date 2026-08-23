@@ -48,7 +48,7 @@
 [`FOR_JUDGES.md`](FOR_JUDGES.md) is the repository version. Neither can drift from the
 numbers it quotes, by two different mechanisms rather than one: `FOR_JUDGES.md` is written
 by `scripts/sync_for_judges.py` from the receipts, and the start page reads them through
-`apps/web/lib/data`, which `scripts/build_console_data.py` generates from the same
+`apps/web/lib/data.ts`, which `scripts/build_console_data.py` generates from the same
 receipts. `scripts/gate.py` carries a row for each and fails if either drifts.
 
 ## What the submission asks for, and where it is

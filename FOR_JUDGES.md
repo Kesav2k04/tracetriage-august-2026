@@ -41,7 +41,7 @@ ordering had to win in was 0.240 wide.
 | Question | Command | What it prints |
 |---|---|---|
 | Show me the model doing something | `tracetriage note 14746092` | The draft `granite3.1-dense:8b` wrote, the checker's verdict on it, the number it invented, and the template that shipped instead. Offline, no model needed: the drafts are frozen and the receipt records what the checker decided about each |
-| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 1559 passed, 36 skipped, none failed, measured in a clean clone of `2eed33b` with every non-loopback socket refused |
+| Do the tests pass offline? | `pytest -m "not network and not ocr and not llm" -q` | 3 failed, 1727 passed, 41 skipped, measured in a clean clone of `3fae24b` with every non-loopback socket refused |
 | Do the tools change what the agent gets right? | `python scripts/run_agent_study.py` | 22/24 with tools against 2/24 without, paired p = 1e-06 |
 | Does the model's own output survive the checker? | `python scripts/run_explanations.py` | 10 emitted, 15 refused, 525/525 adversarial checks caught, 0/175 clean checks refused |
 | Can an agent measure something new? | `live_triage_observation` over MCP, or `tracetriage triage <id>` | A measurement of an observation recorded today, from the public SatNOGS API with no credential, and `live_check_claim` refuses an invented frequency about that measurement. `docs/BOB_DEMO.md` is the prompt |
@@ -65,9 +65,14 @@ this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest optio
 `-q`, so a second `-q` suppresses the summary line: that is worth knowing before reading a
 run as having collected nothing.
 
-No test failed in that run. The count is published with its zero rather than as a pass,
-because a summary that prints only what went right cannot be read as a summary of what
-happened.
+The first row prints a failure, and it is named here rather than left in the transcript:
+`tests/test_freshness_outcomes.py::test_a_missing_snapshot_skips_and_costs_nothing`,
+`tests/test_freshness_outcomes.py::test_a_skipped_builder_does_not_make_the_run_evidence_of_nothing`,
+`tests/test_readme_claims.py::test_every_path_the_readme_names_exists_and_is_not_empty[apps/web/lib/data]`.
+The transcript is the record of commit `3fae24b` and of nothing later, so what this page
+can honestly say about the current tip is only that the command in the table is the way to
+see it. A run of that command on a fresh clone of this commit reproduces the count
+exactly.
 
 The agent layer is measured against a control rather than demonstrated.
 `scripts/run_agent_study.py` puts 24 questions to the same local model twice, once with
@@ -81,11 +86,13 @@ graded, each question was proved answerable in a single tool call, because a que
 tools cannot serve would otherwise be scored as a failure of the policy.
 
 The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `2eed33b` with every non-loopback socket refused: 16 of 16 steps
-succeeded. The transcript carries each step's exit code and the tail of its output, so the
-reason is readable rather than summarised. The test counts above are from the pass with
-the snapshot directory hidden, which is a judge's case rather than this machine's, and
-they are the count at that commit rather than at the tip of the branch.
+fresh clone of commit `3fae24b` with every non-loopback socket refused: 13 of 16 steps
+succeeded. What did not: offline test suite, snapshot present, offline test suite,
+snapshot HIDDEN, lint (ruff check .). The transcript carries each step's exit code and the
+tail of its output, so the reason is readable rather than summarised. The test counts
+above are from the pass with the snapshot directory hidden, which is a judge's case rather
+than this machine's, and they are the count at that commit rather than at the tip of the
+branch.
 
 Two things about that run are worth knowing before it is trusted. The clone built its own
 Python environment, inside itself, with the network refused, resolving the pinned set from

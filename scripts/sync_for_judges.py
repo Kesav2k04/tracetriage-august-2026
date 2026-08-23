@@ -1248,11 +1248,12 @@ BOB_TECHNICAL = _para(
     {N_BUILD_LOG_ENTRIES} dated Bob-account units, {_BOB_UNIT_LIST}: the data contracts,
     the immutable snapshot, the waterfall artifact parser, the physics corridor, label
     provenance, the image-only baselines, the end-to-end triage slice, the grouped splits
-    with their leakage audit, and the review-value queue with kill gate 6. That snapshot, those splits and those
-    parsed artifacts are what every measurement in this submission is computed from,
-    including the operator-side work named next: the fusion head and the calibration run on
-    Bob's splits rather than instead of them. Each unit names the files it changed, the commands that were run, the Bob
-    task id and what failed before it was accepted. A further {N_OPERATOR_UNITS} dated
+    with their leakage audit, and the review-value queue with kill gate 6. That snapshot,
+    those splits and those parsed artifacts are what every measurement in this submission is
+    computed from, including the operator-side work named next: the fusion head and the
+    calibration run on Bob's splits rather than instead of them. Each unit names the files it
+    changed, the commands that were run, the Bob task id and what failed before it was
+    accepted. A further {N_OPERATOR_UNITS} dated
     units are operator-side, run from Cursor and Claude Code, and are labelled that way in
     the actor field of their own headings: what they produced is the console, the
     calibration and abstention blocks, the fusion ladder and the review waves, which sit on
