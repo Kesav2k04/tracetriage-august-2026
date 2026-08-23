@@ -139,6 +139,52 @@ def test_the_handshake_and_the_tool_list_come_back_over_the_transport():
         assert tool["inputSchema"]["additionalProperties"] is False
 
 
+#: The tools the evidence server serves, spelled out rather than counted.
+#:
+#: A literal on purpose. Every other assertion here compares the server against its own
+#: TOOLS dict, and `listed == set(TOOLS)` stays true whether a tool is added, dropped or
+#: renamed, so nothing in this suite could say how many there are. README.md said five in
+#: three places and seven in a fourth, three hundred lines apart, for weeks. A count that
+#: appears in judge-facing prose needs an assertion that fails when the prose goes wrong,
+#: and the only way to get one is to write the number down somewhere a test can read it.
+_EVIDENCE_TOOLS = (
+    "queue_top",
+    "observation",
+    "check_claim",
+    "gate_status",
+    "receipt",
+    "queue_size",
+    "run_acceptance",
+)
+
+
+def test_the_evidence_server_declares_exactly_seven_tools():
+    assert len(TOOLS) == 7, (
+        f"the evidence server declares {len(TOOLS)} tools: {sorted(TOOLS)}. Seven is "
+        f"the number README.md and FOR_JUDGES.md publish, so a change here is a change "
+        f"to both."
+    )
+    assert tuple(TOOLS) == _EVIDENCE_TOOLS
+
+
+def test_the_tool_list_over_the_transport_is_those_seven_and_nothing_else():
+    """The count as a client sees it, not as the module declares it.
+
+    Separate from the assertion above because they can disagree: `tools/list` builds its
+    payload from TOOLS, and a filter added there would leave the dict at seven and the
+    served surface at six.
+    """
+    responses = _drive(
+        [
+            {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
+            {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+        ]
+    )
+    listed = [tool["name"] for tool in responses[1]["result"]["tools"]]
+    assert len(listed) == 7, f"the server listed {len(listed)} tools: {listed}"
+    assert listed == list(_EVIDENCE_TOOLS)
+
+
 def test_a_malformed_line_is_a_parse_error_and_the_server_keeps_going():
     stdin = io.StringIO('not json\n{"jsonrpc": "2.0", "id": 7, "method": "tools/list"}\n')
     stdout = io.StringIO()
