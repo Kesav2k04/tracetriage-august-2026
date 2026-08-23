@@ -157,7 +157,19 @@
           "type": "boolean",
           "description": "False for a reported interval that the correction does not count. Declared and paired with a reason, because an interval published beside a corrected family and not in it is the shape that lets an eighth comparison be reported against a family of seven."
         },
-        "family_exclusion_reason": { "type": "string", "minLength": 20 }
+        "family_exclusion_reason": { "type": "string", "minLength": 20 },
+        "challenger_auc": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "The challenger's own AUC, carried beside the difference so the interval and the pair of point estimates it was taken between cannot drift apart. Written only by the auc_comparisons block."
+        },
+        "reference_auc": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "The reference arm's AUC, the partner of challenger_auc."
+        }
       },
       "allOf": [
         {
@@ -505,6 +517,11 @@
           }
         },
         "comparisons": { "type": "object", "additionalProperties": { "$ref": "#/$defs/comparison" } },
+        "auc_comparisons": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/comparison" },
+          "description": "The same comparison shape applied to area under the ROC curve. Declared because the root of this block is closed and because the AUC row was the one published gain in this receipt with no interval on it: two arms' AUCs sat side by side in `arms` and nothing measured the difference. Keyed by challenger, and each entry carries in_multiplicity_family false with its reason, because AUC decides no gate and the family size was fixed by the ladder before anything was fitted."
+        },
         "multiplicity_adjusted": {
           "type": "object",
           "additionalProperties": {

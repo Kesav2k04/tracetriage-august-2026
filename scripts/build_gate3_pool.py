@@ -109,6 +109,11 @@ from pipeline.tracetriage.waterfall import parse_waterfall  # noqa: E402
 
 logger = logging.getLogger("gate3_pool")
 
+#: The frozen observation list this pool is enumerated from. Held here rather than
+#: derived from ``--snapshot`` because the manifest in the repository is the one every
+#: other consumer reads, and the copy inside the snapshot directory is a different file.
+MANIFEST_PATH = REPO / "artifacts" / "DATASET_MANIFEST.json"
+
 #: Written explicitly so the partial file is LF on every platform, matching the
 #: receipt beside it and the repository's .gitattributes.
 NEWLINE = "\n"
@@ -320,13 +325,56 @@ def _elevation_deg(rel, lat_deg: float, lon_deg: float, jd: float, fr: float) ->
     return float(np.degrees(np.arcsin(float(np.dot(rel, up)) / rng))) if rng else 0.0
 
 
-def load_snapshot(snapshot: Path) -> list[dict[str, Any]]:
-    """Every observation record in the snapshot's pages, in page then row order."""
+def load_snapshot(
+    snapshot: Path, manifest_path: Path | None = None
+) -> list[dict[str, Any]]:
+    """The raw API rows for the observations the dataset actually stores.
+
+    The enumeration source is the manifest, not the pages directory, and that is the
+    point of this function. The pages are the cursor responses as fetched: the ingest
+    took whole pages and stopped at its 2,500-waterfall target part-way through the
+    last one, which had already been written complete, so 23 of its rows are on disk
+    and were never stored. Walking ``pages/*.json`` counted all 2,750 into
+    ``counts.examined``, and from there into the sentence "the pools are drawn from
+    2,750 observations, the whole snapshot" in `docs/KILL_GATE.md`, beside a receipt
+    that printed 2,727 for the same corpus a few fields away.
+
+    `scripts/run_precedent_study.py` and `run_gate3._axis_sign_scope` were both
+    corrected for exactly this on 2026-08-21 and this builder was missed. It is the
+    same fix and the same refusal: a manifest id with no raw page means the pool would
+    not be the corpus the rest of the repository measures, so the run stops rather than
+    quietly measuring a different population.
+
+    The pages are still read, because a manifest entry is a reduced record and the
+    corridor needs the raw one: TLEs, start and end, the tuned frequency. Page order is
+    kept, so the only difference from the unfiltered walk is the 23 absent rows.
+    """
+    manifest_path = manifest_path or MANIFEST_PATH
+    stored = {
+        int(obs["id"])
+        for obs in json.loads(manifest_path.read_text(encoding="utf-8"))["observations"]
+        if "id" in obs
+    }
+
     rows: list[dict[str, Any]] = []
+    on_disk = 0
     for page in sorted((snapshot / "pages").glob("*.json")):
         payload = json.loads(page.read_text(encoding="utf-8"))
         records = payload if isinstance(payload, list) else payload.get("results", [])
-        rows.extend(records)
+        for record in records:
+            on_disk += 1
+            if isinstance(record, dict) and int(record.get("id", -1)) in stored:
+                rows.append(record)
+    if len(rows) != len(stored):
+        raise SystemExit(
+            f"{manifest_path.name} records {len(stored)} observations and the snapshot "
+            f"pages carry {len(rows)} of them, out of {on_disk} rows on disk. The pool "
+            f"would not be the corpus the rest of this repository measures."
+        )
+    logger.info(
+        "manifest observations %d, page rows on disk %d, enumerated %d",
+        len(stored), on_disk, len(rows),
+    )
     return rows
 
 
@@ -535,6 +583,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--snapshot", type=Path, default=Path("D:/tracetriage_data/snap-stage1"))
     ap.add_argument("--out", type=Path, default=REPO / "artifacts" / "GATE3_POOL.json")
     ap.add_argument(
+        "--manifest",
+        type=Path,
+        default=MANIFEST_PATH,
+        help=(
+            "the frozen observation list to enumerate from. The pages on disk hold more "
+            "rows than the dataset stores, so this and not the pages directory is what "
+            "sets the denominator"
+        ),
+    )
+    ap.add_argument(
         "--limit",
         type=int,
         default=0,
@@ -588,7 +646,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.recut:
         return _recut(args.out, args.trace_q75_min)
 
-    observations = load_snapshot(args.snapshot)
+    observations = load_snapshot(args.snapshot, args.manifest)
     if args.limit:
         observations = observations[: args.limit]
     logger.info("snapshot records: %d", len(observations))
@@ -640,7 +698,21 @@ def main(argv: list[str] | None = None) -> int:
         "generated_at": datetime.now(UTC).isoformat(),
         "snapshot": str(args.snapshot).replace("\\", "/"),
         "pre_registration": "docs/E16_PREREGISTRATION.md",
-        "unit": "one record per snapshot observation examined, selected or not",
+        "unit": "one record per stored observation examined, selected or not",
+        "enumerated_from": {
+            "manifest": str(args.manifest.relative_to(REPO)).replace("\\", "/")
+            if args.manifest.is_relative_to(REPO)
+            else str(args.manifest).replace("\\", "/"),
+            "observations_in_the_manifest": len(observations),
+            "why": (
+                "The frozen observation list, not the pages directory. The ingest "
+                "fetched whole cursor pages and stopped at its waterfall target "
+                "part-way through the last one, so the pages on disk carry rows the "
+                "dataset never stored. Enumerating the pages put 23 of them into this "
+                "denominator and into the published phrase 'the whole snapshot'. All 23 "
+                "had no waterfall image, so no numerator moved when they left."
+            ),
+        },
         "trace_q75_min": args.trace_q75_min,
         "selection": {
             "pool_a": (

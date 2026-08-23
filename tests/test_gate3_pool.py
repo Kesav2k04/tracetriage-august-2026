@@ -512,3 +512,87 @@ def test_the_receipt_scored_every_observation_its_pool_selected():
         "Every selected observation has to appear, including the ones that could not be "
         "scored, or the denominator is decided by which images happened to fail."
     )
+
+
+def test_the_pool_is_enumerated_from_the_manifest_not_from_the_pages(builder, tmp_path):
+    """The denominator is the stored dataset, and a page row the dataset dropped is not in it.
+
+    The ingest fetched whole cursor pages and stopped at its waterfall target part-way
+    through the last one, which had already been written complete. So `pages/*.json` holds
+    rows the snapshot never stored, and enumerating the pages counted 23 of them into
+    `counts.examined`, into `pool.n_examined` in the gate receipt, and into the sentence
+    "the pools are drawn from 2,750 observations, the whole snapshot" in
+    `docs/KILL_GATE.md`, beside a receipt printing 2,727 for the same corpus.
+
+    The fixture below is the same shape at three rows instead of 2,750.
+    """
+    pages = tmp_path / "pages"
+    pages.mkdir()
+    (pages / "page_00000.json").write_text(
+        json.dumps([{"id": 11, "start": "a"}, {"id": 12, "start": "b"}]),
+        encoding="utf-8",
+    )
+    (pages / "page_00001.json").write_text(
+        json.dumps([{"id": 13, "start": "c"}]), encoding="utf-8"
+    )
+    manifest = tmp_path / "DATASET_MANIFEST.json"
+    manifest.write_text(
+        json.dumps({"observations": [{"id": 11}, {"id": 12}]}), encoding="utf-8"
+    )
+
+    rows = builder.load_snapshot(tmp_path, manifest)
+    assert [r["id"] for r in rows] == [11, 12], (
+        "observation 13 is on disk and is not in the manifest, so it is not part of the "
+        "dataset and must not reach the pool's denominator"
+    )
+
+
+def test_a_manifest_id_with_no_page_row_stops_the_run(builder, tmp_path):
+    """A short enumeration is a broken snapshot, not a smaller corpus.
+
+    `run_precedent_study._load_snapshot` refuses on the same condition for the same
+    reason: a pool quietly built over fewer observations than the manifest freezes is not
+    comparable with any other number in the repository, and the difference is small enough
+    to go unnoticed.
+    """
+    pages = tmp_path / "pages"
+    pages.mkdir()
+    (pages / "page_00000.json").write_text(json.dumps([{"id": 11}]), encoding="utf-8")
+    manifest = tmp_path / "DATASET_MANIFEST.json"
+    manifest.write_text(
+        json.dumps({"observations": [{"id": 11}, {"id": 99}]}), encoding="utf-8"
+    )
+
+    with pytest.raises(SystemExit) as caught:
+        builder.load_snapshot(tmp_path, manifest)
+    assert "would not be the corpus" in str(caught.value)
+
+
+def test_the_committed_pool_examined_the_stored_dataset_and_nothing_else():
+    """The artifact, against the manifest that froze the corpus.
+
+    Two published denominators differing by 23 is what this pins. `counts.examined` must be
+    the manifest's `observations_stored`, and every stored observation without a waterfall
+    on disk must be counted as `no_waterfall`, which is the manifest's own
+    `waterfalls_missing`.
+    """
+    if not POOL.exists():
+        pytest.skip("no pool in this checkout")
+    pool = json.loads(POOL.read_text(encoding="utf-8"))
+    manifest_path = REPO / "artifacts" / "DATASET_MANIFEST.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    stored = manifest["counts"]["observations_stored"]
+    assert pool["counts"]["examined"] == stored, (
+        f"the pool examined {pool['counts']['examined']} observations and the manifest "
+        f"stores {stored}. One corpus, one denominator."
+    )
+    assert len(pool["observations"]) == stored
+    ids = {int(r["obs_id"]) for r in pool["observations"]}
+    assert ids == {int(o["id"]) for o in manifest["observations"]}
+    assert pool["counts"]["by_status"]["no_waterfall"] == manifest["counts"][
+        "waterfalls_missing"
+    ], (
+        "a stored observation with no waterfall on disk is exactly the manifest's "
+        "waterfalls_missing, so these two counts cannot disagree"
+    )

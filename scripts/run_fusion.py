@@ -433,6 +433,51 @@ def run_split(
                 station_groups, n_comparisons=n_family, n_boot=n_boot, seed=seed,
             )
 
+    # The AUC row's interval. Every arm reported an `auc` and nothing reported an
+    # interval on the difference between two of them, so the headline pair (0.875 for the
+    # shipped arm against 0.842 image-only on the chronological split) was the one number
+    # in this receipt quoted as a gain with no support. On 88 observations at a 0.70
+    # positive rate that is 62 positives and 26 negatives, where the standard error of an
+    # AUC near 0.87 is about 0.04, larger than the 0.033 difference. This project's own
+    # rule is that a point estimate in the right direction with an interval containing
+    # zero is not a gain, and the AUC row was the one place it was not applied.
+    #
+    # AUC is a functional of the whole ranking rather than an average of per-observation
+    # terms, so it uses the resample-and-recompute bootstrap, the same one AURC uses, and
+    # not the paired one. `lower_is_better=False` because a higher AUC is better; the
+    # returned margin is signed so positive still means the challenger leads.
+    def _auc(probs: np.ndarray, labels: np.ndarray, grp: np.ndarray) -> float:
+        # `grp` is unused: AUC depends on the ranking of the drawn sample, not on how it
+        # is grouped, which is the same property that lets the AURC comparison resample
+        # under two groupings and call them intervals for one number.
+        del grp
+        return auc(probs, labels)
+
+    auc_comparisons: dict[str, Any] = {}
+    for challenger in dict.fromkeys((SHIPPED_ARM, GATE5_CHALLENGER)):
+        if challenger == GATE5_REFERENCE or challenger not in scored:
+            continue
+        row = clustered_statistic_difference(
+            _auc, scored[challenger], scored[GATE5_REFERENCE], y_test, groups,
+            station_groups, n_boot=n_boot, seed=seed, lower_is_better=False,
+            # Reported at the family's own alpha rather than at a bare 0.05, so the AUC
+            # row is not the one held to the weakest standard. The family size is not
+            # enlarged by these two: it was fixed by the ladder before anything was
+            # fitted, and no gate verdict and no ablation block reads AUC.
+            n_comparisons=n_family,
+        )
+        row["in_multiplicity_family"] = False
+        row["family_exclusion_reason"] = (
+            "A descriptive ranking metric. No kill gate and no ablation block verdict "
+            "reads it, and the family size was fixed by the ladder before anything was "
+            "fitted, so these two comparisons do not enlarge it. The corrected endpoint "
+            "is still reported at the family's alpha, so this row is held to the same "
+            "standard as the ones that do decide something."
+        )
+        row["challenger_auc"] = arms[challenger]["auc"]
+        row["reference_auc"] = arms[GATE5_REFERENCE]["auc"]
+        auc_comparisons[f"{challenger}_vs_{GATE5_REFERENCE}"] = row
+
     # B4: selective prediction on the gate-5 challenger. Threshold chosen on the
     # calibration partition, achieved risk measured on test.
     p_challenger = scored[GATE5_CHALLENGER]
@@ -548,6 +593,7 @@ def run_split(
         "train_positive_rate": float(y_train.mean()),
         "arms": arms,
         "comparisons": comparisons,
+        "auc_comparisons": auc_comparisons,
         "multiplicity_adjusted": multiplicity,
         "ensemble": ensemble,
         "selective": selective,

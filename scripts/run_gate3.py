@@ -503,6 +503,402 @@ def rate_upper_bound(successes: int, trials: int, alpha: float = 0.05) -> float 
     return float(beta.ppf(1.0 - alpha, successes + 1, trials - successes))
 
 
+#: Bootstrap draws for the cluster-corrected interval, and the seeds it is repeated
+#: under. Four seeds because a one-sided bound within 0.011 of its own threshold has to
+#: be shown to be a property of the data and not of one random stream, and the published
+#: bound is the lowest of the four rather than an average of them.
+#: The sentence both writers emit, so the receipt cannot say one thing after a full run
+#: and another after a recompute.
+_TWO_ESTIMANDS = (
+    "This receipt reports two estimands. `entity_grouping` is the pre-registered "
+    "all-or-nothing statistic over (station, date) groups and it decides the verdict. "
+    "`cluster_corrected_estimand` is the gate's own per-observation rate with a "
+    "cluster-corrected interval, added on 2026-08-23 after the pre-registered one had "
+    "been seen to fail its bar, and it decides nothing. They answer different questions "
+    "and neither is a corrected form of the other."
+)
+
+CLUSTER_BOOT_DRAWS: int = 40_000
+CLUSTER_BOOT_SEEDS: tuple[int, ...] = (42, 43, 44, 45)
+
+#: Draws for the simulation that asks what the all-or-nothing group statistic reads under
+#: zero clustering. Independent of the bootstrap above: this one generates data, the other
+#: resamples it.
+INDEPENDENCE_SIM_DRAWS: int = 20_000
+INDEPENDENCE_SIM_SEED: int = 20260823
+
+
+def cluster_corrected_rate(
+    flags_by_group: dict[Any, list[bool]],
+    threshold: float,
+    group_key: str,
+    n_boot: int = CLUSTER_BOOT_DRAWS,
+    seeds: tuple[int, ...] = CLUSTER_BOOT_SEEDS,
+) -> dict[str, Any]:
+    """The gate's own estimand, the rate over observations, with the clustering paid for.
+
+    A SECOND estimand. It does not decide this gate and the field
+    ``decides_the_gate`` says so. The pre-registered rule groups and the grouped
+    statistic is the one the verdict is read from, for the reason stated in
+    ``added_after``: this analysis was written after the pre-registered one was seen to
+    fail, and a rule chosen after seeing a result is not the rule that was tested.
+
+    What it measures, and why it is not the same number as the grouped rate. The gate's
+    threshold is worded as a rate over reviewed positive examples, so the estimand is a
+    per-observation rate. The objection grouping exists to answer is that those
+    observations are not independent: a station's local-oscillator error is common to
+    everything it hears. The correct treatment of a dependent rate is an interval that
+    pays for the dependence, which is what gates 5 and 6 already do
+    (``fusion.clustered_paired_bootstrap``, ``queue.compute_lift``): resample the groups
+    with replacement, keep each drawn group's observations with their multiplicity, and
+    recompute the statistic per draw. Three routes to a bound are reported because a
+    bound this close to its threshold should not rest on one method:
+
+    * the cluster bootstrap over groups, which is the one the other two gates use;
+    * a design-effect normal approximation, ``se * sqrt(deff)``;
+    * an effective-n exact binomial bound at ``n / deff``.
+
+    The collapse the pre-registered rule performs is a different estimand, not a
+    corrected version of this one. It marks a group as discriminating only when every
+    observation in it does, which answers "does the corridor work on every capture at
+    this station" rather than "how often does the corridor discriminate". Its value is
+    set mostly by the group-size distribution rather than by clustering, and
+    ``all_or_nothing_under_independence`` measures that rather than asserting it.
+    """
+    from scipy.stats import beta  # noqa: PLC0415
+
+    from pipeline.tracetriage.queue import intraclass_correlation  # noqa: PLC0415
+
+    keys = sorted(flags_by_group, key=repr)
+    per_group = [np.array([1.0 if v else 0.0 for v in flags_by_group[k]]) for k in keys]
+    flat = np.concatenate(per_group) if per_group else np.zeros(0)
+    n_obs, n_groups = int(flat.size), len(keys)
+    if n_obs == 0 or n_groups < 2:
+        return {
+            "measurable": False,
+            "reason": (
+                f"A cluster-corrected interval needs at least 2 groups over more than "
+                f"one observation. Got {n_groups} groups over {n_obs} observations."
+            ),
+            "decides_the_gate": False,
+        }
+
+    rate = float(flat.mean())
+    icc = intraclass_correlation([list(g) for g in per_group])
+    deff = float(icc["design_effect"] or 1.0)
+
+    # One-sided 95% lower bound, matching `rate_lower_bound`'s convention so the two
+    # estimands are read at the same confidence and in the same direction. The two-sided
+    # interval is reported beside it because its lower end is the stricter figure and
+    # publishing only the one that clears would be choosing the test after the result.
+    per_seed: list[dict[str, Any]] = []
+    for seed in seeds:
+        rng = np.random.default_rng(seed)
+        draws = np.empty(n_boot, dtype=float)
+        for b in range(n_boot):
+            drawn = rng.integers(0, n_groups, size=n_groups)
+            draws[b] = np.concatenate([per_group[i] for i in drawn]).mean()
+        lo1, lo2, hi2 = np.percentile(draws, [5.0, 2.5, 97.5])
+        per_seed.append({
+            "seed": int(seed),
+            "lower_bound_95_one_sided": float(lo1),
+            "ci95_two_sided": [float(lo2), float(hi2)],
+        })
+
+    bounds = [row["lower_bound_95_one_sided"] for row in per_seed]
+    published = float(min(bounds))
+    two_sided_lo = float(min(row["ci95_two_sided"][0] for row in per_seed))
+    two_sided_hi = float(max(row["ci95_two_sided"][1] for row in per_seed))
+
+    se = math.sqrt(rate * (1.0 - rate) / n_obs * deff)
+    normal_lower = float(rate - 1.6448536269514722 * se)
+    n_eff = n_obs / deff if deff > 0 else float(n_obs)
+    k_eff = rate * n_eff
+    eff_lower = (
+        float(beta.ppf(0.05, k_eff, n_eff - k_eff + 1.0))
+        if 0.0 < k_eff < n_eff
+        else None
+    )
+
+    return {
+        "measurable": True,
+        "estimand": (
+            "The discriminating rate over scored observations, with a one-sided 95% "
+            "lower bound that pays for the dependence between observations sharing a "
+            f"{group_key}."
+        ),
+        "decides_the_gate": False,
+        "why_it_does_not_decide": (
+            "The pre-registered rule groups, and this analysis was added after the "
+            "grouped statistic was seen to fail its bar. A rule adopted after seeing a "
+            "result is not the rule that was tested, so the published verdict stays the "
+            "one the pre-registered rule produces and this is reported beside it."
+        ),
+        "added_after": (
+            "2026-08-23, after the grouped statistic returned a bound of 0.3662 against "
+            "the 0.70 bar and the verdict was recorded as PASSED_UNGROUPED_ONLY."
+        ),
+        "group_key": group_key,
+        "n_observations": n_obs,
+        "n_groups": n_groups,
+        "rate": rate,
+        "threshold": float(threshold),
+        "clustering": icc,
+        "cluster_bootstrap": {
+            "method": (
+                "Resample the groups with replacement, keep each drawn group's "
+                "observations with their multiplicity, recompute the rate per draw. The "
+                "same resampling unit and the same multiplicity rule as "
+                "fusion.grouped_paired_bootstrap and queue.compute_lift."
+            ),
+            "n_boot": int(n_boot),
+            "seeds": [int(s) for s in seeds],
+            "per_seed": per_seed,
+            "lower_bound_95_one_sided": published,
+            "lower_bound_95_one_sided_range": [float(min(bounds)), float(max(bounds))],
+            "published_bound_is": (
+                "the lowest of the per-seed one-sided bounds, so the seed cannot be the "
+                "reason the bound clears"
+            ),
+            "ci95_two_sided": [two_sided_lo, two_sided_hi],
+        },
+        "design_effect_normal_lower_bound_95": normal_lower,
+        "effective_n_exact_lower_bound_95": {
+            "n_effective": float(n_eff),
+            "lower_bound": eff_lower,
+            "method": (
+                "Clopper-Pearson at n / design_effect, the same exact bound "
+                "rate_lower_bound uses on the uncorrected n."
+            ),
+        },
+        "clears_threshold": bool(published >= threshold),
+        "margin_over_threshold": float(published - threshold),
+        "margin_is_narrow": bool(0.0 <= published - threshold < 0.05),
+        "note": (
+            "Three routes to a bound on one estimand, reported together because the "
+            "margin over the bar is small enough that a bound resting on one method "
+            "would not be worth much. The one-sided convention matches "
+            "rate_lower_bound, which the pre-registered statistic is read at. The "
+            "two-sided interval's lower end is the stricter figure and is published "
+            "beside it rather than left out."
+        ),
+    }
+
+
+def all_or_nothing_under_independence(
+    group_sizes: list[int],
+    rate: float,
+    observed_group_rate: float | None,
+    threshold: float,
+    n_draws: int = INDEPENDENCE_SIM_DRAWS,
+    seed: int = INDEPENDENCE_SIM_SEED,
+) -> dict[str, Any]:
+    """What the all-or-nothing group statistic reads when there is no clustering at all.
+
+    The pre-registered statistic marks a group as discriminating only when every
+    observation in it does. That indicator falls as groups grow whether or not any
+    dependence exists, so its value cannot be read as evidence about dependence. This
+    measures the counterfactual instead of arguing it: hold the per-observation rate at
+    the observed value, draw independent Bernoulli outcomes into the realised group
+    sizes, and report the distribution of the all-pass rate.
+
+    It also gives the ceiling that matters for reading the gate. If the observed
+    all-pass rate sits inside this distribution, the grouped statistic detected no
+    clustering, and if the distribution's own upper end sits below the bar then the
+    statistic could not have cleared the bar at this rate and these group sizes however
+    the data had fallen.
+    """
+    sizes = [int(n) for n in group_sizes if n > 0]
+    if not sizes:
+        return {"measurable": False, "reason": "No populated groups."}
+
+    rng = np.random.default_rng(seed)
+    k = len(sizes)
+    sim = np.empty(n_draws, dtype=float)
+    for d in range(n_draws):
+        passed = 0
+        for n in sizes:
+            # A group all-passes when its worst draw still succeeds.
+            if float(rng.random(n).max()) < rate:
+                passed += 1
+        sim[d] = passed / k
+    lo, hi = np.percentile(sim, [2.5, 97.5])
+    inside = (
+        None if observed_group_rate is None
+        else bool(lo <= observed_group_rate <= hi)
+    )
+
+    # What per-observation rate the collapsed statistic would need before it could reach
+    # the bar in expectation. Under independence the expected all-pass rate is
+    # mean(p ** n_i) over the realised sizes, which is monotone in p, so one bisection
+    # gives it exactly. This turns "the collapsed statistic cannot reach 0.70 at these
+    # group sizes" from an assertion into a number: the observed rate against the rate
+    # the statistic would need.
+    def _expected(pp: float) -> float:
+        return float(np.mean([pp ** n for n in sizes]))
+
+    lo_p, hi_p = 0.0, 1.0
+    for _ in range(200):
+        mid = 0.5 * (lo_p + hi_p)
+        if _expected(mid) < threshold:
+            lo_p = mid
+        else:
+            hi_p = mid
+    needed = 0.5 * (lo_p + hi_p)
+
+    reached = int((sim >= threshold).sum())
+    return {
+        "measurable": True,
+        "question": (
+            "With the per-observation rate held at its observed value and every outcome "
+            "drawn independently, so with zero clustering, what does the all-or-nothing "
+            "group rate read over these group sizes?"
+        ),
+        "per_observation_rate_held_at": float(rate),
+        "n_groups": k,
+        "n_observations": int(sum(sizes)),
+        "mean_group_size": float(sum(sizes) / k),
+        "max_group_size": int(max(sizes)),
+        "n_draws": int(n_draws),
+        "seed": int(seed),
+        "mean_all_pass_group_rate": float(sim.mean()),
+        "range95": [float(lo), float(hi)],
+        "max_all_pass_group_rate_drawn": float(sim.max()),
+        "observed_all_pass_group_rate": observed_group_rate,
+        "observed_is_inside_the_range": inside,
+        "threshold": float(threshold),
+        "draws_reaching_the_threshold": reached,
+        "fraction_of_draws_reaching_the_threshold": float(reached / n_draws),
+        "per_observation_rate_needed_to_reach_the_threshold": float(needed),
+        "reachability_note": (
+            f"Over these group sizes the collapsed statistic reaches {threshold:.2f} in "
+            f"expectation only once the per-observation rate is about {needed:.4f}. That "
+            f"is the arithmetic of mean(p ** n_i) over the realised sizes and it does not "
+            f"depend on this corpus's outcomes. So the bar is not reachable here by a "
+            f"corridor that works well, only by one that almost never misses."
+        ),
+        "note": (
+            "A simulation of the statistic, not of the corpus. If the observed value "
+            "sits inside this range then the grouped statistic measured the group-size "
+            "distribution rather than any dependence between captures."
+        ),
+    }
+
+
+def _day_of(row: dict[str, Any]) -> str | None:
+    """The UTC date an observation started, or None when it carries no usable start."""
+    start = row.get("start")
+    return start[:10] if isinstance(start, str) and len(start) >= 10 else None
+
+
+def rate_statistics(
+    scored: list[dict[str, Any]], threshold: float
+) -> dict[str, Any]:
+    """Every rate, bound and grouping this gate publishes, from the scored rows alone.
+
+    One function rather than a block inside ``main``, because two callers need the same
+    arithmetic and a second copy of it is how two published numbers stop agreeing. The
+    full run calls it on the rows it has just scored; ``--recompute-derived`` calls it on
+    the rows a committed receipt already holds, and cross-checks the result against what
+    that receipt stored before writing anything.
+
+    Entity grouping. A rate over observations overstates the evidence when the
+    observations are not independent, and the plan requires bootstrapping "by orbital
+    episode or day, not by image row".
+
+    What makes them dependent is the receiver. A ground station's local-oscillator error
+    is common to everything it hears, so two passes recorded by one station on one night
+    are one systematic offset measured twice rather than two confirmations. A3's three
+    observations made this concrete: two of them shared station 1696 three minutes apart
+    and fitted an identical -7,149 Hz offset. The grouping key is (ground station, UTC
+    date) for that reason, and the counts are measured on whatever pool was scored rather
+    than described here.
+    """
+    discriminating = [r for r in scored if r["null_calibration"]["discriminates"]]
+    hit_rate = len(discriminating) / len(scored) if scored else None
+    # The point estimate is reported, but the threshold is read off the lower bound.
+    # A rate of 1.0 on three trials does not establish a rate of 0.70.
+    rate_bound = rate_lower_bound(len(discriminating), len(scored))
+
+    grouping: dict[str, Any] = {
+        "distinct_stations": len({r["station_id"] for r in scored}),
+        "distinct_satellites": len({r["norad_cat_id"] for r in scored}),
+        "distinct_transmitters": len({r["transmitter_uuid"] for r in scored}),
+        "distinct_days": len({_day_of(r) for r in scored}),
+        "distinct_station_days": len({(r["station_id"], _day_of(r)) for r in scored}),
+        "note": (
+            "The discriminating rate above is over observations, not over independent "
+            "episodes. A ground station's oscillator error is common to every pass it "
+            "records, so observations sharing a (station, UTC date) are one episode "
+            "measured several times. The grouped rate below collapses them, and a group "
+            "counts as discriminating only if every observation in it does, which is the "
+            "direction that cannot manufacture a pass. What that collapse cannot do is "
+            "measure the dependence: see all_or_nothing_under_independence below, and "
+            "cluster_corrected_estimand for the same rate with the dependence paid for "
+            "rather than collapsed."
+        ),
+    }
+
+    # Collapse correlated observations before computing the rate, rather than
+    # disclosing the correlation only in prose. A consumer that reads
+    # clears_threshold without reading entity_grouping's note would otherwise
+    # inherit the overstatement, and at snapshot scale that matters.
+    by_group: dict[tuple[Any, Any], list[bool]] = {}
+    for r in scored:
+        key = (r["station_id"], _day_of(r))
+        by_group.setdefault(key, []).append(
+            bool(r["null_calibration"]["discriminates"])
+        )
+    # A group counts as discriminating only if every observation in it does, so
+    # collapsing can never manufacture a pass.
+    group_flags = [all(v) for v in by_group.values()]
+    grouped_rate = sum(group_flags) / len(group_flags) if group_flags else None
+    grouped_bound = rate_lower_bound(sum(group_flags), len(group_flags))
+
+    grouping["groups_scored"] = len(group_flags)
+    grouping["grouped_discriminating_rate"] = grouped_rate
+    grouping["grouped_rate_lower_bound_95"] = grouped_bound
+    grouping["grouped_clears_point_estimate"] = bool(
+        grouped_rate is not None and grouped_rate >= threshold
+    )
+    grouping["grouped_clears_threshold"] = bool(
+        grouped_bound is not None and grouped_bound >= threshold
+    )
+    grouping["group_key"] = "(ground_station, UTC date)"
+    grouping["estimand"] = (
+        "Whether the corridor discriminates on EVERY scored capture at a station on a "
+        "date. That is a different question from the gate's own wording, which is a rate "
+        "over reviewed positive examples, and it is stricter: a station with one failure "
+        "among twenty captures counts the same as a station with twenty failures. It is "
+        "the pre-registered statistic and it decides the verdict."
+    )
+    # What the collapse above is, measured. An all-or-nothing indicator over groups of
+    # this size falls as groups grow whether or not any dependence exists, so its value
+    # is not evidence about dependence. This is the counterfactual under zero clustering,
+    # published beside the number it qualifies rather than in the second estimand's
+    # block, because a reader of the grouped rate needs it at the grouped rate.
+    grouping["all_or_nothing_under_independence"] = all_or_nothing_under_independence(
+        [len(v) for v in by_group.values()], hit_rate or 0.0, grouped_rate, threshold,
+    )
+
+    return {
+        "discriminating_rate": hit_rate,
+        "rate_lower_bound_95": rate_bound,
+        "clears_point_estimate": bool(
+            hit_rate is not None and hit_rate >= threshold
+        ),
+        "clears_threshold": bool(
+            rate_bound is not None and rate_bound >= threshold
+        ),
+        "entity_grouping": grouping,
+        # The second estimand: the gate's own rate, with the clustering paid for rather
+        # than collapsed. Reported, never decisive.
+        "cluster_corrected_estimand": cluster_corrected_rate(
+            by_group, threshold, grouping["group_key"],
+        ),
+    }
+
+
 def _select_pool(path: Path, pool: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """The observations this run tests, and a record of how they were chosen.
 
@@ -550,6 +946,191 @@ def _select_pool(path: Path, pool: str) -> tuple[list[dict[str, Any]], dict[str,
     return chosen, meta
 
 
+#: Derived statistics ``--recompute-derived`` will rewrite, and the ones it first has to
+#: reproduce from the receipt's own per-observation records before it is allowed to write.
+#: A mismatch on any of these means the stored numbers are not a function of the stored
+#: rows, so the mode refuses rather than overwriting them.
+_CROSS_CHECKED = (
+    "discriminating_rate",
+    "rate_lower_bound_95",
+    "clears_point_estimate",
+    "clears_threshold",
+)
+_CROSS_CHECKED_GROUPING = (
+    "distinct_stations",
+    "distinct_satellites",
+    "distinct_transmitters",
+    "distinct_days",
+    "distinct_station_days",
+    "groups_scored",
+    "grouped_discriminating_rate",
+    "grouped_rate_lower_bound_95",
+    "grouped_clears_point_estimate",
+    "grouped_clears_threshold",
+)
+
+
+def _same_number(a: Any, b: Any) -> bool:
+    """Equal, with a float tolerance, and with None equal only to None."""
+    if a is None or b is None:
+        return a is None and b is None
+    if isinstance(a, bool) or isinstance(b, bool):
+        return bool(a) is bool(b)
+    if isinstance(a, int | float) and isinstance(b, int | float):
+        return math.isclose(float(a), float(b), rel_tol=1e-12, abs_tol=1e-12)
+    return a == b
+
+
+def _refreshed_pool_meta(receipt: dict[str, Any]) -> dict[str, Any]:
+    """The `pool` block re-read from the pool file, but only if the membership is identical.
+
+    ``pool.n_examined`` and ``pool.pool_counts`` are copies of the pool file's own counts,
+    taken at run time. When the pool file's denominator is corrected the copies in an
+    already-scored receipt go stale, and a receipt printing 2,750 examined beside a pool
+    file printing 2,727 is exactly the two-populations defect this whole change is about.
+
+    Refreshing them is safe only when the selection did not move, so that is checked
+    rather than assumed: the pool file is re-selected under the receipt's own pool name
+    and the resulting observation ids must match the ids the receipt scored, exactly. If
+    they differ then the pool no longer selects the same observations and the fits are the
+    thing that is stale, not the counts, so this refuses and the gate has to be re-run.
+    """
+    pool_meta = receipt.get("pool") or {}
+    name, source = pool_meta.get("name"), pool_meta.get("source")
+    if not name or not source:
+        return pool_meta
+    path = REPO_ROOT / source if not Path(source).is_absolute() else Path(source)
+    if not path.is_file():
+        logger.warning(
+            "pool file %s is not on disk, so pool.n_examined and pool.pool_counts are "
+            "left as the run that wrote them recorded", source,
+        )
+        return pool_meta
+
+    chosen, fresh = _select_pool(path, name)
+    scored_ids = [int(r["obs_id"]) for r in receipt.get("observations") or []]
+    other_ids = [
+        int(r["obs_id"]) for r in (receipt.get("not_prepared") or [])
+    ] + [int(r["obs_id"]) for r in (receipt.get("skipped") or []) if "obs_id" in r]
+    expected = set(scored_ids) | set(other_ids)
+    got = {int(r["obs_id"]) for r in chosen}
+    if got != expected:
+        raise SystemExit(
+            f"{path.name} now selects {len(got)} observations for pool {name!r} and this "
+            f"receipt was scored on {len(expected)}. The symmetric difference is "
+            f"{len(got ^ expected)} observation(s), so the selection moved and the fits "
+            f"are stale rather than the counts. Re-run the gate."
+        )
+    return fresh
+
+
+def recompute_derived(path: Path, threshold: float) -> int:
+    """Rewrite only the statistics that are functions of the receipt's own scored rows.
+
+    No image is opened and no corridor is refitted. Every quantity this touches is
+    derived from ``observations[*].station_id``, ``start`` and
+    ``null_calibration.discriminates``, all of which the committed receipt already holds,
+    which is why it can run without the 20 GB snapshot. ``build_gate3_pool.py --recut``
+    exists for the same reason and works the same way.
+
+    The guard is the point. Before writing, every derived statistic already in the file is
+    recomputed from the rows and compared against the stored value. If the stored numbers
+    are not reproducible from the stored rows then the file is not internally consistent,
+    and rewriting part of it would hide that rather than fix it, so the mode refuses. A
+    receipt this passes on differs from a full re-run only in its timestamps, and the two
+    fields it adds record that the scoring was not repeated.
+
+    It also re-reads the ``pool`` block's counts from the pool file, under a guard that
+    the pool still selects exactly the observations this receipt scored. See
+    ``_refreshed_pool_meta``.
+
+    The verdict is not recomputed and not touched. It is read from the pre-registered
+    statistic, and the second estimand does not enter it.
+    """
+    receipt = json.loads(path.read_text(encoding="utf-8"))
+    rows = receipt.get("observations") or []
+    scored = [
+        r for r in rows
+        if r.get("testable")
+        and (r.get("null_calibration") or {}).get("p_value") is not None
+    ]
+    if len(scored) != receipt.get("observations_scored"):
+        raise SystemExit(
+            f"{path.name} records observations_scored = "
+            f"{receipt.get('observations_scored')} and its own rows give {len(scored)}. "
+            f"The derived statistics are not a function of the stored rows, so this mode "
+            f"will not rewrite them."
+        )
+
+    stats = rate_statistics(scored, threshold)
+    stored_grouping = receipt.get("entity_grouping") or {}
+    mismatches: list[str] = []
+    for key in _CROSS_CHECKED:
+        if not _same_number(receipt.get(key), stats[key]):
+            mismatches.append(
+                f"{key}: stored {receipt.get(key)!r}, recomputed {stats[key]!r}"
+            )
+    for key in _CROSS_CHECKED_GROUPING:
+        if not _same_number(stored_grouping.get(key), stats["entity_grouping"][key]):
+            mismatches.append(
+                f"entity_grouping.{key}: stored {stored_grouping.get(key)!r}, "
+                f"recomputed {stats['entity_grouping'][key]!r}"
+            )
+    if mismatches:
+        raise SystemExit(
+            f"{path.name} stores derived statistics its own rows do not reproduce:\n  "
+            + "\n  ".join(mismatches)
+            + "\nRe-run the gate rather than rewriting part of the file."
+        )
+
+    receipt["entity_grouping"] = stats["entity_grouping"]
+    receipt["cluster_corrected_estimand"] = stats["cluster_corrected_estimand"]
+    receipt["two_estimands"] = _TWO_ESTIMANDS
+    receipt["pool"] = _refreshed_pool_meta(receipt)
+    receipt["derived_statistics_recomputed_at"] = datetime.now(UTC).isoformat()
+    receipt["derived_statistics_recomputed_how"] = (
+        "scripts/run_gate3.py --recompute-derived. No image was opened and no corridor "
+        "was refitted: every field it wrote is a function of this file's own "
+        "per-observation records or of the pool file it names, and every derived field "
+        "already present was reproduced from those records and checked against the stored "
+        "value before anything was written. The pool block's counts were re-read from the "
+        "pool file only after checking that the pool still selects exactly the "
+        "observations scored here. The per-observation fits, the sigmas, the p-values and "
+        "the verdict are unchanged from the run named in generated_at."
+    )
+
+    non_finite: list[str] = []
+    receipt = _json_safe(receipt, "", non_finite)
+    if non_finite:
+        logger.warning(
+            "%d non-finite value(s) written as null: %s",
+            len(non_finite), ", ".join(non_finite[:8]),
+        )
+    path.write_text(
+        json.dumps(receipt, indent=2, allow_nan=False), encoding="utf-8", newline="\n"
+    )
+
+    cc = receipt["cluster_corrected_estimand"]
+    grp = receipt["entity_grouping"]
+    sim = grp["all_or_nothing_under_independence"]
+    print(f"recomputed the derived statistics in {path}")
+    print(f"  verdict, unchanged        {receipt['verdict']}")
+    print(f"  pre-registered grouped    {grp['grouped_discriminating_rate']:.4f}, "
+          f"bound {grp['grouped_rate_lower_bound_95']:.4f}")
+    if sim.get("measurable"):
+        print(f"  the same statistic under zero clustering  "
+              f"{sim['mean_all_pass_group_rate']:.4f}, 95% range "
+              f"{sim['range95'][0]:.4f} to {sim['range95'][1]:.4f}")
+    if cc.get("measurable"):
+        print(f"  cluster-corrected rate    {cc['rate']:.4f} over {cc['n_groups']} "
+              f"groups, ICC {cc['clustering']['icc']:.4f}, design effect "
+              f"{cc['clustering']['design_effect']:.4f}")
+        print(f"  one-sided 95% lower bound "
+              f"{cc['cluster_bootstrap']['lower_bound_95_one_sided']:.4f} against "
+              f"{threshold:.2f}, clears={cc['clears_threshold']}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--snapshot", type=Path, default=Path("D:/tracetriage_data/snap-stage1"))
@@ -568,6 +1149,17 @@ def main() -> int:
             "pre-registered one and the only one whose rate decides the gate"
         ),
     )
+    ap.add_argument(
+        "--recompute-derived",
+        action="store_true",
+        help=(
+            "open no image. Read the receipt at --out, reproduce every derived statistic "
+            "from the per-observation records already in it, refuse if any stored value "
+            "does not reproduce, and rewrite only the derived blocks. This is how the "
+            "second estimand was added to a committed receipt without repeating a "
+            "scoring run that returns identical fits"
+        ),
+    )
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
 
@@ -575,6 +1167,9 @@ def main() -> int:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(levelname)s %(message)s",
     )
+
+    if args.recompute_derived:
+        return recompute_derived(args.out, args.gate_threshold)
 
     decisive, pool_meta = _select_pool(args.a3, args.pool)
     logger.info("%s pool: %d observations", args.pool, len(decisive))
@@ -789,71 +1384,15 @@ def main() -> int:
     testable = [r for r in results if r["testable"]]
     not_testable = [r for r in results if not r["testable"]]
     scored = [r for r in testable if r["null_calibration"]["p_value"] is not None]
-    discriminating = [r for r in scored if r["null_calibration"]["discriminates"]]
-    hit_rate = len(discriminating) / len(scored) if scored else None
-    # The point estimate is reported, but the threshold is read off the lower bound.
-    # A rate of 1.0 on three trials does not establish a rate of 0.70.
-    rate_bound = rate_lower_bound(len(discriminating), len(scored))
-    clears_point = hit_rate is not None and hit_rate >= args.gate_threshold
-    clears_threshold = rate_bound is not None and rate_bound >= args.gate_threshold
-
-    # Entity grouping. A rate over observations overstates the evidence when the
-    # observations are not independent, and the plan requires bootstrapping "by
-    # orbital episode or day, not by image row".
-    #
-    # What makes them dependent is the receiver. A ground station's local-oscillator
-    # error is common to everything it hears, so two passes recorded by one station on
-    # one night are one systematic offset measured twice rather than two confirmations.
-    # A3's three observations made this concrete: two of them shared station 1696 three
-    # minutes apart and fitted an identical -7,149 Hz offset. The grouping key is
-    # (ground station, UTC date) for that reason, and the counts below are measured on
-    # whatever pool this run scored rather than described here.
-    def _day(row: dict[str, Any]) -> str | None:
-        start = row.get("start")
-        return start[:10] if isinstance(start, str) and len(start) >= 10 else None
-
-    grouping = {
-        "distinct_stations": len({r["station_id"] for r in scored}),
-        "distinct_satellites": len({r["norad_cat_id"] for r in scored}),
-        "distinct_transmitters": len({r["transmitter_uuid"] for r in scored}),
-        "distinct_days": len({_day(r) for r in scored}),
-        "distinct_station_days": len({(r["station_id"], _day(r)) for r in scored}),
-        "note": (
-            "The discriminating rate above is over observations, not over independent "
-            "episodes. A ground station's oscillator error is common to every pass it "
-            "records, so observations sharing a (station, UTC date) are one episode "
-            "measured several times. The grouped rate below collapses them, and a group "
-            "counts as discriminating only if every observation in it does, which is the "
-            "direction that cannot manufacture a pass."
-        ),
-    }
-
-    # Collapse correlated observations before computing the rate, rather than
-    # disclosing the correlation only in prose. A consumer that reads
-    # clears_threshold without reading entity_grouping's note would otherwise
-    # inherit the overstatement, and at snapshot scale that matters.
-    by_group: dict[tuple[Any, Any], list[bool]] = {}
-    for r in scored:
-        key = (r["station_id"], _day(r))
-        by_group.setdefault(key, []).append(
-            bool(r["null_calibration"]["discriminates"])
-        )
-    # A group counts as discriminating only if every observation in it does, so
-    # collapsing can never manufacture a pass.
-    group_flags = [all(v) for v in by_group.values()]
-    grouped_rate = sum(group_flags) / len(group_flags) if group_flags else None
-    grouped_bound = rate_lower_bound(sum(group_flags), len(group_flags))
-    grouped_clears_point = (
-        grouped_rate is not None and grouped_rate >= args.gate_threshold
-    )
-    grouped_clears = grouped_bound is not None and grouped_bound >= args.gate_threshold
-
-    grouping["groups_scored"] = len(group_flags)
-    grouping["grouped_discriminating_rate"] = grouped_rate
-    grouping["grouped_rate_lower_bound_95"] = grouped_bound
-    grouping["grouped_clears_point_estimate"] = grouped_clears_point
-    grouping["grouped_clears_threshold"] = grouped_clears
-    grouping["group_key"] = "(ground_station, UTC date)"
+    stats = rate_statistics(scored, args.gate_threshold)
+    hit_rate = stats["discriminating_rate"]
+    rate_bound = stats["rate_lower_bound_95"]
+    clears_point = stats["clears_point_estimate"]
+    clears_threshold = stats["clears_threshold"]
+    grouping = stats["entity_grouping"]
+    grouped_clears_point = grouping["grouped_clears_point_estimate"]
+    grouped_clears = grouping["grouped_clears_threshold"]
+    cluster_corrected = stats["cluster_corrected_estimand"]
 
     if not scored:
         verdict = "UNMEASURABLE"
@@ -904,6 +1443,12 @@ def main() -> int:
         "clears_point_estimate": clears_point,
         "clears_threshold": clears_threshold,
         "entity_grouping": grouping,
+        # A second estimand, clearly labelled, deciding nothing. The verdict above is
+        # computed from `clears_threshold` and `grouped_clears` only, so adding this
+        # block cannot move it, and that is deliberate: it was written after the
+        # pre-registered statistic was seen to fail.
+        "cluster_corrected_estimand": cluster_corrected,
+        "two_estimands": _TWO_ESTIMANDS,
         # What the mode reader made of each scored image, and how the rate splits by it.
         # 166 of pool B's 303 are UNRESOLVED to that reader, which the pooled rate hides.
         "mode_decomposition": _by_mode_verdict(scored),

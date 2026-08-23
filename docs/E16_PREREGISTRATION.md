@@ -202,3 +202,31 @@ what changes is that the published count means what it says.
 No gate 3 result of any kind had been produced from either pool when this was written.
 The receipt in the tree at that moment was still the three-observation A3 run from
 2026-08-19, which is what `pool.name` records and what the ordering test keys on.
+
+## 8. A third correction, recorded after the gate had been scored, 2026-08-23
+
+This one is a denominator and only a denominator, and it is recorded here because
+section 7's table above says 2,750 examined in both of its columns and the pool now says
+2,727.
+
+`scripts/build_gate3_pool.py` enumerated `snapshot/pages/*.json`, the raw cursor
+responses as fetched. The ingest took whole pages and stopped at its 2,500-waterfall
+target part-way through the last one, which had already been written complete, so 23 rows
+sit on disk that the dataset never stored. `artifacts/DATASET_MANIFEST.json` freezes 2,727
+observations and the pool examined 2,750 of them. The builder now enumerates the manifest,
+which is what `pipeline/tracetriage/splits.py` and `scripts/run_precedent_study.py`
+already did.
+
+**Membership is unchanged, and that is checkable rather than asserted.** All 23 extra rows
+carry `status: "no_waterfall"`, so no image was ever opened for any of them and none could
+enter either pool at any threshold. Every retained record is byte-identical to the one the
+first build wrote. The counts that move are `examined` 2,750 to 2,727 and
+`by_status.no_waterfall` 250 to 227, which is now exactly the manifest's own
+`waterfalls_missing`. `measurable` stays 2,412, pool A stays 308, pool B stays 303, `in
+both` stays 137, and every verdict tally is unchanged.
+
+**This was written after gate 3 had been scored, so it is worth being exact about what it
+could have influenced.** Nothing in section 3's rule reads a count. The bar is
+`TRACE_Q75_MIN`, fixed at 3.5 before any of this and unmoved, and the two pools are
+per-observation predicates. A correction that removes only rows no predicate can admit
+cannot select a pool, and the re-run reproduced every fit.

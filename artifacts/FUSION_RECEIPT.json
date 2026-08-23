@@ -3,7 +3,7 @@
  "schema_version": "0.1.0",
  "contract": "contracts/fusion_receipt.schema.json",
  "unit": "B2-B6",
- "generated_at": "2026-08-21T22:36:25.244875+00:00",
+ "generated_at": "2026-08-23T12:17:56.488991+00:00",
  "seed": 42,
  "snapshot_id": "snap-20260817-stage1",
  "split_manifest_sha256": "c0f8cd3a5dd5fbf9b6d49beacc5c050e1cf2525daca210945a6fba80226873c9",
@@ -1127,6 +1127,160 @@
      "mean_group_size_station": 2.5142857142857142,
      "in_multiplicity_family": false,
      "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
+    }
+   },
+   "auc_comparisons": {
+    "image_corridor_vs_image_only": {
+     "margin": 0.03287841191066998,
+     "ci95": [
+      -0.001421464108031234,
+      0.07093663911845738
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.02581259448223731,
+      0.09710986002588212
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.24707898795681188,
+       "design_effect": 1.3741481817631722,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "ci95_episode": [
+      -0.001421464108031234,
+      0.07093663911845738
+     ],
+     "ci95_station": [
+      -0.0012533303624761504,
+      0.06758843232633556
+     ],
+     "ci_adjusted_episode": [
+      -0.022127630699257203,
+      0.09700520833333337
+     ],
+     "ci_adjusted_station": [
+      -0.02581259448223731,
+      0.09710986002588212
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.8746898263027295,
+     "reference_auc": 0.8418114143920595
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": 0.05148883374689828,
+     "ci95": [
+      -0.014994846499300529,
+      0.1212698412698412
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.0518578980514386,
+      0.1692407945687472
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.06151838188719366,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "ci95_episode": [
+      -0.010679457841929307,
+      0.1212698412698412
+     ],
+     "ci95_station": [
+      -0.014994846499300529,
+      0.11328125
+     ],
+     "ci_adjusted_episode": [
+      -0.04553734061930781,
+      0.1692407945687472
+     ],
+     "ci_adjusted_station": [
+      -0.0518578980514386,
+      0.15268026068061322
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.8933002481389578,
+     "reference_auc": 0.8418114143920595
     }
    },
    "multiplicity_adjusted": {
@@ -2539,6 +2693,160 @@
      "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
     }
    },
+   "auc_comparisons": {
+    "image_corridor_vs_image_only": {
+     "margin": -0.0907088122605364,
+     "ci95": [
+      -0.16601617309825628,
+      0.02573529411764697
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.2123559701044409,
+      0.07479077626136486
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 217,
+     "n_groups": 217,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.13734053618736958,
+       "design_effect": 1.0,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "ci95_episode": [
+      -0.16601617309825628,
+      -0.01848429128790372
+     ],
+     "ci95_station": [
+      -0.1646212959242269,
+      0.02573529411764697
+     ],
+     "ci_adjusted_episode": [
+      -0.2123559701044409,
+      0.021515061255921727
+     ],
+     "ci_adjusted_station": [
+      -0.2122191067233769,
+      0.07479077626136486
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 217,
+     "n_groups_station": 27,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.6879310344827586,
+     "reference_auc": 0.778639846743295
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": -0.10660919540229885,
+     "ci95": [
+      -0.1821736368029864,
+      0.0069445785070785995
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.22566883520220918,
+      0.06312213901499643
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 217,
+     "n_groups": 217,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 217 groups over 217 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 217,
+       "n_observations": 217,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.11796024965450666,
+       "design_effect": 1.0,
+       "n_groups": 27,
+       "n_observations": 217,
+       "mean_group_size": 8.037037037037036,
+       "size_adjusted_mean_group_size": 6.718539524991138
+      }
+     },
+     "ci95_episode": [
+      -0.1821736368029864,
+      -0.03381154861758311
+     ],
+     "ci95_station": [
+      -0.17598417701443633,
+      0.0069445785070785995
+     ],
+     "ci_adjusted_episode": [
+      -0.22566883520220918,
+      0.003094503306132003
+     ],
+     "ci_adjusted_station": [
+      -0.2228993351264549,
+      0.06312213901499643
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 217,
+     "n_groups_station": 27,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.6720306513409962,
+     "reference_auc": 0.778639846743295
+    }
+   },
    "multiplicity_adjusted": {
     "image_physics_vs_image_only": {
      "n_comparisons": 21,
@@ -3892,6 +4200,160 @@
      "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
     }
    },
+   "auc_comparisons": {
+    "image_corridor_vs_image_only": {
+     "margin": -0.009375000000000022,
+     "ci95": [
+      -0.0924772967622867,
+      0.08205128205128209
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.13930676282858823,
+      0.1401934266238794
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.21083049203999343,
+       "design_effect": 1.512016909239984,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "ci95_episode": [
+      -0.09038806993227795,
+      0.0712962962962963
+     ],
+     "ci95_station": [
+      -0.0924772967622867,
+      0.08205128205128209
+     ],
+     "ci_adjusted_episode": [
+      -0.13590372260015124,
+      0.11805828411132366
+     ],
+     "ci_adjusted_station": [
+      -0.13930676282858823,
+      0.1401934266238794
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 96,
+     "n_groups_station": 28,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.8107142857142857,
+     "reference_auc": 0.8200892857142857
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": -0.005357142857142838,
+     "ci95": [
+      -0.09491556128715309,
+      0.09523809523809523
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.145388786530655,
+      0.15635671585323838
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 96,
+     "n_groups": 96,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 96 groups over 96 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 96,
+       "n_observations": 96,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.23983602213694435,
+       "design_effect": 1.5824589109040077,
+       "n_groups": 28,
+       "n_observations": 96,
+       "mean_group_size": 3.4285714285714284,
+       "size_adjusted_mean_group_size": 3.2924382716049383
+      }
+     },
+     "ci95_episode": [
+      -0.09090909090909094,
+      0.0799825174825175
+     ],
+     "ci95_station": [
+      -0.09491556128715309,
+      0.09523809523809523
+     ],
+     "ci_adjusted_episode": [
+      -0.14205434775105744,
+      0.1307187133748949
+     ],
+     "ci_adjusted_station": [
+      -0.145388786530655,
+      0.15635671585323838
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 96,
+     "n_groups_station": 28,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.8147321428571429,
+     "reference_auc": 0.8200892857142857
+    }
+   },
    "multiplicity_adjusted": {},
    "ensemble": {
     "seed_sensitivity": {
@@ -5196,6 +5658,160 @@
      "mean_group_size_station": 6.333333333333333,
      "in_multiplicity_family": false,
      "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
+    }
+   },
+   "auc_comparisons": {
+    "image_corridor_vs_image_only": {
+     "margin": 0.033333333333333326,
+     "ci95": [
+      -0.04396224076675209,
+      0.182435152057245
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 49998,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52142857142858,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.09109730848861275,
+      0.2998248356581685
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 76,
+     "n_groups": 76,
+     "n_boot": 50000,
+     "n_usable_resamples": 49998,
+     "n_degenerate_resamples": 2,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.21094744601940718,
+       "design_effect": 2.125053045436838,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "ci95_episode": [
+      -0.042857142857142816,
+      0.11180124223602483
+     ],
+     "ci95_station": [
+      -0.04396224076675209,
+      0.182435152057245
+     ],
+     "ci_adjusted_episode": [
+      -0.09109730848861275,
+      0.16036434460147558
+     ],
+     "ci_adjusted_station": [
+      -0.08829280612486229,
+      0.2998248356581685
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 76,
+     "n_groups_station": 12,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.8303030303030303,
+     "reference_auc": 0.796969696969697
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": 0.012121212121212088,
+     "ci95": [
+      -0.10329945054945061,
+      0.19166666666666665
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 49998,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52142857142858,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.16584689754689755,
+      0.35769841269840896
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 76,
+     "n_groups": 76,
+     "n_boot": 50000,
+     "n_usable_resamples": 49998,
+     "n_degenerate_resamples": 2,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 76 groups over 76 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 76,
+       "n_observations": 76,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.08766783806386828,
+       "design_effect": 1.4675618030072974,
+       "n_groups": 12,
+       "n_observations": 76,
+       "mean_group_size": 6.333333333333333,
+       "size_adjusted_mean_group_size": 5.6913875598086126
+      }
+     },
+     "ci95_episode": [
+      -0.08391608391608396,
+      0.12447552447552447
+     ],
+     "ci95_station": [
+      -0.10329945054945061,
+      0.19166666666666665
+     ],
+     "ci_adjusted_episode": [
+      -0.13827097505668934,
+      0.20716288173644212
+     ],
+     "ci_adjusted_station": [
+      -0.16584689754689755,
+      0.35769841269840896
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 76,
+     "n_groups_station": 12,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.8090909090909091,
+     "reference_auc": 0.796969696969697
     }
    },
    "multiplicity_adjusted": {
@@ -6772,6 +7388,160 @@
      "mean_group_size_station": 2.5142857142857142,
      "in_multiplicity_family": false,
      "family_exclusion_reason": "A sanity check that the reference arm beats the prior-only arm. It is not a comparison the ablation rule reads and no block verdict depends on it, so it is published outside the corrected family."
+    }
+   },
+   "auc_comparisons": {
+    "image_corridor_vs_image_only": {
+     "margin": 0.07133995037220842,
+     "ci95": [
+      -0.0005650520030816892,
+      0.15738520028885772
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.03202448107448109,
+      0.22885558390022812
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": 0.032111525844357953,
+       "design_effect": 1.0486260248500276,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "ci95_episode": [
+      0.0024813895781637925,
+      0.15492063492063501
+     ],
+     "ci95_station": [
+      -0.0005650520030816892,
+      0.15738520028885772
+     ],
+     "ci_adjusted_episode": [
+      -0.027311524974288497,
+      0.21300983782471705
+     ],
+     "ci_adjusted_station": [
+      -0.03202448107448109,
+      0.22885558390022812
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.8728287841191067,
+     "reference_auc": 0.8014888337468983
+    },
+    "physics_conditioned_vs_image_only": {
+     "margin": 0.08498759305210912,
+     "ci95": [
+      -0.01624364406779653,
+      0.19789492086860505
+     ],
+     "direction": "indistinguishable",
+     "distinguishable": false,
+     "challenger_better": false,
+     "n_comparisons": 21,
+     "percentile_resolution": {
+      "n_boot_effective": 50000,
+      "alpha": 0.002380952380952381,
+      "draws_per_tail": 59.52380952380953,
+      "min_draws_per_tail": 20,
+      "endpoint_resolved": true,
+      "n_boot_for_resolution": 16800
+     },
+     "ci_adjusted": [
+      -0.06954340401168764,
+      0.27200459009514844
+     ],
+     "adjusted_confidence": 0.9976190476190476,
+     "survives_correction": false,
+     "n_observations": 88,
+     "n_groups": 88,
+     "n_boot": 50000,
+     "n_usable_resamples": 50000,
+     "n_degenerate_resamples": 0,
+     "seed": 42,
+     "note": "The statistic is recomputed on each resampled group set rather than averaged from per-observation terms, because it is a functional of the whole ranking. Two groupings are resampled and both intervals are published; ci95 and ci_adjusted are their unions, which can only be wider than either. margin is signed so positive means the challenger is better.",
+     "clustering": {
+      "episode": {
+       "measurable": false,
+       "reason": "An intra-class correlation needs at least 2 populated groups and more observations than groups. Got 88 groups over 88 observations.",
+       "icc": null,
+       "design_effect": null,
+       "n_groups": 88,
+       "n_observations": 88,
+       "mean_group_size": 1.0
+      },
+      "station": {
+       "measurable": true,
+       "reason": null,
+       "icc": -0.049262381771662235,
+       "design_effect": 1.0,
+       "n_groups": 35,
+       "n_observations": 88,
+       "mean_group_size": 2.5142857142857142,
+       "size_adjusted_mean_group_size": 2.44451871657754
+      }
+     },
+     "ci95_episode": [
+      -0.012040717736369963,
+      0.19205729166666663
+     ],
+     "ci95_station": [
+      -0.01624364406779653,
+      0.19789492086860505
+     ],
+     "ci_adjusted_episode": [
+      -0.061623631676695614,
+      0.26236215038184263
+     ],
+     "ci_adjusted_station": [
+      -0.06954340401168764,
+      0.27200459009514844
+     ],
+     "governing_interval": "union_of_observation_level_and_station",
+     "n_groups_episode": 88,
+     "n_groups_station": 35,
+     "in_multiplicity_family": false,
+     "family_exclusion_reason": "A descriptive ranking metric. No kill gate and no ablation block verdict reads it, and the family size was fixed by the ladder before anything was fitted, so these two comparisons do not enlarge it. The corrected endpoint is still reported at the family's alpha, so this row is held to the same standard as the ones that do decide something.",
+     "challenger_auc": 0.8864764267990074,
+     "reference_auc": 0.8014888337468983
     }
    },
    "multiplicity_adjusted": {},

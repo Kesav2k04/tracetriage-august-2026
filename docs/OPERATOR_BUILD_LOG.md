@@ -5808,3 +5808,53 @@ that is not Python's would, and prints the offending line numbers when one fails
 
 The pool was rebuilt to clear it, and membership was compared before and after to show that
 this changed a serialisation and not a selection.
+
+---
+
+## E18. Two corpus sizes, and the one that was published was the pages on disk
+
+Two independent adversarial councils reviewed the tree at `c1f422b`. Neither found a
+physical claim that was wrong or a statistical claim inflated in the submission's favour.
+This entry and the two after it are the findings that survived checking.
+
+`docs/KILL_GATE.md` said "the pools are drawn from 2,750 observations, the whole
+snapshot". `artifacts/DATASET_MANIFEST.json` freezes 2,727, and
+`artifacts/GATE3_RECEIPT.json` printed both figures a few fields apart: `pool.n_examined`
+2,750 beside `axis_sign_scope.observations_in_the_dataset` 2,727.
+
+The cause was one enumeration. `scripts/build_gate3_pool.py:load_snapshot` walked
+`snapshot/pages/*.json`, the raw cursor responses as fetched. The ingest took whole pages
+and stopped at its 2,500-waterfall target part-way through the last one, which had already
+been written complete, so 23 of its rows are on disk and were never stored. Every other
+consumer of the snapshot already filtered against the manifest, and two of them were
+corrected for exactly this on 2026-08-21: `run_precedent_study._load_snapshot` and
+`run_gate3._axis_sign_scope`, both recorded further up this file. The pool builder was
+missed, so the same defect was still setting the denominator in the document a judge uses
+to audit the gate.
+
+`load_snapshot` now takes the manifest and refuses if a manifest id has no raw page, which
+is the same refusal the precedent study makes, for the same reason: a pool quietly built
+over a different population than the rest of the repository is not comparable with any
+number in it.
+
+**Nothing in a numerator moved, checked rather than argued.** All 23 extra rows carry
+`status: "no_waterfall"`, so no image was opened for any of them and none could enter
+either pool at any threshold. Every retained pool record is byte-identical to the one the
+previous build wrote. `examined` goes 2,750 to 2,727 and `by_status.no_waterfall` goes 250
+to 227, which is now exactly the manifest's own `waterfalls_missing`. `measurable` stays
+2,412, pool A 308, pool B 303, `in both` 137, and every verdict tally is unchanged. Gate 3
+was then re-run in full against the corrected pool rather than patched, and the verdict,
+the rate, both bounds and every per-observation fit came back identical.
+
+Three tests were added to `tests/test_gate3_pool.py`. One builds a three-row fixture
+snapshot whose manifest lists two and asserts the third never reaches the denominator. One
+asserts the refusal on a manifest id with no page row. The third is the artifact check that
+would have caught this on the day: the pool's `counts.examined` must equal the manifest's
+`observations_stored`, and its `no_waterfall` count must equal the manifest's
+`waterfalls_missing`, because a stored observation with no waterfall on disk is exactly
+that number.
+
+`docs/E16_PREREGISTRATION.md` section 8 records the correction beside the before-and-after
+table that still said 2,750 in both columns, and says plainly that it was written after the
+gate had been scored and why a change that removes only rows no predicate can admit cannot
+select a pool.

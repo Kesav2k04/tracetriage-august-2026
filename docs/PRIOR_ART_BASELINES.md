@@ -1,7 +1,46 @@
-# Prior-art baselines, and why they are the bar
+# Image-only baselines built here, and why they are the bar
 
 **Unit A6.** Two image-only baselines and a floor, so that "the physics model
 works" can be a comparison rather than an assertion.
+
+## No published waterfall classifier was reproduced
+
+The filename says prior art. The contents are not prior art, and this section is
+the correction rather than a caveat.
+
+Every model measured below was built in this repository: a base-rate floor, a
+centre-energy heuristic, and HOG features into a logistic regression. **No
+published waterfall classifier was reproduced and no external benchmark was
+run.** The README names the prior art correctly, that SatNOGS already assigns
+observation and waterfall statuses, that public projects already classify
+waterfalls with CNNs, and that STRF-based tooling already extracts Doppler
+traces, and it claims novelty for none of them. None of those three appears as an
+arm anywhere in this repository. There is no CNN arm at any point in the ladder.
+
+The reason, taken from the build record rather than reconstructed: unit A6's task
+as written in `docs/BOB_BUILD_LOG.md` asked for "the first two rungs of the model
+ladder as the honest baseline everything later must beat: a centre-energy
+heuristic and HOG+regularised logistic regression, both calibrated". An external
+reproduction was never in that unit's scope. Nothing in
+`docs/BOB_BUILD_LOG.md`, `docs/BUILD_BUDGET.md` or `docs/PRE_BUILD_BASELINE.md`
+records a decision to attempt one, to defer one, or to drop one. The build ran on
+40 credits per trial account with roughly 20 planned for the whole of Wave A
+across eight units (`docs/BUILD_BUDGET.md`), so no budget was set aside for it
+either. That is all the record supports, and it is stated here rather than
+replaced with a tidier reason.
+
+Two consequences a reader should carry into the gate 5 result. HOG dates from
+2005, so it is a weak stand-in for the CNN classifiers the README concedes
+already exist, and the bar the physics has to clear here is lower than the
+published state of the field. And this document holds three rungs, not the six
+ablations the README's document index calls it: the ten-arm ladder is in
+`artifacts/FUSION_RECEIPT.json`, and the six items the README lists under prior
+art are the components of the combination claim, not baselines.
+
+The filename is unchanged because `README.md`,
+`apps/web/public/data/bob.json` and `docs/BOB_BUILD_LOG.md` all reference it by
+that name, and a broken link is worse than a filename with a correction at the
+top of the file it names.
 
 `artifacts/BASELINE_RECEIPT.json` is the source of truth for every number here.
 It carries the snapshot id, the manifest sha256, the seed, the full exclusion

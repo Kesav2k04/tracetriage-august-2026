@@ -6,22 +6,22 @@
   "threshold": 0.7,
   "pool": {
     "name": "pool_b",
-    "source": "artifacts/GATE3_POOL.json",
+    "source": "D:/IBM August Challenge/tracetriage-august-2026/artifacts/GATE3_POOL.json",
     "rule": "No Doppler prediction anywhere in the rule: predicted swing >= 3000 Hz, trace_q75 >= 3.5 and sigma_vertical < 8.0. The swing is a property of the prediction rather than of the image, so it cannot be influenced by whether the corridor matches. This is the pre-registered pool.",
     "n_selected": 303,
-    "n_examined": 2750,
+    "n_examined": 2727,
     "decides_the_gate": true,
     "pre_registration": "docs/E16_PREREGISTRATION.md",
     "trace_q75_min": 3.5,
     "pool_counts": {
-      "examined": 2750,
+      "examined": 2727,
       "measurable": 2412,
       "pool_a": 308,
       "pool_b": 303,
       "in_both": 137,
       "by_status": {
         "ok": 2412,
-        "no_waterfall": 250,
+        "no_waterfall": 227,
         "swing_below_floor": 39,
         "physics_STALE_TLE": 37,
         "no_measurable_rows": 12
@@ -54,13 +54,39 @@
     "distinct_transmitters": 167,
     "distinct_days": 1,
     "distinct_station_days": 68,
-    "note": "The discriminating rate above is over observations, not over independent episodes. A ground station's oscillator error is common to every pass it records, so observations sharing a (station, UTC date) are one episode measured several times. The grouped rate below collapses them, and a group counts as discriminating only if every observation in it does, which is the direction that cannot manufacture a pass.",
+    "note": "The discriminating rate above is over observations, not over independent episodes. A ground station's oscillator error is common to every pass it records, so observations sharing a (station, UTC date) are one episode measured several times. The grouped rate below collapses them, and a group counts as discriminating only if every observation in it does, which is the direction that cannot manufacture a pass. What that collapse cannot do is measure the dependence: see all_or_nothing_under_independence below, and cluster_corrected_estimand for the same rate with the dependence paid for rather than collapsed.",
     "groups_scored": 68,
     "grouped_discriminating_rate": 0.47058823529411764,
     "grouped_rate_lower_bound_95": 0.3662383812551562,
     "grouped_clears_point_estimate": false,
     "grouped_clears_threshold": false,
-    "group_key": "(ground_station, UTC date)"
+    "group_key": "(ground_station, UTC date)",
+    "estimand": "Whether the corridor discriminates on EVERY scored capture at a station on a date. That is a different question from the gate's own wording, which is a rate over reviewed positive examples, and it is stricter: a station with one failure among twenty captures counts the same as a station with twenty failures. It is the pre-registered statistic and it decides the verdict.",
+    "all_or_nothing_under_independence": {
+      "measurable": true,
+      "question": "With the per-observation rate held at its observed value and every outcome drawn independently, so with zero clustering, what does the all-or-nothing group rate read over these group sizes?",
+      "per_observation_rate_held_at": 0.7750865051903114,
+      "n_groups": 68,
+      "n_observations": 289,
+      "mean_group_size": 4.25,
+      "max_group_size": 20,
+      "n_draws": 20000,
+      "seed": 20260823,
+      "mean_all_pass_group_rate": 0.5042698529411764,
+      "range95": [
+        0.39705882352941174,
+        0.6029411764705882
+      ],
+      "max_all_pass_group_rate_drawn": 0.6911764705882353,
+      "observed_all_pass_group_rate": 0.47058823529411764,
+      "observed_is_inside_the_range": true,
+      "threshold": 0.7,
+      "draws_reaching_the_threshold": 0,
+      "fraction_of_draws_reaching_the_threshold": 0.0,
+      "per_observation_rate_needed_to_reach_the_threshold": 0.897506760203244,
+      "reachability_note": "Over these group sizes the collapsed statistic reaches 0.70 in expectation only once the per-observation rate is about 0.8975. That is the arithmetic of mean(p ** n_i) over the realised sizes and it does not depend on this corpus's outcomes. So the bar is not reachable here by a corridor that works well, only by one that almost never misses.",
+      "note": "A simulation of the statistic, not of the corpus. If the observed value sits inside this range then the grouped statistic measured the group-size distribution rather than any dependence between captures."
+    }
   },
   "mode_decomposition": {
     "by_mode_verdict": {
@@ -49080,5 +49106,94 @@
       "donor_obs_id": 14740031
     }
   ],
-  "skipped": []
+  "skipped": [],
+  "cluster_corrected_estimand": {
+    "measurable": true,
+    "estimand": "The discriminating rate over scored observations, with a one-sided 95% lower bound that pays for the dependence between observations sharing a (ground_station, UTC date).",
+    "decides_the_gate": false,
+    "why_it_does_not_decide": "The pre-registered rule groups, and this analysis was added after the grouped statistic was seen to fail its bar. A rule adopted after seeing a result is not the rule that was tested, so the published verdict stays the one the pre-registered rule produces and this is reported beside it.",
+    "added_after": "2026-08-23, after the grouped statistic returned a bound of 0.3662 against the 0.70 bar and the verdict was recorded as PASSED_UNGROUPED_ONLY.",
+    "group_key": "(ground_station, UTC date)",
+    "n_observations": 289,
+    "n_groups": 68,
+    "rate": 0.7750865051903114,
+    "threshold": 0.7,
+    "clustering": {
+      "measurable": true,
+      "reason": null,
+      "icc": 0.2304236981233411,
+      "design_effect": 1.7488770189008584,
+      "n_groups": 68,
+      "n_observations": 289,
+      "mean_group_size": 4.25,
+      "size_adjusted_mean_group_size": 4.162784692454682
+    },
+    "cluster_bootstrap": {
+      "method": "Resample the groups with replacement, keep each drawn group's observations with their multiplicity, recompute the rate per draw. The same resampling unit and the same multiplicity rule as fusion.grouped_paired_bootstrap and queue.compute_lift.",
+      "n_boot": 40000,
+      "seeds": [
+        42,
+        43,
+        44,
+        45
+      ],
+      "per_seed": [
+        {
+          "seed": 42,
+          "lower_bound_95_one_sided": 0.7106382978723405,
+          "ci95_two_sided": [
+            0.6970775270957753,
+            0.8372884718859296
+          ]
+        },
+        {
+          "seed": 43,
+          "lower_bound_95_one_sided": 0.710801393728223,
+          "ci95_two_sided": [
+            0.696551724137931,
+            0.8368580060422961
+          ]
+        },
+        {
+          "seed": 44,
+          "lower_bound_95_one_sided": 0.7106067016415637,
+          "ci95_two_sided": [
+            0.6962612835316259,
+            0.8372093023255814
+          ]
+        },
+        {
+          "seed": 45,
+          "lower_bound_95_one_sided": 0.7104060035111145,
+          "ci95_two_sided": [
+            0.6966824644549763,
+            0.8381306158392788
+          ]
+        }
+      ],
+      "lower_bound_95_one_sided": 0.7104060035111145,
+      "lower_bound_95_one_sided_range": [
+        0.7104060035111145,
+        0.710801393728223
+      ],
+      "published_bound_is": "the lowest of the per-seed one-sided bounds, so the seed cannot be the reason the bound clears",
+      "ci95_two_sided": [
+        0.6962612835316259,
+        0.8381306158392788
+      ]
+    },
+    "design_effect_normal_lower_bound_95": 0.7216619622178333,
+    "effective_n_exact_lower_bound_95": {
+      "n_effective": 165.24889793659244,
+      "lower_bound": 0.7151202989419736,
+      "method": "Clopper-Pearson at n / design_effect, the same exact bound rate_lower_bound uses on the uncorrected n."
+    },
+    "clears_threshold": true,
+    "margin_over_threshold": 0.010406003511114537,
+    "margin_is_narrow": true,
+    "note": "Three routes to a bound on one estimand, reported together because the margin over the bar is small enough that a bound resting on one method would not be worth much. The one-sided convention matches rate_lower_bound, which the pre-registered statistic is read at. The two-sided interval's lower end is the stricter figure and is published beside it rather than left out."
+  },
+  "two_estimands": "This receipt reports two estimands. `entity_grouping` is the pre-registered all-or-nothing statistic over (station, date) groups and it decides the verdict. `cluster_corrected_estimand` is the gate's own per-observation rate with a cluster-corrected interval, added on 2026-08-23 after the pre-registered one had been seen to fail its bar, and it decides nothing. They answer different questions and neither is a corrected form of the other.",
+  "derived_statistics_recomputed_at": "2026-08-23T13:45:42.545335+00:00",
+  "derived_statistics_recomputed_how": "scripts/run_gate3.py --recompute-derived. No image was opened and no corridor was refitted: every field it wrote is a function of this file's own per-observation records or of the pool file it names, and every derived field already present was reproduced from those records and checked against the stored value before anything was written. The pool block's counts were re-read from the pool file only after checking that the pool still selects exactly the observations scored here. The per-observation fits, the sigmas, the p-values and the verdict are unchanged from the run named in generated_at."
 }
