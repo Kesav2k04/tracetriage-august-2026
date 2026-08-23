@@ -155,7 +155,38 @@ def test_a_missing_snapshot_skips_and_costs_nothing():
     assert len(skips) == 1, out
     assert "TRACETRIAGE_PAGES_DIR" in skips[0], skips[0]
     assert "[FAIL]" not in out, out
-    assert "nothing here is stale" in out, out
+    # "nothing it owns" rather than "nothing here". The old wording said "nothing here is
+    # stale", which was true of the whole run only while the script returned at the first
+    # builder that could not start. Now that it keeps going, the other builders do run and
+    # can find real staleness, so a skip may only speak for the artifacts that skipped
+    # builder owns.
+    assert "nothing it owns is known to be stale" in out, out
+
+
+@_NEEDS_VENV
+def test_a_skipped_builder_does_not_make_the_run_evidence_of_nothing():
+    """A skip has to say what it did compare, and a run that compared nothing must fail.
+
+    This is the assertion the old shape could not carry. The script used to return at the
+    first builder that needed the absent snapshot, and that builder ran first, so on every
+    machine without the 20 GB snapshot it exited 0 having compared nothing. "Nothing was
+    stale" and "nothing was checked" are different sentences, and only one is evidence.
+    """
+    finished = _run(None)
+    out = finished.stdout or ""
+    assert finished.returncode == 0, out
+
+    compared = [line for line in out.splitlines() if line.startswith("compared ")]
+    assert len(compared) == 1, out
+    count = int(compared[0].split()[1].rstrip(":"))
+    assert count > 0, (
+        "the run reported a pass without comparing anything, which is the defect this "
+        f"shape exists to prevent: {out}"
+    )
+    assert "not compared here" in out, (
+        "the skipped builders' artifacts are not named, so a reader cannot tell what "
+        f"this run does not cover: {out}"
+    )
 
 
 @_NEEDS_VENV
