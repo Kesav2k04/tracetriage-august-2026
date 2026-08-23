@@ -1,8 +1,8 @@
 {
  "schema": "SIGNOFF_RECEIPT",
  "schema_version": "0.1.0",
- "measured_at_commit": "937183a0df8a6d0a822c984657744bb64a5276fb",
- "measured_at_commit_date": "2026-08-24T04:19:38+05:30",
+ "measured_at_commit": "636986b97136456c2be0e53f01e360e3d8a318a8",
+ "measured_at_commit_date": "2026-08-24T04:47:00+05:30",
  "note_on_the_commit": "This receipt is written at the commit named above and then committed, so the commit it lands in is one later. It cannot name that one, and saying so is better than implying it measured itself.",
  "commits_behind_head_when_written": 0,
  "verdict": "SIGNED",
@@ -17,7 +17,7 @@
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\gate.py",
    "status": "PASSED",
    "detail": "30/30 standing gates pass",
-   "seconds": 308.0,
+   "seconds": 305.9,
    "why_not_checked": null
   },
   {
@@ -41,15 +41,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run typecheck",
    "status": "PASSED",
    "detail": "> tsc --noEmit",
-   "seconds": 2.2,
+   "seconds": 2.3,
    "why_not_checked": null
   },
   {
    "check": "console tests",
    "command": "C:\\Program Files\\nodejs\\npm.CMD run test",
    "status": "PASSED",
-   "detail": "\u001b[2m   Duration \u001b[22m 1.17s\u001b[2m (transform 1.07s, setup 0ms, collect 3.43s, tests 692ms, environment 4ms, prepare 3.24s)\u001b[22m",
-   "seconds": 2.4,
+   "detail": "\u001b[2m   Duration \u001b[22m 1.23s\u001b[2m (transform 936ms, setup 0ms, collect 3.09s, tests 722ms, environment 4ms, prepare 3.81s)\u001b[22m",
+   "seconds": 2.5,
    "why_not_checked": null
   },
   {
@@ -57,7 +57,7 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run build",
    "status": "PASSED",
    "detail": "34 index.html files emitted to apps/web/out",
-   "seconds": 20.1,
+   "seconds": 20.4,
    "why_not_checked": null
   },
   {
@@ -89,7 +89,7 @@
    "command": null,
    "status": "PASSED",
    "detail": "HTTP 200, 430,837 bytes from https://tracetriage.vercel.app",
-   "seconds": 1.1,
+   "seconds": 0.9,
    "why_not_checked": null
   },
   {
@@ -97,7 +97,7 @@
    "command": null,
    "status": "PASSED",
    "detail": "HTTP 200, served provenance.json sha256 a0bd2a8f9b7a against a0bd2a8f9b7a committed",
-   "seconds": 0.2,
+   "seconds": 0.6,
    "why_not_checked": null
   }
  ],
