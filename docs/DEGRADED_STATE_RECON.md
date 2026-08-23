@@ -15,6 +15,13 @@ An earlier version of this line said all twelve had a named reason and a test th
 it, which its own table nine lines below contradicted in six rows. The status column is the
 answer and this sentence now counts it rather than summarising it optimistically.
 
+**Re-read on 2026-08-24 at `202dc85`.** Modes 9 and 11 were closed after the line above was
+written, in `tests/test_failure_injection.py` at `TestMissingModelArtifact:254` and
+`TestEmptyQueueAfterFiltering:316`, and their rows below now name those tests. The tally is
+eight COVERED, three PARTIAL and one MISSING, and the one is mode 6. The paragraph above is
+left as it was written rather than edited, because it is the record of what the recon found
+and the table is the record of what the code does.
+
 ---
 
 ## The twelve modes
@@ -29,9 +36,9 @@ answer and this sentence now counts it rather than summarising it optimistically
 | 6 | wrong start offset | none | see below | none | MISSING |
 | 7 | multiple traces in one waterfall | `MULTIPLE_TRACES_SUSPECTED` | `pipeline/tracetriage/corridor_fit.py`, `second_trace_evidence` | `tests/test_failure_injection.py`, `TestMultipleTraces` | COVERED, measured on the corpus, not wired into the feature matrix |
 | 8 | network unavailable | `HTTP_ERROR` | two producers: the transport-exception catch at `pipeline/tracetriage/snapshot.py:360` and the status path at `:379` | `tests/test_snapshot.py:323` asserts `HTTP_ERROR` from an injected 500, so it exercises `:379` and never `:360` | PARTIAL |
-| 9 | missing model artifact | `MODEL_ARTIFACT_MISSING` | `scripts/run_triage_slice.py:563` | none | MISSING |
+| 9 | missing model artifact | `MODEL_ARTIFACT_MISSING` | `scripts/run_triage_slice.py:563` | `tests/test_failure_injection.py:262` asserts the reason on an absent path and `:268` asserts the checksum on a present one | COVERED, closed after this recon |
 | 10 | unsupported client image format | none for a decodable format | nearest is `TRUNCATED` on non-PNG magic, `pipeline/tracetriage/snapshot.py:391` | `tests/test_snapshot.py:305` asserts `TRUNCATED` on 8 bytes of wrong magic, not on a valid image in another format | PARTIAL |
-| 11 | empty queue after filtering | `"No test observations"` with verdict `NOT_MEASURABLE` | `scripts/run_queue.py:376` to `:384`, via `pipeline/tracetriage/queue.py:1344`; sibling path at `run_queue.py:521` | none. No test references that string | MISSING |
+| 11 | empty queue after filtering | `"No test observations"` with verdict `NOT_MEASURABLE` | `scripts/run_queue.py:376` to `:384`, via `pipeline/tracetriage/queue.py:1344`; sibling path at `run_queue.py:521` | `tests/test_failure_injection.py:344` asserts the string, the `NOT_MEASURABLE` verdict, the split named in the reason, and that no lift is published | COVERED, closed after this recon |
 | 12 | a request that times out | `TIMEOUT` | `pipeline/tracetriage/snapshot.py:358` | `tests/test_snapshot.py:329` | COVERED |
 
 ---
@@ -115,7 +122,7 @@ test per named reason, and this is the real denominator.
 | `DISPLACED_STATION_CAP`, `DISPLACED_TRANSMITTER_CAP` | `pipeline/tracetriage/queue.py:78`, `:83`, emitted at `:194`. The substring `DISPLACED` does not occur anywhere in `tests/` |
 | `MISCONFIGURED_CLIENT_SUSPECTED` | `pipeline/tracetriage/annotate.py:58` |
 | `DEAD_CAPTURE_CONFIRMED` | `pipeline/tracetriage/annotate.py:62` |
-| `MODEL_ARTIFACT_MISSING` | `scripts/run_triage_slice.py:563`. The contract declares `model_checksum_source` at `contracts/triage_receipt.schema.json:20` and no test pins its value |
+| `MODEL_ARTIFACT_MISSING` | `scripts/run_triage_slice.py:563`. The contract declares `model_checksum_source` at `contracts/triage_receipt.schema.json:20`; `tests/test_failure_injection.py:262` now pins its value on both branches |
 | `OUT_OF_DISTRIBUTION` | `pipeline/tracetriage/selective.py:43`, returned at `:250`. Reached only generically by `tests/test_selective_and_ood.py:179`, which asserts the explanation and never the reason |
 
 ---

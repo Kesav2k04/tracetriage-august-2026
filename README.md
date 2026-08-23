@@ -321,7 +321,7 @@ names the file a judge can open to check it.
 | **IBM Granite embedding 278m** | Embeds each evidence card for the precedent study, where it is measured head to head against seven standardised numbers and comes back indistinguishable. | `pipeline/tracetriage/precedent.py` |
 | **IBM Carbon** | The console's design system, and it owns the structure: the Gray 100 lightness ramp, the type scale, the 8px spacing steps and the productive motion curves. | `apps/web/app/globals.css` |
 | **IBM Plex** | Sans and Mono, self-hosted from this origin. Every face that carries a measurement is Plex and is served from here. | `apps/web/app/layout.tsx` |
-| **Model Context Protocol** | Two stdio servers: 7 tools over the committed receipts, and 5 that measure an observation recorded today. Read-only, enforced by a walk over each server's own source. | `scripts/mcp_server.py` |
+| **Model Context Protocol** | Two stdio servers: 7 tools over the committed receipts, and 5 that measure an observation recorded today. Read-only, enforced by an AST walk over each server's own source: no write verb in either, and no network import in the offline one. | `scripts/mcp_server.py` |
 | **LangChain** | 6 of the 7 evidence tools as `StructuredTool`s, for an agent that does not speak MCP. An adapter and not a second implementation: each tool calls the same function object the MCP server registered, asserted on object identity. | `pipeline/tracetriage/langchain_tools.py` |
 | **LangFlow** | Two flows built from component objects, dumped to JSON by LangFlow itself, then loaded back and executed. The grounding flow needs no model and no network. | `flows/` |
 | **watsonx.ai** | One text-generation backend, optional. Its draft goes through the same grounding checker, because the checker does not know which weights produced a sentence. With no credential the receipt records a dated `NOT_CHECKED` rather than a pass. | `pipeline/tracetriage/watsonx.py` |
@@ -333,9 +333,11 @@ three are reported with their intervals or their reasons rather than left out be
 unflattering.
 
 **The console is eight static pages and one function.** A static export: no database and no
-credentials. Seven of the eight pages fetch nothing at runtime and make exactly one third-party
-request between them, the Adobe Fonts stylesheet for two display faces, which nothing carrying a
-number depends on. The eighth is the live console, and it is the exception worth stating plainly
+credentials. Seven of the eight pages fetch nothing of their own at runtime. What they do reach for
+is the Adobe Fonts kit for two display faces, and that is two hosts rather than one:
+the stylesheet at `use.typekit.net`, which then `@import`s `p.typekit.net` for usage
+reporting, which is why `vercel.json` names both in its `style-src`. Nothing carrying a
+number depends on either. The eighth is the live console, and it is the exception worth stating plainly
 rather than rounding off: it calls `api/live.py`, a Python serverless function declared in
 `vercel.json`, which fetches one waterfall from the public SatNOGS API on demand and measures it.
 No number this project was scored on comes from that path.
@@ -573,7 +575,7 @@ presented as if it did.
 
 ## Setup
 
-Requires Python 3.12 and Node 22, and [uv](https://docs.astral.sh/uv/). Nothing else: no
+Requires Python 3.12 and Node 24, and [uv](https://docs.astral.sh/uv/). Nothing else: no
 service, no key, no model download for the judged path.
 
 ```bash
@@ -632,7 +634,7 @@ a row in `docs/CLAIM_REGISTER.md`. Three checks do most of the work:
 - **Claims are compared against artifacts, not against a register.** `tests/test_claim_drift.py`
   reads each quoted value out of the receipt it came from. Editing the AUC row from 0.875 to
   0.999 turns three tests red.
-- **Seven documents are generated and fail the gate when they drift.** Each generator takes
+- **Six documents are generated and fail the gate when they drift.** Each generator takes
   `--check`, which regenerates into memory and exits non-zero on any difference. Editing one
   by hand is the defect they exist to catch.
 - **`scripts/gate.py` runs every standing check in one command and prints its own tally**, and `scripts/signoff.py` refuses to
@@ -650,7 +652,7 @@ from showing a number the receipts do not carry, is in
 | [`docs/KILL_GATE.md`](docs/KILL_GATE.md) | Every gate in full, including the failure log and the verdict that was withdrawn |
 | [`docs/DOPPLER_CORRECTION_FINDING.md`](docs/DOPPLER_CORRECTION_FINDING.md) | The finding this project rests on: the record cannot tell you whether a waterfall was Doppler corrected, and the image can |
 | [`docs/CLAIM_REGISTER.md`](docs/CLAIM_REGISTER.md) | Every published claim, its receipt and the test that checks it |
-| [`docs/PRIOR_ART_BASELINES.md`](docs/PRIOR_ART_BASELINES.md) | What is already done elsewhere, and the six ablations this project has to defend instead |
+| [`docs/PRIOR_ART_BASELINES.md`](docs/PRIOR_ART_BASELINES.md) | What is already done elsewhere, and the three rungs this project has to clear instead |
 | [`docs/SCALABILITY.md`](docs/SCALABILITY.md) | Whether it keeps up with the network, measured, with the four things the measurement does not cover |
 | [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | Why the palette is derived from the data rather than chosen, and the two accessibility defects that derivation caught |
 | [`docs/ACTOR_AND_PERMISSION_CONTRACT.md`](docs/ACTOR_AND_PERMISSION_CONTRACT.md) | What this system is permitted to do, enforced by test |
@@ -663,8 +665,9 @@ SatNOGS already assigns observation and waterfall statuses. Public projects alre
 waterfalls with CNNs. STRF-based tooling already extracts Doppler traces. **TraceTriage claims
 novelty for none of those.**
 
-The contribution it must defend, through six ablations documented in
-`docs/PRIOR_ART_BASELINES.md`, is the combination of calibrated selective prediction, expected
+The contribution it must defend, measured against the three rungs in
+`docs/PRIOR_ART_BASELINES.md` and the ten-arm ladder in
+`artifacts/FUSION_RECEIPT.json`, is the combination of calibrated selective prediction, expected
 residual geometry fused with image evidence, explicit label-provenance and disagreement
 analysis, queue ranking by measured review value, per-observation evidence receipts, and
 evaluation by findings per fixed review budget under temporal and entity holdouts.

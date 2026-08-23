@@ -22,19 +22,22 @@ Use MCP tools only. Do not invent numbers. Quote fields verbatim.
    provenance.measured_at_utc.
 5. live_check_claim on that same id, text="The downlink is 437.2 MHz."
    Expect REFUSED, UNGROUNDED_NUMBER.
-6. gate_status. Report n_met and gates 4 and 6 as they are.
+6. gate_status. Report n_met and the verdict of gates 3, 5 and 6.
 ```
 
 Steps 2 and 5 are the same refusal on two different kinds of data: a frozen observation,
 then a pass recorded while the session was running. The second is the claim that matters,
 because it means the guardrail is a property of the system rather than of the corpus.
 
-Step 6 has to come back with gate 4 open and gate 6 `NOT_ESTABLISHED`. A session that
-reports six of six met has been told something false.
+Step 6 has to come back with three of six met: gates 3, 5 and 6 `NOT_ESTABLISHED`, and
+gate 4 `PASSED`. A session that reports six of six met has been told something false.
 
-The live server needs the project virtual environment (`pip install -e .[ocr]`). Without
-it `.bob/run-live.cmd` prints the install line rather than starting a server that would
-answer `initialize` and then fail every call.
+The live server needs the project virtual environment (`pip install -e .`, 166 MB on
+disk). Without it `.bob/run-live.cmd` prints the install line rather than starting a
+server that would answer `initialize` and then fail every call. The `[ocr]` extra is not
+part of that: the axis reader defaults to the template matcher in `glyph_axis.py`, and
+easyocr, which brings 4.5 GB of torch with it, is only the fallback when too few tick
+labels are matched to fit an axis through.
 
 ---
 

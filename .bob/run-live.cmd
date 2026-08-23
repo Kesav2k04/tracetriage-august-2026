@@ -26,6 +26,6 @@ if exist ".venv\Scripts\python.exe" (
 echo The live measurement server needs this project's virtual environment, which 1>&2
 echo carries numpy, scipy, pillow, sgp4 and httpx. Create it with: 1>&2
 echo   python -m venv .venv 1>&2
-echo   .venv\Scripts\python.exe -m pip install -e .[ocr] 1>&2
+echo   .venv\Scripts\python.exe -m pip install -e . 1>&2
 echo Or set TRACETRIAGE_PYTHON to an interpreter that already has them. 1>&2
 exit /b 9009

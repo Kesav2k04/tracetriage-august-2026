@@ -475,6 +475,34 @@ def test_a_missing_evidence_file_is_a_named_reason(monkeypatch, tmp_path):
 # ---------------------------------------------------------------------------
 
 
+def _is_a_filesystem_replace(node: ast.Call) -> bool:
+    """Whether a ``.replace()`` call is the one that moves a file over another.
+
+    ``replace`` is in `_DISK_WRITES` because `os.replace` and `Path.replace` overwrite a
+    path, and three other things in the standard library share the name: `str.replace`,
+    `datetime.replace` and `dataclasses.replace`. On the two offline files the ambiguity
+    never surfaced, because neither happens to call any of them. `pipeline/tracetriage/live.py`
+    calls all three, so extending the scan to the live path meant either three false
+    positives or a discriminator.
+
+    The discriminator is the signature, not the receiver's name, because a receiver's type is
+    not knowable from the syntax. Both filesystem forms are positional-only: `Path.replace`
+    takes exactly one argument and `os.replace` takes two on the `os` module. Everything else
+    that shares the name is either keyword-carrying (`datetime.replace(tzinfo=...)`), or a
+    two-argument call on something that is not `os` (`str.replace("Z", "+00:00")`,
+    `dataclasses.replace(x, field=...)`).
+
+    So: a keyword argument means it is not a filesystem replace. One positional argument and
+    nothing else is `Path.replace`. Two on `os` is `os.replace`. Anything else is not.
+    """
+    if node.keywords:
+        return False
+    if len(node.args) == 1:
+        return True
+    receiver = node.func.value if isinstance(node.func, ast.Attribute) else None
+    return isinstance(receiver, ast.Name) and receiver.id == "os"
+
+
 def _write_sites(tree: ast.AST) -> tuple[list[str], list[str]]:
     """Every network or disk write in the tree, and the stream writes exempted by name.
 
@@ -503,6 +531,8 @@ def _write_sites(tree: ast.AST) -> tuple[list[str], list[str]]:
         if node.func.attr not in _NETWORK_WRITES | _DISK_WRITES:
             continue
         receiver = node.func.value
+        if node.func.attr == "replace" and not _is_a_filesystem_replace(node):
+            continue
         if (
             node.func.attr == "write"
             and isinstance(receiver, ast.Name)
@@ -573,13 +603,28 @@ def test_the_write_scan_catches_each_shape_it_claims_to():
         "client.post(url)",
         'session.request("POST", url)',
         "other.write(x)",
+        # The two filesystem replaces, both still seen after the name was disambiguated
+        # from its three read-only namesakes.
+        "p.replace(target)",
+        "os.replace(src, dst)",
     )
     for shape in shapes:
         found, _ = _write_sites(ast.parse(shape))
         assert found, f"the scan does not see {shape}"
 
-    # And a read is not a write, or the scan would fail on this server's own source.
-    for benign in ('p.read_text("utf-8")', "json.loads(t)", "sink.write(t)", "open(p)"):
+    # And a read is not a write, or the scan would fail on this server's own source. The
+    # last three are the namesakes of `replace` that `pipeline/tracetriage/live.py` calls:
+    # a string method, a datetime method and a dataclasses helper. Reporting any of them
+    # would have been the reason to leave the live path unscanned.
+    for benign in (
+        'p.read_text("utf-8")',
+        "json.loads(t)",
+        "sink.write(t)",
+        "open(p)",
+        's.replace("Z", "+00:00")',
+        "d.replace(tzinfo=UTC)",
+        "dataclasses.replace(x, n=1)",
+    ):
         found, _ = _write_sites(ast.parse(benign))
         assert not found, f"the scan reports {benign} as a write"
 
@@ -1044,3 +1089,78 @@ def test_every_path_the_specification_cites_exists_and_is_published():
     unpublished = [c for c in sorted(candidates) if (REPO / c).exists() and not _tracked(REPO / c)]
     assert not missing, f"the specification cites paths that do not exist: {missing}"
     assert not unpublished, f"the specification cites paths git does not publish: {unpublished}"
+
+
+#: The live server and the module it measures through. Kept apart from `_SERVER` and
+#: `_TRANSPORT` because the two servers make different promises: the offline one imports no
+#: network library at all, and the live one must, since its whole job is one GET of a public
+#: API and one of a published image.
+_LIVE_SERVER = REPO / "pipeline" / "tracetriage" / "mcp_live.py"
+_LIVE_ENGINE = REPO / "pipeline" / "tracetriage" / "live.py"
+
+
+def test_the_live_server_holds_no_write_verb_either():
+    """The other half of a claim that was being made about both servers and checked on one.
+
+    `README.md` and `.bob/TOOL_SPECS.md` both said the read-only property is "enforced by a
+    walk over each server's own source". The walk in
+    `test_the_server_holds_no_write_verb_and_no_network_import` reads `scripts/mcp_server.py`
+    and `pipeline/tracetriage/mcp_transport.py`. `pipeline/tracetriage/mcp_live.py` was never
+    opened by any scan, so the five tools that actually reach the network were the ones the
+    claim was not measuring.
+
+    It cannot be folded into that test, and the reason is the interesting part. That one also
+    asserts the file imports no `httpx`, `requests`, `socket` or `urllib`, which is right for
+    a server that reads committed files and wrong for a server whose purpose is to fetch. So
+    the two halves differ in exactly one thing: this one allows the imports and still refuses
+    every write. `_NETWORK_WRITES` is `post`, `put`, `patch`, `delete`, `request`, `stream`
+    and `send`, so a GET passes and anything that could change state upstream does not.
+    """
+    for path in (_LIVE_SERVER, _LIVE_ENGINE):
+        assert path.exists(), f"{path} is part of the live measurement path"
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        writes, exempt = _write_sites(tree)
+        assert not writes, f"{path.name} writes: {writes}"
+        assert not exempt, (
+            f"{path.name} has {len(exempt)} stream-write exemption(s): {exempt}. The live "
+            "path serialises through its caller and has no writer of its own, so an "
+            "exemption here is a new thing to justify rather than an inherited one."
+        )
+
+
+def test_each_launcher_falls_back_exactly_as_far_as_its_server_can_afford():
+    """The two chains differ, and `docs/BOB_DEMO.md` used to say they did not.
+
+    The document described one order for both: `TRACETRIAGE_PYTHON`, the venv, `py -3`,
+    then bare `python`. That is the evidence server, which imports nothing outside the
+    standard library. The live server measures, so a system interpreter without numpy
+    answers `initialize` and then fails every call, and its launcher stops after the venv
+    on purpose. A reader following the document would have concluded the live server had
+    two more fallbacks than it has.
+
+    Asserted against the launchers rather than against the prose, and the prose is checked
+    against the same two facts, so the pair cannot drift apart quietly again.
+    """
+    evidence = (REPO / ".bob/run-evidence.cmd").read_text(encoding="utf-8")
+    live = (REPO / ".bob/run-live.cmd").read_text(encoding="utf-8")
+
+    for name, body in (("run-evidence.cmd", evidence), ("run-live.cmd", live)):
+        assert "TRACETRIAGE_PYTHON" in body, name
+        assert r".venv\Scripts\python.exe" in body, name
+
+    # Only the standard-library server may reach for an interpreter it did not verify.
+    assert "py -3" in evidence
+    assert "py -3" not in live, (
+        "run-live.cmd fell through to py -3. A measurement server on an interpreter "
+        "without numpy answers initialize and then fails every call."
+    )
+    # The refusal has to name the install, or the operator is left guessing.
+    assert "pip install -e ." in live
+    assert ".[ocr]" not in live, (
+        "run-live.cmd asks for the ocr extra, which resolves to torch and roughly 4.5 GB. "
+        "The live path defaults to the glyph_axis template matcher and does not need it."
+    )
+
+    prose = (REPO / "docs/BOB_DEMO.md").read_text(encoding="utf-8")
+    assert "falls through to `py -3`" in prose
+    assert "stops after the venv" in prose

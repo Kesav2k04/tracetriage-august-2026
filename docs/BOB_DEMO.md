@@ -9,16 +9,20 @@ needs this project's virtual environment.
 
 ```
 python -m venv .venv
-.venv\Scripts\python.exe -m pip install -e .[ocr]
+.venv\Scripts\python.exe -m pip install -e .
 ```
 
 `.bob/run-evidence.cmd` and `.bob/run-live.cmd` are the launchers Bob starts. Each moves to
-the repository root itself and picks an interpreter in this order: `TRACETRIAGE_PYTHON` if
-set, then `.venv\Scripts\python.exe`, then `py -3`, then `python`. That order exists because
-bare `python` on Windows can resolve to the Microsoft Store alias, a stub that exits
-immediately, and inside Bob that failure looks like a project whose MCP does not work. If
-no interpreter is found the launcher says so on stderr instead of leaving Bob holding a
-server that never answers `initialize`.
+the repository root itself, and each tries `TRACETRIAGE_PYTHON` first and
+`.venv\Scripts\python.exe` second. There the two part. The evidence server needs only the
+standard library, so it falls through to `py -3` and then to bare `python`; that order
+exists because bare `python` on Windows can resolve to the Microsoft Store alias, a stub
+that exits immediately, and inside Bob that failure looks like a project whose MCP does not
+work. The live server measures, so it needs numpy, scipy, pillow, sgp4 and httpx, and it
+stops after the venv rather than falling through: a system interpreter without them
+produces a server that answers `initialize` and then fails every call, which reads as a
+broken product instead of a missing install. Either way the launcher says what is wrong on
+stderr rather than leaving Bob holding a server that never answers.
 
 ---
 
@@ -110,10 +114,10 @@ and the wrong one for a server whose subject is receipts.
 launches both servers through the same two launchers `.bob/mcp.json` names, speaks JSON-RPC
 on their stdin and stdout, and writes every call and every reading to
 `artifacts/OPERATOR_SESSION.json`. The last run came back twelve of twelve, and its live
-half measured observation 14839732 from station PF_DE_UHF_X_DIPOLE, recorded
-at 2026-08-21T05:15:44Z and measured at 2026-08-21T05:23:48+00:00: UNRESOLVED,
-because no signal stands out: best path is 1.5 sigma against a 8 sigma floor, over a 1,733,330 byte image whose sha256 is in
-the receipt.
+half measured observation 14853498 from station PE0SAT-21, recorded
+at 2026-08-22T12:58:56Z and measured at 2026-08-22T13:06:00+00:00: UNRESOLVED,
+because no signal stands out: best path is 1.4 sigma against a 8 sigma floor, over a
+1,735,467 byte image whose sha256 is in the receipt.
 
 **It is not a substitute for the paste and the receipt says so in a field.** What Bob adds
 is the choice: reading twelve tool descriptions and deciding which tool answers each step.
@@ -153,4 +157,4 @@ over dated Bob-account units rather than from `line.startswith("## ")`.
 | `tracetriage-live` has no tools | the virtual environment is missing | Run the two commands at the top of this file, or set `TRACETRIAGE_PYTHON`. |
 | Step 10 times out | one waterfall is a few megabytes | Retry with another id from step 9. The endpoint and the tool both cache per id, so a retry on the same id is cheap. |
 | Step 10 returns `NO_WATERFALL` | that observation stored no image | Pick another id from step 9. `has_waterfall` is in the listing for this reason. |
-| Every live call returns `NO_AXIS` | the OCR extra is not installed | `pip install -e .[ocr]`. The axis reader falls back to a template matcher, and an axis that cannot be read is a named refusal rather than a wrong number. |
+| Every live call returns `NO_AXIS` | the tick labels on that image could not be read | Pick another id from step 9. The default reader is the template matcher in `glyph_axis.py`; `pip install -e .[ocr]` adds easyocr as its fallback, at the cost of 4.5 GB of torch. An axis that cannot be read is a named refusal rather than a wrong number, so this is the system working. |

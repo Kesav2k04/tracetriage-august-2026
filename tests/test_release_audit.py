@@ -315,3 +315,47 @@ def test_each_audit_receipt_names_a_commit_that_exists_in_this_history(name: str
         text=True,
     )
     assert found.stdout.strip() == "commit", f"{name} names {commit}, which is not a commit here"
+
+
+def test_a_redistributed_film_is_audited_as_the_derived_work_it_is(attribution: dict) -> None:
+    """The two largest committed media files carry the obligations, not an exemption.
+
+    The id is read out of the filename everywhere else in this audit, which is why these
+    two passed for a while as owing nothing: a renderer's output does not mention the
+    observation it drew. `clean: true` while the mp4 and its poster carried no source URL,
+    no retrieval timestamp and no sha256 is the exact state `DATA_LICENSE.md` calls a
+    release blocker, and the audit reported it as fine.
+
+    Pinned per file rather than in aggregate. A count would still pass if one of the two
+    lost its declaration, and the poster is the frame that shows the waterfall.
+    """
+    by_file = {r["file"]: r for r in attribution["rows"]}
+    for rel in (
+        "presentation/out/tracetriage-film.mp4",
+        "presentation/out/tracetriage-film-poster.jpg",
+    ):
+        row = by_file.get(rel)
+        assert row is not None, f"{rel} is tracked media the audit did not scan"
+        assert row["satnogs_derived"] is True, rel
+        assert row["observation_id_from"] == "declared", rel
+        assert row["complete"] is True, rel
+        assert all(row["obligations"].values()), rel
+        # The notice has to say what the film did, not merely that something happened.
+        notice = row["modification_notice"] or ""
+        for said in ("corridor", "1920x1080", "H.264"):
+            assert said in notice, (rel, said)
+
+
+def test_every_row_says_how_its_observation_was_resolved(attribution: dict) -> None:
+    """A declared id and one read off a filename are different evidence.
+
+    Both are in the receipt, so a reader can tell which rows rest on a human saying so.
+    A row that resolved nothing says that too, rather than leaving the field out.
+    """
+    for row in attribution["rows"]:
+        assert "observation_id_from" in row, row["file"]
+        assert row["observation_id_from"] in ("filename", "declared", None), row["file"]
+        if row["observation_id"] is None:
+            assert row["observation_id_from"] is None, row["file"]
+        else:
+            assert row["observation_id_from"] is not None, row["file"]

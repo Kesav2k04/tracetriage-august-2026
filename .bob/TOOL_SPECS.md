@@ -17,8 +17,12 @@ tomorrow uses newer elements.
 Two rules bind every tool on both servers:
 
 - **Read-only with respect to SatNOGS, and to this checkout.** No tool writes upstream and
-  no tool writes to disk. `tests/test_mcp_server.py` walks each server's source for a
-  network write verb and for a filesystem write, and fails on either. The one exception is
+  no tool writes to disk. `tests/test_mcp_server.py` walks both servers' sources for a
+  network write verb and for a filesystem write, and fails on either: the evidence
+  server and its transport in one test, the live server and the module it measures
+  through in another. They are two tests rather than one because the offline half also
+  asserts that no network library is imported at all, which is right for a server that
+  reads committed files and wrong for one whose job is a GET. The one exception is
   named and bounded: `run_acceptance` runs this repository's own gate, which builds the
   console into the export directory the deploy contract names, and every generator it
   calls runs with `--check`.
@@ -31,7 +35,7 @@ Two rules bind every tool on both servers:
 ## Auto-approved, and why the list stops where it does
 
 `alwaysAllow` in `.bob/mcp.json` is applied at the start of each Bob task, so a listed
-tool runs without an approval click. That is what makes an eight-minute demo possible, and
+tool runs without an approval click. That is what makes the ten-minute demo in `docs/BOB_DEMO.md` possible, and
 it is also a standing permission, so the list is drawn on cost rather than on convenience.
 
 | Auto-approved | Cost of one call |

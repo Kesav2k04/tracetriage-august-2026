@@ -94,8 +94,8 @@
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "15b8ba734bd7b75f66208699068ddbf16629bc743de0b73985a6861dfca764d8",
-   "bytes": 80954
+   "sha256": "7327f28c27143e22979b95f18f534d22b8ab3439dd3da132d865fdd1264b9eb2",
+   "bytes": 85738
   },
   {
    "name": "BASELINE_RECEIPT.json",
@@ -239,7 +239,7 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "fbf44f3bbfdac93c925c3cf16f7a721d0ad79dee957ec7dafa58e62fbf07b344",
+   "sha256": "a6faf9f10ca173cb581f4bb0312f347ecb3b63a384e6ea578a1f8ec8bea36665",
    "bytes": 5047
   },
   {
@@ -254,7 +254,7 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "53e78972cc999066ffc497596416d8e4f7e2fec7f86261445ad516418c5d137c",
+   "sha256": "47dcd9256e1e7f38a11febeab554aee16c67c9ed5d665adf1bc675fae760b7e8",
    "bytes": 1053
   },
   {

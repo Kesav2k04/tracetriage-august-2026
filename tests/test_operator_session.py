@@ -156,3 +156,37 @@ def test_the_offline_half_still_runs(tmp_path):
         assert rerun["summary"]["steps_unmet"] == []
     finally:
         RECEIPT.write_bytes(before)
+
+
+def test_the_prose_about_the_live_half_is_the_receipt_and_not_a_memory(receipt: dict) -> None:
+    """The paragraph in `docs/BOB_DEMO.md` that quotes the last run, checked field by field.
+
+    Six values in it were from a run two days older than the receipt beside it: observation
+    14839732, station PF_DE_UHF_X_DIPOLE, both timestamps, 1.5 sigma and 1,733,330 bytes,
+    where the receipt records 14853498, PE0SAT-21, 2026-08-22, 1.4 sigma and 1,735,467. The
+    document was right when it was written and nothing re-read it afterwards.
+
+    Nothing here could have caught that. The tests above compare step numbers and verdicts,
+    which is the coupling between the prompt and the runner; this is the coupling between the
+    receipt and the sentence a reader believes. Both halves of the document are quoted from
+    the same artifact and only one of them was checked.
+    """
+    text = " ".join(DEMO.read_text(encoding="utf-8").split())
+    step = next(s for s in receipt["live"]["steps"] if s["step"] == 10)
+    listing = next(s for s in receipt["live"]["steps"] if s["step"] == 9)
+    reported = step["reported"]
+
+    expected = {
+        "the observation it measured": str(listing["reported"]["picked"]),
+        "the station it came from": listing["reported"]["station"],
+        "the time it was recorded": listing["reported"]["start"],
+        "the time it was measured": reported["measured_at_utc"],
+        "the mode verdict": reported["mode_verdict"],
+        "the reason the mode is unresolved": reported["mode_why"],
+        "the waterfall's size in bytes": f"{reported['waterfall_bytes']:,}",
+    }
+    missing = {what: value for what, value in expected.items() if value not in text}
+    assert not missing, (
+        "docs/BOB_DEMO.md's paragraph about the last run does not carry what "
+        f"artifacts/OPERATOR_SESSION.json records: {missing}"
+    )

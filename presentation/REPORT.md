@@ -28,11 +28,11 @@ card after it.
 | 1 | Title | 0 to 149 | 0.0 to 5.0 | TraceTriage, a ranked review queue for satellite radio captures that volunteers recorded and nobody read. The snapshot id and the data licence sit in the footer. |
 | 2 | The problem, in counts | 150 to 689 | 5.0 to 23.0 | 2,727 observations in the snapshot, 2,500 with a waterfall image, 739 with a decisive human verdict, 1,988 with none. A grid of 2,727 cells in the snapshot's own fetch order, lit where a verdict exists. |
 | 3 | The product | 690 to 1349 | 23.0 to 45.0 | 407 observations ranked by review value, with the first 50 as the budget. The four the per-station cap displaced are drawn in the caution token at the budget line. Then what the top 50 turned out to be carrying: 17 stale catalogue frequencies, 3 model and label disagreements, 0 dead captures, with the third criterion marked as one that never fires on this corpus. |
-| 4 | The physics | 1350 to 2249 | 45.0 to 75.0 | Observation 14740031's real waterfall, from the console's own public directory. Three overlays arrive in order: the commanded receive frequency as a vertical dashed line, the pass geometry at zero offset spanning 17,290 Hz, then the same curve sliding 113 pixels onto its best match. The measurement is the gap: +13,985 Hz, +32.05 ppm. Then gate 3, which asked whether that corridor lands on a visible trace: 3 of 3 discriminated, a 95% lower bound of 0.37 against a threshold of 0.70, NOT ESTABLISHED. |
+| 4 | The physics | 1350 to 2249 | 45.0 to 75.0 | Observation 14740031's real waterfall, from the console's own public directory. Three overlays arrive in order: the commanded receive frequency as a vertical dashed line, the pass geometry at zero offset spanning 17,290 Hz, then the same curve sliding 113 pixels onto its best match. The measurement is the gap: +13,985 Hz, +32.05 ppm. Then gate 3, which asked whether that corridor lands on a visible trace: 224 of 289 observations discriminated, a 95% lower bound of 0.73 against a threshold of 0.70, and over the 68 independent station-nights those observations span the bound is 0.37. The receipt's word is PASSED_UNGROUPED_ONLY and the card carries it, because grouping is what the plan said would decide. |
 | 5 | The result | 2250 to 2939 | 75.0 to 98.0 | Gate 6's wording, quoted from its receipt. Conflicts found in the 50 examined out of 87 decisively labelled: 12.6 expected by random, 14 by first in first out, 20 by the ranked queue, against 22 in the whole population. Then the lift on one axis: a threshold at 1.50, first in first out at 1.11, a point estimate of 1.58, and a 95% interval from 1.35 to 1.74 drawn straddling the threshold. NOT ESTABLISHED, direction spans_threshold. |
 | 6 | The gates | 2940 to 3419 | 98.0 to 114.0 | All six kill gates with the file each was decided in and the receipt's own verdict word. Then the tally: 3 of 6 met, and of the 4 that ask whether the idea works, 1 passed, the rest of the met tally being the feasibility checks answered before any pipeline code existed. Then the scale that tally sits on, from `artifacts/CIRCULARITY_RECEIPT.json`: the 22 conflicts that exist at this budget cap every possible ordering, a perfect oracle included, at 1.74 against a bar of 1.50, so the whole distance between the bar and perfection is 0.24. |
 | 7 | What holds | 3420 to 4079 | 114.0 to 136.0 | The three results that came back decided, read from `artifacts/AGENT_RECEIPT.json`, `artifacts/EXPLAIN_RECEIPT.json` and the held-out split of `artifacts/QUEUE_RECEIPT.json`. The evidence tools change what a local Granite model gets right, 22 of 24 against 2 of 24 with no tools, paired exact one sided 0.000001 over 20 discordant pairs. The grounding checker caught 525 of 525 planted falsehoods and refused 0 of 175 clean drafts. On ground stations the queue was never fitted to, lift is 2.25 with a 95% interval of 1.92 to 3.86, above the bar rather than spanning it, and the receipt records PASSED. |
-| 8 | Attribution | 4080 to 4259 | 136.0 to 142.0 | The six obligations `DATA_LICENSE.md` accepts for the waterfall the film displayed, read from that file's own row in `artifacts/ATTRIBUTION_AUDIT.json`: record URL, artifact URL, retrieval timestamp, sha256, licence, licence URL and modification notice, plus the notice this film adds. ShareAlike is stated: the film contains a SatNOGS waterfall, so the film carries CC BY-SA 4.0 rather than the repository's code licence. |
+| 8 | Attribution | 4080 to 4259 | 136.0 to 142.0 | The waterfall the film displayed, with its own row from `artifacts/ATTRIBUTION_AUDIT.json` on screen as seven lines: record URL, artifact URL, retrieval timestamp, sha256, licence, licence URL and modification notice, plus the notice this film adds. Those seven carry the six obligations `DATA_LICENSE.md` accepts, which count the record and artifact URLs as one and the licence link as one. ShareAlike is stated: the film contains a SatNOGS waterfall, so the film carries CC BY-SA 4.0 rather than the repository's code licence. |
 
 Beat 5 is not softened. The film says the point estimate clears the threshold and the
 interval does not, and beat 6 states the tally as 3 of 6.
@@ -342,7 +342,7 @@ npm test            # vitest run
 npx tsc --noEmit    # the key paths are resolved in TypeScript, so this is a real check
 ```
 
-The film reads eight files outside this package for its figures and eight wav files from
+The film reads ten files outside this package for its figures and eight wav files from
 `apps/web/public/audio` for its voice, and writes nothing outside `presentation/`. It does
 not need the console to be built, a network connection or a GPU. Re-rendering the
 *narration* does need a model runtime, which is why the wavs are committed: a reader who
@@ -361,12 +361,19 @@ Composition          Film
 Codec                h264
 Output               out/tracetriage-film.mp4
 Concurrency          4x
-Rendered 3544/3540
-o                    out/tracetriage-film.mp4 4.6 MB
+Rendered 4268/4260
++                    out/tracetriage-film.mp4 11 MB
 ```
 
-Wall clock 149.4 seconds on this machine, measured around the `npm run render` call.
-Output 4,850,926 bytes, which is 4.63 MiB. The poster frame is 275,349 bytes.
+Output 11,034,834 bytes, which is 10.52 MiB. The poster frame is 234,868 bytes. `Rendered
+4268/4260` is the eight extra frames the retry below re-rendered, not eight extra frames in
+the film: `ffprobe` reads 4260.
+
+The transcript above replaced one that had gone stale in a way worth naming, because it is
+the failure this whole report is written against. It was pasted from the silent cut, before
+narration: 3,540 frames, 4,850,926 bytes, a 275,349-byte poster. Every one of those numbers
+was true when it was pasted, none of them was true of the film in the repository, and the
+generated region above could not catch it because a pasted transcript is not generated.
 
 One group of frames per run stalls on the font handle for the full 58 second timeout and
 is then retried and rendered correctly. The group is always the size of the concurrency
@@ -377,19 +384,52 @@ two. Every tab refetches the bundle on a recycle and the font requests queue
 behind it. The retry is configured for this and recovers, and the stall is left visible in
 the render log rather than hidden. It is why `src/fonts.ts` sets `retries: 3`.
 
-The retry recovers rather than papering over a bad frame, and that is measured rather than
-assumed: this composition was rendered three times, twice at concurrency 4 and once at
-concurrency 2, and produced a byte-identical file every time. The concurrency 2 run took
-202.1 seconds against 149.4, so the timing moves and the bytes do not.
+The retry recovers rather than papering over a bad frame, and that is measured. It is also
+where an earlier version of this paragraph was wrong, so the measurement is given in full.
+It said the composition had been rendered three times and produced a byte-identical file
+every time. That was measured on the silent cut, which had no audio stream, and it stopped
+being true when narration was added. Re-measured on the film in the repository, twice more,
+against the committed file:
 
 ```
-$ md5sum out/probe.mp4 out/tracetriage-film.mp4
-841a19deabb5261b503aacb45ea2bf1f *out/probe.mp4
-841a19deabb5261b503aacb45ea2bf1f *out/tracetriage-film.mp4
+$ md5sum out/tracetriage-film.mp4 out/probe2.mp4 out/probe3.mp4
+5cf230e8f8b24e3bd8f9a4ed735bc0a4 *out/tracetriage-film.mp4   committed, concurrency 4
+cb1ed84da300239018cea26c4dd887ca *out/probe2.mp4             re-render, concurrency 4
+4f533ad075198d1e393efa2a43520ba3 *out/probe3.mp4             re-render, concurrency 2
+
+$ ffmpeg -i <each> -map 0:v -c copy -f md5 -      video bitstream
+745e1ad38503ee881e1c8565008e17f3   committed
+745e1ad38503ee881e1c8565008e17f3   probe2
+8d28381a8cbc2c8a2e1711866030ae8b   probe3
+
+$ ffmpeg -i <each> -map 0:a -c copy -f md5 -      AAC narration
+4bbfde1976f318a93059af13d33d1df0   committed
+c4efbca4ac640405614be283421157d6   probe2
+4bbfde1976f318a93059af13d33d1df0   probe3
 ```
 
-The GL renderer is pinned to `angle` in `remotion.config.ts` for the same reason:
-unpinned, the antialiasing changes and the digest with it.
+No two of the three agree on the whole file, and the two streams move independently. The
+same-concurrency re-render is bit-identical in video and differs in audio; the
+concurrency 2 re-render is the other way round. So the honest claim is narrower than the
+one it replaces, and it was measured frame by frame rather than inferred from the digests.
+`ffmpeg -f framemd5` over the decoded video says the committed file and `probe2` agree on
+all 4,260 frames, and that `probe3` differs on 894 of them, frames 1356 to 2249, which is
+the physics beat and nothing else. On one of those frames, 1500, the largest difference in
+any channel of any pixel is 21 of 255, the mean over the frame is 0.20, 1,459 pixels of
+2,073,600 differ by more than 8 and none differs by more than 32. That is the antialiasing
+of a curve redrawn, not a figure that moved, and every figure in that beat is read from a
+receipt rather than drawn from the render.
+
+What is stable across all three runs: 4,260 frames, 142.058667 seconds, 1920 by 1080, two
+streams, and every claim the film states. What is not: the file digest, and the raster of
+one beat below the threshold of vision. The GL renderer is pinned to `angle` in
+`remotion.config.ts` because unpinned that last number is not bounded at all.
+
+This is why `artifacts/FILM_RECEIPT.json` records the sha256 of the delivered file and
+`scripts/check_receipt_digests.py` checks it on every gate run. That check answers "are
+these the bytes the receipt was written about", which is the question a reader can act on.
+It deliberately does not answer "will a re-render reproduce them", because the measurement
+above says it will not.
 
 ### The tests
 
@@ -431,7 +471,7 @@ channels=2
 [FORMAT]
 nb_streams=2
 duration=142.058667
-size=11108910
+size=11034834
 [/FORMAT]
 ```
 
@@ -459,7 +499,7 @@ three runs.
 
 | File | What it is |
 |---|---|
-| `presentation/out/tracetriage-film.mp4` | The film. 11,108,910 bytes, 142.06 s, 1920x1080, 30 fps, h264 video and AAC narration, 48 kHz stereo. |
+| `presentation/out/tracetriage-film.mp4` | The film. 11,034,834 bytes, 142.06 s, 1920x1080, 30 fps, h264 video and AAC narration, 48 kHz stereo. |
 | `presentation/out/tracetriage-film-poster.jpg` | Poster frame at frame 1730, the physics beat with both curves and the measurement on screen. 234,868 bytes. |
 | `presentation/src/data.ts` | Every claim, with its file and key path. The single place a number enters the film. |
 | `presentation/src/claim.ts` | The path resolver and the formatters. |
@@ -468,18 +508,23 @@ three runs.
 | `presentation/test/claims.test.ts` | Every figure the film draws, against the receipt key path it came from, plus the beat ordering and the token comparison. How many checks that is, is in the generated region above. |
 | `presentation/test/narration.test.ts` | The spoken lines: one per beat, each held to the claim its card draws, and each inside the card's own duration. |
 | `presentation/scripts/report-table.ts` | Regenerates the claim table in this report and writes `artifacts/FILM_RECEIPT.json`. `npm run report -- --check` fails if either has drifted, and `scripts/gate.py` runs it. |
-| `artifacts/FILM_RECEIPT.json` | The film described by the sources that build it: the composition, every card with its frames, the claim counts, the nine committed JSON files the claims are read from, and the byte count and sha256 of the two files above. `scripts/check_receipt_digests.py` checks those two digests against the committed bytes on every gate run, and `tests/test_film_receipt.py` checks the rest of the receipt against the tree. |
+| `artifacts/FILM_RECEIPT.json` | The film described by the sources that build it: the composition, every card with its frames, the claim counts, the ten committed JSON files the claims are read from, and the byte count and sha256 of the two files above. `scripts/check_receipt_digests.py` checks those two digests against the committed bytes on every gate run, and `tests/test_film_receipt.py` checks the rest of the receipt against the tree. |
 | `presentation/remotion.config.ts` | Public directory, image format, pixel format and GL renderer, each with the reason it is pinned. |
 
 ## Two things a reader should know
 
 **The film is a derived work of a ShareAlike dataset.** It contains a SatNOGS waterfall,
 so under `DATA_LICENSE.md` the mp4 is CC BY-SA 4.0, not MIT. The closing card states that
-and carries the six obligations. `artifacts/ATTRIBUTION_AUDIT.json` audits tracked media
-files and does not know about `presentation/out`, so if the mp4 is committed, whoever owns
-`scripts/` should decide whether that directory joins the audit's scan. `DATA_LICENSE.md`
-calls a missing attribution line a release blocker rather than a cleanup item, which is
-why it is raised here rather than left for someone to notice.
+and carries the six obligations. That was raised here as an open question while
+`artifacts/ATTRIBUTION_AUDIT.json` still read the observation id off a filename, which no
+rendered file carries: the mp4 and its poster were committed, scanned, resolved to no
+observation and reported as owing nothing, so the audit said `clean: true` about the two
+largest redistributed files in the repository. `scripts/audit_release.py` now declares the
+observation each one embeds, both rows carry all six obligations, and the row records
+`observation_id_from: declared` so a reader can see that this one rests on a statement
+rather than on a filename. `tests/test_release_audit.py` pins both rows. `DATA_LICENSE.md`
+calls a missing attribution line a release blocker rather than a cleanup item, which is why
+it was raised here rather than left for someone to notice.
 
 **Nothing was estimated.** Two figures I wanted are not in the film because no receipt
 carries them: how many observations exist across the SatNOGS network, which would have

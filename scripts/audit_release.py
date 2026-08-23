@@ -263,6 +263,24 @@ _OBS_ID = re.compile(r"(\d{7,9})")
 
 _MEDIA_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".mp4", ".webm"}
 
+#: Files that embed an observation their own name does not mention.
+#:
+#: The id is read out of the filename everywhere else, which works for every artifact
+#: this pipeline writes and not at all for one a renderer composed. The film draws
+#: observation 14740031's waterfall on its physics card and the poster frame is taken from
+#: that card, so both are derived works of a ShareAlike dataset whose filenames say
+#: nothing. Before this table they resolved to no observation and the audit reported them
+#: as owing nothing, which is the failure a licence audit exists to prevent: `clean: true`
+#: on the two largest redistributed files in the repository.
+#:
+#: A declaration rather than a probe. Reading the id back out of an encoded mp4 is not
+#: possible, so the honest alternative to naming it here is not measuring it, and the row
+#: records `observation_id_from` so a reader can see which of the two happened.
+_EMBEDDED_OBSERVATION: dict[str, int] = {
+    "presentation/out/tracetriage-film.mp4": 14740031,
+    "presentation/out/tracetriage-film-poster.jpg": 14740031,
+}
+
 #: What was done to the bytes, per location. The licence requires a notice of every
 #: modification, and "resized" is not the same claim as "recoloured and overlaid".
 _MODIFICATION_NOTICE: list[tuple[str, str]] = [
@@ -282,7 +300,17 @@ _MODIFICATION_NOTICE: list[tuple[str, str]] = [
         "geometry and re-encoded",
     ),
     ("tests/fixtures/", "synthetic or reduced fixture, used only by the test suite"),
+    (
+        "presentation/out/",
+        "one observation's waterfall scaled to the frame with the predicted Doppler "
+        "corridor drawn over it, composited into a 1920x1080 film alongside figures read "
+        "from this repository's receipts, and encoded to H.264 with AAC narration",
+    ),
 ]
+
+#: The fixture notice, by name. This used to be `_MODIFICATION_NOTICE[3][1]`, which meant
+#: appending a row above could silently move which notice grants attribution.
+_FIXTURE_NOTICE = next(n for prefix, n in _MODIFICATION_NOTICE if prefix == "tests/fixtures/")
 
 
 def _notice_for(rel: str) -> str | None:
@@ -303,13 +331,17 @@ def audit_attribution() -> dict[str, Any]:
         if p.suffix.lower() not in _MEDIA_SUFFIXES or not p.exists():
             continue
         m = _OBS_ID.search(Path(rel).name)
-        obs_id = int(m.group(1)) if m else None
+        obs_id = int(m.group(1)) if m else _EMBEDDED_OBSERVATION.get(rel)
+        resolved_by = (
+            "filename" if m else ("declared" if rel in _EMBEDDED_OBSERVATION else None)
+        )
         entry = by_id.get(obs_id) if obs_id else None
         notice = _notice_for(rel)
         row: dict[str, Any] = {
             "file": rel,
             "bytes": p.stat().st_size,
             "observation_id": obs_id,
+            "observation_id_from": resolved_by,
             "in_dataset_manifest": entry is not None,
             "modification_notice": notice,
         }
@@ -326,7 +358,7 @@ def audit_attribution() -> dict[str, Any]:
                 }
             )
         obligations = {
-            "attribution": bool(entry) or notice == _MODIFICATION_NOTICE[3][1],
+            "attribution": bool(entry) or notice == _FIXTURE_NOTICE,
             "record_source_url": bool(row.get("source_url")),
             "artifact_source_url": bool(row.get("waterfall_url")),
             "retrieval_timestamp": bool(row.get("retrieved_at")),

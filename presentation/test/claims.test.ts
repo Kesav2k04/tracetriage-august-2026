@@ -325,7 +325,9 @@ describe("the colophon carries the six obligations DATA_LICENSE.md accepts", () 
     expect(Object.values(row!.obligations).every(Boolean)).toBe(true);
   });
 
-  it("shows all six on screen", () => {
+  // Seven lines for six obligations: DATA_LICENSE.md counts the record and artifact
+  // URLs as one source-URL obligation, and the licence link as one.
+  it("shows all six, in the seven lines they take", () => {
     for (const claim of [
       colophon.recordUrl,
       colophon.artifactUrl,
