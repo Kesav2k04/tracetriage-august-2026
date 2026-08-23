@@ -107,6 +107,12 @@ circularity = _receipt("CIRCULARITY_RECEIPT.json")
 film = _receipt("FILM_RECEIPT.json")
 _FILM = film["composition"]
 _FILM_CLAIMS = film["claims"]
+# The narration, for the same reason. This page called the film "silent" in two places for
+# a while after it stopped being silent, because both sentences typed the word instead of
+# asking the receipt. Whether there is a spoken track is now read, and so is what the
+# verification of it found.
+narration = _receipt("NARRATION_RECEIPT.json")
+_SPOKEN = bool(_FILM["audio"])
 _REMOTION = json.loads(
     (REPO / "presentation" / "package.json").read_text(encoding="utf-8")
 )["dependencies"]["remotion"]
@@ -735,11 +741,18 @@ REQUIREMENTS: list[tuple[str, ...]] = [
         "`docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated "
         "from the receipts so no spoken number can drift from what the console shows. "
         f"`presentation/out/tracetriage-film.mp4` is a rendered {_FILM['seconds']:g} "
-        f"second silent film over the same receipts: {_FILM['beats']} cards, {_FILM['frames']} "
+        f"second {'narrated' if _SPOKEN else 'silent'} film over the same receipts: "
+        f"{_FILM['beats']} cards, {_FILM['frames']} "
         f"frames, and {_FILM_CLAIMS['total']} figures each resolved from a receipt key "
         f"path at build time rather than typed. `artifacts/FILM_RECEIPT.json` records its "
         "digest and `scripts/check_receipt_digests.py`, a standing gate, checks the "
-        "committed bytes against it",
+        f"committed bytes against it. The narration is spoken offline by "
+        f"{narration['renderer']['model']}, {narration['renderer']['licence']}, "
+        "and held to the same rule as the cards: a second model transcribes the rendered "
+        f"audio back without seeing the script, and all "
+        f"{narration['totals']['figures_checked']} figures it names were heard, with "
+        f"{narration['totals']['beats_overrunning_their_card']} lines overrunning the card "
+        "they are spoken over. `artifacts/NARRATION_RECEIPT.json`",
     ),
     ("Public repository", "This one"),
 ]
@@ -1504,7 +1517,9 @@ STACK: list[tuple[str, ...]] = [
         "Remotion",
         "`presentation/`, rendered offline",
         f"The presentation film. {_FILM['beats']} cards, {_FILM['frames']} frames, "
-        f"{_FILM['seconds']:g} seconds at {_FILM['fps']} fps, no audio. Every figure on "
+        f"{_FILM['seconds']:g} seconds at {_FILM['fps']} fps, and "
+        f"{narration['totals']['spoken_seconds']:.0f} seconds of narration over them. "
+        f"Every figure on "
         f"screen is resolved from a receipt key path at build time by "
         f"`presentation/src/data.ts`, so a number in the film cannot disagree with the "
         f"artifact it came from: {_FILM_CLAIMS['total']} claims over "
