@@ -64,8 +64,26 @@ jobs:
         run: .venv/bin/python -m ruff check .
 
       - name: Type check
-        run: .venv/bin/python -m mypy pipeline
-        continue-on-error: true
+        # This step could not turn the build red. It ran `mypy pipeline` under
+        # `continue-on-error: true`, so a reader of this file saw a type check in the
+        # pipeline and 51 errors went past it on every run, including an exit 2 that
+        # checks nothing and looks identical to a clean pass.
+        #
+        # The baseline is 51, which is what `mypy pipeline` reports at the commit that
+        # introduced this step. Not zero, because the 51 are annotation debt that
+        # `pyproject.toml` discloses and every one in a class that could carry a live code
+        # path was read and is guarded; fixing them is a change to 17 files in the
+        # measurement path days before a deadline. The ratchet turns one way: more than 51
+        # fails and names the new ones, fewer than 51 passes and asks for the baseline to
+        # be lowered.
+        #
+        # mypy is installed at one version here because an error count is a measurement and
+        # the checker decides it. `pyproject.toml` bounds mypy below 3 for installs; this
+        # step names the release the baseline was taken with, and the script prints a note
+        # if it ever runs under another one.
+        run: |
+          uv pip install --python .venv/bin/python "mypy==2.3.1"
+          .venv/bin/python scripts/check_types.py
 
       - name: Offline test suite
         # -m "not network" is the gate that proves the replay needs no external service.
@@ -212,6 +230,14 @@ jobs:
         # the file that rewrites a table in a tracked document.
         working-directory: presentation
         run: npx tsc --noEmit
+
+      - name: Install ffprobe
+        # Two of the claim tests read the committed mp4's own container: the video stream's
+        # frame count, and whether there is an audio stream at all. Without a probe they
+        # report themselves skipped rather than passing, which is honest but leaves the
+        # narration unchecked in the one place that runs on every push. The film shipped
+        # silent twice, so this row is worth thirty seconds of apt.
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
 
       - name: Claim tests
         # Every figure the film draws, against the receipt key path it came from, plus the

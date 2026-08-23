@@ -78,11 +78,27 @@ def test_every_job_has_a_budget(workflow):
 
 
 def test_the_offline_job_installs_a_cpu_torch_and_the_same_extras(workflow):
-    """The wheel changes and the package set does not."""
+    """The wheel changes and the package set does not.
+
+    "Installs the project" rather than "runs uv pip install", because the type-check step
+    installs one exact version of mypy over the environment and nothing else: an error
+    count is a measurement and the checker decides it, so that step names its instrument.
+    The property this test is about is that the package set is built once, and the second
+    assertion below is what keeps a second step from quietly building a different one.
+    """
     steps = workflow["jobs"]["offline-replay"]["steps"]
-    install = [s for s in steps if "uv pip install" in (s.get("run") or "")]
+    runs = [s.get("run") or "" for s in steps]
+    install = [r for r in runs if "uv pip install" in r and " -e " in r]
     assert len(install) == 1, "the environment is created in more than one place"
-    line = install[0]["run"]
+    others = [
+        r for r in runs if "uv pip install" in r and " -e " not in r
+    ]
+    for other in others:
+        assert "==" in other, (
+            "a step installs packages without pinning them and without installing the "
+            f"project, so what CI measures is not what this job built:\n{other}"
+        )
+    line = install[0]
     assert "--torch-backend=cpu" in line, (
         "the offline job resolves torch against the default index, which on Linux is the "
         "CUDA wheel and about 2.5 GB of nvidia-* packages for a runner with no GPU"
