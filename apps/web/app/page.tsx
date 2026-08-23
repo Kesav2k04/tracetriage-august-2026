@@ -239,7 +239,7 @@ export default function QueuePage() {
         <nav className="readpath" aria-label="How to read this page">
           <ol>
             <li>
-              <span className="readpath-index">01</span>
+              <span className="readpath-index" aria-hidden="true">01</span>
               <Link href="#queue">What it is</Link>
               <span className="readpath-fact">
                 a ranked queue of {queue.entries.length}, the top{" "}
@@ -253,7 +253,7 @@ export default function QueuePage() {
                 other page reports a measurement that was already made. It was reachable
                 only from the rail, which is a list of labels rather than an argument. */}
             <li>
-              <span className="readpath-index">02</span>
+              <span className="readpath-index" aria-hidden="true">02</span>
               <Link href="/live/">Watch it measure one</Link>
               <span className="readpath-fact">
                 paste an id recorded today; the offset comes back in seconds, from the
@@ -261,7 +261,7 @@ export default function QueuePage() {
               </span>
             </li>
             <li>
-              <span className="readpath-index">03</span>
+              <span className="readpath-index" aria-hidden="true">03</span>
               <Link href="/evaluation">Whether it worked</Link>
               <span className="readpath-fact">
                 {/* Two decimals on the point estimate and three on the interval, matching
@@ -282,7 +282,7 @@ export default function QueuePage() {
               </span>
             </li>
             <li>
-              <span className="readpath-index">04</span>
+              <span className="readpath-index" aria-hidden="true">04</span>
               <Link href="/precedent">Whether the model earned it</Link>
               <span className="readpath-fact">
                 <span className="num">{fmt(GRANITE_RETRIEVAL, 3)}</span> against{" "}
@@ -291,7 +291,7 @@ export default function QueuePage() {
               </span>
             </li>
             <li>
-              <span className="readpath-index">05</span>
+              <span className="readpath-index" aria-hidden="true">05</span>
               <Link href="/provenance">How to check it</Link>
               <span className="readpath-fact">
                 every number names a receipt;{" "}

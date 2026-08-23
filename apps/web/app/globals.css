@@ -595,7 +595,7 @@ a:hover {
 
 /* One focus treatment everywhere, on the element that actually receives focus.
    Carbon uses a 2px inset white ring on dark surfaces. */
-:where(a, button, [tabindex], input, select, summary):focus-visible {
+:where(a, button, [tabindex], input, select, summary, textarea):focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 1px;
 }

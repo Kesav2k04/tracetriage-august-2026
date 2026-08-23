@@ -21,7 +21,7 @@
  * otherwise sit there looking convincing.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   MAX_CHARS,
@@ -144,6 +144,21 @@ export default function ClaimChecker({
   );
   const [text, setText] = useState(() => presets[0]?.text ?? "");
 
+  // The verdict is recomputed on every keystroke, and it sits in a live region. A
+  // reader typing "123" into the box therefore queues three separate refusals, each
+  // naming the literal that offended, before the sentence is finished. Polite does
+  // not interrupt but it still queues, which is the same mistake the replay readout
+  // made and fixed: the region is off while the value is moving and polite once it
+  // has settled. The visible verdict is unaffected and still updates per keystroke.
+  const [typing, setTyping] = useState(false);
+  const settleRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (settleRef.current !== null) window.clearTimeout(settleRef.current);
+    },
+    [],
+  );
+
   if (!packet) {
     return (
       <Section
@@ -192,7 +207,18 @@ export default function ClaimChecker({
           value={text}
           spellCheck={false}
           rows={4}
-          onChange={(event) => setText(event.target.value)}
+          onChange={(event) => {
+            setText(event.target.value);
+            if (!typing) setTyping(true);
+            if (settleRef.current !== null) window.clearTimeout(settleRef.current);
+            // 600 ms rather than the replay's 200: a pause inside a sentence is
+            // longer than a pause inside a drag, and announcing a verdict about half
+            // a sentence is worse than announcing it slightly late.
+            settleRef.current = window.setTimeout(() => {
+              settleRef.current = null;
+              setTyping(false);
+            }, 600);
+          }}
         />
         <p className="claim-count num">
           {characters} of {MAX_CHARS} characters
@@ -200,7 +226,8 @@ export default function ClaimChecker({
 
         <div
           className={verdict.ok ? "claim-verdict is-ok" : "claim-verdict is-refused"}
-          aria-live="polite"
+          aria-live={typing ? "off" : "polite"}
+          aria-atomic="true"
         >
           <p className="claim-verdict-head">
             <span className="claim-verdict-word">

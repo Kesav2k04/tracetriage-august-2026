@@ -338,7 +338,10 @@ export default function QueueTable({
                 {imagedSet.has(entry.obs_id) ? (
                   <Link href={`/observation/${entry.obs_id}/`}>{entry.obs_id}</Link>
                 ) : (
-                  <span title="No waterfall shipped for this observation">
+                  <span
+                    title="No waterfall shipped for this observation"
+                    aria-label={`${entry.obs_id}, no waterfall shipped, so this row has no detail page`}
+                  >
                     {entry.obs_id}
                   </span>
                 )}
@@ -378,6 +381,7 @@ export default function QueueTable({
                 {entry.offset_at_bound ? (
                   <span
                     title="The fit ran into the search bound, so the true offset is at least this"
+                    aria-label="at least: the fit ran into the search bound"
                     style={{ color: "var(--support-03)" }}
                   >
                     {" "}

@@ -283,6 +283,18 @@ export default function PassReplay({
           ? `${lat.toFixed(2)}, ${lon.toFixed(2)}`
           : "—",
       );
+
+      // The input's own value is a 0 to 1 fraction, so an arrow key announces a bare
+      // "0.421" while the figure that means something sits in the readout below,
+      // which the reader is not on. setAttribute for the same reason the cursors use
+      // it: this runs on every frame of playback and must not re-render.
+      const range = rangeRef.current;
+      if (range) {
+        range.setAttribute(
+          "aria-valuetext",
+          `${(value * durationS).toFixed(0)} s of ${durationS.toFixed(0)} s`,
+        );
+      }
     },
     [geometry, groundLons, bounds, imageHeight, durationS],
   );
@@ -383,7 +395,10 @@ export default function PassReplay({
             max={1}
             step={0.001}
             defaultValue={0}
-            aria-label="Scrub through the pass"
+            // The visible label is "Pass time", so the accessible name has to
+            // contain it: a name that shares no words with the label a sighted user
+            // reads is not addressable by voice control. WCAG 2.5.3.
+            aria-label="Pass time, scrub through the pass"
             onInput={(event) => {
               const value = Number(event.currentTarget.value);
               if (playing) setPlaying(false);

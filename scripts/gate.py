@@ -123,6 +123,37 @@ def main() -> int:
                 "" if rc == 0 else out.splitlines()[-1][:70],
             )
         )
+
+        # ESLint was in the same state the config file had been in: `package.json` has
+        # carried a `lint` script since the console was created and no gate, no test and
+        # no CI job had ever run it. The Python lint row above is ruff, which does not
+        # read TSX. This is the React and Next rule set the type checker cannot see.
+        rc, out = run([NPM, "run", "lint"], cwd=WEB)
+        results.append(
+            check(
+                "console lint",
+                rc == 0,
+                "" if rc == 0 else out.splitlines()[-1][:70],
+            )
+        )
+
+        # tests/test_console_accessibility.py parses apps/web/out, so it says nothing
+        # until the build above has written it. The offline suite runs before that build
+        # and skips those tests on a checkout that has never built the console, which is
+        # the honest outcome there and the wrong one here: this is the run where the
+        # output exists. So they are re-run, and an all-skipped result is a failure
+        # rather than a pass. A row that reports green from an empty room is the defect
+        # this repository has hit more than once.
+        rc, out = run([str(PY), "-m", "pytest", "tests/test_console_accessibility.py", "-q"])
+        tail = out.splitlines()[-1][:70] if out.strip() else f"pytest did not report (exit {rc})"
+        measured = "passed" in out
+        results.append(
+            check(
+                "console keyboard reach and accessible names",
+                rc == 0 and measured,
+                "" if rc == 0 and measured else tail,
+            )
+        )
     else:
         # Report it rather than skip it silently. A missing node_modules is a real
         # state of this checkout, and treating it as a pass is how a gate comes to

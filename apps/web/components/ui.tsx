@@ -406,7 +406,24 @@ export function Table({
   headAlign?: Array<"left" | "right">;
 }) {
   return (
-    <div style={{ overflowX: "auto" }}>
+    // A scroll container that is not focusable can only be scrolled with a mouse.
+    // Overflow here is the normal case rather than an edge one: every th and td
+    // below sets white-space: nowrap, and two of the tables on the observation page
+    // hold no link at all, so without a tab stop on the container there is no
+    // keyboard route to the columns past the fold. The provenance table is the
+    // clearest case, because the column a reader most wants is a 64-character
+    // SHA-256. WCAG 2.1.1.
+    //
+    // role="region" with a name, rather than a bare tabIndex, so the extra tab stop
+    // announces what it is instead of landing the reader on an unnamed div. The
+    // caption is the name when there is one, which is the same string the sighted
+    // reader sees under the table.
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label={caption ?? "Table, scrollable"}
+      style={{ overflowX: "auto" }}
+    >
       <table
         style={{
           width: "100%",
