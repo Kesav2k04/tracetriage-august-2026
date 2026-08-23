@@ -545,6 +545,28 @@ def build_pass_geometry(record: dict[str, Any]) -> dict[str, Any] | None:
 # file, `sync_kill_gate.py` and a paragraph of `sync_for_judges.py` by hand. That is
 # the same defect this file already carries a comment about for gate 3.
 #
+#: Receipts that `scripts/signoff.py` rewrites after this script has run, so their
+#: published digest is one generation behind and says so.
+#:
+#: Not a convenience list. The sign-off re-runs `scripts/audit_release.py` rather than
+#: reading it, which is the point of the sign-off, and each of the three receipts that
+#: produces records the commit it was measured at. So does the sign-off's own receipt. The
+#: commit that carries them cannot be known before it exists, which makes this a fixed
+#: point rather than an ordering mistake: no release order produces a payload whose digest
+#: of SIGNOFF_RECEIPT.json is the digest of the committed SIGNOFF_RECEIPT.json.
+#:
+#: `tests/test_published_digests.py` asserts this set equals `signoff._WRITTEN_BY_THIS_RUN`
+#: and that every receipt outside it matches its file, so the exemption cannot grow.
+_WRITTEN_AFTER_THIS_PAYLOAD = frozenset(
+    {
+        "SIGNOFF_RECEIPT.json",
+        "SECRET_SCAN.json",
+        "ATTRIBUTION_AUDIT.json",
+        "REPO_WEIGHT.json",
+    }
+)
+
+
 # Gates 5 and 6 are not declared. They are read from the receipts, and
 # ``build_gate_summary`` refuses to run if a receipt's verdict is not one of the
 # four the rest of the console knows how to render. That keeps the tally the rail
@@ -1221,9 +1243,20 @@ def main(argv: list[str] | None = None) -> int:
                         "name": p.name,
                         "sha256": _digest(p),
                         "bytes": p.stat().st_size,
+                        "rewritten_after_this_payload": p.name in _WRITTEN_AFTER_THIS_PAYLOAD,
                     }
                     for p in receipts
                 ],
+                "receipts_note": (
+                    "Every digest here is of the file as it stood when this payload was "
+                    "built. Four are marked, because scripts/signoff.py rewrites them "
+                    "after the console is built: it re-runs the release audit and then "
+                    "writes its own receipt, and each of those records the commit it ran "
+                    "at. A commit cannot record its own hash, so those four digests are "
+                    "one generation behind by construction and are marked rather than "
+                    "quietly wrong. Every unmarked digest is checked against the file on "
+                    "every gate run by tests/test_published_digests.py."
+                ),
                 "contracts": [
                     {
                         "name": p.name,

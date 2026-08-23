@@ -230,8 +230,8 @@ export default function ProvenancePage() {
         description="Each one is the output of a stage, validated against its contract before it reached disk."
       >
         <Table
-          head={["File", "SHA-256", "Bytes"]}
-          headAlign={["left", "left", "right"]}
+          head={["File", "SHA-256", "Bytes", "As of"]}
+          headAlign={["left", "left", "right", "left"]}
         >
           {provenance.receipts.map((receipt) => (
             <tr key={receipt.name}>
@@ -242,9 +242,23 @@ export default function ProvenancePage() {
                 <Digest value={receipt.sha256} />
               </Cell>
               <Cell mono>{receipt.bytes.toLocaleString("en-GB")}</Cell>
+              <Cell align="left">
+                {receipt.rewritten_after_this_payload
+                  ? "the build before the sign-off"
+                  : "this build"}
+              </Cell>
             </tr>
           ))}
         </Table>
+        <p
+          style={{
+            marginTop: "var(--sp-04)",
+            fontSize: "var(--type-caption)",
+            color: "var(--text-03)",
+          }}
+        >
+          {provenance.receipts_note}
+        </p>
         <p
           style={{
             marginTop: "var(--sp-04)",

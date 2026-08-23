@@ -706,7 +706,19 @@ const provenanceData = provenanceJson as unknown as {
     note: string;
   };
   splits: Array<{ name: string; counts: Record<string, number> }>;
-  receipts: Array<{ name: string; sha256: string; bytes: number }>;
+  receipts: Array<{
+    name: string;
+    sha256: string;
+    bytes: number;
+    /**
+     * True for the four receipts `scripts/signoff.py` rewrites after this payload
+     * is built, whose digest is therefore one generation behind. Each records the
+     * commit it ran at and no commit can record its own hash, so the table marks
+     * them rather than publishing a digest that reads as current.
+     */
+    rewritten_after_this_payload: boolean;
+  }>;
+  receipts_note: string;
   contracts: Array<{
     name: string;
     version: string;
