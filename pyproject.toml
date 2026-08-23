@@ -28,19 +28,38 @@ authors = [{ name = "Kesav2k04", email = "kesavk659@gmail.com" }]
 # offset in PIXELS; reporting it in Hz needs the frequency axis, and the axis is read off
 # the waterfall's rendered tick labels. That is the whole reason
 # `pipeline/tracetriage/glyph_axis.py` exists.
+#
+# **Every specifier below carries an upper bound, and none of them is a pin.** Two
+# environments built from this file on the same day already differed: scipy 1.18.0 against
+# 1.18.1, onnxruntime 1.28.0 against 1.29.0. `api/requirements.txt` pins exactly, and says
+# why, because a redeploy that picks up a new scipy would move a number
+# `artifacts/LIVE_SHELF_RECEIPT.json` has already published. Nothing published from a
+# checkout had the equivalent, so a major release upstream could break a reproduction with
+# no warning and no record of which version the receipts were produced with.
+#
+# The bound is the next major in every case, which admits the patch and minor releases the
+# daily CI run exists to catch and refuses the release that is allowed to remove things.
+# It is a bound rather than a pin on purpose: pinning the reproduction path to one
+# resolution would make the install fail on any platform without that exact wheel, and the
+# daily `cron` in ci.yml already surfaces an upstream break within a day.
+#
+# `pillow` is the one whose bound is not a formality. `Image.LANCZOS` is a deprecated alias
+# that `waterfall.py` and `baseline.py` still call at three sites; the day Pillow drops it,
+# the waterfall parser raises at runtime. Pillow 12 still carries it, so the bound sits
+# below 13.
 dependencies = [
-    "numpy>=2.1",
-    "scipy>=1.14",
-    # imaging: reading a waterfall PNG
-    "pillow>=11.0",
+    "numpy>=2.1,<3",
+    "scipy>=1.14,<2",
+    # imaging: reading a waterfall PNG. See the note above about Image.LANCZOS.
+    "pillow>=11.0,<13",
     # orbital physics: propagating the pass from the observation's own TLE
-    "sgp4>=2.23",
+    "sgp4>=2.23,<3",
     # http + retries against the public SatNOGS API
-    "httpx>=0.27",
-    "tenacity>=9.0",
+    "httpx>=0.27,<1",
+    "tenacity>=9.0,<10",
     # contract validation. Runtime, not dev: the snapshot builder validates the
     # manifest against contracts/dataset_manifest.schema.json at write time.
-    "jsonschema>=4.23",
+    "jsonschema>=4.23,<5",
 ]
 
 [project.scripts]
@@ -56,26 +75,26 @@ tracetriage = "tracetriage.cli:main"
 # classifier, the fusion model, the report renderer and the columnar snapshot reader. Named
 # `full` rather than `pipeline` because a reader installing it wants all of it.
 full = [
-    "polars>=1.20",
-    "pyarrow>=18.0",
-    "opencv-python-headless>=4.10",
-    "torch>=2.5",
-    "torchvision>=0.20",
-    "scikit-learn>=1.5",
-    "scikit-image>=0.24",
-    "matplotlib>=3.9",
-    "jinja2>=3.1",
+    "polars>=1.20,<2",
+    "pyarrow>=18.0,<26",
+    "opencv-python-headless>=4.10,<6",
+    "torch>=2.5,<3",
+    "torchvision>=0.20,<1",
+    "scikit-learn>=1.5,<2",
+    "scikit-image>=0.24,<1",
+    "matplotlib>=3.9,<4",
+    "jinja2>=3.1,<4",
 ]
 dev = [
-    "pytest>=8.3",
-    "pytest-cov>=6.0",
-    "hypothesis>=6.112",
-    "ruff>=0.8",
-    "mypy>=1.13",
+    "pytest>=8.3,<10",
+    "pytest-cov>=6.0,<8",
+    "hypothesis>=6.112,<7",
+    "ruff>=0.8,<1",
+    "mypy>=1.13,<3",
 ]
 onnx = [
-    "onnx>=1.17",
-    "onnxruntime>=1.20",
+    "onnx>=1.17,<2",
+    "onnxruntime>=1.20,<2",
 ]
 # The film's narration track, and the instrument that checks it. Kokoro 82M speaks the
 # lines and faster-whisper transcribes the result so every spoken figure can be checked
@@ -85,23 +104,23 @@ onnx = [
 # The Kokoro weights are 354 MB and are not committed; scripts/render_narration.py names
 # the two commands that fetch them.
 narration = [
-    "kokoro-onnx>=0.4",
-    "faster-whisper>=1.1",
-    "soundfile>=0.12",
+    "kokoro-onnx>=0.4,<1",
+    "faster-whisper>=1.1,<2",
+    "soundfile>=0.12,<1",
 ]
 # The LangChain adapter in pipeline/tracetriage/langchain_tools.py. Optional on purpose,
 # for the same reason as the vector index: it adapts tools that already exist and reach the
 # same handlers, so a clean clone without it installs, runs the suite and reproduces every
 # published number. tests/test_langchain_tools.py skips and says why.
 agent = [
-    "langchain-core>=0.3",
+    "langchain-core>=0.3,<2",
 ]
 # The vector index for precedent retrieval. Optional on purpose: the measurement in
 # artifacts/PRECEDENT_RECEIPT.json is computed from exact cosine search, and chromadb is
 # what checks that a real approximate index returns the same neighbours. A clean clone
 # without this extra skips that one check and still reproduces every published number.
 vector = [
-    "chromadb>=1.0",
+    "chromadb>=1.0,<2",
 ]
 # Reading the waterfall axis labels. Kept out of the base dependencies on
 # purpose: it pulls a neural model whose weights are not in the repo, so a clean
@@ -109,13 +128,13 @@ vector = [
 # derivation without it. Tests replay a committed OCR reading instead
 # (tests/fixtures/ocr_labels.json, regenerated by scripts/dump_ocr_fixture.py).
 ocr = [
-    "easyocr>=1.7",
+    "easyocr>=1.7,<2",
 ]
 # The neural axis reader, for a reader who wants the OCR path rather than the glyph
 # matcher. Not needed for Hz: see `pipeline/tracetriage/glyph_axis.py`, which reads the same
 # labels with no dependency beyond numpy and pillow.
 live = [
-    "easyocr>=1.7",
+    "easyocr>=1.7,<2",
 ]
 
 [build-system]

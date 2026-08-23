@@ -41,7 +41,15 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Create pinned environment
+      - name: Create the environment
+        # Bounded, not pinned, and the step name used to say pinned. Every specifier in
+        # pyproject.toml carries an upper bound at the next major and none of them is a
+        # pin, so two runs of this step a month apart can install different patch
+        # releases. That is the design (the daily cron below is what catches an upstream
+        # break) but a step called "pinned" claimed something no file in this repository
+        # supported. api/requirements.txt is the one that pins, because a redeploy there
+        # would move a published number.
+        #
         # --torch-backend=cpu resolves torch and torchvision against
         # https://download.pytorch.org/whl/cpu and leaves every other dependency on PyPI.
         # Without it the default Linux wheel arrives with about 2.5 GB of nvidia-* CUDA
