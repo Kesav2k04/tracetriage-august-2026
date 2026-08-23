@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 40 JSON artifacts, 8 contracts, 57 scripts, 29 package modules and 1406 test functions across 76 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 40 JSON artifacts, 8 contracts, 59 scripts, 29 package modules and 1409 test functions across 76 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -48,7 +48,7 @@ file that no longer exists in that form.
 | `LIVE_SHELF_RECEIPT.json` | LIVE_SHELF_RECEIPT | 1 | none | 2,653 | `26c7c431441925aa` | `scripts/build_live_shelf.py` | `test_live_shelf.py` |
 | `MOTION_AA_CONTROL.json` | tracetriage/motion-perf | 0.1.0 | none | 11,217 | `144edd40ad9380f9` | `scripts/measure_motion_perf.py` | **none** |
 | `MOTION_RECEIPT.json` | tracetriage/motion-perf | 0.1.0 | none | 13,006 | `7848414e2567859d` | `scripts/measure_motion_perf.py` | **none** |
-| `NARRATION_RECEIPT.json` | none declared | n/a | none | 14,193 | `acc0152060adf626` | `scripts/render_narration.py` | `test_receipt_digests.py` |
+| `NARRATION_RECEIPT.json` | none declared | n/a | none | 14,193 | `acc0152060adf626` | `scripts/cast_narration_voice.py`, `scripts/render_narration.py`, `scripts/sync_for_judges.py` | `test_receipt_digests.py` |
 | `OPERATOR_SESSION.json` | tracetriage/operator-session | 0.1.0 | none | 6,829 | `69564bde019b6783` | `scripts/run_operator_session.py` | `test_operator_session.py` |
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 63,045 | `6dc5302b24363528` | `pipeline/tracetriage/physics.py`, `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
 | `PRECEDENT_RECEIPT.json` | PRECEDENT_RECEIPT | 1 | none | 9,314 | `933ddb930cc60c23` | `scripts/build_console_data.py`, `scripts/check_receipt_digests.py`, `scripts/run_precedent_study.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_console_export.py`, `test_precedent.py`, `test_receipt_digests.py` |
@@ -61,7 +61,7 @@ file that no longer exists in that form.
 | `SPLIT_MANIFEST.json` | none declared | 0.5.0 | none | 223,247 | `c0f8cd3a5dd5fbf9` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_splits.py`, `scripts/check_artifact_freshness.py`, `scripts/check_receipt_digests.py`, `scripts/clean_clone_check.py`, `scripts/run_fusion.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py` | `test_contracts.py`, `test_receipt_digests.py`, `test_splits.py` |
 | `THROUGHPUT_RECEIPT.json` | THROUGHPUT_RECEIPT | 1 | none | 3,112 | `8434514de99fd625` | `scripts/measure_throughput.py` | **none** |
 | `TRIAGE_RECEIPT.json` | none declared | 0.3.0 | none | 3,775 | `5884eb5dc9b6d1a7` | `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/render_evidence_card.py`, `scripts/run_triage_slice.py` | `test_contracts.py`, `test_receipt_digests.py` |
-| `WATSONX_RECEIPT.json` | none declared | n/a | none | 1,878 | `a4639fb7a850b9d5` | `pipeline/tracetriage/watsonx.py`, `scripts/run_watsonx_check.py`, `scripts/sync_for_judges.py` | `test_receipt_digests.py`, `test_watsonx_runner.py` |
+| `WATSONX_RECEIPT.json` | none declared | n/a | none | 2,108 | `86c9fbc9266c249c` | `pipeline/tracetriage/watsonx.py`, `scripts/run_watsonx_check.py`, `scripts/sync_for_judges.py` | `test_receipt_digests.py`, `test_watsonx_runner.py` |
 | `corridor_features.json` | CORRIDOR_FEATURES | 0.1.0 | none | 527,163 | `748ac151f0873df0` | `pipeline/tracetriage/features.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/clean_clone_check.py`, `scripts/extract_corridor_features.py`, `scripts/measure_throughput.py`, `scripts/run_queue.py`, `scripts/sync_docs.py` | `test_console_export.py`, `test_reference_sync.py` |
 
 Files under `artifacts/` that are logs, caches or rendered output rather than receipts, and so carry no schema: none.
@@ -133,9 +133,11 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/build_live_shelf.py` | Measure recent SatNOGS observations and freeze the results the console can serve. |
 | `scripts/build_og_image.py` | The link preview card, drawn from the receipts rather than typed. |
 | `scripts/build_splits.py` | Build grouped splits and emit artifacts/SPLIT_MANIFEST.json and artifacts/LEAKAGE_AUDIT.json. |
+| `scripts/cast_narration_voice.py` | Casting the narration voice by measurement, because the ear that would judge it is not here. |
 | `scripts/check_artifact_freshness.py` | Rebuild the split artifacts into a scratch directory and diff them. |
 | `scripts/check_contrast.py` | Recompute every foreground/background contrast pair from the design tokens. |
 | `scripts/check_receipt_digests.py` | Every digest a receipt records for a tracked file, checked against that file. |
+| `scripts/check_types.py` | Run mypy over the package and fail on a new error, against a committed baseline. |
 | `scripts/clean_clone_check.py` | Reproduce this repository from a clean clone, with the network refused. |
 | `scripts/derive_palette.py` | Derive the console's neutral ramp, and prove the derivation costs no contrast. |
 | `scripts/explainer_corridor.py` | Manim scene: what the Doppler corridor is, and what the fitted offset measures. |
@@ -190,7 +192,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_base_rates.py` | 7 | Check the documented base rates against a corpus that actually exists. |
 | `tests/test_baseline.py` | 47 | Tests for the A6 image-only baseline module. |
 | `tests/test_bob_unit_count.py` | 11 | The Bob unit count is a count of units, not of markdown headings. |
-| `tests/test_bob_units_export.py` | 5 | `apps/web/public/data/bob.json` is what the build log produces, and it says the hard part. |
+| `tests/test_bob_units_export.py` | 6 | `apps/web/public/data/bob.json` is what the build log produces, and it says the hard part. |
 | `tests/test_centre_energy_feature.py` | 14 | Guards on the centre-energy feature itself, not on the pipeline around it. |
 | `tests/test_ci_workflow.py` | 7 | What CI must keep doing, asserted against the workflow rather than against a memory. |
 | `tests/test_circularity.py` | 21 | The circularity analysis has to reproduce the gate before it is allowed to bound it. |
@@ -232,7 +234,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_live.py` | 9 | The live path measures what gate 3 measured, on gate 3's own observations. |
 | `tests/test_live_api.py` | 9 | The live endpoint: what it validates, what it caches, and what it may not do. |
 | `tests/test_live_shelf.py` | 9 | The frozen shelf says what it is, and every entry is what it says. |
-| `tests/test_mcp_server.py` | 36 | The evidence server, driven through its own transport (unit E3). |
+| `tests/test_mcp_server.py` | 38 | The evidence server, driven through its own transport (unit E3). |
 | `tests/test_operator_session.py` | 7 | The recorded twelve-step session, and the document it is supposed to be a run of. |
 | `tests/test_package_imports.py` | 4 | How `pipeline/tracetriage` spells its own imports, and which files are allowed to differ. |
 | `tests/test_palette_derivation.py` | 7 | The neutral ramp in the stylesheet is the one the specification derives. |
