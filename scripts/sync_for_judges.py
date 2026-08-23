@@ -36,6 +36,42 @@ from mcp_server import TOOLS as _MCP_TOOLS  # noqa: E402
 TOOL_NAMES = sorted(_MCP_TOOLS)
 RESOURCE_URIS = sorted(_MCP_RESOURCES)
 
+#: The evidence tool that is not read-only, and the only one.
+#:
+#: `run_acceptance` runs the standing gate, which runs `npm run build` in apps/web, so it
+#: writes under `apps/web/.next`. The handler's own docstring states that exception
+#: instead of hiding it: "read-only with one stated exception, because a claim with a
+#: hidden exception is worse than a narrower claim." `pipeline/tracetriage/langchain_tools.py`
+#: withholds the same tool for the same reason. This page used to summarise all seven as
+#: "read-only", which is the one place a judge reading two files catches the project
+#: claiming more than its source does.
+_WRITES_THE_WORKING_TREE = ("run_acceptance",)
+
+#: The exception, cross-checked against the file that grants the permissions.
+#:
+#: `.bob/mcp.json` auto-approves every evidence tool except the one above, and it does so
+#: for the same reason. Reading it here means the sentence below cannot go on naming an
+#: exception the registration has stopped making, which is how the count went wrong the
+#: first time.
+_EVIDENCE_ALWAYS_ALLOW = frozenset(
+    json.loads((REPO / ".bob" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"][
+        "tracetriage-evidence"
+    ]["alwaysAllow"]
+)
+if set(TOOL_NAMES) - _EVIDENCE_ALWAYS_ALLOW != set(_WRITES_THE_WORKING_TREE):
+    raise SystemExit(
+        f".bob/mcp.json auto-approves {sorted(_EVIDENCE_ALWAYS_ALLOW)} of "
+        f"{TOOL_NAMES}, so the tools it holds back are "
+        f"{sorted(set(TOOL_NAMES) - _EVIDENCE_ALWAYS_ALLOW)} and not "
+        f"{sorted(_WRITES_THE_WORKING_TREE)}. One of the two has moved, and this page "
+        f"publishes the read-only claim, so it refuses rather than rendering a count "
+        f"nothing supports."
+    )
+
+#: How many of the evidence tools only read. Not typed: a tool added to the server lands
+#: in this number without anyone remembering to move it.
+N_READ_ONLY_TOOLS = len(TOOL_NAMES) - len(_WRITES_THE_WORKING_TREE)
+
 
 def _receipt(name: str) -> dict:
     path = REPO / "artifacts" / name
@@ -1401,9 +1437,13 @@ STACK: list[tuple[str, ...]] = [
     (
         "Model Context Protocol",
         "Two stdio servers, registered in `.bob/mcp.json`",
-        f"{len(TOOL_NAMES)} tools over committed receipts, {len(_SPEC_LIVE)} that measure "
-        f"live, and {len(RESOURCE_URIS)} receipt resources. Read-only, enforced by a walk "
-        f"over each server's own source in `tests/test_mcp_server.py`",
+        f"{N_READ_ONLY_TOOLS} read-only tools over the committed receipts, "
+        f"{len(_SPEC_LIVE)} that measure live, and {len(RESOURCE_URIS)} receipt "
+        f"resources, with the read-only property enforced by a walk over each server's "
+        f"own source in `tests/test_mcp_server.py`. Plus one more evidence tool, "
+        f"`{_WRITES_THE_WORKING_TREE[0]}`, which runs the standing gate and therefore "
+        f"writes the console build: it is the one tool left out of `alwaysAllow` in "
+        f"`.bob/mcp.json`, and the one the LangChain adapter withholds",
     ),
     (
         "The grounding checker, twice",
