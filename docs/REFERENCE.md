@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 38 JSON artifacts, 8 contracts, 55 scripts, 29 package modules and 1387 test functions across 74 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 38 JSON artifacts, 8 contracts, 55 scripts, 29 package modules and 1395 test functions across 75 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -34,9 +34,9 @@ file that no longer exists in that form.
 | `FONT_PAINT_RECEIPT.json` | tracetriage/font-paint | 0.2.0 | none | 6,377 | `cf9a8a36448599c1` | `scripts/build_font_ab.py` | **none** |
 | `FUSION_RECEIPT.json` | FUSION_RECEIPT | 0.1.0 | `contracts/fusion_receipt.schema.json` | 241,611 | `7f89b40365600d98` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/check_receipt_digests.py`, `scripts/gate.py`, `scripts/run_fusion.py`, `scripts/run_gate_power.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_fusion.py`, `test_gate_power.py`, `test_kill_gate_sync.py` |
 | `GATE3_POOL.json` | GATE3_POOL | 1 | none | 3,026,676 | `f21a8d4a432736ef` | `scripts/audit_release.py`, `scripts/build_gate3_pool.py`, `scripts/gate3_sensitivity.py`, `scripts/run_gate3.py`, `scripts/sync_kill_gate.py` | `test_artifacts_are_json.py`, `test_gate3_pool.py`, `test_gate3_sensitivity.py` |
-| `GATE3_POOL_A_RECEIPT.json` | none declared | n/a | none | 2,064,646 | `80d1fa57f0cc3276` | `scripts/sync_kill_gate.py` | **none** |
-| `GATE3_RECEIPT.json` | none declared | n/a | none | 2,041,328 | `348aa0650fc387dc` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_gate3_pool.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/gate3_sensitivity.py`, `scripts/run_agent_study.py`, `scripts/run_gate3.py`, `scripts/run_gate_power.py`, `scripts/sync_demo.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_artifacts_are_json.py`, `test_corridor_fit.py`, `test_gate3_bound.py`, `test_gate3_pool.py`, `test_gate3_sensitivity.py`, `test_gate_power.py`, `test_hero_nulls.py`, `test_kill_gate_sync.py`, `test_live.py`, `test_physics.py` |
-| `GATE3_SENSITIVITY.json` | gate3_sensitivity/1 | n/a | none | 2,725 | `eac05c8bfb49a420` | `scripts/gate3_sensitivity.py` | **none** |
+| `GATE3_POOL_A_RECEIPT.json` | none declared | n/a | none | 2,064,646 | `80d1fa57f0cc3276` | `scripts/sync_kill_gate.py` | `test_gate3_pool_comparison.py` |
+| `GATE3_RECEIPT.json` | none declared | n/a | none | 2,041,328 | `348aa0650fc387dc` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_gate3_pool.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/gate3_sensitivity.py`, `scripts/run_agent_study.py`, `scripts/run_gate3.py`, `scripts/run_gate_power.py`, `scripts/sync_demo.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_artifacts_are_json.py`, `test_corridor_fit.py`, `test_gate3_bound.py`, `test_gate3_pool.py`, `test_gate3_pool_comparison.py`, `test_gate3_sensitivity.py`, `test_gate_power.py`, `test_hero_nulls.py`, `test_kill_gate_sync.py`, `test_live.py`, `test_physics.py` |
+| `GATE3_SENSITIVITY.json` | gate3_sensitivity/1 | n/a | none | 2,725 | `eac05c8bfb49a420` | `scripts/gate3_sensitivity.py` | `test_gate3_pool_comparison.py` |
 | `GATE4_BUNDLE.json` | tracetriage/gate4-bundle | 0.1.0 | none | 1,509 | `4a4411de5b4ea76c` | `scripts/pack_gate4_bundle.py`, `scripts/sync_for_judges.py` | `test_explainer_gate4_values.py`, `test_receipt_digests.py` |
 | `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 74,956 | `36282b4bf0ba44e1` | `scripts/build_console_data.py`, `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/run_agent_study.py`, `scripts/run_gate_power.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_explainer_gate4_values.py`, `test_gate4.py`, `test_gate_power.py`, `test_receipt_digests.py` |
 | `GATE4_WORKSHEET.json` | GATE4_WORKSHEET | 1 | none | 11,481 | `44cc11bd27d624f1` | `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py` | `test_explainer_gate4_values.py`, `test_gate4.py`, `test_gate4_bundle.py` |
@@ -66,7 +66,7 @@ Files under `artifacts/` that are logs, caches or rendered output rather than re
 
 Receipts no module in this repository names, which means nothing here rebuilds them: none.
 
-Receipts no test names: `FONT_PAINT_RECEIPT.json`, `GATE3_POOL_A_RECEIPT.json`, `GATE3_SENSITIVITY.json`, `MOTION_AA_CONTROL.json`, `MOTION_RECEIPT.json`, `THROUGHPUT_RECEIPT.json`.
+Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MOTION_RECEIPT.json`, `THROUGHPUT_RECEIPT.json`.
 
 ## Contracts
 
@@ -213,6 +213,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `GATE3_POOL_A_RECEIPT.json`, 
 | `tests/test_fusion.py` | 77 | Tests for the fusion head and its feature blocks (unit B2). |
 | `tests/test_gate3_bound.py` | 10 | Gate 3's threshold must be read off an interval, not off a point estimate. |
 | `tests/test_gate3_pool.py` | 19 | The gate 3 pool builder, and the one property the whole unit rests on. |
+| `tests/test_gate3_pool_comparison.py` | 8 | The comparison arm, and the sensitivity table, neither of which any test read. |
 | `tests/test_gate3_sensitivity.py` | 9 | The sensitivity table has to agree with the receipt it describes, or it is noise. |
 | `tests/test_gate4.py` | 38 | The gate 4 instrument, tested where it could quietly stop being blinded (unit E6). |
 | `tests/test_gate4_bundle.py` | 4 | What the reviewer bundle may and may not contain. |
