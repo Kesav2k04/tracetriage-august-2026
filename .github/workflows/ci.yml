@@ -11,6 +11,15 @@ on:
   schedule:
     - cron: "17 6 * * *"
 
+# Read-only, because nothing in this workflow writes to the repository and the default is
+# whatever the account setting happens to be. Every job here runs `uv pip install` and
+# `npm ci`, on a schedule and on every push, so a compromised transitive dependency
+# executing during install inherits this token. With `contents: read` the worst it holds is
+# the right to read a public repository. lockfile.yml in this directory already declared
+# this and this workflow did not, so the inconsistency was the tell rather than a decision.
+permissions:
+  contents: read
+
 # A superseded push has nothing left to say. Without this, three commits in ten minutes
 # hold three runners and send two failure notifications about a tree that no longer exists,
 # and the notification a reader learns to ignore is the one that mattered.
