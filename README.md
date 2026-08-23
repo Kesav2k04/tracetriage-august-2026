@@ -15,7 +15,7 @@
 [![Built with IBM Bob](https://img.shields.io/badge/built%20with-IBM%20Bob-0f62fe?style=flat-square)](docs/BOB_BUILD_LOG.md)
 [![IBM Granite](https://img.shields.io/badge/IBM%20Granite-3.1%208B%2C%20local-0f62fe?style=flat-square)](pipeline/tracetriage/granite.py)
 [![IBM Carbon](https://img.shields.io/badge/IBM%20Carbon-design%20system-0f62fe?style=flat-square)](apps/web/app/globals.css)
-[![MCP](https://img.shields.io/badge/MCP-2%20servers%2C%20read--only-8a3ffc?style=flat-square)](docs/USE_WITH_YOUR_AGENT.md)
+[![MCP](https://img.shields.io/badge/MCP-2%20servers%2C%2012%20tools%2C%2011%20read--only-8a3ffc?style=flat-square)](docs/USE_WITH_YOUR_AGENT.md)
 
 **[Live console](https://tracetriage.vercel.app/)** &nbsp;·&nbsp;
 **[Judges start here](https://tracetriage.vercel.app/start/)** &nbsp;·&nbsp;
@@ -40,7 +40,7 @@
 | **The pre-registered result** | Queue lift **1.582x**, 95% CI [1.353, 1.740], reported **NOT ESTABLISHED** because the interval contains the 1.5 threshold. On held-out stations the same queue reaches **2.253x** and **PASSES**. Both are published at the same size. |
 | **How IBM Bob was used** | Primary development tool. **10 dated Bob-account units** built the data contracts, the frozen snapshot, the waterfall parser, the physics corridor, the grouped splits and the review-value queue. `docs/BOB_BUILD_LOG.md` names each one with its files, commits, failures and repairs. |
 | **What makes it unusual** | Six kill gates with numeric thresholds were written down **before anything was measured**, and a gate is met only when a 95% interval clears its threshold, so a point estimate above the bar whose interval straddles it is published as a failure. Every gate that is not met carries a computed reason and an exact condition that would close it. |
-| **Whether it scales** | Measured, not asserted. The dominant stage ranks **68,702 observations a day on one core** against the **6,380** a day the network produced over this snapshot's span: **10.8x** the whole network's output on a single core, or 0.093 of one to keep up. `artifacts/THROUGHPUT_RECEIPT.json`. |
+| **Whether it scales** | Measured, with its limits stated. The dominant *measured* stage is the corridor fit, at **68,702 observations a day on one core**, against **6,380** a day from the network: **10.8x** headroom. Read the caveats the receipt itself lists rather than the multiple: the network rate is extrapolated from a **9.4-hour** capture span so it is one observation of that rate and not a long-run average, the timing covers the corridor fit and second-trace survey only, and the core count is a division rather than a measured parallel speed-up. `artifacts/THROUGHPUT_RECEIPT.json`. |
 | **Check it in 60 seconds** | `pip install -e .` then `tracetriage triage 14740031`, which measures an observation recorded today against the same physics the queue ranks on. Sixty seconds is a warm pip cache; a cold one needs one online install first. |
 
 **Everything a judge needs to score this is mapped, twice.** The

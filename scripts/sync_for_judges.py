@@ -1361,7 +1361,16 @@ FEASIBILITY_THREE = _para(
     {throughput["what_ingestion_costs"]["seconds_per_observation"]:.2f} seconds an
     observation, and it is slow on purpose: that figure is dominated by the
     {throughput["what_ingestion_costs"]["request_interval_seconds"]}-second courtesy interval
-    this project holds between requests to a volunteer-run API."""
+    this project holds between requests to a volunteer-run API. The multiple is the weakest
+    number in that paragraph and the receipt says why in its own words, so they are repeated
+    here rather than left one file away: the network rate comes from a
+    {throughput["what_the_network_produces"]["span_hours"]}-hour capture span, which is one
+    observation of that rate and not a long-run average; the elapsed time covers the corridor
+    fit and the second-trace survey only, because SGP4, the fusion forward pass and the queue
+    sort are cheaper per observation and Granite is not per observation at all; the core count
+    is a division and not a measured parallel speed-up; and no figure here is a claim about
+    latency, because the queue is a batch reading order and nothing in this project has to
+    answer inside a pass."""
 )
 
 IMPACT = _para(
