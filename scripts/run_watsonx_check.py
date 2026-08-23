@@ -173,6 +173,38 @@ def _attempt(packet: Any, prompt: str) -> dict[str, Any]:
     }
 
 
+def _limits(outcome: str) -> str:
+    """What the receipt does not establish, which depends on what happened.
+
+    This field used to be one fixed string, and it claimed "the hosted backend is
+    reachable from this code" under an `outcome` of `NOT_CHECKED`. Nothing had been sent,
+    so reachability was precisely the thing not established, and it was the only sentence
+    in any receipt here that went past its own measurement. A limits field written once
+    for three outcomes will do that: the honest version of the sentence is different when
+    the request went out and when it did not, so the sentence follows the outcome.
+    """
+    shared = (
+        "Whether watsonx writes better notes than the local runtime. One draft about one "
+        "observation is an integration check, not a comparison: a comparison needs the "
+        "same 25 observations through both backends with the checker's verdict on each, "
+        "and that costs an account this project does not require anyone to have. "
+    )
+    if outcome == "RAN":
+        return shared + (
+            "What this receipt establishes is narrower and stated exactly: this code "
+            "reached the hosted backend, and what came back was admitted or refused by "
+            "the same rules as everything else here."
+        )
+    return shared + (
+        "And whether the hosted backend can be reached at all, which is the first thing "
+        "this receipt does not establish. No request left this checkout, so the "
+        "integration is specified here and exercised nowhere here. What is on the record "
+        "is the request that would go out, down to the prompt contract digest above, and "
+        "that whatever came back would be judged by the same checker that decides "
+        "whether a locally written note ships."
+    )
+
+
 def build() -> dict[str, Any]:
     packet = _subject()
     prompt = build_prompt(packet)
@@ -194,15 +226,7 @@ def build() -> dict[str, Any]:
             "prompt_characters": len(prompt),
         },
         "attempt": attempt,
-        "what_this_does_not_measure": (
-            "Whether watsonx writes better notes than the local runtime. One draft about "
-            "one observation is an integration check, not a comparison: a comparison needs "
-            "the same 25 observations through both backends with the checker's verdict on "
-            "each, and that costs an account this project does not require anyone to have. "
-            "What this receipt establishes is narrower and stated exactly: the hosted "
-            "backend is reachable from this code, and its output is admitted or refused by "
-            "the same rules as everything else here."
-        ),
+        "what_this_does_not_measure": _limits(attempt["outcome"]),
     }
 
 

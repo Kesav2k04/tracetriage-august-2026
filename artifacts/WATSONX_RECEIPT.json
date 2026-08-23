@@ -1,6 +1,6 @@
 {
  "unit": "F1",
- "generated_at": "2026-08-21T19:08:56.071339+00:00",
+ "generated_at": "2026-08-23T11:58:16.510988+00:00",
  "backend": {
   "name": "watsonx.ai text generation",
   "model_id": "ibm/granite-3-8b-instruct",
@@ -25,5 +25,5 @@
   "variable_optional": "WATSONX_URL",
   "reading": "watsonx was attempted from this tree and no credential was present, so nothing was sent and nothing is claimed. This is recorded rather than omitted: an integration that cannot be exercised in an environment should say so in that environment's receipt. Every number this project publishes comes from the local Granite runtime, which needs no account, and the grounding checker is the same code either way."
  },
- "what_this_does_not_measure": "Whether watsonx writes better notes than the local runtime. One draft about one observation is an integration check, not a comparison: a comparison needs the same 25 observations through both backends with the checker's verdict on each, and that costs an account this project does not require anyone to have. What this receipt establishes is narrower and stated exactly: the hosted backend is reachable from this code, and its output is admitted or refused by the same rules as everything else here."
+ "what_this_does_not_measure": "Whether watsonx writes better notes than the local runtime. One draft about one observation is an integration check, not a comparison: a comparison needs the same 25 observations through both backends with the checker's verdict on each, and that costs an account this project does not require anyone to have. And whether the hosted backend can be reached at all, which is the first thing this receipt does not establish. No request left this checkout, so the integration is specified here and exercised nowhere here. What is on the record is the request that would go out, down to the prompt contract digest above, and that whatever came back would be judged by the same checker that decides whether a locally written note ships."
 }
