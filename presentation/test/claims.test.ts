@@ -37,7 +37,48 @@ import {
 } from "../src/data";
 import { KNOWN_VERDICTS } from "../src/ui";
 import { BEATS, FILM_FRAMES } from "../src/Film";
+import { NARRATION } from "../src/narration";
 import { FPS, HEIGHT, token, WIDTH } from "../src/theme";
+
+/**
+ * Is there an ffprobe to ask? Answered once, because the answer decides whether the two
+ * container tests below run at all.
+ *
+ * They used to answer it inside a `try`, warn on the console and `return`, which reports a
+ * pass. That is the shape that let the film ship silent twice: a test that cannot measure
+ * its subject and a test that measured it and found nothing right look identical in a
+ * summary line. Skipping instead puts the count in the reporter's own skipped tally, where
+ * it is visible without reading the log, and the CI job installs ffmpeg so the skip is a
+ * local convenience rather than a hole in the check.
+ */
+const HAS_FFPROBE = (() => {
+  try {
+    execFileSync("ffprobe", ["-version"], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+/** One stream's fields as JSON, or a throw that names the file it could not read. */
+const ffprobe = (select: string, entries: string): { streams: Record<string, string>[] } =>
+  JSON.parse(
+    execFileSync(
+      "ffprobe",
+      [
+        "-v",
+        "error",
+        "-select_streams",
+        select,
+        "-show_entries",
+        `stream=${entries}`,
+        "-of",
+        "json",
+        OUT,
+      ],
+      { encoding: "utf-8" },
+    ),
+  );
 
 const REPO = join(__dirname, "..", "..");
 const OUT = join(__dirname, "..", "out", "tracetriage-film.mp4");
@@ -477,68 +518,31 @@ describe("the rendered file", () => {
     expect(existsSync(POSTER)).toBe(true);
   });
 
-  it("has the duration, resolution and frame rate of the composition", () => {
+  it.skipIf(!HAS_FFPROBE)("has the duration, resolution and frame rate of the composition", () => {
     if (!existsSync(OUT)) return;
-    let probe: string;
-    try {
-      probe = execFileSync(
-        "ffprobe",
-        [
-          "-v",
-          "error",
-          "-select_streams",
-          "v:0",
-          "-show_entries",
-          "stream=width,height,r_frame_rate,nb_frames",
-          "-of",
-          "json",
-          OUT,
-        ],
-        { encoding: "utf-8" },
-      );
-    } catch {
-      console.warn("ffprobe is not on PATH, so the container was not checked");
-      return;
-    }
-    const stream = JSON.parse(probe).streams[0];
+    const stream = ffprobe("v:0", "width,height,r_frame_rate,nb_frames").streams[0];
     expect(stream.width).toBe(WIDTH);
     expect(stream.height).toBe(HEIGHT);
     expect(stream.r_frame_rate).toBe(`${FPS}/1`);
     expect(Number(stream.nb_frames)).toBe(FILM_FRAMES);
   });
 
-  it("carries the narration track, which nothing here used to check", () => {
+  it.skipIf(!HAS_FFPROBE)("carries the narration track, which nothing here used to check", () => {
     // This test exists because the film rendered silent twice and everything passed.
     // The block above selects v:0, so it cannot see whether there is any audio at
     // all: a render that 404s on every wav still produces a correct video stream of
     // the right length. Both silent renders were caught by a frame count that
     // happened to move at the same time, which is luck rather than a check.
     if (!existsSync(OUT)) return;
-    let probe: string;
-    try {
-      probe = execFileSync(
-        "ffprobe",
-        [
-          "-v",
-          "error",
-          "-select_streams",
-          "a:0",
-          "-show_entries",
-          "stream=codec_type,channels,sample_rate",
-          "-of",
-          "json",
-          OUT,
-        ],
-        { encoding: "utf-8" },
-      );
-    } catch {
-      console.warn("ffprobe is not on PATH, so the audio track was not checked");
-      return;
-    }
-    const streams = JSON.parse(probe).streams;
+    const streams = ffprobe("a:0", "codec_type,channels,sample_rate").streams;
     expect(streams, "the film has no audio stream").toHaveLength(1);
     expect(streams[0].codec_type).toBe("audio");
     expect(Number(streams[0].channels)).toBeGreaterThanOrEqual(1);
+    // And the receipt's derived claim has to agree with the container. `composition.audio`
+    // is computed from whether every beat has a line to speak, which is a statement about
+    // the sources; this is the file. They were once opposite: the field said false while
+    // the mp4 carried AAC.
+    expect(BEATS.every((beat) => NARRATION[beat.name] !== undefined)).toBe(true);
   });
 });
 
