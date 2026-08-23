@@ -147,13 +147,21 @@ def test_naming_the_variable_alone_does_not_buy_a_skip(checker):
 
 @_NEEDS_VENV
 def test_a_missing_snapshot_skips_and_costs_nothing():
-    """Exit 0, a [SKIP] line, the variable named, and no [FAIL] anywhere."""
+    """Exit 0, a [SKIP] line per snapshot-dependent builder, the variable named each time.
+
+    The count is not pinned to one any more. It was, and that encoded "exactly one builder
+    needs the snapshot", which held until a satellite-name exporter was added beside the
+    split builder. Two correct skips then failed a test whose point was that a skip is not
+    a failure. What has to be true is that every builder which cannot start says so and
+    names the variable that would let it, so that is what is asserted.
+    """
     finished = _run(None)
     out = finished.stdout or ""
     assert finished.returncode == 0, out + (finished.stderr or "")
     skips = [line for line in out.splitlines() if line.startswith("[SKIP]")]
-    assert len(skips) == 1, out
-    assert "TRACETRIAGE_PAGES_DIR" in skips[0], skips[0]
+    assert skips, out
+    for skip in skips:
+        assert "TRACETRIAGE_PAGES_DIR" in skip, skip
     assert "[FAIL]" not in out, out
     # "nothing it owns" rather than "nothing here". The old wording said "nothing here is
     # stale", which was true of the whole run only while the script returned at the first
@@ -194,13 +202,28 @@ def test_a_real_crash_still_fails(tmp_path):
     """A configured path with no pages in it is a builder crash, and it must still fail.
 
     This is the half of the fix that can quietly undo the check. The variable is set, so
-    the builder gets past its own refusal and then falls over on an empty table, and that
-    is a defect rather than an environment.
+    a builder gets past its own refusal and then falls over on an empty table, and that is
+    a defect rather than an environment.
+
+    The assertion deliberately names no builder. It used to require the split builder's own
+    row, which held only while that builder ran first. A satellite-name exporter was added
+    ahead of it, so with a bad path the exporter failed first, the split builder never ran,
+    and this test failed while the behaviour it guards was correct. What matters is that a
+    configured-but-wrong path produces a failing row and no skip, whichever builder gets
+    there first, so that is what is checked.
     """
     finished = _run(str(tmp_path))
     out = (finished.stdout or "") + (finished.stderr or "")
     assert finished.returncode == 1, out
-    assert "[FAIL] the split builder does not run" in out, out
+    crashed = [
+        line
+        for line in out.splitlines()
+        if line.startswith("[FAIL]") and "does not run" in line
+    ]
+    assert crashed, (
+        "a configured path with no pages in it produced no crashing builder, so either "
+        f"every builder now tolerates an empty snapshot or the row text changed: {out}"
+    )
     assert "[SKIP]" not in out, out
 
 

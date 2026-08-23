@@ -124,8 +124,8 @@
   },
   {
    "name": "FILM_RECEIPT.json",
-   "sha256": "488d1a0b54e8d5d03f8386d7de5c46fc3234f7141c78b27dfcd1c22398fd49e6",
-   "bytes": 4984
+   "sha256": "e639304f572d33c5a755858fce3f1ed97e5c3f875d2f37a056201dab45d102cf",
+   "bytes": 5064
   },
   {
    "name": "FONT_PAINT_RECEIPT.json",
@@ -134,13 +134,13 @@
   },
   {
    "name": "FUSION_RECEIPT.json",
-   "sha256": "7f89b40365600d9847ff220b88feff0f2184f2988ba93d20b63bc80ac07278b0",
-   "bytes": 241611
+   "sha256": "57c379eff2f2ffdb40412f820cc0eda86eaff85997903136b724246866f68b04",
+   "bytes": 270666
   },
   {
    "name": "GATE3_POOL.json",
-   "sha256": "f21a8d4a432736ef83b14107b7ac5ae39c17cf4e283ac7886af7aab3d0a07fbc",
-   "bytes": 3026676
+   "sha256": "dc6529a2eb4a22ffe3c377b772b23eac32c8862ad21cacad106deeab744e6c83",
+   "bytes": 3017898
   },
   {
    "name": "GATE3_POOL_A_RECEIPT.json",
@@ -149,8 +149,8 @@
   },
   {
    "name": "GATE3_RECEIPT.json",
-   "sha256": "348aa0650fc387dc9d7ad3c94ef0e673ffed4d7572a8fe7ecee44c0e7ddede1a",
-   "bytes": 2041328
+   "sha256": "fd52c0dbf08ef1887dd072468508e4145749561724e5cb4cd68ff32e2d149b9c",
+   "bytes": 2048382
   },
   {
    "name": "GATE3_SENSITIVITY.json",
@@ -214,8 +214,8 @@
   },
   {
    "name": "NARRATION_RECEIPT.json",
-   "sha256": "acc0152060adf626e3f2293e5178a060f1a26a3674c41703e4934fa2a1577794",
-   "bytes": 14193
+   "sha256": "7fddc9c1568a856f7086af8f8c648ef899bb6f4793db0724792cf6910cad1ad2",
+   "bytes": 14612
   },
   {
    "name": "OPERATOR_SESSION.json",
@@ -278,6 +278,11 @@
    "bytes": 3775
   },
   {
+   "name": "VOICE_CASTING.json",
+   "sha256": "de4b9e6a02164e4b52210aa39d8a02ea898a09392deebc68a9930fc1f6c4ede5",
+   "bytes": 43849
+  },
+  {
    "name": "WATSONX_RECEIPT.json",
    "sha256": "86c9fbc9266c249c81cb57940268372c65b129dbfdb3b24d7a997281187f609a",
    "bytes": 2108
@@ -305,7 +310,7 @@
    "name": "fusion_receipt.schema.json",
    "version": "0.1.0",
    "status": "ratified",
-   "sha256": "11b409691eaa3a7ca9e287f411e64053c8c9768aa3d2f0ba3718608f9ec21df4"
+   "sha256": "6f1da46ce3f055133c05268e9f029f5320ceeff779997c758aebeaf14c943177"
   },
   {
    "name": "queue_receipt.schema.json",
