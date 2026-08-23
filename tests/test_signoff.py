@@ -196,16 +196,15 @@ def test_the_receipt_covers_the_checks_the_unit_named(receipt: dict) -> None:
         "commit identity",
         "working tree committed",
         "deployed console responds",
+        # Added with the first receipt that carries it, which is this commit. It could not go
+        # in the list earlier: the committed receipt predated the row, so requiring it would
+        # have failed the suite, which fails the gate, which fails the sign-off that runs the
+        # gate, leaving no run able to produce the receipt that would satisfy the list. Why
+        # the row exists: "responds" read HTTP 200 on every run while the deployment sat 39
+        # commits behind, because a static export of an old tree answers forever.
+        "deployed console is this tree",
     ):
         assert required in names, f"the sign-off no longer runs {required!r}"
-
-    # "deployed console is this tree" is deliberately not in the list above yet. It was added
-    # to scripts/signoff.py in the commit before this one and the committed receipt predates
-    # it, so requiring it here would fail the suite, fail the gate, fail the sign-off that
-    # runs the gate, and leave no run able to produce the receipt that would satisfy it: a
-    # check cannot require what it produces. It goes in the list in the commit that carries
-    # the first receipt containing it. `test_the_live_rows_are_both_present_when_the_network
-    # _is_refused` covers the row itself in the meantime, so it is not unchecked.
 
 
 def test_the_receipt_names_a_commit_that_exists_in_this_history(receipt: dict) -> None:

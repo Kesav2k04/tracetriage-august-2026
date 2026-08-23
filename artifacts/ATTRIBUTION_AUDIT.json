@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-23T05:43:47+05:30",
- "commit": "ed07e1c3b24cf9d877728941fc5f8fc9368e1cdc",
+ "measured_at_commit_date": "2026-08-24T02:29:10+05:30",
+ "commit": "b9a6cd0df5ff44b94c3e33c90f7507d937d2e16e",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -85,7 +85,7 @@
   },
   {
    "file": "apps/web/public/og.png",
-   "bytes": 41249,
+   "bytes": 42638,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": null,
@@ -1873,7 +1873,7 @@
   },
   {
    "file": "presentation/out/tracetriage-film-poster.jpg",
-   "bytes": 293847,
+   "bytes": 234868,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": null,
@@ -1885,7 +1885,7 @@
   },
   {
    "file": "presentation/out/tracetriage-film.mp4",
-   "bytes": 4754228,
+   "bytes": 11034834,
    "observation_id": null,
    "in_dataset_manifest": false,
    "modification_notice": null,

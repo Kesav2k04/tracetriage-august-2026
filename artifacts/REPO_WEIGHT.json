@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-23T05:43:47+05:30",
- "commit": "ed07e1c3b24cf9d877728941fc5f8fc9368e1cdc",
- "tracked_files": 457,
- "tracked_bytes": 50665109,
- "tracked_megabytes": 48.32,
+ "measured_at_commit_date": "2026-08-24T02:29:10+05:30",
+ "commit": "b9a6cd0df5ff44b94c3e33c90f7507d937d2e16e",
+ "tracked_files": 484,
+ "tracked_bytes": 62615962,
+ "tracked_megabytes": 59.72,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,11 +13,11 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 7.01
+   "megabytes": 12.09
   },
   {
    "path": "presentation/out",
-   "megabytes": 4.81
+   "megabytes": 10.75
   },
   {
    "path": "tests/fixtures",
@@ -25,7 +25,7 @@
   },
   {
    "path": "artifacts/GATE3_POOL.json",
-   "megabytes": 2.89
+   "megabytes": 2.88
   },
   {
    "path": "artifacts/DATASET_MANIFEST.json",
@@ -44,24 +44,24 @@
    "megabytes": 0.74
   },
   {
-   "path": "docs/BOB_BUILD_LOG.md",
-   "megabytes": 0.51
-  },
-  {
    "path": "artifacts/corridor_features.json",
    "megabytes": 0.5
+  },
+  {
+   "path": "docs/OPERATOR_BUILD_LOG.md",
+   "megabytes": 0.38
   },
   {
    "path": "artifacts/SECOND_TRACE_SURVEY.json",
    "megabytes": 0.32
   },
   {
-   "path": "artifacts/QUEUE_RECEIPT.json",
-   "megabytes": 0.25
+   "path": "artifacts/FUSION_RECEIPT.json",
+   "megabytes": 0.26
   },
   {
-   "path": "artifacts/FUSION_RECEIPT.json",
-   "megabytes": 0.23
+   "path": "artifacts/QUEUE_RECEIPT.json",
+   "megabytes": 0.25
   },
   {
    "path": "artifacts/SPLIT_MANIFEST.json",
@@ -69,19 +69,19 @@
   }
  ],
  "by_directory_remainder": {
-  "groups": 222,
-  "bytes": 4246195,
-  "megabytes": 4.05,
+  "groups": 235,
+  "bytes": 4747468,
+  "megabytes": 4.53,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
   {
    "path": "presentation/out/tracetriage-film.mp4",
-   "megabytes": 4.534
+   "megabytes": 10.524
   },
   {
    "path": "artifacts/GATE3_POOL.json",
-   "megabytes": 2.886
+   "megabytes": 2.878
   },
   {
    "path": "artifacts/DATASET_MANIFEST.json",
@@ -93,7 +93,7 @@
   },
   {
    "path": "artifacts/GATE3_RECEIPT.json",
-   "megabytes": 1.947
+   "megabytes": 1.953
   },
   {
    "path": "tests/fixtures/waterfall_836px_client_v2.3.png",
@@ -108,8 +108,20 @@
    "megabytes": 1.566
   },
   {
+   "path": "apps/web/public/audio/narration-3-physics.wav",
+   "megabytes": 1.148
+  },
+  {
    "path": "apps/web/public/media/gate4-explainer.mp4",
    "megabytes": 1.047
+  },
+  {
+   "path": "apps/web/public/audio/narration-6-established.wav",
+   "megabytes": 0.905
+  },
+  {
+   "path": "apps/web/public/audio/narration-4-result.wav",
+   "megabytes": 0.793
   },
   {
    "path": "artifacts/a3_overlays/overlay_14737186.png",
@@ -122,18 +134,6 @@
   {
    "path": "artifacts/a3_overlays/overlay_14746118.png",
    "megabytes": 0.741
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14737408.png",
-   "megabytes": 0.738
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14744577.png",
-   "megabytes": 0.737
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14746048.png",
-   "megabytes": 0.735
   }
  ],
  "proposals": [
@@ -154,8 +154,8 @@
   {
    "path": "artifacts/GATE3_POOL.json",
    "files": 1,
-   "bytes": 3026676,
-   "megabytes": 2.89,
+   "bytes": 3017898,
+   "megabytes": 2.88,
    "keep_because": "every observation in the snapshot with its own corridor-free `trace_q75`, selected or not. docs/E16_PREREGISTRATION.md promises this file by name: it is what lets a reader recut gate 3's pool at a different presence bar and check the published verdict against their own. Dropping it turns the pre-registration's main mitigation into a sentence nobody can run."
   },
   {
@@ -175,8 +175,8 @@
   {
    "path": "presentation/out/",
    "files": 2,
-   "bytes": 5048075,
-   "megabytes": 4.81,
+   "bytes": 11269702,
+   "megabytes": 10.75,
    "keep_because": "the rendered film and its poster, 118 seconds at 1920x1080. The source beside it reads its figures from the receipts rather than restating them, so the mp4 is reproducible from this tree; it is kept because a reader who watches it should not first have to install a renderer, and because an mp4 is the one artifact here that no diff can check after the fact."
   }
  ],
