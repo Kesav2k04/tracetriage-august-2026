@@ -326,18 +326,17 @@ unpinned, the antialiasing changes and the digest with it.
 
 ### The tests
 
-```
- + test/claims.test.ts (453 tests) 132ms
+<!-- test-counts:start -->
 
- Test Files  1 passed (1)
-      Tests  453 passed (453)
-   Duration  1.09s
-```
+`npm test` collects 479 tests across 2 files, 465 in `test/claims.test.ts` and 14 in `test/narration.test.ts`, and every one of them passes. 16 are the scan that says no measurement was typed into a beat by hand, two per card.
+
+Those counts are written by `scripts/report-table.ts`, which runs the suite to get them, so `npm run report -- --check` fails when they go stale. They used to sit in a pasted transcript outside the generated region, where the number went 26 short and nothing in the repository could see it.
+
+<!-- test-counts:end -->
 
 `npx tsc --noEmit` prints nothing.
 
-Sixteen of those 453 are the scan that says no measurement was typed into a beat by hand,
-two per card, and they were checked by planting one. Changing `Each one names a question` to `All 6 name a
+The scan was checked by planting one. Changing `Each one names a question` to `All 6 name a
 question` in `src/beats/Gates.tsx` fails `Gates has no hand-typed figure in its copy`, and
 changing the eyebrow to `The 6 gates` fails `Gates has no hand-typed figure in a string`.
 Both were reverted. The scan allows three strings with a digit in them, each named in the
@@ -399,7 +398,8 @@ three runs.
 | `presentation/src/claim.ts` | The path resolver and the formatters. |
 | `presentation/src/theme.ts` | The console's tokens, copied from `globals.css` and checked against it by the test. |
 | `presentation/src/beats/*.tsx` | One file per card. |
-| `presentation/test/claims.test.ts` | 453 checks. |
+| `presentation/test/claims.test.ts` | Every figure the film draws, against the receipt key path it came from, plus the beat ordering and the token comparison. How many checks that is, is in the generated region above. |
+| `presentation/test/narration.test.ts` | The spoken lines: one per beat, each held to the claim its card draws, and each inside the card's own duration. |
 | `presentation/scripts/report-table.ts` | Regenerates the claim table in this report and writes `artifacts/FILM_RECEIPT.json`. `npm run report -- --check` fails if either has drifted, and `scripts/gate.py` runs it. |
 | `artifacts/FILM_RECEIPT.json` | The film described by the sources that build it: the composition, every card with its frames, the claim counts, the nine committed JSON files the claims are read from, and the byte count and sha256 of the two files above. `scripts/check_receipt_digests.py` checks those two digests against the committed bytes on every gate run, and `tests/test_film_receipt.py` checks the rest of the receipt against the tree. |
 | `presentation/remotion.config.ts` | Public directory, image format, pixel format and GL renderer, each with the reason it is pinned. |

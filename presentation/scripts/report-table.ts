@@ -14,6 +14,12 @@
  * likely to go stale: it names how many claims are read for a cross-check rather than
  * shown, and that number moves every time a beat is added.
  *
+ * A second region, between `test-counts:start` and `test-counts:end`, holds how many
+ * tests the suite collects. That number was published in a pasted transcript for weeks,
+ * 26 short of the real count, outside every marker, so the check that exists to stop this
+ * file drifting could not see the one number in it that drifted. Generating it means
+ * running the suite, which this does.
+ *
  * ## Why this also writes artifacts/FILM_RECEIPT.json
  *
  * The film was the one deliverable in this repository with no receipt. Its length, its
@@ -33,6 +39,7 @@
  * having done nothing.
  */
 
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -48,6 +55,8 @@ const REPORT = join(HERE, "REPORT.md");
 const RECEIPT = join(REPO, "artifacts", "FILM_RECEIPT.json");
 const OPEN = "<!-- claim-table:start -->";
 const CLOSE = "<!-- claim-table:end -->";
+const TESTS_OPEN = "<!-- test-counts:start -->";
+const TESTS_CLOSE = "<!-- test-counts:end -->";
 
 /** Repository-relative, because a receipt naming an absolute path names one machine. */
 const RENDER = "presentation/out/tracetriage-film.mp4";
@@ -97,6 +106,88 @@ const lead = (): string =>
   "in-budget count is read against.";
 
 const region = (): string => `${OPEN}\n\n${lead()}\n\n${table()}\n\n${CLOSE}`;
+
+type SuiteRun = { total: number; files: Array<{ name: string; tests: number }> };
+
+/**
+ * The suite's own count, from running it.
+ *
+ * REPORT.md published "453 tests" in a pasted transcript while the suite collected 479,
+ * and the generator that exists to stop a number in this file going stale could not
+ * reach it: the transcript sat outside the claim-table markers. So the count moves inside
+ * a generated region, and the only honest way to generate it is to run the thing being
+ * counted. `it.each` is used throughout `test/claims.test.ts`, so counting `it(` in the
+ * sources would have produced a number that is neither right nor wrong, just unrelated.
+ *
+ * A failing or empty run is a refusal. A count of tests that did not pass would be a
+ * worse claim than a stale one.
+ */
+const suite = (): SuiteRun => {
+  const raw = execFileSync(
+    process.execPath,
+    [join(HERE, "node_modules", "vitest", "vitest.mjs"), "run", "--reporter=json"],
+    {
+      cwd: HERE,
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: 32e6,
+    },
+  );
+  const report = JSON.parse(raw) as {
+    numTotalTests: number;
+    numFailedTests: number;
+    testResults: Array<{ name: string; assertionResults: unknown[] }>;
+  };
+  if (report.numFailedTests > 0 || report.numTotalTests === 0) {
+    throw new Error(
+      `the suite reported ${report.numTotalTests} tests with ${report.numFailedTests} ` +
+        "failing, so there is no passing count to publish",
+    );
+  }
+  const files = report.testResults
+    .map((result) => ({
+      name: result.name.split(/[/\\]/).slice(-2).join("/"),
+      tests: result.assertionResults.length,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return { total: report.numTotalTests, files };
+};
+
+/**
+ * How many of the tests are the hand-typed-figure scan.
+ *
+ * Two per beat card, from the two `it.each(sources)` blocks in `test/claims.test.ts`, so
+ * it is a function of how many beats there are rather than a number to remember.
+ */
+const scanTests = (): number =>
+  2 * readdirSync(join(HERE, "src", "beats")).filter((n) => n.endsWith(".tsx")).length;
+
+const testsRegion = (run: SuiteRun): string => {
+  const perFile = run.files
+    .map((file) => "" + file.tests + " in `" + file.name + "`")
+    .join(" and ");
+  return [
+    TESTS_OPEN,
+    "",
+    "`npm test` collects " +
+      run.total +
+      " tests across " +
+      run.files.length +
+      " files, " +
+      perFile +
+      ", and every one of them passes. " +
+      scanTests() +
+      " are the scan that says no measurement was typed into a beat by hand, two per " +
+      "card.",
+    "",
+    "Those counts are written by `scripts/report-table.ts`, which runs the suite to get " +
+      "them, so `npm run report -- --check` fails when they go stale. They used to sit " +
+      "in a pasted transcript outside the generated region, where the number went 26 " +
+      "short and nothing in the repository could see it.",
+    "",
+    TESTS_CLOSE,
+  ].join("\n");
+};
 
 /** Three decimal places, so 150 frames at 30 fps reads as 5 rather than 5.000000001. */
 const round3 = (value: number): number => Math.round(value * 1000) / 1000;
@@ -185,16 +276,30 @@ const withoutTimestamp = (payload: Record<string, unknown>): string => {
   return JSON.stringify(rest, null, 1);
 };
 
-const current = readFileSync(REPORT, "utf-8");
-const start = current.indexOf(OPEN);
-const end = current.indexOf(CLOSE);
-if (start === -1 || end === -1) {
-  throw new Error(
-    `REPORT.md has no ${OPEN} / ${CLOSE} pair, so there is nothing to rewrite`,
-  );
-}
+/** One marked region replaced in place, refusing rather than appending if it is absent. */
+const replaceRegion = (
+  text: string,
+  open: string,
+  close: string,
+  body: string,
+): string => {
+  const start = text.indexOf(open);
+  const end = text.indexOf(close);
+  if (start === -1 || end === -1) {
+    throw new Error(
+      `REPORT.md has no ${open} / ${close} pair, so there is nothing to rewrite`,
+    );
+  }
+  return text.slice(0, start) + body + text.slice(end + close.length);
+};
 
-const next = current.slice(0, start) + region() + current.slice(end + CLOSE.length);
+const current = readFileSync(REPORT, "utf-8");
+const next = replaceRegion(
+  replaceRegion(current, OPEN, CLOSE, region()),
+  TESTS_OPEN,
+  TESTS_CLOSE,
+  testsRegion(suite()),
+);
 const payload = receipt();
 const serialised = `${JSON.stringify(payload, null, 1)}\n`;
 const claimCount = Object.keys(ALL_CLAIMS).length;
@@ -207,7 +312,9 @@ const receiptChanged =
 if (process.argv.includes("--check")) {
   const problems: string[] = [];
   if (next !== current) {
-    problems.push("REPORT.md's claim table is not what src/data.ts produces");
+    problems.push(
+      "REPORT.md's generated regions are not what presentation/src and the suite produce",
+    );
   }
   if (receiptChanged) {
     problems.push(

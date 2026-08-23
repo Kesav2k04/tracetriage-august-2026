@@ -175,8 +175,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # The film is the submission's presentation artifact and every number on screen is read
-    # from a receipt at build time. Until this job existed the 453 claim checks and the
-    # report generator ran only on one laptop, behind a `cd presentation` somebody had to
+    # from a receipt at build time. Until this job existed the claim checks and the report
+    # generator ran only on one laptop, behind a `cd presentation` somebody had to
     # remember. The local gate has rows for both, and it omits them when node_modules is
     # absent, which is every clean clone. This is the job that makes the omission rare.
     #

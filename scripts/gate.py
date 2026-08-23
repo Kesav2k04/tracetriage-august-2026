@@ -321,12 +321,13 @@ def main() -> int:
 
     # The presentation film, and the same third outcome for the same reason.
     #
-    # 453 checks live in presentation/test/claims.test.ts and none of them ran here until
-    # now: they were reachable only by remembering to cd into the package. That is how a
+    # The film's checks live in presentation/test/ and none of them ran here until now:
+    # they were reachable only by remembering to cd into the package. That is how a
     # figure goes stale inside an mp4 that no diff can read. Two commands, because they
     # fail differently. `npm test` walks every key path the film prints and re-resolves it
-    # against the receipt; `npm run report -- --check` fails if REPORT.md's claim table is
-    # no longer what src/data.ts produces.
+    # against the receipt; `npm run report -- --check` fails if REPORT.md's generated
+    # regions are no longer what src/data.ts and the suite produce. How many checks there
+    # are is one of the things that check covers, so it is not written down here.
     #
     # Omitted rather than failed when the package has no node_modules, because a clean
     # clone has not run `npm install` there and a FAIL row would be a regression nobody
