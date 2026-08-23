@@ -3,7 +3,7 @@
  "schema_version": 1,
  "unit": "why each kill gate landed where it did, and the exact condition that would move it",
  "generated_by": "scripts/run_gate_power.py",
- "generated_at": "2026-08-22T23:36:54.988259+00:00",
+ "generated_at": "2026-08-23T18:25:47.878081+00:00",
  "question": "Of the gates that are not met, which are facts about the project and which are facts about the measurement?",
  "reads": [
   "artifacts/GATE3_RECEIPT.json",
@@ -51,7 +51,7 @@
    "verdict": "PASSED_UNGROUPED_ONLY",
    "met": false,
    "binding_constraint": "independent_episodes",
-   "bound_by_in_one_line": "303 testable observations, 224 discriminating. The exact bound is 0.731 against a 0.7 bar.",
+   "bound_by_in_one_line": "289 of 303 testable observations scored, 224 discriminating. The exact bound is 0.731 against a 0.7 bar.",
    "measured": {
     "threshold": 0.7,
     "observations_testable": 303,

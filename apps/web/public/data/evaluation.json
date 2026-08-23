@@ -9895,7 +9895,7 @@
     "title": "Corridor intersects a visible trace",
     "verdict": "PASSED_UNGROUPED_ONLY",
     "binding_constraint": "independent_episodes",
-    "bound_by": "303 testable observations, 224 discriminating. The exact bound is 0.731 against a 0.7 bar.",
+    "bound_by": "289 of 303 testable observations scored, 224 discriminating. The exact bound is 0.731 against a 0.7 bar.",
     "closure": "9 independent (station, date) episodes, all discriminating. The observation-level bound already clears 0.7; the grouped one, over 68 episodes, does not. The plan's rule is to group, so the observation-level pass is reported and not claimed.",
     "closure_kind": "exact"
    },

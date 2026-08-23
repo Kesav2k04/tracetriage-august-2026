@@ -36,7 +36,7 @@
 | **What it is** | A ranked, read-only review queue over public SatNOGS satellite radio observations. It reads the waterfall image and the orbital physics together, works out which unreviewed passes would teach a reviewer the most, and puts them in order. It writes nothing back. A human still decides. |
 | **The problem it serves** | Of 600 observations sampled from this snapshot, **426 carry no decisive human verdict at all**. Ground-station networks are how university and cubesat missions are actually operated, and an unreviewed pass is telemetry nobody read. |
 | **What the AI does** | IBM Granite 3.1 8B, run locally, writes the reviewer's first sentence, and a grounding checker throws away 15 of every 25 drafts. Granite embeddings retrieve precedents. Five read-only MCP tools take a local agent from **2 of 24 correct to 22 of 24**. |
-| **What holds without a gate** | Three results that needed no verdict to come back a particular way. Granite answers **22 of 24** evidence questions with the five read-only tools and **2 of 24** without, one-sided exact p = 1e-06 over 20 discordant pairs. The grounding checker catches **525 of 525** planted falsehoods and refuses **0 of 175** clean drafts. On ground stations the queue was never fitted to, lift is **2.253x** and the gate **PASSES**. |
+| **What holds without a gate** | Three results that needed no verdict to come back a particular way. Granite answers **22 of 24** evidence questions with the five read-only tools and **2 of 24** without, one-sided exact p = 1e-06 over 20 discordant pairs. The grounding checker catches **525 of 525** planted falsehoods (21 drafts across each of 25 packets) and refuses **0 of 175** clean drafts (7 across each of 25). On ground stations the queue was never fitted to, lift is **2.253x** and the gate **PASSES**. |
 | **The pre-registered result** | Queue lift **1.582x**, 95% CI [1.353, 1.740], reported **NOT ESTABLISHED** because the interval contains the 1.5 threshold. On held-out stations the same queue reaches **2.253x** and **PASSES**. Both are published at the same size. |
 | **How IBM Bob was used** | Primary development tool. **10 dated Bob-account units** built the data contracts, the frozen snapshot, the waterfall parser, the physics corridor, the grouped splits and the review-value queue. `docs/BOB_BUILD_LOG.md` names each one with its files, commits, failures and repairs. |
 | **What makes it unusual** | Six kill gates with numeric thresholds were written down **before anything was measured**, and a gate is met only when a 95% interval clears its threshold, so a point estimate above the bar whose interval straddles it is published as a failure. Every gate that is not met carries a computed reason and an exact condition that would close it. |
@@ -225,7 +225,11 @@ stay unlabelled rather than being coerced into a negative class.
 and 15 refused on 17 violations. The checker is measured in both directions,
 because a checker that refuses everything catches every adversarial draft: **525 of 525**
 adversarial checks refused for the reason they were built to trip, and **0 of 175** clean
-checks refused. Generation turned out not to be reproducible at temperature zero, so the
+checks refused. Both figures are a multiplication and are worth reading as one: 21
+adversarial drafts and 7 clean ones, each run against all 25 packets. The adversarial drafts
+are written to trip a named violation, so 525 of 525 is a statement that the checker fires
+where it was built to fire, not that it caught 525 independent attacks. The number that is
+not constructed is in the next paragraph: 9 of 25 real drafts from the model itself. Generation turned out not to be reproducible at temperature zero, so the
 text a reviewer sees is frozen into a committed fixture and the disagreement rate is
 published beside it. Full method in `artifacts/EXPLAIN_RECEIPT.json`.
 
@@ -244,9 +248,13 @@ each case with the value written and the value measured.
 drives the five MCP tools from the local Granite model over real stdio JSON-RPC and
 `scripts/run_agent_study.py` puts 24 questions to it twice, once with the tools and once with
 none. With them, **22 of 24 correct**. Without them, **2 of 24**. Of the 20 questions the two
-arms disagreed on, the tool arm was right on 20, an exact one-sided p of 1e-06. What it does
-not settle is whether the answers are useful: these are lookups with a single correct token,
-chosen so grading is mechanical, and a reviewer's real question is not.
+arms disagreed on, the tool arm was right on 20, an exact one-sided p of 1e-06. Read the
+control honestly: it declined **18 of its 24** as unknown rather than guessing, because the
+answers are stored values it has no other route to. So this measures whether the policy
+reaches for the tools and reports what they return, not whether tools make a model cleverer.
+What it also does not settle is whether the answers are useful: these are lookups with a
+single correct token, chosen so grading is mechanical, and a reviewer's real question is
+not.
 
 **Precedent search, and the condition that takes its result away.** A Granite embedding of
 each evidence card is put head to head against seven standardised numbers over 739 decisively
@@ -427,7 +435,7 @@ so the difference survives being quoted.
 
 | Gate | Verdict | What bound it | What would close it |
 |---|---|---|---|
-| 3 | **PASSED_UNGROUPED_ONLY** | 303 testable observations, 224 discriminating. The exact bound is 0.731 against a 0.7 bar. | 9 independent (station, date) episodes, all discriminating. The observation-level bound already clears 0.7; the grouped one, over 68 episodes, does not. The plan's rule is to group, so the observation-level pass is reported and not claimed. |
+| 3 | **PASSED_UNGROUPED_ONLY** | 289 of 303 testable observations scored, 224 discriminating. The exact bound is 0.731 against a 0.7 bar. | 9 independent (station, date) episodes, all discriminating. The observation-level bound already clears 0.7; the grouped one, over 68 episodes, does not. The plan's rule is to group, so the observation-level pass is reported and not claimed. |
 | 5 | **NOT_ESTABLISHED** | 88 test observations. The interval's lower arm is 1.63 times the margin it has to clear. | About 233 test observations at the same margin, against the 88 this split has. That is 2.6 times the chronological test set. *(projected)* |
 | 6 | **NOT_ESTABLISHED** | 87 observations at a budget of 50 cap every ordering at 1.740x, leaving 0.240 of room for an interval 0.387 wide. | A split whose room exceeds the interval it produces. cold_station already does: room 2.673 against an interval 1.939 wide, and it passed at 2.253. |
 
@@ -625,7 +633,7 @@ a row in `docs/CLAIM_REGISTER.md`. Three checks do most of the work:
 - **Seven documents are generated and fail the gate when they drift.** Each generator takes
   `--check`, which regenerates into memory and exits non-zero on any difference. Editing one
   by hand is the defect they exist to catch.
-- **`scripts/gate.py` runs 28 standing checks at once**, and `scripts/signoff.py` refuses to
+- **`scripts/gate.py` runs every standing check in one command and prints its own tally**, and `scripts/signoff.py` refuses to
   sign a release while any of them has failed.
 
 The rest, including what CI rebuilds on a clean Ubuntu clone and how the console is stopped

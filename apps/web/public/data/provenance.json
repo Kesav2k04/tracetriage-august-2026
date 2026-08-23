@@ -119,8 +119,8 @@
   },
   {
    "name": "EXPLAIN_RECEIPT.json",
-   "sha256": "8eab973ec828fe7460fa829ada6be135378c7c0dfc07db8e163ae4a1776ad242",
-   "bytes": 24725
+   "sha256": "49f9a2f902c2b1fb3b28d26bfdcc069839447bc11d09bd04dbda1918517e792c",
+   "bytes": 24954
   },
   {
    "name": "FILM_RECEIPT.json",
@@ -174,8 +174,8 @@
   },
   {
    "name": "GATE_POWER_RECEIPT.json",
-   "sha256": "4c102864f1cbf70653c09f0b971151f3c7b030954bf7199b200260377c4412c4",
-   "bytes": 10800
+   "sha256": "22748c4cb33ebed7b04e4a124b81bfed6a4074c41946ae08fd50857cf9c74aba",
+   "bytes": 10814
   },
   {
    "name": "HERO_NULLS.json",
@@ -229,8 +229,8 @@
   },
   {
    "name": "PRECEDENT_RECEIPT.json",
-   "sha256": "933ddb930cc60c23b7519a326c579f5ad865cf5d1ba9d1c2a43a1cd079efca1f",
-   "bytes": 9314
+   "sha256": "7cc6b2fde7059111611236cdb368f347399c2b6eb63117fd27f5fbcc7b9a6826",
+   "bytes": 9549
   },
   {
    "name": "QUEUE_RECEIPT.json",

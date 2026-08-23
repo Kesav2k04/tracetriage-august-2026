@@ -8,8 +8,12 @@ twice. Every anchor below was read out of the file it names on 2026-08-19, at co
 The unit's rule is that every mode must produce a **named** degraded state, never a blank
 frame, a zero, or a silent success, and that a test asserting "did not crash" does not
 count. As first measured at `a41b87e`: five modes satisfied it, three were tested against
-the wrong input, and four were not implemented at all. As of D8 and D8b, all twelve have a
-named reason and a test that asserts it. What each one still lacks is recorded in its row.
+the wrong input, and four were not implemented at all. As of D8 and D8b, six of the twelve are
+COVERED, three are PARTIAL, and three have no named reason or no test at all: mode 6 (wrong
+start offset), mode 9 (missing model artifact) and mode 11 (empty queue after filtering).
+An earlier version of this line said all twelve had a named reason and a test that asserts
+it, which its own table nine lines below contradicted in six rows. The status column is the
+answer and this sentence now counts it rather than summarising it optimistically.
 
 ---
 

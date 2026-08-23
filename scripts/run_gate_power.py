@@ -233,9 +233,13 @@ def _gate3(receipt: dict[str, Any]) -> dict[str, Any]:
         "verdict": verdict,
         "met": met,
         "binding_constraint": constraint,
+        # The denominator has to be the one the bound was computed on. This printed
+        # `testable` (303) beside a bound computed from `scored` (289), and 224 of 303 has a
+        # one-sided lower bound of 0.694, which fails the 0.7 bar the same sentence quotes.
+        # Both numbers are real and the pairing was not, so both are named here.
         "bound_by_in_one_line": (
-            f"{testable} testable observations, {hits} discriminating. The exact bound is "
-            f"{bound:.3f} against a {threshold} bar."
+            f"{scored} of {testable} testable observations scored, {hits} discriminating. "
+            f"The exact bound is {bound:.3f} against a {threshold} bar."
         ),
         "measured": {
             "threshold": threshold,

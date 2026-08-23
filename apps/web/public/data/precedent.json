@@ -259,7 +259,7 @@
   }
  },
  "what_this_does_not_measure": [
-  "Whether a reviewer shown these neighbours decides faster or better. That is kill gate 4's territory and it is still open.",
+  "Whether a reviewer shown these neighbours decides faster or better. That is kill gate 4's territory. Gate 4 has been answered on the decidability of its sample and not on whether a note or a neighbour helps, so this question is still open. Its verdict word lives in its own receipt and is not restated here, because a literal in this file cannot follow it.",
   "Whether the label a neighbour carries is correct. The network's own verdict on an observation is a silver label, and agreement with it is agreement with the network rather than with the sky.",
   "Anything about the images. Every arm here sees only what is knowable before the waterfall is opened, which is the point, and it means none of these arms is a detector."
  ],
@@ -2167,5 +2167,5 @@
  },
  "observations_without_neighbours": [],
  "why_some_have_none": "A shipped observation only has neighbours here if the snapshot gave it a decisive network label, because the study measures agreement with that label and an unknown one cannot be agreed with. The ids are listed rather than dropped.",
- "receipt_sha256": "933ddb930cc60c23b7519a326c579f5ad865cf5d1ba9d1c2a43a1cd079efca1f"
+ "receipt_sha256": "7cc6b2fde7059111611236cdb368f347399c2b6eb63117fd27f5fbcc7b9a6826"
 }

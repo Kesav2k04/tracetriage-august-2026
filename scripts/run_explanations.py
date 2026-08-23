@@ -620,7 +620,10 @@ def publish() -> int:
             "Whether a note that passed the checker is useful. Grounding is a property of "
             "the numbers in a sentence, not of the sentence being worth reading, and "
             "nothing here asks a reviewer. Kill gate 4's blinded study is the instrument "
-            "for that and it is still OPEN."
+            "for that, and it has been answered on whether the sample is decidable rather "
+            "than on whether a note helps, so this particular question is still open. "
+            "Naming gate 4's verdict word here would state it wrongly: the receipt is the "
+            "only place that verdict belongs."
         ),
     }
 

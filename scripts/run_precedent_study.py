@@ -688,8 +688,11 @@ def main(argv: list[str] | None = None) -> int:
         "frozen_retrievals_sha256": hashlib.sha256(args.fixture.read_bytes()).hexdigest(),
         **score(frozen),
         "what_this_does_not_measure": [
-            "Whether a reviewer shown these neighbours decides faster or better. That is kill "
-            "gate 4's territory and it is still open.",
+            "Whether a reviewer shown these neighbours decides faster or better. That is "
+            "kill gate 4's territory. Gate 4 has been answered on the decidability of its "
+            "sample and not on whether a note or a neighbour helps, so this question is "
+            "still open. Its verdict word lives in its own receipt and is not restated "
+            "here, because a literal in this file cannot follow it.",
             "Whether the label a neighbour carries is correct. The network's own verdict on "
             "an observation is a silver label, and agreement with it is agreement with the "
             "network rather than with the sky.",
