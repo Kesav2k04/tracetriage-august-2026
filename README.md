@@ -10,11 +10,10 @@
 anyone can check them. TraceTriage decides which recordings are worth opening first, and
 shows the evidence behind every decision rather than asking anyone to trust a score.**
 
-Open a pass and you see the recording as an image, the waterfall a volunteer would squint
-at, with the curve this satellite's own orbit predicts drawn over it, how far the capture
-sat from that prediction in hertz, and the reason this pass ranks above the next one. Type
-any observation id and the same physics measures it live, in about twenty seconds, from the
-public SatNOGS API.
+Open a pass and you see the recording as an image, the curve its own orbit predicts drawn
+over it, how far the capture sat from that prediction in hertz, and why it ranks where it
+does. Type any observation id and the same physics measures it live in about twenty seconds,
+from the public SatNOGS API.
 
 [![CI](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml)
 [![Live console](https://img.shields.io/badge/live-tracetriage.vercel.app-fca50a?style=flat-square)](https://tracetriage.vercel.app/)
@@ -63,9 +62,7 @@ The five sections the submission asks for: [Problem statement](#problem-statemen
 [Solution description](#solution-description) ·
 [AI approach and architecture](#ai-approach-and-architecture) ·
 [Selected challenge theme](#selected-challenge-theme) ·
-[How IBM Bob was used](#how-ibm-bob-was-used). Feasibility and real-world impact have their
-own headings further down, and `FOR_JUDGES.md` answers all five with the command that
-regenerates each number.
+[How IBM Bob was used](#how-ibm-bob-was-used).
 
 ---
 
@@ -178,10 +175,9 @@ are deletions.
 
 <img src="docs/architecture.svg" alt="Ten pipeline stages running top to bottom. A frozen SatNOGS snapshot feeds SGP4 physics, then four frozen splits. Two evidence channels run side by side: image processing into features, and a bounded corridor fit into a calibrated image-only baseline arm. Both feed a small calibrated fusion head, then calibration with out-of-distribution detection and abstention, then the review-value queue. The queue feeds a Granite reviewer note and a read-only evidence agent, and both feed the static console. Every box names the module that implements it and the receipt it writes." width="904">
 
-`scripts/build_architecture_diagram.py` draws that from the tree. It refuses to draw a box
-until the module and the receipt that box names both exist, and refuses to draw an edge into a
-stage nothing produces, so a renamed stage fails the standing gate rather than leaving a
-picture of a pipeline this repository no longer has.
+`scripts/build_architecture_diagram.py` draws that from the tree, and refuses to draw a box
+whose module or receipt does not exist, so a renamed stage fails the gate rather than leaving
+a picture of a pipeline this repository no longer has.
 
 **The pipeline, in the order it runs.** Every stage writes a file the next one reads.
 
@@ -210,48 +206,31 @@ coerced into a negative class.
 **Granite writes the first sentence, and a checker refuses most of what it writes.** Of 25
 cards, 10 drafts were accepted and 15 refused on 17 violations. In **9 of the 25** Granite
 wrote a downlink frequency that was not this observation's, wrong by 10 kHz to 1215 kHz, and
-every invented value landed **within five percent** of the real one. That is the shape that
-matters: on telemetry the difference between 437.05 MHz and 437.06 MHz is the difference
-between a satellite and nothing, which is why the checker compares every numeric token against
-the packet instead of scoring the sentence.
+every invented value landed **within five percent** of the real one. On telemetry the
+difference between 437.05 MHz and 437.06 MHz is the difference between a satellite and
+nothing, which is why the checker compares every numeric token against the packet rather than
+scoring the sentence. It is measured both ways, because a checker that refuses everything
+catches every attack: **525 of 525** adversarial checks refused and **0 of 175** clean ones.
+Read those as one number, and as a multiplication: 21 adversarial drafts and 7 clean ones
+against 25 packets each, not 525 independent attacks. The 9 of 25 is the figure that is not
+constructed.
 
 **The agent is measured against a control.** `pipeline/tracetriage/agent.py` drives five MCP
 tools from the local Granite model over real stdio JSON-RPC, and `scripts/run_agent_study.py`
 puts 24 questions to it twice, once with the tools and once with none. With them, **22 of 24
 correct**; without them, **2 of 24**; of the 20 questions the arms disagreed on, the tool arm
-was right on 20, an exact one-sided p of 1e-06.
+was right on 20, an exact one-sided p of 1e-06. The control declined **18 of its 24** as
+unknown rather than guessing, so this measures whether the policy reaches for its tools and
+reports what they return, not whether tools make a model cleverer.
 
-<details>
-<summary><b>What those four results do not establish</b>, in the words the receipts use</summary>
+**Precedent search is the third deletion.** A Granite embedding of each evidence card goes
+against seven standardised numbers over 739 decisively labelled observations. Warm it wins by
+a margin whose interval clears zero; cold, with the query's own station, site and satellite
+forbidden, it does not. Both columns ship at the same weight.
 
-The control declined **18 of its 24** as unknown rather than guessing, because the answers are
-stored values it has no other route to. So the agent study measures whether the policy reaches
-for the tools and reports what they return, not whether tools make a model cleverer. The 24
-questions are lookups with a single correct token, chosen so grading is mechanical, and a
-reviewer's real question is not.
-
-The grounding checker is measured in both directions, because a checker that refuses
-everything catches every adversarial draft: **525 of 525** adversarial checks refused for the
-reason they were built to trip, and **0 of 175** clean checks refused. Both figures are a
-multiplication and are worth reading as one: 21 adversarial drafts and 7 clean ones, each run
-against all 25 packets. So 525 of 525 says the checker fires where it was built to fire, not
-that it caught 525 independent attacks. The number that is not constructed is the 9 of 25 real
-drafts above. Generation is not reproducible at temperature zero, so the text a reviewer sees
-is frozen into a committed fixture and the disagreement rate is published beside it.
-
-Precedent search is the third deletion. A Granite embedding of each evidence card goes head to
-head against seven standardised numbers over 739 decisively labelled observations. Warm, where
-any other observation may be retrieved, the embedding wins by a margin whose interval clears
-zero. Cold, where the query's own station, physical site and satellite are all forbidden, it
-does not. The console carries both columns at the same weight.
-
-None of this measures whether an accepted note is useful. Grounding is a property of the
-numbers in a sentence, not of the sentence being worth reading.
-
-Receipts: `artifacts/EXPLAIN_RECEIPT.json`, `artifacts/AGENT_RECEIPT.json`,
+None of this measures whether an accepted note is worth reading. Receipts:
+`artifacts/EXPLAIN_RECEIPT.json`, `artifacts/AGENT_RECEIPT.json`,
 `artifacts/PRECEDENT_RECEIPT.json`.
-
-</details>
 
 ### The IBM stack, and what each piece is measured doing
 
@@ -269,10 +248,6 @@ to open.
 | **LangChain** | 6 evidence tools as `StructuredTool`s, for an agent that does not speak MCP. An adapter, not a second implementation: object identity with the MCP handlers is asserted. | `pipeline/tracetriage/langchain_tools.py` |
 | **LangFlow** | Two flows built from component objects, dumped by LangFlow itself, then loaded back and executed. The grounding flow needs no model and no network. | `flows/` |
 | **watsonx.ai** | Optional text-generation backend through the same grounding checker. With no credential the receipt records a dated `NOT_CHECKED` rather than a pass. | `pipeline/tracetriage/watsonx.py` |
-
-Three of those rows are results rather than choices: Granite's drafts are refused more often
-than accepted, the embedding does not beat seven numbers, and watsonx is `NOT_CHECKED` here
-because no IBM Cloud credential is set.
 
 ## How IBM Bob was used
 
@@ -306,34 +281,21 @@ between scaffolding and Bob's work is auditable rather than implied.
 ## What it produced
 
 <!-- generated by scripts/sync_readme_results.py: what it produced, do not edit -->
-**What it produced.** Four things that can be opened rather than taken on trust. Every
-figure below is read out of a receipt under `artifacts/` by the script that writes this
-block, so none of it can drift from the study it came from.
+**What it produced.** A ranked review queue over 407 observations, live on the console,
+each row carrying the reason it is there and the measured fields that reason was computed
+from. Nothing is written back to SatNOGS: the queue is a reading order, and a human
+decides.
 
-- **A ranked review queue over 407 observations**, live on the console, each row carrying
-  the reason it is there and the measured fields that reason was computed from. Nothing is
-  written back to SatNOGS: the queue is a reading order, and a human decides.
-- **An agent that answers questions about that evidence over MCP.** `granite3.1-dense:8b`,
-  running locally at Q4_K_M and temperature 0, answers 22 of 24 correctly with five
-  read-only tools and 2 of 24 with none. One-sided exact p = 1e-06 over 20 discordant
-  pairs. The control arm is the point: the tools are measured, not demonstrated.
-- **A grounding checker that refuses most of what the model writes.** Of 25 drafts, 10
-  were emitted and 15 refused. Against 525 adversarial drafts it caught 525, and against
-  175 clean ones it refused 0. A published sentence is one no rule could fault, not one
-  the model was confident about.
-- **A precedent search on `granite-embedding:278m`**, put head to head against seven
-  standardised numbers under a condition built to take its advantage away, and reported
-  indistinguishable in both. A result that went the other way is published the same size
-  as one that did not.
+Three studies sit behind it, each against a control and each read out of a receipt under
+`artifacts/`: the agent at 22 of 24 with tools against 2 of 24 without, the grounding
+checker refusing 15 of 25 drafts, and precedent search on `granite-embedding:278m`
+reported indistinguishable from seven standardised numbers. Each is stated with what it
+does not establish under [AI approach and architecture](#ai-approach-and-architecture).
 <!-- end what it produced -->
 
 ---
 
 ## Where the gates landed, and why
-
-Six kill gates with numeric thresholds were written down before anything was measured. A gate
-is met only when a 95% interval clears its threshold, so a point estimate above the bar whose
-interval straddles it is a failure here.
 
 <!-- generated by scripts/sync_readme_results.py: gate status, do not edit -->
 **Status: six kill gates were written down, with their thresholds, before any of them was
@@ -345,8 +307,7 @@ answered before the first line of pipeline code. Gate 6 does clear its threshold
 held-out cold-station split, at 2.253x. That is reported, and it is not substituted for
 the split the gate was pre-registered on. **On the split each of the remaining four was
 pre-registered on, one passed, two came back inconclusive and one cleared the bar over
-observations and not over independent episodes.** Why the intervals are that wide is
-measured rather than pleaded, and it is the paragraph after the tables.
+observations and not over independent episodes.**
 
 **Feasibility, decided in advance.**
 
@@ -379,13 +340,6 @@ exact interval and moved to `NOT_ESTABLISHED` on three observations. It reads
 corridor: the observation-level bound clears the bar and the bound over independent
 (station, date) episodes does not. `docs/KILL_GATE.md` carries every entry rather than the
 history being quietly rewritten.
-
-Every number in this README is generated from a frozen artifact under `artifacts/` and
-carries a row in `docs/CLAIM_REGISTER.md`. `tests/test_claim_drift.py` compares each quoted
-value against the artifact it came from rather than merely checking a register row exists:
-editing the AUC row from 0.875 to 0.999 turns three tests red. `tests/test_readme_claims.py`
-does the same for the paths and images this file names, because an existence claim is as
-checkable as a number.
 <!-- end gate status -->
 
 <!-- generated by scripts/sync_readme_results.py: why the gates landed there, do not edit -->
@@ -414,16 +368,12 @@ exceptions.
 | `cold_station` | 217 | 4.173 | 2.673 | 1.939 | yes | **PASSED** |
 | `cold_transmitter` | 95 | 1.900 | 0.400 | 0.558 | no | **NOT_ESTABLISHED** |
 
-On `chronological` and `cold_combined` the interval's upper bound **is** the ceiling: no
-resampling of that split can return a number above it, however good the ranking is. An
-interval truncated by the arithmetic of its own split is not measuring the ranker. The one
-split with room to spare is the one split that passed, which is why the cold-station
-result is reported beside the pre-registered one rather than instead of it.
-
-The obvious extrapolation does not follow, and this corpus contains its counterexample:
-`cold_transmitter` holds more observations than `chronological` and still fails, because
-its interval came back wider too. So no required sample size is published for gate 6, only
-the condition.
+On `chronological` and `cold_combined` the interval's upper bound **is** the ceiling, so
+no resampling of that split can return a number above it however good the ranking is. The
+obvious extrapolation still does not follow, and this corpus holds its counterexample:
+`cold_transmitter` has more observations than `chronological` and fails anyway, its
+interval having come back wider too. So no required sample size is published for gate 6,
+only the condition.
 <!-- end why the gates landed there -->
 
 ## Measured results
@@ -490,16 +440,14 @@ The rows for the gates that produced no number say so rather than being left out
 
 ### What the queue's own construction guarantees
 
-The ranking score and the definition of a conflict are not independent, and the size of
-that problem is measured rather than described. The score is 0.40 x disagreement + 0.35 x
-safe offset magnitude + 0.15 x flat-row fraction + 0.10 x ensemble uncertainty, and the
-three conflict criteria threshold the first three of those same quantities. 90% of the
-score's weight sits on quantities the definition names and 75% on quantities a conflict in
-this corpus is actually defined from, the gap being DEAD_CAPTURE, which fires on nothing
-here. Either way a lift above 1.0 is close to guaranteed by construction.
-`scripts/run_circularity_check.py` bounds it from `artifacts/CIRCULARITY_RECEIPT.json`,
-reading the queue receipt and nothing else: no snapshot, no network, no model. It
-reproduces the published 1.5818x from that file before computing anything.
+The ranking score and the definition of a conflict read the same quantities, so a lift
+above 1.0 is close to guaranteed by construction. That is bounded rather than argued: the
+score is 0.40 x disagreement + 0.35 x safe offset magnitude + 0.15 x flat-row fraction +
+0.10 x ensemble uncertainty, 90% of its weight sits on quantities the definition names and
+75% on quantities a conflict here is actually defined from, the gap being DEAD_CAPTURE,
+which fires on nothing. `scripts/run_circularity_check.py` bounds it from
+`artifacts/CIRCULARITY_RECEIPT.json` using the queue receipt and nothing else, reproducing
+the published 1.5818x from that file first.
 
 <details>
 <summary><b>7 questions about how much room the measurement had, and what the answers bound.</b></summary>
@@ -524,13 +472,10 @@ following its 0.15 weight is following a loop that does not exist in the data. T
 reading is that this measurement is a check on internal consistency and on the size of the
 space the gate was set in, not an independent test of the ranking.
 
-The queue's headline result is inconclusive, and that is the honest reading:
-1.582x is above the 1.5x threshold as a point estimate,
-but its interval contains 1.5, so the evidence does not exclude a queue that clears the
-bar by nothing. It also sits entirely above 1.0, so the ranking is not nothing either.
-The cold-station split, the one where a reviewer meets stations the model never trained
-on, does clear the threshold. It does not substitute for the primary split and is not
-presented as if it did.
+The headline result is inconclusive and that is the honest reading:
+1.582x sits above the 1.5x threshold and its interval
+contains it, while staying entirely above 1.0. The cold-station split clears the bar and
+does not substitute for the primary one.
 
 ## Feasibility
 
@@ -566,15 +511,12 @@ costs are the ones running small missions on shared, volunteer-built infrastruct
   published under CC BY-SA: the observation's own stored TLE, its timing and its receiver
   metadata. That is why the same code measures a pass recorded an hour ago and one from the
   frozen snapshot.
-- **The finding outlives the queue.** Whether a station's software already removed the Doppler
-  shift is not recorded anywhere in the observation record and is measurable from the image at
-  54.2 sigma against 7.3. Any project that fits a shape to a SatNOGS waterfall needs that
-  distinction, and `docs/DOPPLER_CORRECTION_FINDING.md` states it in a form somebody else can
-  use without this repository.
+- **The finding outlives the queue.** Any project fitting a shape to a SatNOGS waterfall
+  needs to know whether the station already removed the Doppler shift, and
+  `docs/DOPPLER_CORRECTION_FINDING.md` states that in a form usable without this repository.
 
 What it does not claim: that a reviewer's minutes per confirmed finding improve. Half that
-number is measured (25.0 seconds median per plate over 72 blinded plates) and half is not, and
-the unmeasured half is [named as such above](#measured-results) rather than estimated.
+number is measured (25.0 seconds median per plate over 72 blinded plates) and half is not.
 
 ## Where it runs
 
@@ -589,18 +531,10 @@ One engine, six surfaces. Every row is reachable now, with no account.
 | **Health and provenance** | `/api/health/` returns the SHA-256 of the `provenance.json` this deployment serves, so a judge can prove the site is this repository rather than take a screenshot's word for it. | `api/health.py` |
 | **Two MCP servers and a CLI** | 12 tools, 11 read-only, registered in `.mcp.json` so a clone needs no configuration. Plus a LangChain adapter over the same function objects and two LangFlow flows. | `docs/USE_WITH_YOUR_AGENT.md` |
 
-Eight pages: a start page mapping each judged criterion to the page answering it, the review
-queue, a live console measuring an observation recorded in the last few hours, the evaluation
-with every gate including the ones that did not pass, the agent study beside its control arm,
-the precedent study with the condition that takes its result away, the baseline orderings the
-queue has to beat, and the provenance of each number. The eighth is the live console, and it is
-the one exception to "fetches nothing": it calls `api/live.py`, which fetches one waterfall from
-the public SatNOGS API on demand and measures it. No number this project was scored on comes
-from that path.
-
-The last row is the one to weigh for an AI-builders submission: the surfaces that matter here
-are the ones an agent can drive, and this exposes the same measurements to a human, to a phone
-and to somebody else's model over a protocol.
+Eight pages: start, queue, live, evaluation, agent, precedent, baselines and provenance. The
+live one is the single exception to "fetches nothing at runtime": it calls `api/live.py`, which
+pulls one waterfall from the public SatNOGS API on demand and measures it. No number this
+project was scored on comes from that path.
 
 ## Run it yourself
 
@@ -613,13 +547,9 @@ uv pip install --python .venv/bin/python -e ".[full,dev,onnx]"   # .venv/Scripts
 .venv/bin/python -m pytest -m "not network and not ocr and not llm"
 ```
 
-That pytest selector is the offline replay and it is the gate. `ocr` needs the `[ocr]` extra
-and the weights easyocr reads, and `llm` needs the local model runtime, neither of which exists
-on a clean runner, so a run including them would fail for reasons that say nothing about the
-replay path. Everything that publishes a number runs inside it.
-`.github/workflows/ci.yml` runs the whole path on Ubuntu and is the version to copy; commands
-elsewhere in this repository use the Windows interpreter path because that is the machine they
-were recorded on.
+That pytest selector is the offline replay and it is the gate: everything that publishes a
+number runs inside it. The two excluded marks need extras a clean runner does not have.
+`.github/workflows/ci.yml` runs the whole path on Ubuntu and is the version to copy.
 
 The console is separate and needs no Python:
 
@@ -645,9 +575,6 @@ Code, Claude Desktop, Cursor, Windsurf and Zed.
 | `tracetriage-evidence` | the receipts committed here, offline | 7 tools, read-only enforced by parsing its own imports. `alwaysAllow` covers the six that only read: `queue_top`, `queue_size`, `observation`, `check_claim`, `gate_status`, `receipt`. `run_acceptance` runs the standing gate, which writes the console build, so it asks |
 | `tracetriage-live` | the public SatNOGS API, now | 5 tools. `alwaysAllow` covers `live_list_observations`, `live_triage_observation` and `live_check_claim`; `live_rank_observations` and `live_station` measure up to 10 and up to 6 observations at two HTTP fetches each, so they ask first |
 
-The live tools carry a `live_` prefix because a number measured this minute and a number this
-project was scored on must not be confusable by an agent reading a tool result.
-
 ## How this repository keeps itself honest
 
 Every number in this file is generated from a frozen artifact under `artifacts/` and carries a
@@ -660,15 +587,13 @@ row in `docs/CLAIM_REGISTER.md`. Three mechanisms do most of the work:
   `--check`, which regenerates into memory and exits non-zero on any difference.
 - **`scripts/gate.py` runs every standing check in one command and prints its own tally**, and
   `scripts/signoff.py` refuses to sign a release while any of them has failed.
-- **A second instrument re-reads the inputs, and the disagreement is published.** Every
-  frequency axis behind gate 3 was read by easyocr, the one reader here that can return a wrong
-  value rather than no value. `scripts/audit_pool_axes.py` reads all 2,424 of them again with
-  the model-free template matcher and finds 43 that differ, 8 of which the gate went on to
-  score. `artifacts/AXIS_READER_AUDIT.json` then recomputes the gate's own rate twice more,
-  once with those rows dropped and once with every one of them counted as a miss. Both readings
-  still clear the pre-registered bar, and 7 of the 8 were already failing to discriminate, so
-  the disagreement had been costing the gate rather than inflating it. The bounds are in that
-  receipt, and `scripts/audit_pool_axes.py --check` recomputes them offline.
+- **A second instrument re-reads the inputs, and the disagreement is published.** All 2,424
+  frequency axes behind gate 3 were read again by a model-free template matcher: 43 differ, 8
+  of which the gate scored. Recomputing the gate's rate with those 8 dropped, and again with
+  every one counted as a miss, still clears the pre-registered bar, and 7 of the 8 were already
+  failing to discriminate, so the disagreement had been costing the gate rather than inflating
+  it. `artifacts/AXIS_READER_AUDIT.json`, recomputed offline by
+  `scripts/audit_pool_axes.py --check`.
 
 What CI rebuilds on a clean Ubuntu clone, and how the console is stopped from showing a number
 the receipts do not carry, is in
@@ -680,16 +605,14 @@ SatNOGS already assigns observation and waterfall statuses. Public projects alre
 waterfalls with CNNs. STRF-based tooling already extracts Doppler traces. **TraceTriage claims
 novelty for none of those.**
 
-The contribution it defends, measured against the three rungs in
-`docs/PRIOR_ART_BASELINES.md` and the ten-arm ladder in `artifacts/FUSION_RECEIPT.json`, is the
-combination of calibrated selective prediction, expected residual geometry fused with image
-evidence, explicit label-provenance and disagreement analysis, queue ranking by measured review
-value, per-observation evidence receipts, and evaluation by findings per fixed review budget
-under temporal and entity holdouts.
+What it defends, against the three rungs in `docs/PRIOR_ART_BASELINES.md` and the ten-arm
+ladder in `artifacts/FUSION_RECEIPT.json`, is the combination: calibrated selective prediction,
+residual geometry fused with image evidence, explicit label provenance, queue ranking by
+measured review value, per-observation receipts, and evaluation by findings per fixed review
+budget under temporal and entity holdouts.
 
-If the physics does not improve probability quality, or the queue does not beat random ordering
-at the same budget, the correct outcome is to stop and document the failure. That is what
-`docs/KILL_GATE.md` is.
+If the physics does not improve probability quality, or the queue does not beat random at the
+same budget, the correct outcome is to stop and document it. That is `docs/KILL_GATE.md`.
 
 ## Further reading
 

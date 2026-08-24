@@ -517,8 +517,7 @@ _STATUS_HEADLINE = textwrap.fill(
     f"project was feasible at all and were answered before the first line of pipeline "
     f"code. {_HELD_OUT_PASS} **On the split each of the remaining "
     f"{_word(len(_SUBSTANTIVE))} was pre-registered on, "
-    f"{_SUBSTANTIVE_HEADLINE}.** Why the intervals are that wide is measured rather than "
-    f"pleaded, and it is the paragraph after the tables.".strip(),
+    f"{_SUBSTANTIVE_HEADLINE}.**".strip(),
     width=90,
 )
 
@@ -574,46 +573,25 @@ ORIENT_CLOSE = "<!-- end what it produced -->"
 ORIENT_BLOCK = "\n".join(
     [
         textwrap.fill(
-            "**What it produced.** Four things that can be opened rather than taken on "
-            "trust. Every figure below is read out of a receipt under `artifacts/` by the "
-            "script that writes this block, so none of it can drift from the study it "
-            "came from.",
+            f"**What it produced.** A ranked review queue over "
+            f"{len(queue['queue'])} observations, live on the console, each row carrying "
+            f"the reason it is there and the measured fields that reason was computed "
+            f"from. Nothing is written back to SatNOGS: the queue is a reading order, and "
+            f"a human decides.",
             width=90,
         ),
         "",
-        _bullet(
-            f"**A ranked review queue over {len(queue['queue'])} observations**, live on "
-            f"the console, each row carrying the reason it is there and the measured "
-            f"fields that reason was computed from. Nothing is written back to SatNOGS: "
-            f"the queue is a reading order, and a human decides."
-        ),
-        _bullet(
-            f"**An agent that answers questions about that evidence over MCP.** "
-            f"`{_agent['model']['name']}`, running locally at "
-            f"{_agent['model']['quantization']} and temperature "
-            f"{_agent['model']['temperature']:.0f}, answers "
-            f"{_tools_arm['successes']} of {_tools_arm['trials']} correctly with five "
-            f"read-only tools and {_control_arm['successes']} of "
-            f"{_control_arm['trials']} with none. One-sided exact p = "
-            f"{_pair['exact_p_one_sided']:g} over {_pair['discordant_pairs']} discordant "
-            f"pairs. The control arm is the point: the tools are measured, not "
-            f"demonstrated."
-        ),
-        _bullet(
-            f"**A grounding checker that refuses most of what the model writes.** Of "
-            f"{_ecounts['observations']} drafts, {_ecounts['emitted']} were emitted and "
-            f"{_ecounts['refused']} refused. Against "
-            f"{_esens['adversarial_checks']} adversarial drafts it caught "
-            f"{_esens['caught_for_the_expected_reason']}, and against "
-            f"{_esens['control_checks']} clean ones it refused "
-            f"{_esens['control_refused']}. A published sentence is one no rule could "
-            f"fault, not one the model was confident about."
-        ),
-        _bullet(
-            f"**A precedent search on `{_precedent_model}`**, put head to head against "
-            f"seven standardised numbers under a condition built to take its advantage "
-            f"away, and reported indistinguishable in both. A result that went the other "
-            f"way is published the same size as one that did not."
+        textwrap.fill(
+            f"Three studies sit behind it, each against a control and each read out of a "
+            f"receipt under `artifacts/`: the agent at "
+            f"{_tools_arm['successes']} of {_tools_arm['trials']} with tools against "
+            f"{_control_arm['successes']} of {_control_arm['trials']} without, the "
+            f"grounding checker refusing {_ecounts['refused']} of "
+            f"{_ecounts['observations']} drafts, and precedent search on "
+            f"`{_precedent_model}` reported indistinguishable from seven standardised "
+            f"numbers. Each is stated with what it does not establish under "
+            f"[AI approach and architecture](#ai-approach-and-architecture).",
+            width=90,
         ),
     ]
 )
@@ -710,21 +688,13 @@ def _why_block() -> str:
         lines += [
             "",
             _wrap(
-                f"On {_and_list(truncated)} the interval's "
-                f"upper bound "
-                f"**is** the ceiling: no resampling of that split can return a number above "
-                f"it, however good the ranking is. An interval truncated by the arithmetic "
-                f"of its own split is not measuring the ranker. The one split with room to "
-                f"spare is the one split that passed, which is why the cold-station result "
-                f"is reported beside the pre-registered one rather than instead of it."
-            ),
-            "",
-            _wrap(
-                "The obvious extrapolation does not follow, and this corpus contains its "
-                "counterexample: `cold_transmitter` holds more observations than "
-                "`chronological` and still fails, because its interval came back wider "
-                "too. So no required sample size is published for gate 6, only the "
-                "condition."
+                f"On {_and_list(truncated)} the interval's upper bound **is** the ceiling, "
+                f"so no resampling of that split can return a number above it however good "
+                f"the ranking is. The obvious extrapolation still does not follow, and this "
+                f"corpus holds its counterexample: `cold_transmitter` has more observations "
+                f"than `chronological` and fails anyway, its interval having come back wider "
+                f"too. So no required sample size is published for gate 6, only the "
+                f"condition."
             ),
         ]
     return "\n".join(lines)
@@ -784,14 +754,7 @@ STATUS_BLOCK = f"""{_STATUS_HEADLINE}
 {_WHAT_THE_INTERVALS_DO_NOT_SAY}
 
 Inconclusive is reported as `NOT_ESTABLISHED` rather than rounded into a pass, and the gate
-that was never run is reported as `OPEN` rather than omitted. {_gate3_history}
-
-Every number in this README is generated from a frozen artifact under `artifacts/` and
-carries a row in `docs/CLAIM_REGISTER.md`. `tests/test_claim_drift.py` compares each quoted
-value against the artifact it came from rather than merely checking a register row exists:
-editing the AUC row from 0.875 to 0.999 turns three tests red. `tests/test_readme_claims.py`
-does the same for the paths and images this file names, because an existence claim is as
-checkable as a number."""
+that was never run is reported as `OPEN` rather than omitted. {_gate3_history}"""
 
 # Bound outside the template, because a nine-cell table inside an f-string with dotted
 # lookups reads as punctuation.
@@ -920,16 +883,14 @@ CIRCULARITY_TABLE = "\n".join(
 )
 
 CIRCULARITY_INTRO = textwrap.fill(
-    "The ranking score and the definition of a conflict are not independent, and the size "
-    f"of that problem is measured rather than described. The score is {shared_line}, and "
-    "the three conflict criteria threshold the first three of those same quantities. "
-    f"{shared_pct:.0f}% of the score's weight sits on quantities the definition names "
-    f"and {active_pct:.0f}% on quantities a conflict in this corpus is actually defined "
-    f"from, the gap being {' and '.join(inert_criteria)}, which fires on nothing here. "
-    "Either way a lift above 1.0 is close to guaranteed by construction. "
-    f"`scripts/run_circularity_check.py` bounds it from {CIRCULARITY_REF}, reading the "
-    "queue receipt and nothing else: no snapshot, no network, no model. It reproduces the "
-    f"published {repro:.4f}x from that file before computing anything.",
+    "The ranking score and the definition of a conflict read the same quantities, so a "
+    "lift above 1.0 is close to guaranteed by construction. That is bounded rather than "
+    f"argued: the score is {shared_line}, {shared_pct:.0f}% of its weight sits on "
+    f"quantities the definition names and {active_pct:.0f}% on quantities a conflict here "
+    f"is actually defined from, the gap being {' and '.join(inert_criteria)}, which fires "
+    f"on nothing. `scripts/run_circularity_check.py` bounds it from {CIRCULARITY_REF} "
+    "using the queue receipt and nothing else, reproducing the published "
+    f"{repro:.4f}x from that file first.",
     width=90,
 )
 
@@ -998,13 +959,10 @@ SECTION = f"""### Measured, with receipts
 
 {CIRCULARITY_CODA}
 
-The queue's headline result is inconclusive, and that is the honest reading:
-{g6['chronological']['lift_point']:.3f}x is above the 1.5x threshold as a point estimate,
-but its interval contains 1.5, so the evidence does not exclude a queue that clears the
-bar by nothing. It also sits entirely above 1.0, so the ranking is not nothing either.
-The cold-station split, the one where a reviewer meets stations the model never trained
-on, does clear the threshold. It does not substitute for the primary split and is not
-presented as if it did.
+The headline result is inconclusive and that is the honest reading:
+{g6['chronological']['lift_point']:.3f}x sits above the 1.5x threshold and its interval
+contains it, while staying entirely above 1.0. The cold-station split clears the bar and
+does not substitute for the primary one.
 
 """
 
