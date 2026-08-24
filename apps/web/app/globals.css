@@ -251,14 +251,23 @@
   --sp-10: 4rem;
   --sp-12: 6rem;
 
-  /* Type scale */
-  --type-caption: 0.75rem;
-  --type-label: 0.75rem;
-  --type-helper: 0.75rem;
-  --type-body: 0.875rem;
-  --type-body-long: 1rem;
-  --type-heading-01: 0.875rem;
-  --type-heading-02: 1rem;
+  /* Type scale.
+   *
+   * Carbon's productive set puts body at 14px and captions at 12px. That scale is tuned
+   * for operators who sit in a dense tool all day at a fixed distance, and it is genuinely
+   * small for a page someone reads once, at a default zoom, on a laptop. The running text
+   * here is moved up one step towards Carbon's expressive set: body to 16px, the caption,
+   * label and helper trio to 13px, and prose to 18px.
+   *
+   * The headings above heading-02 are unchanged, because they were never the problem and
+   * moving them would compress the gap between a heading and the text under it. */
+  --type-caption: 0.8125rem;
+  --type-label: 0.8125rem;
+  --type-helper: 0.8125rem;
+  --type-body: 1rem;
+  --type-body-long: 1.125rem;
+  --type-heading-01: 1rem;
+  --type-heading-02: 1.125rem;
   --type-heading-03: 1.25rem;
   --type-heading-04: 1.75rem;
   --type-heading-05: 2rem;
@@ -443,7 +452,7 @@
      on a 76rem measure is why a dense console reads as a spreadsheet. Both are in
      rem so the reader's own font size still governs, and the display steps stay in
      vw so they are stable under browser zoom. */
-  --type-prose: 1.0625rem;
+  --type-prose: 1.125rem;
   --line-prose: 1.62;
 }
 
@@ -805,7 +814,7 @@ code,
   letter-spacing: var(--tracking-label);
   font-family: var(--font-label);
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .rail-status dd {
@@ -891,7 +900,7 @@ code,
     margin-top: 2px;
     color: var(--text-03);
     font-family: var(--font-label);
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     letter-spacing: var(--tracking-label);
     text-transform: none;
   }
@@ -1493,7 +1502,7 @@ code,
 }
 
 .colophon h2 {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: var(--tracking-label);
   font-family: var(--font-label);
   font-weight: 600;
@@ -1658,7 +1667,7 @@ code,
 }
 
 .replay-readout dt {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: var(--tracking-label);
   font-family: var(--font-label);
   font-weight: 600;
