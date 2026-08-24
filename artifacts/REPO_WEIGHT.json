@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-24T10:05:14+05:30",
- "commit": "d04f613a77e659ca26a2132a444fcb12b72acd61",
- "tracked_files": 518,
- "tracked_bytes": 63200567,
- "tracked_megabytes": 60.27,
+ "measured_at_commit_date": "2026-08-24T14:22:28+05:30",
+ "commit": "19f93c4982b62d1069cd6a2aa5c5deaa090213a1",
+ "tracked_files": 523,
+ "tracked_bytes": 63290089,
+ "tracked_megabytes": 60.36,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -21,7 +21,7 @@
   },
   {
    "path": "tests/fixtures",
-   "megabytes": 4.23
+   "megabytes": 4.24
   },
   {
    "path": "artifacts/GATE3_POOL.json",
@@ -49,7 +49,7 @@
   },
   {
    "path": "docs/OPERATOR_BUILD_LOG.md",
-   "megabytes": 0.38
+   "megabytes": 0.39
   },
   {
    "path": "artifacts/SECOND_TRACE_SURVEY.json",
@@ -69,9 +69,9 @@
   }
  ],
  "by_directory_remainder": {
-  "groups": 255,
-  "bytes": 5231590,
-  "megabytes": 4.99,
+  "groups": 259,
+  "bytes": 5309244,
+  "megabytes": 5.06,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
@@ -146,9 +146,9 @@
   },
   {
    "path": "tests/fixtures/",
-   "files": 7,
-   "bytes": 4440333,
-   "megabytes": 4.23,
+   "files": 8,
+   "bytes": 4441479,
+   "megabytes": 4.24,
    "keep_because": "inputs the offline suite needs. Removing any of it breaks the clean-clone claim."
   },
   {
