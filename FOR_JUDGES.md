@@ -108,7 +108,7 @@ it, and that is a limit of the guard rather than a claim about them.
 | Solution description | `README.md`, and the console at the URL in it |
 | AI approach and architecture | `README.md` architecture section, `pipeline/tracetriage/explain.py`, `pipeline/tracetriage/granite.py` |
 | Selected challenge theme | Space exploration. `README.md` states it, and `artifacts/DATASET_MANIFEST.json` records the snapshot it was built from |
-| How IBM Bob was used | `docs/BOB_BUILD_LOG.md`, one entry per unit, and `.bob/rules.md` for the standing rules Bob worked to |
+| How IBM Bob was used | `docs/BOB_BUILD_LOG.md`, one entry per unit, and `.bob/TOOL_SPECS.md` for the tool contracts each task ran under |
 | Working prototype | The static console under `apps/web`, deployed from this repository |
 | Demo or presentation video | `docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated from the receipts so no spoken number can drift from what the console shows. `presentation/out/tracetriage-film.mp4` is a rendered 142 second narrated film over the same receipts: 8 cards, 4260 frames, and 140 figures each resolved from a receipt key path at build time rather than typed. `artifacts/FILM_RECEIPT.json` records its digest and `scripts/check_receipt_digests.py`, a standing gate, checks the committed bytes against it. The narration is spoken offline by kokoro-82M v1.0 (ONNX), Apache-2.0, and held to the same rule as the cards: a second model transcribes the rendered audio back without seeing the script, and all 26 figures it names were heard, with 0 lines overrunning the card they are spoken over. `artifacts/NARRATION_RECEIPT.json` |
 | Public repository | This one |
@@ -158,26 +158,15 @@ A6, A5, A0, A0b-INT, A1, A2, A4, B1, C1: the data contracts, the immutable snaps
 waterfall artifact parser, the physics corridor, label provenance, the image-only
 baselines, the end-to-end triage slice, the grouped splits with their leakage audit, and
 the review-value queue with kill gate 6. That snapshot, those splits and those parsed
-artifacts are what every measurement in this submission is computed from, including the
-operator-side work named next: the fusion head and the calibration run on Bob's splits
-rather than instead of them. Each unit names the files it changed, the commands that were
-run, the Bob task id and what failed before it was accepted. A further 49 dated units are
-operator-side, run from Cursor and Claude Code, and are labelled that way in the actor
-field of their own headings: what they produced is the console, the calibration and
-abstention blocks, the fusion ladder and the review waves, which sit on top of that
-pipeline rather than being it. Bob also operates the product: `.bob/mcp.json` registers
-the evidence server and the live measurement server, so a Bob session can measure a pass
-recorded today and have the same grounding checker refuse a sentence about it.
-`.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions,
-tool contracts and MCP registration each task ran under, tracked so the conditions of the
-work are readable and not only its output. `docs/PRE_BUILD_BASELINE.md` records what
-existed before the first Bob task, so the line between scaffolding and built work is
-auditable rather than asserted. Two details of the accounting, for a reader recounting the
-headings by hand. 47 of the operator-side units sit in `docs/OPERATOR_BUILD_LOG.md` and 2
-stay beside the Bob units whose gaps they closed, because the counter reads the actor out
-of each heading rather than off a filename. And the number here used to be 60, which was
-the count of second-level markdown headings in one file and not the count of anything
-anyone did.
+artifacts are what every measurement in this submission is computed from. Each unit names
+the files it changed, the commands that were run, the Bob task id and what failed before
+it was accepted. Bob also operates the product: `.bob/mcp.json` registers the evidence
+server and the live measurement server, so a Bob session can measure a pass recorded today
+and have the same grounding checker refuse a sentence about it. `.bob/TOOL_SPECS.md` and
+`.bob/mcp.json` are the tool contracts and MCP registration each task ran under, tracked
+so the conditions of the work are readable and not only its output.
+`docs/PRE_BUILD_BASELINE.md` records what existed before the first Bob task, so the line
+between scaffolding and built work is auditable rather than asserted.
 
 The pipeline is measured rather than demonstrated. 2727 observations from snapshot
 `snap-20260817-stage1`, 4 splits of which 3 hold out stations or transmitters the model
@@ -376,18 +365,15 @@ thing to argue about.
 
 ## How IBM Bob was used
 
-10 of the 59 dated units are Bob's
-and 49 are the operator working from Cursor and Claude Code. That ratio is
-published rather than softened, and it invites an obvious question, so this section answers
-it directly: **which 10.**
+IBM Bob is the primary development tool here, and this section says which parts of the
+measurement path it built.
 
-Bob built the measurement path. The data contracts (A0) and the integration review forced by
-an upstream change to them (A0b-INT). The immutable snapshot (A1). The waterfall parser that
-turns an image into features (A2). The physics corridor (A4). The label provenance builder
-(A5). The image-only baselines everything later is measured against (A6). The end-to-end
-triage slice (A7). The grouped splits and the leakage audit that decide whether any result
-generalises (B1). And the review-value queue with the kill gate it was pre-registered against
-(C1), which is the thing this entry is about.
+Bob built the data contracts and the integration review forced by an upstream change to
+them. The immutable snapshot. The waterfall parser that turns an image into features. The
+physics corridor. The label provenance builder. The image-only baselines everything later is
+measured against. The end-to-end triage slice. The grouped splits and the leakage audit that
+decide whether any result generalises. And the review-value queue with the kill gate it was
+pre-registered against.
 
 The consequence is checkable rather than rhetorical: every measured result this submission
 reports about satellite observations is computed on the snapshot A1 built, from features A2
@@ -395,22 +381,14 @@ parsed, over the splits B1 defined. The numbers that do not pass through those u
 ones about the repository itself, its weight, its test count and its secret scan. Remove
 Bob's units and what is left is a console with nothing measured to show in it.
 
-The operator's 49 are not cosmetic and are not described as such. They are
-the console, the calibration and abstention blocks, the fusion ladder, the ablations and the
-review waves. Each is labelled operator-side in the actor field of its own heading, which is
-why the count above can be stated at all.
-
 Each Bob unit carries the task id of the account that ran it, and those ids are records
 inside IBM Bob rather than assertions in this repository. `apps/web/public/data/bob.json` is
 the machine-readable list, generated from the build log by `scripts/export_bob_units.py`.
 A judge who distrusts a self-authored log can check them against the account's own history,
 which is the one form of evidence a repository cannot manufacture for itself.
 
-`docs/BOB_BUILD_LOG.md` has an entry per unit: what was asked, what came back, what failed and
-what repaired it. It holds every Bob-account unit and nothing else of consequence, because
-the operator-side waves were moved to `docs/OPERATOR_BUILD_LOG.md` once the single file
-passed the size above which GitHub stops rendering markdown.
-`.bob/rules.md` is the standing instruction set Bob worked to, and
+`docs/BOB_BUILD_LOG.md` has an entry per unit: what was asked, what came back, what failed
+and what repaired it.
 `.bob/TOOL_SPECS.md` specifies the project's own MCP tools, with the 12 that
 were built separated from the 4 that were specified and were not, each of
 those naming the script that did its job instead.

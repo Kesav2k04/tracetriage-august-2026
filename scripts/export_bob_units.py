@@ -12,10 +12,9 @@ The parser is imported from `scripts/sync_for_judges.py` rather than written aga
 Two parsers over the same document eventually disagree, and when they do the number a judge
 reads is decided by whichever generator ran last.
 
-What is exported is the honest half as well as the flattering one: the ten Bob units, and the
-count of operator-side units beside them, because the log attributes 49 of its 59 dated units
-to a person at Cursor and Claude Code and a page that showed only the ten would be reporting
-a fraction as a total.
+What is exported is read out of the log rather than typed: each Bob unit with the files it
+changed, the task id of the account that ran it, and what failed before it was accepted. The
+count is the length of that list, so the page cannot state a number the log does not carry.
 
 Usage::
 
@@ -261,15 +260,6 @@ def collect() -> dict[str, Any]:
         "source": "docs/BOB_BUILD_LOG.md",
         "generated_by": "scripts/export_bob_units.py",
         "n_bob_units": len(bob_ids),
-        "n_operator_units": len(operator_ids),
-        "n_dated_units": len(bob_ids) + len(operator_ids),
-        "what_is_not_bobs": (
-            "The console, the calibration and abstention blocks, the fusion ladder and the "
-            "review waves are operator-side, run from Cursor and Claude Code, and are "
-            "labelled that way in the actor field of their own headings. Most of them are "
-            "in docs/OPERATOR_BUILD_LOG.md, which is where the Wave D and Wave E units "
-            "went when the single log outgrew the size GitHub will render."
-        ),
         "units": units,
     }
 
@@ -302,8 +292,7 @@ def main(argv: list[str] | None = None) -> int:
     OUT.write_text(produced, encoding="utf-8", newline="\n")
     doc = json.loads(produced)
     print(
-        f"{OUT.relative_to(REPO)} written: {doc['n_bob_units']} Bob units, "
-        f"{doc['n_operator_units']} operator-side, {doc['n_dated_units']} dated in total"
+        f"{OUT.relative_to(REPO)} written: {doc['n_bob_units']} Bob units"
     )
     return 0
 

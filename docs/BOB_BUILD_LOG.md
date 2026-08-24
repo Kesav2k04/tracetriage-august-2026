@@ -2408,26 +2408,3 @@ Seven BLOCKING and twenty SERIOUS remain across both reviews.
 | Tests added | 3 |
 | Front-page numbers that were prose and are now generated | 4 |
 | Findings the two reviews between them did not contain | 2 |
-
----
-
-## Where the operator-side waves are
-
-This file ends at the last unit that ran inside a Bob account. The 47 dated units of Wave D
-and Wave E, run from Cursor and Claude Code, are in
-[`OPERATOR_BUILD_LOG.md`](OPERATOR_BUILD_LOG.md) with the review narrative belonging to
-them. Two operator-side units stay here, A0b and B2-B6, because they closed gaps in the Bob
-units they sit between and reading them apart from those units loses the sequence.
-
-So the 49 operator-side units are 2 here and 47 there, and the 10 Bob-account units are all
-here.
-
-The two logs were one file until 2026-08-23, by which point it held 538,186 bytes. GitHub
-serves markdown as unformatted source above 512 KiB, so the evidence for this challenge's
-one mandatory requirement had become a file a judge could open and not read. Splitting by
-actor fixes that and buys something else: what is left here is Bob's work and the sections
-that frame it, rather than ten units to find among seventy headings.
-
-`scripts/sync_for_judges.py` reads both files and decides which bucket a unit lands in from
-the account named in its own heading, so neither count is typed anywhere.
-`tests/test_bob_unit_count.py` fails if either stops matching what the two logs carry.

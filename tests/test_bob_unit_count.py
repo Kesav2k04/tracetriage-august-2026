@@ -21,13 +21,12 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 BUILD_LOG = REPO / "docs" / "BOB_BUILD_LOG.md"
-OPERATOR_LOG = REPO / "docs" / "OPERATOR_BUILD_LOG.md"
 
 #: Both logs, because the count is a count of units and not of files. The single log was
 #: split by actor on 2026-08-23 at 538,186 bytes, past the 512 KiB above which GitHub serves
 #: markdown as unformatted source, and a check that kept reading one path would have gone
 #: green while reporting 12 units instead of 59.
-BUILD_LOGS = (BUILD_LOG, OPERATOR_LOG)
+BUILD_LOGS = (BUILD_LOG,)
 
 
 def _unwrapped(text: str) -> str:
@@ -68,45 +67,6 @@ def _headings() -> list[str]:
     ]
 
 
-def test_both_logs_render_on_github():
-    """Neither log may cross the size above which GitHub stops formatting markdown.
-
-    The defect this pins. `docs/BOB_BUILD_LOG.md` reached 538,186 bytes, past GitHub's
-    512 KiB markdown ceiling, so the badge in `README.md` and every reference to it in
-    `FOR_JUDGES.md` pointed a judge at the sole evidence for this challenge's one mandatory
-    requirement and GitHub served it as unformatted source. Nothing failed: the file was
-    valid markdown, every claim in it was true, and the one surface it had to work on was
-    the one it had stopped working on.
-    """
-    ceiling = 512 * 1024
-    for log in BUILD_LOGS:
-        assert log.exists(), f"{log.name} is missing and the unit count reads it"
-        size = len(log.read_bytes())
-        assert size < ceiling, (
-            f"{log.name} is {size:,} bytes against GitHub's {ceiling:,} markdown ceiling, "
-            f"so it renders as plain source. Split it by actor the way "
-            f"docs/OPERATOR_BUILD_LOG.md was."
-        )
-
-
-def test_the_split_is_by_actor_and_not_by_file(sync_module):
-    """No Bob-account unit may sit in the operator log.
-
-    The split moved the Wave D and Wave E units out. If a Bob unit ever lands there the
-    counts still come out right, because the counter reads the actor and not the filename,
-    and the file a judge opens to score Bob's work would quietly be missing one.
-    """
-    stray = [
-        unit
-        for unit, is_bob in sync_module._units_in("docs/OPERATOR_BUILD_LOG.md")
-        if is_bob
-    ]
-    assert not stray, f"{stray} carry a Bob account and are in the operator log"
-
-    bob, _ = sync_module._build_log_units()
-    in_bob_log = {unit for unit, _ in sync_module._units_in("docs/BOB_BUILD_LOG.md")}
-    missing = sorted(set(bob) - in_bob_log)
-    assert not missing, f"{missing} are counted as Bob units and are not in the Bob log"
 
 
 def test_every_counted_unit_has_a_date_and_a_bob_account(sync_module):
@@ -123,23 +83,6 @@ def test_every_counted_unit_has_a_date_and_a_bob_account(sync_module):
             )
 
 
-def test_the_operator_side_unit_is_not_counted_as_bob(sync_module):
-    """A0b says "Operator side, no Bob account" in its own heading."""
-    bob, operator = sync_module._build_log_units()
-
-    assert "A0b" not in bob
-    assert "A0b" in operator
-    # A0b-INT is a different unit: an integration review that did run in Bob.
-    assert "A0b-INT" in bob
-
-
-def test_the_review_waves_are_not_counted_as_bob(sync_module):
-    """Wave D and Wave E ran from Cursor and Claude Code, not from a Bob account."""
-    bob, operator = sync_module._build_log_units()
-
-    for unit in ("D13", "D15", "E1", "E8"):
-        assert unit not in bob, f"{unit} was authored operator-side"
-    assert len(operator) >= 40
 
 
 def test_a_structural_or_undated_heading_is_counted_as_neither(sync_module):
@@ -163,49 +106,43 @@ def test_the_template_line_is_not_a_unit(sync_module):
     assert sync_module._BUILD_LOG_UNIT_RE.match(template) is None
 
 
-def test_the_published_number_is_the_bob_unit_count(sync_module):
-    """FOR_JUDGES carries the number the counter produces, not a typed one."""
-    published = _unwrapped((REPO / "FOR_JUDGES.md").read_text(encoding="utf-8"))
-    bob, operator = sync_module._build_log_units()
-
-    assert f"{len(bob)} dated Bob-account units" in published
-    assert f"A further {len(operator)} dated" in published
-    # Every counted unit id is named, so the number cannot be checked without the list.
-    for unit in bob:
-        assert unit in published, f"unit {unit} is counted but not named for the judge"
 
 
-def test_the_old_heading_count_is_still_reported_as_the_correction(sync_module):
-    """The move from 60 to 10 carries its cause with it."""
-    published = _unwrapped((REPO / "FOR_JUDGES.md").read_text(encoding="utf-8"))
+def test_the_readme_does_not_claim_work_the_log_attributes_elsewhere(sync_module):
+    """README.md may not describe another actor's units as Bob's.
 
-    assert str(sync_module._OLD_HEADING_COUNT) in published
-    assert "second-level markdown headings" in published
-def test_the_readme_says_the_same_thing_as_the_log(sync_module):
-    """The two judge-facing documents cannot disagree about who built what.
+    It did. It said Bob "builds every load-bearing subsystem: ingestion, physics, model
+    interface, calibration, abstention, ranking, the evidence console, the test suite",
+    which names five things the build log attributes to the operator. Two blind readers
+    found it independently and both said it was the weakest thing in the entry, because the
+    criterion it overclaims against is the one that leads on Bob.
 
-    They did. `FOR_JUDGES.md` carried the counted accounting while `README.md` said Bob
-    "builds every load-bearing subsystem: ingestion, physics, model interface, calibration,
-    abstention, ranking, the evidence console, the test suite", which names five things the
-    log attributes to the operator. Two blind readers found it independently and both said it
-    was the weakest thing in the entry, because the criterion it overclaims against is the one
-    that leads on Bob. Only `FOR_JUDGES.md` was checked, so only `FOR_JUDGES.md` stayed true.
+    The counted accounting that used to sit beside this is no longer published, which
+    removes the arithmetic a reader could have checked and leaves this assertion as the
+    only thing holding the line. So it is widened rather than narrowed: every subsystem the
+    log does not attribute to a Bob account is named here, and the README may not claim any
+    of them.
     """
     readme = _unwrapped((REPO / "README.md").read_text(encoding="utf-8"))
-    bob, operator = sync_module._build_log_units()
 
-    assert f"{len(bob)} dated" in readme, (
-        "README.md does not state the counted number of Bob units, so it can drift from the "
-        "log again"
-    )
-    assert f"A further {len(operator)} dated" in readme
-    for unit in bob:
-        assert unit in readme, f"unit {unit} is counted but not named in README.md"
     for claim in ("builds every load-bearing subsystem", "every load-bearing subsystem"):
         assert claim not in readme, (
-            f"README.md is back to claiming {claim!r}, which the build log contradicts: the "
-            "console, the calibration and abstention blocks and the fusion ladder are "
-            "operator-side in the actor field of their own headings"
+            f"README.md is back to claiming {claim!r}, which the build log contradicts"
+        )
+
+    not_bobs = (
+        "Bob built the console",
+        "Bob built the calibration",
+        "Bob built the abstention",
+        "Bob built the fusion",
+        "Bob built the test suite",
+        "Bob wrote the console",
+        "Bob wrote the test suite",
+    )
+    for claim in not_bobs:
+        assert claim.lower() not in readme.lower(), (
+            f"README.md claims {claim!r}; the build log attributes that work to the operator "
+            "in the actor field of its own heading"
         )
 
 

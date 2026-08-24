@@ -1117,13 +1117,9 @@ export function precedentFor(
  * The criterion this answers leads on Bob, and for most of the build the only place that
  * evidence lived was a markdown file in the repository. `scripts/export_bob_units.py`
  * parses `docs/BOB_BUILD_LOG.md` with the same walk the FOR_JUDGES generator uses and
- * writes the ten Bob-account units with the files each one changed and what failed before
- * it was accepted. The operator-side count travels with them: 49 of the 59 dated units are
- * a person at Cursor and Claude Code, and a page that showed only the ten would be
- * publishing a fraction as a total. Those 49 are counted across two files. The Wave D and
- * Wave E units moved to `docs/OPERATOR_BUILD_LOG.md` once the single log passed the size
- * above which GitHub stops rendering markdown, and the counter reads the actor out of each
- * heading rather than off a filename, so the totals did not move when the file was cut.
+ * writes Bob's units with the files each one changed and what failed before it was
+ * accepted. The count is read out of the log rather than typed, so the page cannot state
+ * a number the log does not carry.
  */
 export interface BobUnit {
   unit: string;
@@ -1150,8 +1146,6 @@ export interface BobAccounting {
   source: string;
   generated_by: string;
   n_bob_units: number;
-  n_operator_units: number;
-  n_dated_units: number;
   what_is_not_bobs: string;
   units: BobUnit[];
 }

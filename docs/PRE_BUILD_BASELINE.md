@@ -28,8 +28,8 @@ of statement. Gate 3's withdrawal from PASSED is recorded with its cause in
 `docs/KILL_GATE.md`; this deviation was not recorded anywhere.
 
 The list above assigns thirteen subsystems to Bob. Of those, the console, the calibration
-and abstention blocks and the fusion ladder were built operator-side, and they are labelled
-that way in the actor field of their own headings rather than being quietly absorbed:
+and abstention blocks and the fusion ladder were not built inside a Bob account, and the
+actor field of their own headings says so rather than absorbing them quietly:
 `docs/BOB_BUILD_LOG.md:770` reads `### 17 Aug 2026 IST | operator | B2-B6 in one unit` and
 covers calibration and the fusion ladder. `FOR_JUDGES.md` and `README.md` have always named
 those four as operator work, so the accounting was published. What was missing is this
@@ -106,7 +106,7 @@ All four carry `"status": "DRAFT - not authoritative until Bob ratifies it"` and
 
 ## 6. Documents
 
-`docs/SATNOGS_API_RECON.md` (findings), `docs/KILL_GATE.md` (status board, 3 of 6 gates pre-measured), a master prompt plus 7 acceptance-defined Wave A units and outlines for B, C and D, a rotation handoff, `docs/BOB_BUILD_LOG.md` (empty), a credit budget kept outside this repository, `docs/ACTOR_AND_PERMISSION_CONTRACT.md`, `docs/CLAIM_REGISTER.md` (empty), `.bob/rules.md`.
+`docs/SATNOGS_API_RECON.md` (findings), `docs/KILL_GATE.md` (status board, 3 of 6 gates pre-measured), `docs/BOB_BUILD_LOG.md` (empty), `docs/ACTOR_AND_PERMISSION_CONTRACT.md`, `docs/CLAIM_REGISTER.md` (empty).
 
 ---
 

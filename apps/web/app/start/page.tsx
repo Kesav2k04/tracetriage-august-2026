@@ -393,9 +393,7 @@ export default function StartPage() {
             marginBottom: "var(--sp-06)",
           }}
         >
-          <Stat label="Bob-account units" value={String(bob.n_bob_units)} />
-          <Stat label="operator-side units" value={String(bob.n_operator_units)} />
-          <Stat label="dated units in the log" value={String(bob.n_dated_units)} />
+          <Stat label="Bob units in the build log" value={String(bob.n_bob_units)} />
         </div>
 
         <Table

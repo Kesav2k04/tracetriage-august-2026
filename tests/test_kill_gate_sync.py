@@ -10,7 +10,7 @@ Two properties are asserted here, and the second is the one that was missing.
    died on `AssertionError: gate 5 summary row not found`. It also appended a correction
    paragraph on every run. Meanwhile the document said the sections "are now generated
    from the receipt by scripts/sync_kill_gate.py, so the next re-run cannot leave them
-   behind", and the Wave D prompt told the next builder to re-run it after any pipeline
+   behind", and it was documented as something to re-run after any pipeline
    re-run. Both were false. `test_render_is_idempotent` fails against that version.
 
 These run offline: the receipts are committed artifacts and the document is tracked.

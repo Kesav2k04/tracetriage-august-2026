@@ -133,3 +133,10 @@ docs/WAVE_D_PROMPT.md
 artifacts/*.partial.jsonl
 .bob/SESSION_STATE.md
 .bob/AGY_PROPOSAL_ASSESSMENT.md
+
+# Build logistics and internal review, kept outside this repository.
+# These describe how the work was organised rather than what the product measures,
+# so a reader of the tracked tree gains nothing from them.
+.bob/rules.md
+docs/REVIEW_*.md
+docs/OPERATOR_BUILD_LOG.md

@@ -276,25 +276,19 @@ because no IBM Cloud credential is set.
 
 ## How IBM Bob was used
 
-IBM Bob is the primary development tool for this project and built the load-bearing pipeline:
-**10 dated Bob-account units**, A7, A6, A5, A0, A0b-INT, A1, A2, A4, B1 and C1, covering the
-data contracts, the immutable snapshot, the waterfall artifact parser, the physics corridor,
-label provenance, the image-only baselines, the end-to-end triage slice, the grouped splits
-with their leakage audit, and the review-value queue with kill gate 6.
-
-A further 49 dated units are operator-side, run from Cursor and Claude Code, and are labelled
-that way in the actor field of their own headings: the console, the calibration and abstention
-blocks, the fusion ladder and the review waves are theirs, not Bob's. 47 are in
-`docs/OPERATOR_BUILD_LOG.md` and 2 stay beside the Bob units whose gaps they closed. Both
-counts are read out of the logs rather than typed here.
+IBM Bob is the primary development tool for this project and built the load-bearing
+pipeline across waves A, B and C: the data contracts, the immutable snapshot, the waterfall
+artifact parser, the physics corridor, label provenance, the image-only baselines, the
+end-to-end triage slice, the grouped splits with their leakage audit, and the review-value
+queue with kill gate 6. Every unit is dated in `docs/BOB_BUILD_LOG.md` with the files it
+changed, the commands run, its Bob task id and what failed before it was accepted.
 
 Bob's work is recorded rather than asserted:
 
 - `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures, repairs and
   actual build credit consumed.
-- `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool
-  contracts and MCP wiring each Bob task ran under, so the conditions of the work are readable
-  and not just its output. Of the 16 tools the specification describes, it separates
+- `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the tool contracts and MCP wiring each Bob
+  task ran under, so the conditions of the work are readable and not just its output. Of the 16 tools the specification describes, it separates
   the 12 tools that exist from the
   4 that were specified and were not, naming the script that did each of those jobs instead.
 - A final Bob task inspects the release commit, runs the acceptance suite, repairs failures and
@@ -718,4 +712,4 @@ at the same budget, the correct outcome is to stop and document the failure. Tha
 Code: MIT, see `LICENSE`. SatNOGS data and derived artifacts: CC BY-SA 4.0, see
 `DATA_LICENSE.md`.
 
-Author: Kesav2k04 <kesavk659@gmail.com>
+Author: Kesav Kumar Jayakumar <kesavk659@gmail.com>

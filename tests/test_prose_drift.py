@@ -42,8 +42,7 @@ only the literal current phrasing, say "224 of 289 testable observations", and t
 test still passes, the exercise test still passes, and a future "223 of 289" walks through.
 One rule is template-bound and says so in the table.
 
-Dated logs are out of scope as a class. ``docs/BOB_BUILD_LOG.md`` and
-``docs/OPERATOR_BUILD_LOG.md`` record what was true on a date, and editing an entry to
+Dated logs are out of scope as a class. ``docs/BOB_BUILD_LOG.md`` records what was true on a date, and editing an entry to
 match today would destroy the thing they exist to be. The two pre-registrations are out for
 the same reason and a stronger one.
 
@@ -94,7 +93,6 @@ ARTIFACTS = REPO / "artifacts"
 #: the present. Excluded by name rather than by a heuristic, so adding one is a decision.
 _DATED_LOGS = {
     "docs/BOB_BUILD_LOG.md",
-    "docs/OPERATOR_BUILD_LOG.md",
     # A pre-registration is a commitment frozen before the measurement, and its whole
     # value is that it was not edited afterwards. E16's "All 3 discriminated" describes
     # the 24-observation sample it was written about, not the 289 that followed.

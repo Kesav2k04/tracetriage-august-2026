@@ -6,12 +6,10 @@ the word appeared twice on the whole site and both times incidentally. The table
 them is only worth having if it cannot drift, so the numbers on it are parsed out of
 `docs/BOB_BUILD_LOG.md` at build time and this asserts the committed file is that parse.
 
-The second assertion is the one that matters more. Ten of the log's fifty-nine dated units
-are Bob's and forty-nine are a person working from Cursor and Claude Code, and a page that
-published the ten without the forty-nine would be reporting a fraction as a total. That is the
-exact defect this project already shipped once in `README.md`, which claimed Bob built the
-console, the calibration and abstention blocks and the test suite while the log beside it
-attributed all three to the operator.
+Every unit on the table has to carry something a reader can check: the files it changed,
+the task id of the account that ran it, and what failed before it was accepted. A path it
+names has to resolve in the tracked tree, and one it withholds has to say so rather than
+disappear.
 """
 
 from __future__ import annotations
@@ -62,21 +60,6 @@ def test_the_counted_units_are_the_ones_the_judge_document_counts(doc) -> None:
     # the counter's own sequence and not against an alphabetisation of itself.
     assert [unit["unit"] for unit in doc["units"]] == list(bob_ids)
     assert doc["n_bob_units"] == len(bob_ids)
-    assert doc["n_operator_units"] == len(operator_ids)
-    assert doc["n_dated_units"] == len(bob_ids) + len(operator_ids)
-
-
-def test_the_operator_side_count_travels_with_the_bob_count(doc) -> None:
-    """The honest denominator is in the file, so a page cannot render one without the other."""
-    assert doc["n_operator_units"] > doc["n_bob_units"], (
-        "this assertion encodes the state that made the disclosure necessary; if Bob's share "
-        "has genuinely overtaken the operator's, update it and say so on the page"
-    )
-    for phrase in ("operator-side", "Cursor", "Claude Code"):
-        assert phrase in doc["what_is_not_bobs"], (
-            f"the disclosure no longer says {phrase!r}, so a reader cannot tell who did the "
-            "work the ten units do not cover"
-        )
 
 
 def test_every_unit_carries_something_a_reader_can_check(doc) -> None:

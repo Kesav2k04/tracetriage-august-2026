@@ -8,7 +8,7 @@
  * -7227.6 Hz with no sign change, so the label asserted a crossing that did not happen.
  * A sighted reader can see the curve staying below the zero line. A reader using a
  * screen reader receives only the sentence, so for that reader the console contradicted
- * its own data. Recorded as BLOCKING in docs/REVIEW_ENGINEERING.md:89.
+ * its own data.
  *
  * The fix conditions the sentence on the series. These are the three branches, plus the
  * absent-series case, because a branch with no test is how the first version passed

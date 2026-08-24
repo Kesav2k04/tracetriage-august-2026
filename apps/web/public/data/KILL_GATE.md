@@ -746,8 +746,8 @@ not true when it was written. The script replaced one hardcoded old string per r
 asserted the string was present, so its second run died on `AssertionError: gate 5
 summary row not found`, and it appended its own correction paragraph unconditionally,
 so a second run would have duplicated that too. A generator that cannot run twice is a
-one-shot fixup, and the Wave D prompt was instructing the next builder to re-run it
-after any pipeline re-run. The script now anchors on structure rather than on the old
+one-shot fixup, and it was documented as something to re-run after any pipeline
+re-run. The script now anchors on structure rather than on the old
 content and is idempotent: `tests/test_kill_gate_sync.py` renders the document twice
 and asserts the bytes are identical, asserts every generated row against its receipt,
 and fails if this file drifts from them. `--check` reports drift without writing.

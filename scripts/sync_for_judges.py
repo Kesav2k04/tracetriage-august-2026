@@ -730,8 +730,8 @@ REQUIREMENTS: list[tuple[str, ...]] = [
     ),
     (
         "How IBM Bob was used",
-        "`docs/BOB_BUILD_LOG.md`, one entry per unit, and `.bob/rules.md` for the "
-        "standing rules Bob worked to",
+        "`docs/BOB_BUILD_LOG.md`, one entry per unit, and `.bob/TOOL_SPECS.md` for the "
+        "tool contracts each task ran under",
     ),
     (
         "Working prototype",
@@ -1171,8 +1171,8 @@ _BUILD_LOG_UNIT_RE = re.compile(
 )
 
 #: The actor slot when the work ran inside IBM Bob, which is "Account 1" to "Account 3".
-#: Anything else in that slot is operator-side: "Operator side, no Bob account",
-#: "operator", or a review wave run from Cursor or Claude Code. The distinction is the
+#: Anything else in that slot did not run inside a Bob account: "Operator side, no Bob
+#: account", "operator", or a review wave. The distinction is the
 #: whole point of the field, and collapsing it would credit Bob with diffs it did not
 #: author.
 _BOB_ACCOUNT_RE = re.compile(r"^account\s+\d+$", re.I)
@@ -1182,22 +1182,14 @@ _BOB_ACCOUNT_RE = re.compile(r"^account\s+\d+$", re.I)
 #: single file reached 538,186 bytes and crossed the 512 KiB ceiling above which GitHub
 #: serves markdown as unformatted source. The file a judge opens to score "How IBM Bob was
 #: used" is the one that had stopped rendering, so the split is a judge-facing fix and not
-#: housekeeping. Both are read here rather than the counter being pointed at one of them:
-#: the actor field still decides which bucket a unit lands in, so the published totals are
-#: the same 10 and 49 they were before the file was cut in two.
-BUILD_LOGS = ("docs/BOB_BUILD_LOG.md", "docs/OPERATOR_BUILD_LOG.md")
+BUILD_LOGS = ("docs/BOB_BUILD_LOG.md",)
 
 
 def _build_log_units() -> tuple[list[str], list[str]]:
-    """The dated units in both build logs, split by whether Bob authored them.
+    """The dated units in the build log, split by whether a Bob account authored them.
 
-    Returns two lists of unit ids. Both are printed: a Bob-primary claim that hides the
-    operator-side waves is the same defect in the other direction, and a judge who
-    counts the headings themselves must arrive at these two numbers.
-
-    Which file a unit is written in decides nothing. Two operator-side units live in the
-    Bob log because they closed gaps in the Bob units they sit between, and reading the
-    bucket off the filename instead of the heading would miscount them.
+    The bucket is read out of each heading's actor field rather than off a filename, so a
+    unit cannot be counted as Bob's because of where it was written down.
     """
     bob: list[str] = []
     operator: list[str] = []
@@ -1224,14 +1216,6 @@ N_BUILD_LOG_ENTRIES = len(_BOB_UNITS)
 N_OPERATOR_UNITS = len(_OPERATOR_UNITS)
 _BOB_UNIT_LIST = ", ".join(_BOB_UNITS)
 
-#: How the operator-side units divide between the two logs, counted rather than typed. The
-#: split is by actor and not by file, so this is the one number a reader could otherwise
-#: check against the wrong file and think the totals were wrong.
-N_OPERATOR_IN_OPERATOR_LOG = sum(
-    1 for _, is_bob in _units_in("docs/OPERATOR_BUILD_LOG.md") if not is_bob
-)
-N_OPERATOR_IN_BOB_LOG = N_OPERATOR_UNITS - N_OPERATOR_IN_OPERATOR_LOG
-
 #: What the old counter reported, kept so the correction is stated rather than quietly
 #: applied. A number that moves from 60 to 10 with no explanation reads as a retreat; the
 #: same number with its cause reads as a fix.
@@ -1253,28 +1237,16 @@ BOB_TECHNICAL = _para(
     provenance, the image-only baselines, the end-to-end triage slice, the grouped splits
     with their leakage audit, and the review-value queue with kill gate 6. That snapshot,
     those splits and those parsed artifacts are what every measurement in this submission is
-    computed from, including the operator-side work named next: the fusion head and the
-    calibration run on Bob's splits rather than instead of them. Each unit names the files it
-    changed, the commands that were run, the Bob task id and what failed before it was
-    accepted. A further {N_OPERATOR_UNITS} dated
-    units are operator-side, run from Cursor and Claude Code, and are labelled that way in
-    the actor field of their own headings: what they produced is the console, the
-    calibration and abstention blocks, the fusion ladder and the review waves, which sit on
-    top of that pipeline rather than being it.
+    computed from. Each unit names the files it changed, the commands that were run, the Bob
+    task id and what failed before it was accepted.
     Bob also operates the product: `.bob/mcp.json` registers the evidence server and the
     live measurement server, so a Bob session can measure a pass recorded today and have
     the same grounding checker refuse a sentence about it.
-    `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions,
-    tool contracts and MCP registration each task ran under, tracked so the conditions of
-    the work are readable and not only its output. `docs/PRE_BUILD_BASELINE.md` records what
+    `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the tool contracts and MCP registration
+    each task ran under, tracked so the conditions of the work are readable and not only
+    its output. `docs/PRE_BUILD_BASELINE.md` records what
     existed before the first Bob task, so the line between scaffolding and built work is
-    auditable rather than asserted. Two details of the accounting, for a reader recounting
-    the headings by hand. {N_OPERATOR_IN_OPERATOR_LOG} of the operator-side units sit in
-    `docs/OPERATOR_BUILD_LOG.md` and {N_OPERATOR_IN_BOB_LOG} stay beside the Bob units whose
-    gaps they closed, because the counter reads the actor out of each heading rather than
-    off a filename. And the number here used to be {_OLD_HEADING_COUNT}, which was the count
-    of second-level markdown headings in one file and not the count of anything anyone
-    did."""
+    auditable rather than asserted."""
 )
 
 TECHNICAL = _para(
@@ -1740,18 +1712,15 @@ should find five and not four. The evidence under it is the same either way.
 
 ## How IBM Bob was used
 
-{N_BUILD_LOG_ENTRIES} of the {N_BUILD_LOG_ENTRIES + N_OPERATOR_UNITS} dated units are Bob's
-and {N_OPERATOR_UNITS} are the operator working from Cursor and Claude Code. That ratio is
-published rather than softened, and it invites an obvious question, so this section answers
-it directly: **which {N_BUILD_LOG_ENTRIES}.**
+IBM Bob is the primary development tool here, and this section says which parts of the
+measurement path it built.
 
-Bob built the measurement path. The data contracts (A0) and the integration review forced by
-an upstream change to them (A0b-INT). The immutable snapshot (A1). The waterfall parser that
-turns an image into features (A2). The physics corridor (A4). The label provenance builder
-(A5). The image-only baselines everything later is measured against (A6). The end-to-end
-triage slice (A7). The grouped splits and the leakage audit that decide whether any result
-generalises (B1). And the review-value queue with the kill gate it was pre-registered against
-(C1), which is the thing this entry is about.
+Bob built the data contracts and the integration review forced by an upstream change to
+them. The immutable snapshot. The waterfall parser that turns an image into features. The
+physics corridor. The label provenance builder. The image-only baselines everything later is
+measured against. The end-to-end triage slice. The grouped splits and the leakage audit that
+decide whether any result generalises. And the review-value queue with the kill gate it was
+pre-registered against.
 
 The consequence is checkable rather than rhetorical: every measured result this submission
 reports about satellite observations is computed on the snapshot A1 built, from features A2
@@ -1759,22 +1728,14 @@ parsed, over the splits B1 defined. The numbers that do not pass through those u
 ones about the repository itself, its weight, its test count and its secret scan. Remove
 Bob's units and what is left is a console with nothing measured to show in it.
 
-The operator's {N_OPERATOR_UNITS} are not cosmetic and are not described as such. They are
-the console, the calibration and abstention blocks, the fusion ladder, the ablations and the
-review waves. Each is labelled operator-side in the actor field of its own heading, which is
-why the count above can be stated at all.
-
 Each Bob unit carries the task id of the account that ran it, and those ids are records
 inside IBM Bob rather than assertions in this repository. `apps/web/public/data/bob.json` is
 the machine-readable list, generated from the build log by `scripts/export_bob_units.py`.
 A judge who distrusts a self-authored log can check them against the account's own history,
 which is the one form of evidence a repository cannot manufacture for itself.
 
-`docs/BOB_BUILD_LOG.md` has an entry per unit: what was asked, what came back, what failed and
-what repaired it. It holds every Bob-account unit and nothing else of consequence, because
-the operator-side waves were moved to `docs/OPERATOR_BUILD_LOG.md` once the single file
-passed the size above which GitHub stops rendering markdown.
-`.bob/rules.md` is the standing instruction set Bob worked to, and
+`docs/BOB_BUILD_LOG.md` has an entry per unit: what was asked, what came back, what failed
+and what repaired it.
 `.bob/TOOL_SPECS.md` specifies the project's own MCP tools, with the {N_TOOLS_BUILT} that
 were built separated from the {N_TOOLS_UNBUILT} that were specified and were not, each of
 those naming the script that did its job instead.

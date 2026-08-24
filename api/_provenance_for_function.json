@@ -95,7 +95,7 @@
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "b56018da296f804ce1371da0fe1c9d6ac7d9493184ef229b022df1dee720d794",
+   "sha256": "ad7d5994034f99b3cdda878d3792c3722c164493c7112869214d72013d798935",
    "bytes": 87442,
    "rewritten_after_this_payload": true
   },
@@ -281,7 +281,7 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "8add34cac9dac4aad47ac09e0f8ad34171ac7241937a5ee1d253867575fc99aa",
+   "sha256": "d99beae38b78bce20b8282c01f57a55891a7ad4c9c675bbfe8ecd33491f9c08d",
    "bytes": 5138,
    "rewritten_after_this_payload": true
   },
@@ -299,7 +299,7 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "631d8a9ac369da6aa2ff74adc82d53a953e3ed737eb4b66e02771c0ef0bf15b1",
+   "sha256": "3596eb4bcea98bbe4bb4c001d7fdb492aec28367fc51dab7a322cdbb1f1effa0",
    "bytes": 1053,
    "rewritten_after_this_payload": true
   },
