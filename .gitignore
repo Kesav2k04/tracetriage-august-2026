@@ -31,6 +31,10 @@ build/
 !docs/**/*.png
 !tests/fixtures/**/*.png
 !apps/web/public/**/*.png
+# The Android client's launcher icon, generated from the same mark by
+# scripts/build_pwa_icons.py. Expo reads it at build time, so a clone that does not have it
+# builds an app with the default Expo icon and nothing says so.
+!mobile/assets/*.png
 
 # --- generated artifacts: manifests are committed, payloads are not ---
 artifacts/**/*

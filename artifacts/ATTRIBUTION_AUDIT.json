@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-24T09:58:17+05:30",
- "commit": "6c90e3cf7960374fce4dcf74dc8b6fc2380a0bb3",
+ "measured_at_commit_date": "2026-08-24T10:05:14+05:30",
+ "commit": "d04f613a77e659ca26a2132a444fcb12b72acd61",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -26,15 +26,67 @@
   "console_ui_links_the_licence": true
  },
  "counts": {
-  "media_files_tracked": 83,
+  "media_files_tracked": 88,
   "satnogs_derived": 76,
-  "not_satnogs_derived": 7,
+  "not_satnogs_derived": 12,
   "distinct_observations": 43,
   "distinct_ground_stations": 22,
   "incomplete": 0
  },
  "incomplete_files": [],
  "rows": [
+  {
+   "file": "apps/web/public/icons/apple-touch-icon.png",
+   "bytes": 7377,
+   "observation_id": null,
+   "observation_id_from": null,
+   "in_dataset_manifest": false,
+   "modification_notice": null,
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
+   },
+   "complete": true
+  },
+  {
+   "file": "apps/web/public/icons/icon-192.png",
+   "bytes": 7648,
+   "observation_id": null,
+   "observation_id_from": null,
+   "in_dataset_manifest": false,
+   "modification_notice": null,
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
+   },
+   "complete": true
+  },
+  {
+   "file": "apps/web/public/icons/icon-512-maskable.png",
+   "bytes": 17656,
+   "observation_id": null,
+   "observation_id_from": null,
+   "in_dataset_manifest": false,
+   "modification_notice": null,
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
+   },
+   "complete": true
+  },
+  {
+   "file": "apps/web/public/icons/icon-512.png",
+   "bytes": 20942,
+   "observation_id": null,
+   "observation_id_from": null,
+   "in_dataset_manifest": false,
+   "modification_notice": null,
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
+   },
+   "complete": true
+  },
   {
    "file": "apps/web/public/media/corridor-explainer-poster.jpg",
    "bytes": 31509,
@@ -1947,6 +1999,19 @@
     "retrieval_timestamp": true,
     "source_sha256": true,
     "modification_notice": true
+   },
+   "complete": true
+  },
+  {
+   "file": "mobile/assets/icon.png",
+   "bytes": 43354,
+   "observation_id": null,
+   "observation_id_from": null,
+   "in_dataset_manifest": false,
+   "modification_notice": null,
+   "satnogs_derived": false,
+   "obligations": {
+    "not_applicable": "not resolvable to a SatNOGS observation"
    },
    "complete": true
   },

@@ -1,0 +1,116 @@
+{
+  "schema": "tracetriage/offline-install",
+  "schema_version": "0.1.0",
+  "unit": "counts of pages and cache entries; no timings",
+  "measured_at_utc": "2026-08-24",
+  "commit": "d04f613a77e659ca26a2132a444fcb12b72acd61",
+  "browser": "151.0.7922.34, headless",
+  "server": "python -m http.server --directory apps/web/out, loopback only",
+  "harness": {
+    "worker": "apps/web/public/sw.js",
+    "manifest": "apps/web/public/manifest.webmanifest",
+    "measured_by": "apps/web/audit/offline-probe.mjs",
+    "method": "one online visit to /, then the browser context is switched offline and every page in the rail is opened in a fresh tab"
+  },
+  "worker_state_after_first_visit": "activating",
+  "cached": {
+    "shell_documents": 15,
+    "static_assets": 19,
+    "font_files": 6,
+    "runtime": 0
+  },
+  "documents": [
+    {
+      "path": "/",
+      "offline_ok": true,
+      "heading_offline": "Which satellite passes are worth a reviewer’s time, and the measurement that says so.",
+      "heading_in_built_export": "Which satellite passes are worth a reviewer’s time, and the measurement that says so.",
+      "self_hosted_faces_held": [
+        true,
+        true
+      ]
+    },
+    {
+      "path": "/start/",
+      "offline_ok": true,
+      "heading_offline": "Which satellite passes are worth a reviewer’s time.",
+      "heading_in_built_export": "Which satellite passes are worth a reviewer’s time.",
+      "self_hosted_faces_held": [
+        true,
+        true
+      ]
+    },
+    {
+      "path": "/live/",
+      "offline_ok": true,
+      "heading_offline": "Measure a pass recorded today",
+      "heading_in_built_export": "Measure a pass recorded today",
+      "self_hosted_faces_held": [
+        true,
+        true
+      ]
+    },
+    {
+      "path": "/evaluation/",
+      "offline_ok": true,
+      "heading_offline": "Evaluation",
+      "heading_in_built_export": "Evaluation",
+      "self_hosted_faces_held": [
+        true,
+        true
+      ]
+    },
+    {
+      "path": "/agent/",
+      "offline_ok": true,
+      "heading_offline": "Agent, against a control",
+      "heading_in_built_export": "Agent, against a control",
+      "self_hosted_faces_held": [
+        true,
+        true
+      ]
+    },
+    {
+      "path": "/precedent/",
+      "offline_ok": true,
+      "heading_offline": "Precedent, warm and cold",
+      "heading_in_built_export": "Precedent, warm and cold",
+      "self_hosted_faces_held": [
+        true,
+        true
+      ]
+    },
+    {
+      "path": "/replay/",
+      "offline_ok": true,
+      "heading_offline": "The queue against the baselines",
+      "heading_in_built_export": "The queue against the baselines",
+      "self_hosted_faces_held": [
+        true,
+        true
+      ]
+    },
+    {
+      "path": "/provenance/",
+      "offline_ok": true,
+      "heading_offline": "Provenance",
+      "heading_in_built_export": "Provenance",
+      "self_hosted_faces_held": [
+        true,
+        true
+      ]
+    }
+  ],
+  "uncached_page_gets_fallback": true,
+  "verdict": {
+    "documents_offline": "8/8",
+    "documents_with_self_hosted_fonts": "8/8",
+    "failed": [],
+    "clean": true
+  },
+  "reading": [
+    "8/8 pages in the rail render their own heading with the browser context offline, after a single online visit to the landing page.",
+    "19 hashed assets are held, 6 of them font files. The font count is the one worth watching: those files are named only inside the stylesheets, so a worker that precached the documents and the chunks would report every page working and render all of them in a system font.",
+    "A page that was never visited online falls back to /offline.html, which lists the pages that are held, rather than to the browser's own error page."
+  ]
+}

@@ -203,6 +203,22 @@ def main() -> int:
                 "" if rc == 0 and measured else tail,
             )
         )
+
+        # Same reason as the row above: two of these tests parse `apps/web/out` and skip
+        # honestly on a checkout that has never built the console, and this is the run
+        # where it exists. They check the manifest against the routes, the worker's
+        # precache list against the rail, and the offline receipt against both, so a page
+        # added to the console cannot quietly become the one page that needs a network.
+        rc, out = run([str(PY), "-m", "pytest", "tests/test_pwa_install.py"])
+        tail = out.splitlines()[-1][:70] if out.strip() else f"pytest did not report (exit {rc})"
+        measured = "passed" in out
+        results.append(
+            check(
+                "home-screen install and offline coverage",
+                rc == 0 and measured,
+                "" if rc == 0 and measured else tail,
+            )
+        )
     else:
         # Report it rather than skip it silently. A missing node_modules is a real
         # state of this checkout, and treating it as a pass is how a gate comes to

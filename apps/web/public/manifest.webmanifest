@@ -1,0 +1,55 @@
+{
+  "name": "TraceTriage",
+  "short_name": "TraceTriage",
+  "description": "A review-value queue for SatNOGS waterfalls, with the measurements that decide whether an observation is worth a reviewer's time, including the ones that did not establish what they set out to.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0c0e12",
+  "theme_color": "#0c0e12",
+  "categories": ["science", "utilities", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Review queue",
+      "short_name": "Queue",
+      "description": "The ranked observations, highest review value first",
+      "url": "/"
+    },
+    {
+      "name": "Live measurement",
+      "short_name": "Live",
+      "description": "Measure the Doppler offset on any SatNOGS observation id",
+      "url": "/live/"
+    },
+    {
+      "name": "Provenance",
+      "short_name": "Provenance",
+      "description": "Every published digest, and what it was measured from",
+      "url": "/provenance/"
+    }
+  ]
+}

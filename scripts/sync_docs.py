@@ -45,6 +45,8 @@ CONTRACTS = REPO / "contracts"
 SCRIPTS = REPO / "scripts"
 PACKAGE = REPO / "pipeline" / "tracetriage"
 TESTS = REPO / "tests"
+#: The console's browser probes. Not Python, and one of them writes a receipt.
+WEB_AUDIT = REPO / "apps" / "web" / "audit"
 REFERENCE = REPO / "docs" / "REFERENCE.md"
 
 #: Fixture dumpers rather than pipeline stages. They write into tests/fixtures and are run
@@ -94,10 +96,21 @@ def _modules(root: pathlib.Path, tracked: set[str]) -> list[pathlib.Path]:
 
 
 def _sources(tracked: set[str]) -> dict[pathlib.Path, str]:
-    """Every published Python source under scripts/, the package and tests/, read once."""
+    """Every published source that could name an artifact, read once.
+
+    Python under `scripts/`, the package and `tests/`, plus the console's browser probes under
+    `apps/web/audit/`. That last root is here because a builder does not have to be Python:
+    `apps/web/audit/offline-probe.mjs` writes `artifacts/OFFLINE_RECEIPT.json`, and with only
+    the three Python roots scanned this page reported that receipt under "nothing here rebuilds
+    them", which is a published statement that a tracked, committed generator does not exist.
+    """
     out: dict[pathlib.Path, str] = {}
     for root in (SCRIPTS, PACKAGE, TESTS):
         for path in sorted(root.rglob("*.py"), key=lambda p: p.as_posix()):
+            if _rel(path) in tracked:
+                out[path] = path.read_text(encoding="utf-8")
+    for pattern in ("*.mjs", "*.js"):
+        for path in sorted((WEB_AUDIT).glob(pattern), key=lambda p: p.as_posix()):
             if _rel(path) in tracked:
                 out[path] = path.read_text(encoding="utf-8")
     return out

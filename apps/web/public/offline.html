@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline — TraceTriage</title>
+<meta name="robots" content="noindex">
+<!--
+  The page `public/sw.js` serves when a document is asked for, the network is gone and the
+  cache does not hold it.
+
+  Self-contained on purpose: no stylesheet, no script, no font request, no image request.
+  It is the one page that has to render when nothing else can be fetched, so it may not
+  depend on anything being fetched. The mark is inlined from `app/icon.svg` and the six
+  colours are the same tokens `app/globals.css` sets, written as hexes here because a
+  custom property defined in a stylesheet this page does not load would resolve to
+  nothing: --ui-background, --surface-raised, --hover-ui, --text-01, --text-03 and
+  --link-01.
+
+  It names the pages that are held rather than promising the console works offline, because
+  which pages are held depends on what the worker managed to store.
+-->
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 2rem 1.25rem;
+    background: #0c0e12;
+    color: #f1f2f3;
+    font: 400 1rem/1.6 "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+  main { max-width: 34rem; }
+  svg { width: 3rem; height: 3rem; display: block; margin-bottom: 1.5rem; }
+  h1 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 0.75rem; font-weight: 600; }
+  p { margin: 0 0 1rem; color: #f1f2f3; }
+  .quiet { color: #888b90; font-size: 0.875rem; }
+  ul { margin: 0 0 1.25rem; padding-left: 1.1rem; }
+  li { margin-bottom: 0.35rem; }
+  a { color: #fca50a; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  code {
+    font: 400 0.875rem/1.5 "IBM Plex Mono", ui-monospace, monospace;
+    background: #161c26;
+    border: 1px solid #2d333d;
+    border-radius: 3px;
+    padding: 0.1rem 0.3rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="TraceTriage">
+    <rect width="32" height="32" rx="6" fill="#0c0e12"/>
+    <rect x="2.5" y="2.5" width="27" height="27" rx="4" fill="#161c26" stroke="#2d333d"/>
+    <path d="M19.8 6 C 19 12.6, 9.8 19.4, 9 26 L 14.2 26 C 15 19.4, 24.2 12.6, 25 6 Z"
+          fill="#1e242f"/>
+    <line x1="16" y1="5" x2="16" y2="27" stroke="#888b90" stroke-width="1.2"
+          stroke-dasharray="2.6 2.4"/>
+    <path d="M22.4 6 C 21.6 12.6, 12.4 19.4, 11.6 26"
+          fill="none" stroke="#fbbe23" stroke-width="3.1" stroke-linecap="round"/>
+  </svg>
+
+  <h1>This page is not held offline</h1>
+
+  <p>
+    There is no network, and the console's cache does not have this particular page. The
+    pages below were stored the first time the console loaded, so they should open now.
+  </p>
+
+  <ul>
+    <li><a href="/">Queue</a>, the ranked passes</li>
+    <li><a href="/start/">Start here</a></li>
+    <li><a href="/evaluation/">Evaluation</a>, every gate and its verdict</li>
+    <li><a href="/agent/">Use it from an agent</a></li>
+    <li><a href="/precedent/">Precedent</a></li>
+    <li><a href="/replay/">Replay</a></li>
+    <li><a href="/provenance/">Provenance</a>, every published digest</li>
+  </ul>
+
+  <p class="quiet">
+    A single pass and its waterfall image are cached once you have opened them, not before.
+    <a href="/live/">Live measurement</a> needs the network either way: it downloads a
+    waterfall from SatNOGS and fits a Doppler corridor to it, and this console will report
+    <code>ENDPOINT_UNREACHABLE</code> rather than answer from a cache, because a cached
+    measurement is a measurement nobody took.
+  </p>
+</main>
+</body>
+</html>

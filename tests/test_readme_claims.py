@@ -64,6 +64,11 @@ _NOT_A_PATH: dict[str, str] = {
     "PRE_PASSED": "a verdict value",
     "OPEN": "a verdict value",
     "UNMEASURED": "a table marker",
+    "/api/health/": "a URL path on the deployment; the file is api/health.py",
+    "provenance.json": (
+        "the file as the deployment serves it, at /data/provenance.json; the tracked copy "
+        "is apps/web/public/data/provenance.json and is named in full elsewhere"
+    ),
 }
 
 

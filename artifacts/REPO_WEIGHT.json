@@ -1,11 +1,11 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-24T09:58:17+05:30",
- "commit": "6c90e3cf7960374fce4dcf74dc8b6fc2380a0bb3",
- "tracked_files": 487,
- "tracked_bytes": 62729385,
- "tracked_megabytes": 59.82,
+ "measured_at_commit_date": "2026-08-24T10:05:14+05:30",
+ "commit": "d04f613a77e659ca26a2132a444fcb12b72acd61",
+ "tracked_files": 518,
+ "tracked_bytes": 63200567,
+ "tracked_megabytes": 60.27,
  "by_directory": [
   {
    "path": "artifacts/a3_overlays",
@@ -13,7 +13,7 @@
   },
   {
    "path": "apps/web",
-   "megabytes": 12.1
+   "megabytes": 12.18
   },
   {
    "path": "presentation/out",
@@ -64,14 +64,14 @@
    "megabytes": 0.25
   },
   {
-   "path": "artifacts/SPLIT_MANIFEST.json",
-   "megabytes": 0.21
+   "path": "mobile/package-lock.json",
+   "megabytes": 0.23
   }
  ],
  "by_directory_remainder": {
-  "groups": 238,
-  "bytes": 4856952,
-  "megabytes": 4.63,
+  "groups": 255,
+  "bytes": 5231590,
+  "megabytes": 4.99,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [

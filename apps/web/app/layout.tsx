@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 // IBM Plex, self-hosted, latin subset only, at the three weights this console
 // actually sets. Carbon's typeface served from the console's own origin, so every
@@ -66,6 +66,30 @@ export const metadata: Metadata = {
     images: ["/og.png"],
   },
   robots: { index: true, follow: true },
+  // Installable, with no store account on either platform. `public/manifest.webmanifest`
+  // carries the name, the ground colour and three shortcuts; the icons are rasterised
+  // from `app/icon.svg` by scripts/build_pwa_icons.py, so the home-screen icon is the
+  // same mark as the favicon and cannot drift from the palette.
+  //
+  // iOS reads `apple-touch-icon` at 180 and ignores the manifest's `purpose: maskable`
+  // variant, which is why there are four files rather than two. `appleWebApp.capable`
+  // is what makes an Add to Home Screen launch open without Safari's chrome.
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "TraceTriage",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
+};
+
+export const viewport: Viewport = {
+  // The same value as the manifest's `theme_color` and `--ui-background`. It colours the
+  // address bar on Android and the status bar area of an installed launch, so a mismatch
+  // shows up as a band of the wrong grey above the page.
+  themeColor: "#0c0e12",
 };
 
 // Read once at build time, in the server layout, and handed to the rail as plain
@@ -208,6 +232,30 @@ export default function RootLayout({
             />
           </main>
         </div>
+        {/* Register the service worker, and only in a built export.
+
+            `process.env.NODE_ENV` is inlined at build time, so `next dev` emits no script
+            at all. That is deliberate rather than tidy: the worker answers `/_next/static/`
+            from cache first, which is correct for a production build where those names
+            carry a content hash and are served `immutable`, and wrong under the dev server
+            where the same paths are rebuilt in place.
+
+            On `load` rather than inline, so it competes with nothing on the critical path.
+            A first visit is never faster for this; the second one is the point. There is
+            no update prompt and no reload nag, because documents are network-first: a
+            reader online is reading what the deployment currently serves, worker or not.
+
+            CSP: `worker-src` is not set in vercel.json, so this falls back to `script-src
+            'self'`, which a same-origin worker satisfies. */}
+        {process.env.NODE_ENV === "production" && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html:
+                "if('serviceWorker' in navigator){addEventListener('load',function(){"
+                + "navigator.serviceWorker.register('/sw.js').catch(function(){})})}",
+            }}
+          />
+        )}
       </body>
     </html>
   );
