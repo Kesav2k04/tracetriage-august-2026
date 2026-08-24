@@ -19,11 +19,22 @@
     "scripts/render_evidence_card.py",
     "scripts/run_baseline.py",
     "artifacts/TRIAGE_RECEIPT.json",
-    "artifacts/evidence_card_14740031.html",
-    "artifacts/hoglr_model.pkl",
     "docs/KILL_GATE.md",
-    "docs/BOB_BUILD_LOG.md",
-    "docs/BOB_HANDOFF.md"
+    "docs/BOB_BUILD_LOG.md"
+   ],
+   "files_not_published": [
+    {
+     "path": "artifacts/evidence_card_14740031.html",
+     "why": "A rendered evidence card, rebuilt by scripts/render_evidence_card.py from the observation it names."
+    },
+    {
+     "path": "artifacts/hoglr_model.pkl",
+     "why": "A trained model, rebuilt from the snapshot by the pipeline. artifacts/ holds build outputs, which are regenerated rather than committed."
+    },
+    {
+     "path": "docs/BOB_HANDOFF.md",
+     "why": "A working handover document, kept out of the tracked tree by .gitignore. What it briefed is published as these units; the briefing itself is not."
+    }
    ],
    "what_failed": "_score_with_hoglr initially re-fit from corpus on every call (~11 min)."
   },
@@ -39,8 +50,13 @@
     "tests/test_baseline.py",
     "artifacts/BASELINE_RECEIPT.json",
     "docs/PRIOR_ART_BASELINES.md",
-    "docs/BOB_BUILD_LOG.md",
-    "docs/BOB_HANDOFF.md"
+    "docs/BOB_BUILD_LOG.md"
+   ],
+   "files_not_published": [
+    {
+     "path": "docs/BOB_HANDOFF.md",
+     "why": "A working handover document, kept out of the tracked tree by .gitignore. What it briefed is published as these units; the briefing itself is not."
+    }
    ],
    "what_failed": "Manifest observation records use waterfall_url (not waterfall), retrieved_at (not _retrieved_at), and have no status or end field."
   },
@@ -54,8 +70,13 @@
     "pipeline/tracetriage/provenance.py",
     "tests/test_provenance.py",
     "docs/LABEL_PROVENANCE.md",
-    "docs/BOB_BUILD_LOG.md",
-    "docs/BOB_HANDOFF.md"
+    "docs/BOB_BUILD_LOG.md"
+   ],
+   "files_not_published": [
+    {
+     "path": "docs/BOB_HANDOFF.md",
+     "why": "A working handover document, kept out of the tracked tree by .gitignore. What it briefed is published as these units; the briefing itself is not."
+    }
    ],
    "what_failed": "__post_init__ had an over-strict invariant: \"UNLABELLED must not come from decisive waterfall_status\"."
   },
@@ -72,6 +93,7 @@
     "contracts/split_manifest.schema.json",
     "scripts/gate.py"
    ],
+   "files_not_published": [],
    "what_failed": "scripts/gate.py secret scan flagged itself because the bare ghp_| pattern matched the pattern literal in the script."
   },
   {
@@ -89,6 +111,7 @@
     "pyproject.toml",
     "tests/test_contracts.py"
    ],
+   "files_not_published": [],
    "what_failed": "None in the integration step. One correction applied: client_version added to required on the observations entry in dataset_manifest.schema.json."
   },
   {
@@ -104,6 +127,7 @@
     "tests/test_contracts.py",
     "docs/BOB_BUILD_LOG.md"
    ],
+   "files_not_published": [],
    "what_failed": "ruff: 31 lint errors on first pass (E501, UP017, F401, B017, SIM117, F841, I001)."
   },
   {
@@ -119,6 +143,7 @@
     "docs/BOB_BUILD_LOG.md",
     "scripts/_inspect_fixtures.py"
    ],
+   "files_not_published": [],
    "what_failed": "First implementation used label pixel-width to infer kHz-per-tick."
   },
   {
@@ -132,15 +157,20 @@
     "tests/test_physics.py",
     "scripts/validate_physics.py",
     "artifacts/PHYSICS_VALIDATION.json",
-    "docs/BOB_BUILD_LOG.md",
-    "docs/BOB_HANDOFF.md"
+    "docs/BOB_BUILD_LOG.md"
+   ],
+   "files_not_published": [
+    {
+     "path": "docs/BOB_HANDOFF.md",
+     "why": "A working handover document, kept out of the tracked tree by .gitignore. What it briefed is published as these units; the briefing itself is not."
+    }
    ],
    "what_failed": "First frozen test observation (ISS over Prague, 2024-01-01 12:00 UTC) was below the horizon — elevation -55.9°."
   },
   {
    "unit": "B1",
-   "date": "17 Aug 2026",
-   "actor": "account 3",
+   "date": "2026-08-17",
+   "actor": "Account 3",
    "subject": "grouped splits, leakage audit",
    "bob_task_id": "c3a0c9d2a43d8493ffcbe58ba4d78549",
    "files": [
@@ -153,6 +183,7 @@
     "artifacts/SPLIT_MANIFEST.json",
     "artifacts/LEAKAGE_AUDIT.json"
    ],
+   "files_not_published": [],
    "what_failed": "Cold-combined, version 1 (Bob). One-cold-one-warm observations went to train."
   },
   {
@@ -172,6 +203,7 @@
     "docs/CLAIM_REGISTER.md",
     "tests/test_contracts.py"
    ],
+   "files_not_published": [],
    "what_failed": "list(set(episode_of.values())) was non-deterministic (Python set iteration order is not guaranteed)."
   }
  ]

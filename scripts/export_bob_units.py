@@ -29,6 +29,7 @@ import argparse
 import importlib.util
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -112,6 +113,75 @@ def _files(body: str) -> list[str]:
     return seen
 
 
+#: Why each path the build log names is absent from the tracked tree. A path that does not
+#: resolve and is not named here stops the export, because the alternative is publishing an
+#: evidence list holding paths a reader cannot open. Adding a name to this table is a
+#: deliberate act that says "the log is right, this really is not shipped, and here is why".
+NOT_PUBLISHED = {
+    "docs/BOB_HANDOFF.md": (
+        "A working handover document, kept out of the tracked tree by .gitignore. What it "
+        "briefed is published as these units; the briefing itself is not."
+    ),
+    "artifacts/hoglr_model.pkl": (
+        "A trained model, rebuilt from the snapshot by the pipeline. artifacts/ holds build "
+        "outputs, which are regenerated rather than committed."
+    ),
+    "artifacts/evidence_card_14740031.html": (
+        "A rendered evidence card, rebuilt by scripts/render_evidence_card.py from the "
+        "observation it names."
+    ),
+}
+
+
+def _tracked() -> frozenset[str]:
+    """Every path in the tracked tree, read from git.
+
+    A walk of the working directory would answer a different question: it would count build
+    outputs and gitignored working documents as published, which is the exact confusion this
+    split exists to end. So this asks git, and a checkout with no git available is a refusal
+    rather than a fallback, because a quiet fallback here would restore the 404 it fixes.
+    """
+    try:
+        done = subprocess.run(
+            ["git", "-C", str(REPO), "ls-files"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise SystemExit(
+            "export_bob_units.py needs `git ls-files` to tell a published path from a "
+            f"withheld one, and it could not run here: {exc}"
+        ) from exc
+    return frozenset(done.stdout.split())
+
+
+def _split_files(paths: list[str], tracked: frozenset[str], unit: str) -> tuple[list, list]:
+    """Separate the paths a reader can open from the ones the log names but does not ship.
+
+    Both halves are kept. Dropping the second would make this export disagree with
+    docs/BOB_BUILD_LOG.md, which genuinely names those files, and the record being faithful
+    to its source is the point of generating it from that source at all. Naming them with a
+    reason turns an apparent broken link into a disclosure.
+    """
+    published = [path for path in paths if path in tracked]
+    withheld = []
+    for path in paths:
+        if path in tracked:
+            continue
+        why = NOT_PUBLISHED.get(path)
+        if why is None:
+            raise SystemExit(
+                f"unit {unit} names `{path}`, which is not in the tracked tree and has no "
+                f"entry in NOT_PUBLISHED. This file is published at /data/bob.json as the "
+                f"evidence list for these units, so a path in it that resolves nowhere is a "
+                f"claim nobody can check. Either the path is wrong in "
+                f"docs/BOB_BUILD_LOG.md, or it is deliberately not shipped and belongs in "
+                f"that table with a reason."
+            )
+        withheld.append({"path": path, "why": why})
+    return published, withheld
+
 def _first_sentence(text: str, limit: int = 220, floor: int = 40) -> str:
     """One sentence, so a table cell stays a table cell.
 
@@ -158,6 +228,7 @@ def collect() -> dict[str, Any]:
     assert matches, "the build log parser matched no dated units"
     bounds = [start for _, _, start, _ in matches] + [len(text)]
 
+    tracked = _tracked()
     units: list[dict[str, Any]] = []
     for index, (match, heading, _start, end) in enumerate(matches):
         unit = match.group("unit")
@@ -167,6 +238,7 @@ def collect() -> dict[str, Any]:
         subject = heading.split(unit, 1)[1].lstrip(":. ").strip()
         task_id = _task_id(body)
         failure = _field(body, FAILURE_FIELDS)
+        published, withheld = _split_files(_files(body), tracked, unit)
         units.append(
             {
                 "unit": unit,
@@ -174,7 +246,8 @@ def collect() -> dict[str, Any]:
                 "actor": match.group("actor").strip(),
                 "subject": subject,
                 "bob_task_id": task_id,
-                "files": _files(body),
+                "files": published,
+                "files_not_published": withheld,
                 "what_failed": _first_sentence(failure) if failure else None,
             }
         )

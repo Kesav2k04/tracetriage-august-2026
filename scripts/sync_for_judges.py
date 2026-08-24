@@ -1661,9 +1661,9 @@ so a scoring sheet and this page read in the same order.
 
 The challenge page states the criteria a second time and lists five, adding **Real-World
 Impact** and shortening the fourth to Feasibility. The two lists are answered here rather
-than one of them being picked: Real-World Impact has its own heading under the fourth
-criterion, so a judge scoring from either list finds their heading and the same evidence
-under it.
+than one of them being picked: Real-World Impact is a heading at the same level as the other
+four, so a judge scoring from either list finds their heading and the same evidence under it.
+Only four are scored, and this page does not imply a fifth score.
 
 ### Technical Execution
 
@@ -1707,13 +1707,14 @@ matching its receipt.
 
 {FEASIBILITY_THREE}
 
-#### Real-World Impact
+### Real-World Impact
 
 > Ability to create meaningful value and address real-world needs.
 
-The fifth criterion on the challenge page, which the Official Rules fold into the fourth.
-It is given its own heading because a judge working from the challenge page will look for
-it, and the evidence is the same either way.
+The fifth criterion on the challenge page, which the Official Rules fold into the fourth and
+do not score separately. It is a peer heading rather than a subheading because the challenge
+page sets the five out as equals, and a judge scanning this page's headings against that list
+should find five and not four. The evidence under it is the same either way.
 
 {IMPACT}
 

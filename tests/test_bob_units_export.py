@@ -17,6 +17,7 @@ attributed all three to the operator.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -134,3 +135,79 @@ def test_no_cited_file_is_a_dependency_specifier(doc) -> None:
         "these are counted as files and are not paths: "
         + ", ".join(f"{unit} cites {cited!r}" for unit, cited in offenders)
     )
+
+
+def test_every_published_path_resolves_in_the_tracked_tree(doc) -> None:
+    """`bob.json` is published as the evidence list for the criterion that leads on Bob.
+
+    Six of the sixty-six paths the log names are not shipped: a withheld handover document
+    cited by four units, and two build outputs under `artifacts/`. They used to sit in `files`
+    beside sixty that resolve, so four units published a file count a clone cannot account
+    for. The start page renders the count rather than the paths, so this was never a broken
+    link; it was a number that did not mean what it said.
+    """
+    tracked = set(
+        subprocess.run(
+            ["git", "-C", str(REPO), "ls-files"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split()
+    )
+    dead = {
+        f"{unit['unit']}: {path}"
+        for unit in doc["units"]
+        for path in unit["files"]
+        if path not in tracked
+    }
+    assert not dead, f"published paths that a reader cannot open: {sorted(dead)}"
+
+
+def test_the_withheld_paths_are_disclosed_rather_than_dropped(doc) -> None:
+    """Deleting them would be the easy fix and the wrong one.
+
+    `docs/BOB_BUILD_LOG.md` genuinely names those files, and an export that quietly disagreed
+    with the source it is generated from would be a worse defect than the broken link: it
+    would be unfalsifiable. Each one is kept, with a reason, so the gap is visible.
+    """
+    withheld = [
+        entry for unit in doc["units"] for entry in unit.get("files_not_published", [])
+    ]
+    assert withheld, (
+        "the log names files that are not shipped, so an empty list here means the split "
+        "stopped working and the paths were dropped instead"
+    )
+    for entry in withheld:
+        assert entry["path"] and entry["why"], entry
+        assert len(entry["why"]) > 30, (
+            f"`{entry['path']}` is withheld with no reason a reader could act on: "
+            f"{entry['why']!r}"
+        )
+
+
+def test_no_path_is_published_and_withheld_at_once(doc) -> None:
+    """The two lists partition the log's paths; they do not overlap and nothing falls out."""
+    for unit in doc["units"]:
+        published = set(unit["files"])
+        withheld = {entry["path"] for entry in unit.get("files_not_published", [])}
+        assert not (published & withheld), (
+            f"{unit['unit']} lists {sorted(published & withheld)} as both shipped and not"
+        )
+
+
+def test_every_date_is_iso_and_every_actor_is_spelled_one_way(doc) -> None:
+    """B1's heading read `17 Aug 2026 IST | account 3` where the other nine read ISO.
+
+    The console sorts and groups on these, so one unit written in a second format is a unit
+    that sorts wrong. Fixed at the heading in the build log rather than in the exporter,
+    because the exporter's job is to report the log faithfully and a normaliser here would
+    hide the next one.
+    """
+    for unit in doc["units"]:
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", unit["date"]), (
+            f"{unit['unit']} is dated {unit['date']!r}, which is not ISO"
+        )
+        assert re.fullmatch(r"Account \d+", unit["actor"]), (
+            f"{unit['unit']} names its actor {unit['actor']!r}, which is not the casing the "
+            f"other units use"
+        )

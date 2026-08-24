@@ -411,7 +411,10 @@ export default function StartPage() {
           headAlign={["left", "left", "left", "right", "left"]}
           caption={
             "Every row names a dated entry in the build log. The task column is the "
-            + "identifier that ties the entry to a real task in the account."
+            + "identifier that ties the entry to a real task in the account. A Files count "
+            + "with a +n names files the log records that this repository does not ship: a "
+            + "withheld handover document and two rebuilt artifacts. Hover it for which and "
+            + "why."
           }
         >
           {bob.units.map((unit) => (
@@ -432,7 +435,19 @@ export default function StartPage() {
                   </span>
                 )}
               </Cell>
-              <Cell mono>{unit.files.length}</Cell>
+              <Cell mono>
+                {unit.files.length}
+                {unit.files_not_published.length > 0 && (
+                  <span
+                    style={{ color: "var(--text-03)" }}
+                    title={unit.files_not_published
+                      .map((entry) => `${entry.path}: ${entry.why}`)
+                      .join("\n")}
+                  >
+                    {` +${unit.files_not_published.length}`}
+                  </span>
+                )}
+              </Cell>
               <Cell align="left">{unit.what_failed ?? "nothing recorded"}</Cell>
             </tr>
           ))}

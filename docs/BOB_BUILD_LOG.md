@@ -632,7 +632,7 @@ error distribution.
 
 ## B1. Grouped split builder and leakage audit
 
-### 17 Aug 2026 IST | account 3 | B1: grouped splits, leakage audit
+### 2026-08-17 IST | Account 3 | B1: grouped splits, leakage audit
 
 **Task given:** build the four real splits (chronological, cold-station,
 cold-transmitter, cold-combined) with entity grouping by transmitter and by orbital

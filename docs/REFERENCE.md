@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 43 JSON artifacts, 8 contracts, 61 scripts, 29 package modules and 1513 test functions across 86 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 43 JSON artifacts, 8 contracts, 61 scripts, 29 package modules and 1517 test functions across 86 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -198,7 +198,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_base_rates.py` | 7 | Check the documented base rates against a corpus that actually exists. |
 | `tests/test_baseline.py` | 47 | Tests for the A6 image-only baseline module. |
 | `tests/test_bob_unit_count.py` | 11 | The Bob unit count is a count of units, not of markdown headings. |
-| `tests/test_bob_units_export.py` | 6 | `apps/web/public/data/bob.json` is what the build log produces, and it says the hard part. |
+| `tests/test_bob_units_export.py` | 10 | `apps/web/public/data/bob.json` is what the build log produces, and it says the hard part. |
 | `tests/test_centre_energy_feature.py` | 14 | Guards on the centre-energy feature itself, not on the pipeline around it. |
 | `tests/test_ci_workflow.py` | 7 | What CI must keep doing, asserted against the workflow rather than against a memory. |
 | `tests/test_circularity.py` | 21 | The circularity analysis has to reproduce the gate before it is allowed to bound it. |

@@ -1132,7 +1132,17 @@ export interface BobUnit {
   subject: string;
   /** Null for the two units whose entry records a workspace and an account but no hash. */
   bob_task_id: string | null;
+  /** Paths that resolve in the tracked tree. Every entry is checked against `git ls-files`. */
   files: string[];
+  /**
+   * Paths the build log names that this repository does not ship, each with the reason.
+   *
+   * Kept rather than dropped: the log genuinely names a withheld handover document and two
+   * build outputs, and an export that quietly disagreed with the log it is generated from
+   * could not be checked against anything. The Files column counts both, so the count on the
+   * page stays the number the log records.
+   */
+  files_not_published: { path: string; why: string }[];
   what_failed: string | null;
 }
 
