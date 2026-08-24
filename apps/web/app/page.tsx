@@ -536,7 +536,7 @@ export default function QueuePage() {
 
       <Section
         title="What the measurement actually is"
-        description="Twenty-four seconds, rendered offline from one observation's own exported corridor. Served from this origin: there is no embed, no player script, and nothing about it is requested from anyone else."
+        description="Twenty-four seconds, no narration: one pass measured against the curve its own orbit predicts."
       >
         <figure className="explainer">
           {/* preload="none" so the 1.6 MB costs nothing until a reader asks for it,
