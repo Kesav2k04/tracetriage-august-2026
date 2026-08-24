@@ -332,7 +332,7 @@ outcome in this checkout is `NOT_CHECKED` because no IBM Cloud credential is set
 three are reported with their intervals or their reasons rather than left out because they are
 unflattering.
 
-**The console is eight static pages and one function.** A static export: no database and no
+**The console is eight static routes and one function.** Eight routes, 34 pre-rendered HTML files, because one of the eight is a per-observation page rendered once for each of the 25 shipped cards. A static export: no database and no
 credentials. Seven of the eight pages fetch nothing of their own at runtime. What they do reach for
 is the Adobe Fonts kit for three faces across two families (`neue-haas-grotesk-display 500`,
 `din-2014-narrow 600` and `din-2014-narrow 400`), and that is two hosts rather than one:

@@ -50,5 +50,18 @@ identifies exactly which observations produced them.
 
 ## Audit
 
-Task D4 audits attribution across every redistributed artifact. A missing source
-URL, retrieval timestamp or licence line is a release blocker, not a cleanup item.
+Task D4 audits attribution across every tracked media file, which is what a
+redistributed artifact is here: 83 of them, and `artifacts/ATTRIBUTION_AUDIT.json`
+carries a row each. A missing source URL, retrieval timestamp or modification
+notice on a SatNOGS-derived file is a release blocker, not a cleanup item, and
+`tests/test_release_audit.py` fails the suite on one.
+
+Two limits of that audit, stated because a licence audit that overstates itself is
+worse than a narrow one. The six obligations above are checked per row as
+`attribution`, `record_source_url`, `artifact_source_url`, `retrieval_timestamp`,
+`source_sha256` and `modification_notice`; the licence link is checked once, at the
+`published_where` level, because it is a property of the repository rather than of a
+file. And a file whose source cannot be resolved to an observation carries no
+obligation and says so in its row. Two files reach an observation only by
+declaration, because a renderer's output does not carry the id: the film and its
+poster, both listed with `observation_id_from: declared`.

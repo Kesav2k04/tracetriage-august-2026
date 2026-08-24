@@ -197,6 +197,21 @@ def main() -> int:
         )
     )
 
+    # docs/KILL_GATE.md is the document a judge reads for the verdicts, and its generated
+    # regions come from the receipts. It was checked by scripts/signoff.py and by the
+    # clean-clone replay and not here, which made README's claim that every generated
+    # document "fails the gate when they drift" false for this one: drift was caught at
+    # release time rather than at the cheap check, and a stale verdict is exactly the thing
+    # worth catching before a commit rather than after.
+    rc, out = run([str(PY), str(REPO / "scripts" / "sync_kill_gate.py"), "--check"])
+    results.append(
+        check(
+            "kill gate document matches its receipts",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
     # The reference page maps every artifact to what writes it and what checks it, and it
     # is generated from the tree rather than maintained, so a script added without a
     # docstring or a receipt nothing rebuilds shows up here instead of in a judge's diff.
