@@ -14,6 +14,11 @@ posts to `/api/live/`, so a number on a phone and the same number on the web can
 The Pass screen is the one worth opening. A list of scores is a list of scores; the question a
 reviewer has is whether the corridor sits on the trace, and that is a picture.
 
+Expect the Live screen to answer UNRESOLVED. It is not broken when it does. The mode verdict
+is only given when one shape leads by 8 sigma, and across the 25 waterfalls this snapshot
+holds the strongest corridor reaches 3.1, so the offset is withheld rather than guessed. A
+tool that printed a number there would be inventing one.
+
 ## Install
 
 Download `tracetriage.apk` from the [latest release](../../releases/latest) and open it.
@@ -57,13 +62,28 @@ public debug key. With no keystore present the build still works and produces a 
 APK, which is what a fork needs; `build-apk.ps1` then says so rather than letting it pass as a
 release.
 
-Two things that will waste an afternoon otherwise:
+Three things that will waste an afternoon otherwise:
 
 - **`JAVA_HOME` must be a JDK between 17 and 21.** Android Studio ships one at
   `<install>/jbr`, which is what `build-apk.ps1` uses. A system Java 22 fails with an
   unsupported class file version, which reads like a corrupt dependency.
 - **`apksigner` is per build-tools version.** The script picks the newest one that has it,
   because an SDK accumulates several and the oldest is usually the one on `PATH`.
+- **A long repository path decides what this app may depend on.** React Native's codegen
+  writes object file names that embed the full source path. Under a directory as deep as
+  `D:\IBM August Challenge\tracetriage-august-2026\mobile`, adding
+  `react-native-safe-area-context` produced a 268-character name and ninja failed with
+  `Filename longer than 260 characters`, twenty minutes into a build that was otherwise
+  working. Building through a junction does not help, because CMake canonicalises the path
+  before ninja sees it. So the system-bar inset is computed in JavaScript from
+  `StatusBar.currentHeight` instead, and `src/App.tsx` states the one approximation that
+  costs: the bottom inset is a constant, correct for gesture navigation and 24px short on a
+  three-button device.
+
+Running the APK is what found that inset. The first build printed "TraceTriage" through the
+status-bar clock and "3/6 GATES MET" through the battery icon, on a bundle that compiled with
+`tsc` clean and every test passing. No check in this repository looks at a rendered screen, so
+nothing caught it until somebody opened the app.
 
 ## What is checked, and where
 

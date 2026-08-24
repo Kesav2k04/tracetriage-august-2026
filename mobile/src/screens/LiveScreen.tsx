@@ -89,6 +89,11 @@ export default function LiveScreen({ initialId }: { initialId?: number }) {
         An observation id from satnogs.org. The endpoint downloads that waterfall and fits a
         corridor to it, which takes tens of seconds. Nothing is cached on this phone.
       </Text>
+      <Text style={styles.quiet}>
+        On the passes this queue flags, the verdict usually comes back UNRESOLVED. The mode
+        needs one shape to lead by 8 sigma and a weak pass does not settle it, so the offset
+        is withheld rather than guessed. That is the answer that says skip this one.
+      </Text>
 
       <View style={styles.controls}>
         <TextInput
@@ -202,7 +207,10 @@ function Result({ result }: { result: Extract<LiveResult, { kind: "measured" }> 
         title="Where this came from"
         note={
           "The digest is of the waterfall as downloaded for this measurement. Two runs on "
-          + "the same observation should agree on it, and on the offset."
+          + "the same observation should agree on it"
+          + (unresolved
+            ? ". There is no offset to compare, because the verdict withheld it."
+            : ", and on the offset.")
         }
       >
         <Row>

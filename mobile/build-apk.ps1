@@ -28,10 +28,8 @@
 param(
   [string]$KeystoreDir = "D:\tracetriage_keys",
   [string]$GradleCacheDir = "D:\dev-cache\gradle",
-  [string]$ShortPath = "D:\ttm",
   [string]$Alias = "tracetriage",
-  [switch]$SkipVerify,
-  [switch]$NoJunction
+  [switch]$SkipVerify
 )
 
 $ErrorActionPreference = "Stop"
@@ -43,23 +41,14 @@ $ExpectedFingerprint = "98B530887C396BD9780B1F487154613DB3B6B5761794D7B737834A9C
 
 $mobile = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-# Windows MAX_PATH, and it is not optional. React Native's codegen writes object files whose
-# names embed the full source path, and this repository lives under "D:\IBM August
-# Challenge\tracetriage-august-2026\mobile". With react-native-safe-area-context in the graph
-# the longest of those is 268 characters and ninja fails with
-# "Filename longer than 260 characters" after twenty minutes of otherwise successful work.
-#
-# Building through a junction is the fix: the same directory, reached by a short name, so every
-# path ninja writes is 40 characters shorter. It is created here rather than documented as a
-# prerequisite, because a build step nobody remembers is a build that fails on the next machine.
-# `New-Item -ItemType Junction` needs no administrator rights.
-if ($mobile.Length -gt 40 -and -not $NoJunction) {
-  if (-not (Test-Path $ShortPath)) {
-    New-Item -ItemType Junction -Path $ShortPath -Target $mobile | Out-Null
-    Write-Host "built through $ShortPath (junction), because $($mobile.Length) characters of prefix overflows MAX_PATH"
-  }
-  $mobile = $ShortPath
-}
+# On MAX_PATH, because it decides what this app is allowed to depend on. React Native's
+# codegen writes object files whose names embed the full source path, and this repository lives
+# under "D:\IBM August Challenge\tracetriage-august-2026\mobile". Any dependency with C++
+# codegen deep enough to push one of those names past 260 characters fails here with
+# "ninja: error: Filename longer than 260 characters", twenty minutes into an otherwise
+# successful build. Building through a junction does not fix it: CMake canonicalises the path
+# before ninja sees it. `src/App.tsx` names the one dependency this ruled out and what it does
+# instead. Nothing in this script works around it, because there is no working workaround.
 
 $android = Join-Path $mobile "android"
 $jbr = "D:\Android Studio\jbr"

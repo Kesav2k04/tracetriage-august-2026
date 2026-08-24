@@ -14,13 +14,14 @@
 
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-// `SafeAreaView` from react-native is deprecated and, more to the point, applies no top
-// inset on Android. `app.json` sets `edgeToEdgeEnabled`, so the window really does start
-// behind the status bar: the first build of this screen rendered "TraceTriage" through the
-// clock and "3/6 GATES MET" through the battery icon. Running the APK is what found it; the
-// bundle built clean, every test passed, and no screenshot had been taken yet.
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import {
+  Platform,
+  Pressable,
+  StatusBar as SystemBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { ORIGIN, fetchProvenance, type Provenance } from "./api";
 import QueueScreen from "./screens/QueueScreen";
@@ -36,15 +37,34 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "live", label: "Live" },
 ];
 
-export default function App() {
-  return (
-    <SafeAreaProvider>
-      <Console />
-    </SafeAreaProvider>
-  );
-}
+/**
+ * The system-bar insets, without a native module.
+ *
+ * `app.json` sets `edgeToEdgeEnabled`, which on targetSdk 36 is not really optional: the
+ * window starts behind the status bar and ends behind the navigation bar. The first APK
+ * rendered "TraceTriage" through the clock and "3/6 GATES MET" through the battery icon.
+ * Running the build is what found that. The bundle compiled, every test passed, `tsc` was
+ * clean, and nobody had looked at a screenshot.
+ *
+ * The right library for this is `react-native-safe-area-context`, and it cannot be built
+ * here. Its codegen writes object files whose names embed the full source path, and under
+ * "D:\IBM August Challenge\tracetriage-august-2026\mobile" the longest is 268 characters:
+ * ninja fails with "Filename longer than 260 characters" twenty minutes into an otherwise
+ * successful build. Building through a junction does not help, because CMake canonicalises
+ * the path before ninja sees it. A dependency that cannot be built from a clone in a
+ * directory with a space in its name is not a dependency this app can carry.
+ *
+ * So: `StatusBar.currentHeight` for the top, which Android reports exactly, and a constant
+ * for the bottom. The constant is the honest weakness here and it is stated rather than
+ * hidden: 24 is the gesture-navigation pill's height, verified on the emulator this was
+ * built against, and a device using three-button navigation reserves 48. The tab labels sit
+ * above their own padding in both cases; on a three-button device the bar is closer to the
+ * buttons than a designer would choose. iOS gets zero, because this build is Android only.
+ */
+const TOP_INSET = Platform.OS === "android" ? SystemBar.currentHeight ?? 0 : 0;
+const BOTTOM_INSET = Platform.OS === "android" ? 24 : 0;
 
-function Console() {
+export default function App() {
   const [tab, setTab] = useState<Tab>("queue");
   const [selected, setSelected] = useState<number | null>(null);
   const [provenance, setProvenance] = useState<Provenance | null>(null);
@@ -61,7 +81,7 @@ function Console() {
   const gates = provenance?.gate_summary;
 
   return (
-    <SafeAreaView style={styles.root} edges={["top", "bottom"]}>
+    <View style={[styles.root, { paddingTop: TOP_INSET }]}>
       {/* Light glyphs on the dark ground. The bar's own colour is the window's under
           edge-to-edge, which `app.json` sets, so setting it here as well would be the one
           that loses. */}
@@ -129,7 +149,7 @@ function Console() {
           );
         })}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -173,6 +193,7 @@ const styles = StyleSheet.create({
     borderTopColor: palette.edge,
     borderTopWidth: StyleSheet.hairlineWidth,
     backgroundColor: palette.raised,
+    paddingBottom: BOTTOM_INSET,
   },
   tab: { flex: 1, alignItems: "center", paddingVertical: space.gap },
   tabMark: {
