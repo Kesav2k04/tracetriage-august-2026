@@ -1291,9 +1291,16 @@ def main(argv: list[str] | None = None) -> int:
     # original and `tests/test_health_endpoint.py` asserts byte equality. The alternative was a
     # function that reports `present: false` in production, which is a check that cannot fail
     # and therefore is not one.
-    (_REPO / "api" / "_provenance_for_function.json").write_bytes(
-        (data_dir / "provenance.json").read_bytes()
-    )
+    # Only for the real data directory. `scripts/check_artifact_freshness.py` runs this
+    # builder with `--data-dir` pointing at a temporary directory and diffs the result, so a
+    # write into the tree from that run is a read-only check with a side effect. The first
+    # version copied from `data_dir` unconditionally: the freshness check rebuilt into a temp
+    # directory, the copy beside the function was overwritten from it, and the sign-off then
+    # failed on a dirty file that nothing in the release had asked to change.
+    if data_dir == _DATA_DIR:
+        (_REPO / "api" / "_provenance_for_function.json").write_bytes(
+            (data_dir / "provenance.json").read_bytes()
+        )
 
     # ---- documents rendered in the console -------------------------------
     # USE_WITH_YOUR_AGENT.md is here because the criterion it answers is the one the
