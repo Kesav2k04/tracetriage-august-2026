@@ -252,9 +252,8 @@ export default function StartPage() {
         title="The judged criteria, and where each is answered"
         description={
           "The Official Rules score four criteria at 1 to 5 each. The challenge page "
-          + "states them again and lists five, adding Real-World Impact. Both lists are "
-          + "answered below, each row quoting the wording it came from and naming the "
-          + "page on this console that carries the evidence rather than the argument."
+          + "lists five, adding Real-World Impact. Both lists are answered below, each "
+          + "row quoting the wording it came from."
         }
       >
         <div style={{ display: "grid", gap: "var(--sp-05)", maxWidth: "62rem" }}>
@@ -266,13 +265,11 @@ export default function StartPage() {
                 + "well-structured solution.",
               answer: (
                 <>
-                  <Link href="/live/">Live</Link> is the one page that computes while you
-                  watch: paste an observation id recorded in the last few hours and the
-                  same code that built every number here measures it, from the public API,
-                  with no key. <Link href="/agent/">Agent</Link> is the tool layer against
-                  a control arm. Two MCP servers answer 12 tools and 4 resources, six of
-                  the tools are adapted for LangChain, and two LangFlow flows are built
-                  from the same handlers and executed rather than exhibited.
+                  <Link href="/live/">Live</Link> measures a pass while you watch.{" "}
+                  <Link href="/agent/">Agent</Link> is the tool layer against a control
+                  arm: two MCP servers answer 12 tools and 4 resources, six of the tools
+                  are adapted for LangChain, and two LangFlow flows are built from the
+                  same handlers and executed rather than exhibited.
                 </>
               ),
             },
@@ -286,8 +283,8 @@ export default function StartPage() {
                   that observation&rsquo;s own measured fields:{" "}
                   {notes.checker.refused} of {notes.checker.decided} drafts were refused.
                   The same rule set runs in Python and in your browser, so on{" "}
-                  <Link href={`/observation/${FIRST_CARD}/`}>an observation page</Link> you can change one
-                  digit and watch the refusal appear with no request leaving the page.
+                  <Link href={`/observation/${FIRST_CARD}/`}>an observation page</Link>{" "}
+                  you can change a digit and watch the refusal appear.
                 </>
               ),
             },
@@ -297,11 +294,10 @@ export default function StartPage() {
                 "Relevance to the challenge and ability to address real-world problems.",
               answer: (
                 <>
-                  Every corridor is propagated with SGP4 from the two-line elements carried
-                  in that observation&rsquo;s own record, never today&rsquo;s, so a
-                  measurement can be redone from its receipt. The frequency axis is read
-                  off the spectrogram&rsquo;s own tick labels because no metadata field
-                  supplies Hz per pixel. The corpus is{" "}
+                  Every corridor is propagated with SGP4 from the two-line elements
+                  carried in that observation&rsquo;s own record, never today&rsquo;s.
+                  The frequency axis is read off the spectrogram&rsquo;s own tick labels
+                  because no metadata field supplies Hz per pixel. The corpus is{" "}
                   {provenance.snapshot_id}, real public data under CC BY-SA 4.0, with{" "}
                   <Link href="/provenance/">every obligation named</Link>.
                 </>
@@ -312,16 +308,14 @@ export default function StartPage() {
               quote: "Practicality, scalability, and potential for real-world use.",
               answer: (
                 <>
-                  A static export: no server, no database, no credential and nothing that
-                  carries a number fetched from another origin. It cannot break in front of
-                  you because a backend went down.{" "}
-                  <Link href="/replay/">Baselines</Link> is the queue against the orderings
-                  a reviewer could have used instead, and{" "}
-                  <Link href="/provenance/">Provenance</Link> names the receipt behind every
-                  figure and the command that regenerates it. Pointing it at observations of
-                  your own is a written path rather than an offer:{" "}
-                  <a href="/data/USE_WITH_YOUR_AGENT.md">the guide</a> is served from this
-                  origin and names the same tools the agent study measured.
+                  A static export, so it cannot break in front of you because a backend
+                  went down. <Link href="/replay/">Baselines</Link> is the queue against
+                  the orderings a reviewer could have used instead, and{" "}
+                  <Link href="/provenance/">Provenance</Link> names the receipt behind
+                  every figure and the command that regenerates it. Pointing it at
+                  observations of your own is a written path rather than an offer:{" "}
+                  <a href="/data/USE_WITH_YOUR_AGENT.md">the guide</a> names the same
+                  tools the agent study measured.
                 </>
               ),
             },
@@ -337,9 +331,8 @@ export default function StartPage() {
                 <>
                   The bottleneck is counted rather than asserted, in{" "}
                   <Link href="/provenance/">Provenance</Link>: most of{" "}
-                  {provenance.snapshot_id} carries no human verdict at all, which is what
-                  a ranked queue is for. On ground stations the queue was never fitted to,
-                  it surfaces conflicts at{" "}
+                  {provenance.snapshot_id} carries no human verdict at all. On ground
+                  stations the queue was never fitted to, it surfaces conflicts at{" "}
                   <span className="num">{fmt(coldStation.lift_point, 3)}x</span> the rate
                   of random review, interval{" "}
                   {fmtInterval(coldStation.lift_ci95, 3)}, and that split{" "}
