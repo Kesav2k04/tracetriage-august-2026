@@ -95,8 +95,8 @@
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "cfbe66a209efb58e9b5769ace8c0044cfe89595923b446bdbc524efe2a7bbda1",
-   "bytes": 88577,
+   "sha256": "ab2eb8351c312797d46677ced0a99f8b8a82fc3145e807d79d02fe96d900be59",
+   "bytes": 89806,
    "rewritten_after_this_payload": true
   },
   {
@@ -137,7 +137,7 @@
   },
   {
    "name": "FILM_RECEIPT.json",
-   "sha256": "ce715c1cca09a44edddc44c9d04b6e9d338edb480fbc32410bf84d6e8ea2a70a",
+   "sha256": "6bbb90aed6df07794adafa222ccaa3bb07176c18578fde2768b6fb9f334ec243",
    "bytes": 6475,
    "rewritten_after_this_payload": false
   },
@@ -233,8 +233,8 @@
   },
   {
    "name": "LIVE_TAKE.json",
-   "sha256": "c77a0ef0ed94ff958636184f5ea82232b93e775750d9a17de637f9c54a56a1aa",
-   "bytes": 7765,
+   "sha256": "668a82b377e7d6b8f451a19a28bd5684516e6ca8e7ec5d36b5e182b2033ea48d",
+   "bytes": 7787,
    "rewritten_after_this_payload": false
   },
   {
@@ -287,8 +287,8 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "d1e34eb935b8d1095ffba051dce38340498f1b2687084b78ab0575594233dc4a",
-   "bytes": 5133,
+   "sha256": "27cb76eb5b482983dd7e7a659ab1af945edaac2d674df736b17f7923f1448b0c",
+   "bytes": 5138,
    "rewritten_after_this_payload": true
   },
   {
@@ -305,7 +305,7 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "8859a7c54ca5c69e914dfe212819643df3141c795e9dcd2ca682efeaba2bfc49",
+   "sha256": "13c2776a7d58ef2760c63f0fadef7568cd26f8cdaf4997e57006b6ded60f0e28",
    "bytes": 1053,
    "rewritten_after_this_payload": true
   },

@@ -1,10 +1,10 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-25T01:48:15+05:30",
- "commit": "26a12bc6ceb80cf7d8fdbd2787e88b6680dbf9b1",
+ "measured_at_commit_date": "2026-08-25T03:09:36+05:30",
+ "commit": "93dced5fe9821a92584d75d77ad140d5dd34850e",
  "tracked_files": 528,
- "tracked_bytes": 82006355,
+ "tracked_bytes": 82010033,
  "tracked_megabytes": 78.21,
  "by_directory": [
   {
@@ -70,14 +70,14 @@
  ],
  "by_directory_remainder": {
   "groups": 256,
-  "bytes": 4961594,
+  "bytes": 4963711,
   "megabytes": 4.73,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
   {
    "path": "presentation/out/tracetriage-film.mp4",
-   "megabytes": 23.529
+   "megabytes": 23.531
   },
   {
    "path": "artifacts/GATE3_POOL.json",
@@ -175,7 +175,7 @@
   {
    "path": "presentation/out/",
    "files": 2,
-   "bytes": 25540875,
+   "bytes": 25542436,
    "megabytes": 24.36,
    "keep_because": "the rendered film and its poster, 142 seconds at 1920x1080 with narration. The source beside it reads every figure from the receipts rather than restating them, so the film's content is reproducible from this tree; the bytes are not, and presentation/REPORT.md gives the measurement. It is kept because a reader who watches it should not first have to install a renderer, and because an mp4 is the one artifact here that no diff can check after the fact."
   }

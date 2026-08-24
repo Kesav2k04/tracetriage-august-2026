@@ -74,7 +74,8 @@ def test_the_agreement_table_covers_every_quantity_the_script_compares(receipt: 
     agreement = receipt["agreement"]
     assert agreement["n_exact"] == len(agreement["exact"])
     assert agreement["n_differs"] == len(agreement["differs"])
-    assert agreement["n_exact"] + agreement["n_differs"] == expected
+    assert agreement["n_compared"] == agreement["n_exact"] + agreement["n_differs"]
+    assert agreement["n_compared"] == expected
 
 
 def test_the_fit_reproduces_and_the_difference_is_named(receipt: dict) -> None:

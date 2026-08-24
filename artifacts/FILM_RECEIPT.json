@@ -1,7 +1,7 @@
 {
  "schema": "FILM_RECEIPT",
  "schema_version": 1,
- "generated_at": "2026-08-24T21:05:09.978Z",
+ "generated_at": "2026-08-24T21:57:13.382Z",
  "generated_by": "presentation/scripts/report-table.ts",
  "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so nothing written by hand can disagree with it about the same film.",
  "composition": {
@@ -82,8 +82,8 @@
   }
  ],
  "claims": {
-  "total": 200,
-  "drawn": 170,
+  "total": 201,
+  "drawn": 171,
   "read_but_not_drawn": 30,
   "per_file": {
    "apps/web/public/data/bob.json": 32,
@@ -95,7 +95,7 @@
    "artifacts/DATASET_MANIFEST.json": 8,
    "artifacts/EXPLAIN_RECEIPT.json": 6,
    "artifacts/GATE3_RECEIPT.json": 12,
-   "artifacts/LIVE_TAKE.json": 18,
+   "artifacts/LIVE_TAKE.json": 19,
    "artifacts/NARRATION_RECEIPT.json": 3,
    "artifacts/OPERATOR_SESSION.json": 10,
    "artifacts/QUEUE_RECEIPT.json": 44
@@ -119,8 +119,8 @@
  ],
  "render": {
   "path": "presentation/out/tracetriage-film.mp4",
-  "bytes": 24672364,
-  "sha256": "6c86410ded2370329ea6457146daffd4f3ae14fe9d45e93462eef9b0f96226fa"
+  "bytes": 24673925,
+  "sha256": "b09a48b1987fb5b12688cc445656bdcd4b9723ab6ec9c3fef0d1f0dfe9379d62"
  },
  "poster": {
   "path": "presentation/out/tracetriage-film-poster.jpg",

@@ -673,6 +673,7 @@ export const liveTake = {
     "committed.corridor_features.detect_frac_curved",
     fixed(3),
   ),
+  compared: tk<number>("agreement.n_compared", identifier),
   exact: tk<number>("agreement.n_exact", identifier),
   differs: tk<number>("agreement.n_differs", identifier),
   takes: tk<number>("take.edit.takes", identifier),

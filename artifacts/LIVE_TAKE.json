@@ -3,7 +3,7 @@
   "schema_version": 1,
   "what_this_is": "The one filmed take of the deployed console measuring an observation, with the numbers it returned and the numbers this repository already held for the same observation.",
   "what_this_does_not_measure": "Nothing here says the method is right. It says the path a reader can drive returns what the committed receipts say, for one observation, on one day.",
-  "generated_at": "2026-08-24T21:31:44+00:00",
+  "generated_at": "2026-08-24T21:48:24+00:00",
   "generated_by": "scripts/record_live_take.py",
   "observation": {
     "id": 14742699,
@@ -47,7 +47,7 @@
     }
   },
   "measured_live": {
-    "measured_at_utc": "2026-08-24T21:31:44+00:00",
+    "measured_at_utc": "2026-08-24T21:48:24+00:00",
     "verdict": "UNCORRECTED",
     "why": "energy follows the predicted Doppler curve: 30.8 sigma against 7.1 for the best vertical line",
     "mode_sigma_curved": 30.831295830518123,
@@ -127,6 +127,7 @@
     }
   },
   "agreement": {
+    "n_compared": 10,
     "n_exact": 8,
     "n_differs": 2,
     "exact": [

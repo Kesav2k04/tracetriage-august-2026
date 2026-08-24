@@ -187,6 +187,9 @@ def _agreement(live: dict, committed: dict) -> dict[str, object]:
     )
 
     return {
+        # The denominator is a field rather than a sum the reader has to do, because the
+        # film prints "8 of the 10" and both halves of that sentence should come from here.
+        "n_compared": len(exact) + len(differs),
         "n_exact": len(exact),
         "n_differs": len(differs),
         "exact": exact,

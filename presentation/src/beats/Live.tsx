@@ -208,7 +208,7 @@ export const Live: React.FC = () => (
           delay={TABLE_AT + 12}
         />
         <Row
-          label="rows where the trace was detected, as a fraction"
+          label="trace detected, as a fraction of rows"
           held={liveTake.heldDetectFrac.display}
           now={liveTake.detectFrac.display}
           delay={TABLE_AT + 24}
@@ -223,9 +223,9 @@ export const Live: React.FC = () => (
             }}
           >
             <span style={{ fontFamily: font.sans, fontSize: 24, color: token.text01 }}>
-              {liveTake.exact.display} of the quantities compared agree to the last digit.
-              The {liveTake.differs.display} that do not are the mode score, which a
-              different builder writes.
+              {liveTake.exact.display} of the {liveTake.compared.display} quantities
+              compared agree to the last digit. The {liveTake.differs.display} that do not
+              are the mode score, which a different builder writes.
             </span>
             <div style={{ marginTop: 14 }}>
               <Mono size={18} colour={token.text03}>
