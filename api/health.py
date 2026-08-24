@@ -24,9 +24,13 @@ seconds; this one has to answer while that is still waking up, or it is not a he
 The same reason it does no network call: an endpoint that reports the health of SatNOGS is
 reporting something this deployment does not control.
 
-Deployed at `/api/health/` next to `api/live.py`. `vercel.json` gives it the one data file
-it reads via `includeFiles`, because a Python function on Vercel gets its own filesystem and
-not the static export's.
+Deployed at `/api/health/` next to `api/live.py`. A Python function on Vercel gets its own
+filesystem and not the static export's, and `apps/web/public` is the one directory it cannot
+be given: Next.js treats it as static assets, Vercel consumes it into the CDN payload, and
+three `includeFiles` patterns against it all produced `present: false` in production. So
+`scripts/build_console_data.py` writes a byte copy to `api/_provenance_for_function.json` in
+the same breath as the original, `tests/test_health_endpoint.py` asserts the two are
+byte-identical, and `served_data.source` says which of them answered this request.
 """
 
 from __future__ import annotations
@@ -48,7 +52,25 @@ _STARTED = time.time()
 #: works both on Vercel, where the function is rooted at the project directory, and in a
 #: checkout, where it is run from anywhere.
 _REPO = Path(__file__).resolve().parents[1]
-_PROVENANCE = _REPO / "apps" / "web" / "public" / "data" / "provenance.json"
+
+#: The console's own copy first, then the byte copy `scripts/build_console_data.py` writes
+#: beside this function. The second is not a convenience. `apps/web/public` is Next.js's static
+#: asset directory: Vercel consumes it into the CDN payload and leaves it out of a serverless
+#: function's bundle, so the first path is present in a checkout and absent in production. Three
+#: `includeFiles` patterns were tried against the live deployment before the function's own root
+#: listing made that plain. `served_data.source` says which one answered, because a digest whose
+#: origin is ambiguous is not evidence of anything.
+_CANDIDATES = (
+    ("the console's own data directory", _REPO / "apps/web/public/data/provenance.json"),
+    ("the copy beside this function", _REPO / "api/_provenance_for_function.json"),
+)
+
+
+def _provenance_path() -> tuple[str, Path] | tuple[None, None]:
+    for source, path in _CANDIDATES:
+        if path.is_file():
+            return source, path
+    return None, None
 
 #: Vercel's system environment variables. Present when the project is connected to git and
 #: absent on a CLI deployment from a working tree, which is a real difference and is
@@ -73,32 +95,32 @@ def _provenance() -> dict[str, Any]:
     proves the file is still there; a digest computed once at cold start and served for an
     hour is a statement about the past.
     """
-    if not _PROVENANCE.is_file():
-        # The first deployment of this function landed here. `vercel.json` named the file as a
-        # bare path, `apps/web/public/data/provenance.json`, and nothing was bundled;
-        # `api/live.py` beside it uses `pipeline/**` and gets its files, so the pattern needs a
-        # glob to match. The three fields below exist because diagnosing that took a deploy
-        # cycle: without them the answer is "present: false" and no way to tell a missing
-        # include from a wrong path, and each round trip is a push and a rebuild.
+    source, path = _provenance_path()
+    if path is None:
+        # Kept, and load-bearing. Three includeFiles patterns were tried against the live
+        # deployment and each one answered present: false with no way to tell a missing
+        # include from a wrong path. These fields are what narrowed it: the function root
+        # held artifacts, docs and mobile while nothing under apps/web/public was there.
         return {
-            "file": "apps/web/public/data/provenance.json",
             "present": False,
-            "looked_at": str(_PROVENANCE),
+            "looked_at": [str(candidate) for _, candidate in _CANDIDATES],
             "function_root": str(_REPO),
-            "root_entries": sorted(p.name for p in _REPO.iterdir())[:20]
+            "root_entries": sorted(item.name for item in _REPO.iterdir())[:20]
             if _REPO.is_dir()
             else [],
             "why_it_matters": (
                 "this function was deployed without the data file, so it cannot say "
                 "whether the console beside it is this repository. See includeFiles in "
-                "vercel.json."
+                "vercel.json, and note that apps/web/public is a Next.js asset directory "
+                "and is not bundled into a function."
             ),
         }
-    raw = _PROVENANCE.read_bytes()
+    raw = path.read_bytes()
     parsed = json.loads(raw)
     summary = parsed.get("gate_summary", {})
     return {
-        "file": "apps/web/public/data/provenance.json",
+        "file": str(path.relative_to(_REPO)).replace("\\", "/"),
+        "source": source,
         "present": True,
         "bytes": len(raw),
         "sha256": hashlib.sha256(raw).hexdigest(),

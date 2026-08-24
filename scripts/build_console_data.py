@@ -1277,6 +1277,24 @@ def main(argv: list[str] | None = None) -> int:
         newline="\n",
     )
 
+    # A byte copy beside the health function, because the function cannot read the one above.
+    #
+    # `api/health.py` exists to answer whether the deployment is this repository, by hashing
+    # the provenance file the console serves. On Vercel it could not: `apps/web/public` is
+    # Next.js's static asset directory, consumed into the CDN payload and excluded from a
+    # serverless function's bundle. Three `includeFiles` patterns were tried against the
+    # deployment, including the exact `pipeline/**` shape that works for `api/live.py`, and all
+    # three reported `present: false` while the function's own root listing showed `artifacts`,
+    # `docs` and `mobile` sitting there. A path outside `public/` is the mechanism that works.
+    #
+    # Two copies of one file is a drift risk, so it is generated here in the same breath as the
+    # original and `tests/test_health_endpoint.py` asserts byte equality. The alternative was a
+    # function that reports `present: false` in production, which is a check that cannot fail
+    # and therefore is not one.
+    (_REPO / "api" / "_provenance_for_function.json").write_bytes(
+        (data_dir / "provenance.json").read_bytes()
+    )
+
     # ---- documents rendered in the console -------------------------------
     # USE_WITH_YOUR_AGENT.md is here because the criterion it answers is the one the
     # blind-seat review scored lowest, and the console had no path to it at all: the

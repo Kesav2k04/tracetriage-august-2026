@@ -1,0 +1,400 @@
+{
+ "snapshot_id": "snap-20260817-stage1",
+ "split_manifest_sha256": "c0f8cd3a5dd5fbf9b6d49beacc5c050e1cf2525daca210945a6fba80226873c9",
+ "data_licence": {
+  "name": "CC BY-SA 4.0",
+  "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "attribution": "Contains data from the SatNOGS Network (https://network.satnogs.org), (c) SatNOGS contributors, licensed CC BY-SA 4.0.",
+  "obligations": "DATA_LICENSE.md"
+ },
+ "gate_summary": {
+  "gates": [
+   {
+    "gate": 1,
+    "title": "Dataset volume and entity spread",
+    "verdict": "PRE_PASSED",
+    "decided_in": "docs/KILL_GATE.md"
+   },
+   {
+    "gate": 2,
+    "title": "Metadata coverage for the corridor",
+    "verdict": "PRE_PASSED",
+    "decided_in": "docs/KILL_GATE.md"
+   },
+   {
+    "gate": 3,
+    "title": "Corridor intersects a visible trace",
+    "verdict": "NOT_ESTABLISHED",
+    "decided_in": "artifacts/GATE3_RECEIPT.json",
+    "verdict_in_the_receipt": "PASSED_UNGROUPED_ONLY"
+   },
+   {
+    "gate": 4,
+    "title": "Blinded human decidability",
+    "verdict": "PASSED",
+    "decided_in": "artifacts/GATE4_RECEIPT.json"
+   },
+   {
+    "gate": 5,
+    "title": "Physics beats image-only on Brier",
+    "verdict": "NOT_ESTABLISHED",
+    "decided_in": "artifacts/FUSION_RECEIPT.json"
+   },
+   {
+    "gate": 6,
+    "title": "Queue lift over random",
+    "verdict": "NOT_ESTABLISHED",
+    "decided_in": "artifacts/QUEUE_RECEIPT.json"
+   }
+  ],
+  "n_gates": 6,
+  "n_met": 3,
+  "note": "Met counts a gate that was passed or pre-passed. It deliberately does not count NOT_ESTABLISHED, which is a measurement that came back inconclusive rather than a threshold that was cleared, and it does not count OPEN, which is a study that was never run."
+ },
+ "splits": [
+  {
+   "name": "chronological",
+   "counts": {
+    "train": 1909,
+    "calibration": 408,
+    "test": 410
+   }
+  },
+  {
+   "name": "cold_station",
+   "counts": {
+    "train": 2031,
+    "calibration": 293,
+    "test": 403
+   }
+  },
+  {
+   "name": "cold_transmitter",
+   "counts": {
+    "train": 2235,
+    "calibration": 139,
+    "test": 353
+   }
+  },
+  {
+   "name": "cold_combined",
+   "counts": {
+    "train": 945,
+    "calibration": 110,
+    "test": 183,
+    "excluded": 1489
+   }
+  }
+ ],
+ "receipts": [
+  {
+   "name": "AGENT_RECEIPT.json",
+   "sha256": "e98402dd20e1a396ebe9e83231e07431aee25961d83c647928a67887932357a8",
+   "bytes": 29212,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "ATTRIBUTION_AUDIT.json",
+   "sha256": "e2757e2ad5c5ec4681337a397d78f284c73620aba55f3d0b102ce3713d237c77",
+   "bytes": 87442,
+   "rewritten_after_this_payload": true
+  },
+  {
+   "name": "AXIS_READER_AUDIT.json",
+   "sha256": "01592786df3cb33c102cf940eccddab957e801822e0a521b4ca4e9d42ede000c",
+   "bytes": 15640,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "BASELINE_RECEIPT.json",
+   "sha256": "f2796822ec53b5902e84fad87d3f3fe1aa7a8b8e3e7e1a722bcae3b8348b1596",
+   "bytes": 8803,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "CIRCULARITY_RECEIPT.json",
+   "sha256": "8e6f893a005e3bcc474f852ca27aa4a70ae0d3df397dd474215e8a7d039de83e",
+   "bytes": 11376,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "CLEAN_CLONE_TRANSCRIPT.json",
+   "sha256": "312237a9855220ebab1ca9945f9ee18ed7f35b938bf13586e0ee35c23a1c6056",
+   "bytes": 14794,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "DATASET_MANIFEST.json",
+   "sha256": "7029e2a8b3bef5fd05107df8650269d2defa5c2c4241dda03c3f4484c61e8ba7",
+   "bytes": 2309369,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "EXPLAIN_RECEIPT.json",
+   "sha256": "49f9a2f902c2b1fb3b28d26bfdcc069839447bc11d09bd04dbda1918517e792c",
+   "bytes": 24954,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "FILM_RECEIPT.json",
+   "sha256": "e639304f572d33c5a755858fce3f1ed97e5c3f875d2f37a056201dab45d102cf",
+   "bytes": 5064,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "FONT_PAINT_RECEIPT.json",
+   "sha256": "cf9a8a36448599c1f9065c930277b0e37e9ebdac374e0f40aabbf18ac323c805",
+   "bytes": 6377,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "FUSION_RECEIPT.json",
+   "sha256": "57c379eff2f2ffdb40412f820cc0eda86eaff85997903136b724246866f68b04",
+   "bytes": 270666,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "GATE3_POOL.json",
+   "sha256": "dc6529a2eb4a22ffe3c377b772b23eac32c8862ad21cacad106deeab744e6c83",
+   "bytes": 3017898,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "GATE3_POOL_A_RECEIPT.json",
+   "sha256": "80d1fa57f0cc327682bcf4c9c1a1acdb0cf4658dab1e9a1d65e8e6755910c6ca",
+   "bytes": 2064646,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "GATE3_RECEIPT.json",
+   "sha256": "fd52c0dbf08ef1887dd072468508e4145749561724e5cb4cd68ff32e2d149b9c",
+   "bytes": 2048382,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "GATE3_SENSITIVITY.json",
+   "sha256": "eac05c8bfb49a4203e7a1da864a65c4b9c7d017a0d787a9beaeb147b28e8f3b0",
+   "bytes": 2725,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "GATE4_BUNDLE.json",
+   "sha256": "4a4411de5b4ea76cf346058d706b20c7799ddb6c719d02ceecac29df71edc64d",
+   "bytes": 1509,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "GATE4_RECEIPT.json",
+   "sha256": "36282b4bf0ba44e17aeb37e091790d28199aec71d267ae3e19cd636a8ce540d2",
+   "bytes": 74956,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "GATE4_WORKSHEET.json",
+   "sha256": "44cc11bd27d624f146af2c2ee5e064b07f28beefcc56c6f7384103e42ed25e5f",
+   "bytes": 11481,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "GATE_POWER_RECEIPT.json",
+   "sha256": "21868767aa13d6c08c63df5e09a9e6587acb5520de0de5fa9ba3fd928c70e576",
+   "bytes": 11321,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "HERO_NULLS.json",
+   "sha256": "905e748cd0b0f9454087ef56c8e0220f6c07a4c3e89421a2e7c4119dc7a56bf6",
+   "bytes": 24553,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "LANGCHAIN_RECEIPT.json",
+   "sha256": "043c8239286dee167e9ede84899e0ea471a18ac13451d811a9b1fcfd213b0982",
+   "bytes": 4069,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "LANGFLOW_RECEIPT.json",
+   "sha256": "e1b89120a51596fe4f572c6e94d79cefa85f63db6271d1e739ec2474892ca85a",
+   "bytes": 3862,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "LEAKAGE_AUDIT.json",
+   "sha256": "ecb4aff23de891691e09b045ea91f8449906c6dbd34f5a0e470b88d79a9f53a5",
+   "bytes": 10942,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "LIVE_SHELF_RECEIPT.json",
+   "sha256": "26c7c431441925aa8ac87e4e4483c53761d894a0b943bb1f9123a2c3aa943a26",
+   "bytes": 2653,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "MOTION_AA_CONTROL.json",
+   "sha256": "144edd40ad9380f961937a7a4d4984c6edd7fab4bc1c670ddfe6d178b8e6e900",
+   "bytes": 11217,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "MOTION_RECEIPT.json",
+   "sha256": "7848414e2567859de6ec3da143eba2a4d951780ec878a0da5a07dfbbfb3d03aa",
+   "bytes": 13006,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "NARRATION_RECEIPT.json",
+   "sha256": "7fddc9c1568a856f7086af8f8c648ef899bb6f4793db0724792cf6910cad1ad2",
+   "bytes": 14612,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "OFFLINE_RECEIPT.json",
+   "sha256": "e869ab82c1b7bdae96f310d4d2b54de2deaf5f4eb35f835c30260ccec3038bd8",
+   "bytes": 3727,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "OPERATOR_SESSION.json",
+   "sha256": "69564bde019b678364db629e0b42da87f4b562b3dc7be94a08588f249e9228b4",
+   "bytes": 6829,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "PHYSICS_VALIDATION.json",
+   "sha256": "6dc5302b243635282d4d9773bc200a3d95ec1fd4f09513fdac0cceddaec9cc4b",
+   "bytes": 63045,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "PRECEDENT_RECEIPT.json",
+   "sha256": "7cc6b2fde7059111611236cdb368f347399c2b6eb63117fd27f5fbcc7b9a6826",
+   "bytes": 9549,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "QUEUE_RECEIPT.json",
+   "sha256": "4204193634349fa8c40242078fe60f80d26e79b322a9da5d43b6652252307c0f",
+   "bytes": 259290,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "REPO_WEIGHT.json",
+   "sha256": "9810ebc26a86f9b9cdef91c9b3bc4003447d3c9d044ce46844465554e11333f3",
+   "bytes": 5138,
+   "rewritten_after_this_payload": true
+  },
+  {
+   "name": "SATELLITE_NAMES.json",
+   "sha256": "196ad682c56350b8dbf21aa4e60e36b8908ff2913266a27c95e1af6597f86951",
+   "bytes": 12328,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "SECOND_TRACE_SURVEY.json",
+   "sha256": "ef43f2ad5bc160be50b60877778f202436d3809db586814a314ff39789fadc62",
+   "bytes": 334073,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "SECRET_SCAN.json",
+   "sha256": "ceecdf1b038b479586ac568b118c12f166193d95b6cdcf37fee9f987c1404379",
+   "bytes": 988,
+   "rewritten_after_this_payload": true
+  },
+  {
+   "name": "SIGNOFF_RECEIPT.json",
+   "sha256": "e1368669e43e749e48ba5aaf7a83b8eadd027c9481ffb47bc923255edf1a5c1f",
+   "bytes": 3862,
+   "rewritten_after_this_payload": true
+  },
+  {
+   "name": "SPLIT_MANIFEST.json",
+   "sha256": "c0f8cd3a5dd5fbf9b6d49beacc5c050e1cf2525daca210945a6fba80226873c9",
+   "bytes": 223247,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "THROUGHPUT_RECEIPT.json",
+   "sha256": "8434514de99fd6251c3db9db032d3d3b21c314720adf5cb21b82289adfc6e6e5",
+   "bytes": 3112,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "TRIAGE_RECEIPT.json",
+   "sha256": "5884eb5dc9b6d1a72a7590534106a5bd432b27eb2a4f8dc4ee8055d790589a2e",
+   "bytes": 3775,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "VOICE_CASTING.json",
+   "sha256": "de4b9e6a02164e4b52210aa39d8a02ea898a09392deebc68a9930fc1f6c4ede5",
+   "bytes": 43849,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "WATSONX_RECEIPT.json",
+   "sha256": "86c9fbc9266c249c81cb57940268372c65b129dbfdb3b24d7a997281187f609a",
+   "bytes": 2108,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "corridor_features.json",
+   "sha256": "748ac151f0873df0dd4be46f6f46e14f519038a34078e7748c04eed9ceceb13d",
+   "bytes": 527163,
+   "rewritten_after_this_payload": false
+  }
+ ],
+ "receipts_note": "Every digest here is of the file as it stood when this payload was built. Four are marked, because scripts/signoff.py rewrites them after the console is built: it re-runs the release audit and then writes its own receipt, and each of those records the commit it ran at. A commit cannot record its own hash, so those four digests are one generation behind by construction and are marked rather than quietly wrong. Every unmarked digest is checked against the file on every gate run by tests/test_published_digests.py.",
+ "contracts": [
+  {
+   "name": "annotation_record.schema.json",
+   "version": "0.1.0",
+   "status": "ratified",
+   "sha256": "0f25ccfb0faca62559c62d28cde5ab92dcd017d281872c7c2542f1c92ab1f927"
+  },
+  {
+   "name": "dataset_manifest.schema.json",
+   "version": "0.2.1",
+   "status": "ratified",
+   "sha256": "13e1805625ea0f28cc8d0a74aa13cbc9b2e3255ad6d68fa73dfc8bcdf3c503b4"
+  },
+  {
+   "name": "fusion_receipt.schema.json",
+   "version": "0.1.0",
+   "status": "ratified",
+   "sha256": "6f1da46ce3f055133c05268e9f029f5320ceeff779997c758aebeaf14c943177"
+  },
+  {
+   "name": "queue_receipt.schema.json",
+   "version": "0.3.0",
+   "status": "ratified",
+   "sha256": "0a5cdbdc7aa59ac55f785ecc9c84928352951006fdf470e8fd5138b30daf379b"
+  },
+  {
+   "name": "source_observation.schema.json",
+   "version": "0.2.1",
+   "status": "ratified",
+   "sha256": "851c4db620bc3bce1dafa2c4bb9a03d652be516d9378891777c48746b244ab25"
+  },
+  {
+   "name": "split_manifest.schema.json",
+   "version": "0.5.0",
+   "status": "ratified",
+   "sha256": "daca6d6992ea30b0fca7c66edd764008cc8b1e8d3a05aacbf6787e3d87f6b5c8"
+  },
+  {
+   "name": "triage_receipt.schema.json",
+   "version": "0.3.0",
+   "status": "ratified",
+   "sha256": "5d491ab7fe86a9b20e0a6e0aae1104c587a121288184ec93c25f362dc450d82f"
+  },
+  {
+   "name": "waterfall_geometry.schema.json",
+   "version": "0.2.2",
+   "status": "ratified",
+   "sha256": "1ac826b1a1610843019dbbc37522ee5913cec8f50b3b300d62597ec0f6a92753"
+  }
+ ]
+}

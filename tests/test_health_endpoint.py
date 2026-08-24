@@ -189,7 +189,10 @@ def test_the_deployment_gives_the_function_the_file_it_hashes() -> None:
         f"includeFiles is {pattern!r}, a bare path. Vercel bundles nothing for it, and the "
         "function deploys reporting present: false."
     )
-    target = "apps/web/public/data/provenance.json"
+    # The file the function can actually be given. apps/web/public is Next.js's asset
+    # directory and Vercel does not bundle it into a function, which three patterns against it
+    # established the hard way, so the bundled copy lives beside the function instead.
+    target = "api/_provenance_for_function.json"
     assert (REPO / target).is_file(), f"{target} is not in the tree, so nothing can include it"
     assert fnmatch.fnmatch(target, pattern) or fnmatch.fnmatch(target, pattern + "/**"), (
         f"includeFiles {pattern!r} does not match {target!r}, which is the file the function "
@@ -199,3 +202,38 @@ def test_the_deployment_gives_the_function_the_file_it_hashes() -> None:
     # a reader will follow. Vercel routes the function at /api/health.
     sources = {rule["source"] for rule in config["rewrites"]}
     assert "/api/health/" in sources
+
+
+def test_the_functions_copy_is_byte_identical_to_the_consoles() -> None:
+    """Two copies of one file, so the risk is drift and this is what removes it.
+
+    `apps/web/public` is Next.js's static asset directory. Vercel consumes it into the CDN
+    payload and does not bundle it into a serverless function, so the function cannot read the
+    file whose digest it exists to publish. Three `includeFiles` patterns were tried against
+    the live deployment, including the exact `pipeline/**` shape that works for `api/live.py`,
+    and every one answered `present: false`.
+
+    `scripts/build_console_data.py` therefore writes a byte copy beside the function. If that
+    copy ever drifts, the endpoint publishes a digest for a file the console does not serve,
+    which is worse than publishing nothing: it is a check that agrees with itself.
+    """
+    console = REPO / "apps" / "web" / "public" / "data" / "provenance.json"
+    beside = REPO / "api" / "_provenance_for_function.json"
+    assert beside.is_file(), (
+        "api/_provenance_for_function.json is missing. Run scripts/build_console_data.py; the "
+        "deployed function has no other way to read the file it hashes."
+    )
+    assert beside.read_bytes() == console.read_bytes(), (
+        "the copy beside the function differs from the console's own. Re-run "
+        "scripts/build_console_data.py, which writes both."
+    )
+
+
+def test_the_function_prefers_the_consoles_own_copy() -> None:
+    """Order matters: the digest should be of the file the console serves where possible."""
+    sources = [str(path) for _, path in health._CANDIDATES]
+    assert "apps/web/public/data/provenance.json" in sources[0].replace("\\", "/")
+    assert "api/_provenance_for_function.json" in sources[1].replace("\\", "/")
+    named, resolved = health._provenance_path()
+    assert resolved is not None, "neither candidate exists in this checkout"
+    assert named, "the source that answered has to be named, or the digest has no origin"
