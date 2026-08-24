@@ -6,10 +6,15 @@
 
 ### Which satellite passes are worth a reviewer's time.
 
-**Open a pass, and you see the waterfall a volunteer would squint at with the orbit's own
-Doppler corridor drawn over it, the offset in hertz, and the reason this pass is above the
-next one. Type any observation id and the same physics measures it live, in about twenty
-seconds, from the public SatNOGS API.**
+**Volunteers around the world record radio signals from passing satellites, far faster than
+anyone can check them. TraceTriage decides which recordings are worth opening first, and
+shows the evidence behind every decision rather than asking anyone to trust a score.**
+
+Open a pass and you see the recording as an image, the waterfall a volunteer would squint
+at, with the curve this satellite's own orbit predicts drawn over it, how far the capture
+sat from that prediction in hertz, and the reason this pass ranks above the next one. Type
+any observation id and the same physics measures it live, in about twenty seconds, from the
+public SatNOGS API.
 
 [![CI](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml)
 [![Live console](https://img.shields.io/badge/live-tracetriage.vercel.app-fca50a?style=flat-square)](https://tracetriage.vercel.app/)
