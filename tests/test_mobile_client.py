@@ -142,3 +142,64 @@ def test_the_generated_android_project_is_not_tracked() -> None:
     ignore = (MOBILE / ".gitignore").read_text(encoding="utf-8")
     for entry in ("android/", "node_modules/", "*.apk"):
         assert entry in ignore, f"mobile/.gitignore does not exclude {entry}"
+
+
+def test_the_client_reads_a_refusal_where_the_endpoint_puts_it() -> None:
+    """A wrong nesting level is silent in TypeScript, and was.
+
+    Every refusal the live endpoint returns nests its code and detail under `error`. The first
+    version of `measure()` read `body.code` and `body.detail`, which are undefined, so a
+    rate-limited or not-found answer printed `HTTP_429` over "the endpoint answered without a
+    measurement and without a reason" while the endpoint had named both. Nothing caught it:
+    optional chaining on a missing key yields undefined rather than raising, so `tsc` was clean
+    and every test here passed. It took posting an id to the deployment.
+
+    The fixture holds the two bodies as captured, so this compares the parser against a
+    recorded shape rather than against a remembered one.
+    """
+    fixture = json.loads((REPO / "tests" / "fixtures" / "live_api_refusals.json")
+                         .read_text(encoding="utf-8"))
+    source = API.read_text(encoding="utf-8")
+
+    keys: set[str] = set()
+    for response in fixture["responses"]:
+        error = response["body"]["error"]
+        assert error, "a fixture response carries no error object to parse"
+        keys |= set(error)
+        assert "code" in error and "detail" in error, (
+            f"the recorded {response['http']} body has no code or detail to read"
+        )
+
+    # The parser has to reach through `error`, not read the top level.
+    assert "body.error" in source, (
+        "mobile/src/api.ts does not read the nested `error` object, which is where every "
+        "refusal the endpoint returns puts its code and detail"
+    )
+    for key in sorted(keys - {"kind", "observation_id"}):
+        assert f"error.{key}" in source or f"{key}:" in source, (
+            f"mobile/src/api.ts never reads error.{key}, which the recorded bodies carry"
+        )
+    # retry_after_s is actionable, so it is shown rather than dropped.
+    assert "retry_after_s" in source, (
+        "the endpoint says how long to wait and the client does not pass it on"
+    )
+
+
+def test_the_refusal_check_fails_on_the_parser_that_shipped_first() -> None:
+    """A self-proof, so the test above is not green because it asks nothing.
+
+    This is the code that was on disk before the deployment was posted to. It reads `code` and
+    `detail` from the top level of the body, where the endpoint does not put them.
+    """
+    shipped_first = """
+      const body = (await response.json()) as {
+        ok?: boolean; code?: string; detail?: string; message?: string;
+      };
+      return {
+        kind: "refused",
+        code: body.code ?? `HTTP_${response.status}`,
+        detail: body.detail ?? body.message ?? "no reason.",
+      };
+    """
+    assert "body.error" not in shipped_first
+    assert "retry_after_s" not in shipped_first

@@ -35,8 +35,18 @@ import { measure, type LiveResult } from "../api";
 import { palette, space, type } from "../theme";
 import { Panel, Row, Stat, Tag, fmt, int, shortSha } from "../ui";
 
-/** Ids worth trying: three passes the snapshot already holds, so the answer can be compared. */
-const SUGGESTED = [14746092, 14735140, 14732518];
+/**
+ * Ids worth trying: three passes the snapshot already holds, so the answer can be compared
+ * against a committed one.
+ *
+ * Ordered so the first tap resolves. `artifacts/GATE3_POOL.json` gives 14732518 UNCORRECTED at
+ * 17.06 sigma, and the live endpoint returns 16.88 on the same image, while 14746092 (0.92) and
+ * 14735140 (2.23) are both UNRESOLVED. The first draft of this list led with an unresolved one
+ * and the screen said to expect UNRESOLVED generally, which was two errors: it read the
+ * corridor fit's sigma as if it bounded the mode's, and it made a working endpoint look broken
+ * on the first tap a judge would take.
+ */
+const SUGGESTED = [14732518, 14746092, 14735140];
 
 type State =
   | { kind: "idle" }
@@ -90,9 +100,10 @@ export default function LiveScreen({ initialId }: { initialId?: number }) {
         corridor to it, which takes tens of seconds. Nothing is cached on this phone.
       </Text>
       <Text style={styles.quiet}>
-        On the passes this queue flags, the verdict usually comes back UNRESOLVED. The mode
-        needs one shape to lead by 8 sigma and a weak pass does not settle it, so the offset
-        is withheld rather than guessed. That is the answer that says skip this one.
+        Both answers are real. A verdict is only given when one shape leads by 8 sigma, and
+        2,291 of the 2,727 passes measured for gate 3 do not settle it, so UNRESOLVED with the
+        offset withheld is the common case rather than a fault. The first id below resolves and
+        the other two do not.
       </Text>
 
       <View style={styles.controls}>
@@ -100,7 +111,7 @@ export default function LiveScreen({ initialId }: { initialId?: number }) {
           value={text}
           onChangeText={setText}
           keyboardType="number-pad"
-          placeholder="14746092"
+          placeholder="14732518"
           placeholderTextColor={palette.quiet}
           style={styles.input}
           accessibilityLabel="SatNOGS observation id"

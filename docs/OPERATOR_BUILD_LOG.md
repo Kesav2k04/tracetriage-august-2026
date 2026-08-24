@@ -5815,7 +5815,9 @@ this changed a serialisation and not a selection.
 
 Two independent adversarial councils reviewed the tree at `c1f422b`. Neither found a
 physical claim that was wrong or a statistical claim inflated in the submission's favour.
-This entry and the two after it are the findings that survived checking.
+This entry is the finding from that review that is written up here. The sentence that stood
+here promised two more entries after it, and there were none: the promise is recorded in E19
+rather than deleted, because a reader who went looking for them deserves to know why.
 
 `docs/KILL_GATE.md` said "the pools are drawn from 2,750 observations, the whole
 snapshot". `artifacts/DATASET_MANIFEST.json` freezes 2,727, and
@@ -5858,3 +5860,116 @@ that number.
 table that still said 2,750 in both columns, and says plainly that it was written after the
 gate had been scored and why a change that removes only rows no predicate can admit cannot
 select a pool.
+
+## E19. Three surfaces were run instead of built, and each one gave up a defect
+
+Every check in this repository reads a file. None of them opens the app, and none of them
+posts to the deployment. This unit did both, and each surface produced a defect that had
+survived a clean `tsc`, a green suite and a passing gate.
+
+**The Android header printed through the status bar.** `app.json` sets `edgeToEdgeEnabled`,
+so on targetSdk 36 the window really does begin behind the system bar. The first release APK
+drew "TraceTriage" through the emulator's clock and "3/6 GATES MET" through its battery icon.
+The bundle compiled, `npx tsc --noEmit` was clean, `tests/test_mobile_client.py` passed and
+nobody had looked at a screenshot.
+
+The library for this is `react-native-safe-area-context`, and it cannot be built at this
+path. Its codegen writes object file names that embed the full source path, and under
+`D:\IBM August Challenge\tracetriage-august-2026\mobile` the longest reaches 268 characters,
+so ninja fails with `Filename longer than 260 characters` twenty minutes into an otherwise
+working build. Building through a junction does not help, because CMake canonicalises the
+path before ninja sees it. `src/App.tsx` computes the top inset from
+`StatusBar.currentHeight`, which Android reports exactly, and states the one approximation
+that costs: the bottom inset is a constant, right for gesture navigation and 24px short on a
+three-button device. A dependency that cannot be built from a clone in a directory with a
+space in its name is not one this app can carry, and `build-apk.ps1` says so rather than
+carrying a workaround that does not work.
+
+**The client reported that the endpoint gave no reason, on every refusal it gives.** Posting
+to `/api/live/` from a phone showed `HTTP_429` above "The endpoint answered without a
+measurement and without a reason." The endpoint had in fact answered
+`{"error":{"code":"RATE_LIMITED","detail":"at most 6 measurements per 60 s from one
+caller","retry_after_s":18}}`. Every refusal nests under `error`, and `measure()` read `code`
+and `detail` from the top level, where they are undefined. Optional access to a missing key
+yields undefined rather than raising, so nothing failed anywhere: not the compiler, not a
+test, not the screen. The same shape covers `NOT_FOUND` on an id that does not exist, so a
+judge typing a wrong number would have been told the endpoint had no reason for refusing.
+
+`tests/fixtures/live_api_refusals.json` holds both bodies as captured from the deployment on
+2026-08-24, and `tests/test_mobile_client.py` checks the parser against that recorded shape
+rather than against what its author remembered, with a self-proof that the same check fails
+on the version that shipped first. The client now also passes `retry_after_s` through,
+because "wait 18 seconds" is the only actionable thing in a rate limit.
+
+**A claim about one estimator was justified with another estimator's number.** The Live
+screen and `mobile/README.md` said to expect UNRESOLVED, and gave as the reason that the
+largest corridor sigma across the 25 cards is 3.1, well under the mode verdict's 8 sigma
+floor. Those are two different estimators over two different hypotheses. Observation
+14740031 has a corridor sigma of 2.02 and a mode sigma of 25.1, and the deployed endpoint
+returns UNCORRECTED on it with an offset of 13,985 Hz and p = 0.005. So did 14732518, which
+was already the third suggestion chip on that screen: the copy told a reader to expect a
+failure from a control that works.
+
+The corrected copy is measured rather than reasoned from the wrong column.
+`artifacts/GATE3_POOL.json` holds 2,291 UNRESOLVED against 308 UNCORRECTED and 128 CORRECTED
+over 2,727 observations, so UNRESOLVED is the common answer, which is what the screen now
+says. The suggestion list is reordered so the first tap resolves, because a first tap that
+returns three dashes reads as a broken endpoint whatever the copy underneath it says.
+
+**One correction to this file.** E18 opens "This entry and the two after it are the findings
+that survived checking", and nothing follows it: the two entries were never written. The
+sentence now describes what is here. A forward reference to content that does not exist is
+worse than a shorter list, because a reader who reaches the end of the file goes looking for
+the rest.
+
+## E20. The two readers disagree on 43 axes, and the gate was audited instead of re-derived
+
+`parse_waterfall`'s `label_reader` defaults to `"ocr"`, which is easyocr, and every number in
+`artifacts/GATE3_POOL.json` came through it. `live.py` passes `"auto"`, which prefers the
+model-free template matcher in `glyph_axis` and falls back to easyocr only when the matcher
+reads too few labels. Two surfaces, two readers, and nothing had ever compared them at scale.
+
+Posting the snapshot's own observations to the deployed endpoint compared them by accident.
+Six of seven verdicts matched the committed pool. Observation 14745990 did not: the endpoint
+returned UNCORRECTED at 9.40 sigma where the pool holds UNRESOLVED at 2.64, a flip across the
+8 sigma floor. The proximate cause is not the estimator. The endpoint reads 123.7624 Hz/px
+and the pool holds 1,157.0248, a factor of 9.35.
+
+The image settles it. Its frequency axis is labelled -30 to +30 kHz across 823 pixels, so
+60 kHz spans about 485 px, which is 123.76 Hz/px. At 1,157 Hz/px the same span would occupy
+52 px. The committed axis is wrong, and the pool's verdict for that observation follows from
+it. This is the failure mode already recorded twice in `docs/CLAIM_REGISTER.md`: easyocr read
+the centre tick of 14736773 as 562 where the value is 0, and over a 500-image sweep the
+template matcher never produced a label set that was not an arithmetic progression, so its
+failure is a missing label and never a wrong one. The reader that can be wrong is the one
+every committed number came through.
+
+**How far it goes, measured.** `scripts/audit_pool_axes.py` re-reads every pool axis with the
+matcher. Of 2,424 rows carrying an axis, 2,381 agree inside 1 percent, 43 do not, and none
+failed to read. 42 of the 43 differ by more than 2x, so they are a different reading rather
+than a rounding. Eight of the 43 are among the 289 observations gate 3 scored.
+
+**What it does to the gate, in its own estimator.** `artifacts/AXIS_READER_AUDIT.json`
+recomputes the published rate from `GATE3_RECEIPT.json`'s own rows and refuses to continue
+unless it reproduces both the rate and the bound, because a robustness figure from a
+different estimator than the one it is compared against says nothing. As published,
+224 of 289, rate 0.7751, 95 percent lower bound 0.7309. Dropping the eight disputed rows:
+223 of 281, bound 0.7499. Counting every one of them as a miss: 223 of 289, bound 0.7273.
+All three clear the pre-registered 0.70. Seven of the eight were already failing to
+discriminate, so the wrong axes had been costing the gate rather than inflating it.
+
+**The pool was not re-derived, and that is a decision rather than an oversight.** Re-reading
+it with the other reader would move gate 3's rate through fourteen published surfaces,
+including the home page's null plate and the rendered film's claim set, and the film is a
+binary whose digest is checked by a standing gate. The measured exposure does not change the
+verdict under the worst reading of it, and it points the wrong way for anyone hoping the gate
+was flattered. Spending the last week of the build re-deriving fourteen surfaces to move a
+number that already clears its bar, four days after a council reviewed the tree, buys risk
+and no conclusion. So it is audited, published, and named in the register with the reason.
+
+`tests/test_axis_reader_audit.py` pins the arithmetic offline: the three outcomes have to sum
+to the rows examined, each listed disagreement's stored ratio has to equal its two readings'
+quotient, the baseline has to be the receipt's own published figure, the disputed-and-scored
+set is recomputed by a second route from the receipt's rows, and each scenario has to record
+whether it clears the threshold rather than that it does. That last one is deliberate: a test
+asserting all three clear would go green on an audit that had stopped measuring.

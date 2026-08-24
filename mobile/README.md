@@ -14,10 +14,25 @@ posts to `/api/live/`, so a number on a phone and the same number on the web can
 The Pass screen is the one worth opening. A list of scores is a list of scores; the question a
 reviewer has is whether the corridor sits on the trace, and that is a picture.
 
-Expect the Live screen to answer UNRESOLVED. It is not broken when it does. The mode verdict
-is only given when one shape leads by 8 sigma, and across the 25 waterfalls this snapshot
-holds the strongest corridor reaches 3.1, so the offset is withheld rather than guessed. A
-tool that printed a number there would be inventing one.
+The Live screen answers in one of three ways and all three are real. UNCORRECTED and CORRECTED
+come with an offset in Hz and ppm and a p-value over the nulls. UNRESOLVED withholds the offset,
+because the image did not settle which shape it holds and a number measured against the wrong
+hypothesis means nothing. UNRESOLVED is the common answer: of the 2,727 passes in
+`artifacts/GATE3_POOL.json`, 2,291 do not resolve, against 308 UNCORRECTED and 128 CORRECTED.
+The first suggested id resolves at 17.06 sigma, so a first tap shows a measurement rather than
+three dashes.
+
+An earlier draft of this paragraph said to expect UNRESOLVED always, and justified it with the
+largest corridor sigma across the 25 cards, 3.1. That was the wrong quantity. The corridor
+fit's sigma and the mode's come from different estimators over different hypotheses, and
+observation 14740031 has a corridor sigma of 2.02 and a mode sigma of 25.1.
+
+The endpoint allows six measurements per minute from one caller and answers a seventh with
+`RATE_LIMITED` and the seconds to wait. The app prints that code and that number, which it did
+not always do: the first version read the refusal at the wrong nesting level and reported
+`HTTP_429` over "the endpoint answered without a measurement and without a reason" while the
+endpoint had named both. `tests/fixtures/live_api_refusals.json` holds the two bodies as
+captured from the deployment so the parser is checked against the real shape.
 
 ## Install
 

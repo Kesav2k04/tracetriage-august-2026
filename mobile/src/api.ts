@@ -218,6 +218,19 @@ export async function measure(obsId: number, timeoutMs = 75000): Promise<LiveRes
     });
     const body = (await response.json()) as {
       ok?: boolean;
+      // Every refusal nests under `error`. Read from the deployment on 2026-08-24:
+      // 429 -> {"ok":false,"error":{"kind":"rate_limit","code":"RATE_LIMITED",
+      //         "detail":"at most 6 measurements per 60 s from one caller","retry_after_s":18}}
+      // 422 -> {"ok":false,"error":{"kind":"refusal","code":"NOT_FOUND",
+      //         "detail":"observation 999999999","observation_id":999999999}}
+      // The first version of this function read `code` and `detail` at the top level, where
+      // they are undefined, so every server refusal printed HTTP_429 or HTTP_422 over "the
+      // endpoint answered without a measurement and without a reason" while the endpoint had
+      // in fact given one. A wrong nesting level returns undefined instead of raising, so
+      // nothing failed anywhere: not tsc, not a test, not the screen. Only posting an id to
+      // the live deployment showed it. The top-level names are kept as a fallback so an older
+      // deployment still reads.
+      error?: { kind?: string; code?: string; detail?: string; retry_after_s?: number };
       code?: string;
       detail?: string;
       message?: string;
@@ -231,13 +244,15 @@ export async function measure(obsId: number, timeoutMs = 75000): Promise<LiveRes
         source: body.source ?? "live",
       };
     }
+    const error = body.error ?? {};
+    const wait = error.retry_after_s;
+    const detail = error.detail ?? body.detail ?? body.message;
     return {
       kind: "refused",
-      code: body.code ?? `HTTP_${response.status}`,
+      code: error.code ?? body.code ?? `HTTP_${response.status}`,
       detail:
-        body.detail
-        ?? body.message
-        ?? "The endpoint answered without a measurement and without a reason.",
+        (detail ?? "The endpoint answered without a measurement and without a reason.")
+        + (typeof wait === "number" ? `. Try again in ${wait} s.` : ""),
     };
   } catch {
     return {

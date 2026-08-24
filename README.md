@@ -661,6 +661,15 @@ row in `docs/CLAIM_REGISTER.md`. Three mechanisms do most of the work:
   `--check`, which regenerates into memory and exits non-zero on any difference.
 - **`scripts/gate.py` runs every standing check in one command and prints its own tally**, and
   `scripts/signoff.py` refuses to sign a release while any of them has failed.
+- **A second instrument re-reads the inputs, and the disagreement is published.** Every
+  frequency axis behind gate 3 was read by easyocr, the one reader here that can return a wrong
+  value rather than no value. `scripts/audit_pool_axes.py` reads all 2,424 of them again with
+  the model-free template matcher and finds 43 that differ, 8 of which the gate went on to
+  score. `artifacts/AXIS_READER_AUDIT.json` then recomputes the gate's own rate twice more,
+  once with those rows dropped and once with every one of them counted as a miss. Both readings
+  still clear the pre-registered bar, and 7 of the 8 were already failing to discriminate, so
+  the disagreement had been costing the gate rather than inflating it. The bounds are in that
+  receipt, and `scripts/audit_pool_axes.py --check` recomputes them offline.
 
 What CI rebuilds on a clean Ubuntu clone, and how the console is stopped from showing a number
 the receipts do not carry, is in

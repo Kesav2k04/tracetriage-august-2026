@@ -100,6 +100,12 @@
    "rewritten_after_this_payload": true
   },
   {
+   "name": "AXIS_READER_AUDIT.json",
+   "sha256": "01592786df3cb33c102cf940eccddab957e801822e0a521b4ca4e9d42ede000c",
+   "bytes": 15640,
+   "rewritten_after_this_payload": false
+  },
+  {
    "name": "BASELINE_RECEIPT.json",
    "sha256": "f2796822ec53b5902e84fad87d3f3fe1aa7a8b8e3e7e1a722bcae3b8348b1596",
    "bytes": 8803,

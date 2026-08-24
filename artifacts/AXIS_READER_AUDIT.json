@@ -1,0 +1,508 @@
+{
+ "schema": "tracetriage/axis-reader-audit",
+ "schema_version": 1,
+ "generated_by": "scripts/audit_pool_axes.py",
+ "generated_at": "2026-08-24T07:59:14.603061+00:00",
+ "snapshot": "D:/tracetriage_data/snap-stage1",
+ "question": "The pool's frequency axes were read by easyocr. Read again by the model-free template matcher, how many differ, and what does that do to gate 3?",
+ "method": "For every pool row that carries an hz_per_px, parse the same image with label_reader='glyph' and compare. Agreement is a ratio within 1%, because the two readers fit through different tick centres and a sub-pixel difference is not a disagreement about the image. A row the matcher cannot read is counted as neither: its documented failure is a missing label, which is not evidence about the committed value.",
+ "tolerance": 0.01,
+ "counts": {
+  "pool_rows": 2727,
+  "rows_with_an_axis": 2424,
+  "agree": 2381,
+  "disagree": 43,
+  "could_not_read": 0,
+  "could_not_read_by_reason": {}
+ },
+ "readings_fingerprint_sha256": "cca7664080dca7e5890c2bace98727ed8e445b60037bb4c7ae1d293be5d82675",
+ "disagreements": [
+  {
+   "obs_id": 14734693,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.0600908006994765,
+   "station_name": "EU1AEM"
+  },
+  {
+   "obs_id": 14734738,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.1646261547118477,
+   "station_name": "EU1AEM"
+  },
+  {
+   "obs_id": 14734767,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.0733494060662767,
+   "station_name": "EU1AEM"
+  },
+  {
+   "obs_id": 14734783,
+   "pool_hz_per_px": 1000.0,
+   "glyph_hz_per_px": 107.23860589812332,
+   "ratio": 0.10723860589812333,
+   "glyph_confidence": 0.9398013515691557,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 2.9458667121858806,
+   "station_name": "EU1AEM"
+  },
+  {
+   "obs_id": 14737715,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.106510447285127,
+   "station_name": "Apomahon"
+  },
+  {
+   "obs_id": 14742748,
+   "pool_hz_per_px": 1000.0,
+   "glyph_hz_per_px": 107.23860589812332,
+   "ratio": 0.10723860589812333,
+   "glyph_confidence": 0.9398013515691557,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.6481301678814713,
+   "station_name": "YMCF"
+  },
+  {
+   "obs_id": 14742964,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 0.9058272692604327,
+   "station_name": "Jim UHF"
+  },
+  {
+   "obs_id": 14743781,
+   "pool_hz_per_px": 1000.0,
+   "glyph_hz_per_px": 107.23860589812332,
+   "ratio": 0.10723860589812333,
+   "glyph_confidence": 0.9398013515691557,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 2.9367467475755187,
+   "station_name": "MAJESAT"
+  },
+  {
+   "obs_id": 14743967,
+   "pool_hz_per_px": 1176.4705882352941,
+   "glyph_hz_per_px": 247.52475247524754,
+   "ratio": 0.21039603960396042,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.2465298419051638,
+   "station_name": "EA4TA"
+  },
+  {
+   "obs_id": 14744019,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.4507941641643218,
+   "station_name": "NUUGS2"
+  },
+  {
+   "obs_id": 14744024,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.1648359825923578,
+   "station_name": "NUUGS2"
+  },
+  {
+   "obs_id": 14744032,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.2704699293598192,
+   "station_name": "NUUGS1"
+  },
+  {
+   "obs_id": 14744037,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.0782875706292991,
+   "station_name": "NUUGS1"
+  },
+  {
+   "obs_id": 14744174,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.364388065537253,
+   "station_name": "GAO UHF"
+  },
+  {
+   "obs_id": 14744182,
+   "pool_hz_per_px": 7607.727189013494,
+   "glyph_hz_per_px": 997.5062344139651,
+   "ratio": 0.1311175085056268,
+   "glyph_confidence": 0.9316222429863418,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 2.0848844569795024,
+   "station_name": "VA3HEV"
+  },
+  {
+   "obs_id": 14744188,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.0654524650160095,
+   "station_name": "DEX-X"
+  },
+  {
+   "obs_id": 14744252,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.7979285959319158,
+   "station_name": "EA4TA"
+  },
+  {
+   "obs_id": 14744273,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.408378694713253,
+   "station_name": "Plyachka"
+  },
+  {
+   "obs_id": 14744314,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 0.9954340542488669,
+   "station_name": "VU2JEK_Nitin"
+  },
+  {
+   "obs_id": 14744368,
+   "pool_hz_per_px": 1176.4705882352941,
+   "glyph_hz_per_px": 247.52475247524754,
+   "ratio": 0.21039603960396042,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 0.9098312788476957,
+   "station_name": "NUUGS1"
+  },
+  {
+   "obs_id": 14744376,
+   "pool_hz_per_px": 1176.4705882352941,
+   "glyph_hz_per_px": 247.52475247524754,
+   "ratio": 0.21039603960396042,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 2.9644487163300877,
+   "station_name": "NUUGS2"
+  },
+  {
+   "obs_id": 14744655,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 4.930302547182315,
+   "station_name": "GS ChNord UHF"
+  },
+  {
+   "obs_id": 14744694,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 4.706844377017418,
+   "station_name": "EA4TA"
+  },
+  {
+   "obs_id": 14744771,
+   "pool_hz_per_px": 2009.6946027627891,
+   "glyph_hz_per_px": 322.5806451612903,
+   "ratio": 0.1605122712265977,
+   "glyph_confidence": 0.75,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 4.500646877257526,
+   "station_name": "Jim UHF"
+  },
+  {
+   "obs_id": 14744773,
+   "pool_hz_per_px": 1000.0,
+   "glyph_hz_per_px": 107.23860589812332,
+   "ratio": 0.10723860589812333,
+   "glyph_confidence": 0.9398013515691557,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 3.8903030860949848,
+   "station_name": "KB9LEB_Debian_12"
+  },
+  {
+   "obs_id": 14744924,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.3031064818393407,
+   "station_name": "NUUGS1"
+  },
+  {
+   "obs_id": 14744926,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.0765897886465492,
+   "station_name": "NUUGS1"
+  },
+  {
+   "obs_id": 14744931,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 3.0310802984041083,
+   "station_name": "NUUGS2"
+  },
+  {
+   "obs_id": 14744933,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 3.3022175761707966,
+   "station_name": "NUUGS2"
+  },
+  {
+   "obs_id": 14745079,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.1752922047634686,
+   "station_name": "Plyachka"
+  },
+  {
+   "obs_id": 14745468,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.4078685268790994,
+   "station_name": "GAO UHF"
+  },
+  {
+   "obs_id": 14745469,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.2429709532189535,
+   "station_name": "GAO UHF"
+  },
+  {
+   "obs_id": 14745500,
+   "pool_hz_per_px": 1176.4705882352941,
+   "glyph_hz_per_px": 247.52475247524754,
+   "ratio": 0.21039603960396042,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 7.8700774594980105,
+   "station_name": "Sofia SAT Club - Hadji Boby VHF"
+  },
+  {
+   "obs_id": 14745633,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.7232255072381064,
+   "station_name": "AAS Ager Carballada"
+  },
+  {
+   "obs_id": 14745668,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.1890236007606967,
+   "station_name": "GAO UHF"
+  },
+  {
+   "obs_id": 14745695,
+   "pool_hz_per_px": 3956.016177957533,
+   "glyph_hz_per_px": 4662.004662004662,
+   "ratio": 1.1784594532198367,
+   "glyph_confidence": 0.7458333333333333,
+   "pool_verdict": "UNCORRECTED",
+   "pool_sigma_curved": 13.663460290732331,
+   "station_name": "VA3HEV"
+  },
+  {
+   "obs_id": 14745699,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 2.236178028861712,
+   "station_name": "EA4TA"
+  },
+  {
+   "obs_id": 14745738,
+   "pool_hz_per_px": 1176.4705882352941,
+   "glyph_hz_per_px": 247.52475247524754,
+   "ratio": 0.21039603960396042,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 4.127722418916533,
+   "station_name": "MAJESAT"
+  },
+  {
+   "obs_id": 14745867,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 4.73151409646012,
+   "station_name": "PF_DE_UHF_X_DIPOLE"
+  },
+  {
+   "obs_id": 14745972,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.965794779182662,
+   "station_name": "AAS Ager Carballada"
+  },
+  {
+   "obs_id": 14745974,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.2613579368458354,
+   "station_name": "AAS Ager Carballada"
+  },
+  {
+   "obs_id": 14745990,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 2.644304839237334,
+   "station_name": "Sofia SAT Club - Hadji Boby VHF"
+  },
+  {
+   "obs_id": 14746148,
+   "pool_hz_per_px": 1157.0247933884298,
+   "glyph_hz_per_px": 123.76237623762377,
+   "ratio": 0.10696605374823197,
+   "glyph_confidence": 0.940210182634425,
+   "pool_verdict": "UNRESOLVED",
+   "pool_sigma_curved": 1.444440961113174,
+   "station_name": "AAS Ager Carballada"
+  }
+ ],
+ "gate3_effect": {
+  "threshold": 0.7,
+  "published_rate": 0.7750865051903114,
+  "published_rate_lower_bound_95": 0.7309344186327931,
+  "scored_rows_with_a_disputed_axis": 8,
+  "of_those_currently_discriminating": 1,
+  "disputed_scored_obs_ids": [
+   14744019,
+   14744032,
+   14744182,
+   14744771,
+   14744773,
+   14745500,
+   14745695,
+   14745990
+  ],
+  "scenarios": {
+   "as_published": {
+    "discriminating": 224,
+    "scored": 289,
+    "rate": 0.7750865051903114,
+    "rate_lower_bound_95": 0.7309344186327931,
+    "clears_threshold": true
+   },
+   "disputed_rows_dropped": {
+    "discriminating": 223,
+    "scored": 281,
+    "rate": 0.7935943060498221,
+    "rate_lower_bound_95": 0.7498594327752939,
+    "clears_threshold": true
+   },
+   "disputed_rows_counted_as_misses": {
+    "discriminating": 223,
+    "scored": 289,
+    "rate": 0.7716262975778547,
+    "rate_lower_bound_95": 0.7272846736058922,
+    "clears_threshold": true
+   }
+  },
+  "reading": "7 of the 8 disputed rows already fail to discriminate, so a wrong axis was costing the gate rather than inflating it. Every robustness scenario clears 0.7, the lowest at 0.7273. Neither scenario is offered as the result: the published rate is the result, and these bound what the disagreement could do to it."
+ },
+ "worked_example": {
+  "obs_id": 14745990,
+  "pool_hz_per_px": 1157.0247933884298,
+  "glyph_hz_per_px": 123.76237623762377,
+  "image_width_px": 823,
+  "tick_labels_khz": [
+   -30,
+   -20,
+   -10,
+   0,
+   10,
+   20,
+   30
+  ],
+  "reading": "The labels span 60 kHz. At 123.76 Hz/px that is 485 px of an 823 px image, which is what the picture shows. At 1,157 Hz/px it would be 52 px. The live endpoint returns UNCORRECTED at 9.40 sigma on this observation and the committed pool holds UNRESOLVED at 2.64."
+ }
+}

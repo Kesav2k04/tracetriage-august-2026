@@ -206,15 +206,15 @@ The film holds 140 claims. 26 of them are read and never drawn: they are there b
 | provenanceLine.snapshot | `snap-20260817-stage1` | apps/web/public/data/provenance.json | `snapshot_id` |
 | provenanceLine.splitSha | `c0f8cd3a5dd5` | apps/web/public/data/provenance.json | `split_manifest_sha256` |
 | provenanceLine.attribution | `Waterfall imagery from the SatNOGS Network, contributed by volunteer ground stations, under CC BY-SA 4.0. See DATA_LICENSE.md.` | apps/web/public/data/cards.json | `attribution` |
-| colophon.file | `apps/web/public/waterfalls/14740031.webp` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].file` |
-| colophon.recordUrl | `https://network.satnogs.org/api/observations/14740031/` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].source_url` |
-| colophon.artifactUrl | `https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/9/23/14740031/waterfall_14740031_2026-08-09T23-50-08.png` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].waterfall_url` |
-| colophon.retrievedAt | `2026-08-16T20:14:03.180818+00:00` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].retrieved_at` |
-| colophon.sha256 | `e496d34e0021e6d7306ffc9602f062a56a8403feed58b0ae866be7c5825ae0cd` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].source_sha256` |
-| colophon.licence | `CC BY-SA 4.0` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].license` |
-| colophon.licenceUrl | `https://creativecommons.org/licenses/by-sa/4.0/` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].license_url` |
-| colophon.modification | `cropped to the spectrogram interior and re-encoded from PNG to WebP; the _thumb variants are additionally downscaled` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].modification_notice` |
-| colophon.station | `91` | artifacts/ATTRIBUTION_AUDIT.json | `rows[21].ground_station` |
+| colophon.file | `apps/web/public/waterfalls/14740031.webp` | artifacts/ATTRIBUTION_AUDIT.json | `rows[25].file` |
+| colophon.recordUrl | `https://network.satnogs.org/api/observations/14740031/` | artifacts/ATTRIBUTION_AUDIT.json | `rows[25].source_url` |
+| colophon.artifactUrl | `https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/9/23/14740031/waterfall_14740031_2026-08-09T23-50-08.png` | artifacts/ATTRIBUTION_AUDIT.json | `rows[25].waterfall_url` |
+| colophon.retrievedAt | `2026-08-16T20:14:03.180818+00:00` | artifacts/ATTRIBUTION_AUDIT.json | `rows[25].retrieved_at` |
+| colophon.sha256 | `e496d34e0021e6d7306ffc9602f062a56a8403feed58b0ae866be7c5825ae0cd` | artifacts/ATTRIBUTION_AUDIT.json | `rows[25].source_sha256` |
+| colophon.licence | `CC BY-SA 4.0` | artifacts/ATTRIBUTION_AUDIT.json | `rows[25].license` |
+| colophon.licenceUrl | `https://creativecommons.org/licenses/by-sa/4.0/` | artifacts/ATTRIBUTION_AUDIT.json | `rows[25].license_url` |
+| colophon.modification | `cropped to the spectrogram interior and re-encoded from PNG to WebP; the _thumb variants are additionally downscaled` | artifacts/ATTRIBUTION_AUDIT.json | `rows[25].modification_notice` |
+| colophon.station | `91` | artifacts/ATTRIBUTION_AUDIT.json | `rows[25].ground_station` |
 | colophon.obligationsSource | `DATA_LICENSE.md, the six items this project commits to per artifact` | artifacts/ATTRIBUTION_AUDIT.json | `obligations_source` |
 | colophon.voiceModel | `kokoro-82M v1.0 (ONNX)` | artifacts/NARRATION_RECEIPT.json | `renderer.model` |
 | colophon.voiceLicence | `Apache-2.0` | artifacts/NARRATION_RECEIPT.json | `renderer.licence` |

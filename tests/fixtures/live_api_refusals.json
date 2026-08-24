@@ -1,0 +1,36 @@
+{
+ "schema": "tracetriage/live-api-refusals",
+ "captured_from": "https://tracetriage.vercel.app/api/live/",
+ "captured_at_utc": "2026-08-24T07:35:00Z",
+ "why": "The Android client parsed refusals at the wrong nesting level and reported that the endpoint gave no reason when it had given one. These are the bodies the deployment actually returns, kept so the parser is checked against a recorded shape rather than against what the client's author remembered. A wrong nesting level returns undefined instead of raising, so tsc, the tests and the screen all stayed quiet.",
+ "responses": [
+  {
+   "http": 429,
+   "request": {"obs_id": 14746054},
+   "body": {
+    "api": "LIVE_API/1",
+    "ok": false,
+    "error": {
+     "kind": "rate_limit",
+     "code": "RATE_LIMITED",
+     "detail": "at most 6 measurements per 60 s from one caller",
+     "retry_after_s": 18
+    }
+   }
+  },
+  {
+   "http": 422,
+   "request": {"obs_id": 999999999},
+   "body": {
+    "api": "LIVE_API/1",
+    "ok": false,
+    "error": {
+     "kind": "refusal",
+     "code": "NOT_FOUND",
+     "detail": "observation 999999999",
+     "observation_id": 999999999
+    }
+   }
+  }
+ ]
+}
