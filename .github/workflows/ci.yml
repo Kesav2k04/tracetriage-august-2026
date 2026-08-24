@@ -215,11 +215,15 @@ jobs:
     # remember. The local gate has rows for both, and it omits them when node_modules is
     # absent, which is every clean clone. This is the job that makes the omission rare.
     #
-    # The render itself is not here. `remotion render` downloads a headless Chromium and
-    # takes 150 seconds a pass, and what it would establish is that a video file can be
-    # produced from these sources. presentation/REPORT.md records three renders that agree
-    # byte for byte, and the file they produced is committed, so the claim already has
-    # evidence. What CI protects is the numbers, which is what these three steps check.
+    # The render itself is not here, and a render job would not establish what it looks
+    # like it would. `remotion render` downloads a headless Chromium and takes minutes a
+    # pass, and the output is not byte-stable: presentation/REPORT.md records three renders
+    # whose whole-file digests all differ, with the AAC moving between runs at one
+    # concurrency and 894 frames of one beat moving at another, by at most 21 of 255. So a
+    # CI render could only ever compare a new file against a digest it will not match. The
+    # committed file is what a viewer gets, its digest is in artifacts/FILM_RECEIPT.json,
+    # and scripts/check_receipt_digests.py checks that pair on every gate run. What CI
+    # protects here is the numbers on screen, which is what these three steps check.
     steps:
       - uses: actions/checkout@v4
 

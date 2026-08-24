@@ -1,10 +1,10 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-24T05:23:27+05:30",
- "commit": "61e6c44c61679517e8500e70f2957f8084cfe509",
+ "measured_at_commit_date": "2026-08-24T05:37:22+05:30",
+ "commit": "9fb4db68e0d4b0a4d3f63ff99836762badf1806f",
  "tracked_files": 485,
- "tracked_bytes": 62654845,
+ "tracked_bytes": 62654952,
  "tracked_megabytes": 59.75,
  "by_directory": [
   {
@@ -70,7 +70,7 @@
  ],
  "by_directory_remainder": {
   "groups": 236,
-  "bytes": 4783244,
+  "bytes": 4783351,
   "megabytes": 4.56,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
@@ -177,7 +177,7 @@
    "files": 2,
    "bytes": 11269702,
    "megabytes": 10.75,
-   "keep_because": "the rendered film and its poster, 118 seconds at 1920x1080. The source beside it reads its figures from the receipts rather than restating them, so the mp4 is reproducible from this tree; it is kept because a reader who watches it should not first have to install a renderer, and because an mp4 is the one artifact here that no diff can check after the fact."
+   "keep_because": "the rendered film and its poster, 142 seconds at 1920x1080 with narration. The source beside it reads every figure from the receipts rather than restating them, so the film's content is reproducible from this tree; the bytes are not, and presentation/REPORT.md gives the measurement. It is kept because a reader who watches it should not first have to install a renderer, and because an mp4 is the one artifact here that no diff can check after the fact."
   }
  ],
  "recommendation": "Nothing here is proposed for removal. The two largest groups are evidence and product: the A3 overlays back a published finding and the shipped waterfalls are what the console renders. A 30 MB repository is not a judging problem; losing the evidence behind a claim is."
