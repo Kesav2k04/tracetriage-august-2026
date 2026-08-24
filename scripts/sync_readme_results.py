@@ -1026,7 +1026,11 @@ def main(argv: list[str] | None = None) -> int:
 
     start_marker = "### Measured, with receipts"
     fallback_marker = "### Not yet measured"
-    end_marker = "\n## Setup"
+    # The span this script owns runs from the start marker to the next `## ` heading, and that
+    # heading is named here rather than matched by pattern so a rename cannot silently move the
+    # boundary. It was `## Setup` until the README was reorganised around the five judged
+    # criteria and the section after the results became `## Feasibility`.
+    end_marker = "\n## Feasibility"
 
     if start_marker in text:
         start = text.index(start_marker)

@@ -39,16 +39,26 @@ REPO = Path(__file__).resolve().parents[1]
 OUT = REPO / "apps" / "web" / "out"
 GLOBALS_CSS = REPO / "apps" / "web" / "app" / "globals.css"
 
-#: The two pages the review scoped: the review queue, which is the root, and every
-#: observation detail page. All 25 of the latter are parsed rather than one, because two of
-#: the defects this pins are data dependent: the "no waterfall shipped" span only renders
+#: Every page the export writes, which is 34 files: the eight routes in the rail plus one
+#: per shipped observation card. All 25 of the latter are parsed rather than one, because two
+#: of the defects this pins are data dependent: the "no waterfall shipped" span only renders
 #: for rows whose observation has no image, and the offset-bound marker only for a fit that
 #: ran into its bound.
+#:
+#: It was two page types until 2026-08-24, scoped that way because the review that prompted
+#: this file looked at the queue and one observation. The scope outlived its reason: /agent/,
+#: /live/ and /precedent/ had no accessible-name coverage at all while this file reported
+#: clean, which is the same shape as a leakage check whose exemption hid twelve real
+#: violations. Widening it is cheap, and what it found is in the commit that widened it.
 def _pages() -> list[Path]:
     if not OUT.is_dir():
         return []
-    pages = [OUT / "index.html"]
-    pages += sorted(OUT.glob("observation/*/index.html"))
+    pages = sorted(OUT.rglob("index.html"))
+    # 404.html is written by the export as well, and it is not a route a reader navigates to
+    # by choice. It is checked, because a reader who mistyped a URL still needs the rail.
+    not_found = OUT / "404.html"
+    if not_found.is_file():
+        pages.append(not_found)
     return [p for p in pages if p.is_file()]
 
 
@@ -60,6 +70,24 @@ _INTERACTIVE = frozenset({"a", "button", "input", "select", "textarea", "summary
 #: Input types that are not controls a user names: a hidden input is not focusable, and a
 #: submit or a button carries its name in `value`, which is checked separately.
 _UNNAMED_INPUT_TYPES = frozenset({"hidden"})
+
+#: Pages that ship no `table` at all, each with the reason it has none.
+#:
+#: A closed list rather than a skip-if-empty, and the difference is the whole point. The table
+#: check asserts that it parsed at least one table, because a check that silently measures
+#: nothing is worse than no check. Widening this file from two page types to all 34 turned that
+#: guard into three failures on pages that legitimately have no table, which is a missing
+#: precondition and not a defect. Naming them keeps both outcomes: a page here is omitted with
+#: its reason printed, and a page that loses the tables it does have fails instead of
+#: disappearing into the same silence.
+_NO_TABLE: dict[str, str] = {
+    "live/index.html": (
+        "one input, one button and a card list. Its measurement panel is built by "
+        "components/LiveConsole.tsx, which renders no table in any state"
+    ),
+    "404/index.html": "app/not-found.tsx is a heading and a list of routes",
+    "404.html": "the same not-found page, written again at the root by the static export",
+}
 
 
 class _Collector(HTMLParser):
@@ -159,7 +187,13 @@ def test_every_table_sits_in_a_focusable_named_scroll_region(page: Path) -> None
     defect for a smaller one.
     """
     parsed = _parsed(page)
-    assert parsed.tables, f"{_relative(page)} parsed to zero tables, so this proves nothing"
+    if not parsed.tables:
+        reason = _NO_TABLE.get(_relative(page))
+        assert reason, (
+            f"{_relative(page)} parsed to zero tables and is not on the _NO_TABLE list, so "
+            "either it lost a table or the list needs a new entry with its reason"
+        )
+        pytest.skip(f"no table on this page: {reason}")
 
     for i, ancestors in enumerate(parsed.tables):
         scrollers = [

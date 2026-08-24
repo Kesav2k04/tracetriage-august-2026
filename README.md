@@ -6,72 +6,61 @@
 
 ### Which satellite passes are worth a reviewer's time.
 
-**A read-only, physics-conditioned review queue for public SatNOGS radio observations.**
+**Open a pass, and you see the waterfall a volunteer would squint at with the orbit's own
+Doppler corridor drawn over it, the offset in hertz, and the reason this pass is above the
+next one. Type any observation id and the same physics measures it live, in about twenty
+seconds, from the public SatNOGS API.**
 
 [![CI](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml)
 [![Live console](https://img.shields.io/badge/live-tracetriage.vercel.app-fca50a?style=flat-square)](https://tracetriage.vercel.app/)
 [![Judges start here](https://img.shields.io/badge/judges-start%20here-fca50a?style=flat-square)](https://tracetriage.vercel.app/start/)
+[![Android APK](https://img.shields.io/badge/Android-signed%20APK-fca50a?style=flat-square)](../../releases/latest)
 <br>
 [![Built with IBM Bob](https://img.shields.io/badge/built%20with-IBM%20Bob-0f62fe?style=flat-square)](docs/BOB_BUILD_LOG.md)
 [![IBM Granite](https://img.shields.io/badge/IBM%20Granite-3.1%208B%2C%20local-0f62fe?style=flat-square)](pipeline/tracetriage/granite.py)
 [![IBM Carbon](https://img.shields.io/badge/IBM%20Carbon-design%20system-0f62fe?style=flat-square)](apps/web/app/globals.css)
 [![MCP](https://img.shields.io/badge/MCP-2%20servers%2C%2012%20tools%2C%2011%20read--only-8a3ffc?style=flat-square)](docs/USE_WITH_YOUR_AGENT.md)
+[![Offline](https://img.shields.io/badge/offline-8%20of%208%20pages-8a3ffc?style=flat-square)](artifacts/OFFLINE_RECEIPT.json)
 
 **[Live console](https://tracetriage.vercel.app/)** &nbsp;·&nbsp;
 **[Judges start here](https://tracetriage.vercel.app/start/)** &nbsp;·&nbsp;
-**[For judges, in the repo](FOR_JUDGES.md)** &nbsp;·&nbsp;
-**[Presentation film, narrated](presentation/out/tracetriage-film.mp4)** &nbsp;·&nbsp;
-**[Point your own agent at it](docs/USE_WITH_YOUR_AGENT.md)**
+**[Narrated film, 3 min](presentation/out/tracetriage-film.mp4)** &nbsp;·&nbsp;
+**[Android APK](../../releases/latest)** &nbsp;·&nbsp;
+**[Use it from your agent](docs/USE_WITH_YOUR_AGENT.md)**
 
 *AI Builders Challenge with IBM Bob · August 2026 · theme: Advance Space Exploration with AI*
 
 </div>
 
+> In a 600-observation sample of the public SatNOGS network, **426 carried no decisive human
+> verdict at all.** Ground-station networks are how university and cubesat missions are
+> actually operated, and an unreviewed pass is telemetry nobody read. There is no shortage of
+> observations. There is a shortage of attention, and nothing tells a volunteer where to spend
+> it.
+
 ---
 
-## At a glance
+## Judge quick access
 
-|  |  |
+No account, no keys, nothing to install for any row in this table.
+
+| To check | Open this |
 |---|---|
-| **What it is** | A ranked, read-only review queue over public SatNOGS satellite radio observations. It reads the waterfall image and the orbital physics together, works out which unreviewed passes would teach a reviewer the most, and puts them in order. It writes nothing back. A human still decides. |
-| **The problem it serves** | Of 600 observations sampled from this snapshot, **426 carry no decisive human verdict at all**. Ground-station networks are how university and cubesat missions are actually operated, and an unreviewed pass is telemetry nobody read. |
-| **What the AI does** | IBM Granite 3.1 8B, run locally, writes the reviewer's first sentence, and a grounding checker throws away 15 of every 25 drafts. Granite embeddings retrieve precedents. Five read-only MCP tools take a local agent from **2 of 24 correct to 22 of 24**. |
-| **What holds without a gate** | Three results that needed no verdict to come back a particular way. Granite answers **22 of 24** evidence questions with the five read-only tools and **2 of 24** without, one-sided exact p = 1e-06 over 20 discordant pairs. The grounding checker catches **525 of 525** planted falsehoods (21 drafts across each of 25 packets) and refuses **0 of 175** clean drafts (7 across each of 25). On ground stations the queue was never fitted to, lift is **2.253x** and the gate **PASSES**. |
-| **The pre-registered result** | Queue lift **1.582x**, 95% CI [1.353, 1.740], reported **NOT ESTABLISHED** because the interval contains the 1.5 threshold. On held-out stations the same queue reaches **2.253x** and **PASSES**. Both are published at the same size. |
-| **How IBM Bob was used** | Primary development tool. **10 dated Bob-account units** built the data contracts, the frozen snapshot, the waterfall parser, the physics corridor, the grouped splits and the review-value queue. `docs/BOB_BUILD_LOG.md` names each one with its files, commits, failures and repairs. |
-| **What makes it unusual** | Six kill gates with numeric thresholds were written down **before anything was measured**, and a gate is met only when a 95% interval clears its threshold, so a point estimate above the bar whose interval straddles it is published as a failure. Every gate that is not met carries a computed reason and an exact condition that would close it. |
-| **Whether it scales** | Measured, with its limits stated. The dominant *measured* stage is the corridor fit, at **68,702 observations a day on one core**, against **6,380** a day from the network: **10.8x** headroom. Read the caveats the receipt itself lists rather than the multiple: the network rate is extrapolated from a **9.4-hour** capture span so it is one observation of that rate and not a long-run average, the timing covers the corridor fit and second-trace survey only, and the core count is a division rather than a measured parallel speed-up. `artifacts/THROUGHPUT_RECEIPT.json`. |
-| **Check it in 60 seconds** | `pip install -e .` then `tracetriage triage 14740031`, which measures an observation recorded today against the same physics the queue ranks on. Sixty seconds is a warm pip cache; a cold one needs one online install first. |
+| That it works at all | **[the live console](https://tracetriage.vercel.app/)**, then a queue row |
+| That the measurement is real, not a fixture | **[the live page](https://tracetriage.vercel.app/live/)**: type `14740031`, wait ~20 s |
+| That the deployment is this repository | **[`/api/health/`](https://tracetriage.vercel.app/api/health/)**, whose `sha256` equals `curl -s https://tracetriage.vercel.app/data/provenance.json \| sha256sum` |
+| Every claim against its receipt | **[`FOR_JUDGES.md`](FOR_JUDGES.md)**, one section per judged criterion |
+| The gates that did not pass | **[`docs/KILL_GATE.md`](docs/KILL_GATE.md)**, and [below](#where-the-gates-landed-and-why) |
+| What IBM Bob built, task by task | **[`docs/BOB_BUILD_LOG.md`](docs/BOB_BUILD_LOG.md)** |
+| That the repository holds together | `python scripts/gate.py`, one line per standing check |
 
-**Everything a judge needs to score this is mapped, twice.** The
-[start page](https://tracetriage.vercel.app/start/) is the console version and
-[`FOR_JUDGES.md`](FOR_JUDGES.md) is the repository version. Neither can drift from the
-numbers it quotes, by two different mechanisms rather than one: `FOR_JUDGES.md` is written
-by `scripts/sync_for_judges.py` from the receipts, and the start page reads them through
-`apps/web/lib/data.ts`, which `scripts/build_console_data.py` generates from the same
-receipts. `scripts/gate.py` carries a row for each and fails if either drifts.
-
-## What the submission asks for, and where it is
-
-| Required | Section |
-|---|---|
-| Problem statement | [Problem statement](#problem-statement) |
-| Solution description | [Solution description](#solution-description) |
-| AI approach and architecture | [AI approach and architecture](#ai-approach-and-architecture) |
-| Selected challenge theme | [Selected challenge theme](#selected-challenge-theme) |
-| How IBM Bob was used | [How IBM Bob was used](#how-ibm-bob-was-used) |
-| Working prototype | [Live console](https://tracetriage.vercel.app/), and `tracetriage triage` for a live measurement |
-| The judged criteria, one by one | [`FOR_JUDGES.md`](FOR_JUDGES.md), and row by row below |
-
-Each judged criterion has its own heading rather than a page to search:
-
-| Criterion | Answered in |
-|---|---|
-| Technical Execution | [`FOR_JUDGES.md`](FOR_JUDGES.md#technical-execution), and the [pipeline table](#ai-approach-and-architecture) |
-| Innovation | [`FOR_JUDGES.md`](FOR_JUDGES.md#innovation) |
-| Challenge Fit | [Selected challenge theme](#selected-challenge-theme), then [`FOR_JUDGES.md`](FOR_JUDGES.md#challenge-fit) |
-| Implementation and Feasibility | [`FOR_JUDGES.md`](FOR_JUDGES.md#implementation-and-feasibility), and [Setup](#setup) |
-| Real-World Impact | [`FOR_JUDGES.md`](FOR_JUDGES.md#real-world-impact) |
+The five sections the submission asks for: [Problem statement](#problem-statement) ·
+[Solution description](#solution-description) ·
+[AI approach and architecture](#ai-approach-and-architecture) ·
+[Selected challenge theme](#selected-challenge-theme) ·
+[How IBM Bob was used](#how-ibm-bob-was-used). Feasibility and real-world impact have their
+own headings further down, and `FOR_JUDGES.md` answers all five with the command that
+regenerates each number.
 
 ---
 
@@ -95,17 +84,31 @@ flowchart LR
   LOW --> REV
 ```
 
-The ten-stage pipeline that implements this is
-[further down](#ai-approach-and-architecture), drawn from the tree by a script that refuses
-to draw a box until the module and the receipt it names both exist.
 
 ---
 
-## The gap this ranks on
+## Problem statement
 
-Both rows below are published SatNOGS waterfalls, unmodified on the left and annotated on
-the right by `scripts/a3_doppler_investigation.py`. The record cannot tell them apart. The image
-can.
+The SatNOGS network publishes ground-station radio observations of satellites. Each one
+produces a waterfall image, a spectrogram of received power over frequency and time, and
+volunteers review these by eye to decide whether a satellite was actually heard.
+
+There are far more observations than there is human attention. In a 600-observation sample
+measured on 2026-08-16, **71% carried no decisive human waterfall verdict at all** (426 of
+600 were `unknown`; `docs/SATNOGS_API_RECON.md`). The backlog is not a storage problem. It is
+an attention-allocation problem.
+
+A student researcher or a volunteer with forty minutes faces one concrete decision: **which
+observations, out of thousands, deserve those forty minutes?** Reviewing in arrival order
+spends the budget on the easy and the already-obvious. What is worth a human's time is the
+subset where the evidence disagrees with itself: the image looks like signal but the orbital
+geometry says the satellite was below the horizon, or the network label says nothing was heard
+but a trace sits exactly where physics predicts it.
+
+### The gap this ranks on
+
+Both rows are published SatNOGS waterfalls, unmodified on the left and annotated on the right
+by `scripts/a3_doppler_investigation.py`. The record cannot tell them apart. The image can.
 
 <table>
 <tr>
@@ -122,39 +125,16 @@ the opposite convention.</td>
 </tr>
 </table>
 
-A detector that assumes one of these two shapes is wrong on the other half of the corpus,
-and the observation record gives it no way to choose. That is the gap this queue ranks on.
-
-Full method, margins and open questions: **`docs/DOPPLER_CORRECTION_FINDING.md`**.
-
----
-
-## Problem statement
-
-The SatNOGS network publishes hundreds of thousands of ground-station radio observations of
-satellites. Each one produces a waterfall image, a spectrogram of received power over
-frequency and time, and volunteers review these by eye to decide whether a satellite was
-actually heard.
-
-There are far more observations than there is human attention. In a 600-observation sample
-measured on 2026-08-16, **71% carried no decisive human waterfall verdict at all** (426 of
-600 were `unknown`; see `docs/SATNOGS_API_RECON.md`). The backlog is not a storage problem.
-It is an attention-allocation problem.
-
-A student researcher or a volunteer reviewer with a fixed budget of, say, forty minutes
-faces one concrete decision: **which observations, out of thousands, deserve those forty
-minutes?** Reviewing in arrival order spends the budget on the easy and the
-already-obvious. What is worth a human's time is the subset where the evidence disagrees
-with itself: the image looks like signal but the orbital geometry says the satellite was
-below the horizon, or the network label says nothing was heard but a trace sits exactly
-where physics predicts it.
+A detector that assumes one of these two shapes is wrong on the other half of the corpus, and
+the observation record gives it no way to choose. Method and open questions:
+**`docs/DOPPLER_CORRECTION_FINDING.md`**.
 
 ## Selected challenge theme
 
-**Advance Space Exploration with AI.** The theme asks for solutions that turn data-heavy
-space operations into insight-driven ones and make space more accessible. SatNOGS is open,
-volunteer-run space infrastructure whose bottleneck is human review capacity. Spending
-scarce reviewer attention where it changes an outcome is directly that problem.
+**Advance Space Exploration with AI.** The theme asks for solutions that turn data-heavy space
+operations into insight-driven ones and make space more accessible. SatNOGS is open,
+volunteer-run space infrastructure whose bottleneck is human review capacity. Spending scarce
+reviewer attention where it changes an outcome is directly that problem.
 
 ## Solution description
 
@@ -162,8 +142,8 @@ TraceTriage ranks a read-only review queue over observations that already exist.
 carries an evidence card showing:
 
 - the waterfall image as published
-- the **expected corrected-centre corridor**, the frequency band where a real signal from
-  that satellite should appear, computed from the observation's own stored TLE, station
+- the **expected corrected-centre corridor**, the frequency band where a real signal from that
+  satellite should appear, computed from the observation's own stored TLE, station
   coordinates, timing and receiver metadata
 - the detected trace and its residual against that corridor
 - artifact-quality checks, and the current SatNOGS label with where that label came from
@@ -174,13 +154,12 @@ The queue puts disagreement and uncertainty at the top, subject to duplicate con
 station and transmitter diversity so a single noisy station cannot flood the budget.
 
 **What this system will never do.** It does not vote on SatNOGS, does not change any public
-label, does not schedule or control a station, and does not hold a write credential. It
-does not claim confirmed satellite identity, decoded telemetry, mission success, or
-official endorsement. The permission boundary is specified in
-`docs/ACTOR_AND_PERMISSION_CONTRACT.md` and enforced by test, not by convention.
+label, does not schedule or control a station, and does not hold a write credential. It does
+not claim confirmed satellite identity, decoded telemetry, mission success, or official
+endorsement. The boundary is specified in `docs/ACTOR_AND_PERMISSION_CONTRACT.md` and enforced
+by test rather than by convention.
 
-The strongest statement this project is permitted to make, once and only once the evidence
-exists, is:
+The strongest statement this project is permitted to make, once the evidence exists, is:
 
 > On a frozen chronological sample of public SatNOGS observations, TraceTriage concentrated
 > independently reviewable label or physics conflicts near the top of a fixed review budget
@@ -188,165 +167,140 @@ exists, is:
 
 ## AI approach and architecture
 
-The design principle is that **every layer must earn its place through an ablation**. A
-component that does not improve calibration or queue utility gets deleted, not defended.
+Every layer has to earn its place through an ablation. A component that does not improve
+calibration or queue utility is deleted rather than defended, and three of the results below
+are deletions.
 
 <img src="docs/architecture.svg" alt="Ten pipeline stages running top to bottom. A frozen SatNOGS snapshot feeds SGP4 physics, then four frozen splits. Two evidence channels run side by side: image processing into features, and a bounded corridor fit into a calibrated image-only baseline arm. Both feed a small calibrated fusion head, then calibration with out-of-distribution detection and abstention, then the review-value queue. The queue feeds a Granite reviewer note and a read-only evidence agent, and both feed the static console. Every box names the module that implements it and the receipt it writes." width="904">
 
-The diagram is generated by `scripts/build_architecture_diagram.py`, which refuses to draw a
-box until the module and the receipt that box names both exist in the tree, and refuses to
-draw an edge into a stage nothing produces. A renamed stage fails the standing gate rather
-than leaving a picture of a pipeline this repository no longer has.
+`scripts/build_architecture_diagram.py` draws that from the tree. It refuses to draw a box
+until the module and the receipt that box names both exist, and refuses to draw an edge into a
+stage nothing produces, so a renamed stage fails the standing gate rather than leaving a
+picture of a pipeline this repository no longer has.
 
 **The pipeline, in the order it runs.** Every stage writes a file the next one reads.
 
 | # | Stage | What it does | Where |
 |---|---|---|---|
-| 1 | Snapshot | Pulls SatNOGS metadata and waterfalls through the public API and freezes them with a SHA-256 per file, a retrieval time and the licence terms. Nothing downstream reaches the network. | `scripts/recon` |
-| 2 | Contracts | Each stage's output schema is ratified before the script that writes against it runs, so a malformed measurement never reaches disk. | `contracts/` |
-| 3 | Physics | Propagates each pass with SGP4 from the TLE current at observation start, computes the Doppler curve from range rate, and maps it to pixel columns through the image's own frequency axis. | `pipeline/tracetriage/physics.py` |
-| 4 | Splits | Four holdouts: chronological, cold-station, cold-transmitter, and cold on both. Each transmitter and each orbital revolution is confined to one partition. | `pipeline/tracetriage/splits.py` |
-| 5 | Model ladder | Centre-energy heuristic, then HOG with regularised logistic regression, then a corridor matched filter, then a fusion head over image plus metadata plus physics. Each rung is compared against the one below with a grouped bootstrap, and a rung that does not improve is dropped by the ablation. | `artifacts/FUSION_RECEIPT.json` |
-| 6 | Calibration | Temperature or isotonic fitting on a later time period than training, then a selective-prediction curve trading a risk ceiling against coverage. | `artifacts/FUSION_RECEIPT.json` |
-| 7 | Queue | Ranks the test partition, deduplicates repeated observations of one pass episode, and measures lift against random, against first-in-first-out and against an image-only uncertainty ordering at the same budget. | `scripts/run_queue.py` |
-| 8 | Console | Projects the receipts into the JSON the site reads, refusing to substitute a null for a field it could not find. A Next.js static export: no database and no credentials, and no runtime fetch on any page except the live console, which calls one Python function (`api/live.py`, declared in `vercel.json`). | `scripts/build_console_data.py` |
-| 9 | Reviewer note | Builds a closed evidence packet of 26 printed fields for one observation and sends it to a local IBM Granite model. The only HTTP write verb in this repository, and it refuses any destination that is not loopback. | `pipeline/tracetriage/granite.py` |
-| 10 | Evidence server | Exposes the queue and its size, one observation's packet, the gate verdicts, a receipt summary and the grounding checker itself as six read-only MCP tools over stdio, plus `run_acceptance`, which runs the standing gate and therefore writes the console build and is the one tool left out of `alwaysAllow`. No dependency outside the standard library. | `scripts/mcp_server.py` |
+| 1 | Snapshot | Freezes SatNOGS metadata and waterfalls with a SHA-256, a retrieval time and the licence per file. Nothing downstream reaches the network. | `scripts/recon` |
+| 2 | Contracts | Each stage's output schema is ratified before the script that writes against it runs. | `contracts/` |
+| 3 | Physics | SGP4 from the TLE current at observation start, Doppler from range rate, mapped to pixel columns through the image's own frequency axis. | `pipeline/tracetriage/physics.py` |
+| 4 | Splits | Four holdouts: chronological, cold-station, cold-transmitter, cold on both. Each transmitter and each orbital revolution stays in one partition. | `pipeline/tracetriage/splits.py` |
+| 5 | Model ladder | Four rungs, from a centre-energy heuristic to a fusion head over image, metadata and physics. A rung that does not beat the one below on a grouped bootstrap is dropped. | `artifacts/FUSION_RECEIPT.json` |
+| 6 | Calibration | Fitted on a later time period than training, then a selective-prediction curve trading a risk ceiling against coverage. | `artifacts/FUSION_RECEIPT.json` |
+| 7 | Queue | Ranks the test partition, deduplicates repeats of one pass episode, and measures lift against random, first-in-first-out and image-only uncertainty at the same budget. | `scripts/run_queue.py` |
+| 8 | Console | Projects the receipts into the site's JSON, refusing to substitute a null for a field it could not find. | `scripts/build_console_data.py` |
+| 9 | Reviewer note | Builds a closed 26-field evidence packet and sends it to a local Granite model. The only HTTP write verb here, and it refuses any destination that is not loopback. | `pipeline/tracetriage/granite.py` |
+| 10 | Evidence server | Seven MCP tools over the receipts, six read-only and one that runs the standing gate. No dependency outside the standard library. | `scripts/mcp_server.py` |
 
-**Evaluation is grouped, never random.** Random image splits leak station, satellite and
-rendering patterns. Bootstrap intervals are computed over orbital episodes or ground
-stations, not image rows, and the reported interval is the union of the two.
+Four decisions in this architecture are worth stating on their own, because each one changed a
+published number.
 
-**Labels are silver, not truth.** `waterfall_status` supplies weak supervision. Unknowns
-stay unlabelled rather than being coerced into a negative class.
+**Evaluation is grouped, never random**, because random image splits leak station, satellite
+and rendering patterns. Intervals are bootstrapped over orbital episodes or ground stations,
+never image rows, and the reported interval is the union of the two. **Labels are silver, not
+truth**: `waterfall_status` is weak supervision, and unknowns stay unlabelled rather than being
+coerced into a negative class.
 
-**Granite writes the first sentence, and a checker refuses most of what it writes.** Granite
-3.1 dense 8B runs locally at Q4_K_M, temperature zero. Of 25 cards, 10 drafts were accepted
-and 15 refused on 17 violations. The checker is measured in both directions,
-because a checker that refuses everything catches every adversarial draft: **525 of 525**
-adversarial checks refused for the reason they were built to trip, and **0 of 175** clean
-checks refused. Both figures are a multiplication and are worth reading as one: 21
-adversarial drafts and 7 clean ones, each run against all 25 packets. The adversarial drafts
-are written to trip a named violation, so 525 of 525 is a statement that the checker fires
-where it was built to fire, not that it caught 525 independent attacks. The number that is
-not constructed is in the next paragraph: 9 of 25 real drafts from the model itself. Generation turned out not to be reproducible at temperature zero, so the
-text a reviewer sees is frozen into a committed fixture and the disagreement rate is
-published beside it. Full method in `artifacts/EXPLAIN_RECEIPT.json`.
+**Granite writes the first sentence, and a checker refuses most of what it writes.** Of 25
+cards, 10 drafts were accepted and 15 refused on 17 violations. In **9 of the 25** Granite
+wrote a downlink frequency that was not this observation's, wrong by 10 kHz to 1215 kHz, and
+every invented value landed **within five percent** of the real one. That is the shape that
+matters: on telemetry the difference between 437.05 MHz and 437.06 MHz is the difference
+between a satellite and nothing, which is why the checker compares every numeric token against
+the packet instead of scoring the sentence.
 
-**The hallucination has a shape, and it is the dangerous shape.** In **9 of the 25** cards
-Granite wrote a downlink frequency in megahertz that was not this observation's, wrong by
-10 kHz to 1215 kHz, and every invented value landed **within five percent** of the real
-one. That is the result worth carrying to another corpus. A wrong number that looks nothing
-like the right one is caught by whoever reads it; a wrong number within five percent of the
-right one is not, and on telemetry the difference between 437.05 MHz and 437.06 MHz is the
-difference between a satellite and nothing. It is why the checker compares every numeric
-token against the packet rather than scoring the sentence, and why refusing 15 of 25 drafts
-is the system working rather than the model failing. `artifacts/EXPLAIN_RECEIPT.json` lists
-each case with the value written and the value measured.
+**The agent is measured against a control.** `pipeline/tracetriage/agent.py` drives five MCP
+tools from the local Granite model over real stdio JSON-RPC, and `scripts/run_agent_study.py`
+puts 24 questions to it twice, once with the tools and once with none. With them, **22 of 24
+correct**; without them, **2 of 24**; of the 20 questions the arms disagreed on, the tool arm
+was right on 20, an exact one-sided p of 1e-06.
 
-**The agent is measured against a control, which is the point.** `pipeline/tracetriage/agent.py`
-drives the five MCP tools from the local Granite model over real stdio JSON-RPC and
-`scripts/run_agent_study.py` puts 24 questions to it twice, once with the tools and once with
-none. With them, **22 of 24 correct**. Without them, **2 of 24**. Of the 20 questions the two
-arms disagreed on, the tool arm was right on 20, an exact one-sided p of 1e-06. Read the
-control honestly: it declined **18 of its 24** as unknown rather than guessing, because the
-answers are stored values it has no other route to. So this measures whether the policy
-reaches for the tools and reports what they return, not whether tools make a model cleverer.
-What it also does not settle is whether the answers are useful: these are lookups with a
-single correct token, chosen so grading is mechanical, and a reviewer's real question is
-not.
+<details>
+<summary><b>What those four results do not establish</b>, in the words the receipts use</summary>
 
-**Precedent search, and the condition that takes its result away.** A Granite embedding of
-each evidence card is put head to head against seven standardised numbers over 739 decisively
-labelled observations. Warm, where any other observation may be retrieved, the embedding wins
-by a margin whose interval clears zero. Cold, where the query's own station, physical site and
-satellite are all forbidden, it does not. The warm number is the one a demo would show and the
-cold number is the one that answers the question, so the console carries both columns at the
-same weight. Details in `artifacts/PRECEDENT_RECEIPT.json`.
+The control declined **18 of its 24** as unknown rather than guessing, because the answers are
+stored values it has no other route to. So the agent study measures whether the policy reaches
+for the tools and reports what they return, not whether tools make a model cleverer. The 24
+questions are lookups with a single correct token, chosen so grading is mechanical, and a
+reviewer's real question is not.
 
-**What none of this measures.** Whether an accepted note is useful. Grounding is a property of
-the numbers in a sentence, not of the sentence being worth reading.
+The grounding checker is measured in both directions, because a checker that refuses
+everything catches every adversarial draft: **525 of 525** adversarial checks refused for the
+reason they were built to trip, and **0 of 175** clean checks refused. Both figures are a
+multiplication and are worth reading as one: 21 adversarial drafts and 7 clean ones, each run
+against all 25 packets. So 525 of 525 says the checker fires where it was built to fire, not
+that it caught 525 independent attacks. The number that is not constructed is the 9 of 25 real
+drafts above. Generation is not reproducible at temperature zero, so the text a reviewer sees
+is frozen into a committed fixture and the disagreement rate is published beside it.
 
-## How IBM Bob was used
+Precedent search is the third deletion. A Granite embedding of each evidence card goes head to
+head against seven standardised numbers over 739 decisively labelled observations. Warm, where
+any other observation may be retrieved, the embedding wins by a margin whose interval clears
+zero. Cold, where the query's own station, physical site and satellite are all forbidden, it
+does not. The console carries both columns at the same weight.
 
-IBM Bob is the primary development tool for this project and built the load-bearing pipeline.
-The log names which units those were rather than asserting a total: **10 dated Bob-account
-units**, A7, A6, A5, A0, A0b-INT, A1, A2, A4, B1 and C1, covering the data contracts, the
-immutable snapshot, the waterfall artifact parser, the physics corridor, label provenance, the
-image-only baselines, the end-to-end triage slice, the grouped splits with their leakage audit,
-and the review-value queue with kill gate 6.
+None of this measures whether an accepted note is useful. Grounding is a property of the
+numbers in a sentence, not of the sentence being worth reading.
 
-A further 49 dated units are operator-side, run from Cursor and Claude Code, and are labelled
-that way in the actor field of their own headings: the console, the calibration and abstention
-blocks, the fusion ladder and the review waves are theirs, not Bob's. 47 of them are in
-`docs/OPERATOR_BUILD_LOG.md` and 2 stay beside the Bob units whose gaps they closed. An
-earlier version of this section claimed Bob built all of it, which is contradicted by the log
-it points at. Both numbers are counted from the two logs by `scripts/sync_for_judges.py`,
-which reads the actor out of each heading rather than off a filename, and checked against this
-file by `tests/test_bob_unit_count.py`.
+Receipts: `artifacts/EXPLAIN_RECEIPT.json`, `artifacts/AGENT_RECEIPT.json`,
+`artifacts/PRECEDENT_RECEIPT.json`.
 
-Bob's work is recorded, not asserted:
+</details>
 
-- `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures and repairs,
-  with actual build credit consumption. `docs/OPERATOR_BUILD_LOG.md` is its operator-side
-  counterpart, split out when the single file passed the size above which GitHub stops
-  rendering markdown
-- `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool
-  contracts and MCP wiring each Bob task ran under, so the conditions of the work are readable
-  and not just its output. The specification separates the 12 tools that exist, 7 over
-  committed receipts and 5 that measure live, from the 4 that were specified and were not,
-  naming for each of those the script that did its job instead
-- exported task transcripts are **not included**. An earlier draft said they were, pointing at
-  a directory holding nothing but a placeholder, and a test now fails if this file names a path
-  that is missing or empty
-- a final Bob task inspects the release commit, runs the acceptance suite, repairs failures and
-  generates a sign-off receipt. `scripts/signoff.py` runs ten checks at one commit and writes
-  `artifacts/SIGNOFF_RECEIPT.json` naming each one, its command, its exit code and a line of
-  its output. It has three outcomes rather than two: a check that could not run in that
-  environment is `NOT_CHECKED` with a stated reason, and the verdict refuses to sign while any
-  check has failed
+### The IBM stack, and what each piece is measured doing
 
-`docs/PRE_BUILD_BASELINE.md` lists exactly what existed before Bob's first task, so the line
-between scaffolding and Bob's work is auditable rather than implied.
-
-## The IBM stack, and what each piece is measured doing
-
-A technology is listed only if something in this repository measures it working, and every row
-names the file a judge can open to check it.
+A technology is listed only if something here measures it working, and every row names the file
+to open.
 
 | Piece | What it does | Where |
 |---|---|---|
 | **IBM Bob** | Primary development tool. Built the ingestion, physics, parser, splits and queue. | `docs/BOB_BUILD_LOG.md` |
-| **IBM Granite 3.1 dense 8B** | Writes the reviewer's first sentence, locally, at temperature zero. Every draft goes through a grounding checker that refuses more than it accepts. | `pipeline/tracetriage/granite.py` |
-| **IBM Granite embedding 278m** | Embeds each evidence card for the precedent study, where it is measured head to head against seven standardised numbers and comes back indistinguishable. | `pipeline/tracetriage/precedent.py` |
-| **IBM Carbon** | The console's design system, and it owns the structure: the Gray 100 lightness ramp, the type scale, the 8px spacing steps and the productive motion curves. | `apps/web/app/globals.css` |
-| **IBM Plex** | Sans and Mono, self-hosted from this origin. Every face that carries a measurement is Plex and is served from here. | `apps/web/app/layout.tsx` |
-| **Model Context Protocol** | Two stdio servers: 7 tools over the committed receipts, and 5 that measure an observation recorded today. Read-only, enforced by an AST walk over each server's own source: no write verb in either, and no network import in the offline one. | `scripts/mcp_server.py` |
-| **LangChain** | 6 of the 7 evidence tools as `StructuredTool`s, for an agent that does not speak MCP. An adapter and not a second implementation: each tool calls the same function object the MCP server registered, asserted on object identity. | `pipeline/tracetriage/langchain_tools.py` |
-| **LangFlow** | Two flows built from component objects, dumped to JSON by LangFlow itself, then loaded back and executed. The grounding flow needs no model and no network. | `flows/` |
-| **watsonx.ai** | One text-generation backend, optional. Its draft goes through the same grounding checker, because the checker does not know which weights produced a sentence. With no credential the receipt records a dated `NOT_CHECKED` rather than a pass. | `pipeline/tracetriage/watsonx.py` |
+| **IBM Granite 3.1 dense 8B** | Writes the reviewer's first sentence, locally, at temperature zero. A grounding checker refuses more of its drafts than it accepts. | `pipeline/tracetriage/granite.py` |
+| **IBM Granite embedding 278m** | Retrieves precedents, measured against seven standardised numbers and indistinguishable from them. | `pipeline/tracetriage/precedent.py` |
+| **IBM Carbon** | The console's design system, and it owns the structure: the Gray 100 ramp, the type scale, the 8px steps, the motion curves. | `apps/web/app/globals.css` |
+| **IBM Plex** | Sans and Mono, self-hosted. Every face that carries a measurement is served from this origin. | `apps/web/app/layout.tsx` |
+| **Model Context Protocol** | Two stdio servers, 12 tools. Read-only enforced by an AST walk over each server's own source: no write verb in either, no network import in the offline one. | `scripts/mcp_server.py` |
+| **LangChain** | 6 evidence tools as `StructuredTool`s, for an agent that does not speak MCP. An adapter, not a second implementation: object identity with the MCP handlers is asserted. | `pipeline/tracetriage/langchain_tools.py` |
+| **LangFlow** | Two flows built from component objects, dumped by LangFlow itself, then loaded back and executed. The grounding flow needs no model and no network. | `flows/` |
+| **watsonx.ai** | Optional text-generation backend through the same grounding checker. With no credential the receipt records a dated `NOT_CHECKED` rather than a pass. | `pipeline/tracetriage/watsonx.py` |
 
-Three of those rows are results rather than choices. Granite's drafts are refused more often
-than they are accepted, the embedding does not beat seven numbers, and the watsonx row's
-outcome in this checkout is `NOT_CHECKED` because no IBM Cloud credential is set here. All
-three are reported with their intervals or their reasons rather than left out because they are
-unflattering.
+Three of those rows are results rather than choices: Granite's drafts are refused more often
+than accepted, the embedding does not beat seven numbers, and watsonx is `NOT_CHECKED` here
+because no IBM Cloud credential is set.
 
-**The console is eight static routes and one function.** Eight routes, 34 pre-rendered HTML files, because one of the eight is a per-observation page rendered once for each of the 25 shipped cards. A static export: no database and no
-credentials. Seven of the eight pages fetch nothing of their own at runtime. What they do reach for
-is the Adobe Fonts kit for three faces across two families (`neue-haas-grotesk-display 500`,
-`din-2014-narrow 600` and `din-2014-narrow 400`), and that is two hosts rather than one:
-the stylesheet at `use.typekit.net`, which then `@import`s `p.typekit.net` for usage
-reporting, which is why `vercel.json` names both in its `style-src`. Nothing carrying a
-number depends on either. The eighth is the live console, and it is the exception worth stating plainly
-rather than rounding off: it calls `api/live.py`, a Python serverless function declared in
-`vercel.json`, which fetches one waterfall from the public SatNOGS API on demand and measures it.
-No number this project was scored on comes from that path.
-Eight pages: a start page mapping each judged criterion to the page answering it, the review queue, a
-live console measuring an observation recorded in the last few hours, the evaluation with every
-gate including the ones that did not pass, the agent study beside its control arm, the precedent
-study with the condition that takes its result away, the baseline orderings the queue has to
-beat, and the provenance of each number.
+## How IBM Bob was used
+
+IBM Bob is the primary development tool for this project and built the load-bearing pipeline:
+**10 dated Bob-account units**, A7, A6, A5, A0, A0b-INT, A1, A2, A4, B1 and C1, covering the
+data contracts, the immutable snapshot, the waterfall artifact parser, the physics corridor,
+label provenance, the image-only baselines, the end-to-end triage slice, the grouped splits
+with their leakage audit, and the review-value queue with kill gate 6.
+
+A further 49 dated units are operator-side, run from Cursor and Claude Code, and are labelled
+that way in the actor field of their own headings: the console, the calibration and abstention
+blocks, the fusion ladder and the review waves are theirs, not Bob's. 47 are in
+`docs/OPERATOR_BUILD_LOG.md` and 2 stay beside the Bob units whose gaps they closed. Both
+counts are read out of the logs rather than typed here.
+
+Bob's work is recorded rather than asserted:
+
+- `docs/BOB_BUILD_LOG.md` maps each Bob task to files, commits, tests, failures, repairs and
+  actual build credit consumed.
+- `.bob/rules.md`, `.bob/TOOL_SPECS.md` and `.bob/mcp.json` are the standing instructions, tool
+  contracts and MCP wiring each Bob task ran under, so the conditions of the work are readable
+  and not just its output. Of the 16 tools the specification describes, it separates
+  the 12 tools that exist from the
+  4 that were specified and were not, naming the script that did each of those jobs instead.
+- A final Bob task inspects the release commit, runs the acceptance suite, repairs failures and
+  writes `artifacts/SIGNOFF_RECEIPT.json`, naming each check, its command, its exit code and a
+  line of its output. It has three outcomes rather than two: a check that could not run in that
+  environment is `NOT_CHECKED` with a stated reason, and the verdict refuses to sign while any
+  check has failed.
+
+`docs/PRE_BUILD_BASELINE.md` lists exactly what existed before Bob's first task, so the line
+between scaffolding and Bob's work is auditable rather than implied.
+
 
 ---
 
@@ -374,7 +328,13 @@ block, so none of it can drift from the study it came from.
   as one that did not.
 <!-- end what it produced -->
 
+---
+
 ## Where the gates landed, and why
+
+Six kill gates with numeric thresholds were written down before anything was measured. A gate
+is met only when a 95% interval clears its threshold, so a point estimate above the bar whose
+interval straddles it is a failure here.
 
 <!-- generated by scripts/sync_readme_results.py: gate status, do not edit -->
 **Status: six kill gates were written down, with their thresholds, before any of them was
@@ -488,7 +448,6 @@ These are generated from frozen artifacts and registered in `docs/CLAIM_REGISTER
 The first two rows are the reason this project exists, and they are shown rather than
 described [above](#the-gap-this-ranks-on).
 
-
 </details>
 
 ### Measured, with receipts
@@ -574,10 +533,80 @@ The cold-station split, the one where a reviewer meets stations the model never 
 on, does clear the threshold. It does not substitute for the primary split and is not
 presented as if it did.
 
-## Setup
+## Feasibility
 
-Requires Python 3.12 and Node 24, and [uv](https://docs.astral.sh/uv/). Nothing else: no
-service, no key, no model download for the judged path.
+Whether this could be run by the people whose problem it is, on the hardware they have.
+
+| Question | Answer | Where |
+|---|---|---|
+| What does it cost to run? | Nothing per observation. No cloud inference on any judged path: Granite runs locally, the console is a static export, and the one serverless function is 220 lines of Python on a free tier. | `vercel.json`, `api/live.py` |
+| Does it keep up with the network? | The dominant measured stage is the corridor fit, at **68,702 observations a day on one core** against **6,380** a day arriving from the network. Read the caveats and not the ratio: the network rate is extrapolated from a 9.4-hour span, the timing covers two stages, and the core count is a division rather than a measured speed-up. | `artifacts/THROUGHPUT_RECEIPT.json`, `docs/SCALABILITY.md` |
+| How big is the install? | 166 MB for the base install. The `full` extra that reproduces every receipt is 4,643 MB and is an extra for that reason. Measuring one live observation needs neither. | `pyproject.toml` |
+| Can it be used without a mouse? | Measured rather than intended. `scripts/check_contrast.py` recomputes all 26 rendered colour pairs against WCAG AA, and `tests/test_console_accessibility.py` parses all 34 built pages for keyboard reachability and an accessible name on every control. Both run in the standing gate. | `docs/DESIGN_SYSTEM.md` |
+| Who would deploy it, and when? | A station operator or a university ground-station team, on a laptop, this week: `pip install -e .` then `tracetriage triage <id>`. It writes nothing back to SatNOGS and holds no credential, so adopting it needs nobody's permission. | [Run it yourself](#run-it-yourself) |
+| What breaks it at scale? | Waterfall bytes, not compute. A 10,000-observation snapshot is roughly 17 GB of PNG, which is the constraint the recon document names before the first download rather than after. | `docs/SATNOGS_API_RECON.md` |
+
+## Real-World Impact
+
+The measured problem is that most passes are never decisively reviewed, and the people it
+costs are the ones running small missions on shared, volunteer-built infrastructure.
+
+- **The backlog is real and it is the norm, not a corner case.** 426 of 600 consecutive
+  observations carry no decisive human verdict. Those 600 come from **211 distinct ground
+  stations**, so this is a property of the network rather than of one station's habits.
+- **An unreviewed pass is not a missing image, it is missing information.** For a cubesat team,
+  a pass that nobody confirmed is a beacon they cannot count as heard. That decides whether a
+  spacecraft is declared alive, whether a frequency licence report has evidence behind it, and
+  whether a student's thesis has data.
+- **What changes with a ranked queue.** On ground stations the queue was never fitted to, a
+  fixed review budget finds **2.253x** as many independently reviewable conflicts as reviewing
+  the same number of passes at random, 95% CI [1.920, 3.859]. On the pre-registered
+  chronological split the same measurement is 1.582x and inconclusive. Both are published at
+  the same size, because the honest impact claim is the pair and not the better half.
+- **Nothing has to be added to the network for this to work on it.** Every input is already
+  published under CC BY-SA: the observation's own stored TLE, its timing and its receiver
+  metadata. That is why the same code measures a pass recorded an hour ago and one from the
+  frozen snapshot.
+- **The finding outlives the queue.** Whether a station's software already removed the Doppler
+  shift is not recorded anywhere in the observation record and is measurable from the image at
+  54.2 sigma against 7.3. Any project that fits a shape to a SatNOGS waterfall needs that
+  distinction, and `docs/DOPPLER_CORRECTION_FINDING.md` states it in a form somebody else can
+  use without this repository.
+
+What it does not claim: that a reviewer's minutes per confirmed finding improve. Half that
+number is measured (25.0 seconds median per plate over 72 blinded plates) and half is not, and
+the unmeasured half is [named as such above](#measured-results) rather than estimated.
+
+## Where it runs
+
+One engine, six surfaces. Every row is reachable now, with no account.
+
+| Surface | What it is | Where |
+|---|---|---|
+| **Web console** | 8 routes, 34 pre-rendered pages, no database and no credentials. Seven of the eight fetch nothing at runtime. | [tracetriage.vercel.app](https://tracetriage.vercel.app/) |
+| **Installable, offline** | Add to Home Screen on Android or iOS, no store account. All 8 pages of the rail render with the network switched off, in the console's own fonts, measured in a browser rather than asserted. | `artifacts/OFFLINE_RECEIPT.json` |
+| **Android app** | Signed APK on the releases page. Three screens: the ranked queue, the fitted Doppler corridor drawn over the waterfall, and a live measurement of any observation id. | [`mobile/`](mobile/README.md) |
+| **Live measurement** | One Python serverless function measures an observation recorded today from the public API. | `api/live.py` |
+| **Health and provenance** | `/api/health/` returns the SHA-256 of the `provenance.json` this deployment serves, so a judge can prove the site is this repository rather than take a screenshot's word for it. | `api/health.py` |
+| **Two MCP servers and a CLI** | 12 tools, 11 read-only, registered in `.mcp.json` so a clone needs no configuration. Plus a LangChain adapter over the same function objects and two LangFlow flows. | `docs/USE_WITH_YOUR_AGENT.md` |
+
+Eight pages: a start page mapping each judged criterion to the page answering it, the review
+queue, a live console measuring an observation recorded in the last few hours, the evaluation
+with every gate including the ones that did not pass, the agent study beside its control arm,
+the precedent study with the condition that takes its result away, the baseline orderings the
+queue has to beat, and the provenance of each number. The eighth is the live console, and it is
+the one exception to "fetches nothing": it calls `api/live.py`, which fetches one waterfall from
+the public SatNOGS API on demand and measures it. No number this project was scored on comes
+from that path.
+
+The last row is the one to weigh for an AI-builders submission: the surfaces that matter here
+are the ones an agent can drive, and this exposes the same measurements to a human, to a phone
+and to somebody else's model over a protocol.
+
+## Run it yourself
+
+Python 3.12, Node 24 and [uv](https://docs.astral.sh/uv/). No service, no key, no model
+download for the judged path.
 
 ```bash
 uv venv --python 3.12 .venv
@@ -585,65 +614,74 @@ uv pip install --python .venv/bin/python -e ".[full,dev,onnx]"   # .venv/Scripts
 .venv/bin/python -m pytest -m "not network and not ocr and not llm"
 ```
 
+That pytest selector is the offline replay and it is the gate. `ocr` needs the `[ocr]` extra
+and the weights easyocr reads, and `llm` needs the local model runtime, neither of which exists
+on a clean runner, so a run including them would fail for reasons that say nothing about the
+replay path. Everything that publishes a number runs inside it.
+`.github/workflows/ci.yml` runs the whole path on Ubuntu and is the version to copy; commands
+elsewhere in this repository use the Windows interpreter path because that is the machine they
+were recorded on.
+
 The console is separate and needs no Python:
 
 ```bash
 cd apps/web && npm ci && npm run build
 ```
 
-The `full` extra is what reproducing the receipts needs, and it is an extra rather than a base
-dependency so the base install is 166 MB instead of 4,643 MB. Measuring one live observation
-wants none of it.
-
-That pytest selector is the offline replay, and it is the gate: `ocr` needs the `[ocr]` extra
-and the weights easyocr reads, and `llm` needs the local model runtime, neither of which
-exists on a clean runner, so a run including them would fail for reasons that say nothing
-about the replay path. The `[ocr]` extra is left out of the replay's install on purpose,
-because easyocr declares torch, torchvision, opencv and scikit-image as its own dependencies. Everything that
-publishes a number runs inside it. Commands elsewhere in this repository use the Windows
-interpreter path because that is the machine they were recorded on;
-`.github/workflows/ci.yml` runs the whole path on Ubuntu and is the version to copy.
-
-## Point your own agent at it
-
-Two MCP servers and a CLI, no credential for either.
-[`docs/USE_WITH_YOUR_AGENT.md`](docs/USE_WITH_YOUR_AGENT.md) is the whole thing in a page, with
-config blocks for Claude Code, Claude Desktop, Cursor, Windsurf and Zed.
+**One live measurement, in about twenty seconds:**
 
 ```bash
-git clone https://github.com/Kesav2k04/tracetriage-august-2026
-cd tracetriage-august-2026
 pip install -e .
 tracetriage triage 14740031          # measure an observation recorded today
 tracetriage station 1696 --budget 6  # a station's own frequency error, across satellites
 ```
 
-| Surface | Answers from | Tools |
-|---|---|---|
-| `tracetriage-live` | the public SatNOGS API, now | 5 tools: `live_triage_observation`, `live_list_observations`, `live_rank_observations`, `live_station`, `live_check_claim`. `alwaysAllow` in `.bob/mcp.json` covers `live_list_observations`, `live_triage_observation` and `live_check_claim`; the other two measure up to 10 and up to 6 observations at two HTTP fetches each, so they ask first |
-| `tracetriage-evidence` | the receipts committed in this repository | 7 tools, offline, the read-only property enforced by parsing its own imports. `alwaysAllow` covers the six that only read: `queue_top`, `queue_size`, `observation`, `check_claim`, `gate_status`, `receipt`; `run_acceptance` runs the standing gate, which writes the console build, so it asks |
+**From your own agent**, with no credential. `.mcp.json` at the root registers both servers,
+so a clone has them with nothing to configure.
+[`docs/USE_WITH_YOUR_AGENT.md`](docs/USE_WITH_YOUR_AGENT.md) has a config block for Claude
+Code, Claude Desktop, Cursor, Windsurf and Zed.
 
-`.mcp.json` at the root registers both, so a client opened on a clone has them with nothing to
-configure. The live tools carry the `live_` prefix because a number measured this minute and a
-number this project was scored on must not be confusable by an agent reading a tool result.
+| Server | Answers from | Auto-approved, and what asks first |
+|---|---|---|
+| `tracetriage-evidence` | the receipts committed here, offline | 7 tools, read-only enforced by parsing its own imports. `alwaysAllow` covers the six that only read: `queue_top`, `queue_size`, `observation`, `check_claim`, `gate_status`, `receipt`. `run_acceptance` runs the standing gate, which writes the console build, so it asks |
+| `tracetriage-live` | the public SatNOGS API, now | 5 tools. `alwaysAllow` covers `live_list_observations`, `live_triage_observation` and `live_check_claim`; `live_rank_observations` and `live_station` measure up to 10 and up to 6 observations at two HTTP fetches each, so they ask first |
+
+The live tools carry a `live_` prefix because a number measured this minute and a number this
+project was scored on must not be confusable by an agent reading a tool result.
 
 ## How this repository keeps itself honest
 
-Every number in this file is generated from a frozen artifact under `artifacts/` and carries
-a row in `docs/CLAIM_REGISTER.md`. Three checks do most of the work:
+Every number in this file is generated from a frozen artifact under `artifacts/` and carries a
+row in `docs/CLAIM_REGISTER.md`. Three mechanisms do most of the work:
 
 - **Claims are compared against artifacts, not against a register.** `tests/test_claim_drift.py`
   reads each quoted value out of the receipt it came from. Editing the AUC row from 0.875 to
   0.999 turns three tests red.
 - **Six documents are generated and fail the gate when they drift.** Each generator takes
-  `--check`, which regenerates into memory and exits non-zero on any difference. Editing one
-  by hand is the defect they exist to catch.
-- **`scripts/gate.py` runs every standing check in one command and prints its own tally**, and `scripts/signoff.py` refuses to
-  sign a release while any of them has failed.
+  `--check`, which regenerates into memory and exits non-zero on any difference.
+- **`scripts/gate.py` runs every standing check in one command and prints its own tally**, and
+  `scripts/signoff.py` refuses to sign a release while any of them has failed.
 
-The rest, including what CI rebuilds on a clean Ubuntu clone and how the console is stopped
-from showing a number the receipts do not carry, is in
+What CI rebuilds on a clean Ubuntu clone, and how the console is stopped from showing a number
+the receipts do not carry, is in
 [`FOR_JUDGES.md`](FOR_JUDGES.md#seven-checks-worth-running-first).
+
+## Scope, and what is already done elsewhere
+
+SatNOGS already assigns observation and waterfall statuses. Public projects already classify
+waterfalls with CNNs. STRF-based tooling already extracts Doppler traces. **TraceTriage claims
+novelty for none of those.**
+
+The contribution it defends, measured against the three rungs in
+`docs/PRIOR_ART_BASELINES.md` and the ten-arm ladder in `artifacts/FUSION_RECEIPT.json`, is the
+combination of calibrated selective prediction, expected residual geometry fused with image
+evidence, explicit label-provenance and disagreement analysis, queue ranking by measured review
+value, per-observation evidence receipts, and evaluation by findings per fixed review budget
+under temporal and entity holdouts.
+
+If the physics does not improve probability quality, or the queue does not beat random ordering
+at the same budget, the correct outcome is to stop and document the failure. That is what
+`docs/KILL_GATE.md` is.
 
 ## Further reading
 
@@ -658,24 +696,8 @@ from showing a number the receipts do not carry, is in
 | [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | Why the palette is derived from the data rather than chosen, and the two accessibility defects that derivation caught |
 | [`docs/ACTOR_AND_PERMISSION_CONTRACT.md`](docs/ACTOR_AND_PERMISSION_CONTRACT.md) | What this system is permitted to do, enforced by test |
 | [`docs/USE_WITH_YOUR_AGENT.md`](docs/USE_WITH_YOUR_AGENT.md) | Both MCP servers, with a config block per client |
+| [`mobile/README.md`](mobile/README.md) | The Android client, how to build it, and how to check what signed the APK |
 | [`presentation/REPORT.md`](presentation/REPORT.md) | What the film claims, card by card, with the receipt key each figure was resolved from |
-
-## Prior art and honest scope
-
-SatNOGS already assigns observation and waterfall statuses. Public projects already classify
-waterfalls with CNNs. STRF-based tooling already extracts Doppler traces. **TraceTriage claims
-novelty for none of those.**
-
-The contribution it must defend, measured against the three rungs in
-`docs/PRIOR_ART_BASELINES.md` and the ten-arm ladder in
-`artifacts/FUSION_RECEIPT.json`, is the combination of calibrated selective prediction, expected
-residual geometry fused with image evidence, explicit label-provenance and disagreement
-analysis, queue ranking by measured review value, per-observation evidence receipts, and
-evaluation by findings per fixed review budget under temporal and entity holdouts.
-
-If the physics does not improve probability quality, or the queue does not beat random ordering
-at the same budget, the correct outcome is to stop and document the failure. That is what
-`docs/KILL_GATE.md` is.
 
 ## Licence
 
