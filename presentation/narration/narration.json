@@ -3,29 +3,29 @@
   "fps": 30,
   "leadInSeconds": 0.35,
   "tailSeconds": 0.3,
-  "totalFrames": 4260,
+  "totalFrames": 4788,
   "cues": [
     {
       "beat": "Title",
       "index": 0,
       "startFrame": 0,
-      "endFrame": 150,
+      "endFrame": 180,
       "startSeconds": 0,
-      "endSeconds": 5,
-      "budgetSeconds": 4.35,
-      "text": "TraceTriage. Which satellite passes are worth a reviewer's time.",
-      "words": 9,
+      "endSeconds": 6,
+      "budgetSeconds": 5.35,
+      "text": "Of everything a ground station recorded last night, what should a person open first?",
+      "words": 14,
       "claims": []
     },
     {
       "beat": "Problem",
       "index": 1,
-      "startFrame": 150,
-      "endFrame": 690,
-      "startSeconds": 5,
-      "endSeconds": 23,
-      "budgetSeconds": 17.35,
-      "text": "Volunteers point radios at satellites, then judge what came back by eye. This frozen snapshot holds two thousand seven hundred and twenty seven captures. Only 739 carry a decisive verdict. The rest were recorded, and nobody read them.",
+      "startFrame": 180,
+      "endFrame": 642,
+      "startSeconds": 6,
+      "endSeconds": 21.4,
+      "budgetSeconds": 14.75,
+      "text": "Volunteers point radios at satellites and judge what came back by eye. This frozen snapshot holds two thousand seven hundred and twenty seven captures. Only 739 carry a decisive verdict. The rest were recorded, and nobody read them.",
       "words": 38,
       "claims": [
         {
@@ -43,13 +43,50 @@
       ]
     },
     {
-      "beat": "Queue",
+      "beat": "Physics",
       "index": 2,
-      "startFrame": 690,
-      "endFrame": 1350,
-      "startSeconds": 23,
-      "endSeconds": 45,
-      "budgetSeconds": 21.35,
+      "startFrame": 642,
+      "endFrame": 1296,
+      "startSeconds": 21.4,
+      "endSeconds": 43.2,
+      "budgetSeconds": 21.15,
+      "text": "From this pass's own orbital elements, propagated with S G P 4, the expected Doppler curve spans seventeen thousand two hundred and ninety hertz. Slide that curve 113 pixels and it lands on the trace. The gap is the measurement. plus thirteen thousand nine hundred and eighty five hertz, plus 32.05 parts per million. This station had already taken the Doppler out, and nothing in the observation record says so.",
+      "words": 70,
+      "claims": [
+        {
+          "file": "artifacts/GATE3_RECEIPT.json",
+          "path": "observations[0].corridor_span_hz",
+          "display": "17,290",
+          "spoken": "seventeen thousand two hundred and ninety"
+        },
+        {
+          "file": "apps/web/public/data/cards.json",
+          "path": "cards[12].corridor.fitted_px[0] minus cards[12].corridor.predicted_px[0]",
+          "display": "113",
+          "spoken": "113"
+        },
+        {
+          "file": "apps/web/public/data/cards.json",
+          "path": "cards[12].corridor.fitted_offset_hz",
+          "display": "+13,985",
+          "spoken": "plus thirteen thousand nine hundred and eighty five"
+        },
+        {
+          "file": "apps/web/public/data/cards.json",
+          "path": "cards[12].corridor.fitted_offset_ppm",
+          "display": "+32.05",
+          "spoken": "plus 32.05"
+        }
+      ]
+    },
+    {
+      "beat": "Queue",
+      "index": 3,
+      "startFrame": 1296,
+      "endFrame": 1788,
+      "startSeconds": 43.2,
+      "endSeconds": 59.6,
+      "budgetSeconds": 15.75,
       "text": "So the queue ranks 407 observations by what a reviewer would learn, and spends a fixed budget of 50 on the top of it. Not the loudest signals. The ones where the evidence disagrees with itself: 17 stale catalogue frequencies, and 3 where the model and the network label do not match.",
       "words": 52,
       "claims": [
@@ -80,50 +117,50 @@
       ]
     },
     {
-      "beat": "Physics",
-      "index": 3,
-      "startFrame": 1350,
-      "endFrame": 2250,
-      "startSeconds": 45,
-      "endSeconds": 75,
-      "budgetSeconds": 29.35,
-      "text": "The shape is the test. From this pass's own orbital elements, propagated with S G P 4, the expected Doppler curve spans seventeen thousand two hundred and ninety hertz. Slide that curve 113 pixels and it lands on the trace. The gap is the measurement: plus thirteen thousand nine hundred and eighty five hertz, plus 32.05 parts per million. This station had already taken the Doppler out, and nothing in the observation record says so.",
-      "words": 75,
+      "beat": "Session",
+      "index": 4,
+      "startFrame": 1788,
+      "endFrame": 2412,
+      "startSeconds": 59.6,
+      "endSeconds": 80.4,
+      "budgetSeconds": 20.15,
+      "text": "Any agent can drive this over the Model Context Protocol. 7 read-only tools over the committed receipts, 5 more that measure a pass recorded today. Write a downlink frequency this observation does not have and the checker refuses it, naming the reason. Write only what its own packet prints and it passes. The recorded session ran 12 steps and 12 came back as documented.",
+      "words": 64,
       "claims": [
         {
-          "file": "artifacts/GATE3_RECEIPT.json",
-          "path": "observations[0].corridor_span_hz",
-          "display": "17,290",
-          "spoken": "seventeen thousand two hundred and ninety"
+          "file": "artifacts/OPERATOR_SESSION.json",
+          "path": "frozen.steps[0].reported.n_tools",
+          "display": "7",
+          "spoken": "7"
         },
         {
-          "file": "apps/web/public/data/cards.json",
-          "path": "cards[12].corridor.fitted_px[0] minus cards[12].corridor.predicted_px[0]",
-          "display": "113",
-          "spoken": "113"
+          "file": "artifacts/OPERATOR_SESSION.json",
+          "path": "live.steps[0].reported.n_tools",
+          "display": "5",
+          "spoken": "5"
         },
         {
-          "file": "apps/web/public/data/cards.json",
-          "path": "cards[12].corridor.fitted_offset_hz",
-          "display": "+13,985",
-          "spoken": "plus thirteen thousand nine hundred and eighty five"
+          "file": "artifacts/OPERATOR_SESSION.json",
+          "path": "summary.n_steps",
+          "display": "12",
+          "spoken": "12"
         },
         {
-          "file": "apps/web/public/data/cards.json",
-          "path": "cards[12].corridor.fitted_offset_ppm",
-          "display": "+32.05",
-          "spoken": "plus 32.05"
+          "file": "artifacts/OPERATOR_SESSION.json",
+          "path": "summary.n_met",
+          "display": "12",
+          "spoken": "12"
         }
       ]
     },
     {
       "beat": "Result",
-      "index": 4,
-      "startFrame": 2250,
-      "endFrame": 2940,
-      "startSeconds": 75,
-      "endSeconds": 98,
-      "budgetSeconds": 22.35,
+      "index": 5,
+      "startFrame": 2412,
+      "endFrame": 2970,
+      "startSeconds": 80.4,
+      "endSeconds": 99,
+      "budgetSeconds": 17.95,
       "text": "The gate written down in advance asked the queue to find one and a half times as many conflicts as random ordering at the same budget. It found 20 where random expects 12.6. That is a lift of 1.58. The interval runs 1.35 to 1.74, so it straddles the bar, and this is published as not established.",
       "words": 57,
       "claims": [
@@ -161,14 +198,14 @@
     },
     {
       "beat": "Gates",
-      "index": 5,
-      "startFrame": 2940,
-      "endFrame": 3420,
-      "startSeconds": 98,
-      "endSeconds": 114,
-      "budgetSeconds": 15.35,
-      "text": "Six gates, with their thresholds, written down before anything was measured. 3 of 6 were met. A point estimate above the bar whose interval crosses it counts as a failure here, which is stricter than the brief asked for.",
-      "words": 39,
+      "index": 6,
+      "startFrame": 2970,
+      "endFrame": 3408,
+      "startSeconds": 99,
+      "endSeconds": 113.6,
+      "budgetSeconds": 13.95,
+      "text": "Six gates, with their thresholds, written down before anything was measured. 3 of 6 were met. A point estimate above the bar whose interval crosses it counts as a failure here, which is stricter than the brief asked for. Nothing was moved to make a verdict look better.",
+      "words": 48,
       "claims": [
         {
           "file": "apps/web/public/data/provenance.json",
@@ -186,14 +223,14 @@
     },
     {
       "beat": "Established",
-      "index": 6,
-      "startFrame": 3420,
-      "endFrame": 4080,
-      "startSeconds": 114,
-      "endSeconds": 136,
-      "budgetSeconds": 21.35,
-      "text": "Three results did come back decided. Read-only evidence tools take a local Granite model from 2 of 24 right to 22 of 24. The grounding checker caught 525 of 525 planted falsehoods, and refused 0 of 175 clean drafts. On ground stations the queue was never fitted to, lift is 2.25, and that one passes.",
-      "words": 55,
+      "index": 7,
+      "startFrame": 3408,
+      "endFrame": 4020,
+      "startSeconds": 113.6,
+      "endSeconds": 134,
+      "budgetSeconds": 19.75,
+      "text": "Three results came back decided. Read-only evidence tools take a local Granite model from 2 of 24 right to 22 of 24. The grounding checker caught 525 of 525 planted falsehoods, and refused 0 of 175 clean drafts. On stations the queue never saw, lift is 2.25, and that one clears.",
+      "words": 51,
       "claims": [
         {
           "file": "artifacts/AGENT_RECEIPT.json",
@@ -252,15 +289,34 @@
       ]
     },
     {
+      "beat": "Bob",
+      "index": 8,
+      "startFrame": 4020,
+      "endFrame": 4560,
+      "startSeconds": 134,
+      "endSeconds": 152,
+      "budgetSeconds": 17.35,
+      "text": "IBM Bob built the load-bearing pipeline. The data contracts, the immutable snapshot, the waterfall parser, the physics corridor, the label provenance, the baselines, the grouped splits and the queue: 10 dated units, each with the files it changed and what failed first. Every measurement here is computed on what those units produced.",
+      "words": 52,
+      "claims": [
+        {
+          "file": "apps/web/public/data/bob.json",
+          "path": "n_bob_units",
+          "display": "10",
+          "spoken": "10"
+        }
+      ]
+    },
+    {
       "beat": "Colophon",
-      "index": 7,
-      "startFrame": 4080,
-      "endFrame": 4260,
-      "startSeconds": 136,
-      "endSeconds": 142,
-      "budgetSeconds": 5.35,
-      "text": "The waterfall in this film is a public SatNOGS capture, cited and licensed.",
-      "words": 13,
+      "index": 9,
+      "startFrame": 4560,
+      "endFrame": 4788,
+      "startSeconds": 152,
+      "endSeconds": 159.6,
+      "budgetSeconds": 6.95,
+      "text": "Every figure you heard was read out of a receipt. The waterfall is a public SatNOGS capture, cited and licensed.",
+      "words": 20,
       "claims": []
     }
   ]

@@ -520,11 +520,29 @@ describe("the rendered file", () => {
     expect(existsSync(POSTER)).toBe(true);
   });
 
+  /**
+   * The composition is authored at 1920x1080 and delivered at twice that, because the
+   * upload target is a 4K stream and every card here is type on a flat ground, which is
+   * exactly the content that gains from the extra pixels and costs almost nothing to
+   * encode. The multiplier is not written here: it is read out of the render script in
+   * package.json, so the assertion is tied to the command that produced the file rather
+   * than to a second copy of the number. Rendering at a different scale and forgetting
+   * to say so fails this.
+   */
+  const renderScale = (): number => {
+    const pkg = JSON.parse(
+      readFileSync(join(__dirname, "..", "package.json"), "utf-8"),
+    ) as { scripts: Record<string, string> };
+    const found = /--scale=(\d+(?:\.\d+)?)/.exec(pkg.scripts.render);
+    return found ? Number(found[1]) : 1;
+  };
+
   it.skipIf(!HAS_FFPROBE)("has the duration, resolution and frame rate of the composition", () => {
     if (!existsSync(OUT)) return;
+    const scale = renderScale();
     const stream = ffprobe("v:0", "width,height,r_frame_rate,nb_frames").streams[0];
-    expect(stream.width).toBe(WIDTH);
-    expect(stream.height).toBe(HEIGHT);
+    expect(stream.width).toBe(WIDTH * scale);
+    expect(stream.height).toBe(HEIGHT * scale);
     expect(stream.r_frame_rate).toBe(`${FPS}/1`);
     expect(Number(stream.nb_frames)).toBe(FILM_FRAMES);
   });

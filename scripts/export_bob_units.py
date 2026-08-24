@@ -238,7 +238,6 @@ def collect() -> dict[str, Any]:
             {
                 "unit": unit,
                 "date": heading.split("IST", 1)[0].split("#")[-1].strip(),
-                "actor": match.group("actor").strip(),
                 "subject": subject,
                 "bob_task_id": task_id,
                 "files": published,

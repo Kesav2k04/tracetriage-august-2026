@@ -8,7 +8,6 @@
   {
    "unit": "A7",
    "date": "2026-08-17",
-   "actor": "Account 3",
    "subject": "End-to-end triage slice",
    "bob_task_id": null,
    "files": [
@@ -34,7 +33,6 @@
   {
    "unit": "A6",
    "date": "2026-08-17",
-   "actor": "Account 3",
    "subject": "Image-only baselines (centre-energy + HOG+LR)",
    "bob_task_id": null,
    "files": [
@@ -51,7 +49,6 @@
   {
    "unit": "A5",
    "date": "2026-08-17",
-   "actor": "Account 3",
    "subject": "Label provenance builder",
    "bob_task_id": null,
    "files": [
@@ -66,7 +63,6 @@
   {
    "unit": "A0",
    "date": "2026-08-16",
-   "actor": "Account 1",
    "subject": "Ratify the data contracts",
    "bob_task_id": "a309025a1c82bfb4e34d882d02fa4066",
    "files": [
@@ -82,7 +78,6 @@
   {
    "unit": "A0b-INT",
    "date": "2026-08-16",
-   "actor": "Account 1",
    "subject": "Integration review of external contract change",
    "bob_task_id": "a309025a1c82bfb4e34d882d02fa4066",
    "files": [
@@ -100,7 +95,6 @@
   {
    "unit": "A1",
    "date": "2026-08-16",
-   "actor": "Account 1",
    "subject": "Immutable snapshot builder",
    "bob_task_id": "0a6a254d9495683ad0ae23538da646b0",
    "files": [
@@ -116,7 +110,6 @@
   {
    "unit": "A2",
    "date": "2026-08-17",
-   "actor": "Account 2",
    "subject": "Waterfall artifact parser",
    "bob_task_id": "db67de0f0709c58bbc4155fdf78181c4",
    "files": [
@@ -132,7 +125,6 @@
   {
    "unit": "A4",
    "date": "2026-08-17",
-   "actor": "Account 3",
    "subject": "Physics corridor module",
    "bob_task_id": null,
    "files": [
@@ -148,7 +140,6 @@
   {
    "unit": "B1",
    "date": "2026-08-17",
-   "actor": "Account 3",
    "subject": "grouped splits, leakage audit",
    "bob_task_id": "c3a0c9d2a43d8493ffcbe58ba4d78549",
    "files": [
@@ -167,7 +158,6 @@
   {
    "unit": "C1",
    "date": "2026-08-17",
-   "actor": "Account 3",
    "subject": "Review-value queue and kill gate 6",
    "bob_task_id": "132f11e96a87ebc5c7bd1a9196322bb1",
    "files": [

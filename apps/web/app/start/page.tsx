@@ -419,9 +419,9 @@ export default function StartPage() {
                 ) : (
                   <span
                     style={{ color: "var(--text-03)" }}
-                    title="This entry records the workspace and the account but no task hash"
+                    title="This entry records no task hash"
                   >
-                    {unit.actor.toLowerCase()}
+                    not recorded
                   </span>
                 )}
               </Cell>

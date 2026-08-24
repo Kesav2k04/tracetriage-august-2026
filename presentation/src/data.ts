@@ -21,6 +21,8 @@ import agentJson from "../../artifacts/AGENT_RECEIPT.json";
 import explainJson from "../../artifacts/EXPLAIN_RECEIPT.json";
 import circularityJson from "../../artifacts/CIRCULARITY_RECEIPT.json";
 import narrationJson from "../../artifacts/NARRATION_RECEIPT.json";
+import sessionJson from "../../artifacts/OPERATOR_SESSION.json";
+import bobJson from "../../apps/web/public/data/bob.json";
 
 import {
   Claim,
@@ -46,6 +48,8 @@ export const FILE = {
   explain: "artifacts/EXPLAIN_RECEIPT.json",
   circularity: "artifacts/CIRCULARITY_RECEIPT.json",
   narration: "artifacts/NARRATION_RECEIPT.json",
+  session: "artifacts/OPERATOR_SESSION.json",
+  bob: "apps/web/public/data/bob.json",
 } as const;
 
 const manifest = manifestJson as unknown;
@@ -55,6 +59,8 @@ const provenance = provenanceJson as unknown;
 const cards = cardsJson as unknown;
 const attribution = attributionJson as unknown;
 const narration = narrationJson as unknown;
+const session = sessionJson as unknown;
+const bob = bobJson as unknown;
 const agent = agentJson as unknown;
 const explain = explainJson as unknown;
 const circularity = circularityJson as unknown;
@@ -79,6 +85,10 @@ const ci = <T,>(path: string, format: (v: T) => string) =>
   read<T>(circularity, FILE.circularity, path, format);
 const na = <T,>(path: string, format: (v: T) => string) =>
   read<T>(narration, FILE.narration, path, format);
+const se = <T,>(path: string, format: (v: T) => string) =>
+  read<T>(session, FILE.session, path, format);
+const bo = <T,>(path: string, format: (v: T) => string) =>
+  read<T>(bob, FILE.bob, path, format);
 
 // ---------------------------------------------------------------------------
 // Beat 1. The corpus, and how much of it carries a human verdict.
@@ -574,6 +584,58 @@ export const colophon = {
   figuresHeard: na<number>("totals.figures_checked", identifier),
 } as const;
 
+// ---------------------------------------------------------------------------
+// The session an agent actually ran, and what IBM Bob built.
+//
+// `artifacts/OPERATOR_SESSION.json` is the twelve steps of docs/BOB_DEMO.md driven
+// over stdio against both servers and recorded call by call. Every string the session
+// card puts on screen is a field of that receipt, including the sentence the checker
+// refused and the one it accepted, so the demo in the film is the demo that ran rather
+// than a screenshot of one.
+// ---------------------------------------------------------------------------
+
+/** Index of a step inside `frozen.steps` or `live.steps`, by its recorded step number. */
+const stepAt = (section: "frozen" | "live", step: number): number => {
+  const steps = resolve(session, `${section}.steps`) as { step: number }[];
+  const at = steps.findIndex((s) => s.step === step);
+  if (at < 0) throw new Error(`${section} has no step ${step}`);
+  return at;
+};
+
+const REFUSED_AT = stepAt("frozen", 5);
+const GROUNDED_AT = stepAt("frozen", 6);
+const TOOLS_AT = stepAt("frozen", 1);
+const LIVE_TOOLS_AT = stepAt("live", 2);
+
+export const agentSession = {
+  evidenceTools: se<number>(`frozen.steps[${TOOLS_AT}].reported.n_tools`, identifier),
+  liveTools: se<number>(`live.steps[${LIVE_TOOLS_AT}].reported.n_tools`, identifier),
+  stepsRun: se<number>("summary.n_steps", identifier),
+  stepsMet: se<number>("summary.n_met", identifier),
+  refusedText: se<string>(`frozen.steps[${REFUSED_AT}].reported.text`, identity),
+  refusedVerdict: se<string>(`frozen.steps[${REFUSED_AT}].reported.verdict`, identity),
+  refusedCode: se<string[]>(
+    `frozen.steps[${REFUSED_AT}].reported.codes`,
+    (codes) => codes[0],
+  ),
+  groundedText: se<string>(`frozen.steps[${GROUNDED_AT}].reported.text`, identity),
+  groundedVerdict: se<string>(`frozen.steps[${GROUNDED_AT}].reported.verdict`, identity),
+  liveToolNames: se<string[]>(
+    `live.steps[${LIVE_TOOLS_AT}].reported.tools`,
+    (names) => names.join("  "),
+  ),
+} as const;
+
+export const bobUnits = {
+  count: bo<number>("n_bob_units", identifier),
+  source: bo<string>("source", identity),
+  rows: (resolve(bob, "units") as { unit: string }[]).map((_, i) => ({
+    unit: bo<string>(`units[${i}].unit`, identity),
+    subject: bo<string>(`units[${i}].subject`, identity),
+    files: bo<string[]>(`units[${i}].files`, (f) => String(f.length)),
+  })),
+} as const;
+
 /** Everything above, flattened, for the test to walk. */
 export const ALL_CLAIMS: Record<string, Claim<unknown>> = {};
 const collect = (prefix: string, node: unknown): void => {
@@ -602,3 +664,5 @@ collect("established", established);
 collect("ceiling", ceiling);
 collect("provenanceLine", provenanceLine);
 collect("colophon", colophon);
+collect("agentSession", agentSession);
+collect("bobUnits", bobUnits);

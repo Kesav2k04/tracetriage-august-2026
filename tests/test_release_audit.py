@@ -25,6 +25,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -317,6 +318,33 @@ def test_each_audit_receipt_names_a_commit_that_exists_in_this_history(name: str
     assert found.stdout.strip() == "commit", f"{name} names {commit}, which is not a commit here"
 
 
+def _film_resolution() -> str | None:
+    """`WIDTHxHEIGHT` of the committed film, read off the file with ffprobe.
+
+    A licence notice that names a resolution is making a claim about the bytes it sits
+    beside, so the check reads the bytes. The composition is authored at 1920x1080 and
+    delivered at twice that, so the receipt's composition block is the wrong source
+    here and the file is the only right one. Where ffprobe is absent the resolution is
+    simply not checked, which is stated by returning None rather than by asserting a
+    number nothing measured.
+    """
+    film = _REPO / "presentation" / "out" / "tracetriage-film.mp4"
+    if not film.exists() or shutil.which("ffprobe") is None:
+        return None
+    out = subprocess.run(
+        [
+            "ffprobe", "-v", "error", "-select_streams", "v:0",
+            "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x",
+            str(film),
+        ],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    return out or None
+
+
+_FILM_RESOLUTION = _film_resolution()
+
+
 def test_a_redistributed_film_is_audited_as_the_derived_work_it_is(attribution: dict) -> None:
     """The two largest committed media files carry the obligations, not an exemption.
 
@@ -340,9 +368,16 @@ def test_a_redistributed_film_is_audited_as_the_derived_work_it_is(attribution: 
         assert row["observation_id_from"] == "declared", rel
         assert row["complete"] is True, rel
         assert all(row["obligations"].values()), rel
-        # The notice has to say what the film did, not merely that something happened.
+        # The notice has to say what the film did, not merely that something happened,
+        # and the resolution it names has to be the resolution of the file on disk.
+        # It was hardcoded here until the film moved to 4K, at which point this test
+        # was the only thing that noticed, and what it noticed was its own copy of the
+        # number rather than a wrong notice.
         notice = row["modification_notice"] or ""
-        for said in ("corridor", "1920x1080", "H.264"):
+        wanted = ["corridor", "H.264"]
+        if _FILM_RESOLUTION is not None:
+            wanted.append(_FILM_RESOLUTION)
+        for said in wanted:
             assert said in notice, (rel, said)
 
 

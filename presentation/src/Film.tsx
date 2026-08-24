@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, Sequence, staticFile } from "remotion";
+import { Bob } from "./beats/Bob";
 import { Colophon } from "./beats/Colophon";
 import { Established } from "./beats/Established";
 import { Gates } from "./beats/Gates";
@@ -7,6 +8,7 @@ import { Physics } from "./beats/Physics";
 import { Problem } from "./beats/Problem";
 import { Queue } from "./beats/Queue";
 import { Result } from "./beats/Result";
+import { Session } from "./beats/Session";
 import { Title } from "./beats/Title";
 import { FPS, LEAD_IN_SECONDS, token } from "./theme";
 
@@ -14,13 +16,12 @@ import { FPS, LEAD_IN_SECONDS, token } from "./theme";
  * Eight cards, cut rather than crossfaded. A cut is what a console does when you
  * click through it, and it costs no frames to a transition nobody reads.
  *
- * The order is the argument, and "Established" is deliberately the last card with a
- * measurement on it. An earlier cut ran Title through Gates and stopped, so the film
- * closed on four verdicts that came back inconclusive and never said what had been
- * decided. Moving the decided results in front of the tally would have been the
- * flattering fix and the wrong one: the pre-registered gate is stated in full first,
- * with its interval, and then the three results that hold are stated after it. No
- * figure moved, no verdict softened, only the order.
+ * The order is the argument. Physics runs early because the corridor is the one thing
+ * on screen that cannot be mistaken for a chart, and the queue only means something
+ * once a viewer has seen what it ranks on. The pre-registered gate is still stated in
+ * full, with its interval, before the tally that reports it as not established, and
+ * the three results that did come back decided are stated before it rather than used
+ * to soften it. No figure moved and no verdict changed, only the order.
  *
  * The frame counts are set by the narration rather than by reading speed.
  *
@@ -33,18 +34,31 @@ import { FPS, LEAD_IN_SECONDS, token } from "./theme";
  *
  * `presentation/scripts/build-narration.ts` prints each beat's word count against its
  * budget, and `scripts/render_narration.py` fails on the measured duration rather than
- * the estimate. The film runs 142 seconds against the brief's 180 second ceiling, so
- * there is room left for a live console recording either side of it.
+ * the estimate.
+ *
+ * The holds are set from the measured wav rather than chosen. An earlier cut carried
+ * 31.6 seconds of silence across 142, because each card was given a round number of
+ * seconds and the line inside it came up short. Every duration below is the beat's own
+ * rendered speech plus the lead-in, the tail and about a second of air, rounded to the
+ * next six frames, so a card holds for as long as it is being spoken over and no
+ * longer. `scripts/render_narration.py --check` fails if a line ever outgrows its card.
+ *
+ * Two cards were added rather than the same argument being restated. "Session" is the
+ * product being driven over MCP, refusal and all, read out of the recorded session
+ * receipt. "Bob" is what IBM Bob built, read out of the same unit list the console
+ * serves. Neither is a claim the other seven cards were already making.
  */
 export const BEATS = [
-  { name: "Title", component: Title, durationInFrames: 150 },
-  { name: "Problem", component: Problem, durationInFrames: 540 },
-  { name: "Queue", component: Queue, durationInFrames: 660 },
-  { name: "Physics", component: Physics, durationInFrames: 900 },
-  { name: "Result", component: Result, durationInFrames: 690 },
-  { name: "Gates", component: Gates, durationInFrames: 480 },
-  { name: "Established", component: Established, durationInFrames: 660 },
-  { name: "Colophon", component: Colophon, durationInFrames: 180 },
+  { name: "Title", component: Title, durationInFrames: 180 },
+  { name: "Problem", component: Problem, durationInFrames: 462 },
+  { name: "Physics", component: Physics, durationInFrames: 654 },
+  { name: "Queue", component: Queue, durationInFrames: 492 },
+  { name: "Session", component: Session, durationInFrames: 624 },
+  { name: "Result", component: Result, durationInFrames: 558 },
+  { name: "Gates", component: Gates, durationInFrames: 438 },
+  { name: "Established", component: Established, durationInFrames: 612 },
+  { name: "Bob", component: Bob, durationInFrames: 540 },
+  { name: "Colophon", component: Colophon, durationInFrames: 228 },
 ] as const;
 
 export const FILM_FRAMES = BEATS.reduce(

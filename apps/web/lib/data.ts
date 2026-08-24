@@ -1124,7 +1124,6 @@ export function precedentFor(
 export interface BobUnit {
   unit: string;
   date: string;
-  actor: string;
   subject: string;
   /** Null for the two units whose entry records a workspace and an account but no hash. */
   bob_task_id: string | null;

@@ -178,19 +178,22 @@ def test_no_path_is_published_and_withheld_at_once(doc) -> None:
         )
 
 
-def test_every_date_is_iso_and_every_actor_is_spelled_one_way(doc) -> None:
+def test_every_date_is_iso_and_no_unit_carries_an_account(doc) -> None:
     """B1's heading read `17 Aug 2026 IST | account 3` where the other nine read ISO.
 
     The console sorts and groups on these, so one unit written in a second format is a unit
     that sorts wrong. Fixed at the heading in the build log rather than in the exporter,
     because the exporter's job is to report the log faithfully and a normaliser here would
     hide the next one.
+
+    The account label itself is not exported. It is a fact about which workspace ran a
+    unit rather than about what the unit produced, and the second assertion here keeps it
+    from coming back with the next exporter change.
     """
     for unit in doc["units"]:
         assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", unit["date"]), (
             f"{unit['unit']} is dated {unit['date']!r}, which is not ISO"
         )
-        assert re.fullmatch(r"Account \d+", unit["actor"]), (
-            f"{unit['unit']} names its actor {unit['actor']!r}, which is not the casing the "
-            f"other units use"
+        assert "actor" not in unit, (
+            f"{unit['unit']} carries an actor field, which the published list does not"
         )

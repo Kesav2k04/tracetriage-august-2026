@@ -98,7 +98,7 @@ it, and that is a limit of the guard rather than a claim about them.
 | Selected challenge theme | Space exploration. `README.md` states it, and `artifacts/DATASET_MANIFEST.json` records the snapshot it was built from |
 | How IBM Bob was used | `docs/BOB_BUILD_LOG.md`, one entry per unit, and `.bob/TOOL_SPECS.md` for the tool contracts each task ran under |
 | Working prototype | The static console under `apps/web`, deployed from this repository |
-| Demo or presentation video | `docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated from the receipts so no spoken number can drift from what the console shows. `presentation/out/tracetriage-film.mp4` is a rendered 142 second narrated film over the same receipts: 8 cards, 4260 frames, and 140 figures each resolved from a receipt key path at build time rather than typed. `artifacts/FILM_RECEIPT.json` records its digest and `scripts/check_receipt_digests.py`, a standing gate, checks the committed bytes against it. The narration is spoken offline by kokoro-82M v1.0 (ONNX), Apache-2.0, and held to the same rule as the cards: a second model transcribes the rendered audio back without seeing the script, and all 26 figures it names were heard, with 0 lines overrunning the card they are spoken over. `artifacts/NARRATION_RECEIPT.json` |
+| Demo or presentation video | `docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated from the receipts so no spoken number can drift from what the console shows. `presentation/out/tracetriage-film.mp4` is a rendered 159.6 second narrated film over the same receipts: 10 cards, 4788 frames, and 182 figures each resolved from a receipt key path at build time rather than typed. `artifacts/FILM_RECEIPT.json` records its digest and `scripts/check_receipt_digests.py`, a standing gate, checks the committed bytes against it. The narration is spoken offline by kokoro-82M v1.0 (ONNX), Apache-2.0, and held to the same rule as the cards: a second model transcribes the rendered audio back without seeing the script, and all 31 figures it names were heard, with 0 lines overrunning the card they are spoken over. `artifacts/NARRATION_RECEIPT.json` |
 | Public repository | This one |
 
 ## The stack, and what each piece is measured doing
@@ -120,7 +120,7 @@ weaken a claim. A technology is listed here only if something measures it workin
 | LangChain | `pipeline/tracetriage/langchain_tools.py` | 6 of the 7 evidence tools, adapted for an agent that does not speak MCP. An adapter and not a second implementation: each tool calls the function object the MCP server registered, asserted on identity in `tests/test_langchain_tools.py`. Through it, `check_claim` came back REFUSED with UNGROUNDED_NUMBER. `artifacts/LANGCHAIN_RECEIPT.json` |
 | LangFlow | `flows/`, `pipeline/tracetriage/langflow_components.py` | Two flows, built from component objects, written out by LangFlow's own `Graph.dump()`, then loaded back from those files and run. The grounding flow needs no model and no network: grounded -> GROUNDED, ungrounded -> REFUSED/UNGROUNDED_NUMBER. A second flow binds the six tools to `granite3.1-dense:8b` through LangFlow's agent node and runs end to end. Its answer does not carry observation 14746092, which is reachable only through a tool call: the model emits its call as a `<tool_call>` text block and the agent node does not execute it. The same model and the same six handlers score 22/24 through this project's MCP harness, so this is a measurement about the client rather than the model, and it is recorded rather than rounded up. LangFlow 1.11.4 is not a dependency of this project. `artifacts/LANGFLOW_RECEIPT.json` |
 | watsonx.ai | `scripts/run_watsonx_check.py` | `ibm/granite-3-8b-instruct`, one draft about observation 14746092, put through the same grounding checker that decides whether a local draft ships. **NOT_CHECKED in this checkout**: no `WATSONX_API_KEY` is set here, so nothing was sent and nothing is claimed. The receipt records the attempt with its date rather than omitting the row. `artifacts/WATSONX_RECEIPT.json` |
-| Remotion | `presentation/`, rendered offline | The presentation film. 8 cards, 4260 frames, 142 seconds at 30 fps, and 110 seconds of narration over them. Every figure on screen is resolved from a receipt key path at build time by `presentation/src/data.ts`, so a number in the film cannot disagree with the artifact it came from: 140 claims over 10 committed JSON files, of which 114 are drawn and 26 are read only for cross-checks. Remotion 4.0.489. `artifacts/FILM_RECEIPT.json` |
+| Remotion | `presentation/`, rendered offline | The presentation film. 10 cards, 4788 frames, 159.6 seconds at 30 fps, and 146 seconds of narration over them. Every figure on screen is resolved from a receipt key path at build time by `presentation/src/data.ts`, so a number in the film cannot disagree with the artifact it came from: 182 claims over 12 committed JSON files, of which 155 are drawn and 27 are read only for cross-checks. Remotion 4.0.489. `artifacts/FILM_RECEIPT.json` |
 | Next.js, Vercel, WebGL | `apps/web`, static export | 8 pages, no server, no database and no credential, with a content security policy whose `connect-src` is `'self'`. The field behind the first screen is the ranked queue drawn on the GPU: one point per observation, placed by rank, lit by review value, coloured by the criterion that raised it |
 
 ## The judged criteria, and what to look at
@@ -197,7 +197,7 @@ recorded waterfalls, with both hypotheses drawn on the same image so a wrong con
 visible instead of hidden.
 
 The data licence is honoured rather than mentioned: `artifacts/ATTRIBUTION_AUDIT.json`
-checks every one of the 88 tracked media files for attribution and reports 0 incomplete.
+checks every one of the 89 tracked media files for attribution and reports 0 incomplete.
 
 ### Implementation and Feasibility
 
@@ -209,7 +209,7 @@ frozen into a committed fixture so the publisher needs no model and no network a
 MCP server imports nothing outside the standard library and is tested with site-packages
 switched off.
 
-The repository is 60.39 MB across 524 tracked files as of commit `43bf97c`,
+The repository is 66.7 MB across 512 tracked files as of commit `9a8c459`,
 `artifacts/SECRET_SCAN.json` reports 0 credential-shaped values across the history it
 scanned, and the console is a static export apart from the one function that serves the
 live measurement, so hosting it costs nothing at this size.

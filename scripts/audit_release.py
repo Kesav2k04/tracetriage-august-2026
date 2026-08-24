@@ -279,6 +279,10 @@ _MEDIA_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".mp4", ".webm"}
 _EMBEDDED_OBSERVATION: dict[str, int] = {
     "presentation/out/tracetriage-film.mp4": 14740031,
     "presentation/out/tracetriage-film-poster.jpg": 14740031,
+    # A capture of the deployed console. The page it photographs draws observation
+    # 14740031's waterfall with the fitted corridor over it, so the screenshot carries
+    # the same redistributed pixels the film does and owes the same notice.
+    "apps/web/public/film/console.webp": 14740031,
 }
 
 #: What was done to the bytes, per location. The licence requires a notice of every
@@ -299,11 +303,17 @@ _MODIFICATION_NOTICE: list[tuple[str, str]] = [
         "one observation's corridor animation, rendered to video from the same overlay "
         "geometry and re-encoded",
     ),
+    (
+        "apps/web/public/film/",
+        "a screenshot of the deployed console, in which one observation's waterfall "
+        "appears scaled to a figure with the predicted Doppler corridor drawn over it, "
+        "re-encoded from PNG to WebP",
+    ),
     ("tests/fixtures/", "synthetic or reduced fixture, used only by the test suite"),
     (
         "presentation/out/",
         "one observation's waterfall scaled to the frame with the predicted Doppler "
-        "corridor drawn over it, composited into a 1920x1080 film alongside figures read "
+        "corridor drawn over it, composited into a 3840x2160 film alongside figures read "
         "from this repository's receipts, and encoded to H.264 with AAC narration",
     ),
 ]

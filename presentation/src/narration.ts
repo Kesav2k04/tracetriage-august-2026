@@ -21,6 +21,8 @@
 
 import { Claim } from "./claim";
 import {
+  agentSession,
+  bobUnits,
   corpus,
   established,
   gates,
@@ -151,16 +153,31 @@ const line = (
 
 export const NARRATION: Readonly<Record<string, Line>> = {
   Title: line([
-    "TraceTriage. Which satellite passes are worth a reviewer's time.",
+    "Of everything a ground station recorded last night, what should a person open ",
+    "first?",
   ]),
 
   Problem: line([
-    "Volunteers point radios at satellites, then judge what came back by eye. ",
-    "This frozen snapshot holds ",
+    "Volunteers point radios at satellites and judge what came back by eye. This ",
+    "frozen snapshot holds ",
     corpus.observations,
     " captures. Only ",
     corpus.decisive,
     " carry a decisive verdict. The rest were recorded, and nobody read them.",
+  ]),
+
+  Physics: line([
+    "From this pass's own orbital elements, propagated with ",
+    "S G P 4, the expected Doppler curve spans ",
+    physics.corridorSpanHz,
+    " hertz. Slide that curve ",
+    physics.shiftPx,
+    " pixels and it lands on the trace. The gap is the measurement. ",
+    physics.offsetHz,
+    " hertz, ",
+    physics.offsetPpm,
+    " parts per million. This station had already taken the Doppler out, and ",
+    "nothing in the observation record says so.",
   ]),
 
   Queue: line([
@@ -176,18 +193,41 @@ export const NARRATION: Readonly<Record<string, Line>> = {
     " where the model and the network label do not match.",
   ]),
 
-  Physics: line([
-    "The shape is the test. From this pass's own orbital elements, propagated with ",
-    "S G P 4, the expected Doppler curve spans ",
-    physics.corridorSpanHz,
-    " hertz. Slide that curve ",
-    physics.shiftPx,
-    " pixels and it lands on the trace. The gap is the measurement: ",
-    physics.offsetHz,
-    " hertz, ",
-    physics.offsetPpm,
-    " parts per million. This station had already taken the Doppler out, and ",
-    "nothing in the observation record says so.",
+  Session: line([
+    "Any agent can drive this over the Model Context Protocol. ",
+    agentSession.evidenceTools,
+    " read-only tools over the committed receipts, ",
+    agentSession.liveTools,
+    " more that measure a pass recorded today. Write a downlink frequency this ",
+    "observation does not have and the checker refuses it, naming the reason. Write ",
+    "only what its own packet prints and it passes. The recorded session ran ",
+    agentSession.stepsRun,
+    " steps and ",
+    agentSession.stepsMet,
+    " came back as documented.",
+  ]),
+
+  Established: line([
+    "Three results came back decided. Read-only evidence tools take a local Granite ",
+    "model from ",
+    established.withoutTools,
+    " of ",
+    established.trials,
+    " right to ",
+    established.withTools,
+    " of ",
+    established.trials,
+    ". The grounding checker caught ",
+    established.adversarialCaught,
+    " of ",
+    established.adversarialChecks,
+    " planted falsehoods, and refused ",
+    established.controlRefused,
+    " of ",
+    established.controlChecks,
+    " clean drafts. On stations the queue never saw, lift is ",
+    established.coldLift,
+    ", and that one clears.",
   ]),
 
   Result: line([
@@ -211,34 +251,22 @@ export const NARRATION: Readonly<Record<string, Line>> = {
     " of ",
     gates.total,
     " were met. A point estimate above the bar whose interval crosses it counts as ",
-    "a failure here, which is stricter than the brief asked for.",
+    "a failure here, which is stricter than the brief asked for. Nothing was moved ",
+    "to make a verdict look better.",
   ]),
 
-  Established: line([
-    "Three results did come back decided. Read-only evidence tools take a local ",
-    "Granite model from ",
-    established.withoutTools,
-    " of ",
-    established.trials,
-    " right to ",
-    established.withTools,
-    " of ",
-    established.trials,
-    ". The grounding checker caught ",
-    established.adversarialCaught,
-    " of ",
-    established.adversarialChecks,
-    " planted falsehoods, and refused ",
-    established.controlRefused,
-    " of ",
-    established.controlChecks,
-    " clean drafts. On ground stations the queue was never fitted to, lift is ",
-    established.coldLift,
-    ", and that one passes.",
+  Bob: line([
+    "IBM Bob built the load-bearing pipeline. The data contracts, the immutable ",
+    "snapshot, the waterfall parser, the physics corridor, the label provenance, the ",
+    "baselines, the grouped splits and the queue: ",
+    bobUnits.count,
+    " dated units, each with the files it changed and what failed first. Every ",
+    "measurement here is computed on what those units produced.",
   ]),
 
   Colophon: line([
-    "The waterfall in this film is a public SatNOGS capture, cited and licensed.",
+    "Every figure you heard was read out of a receipt. The waterfall is a public ",
+    "SatNOGS capture, cited and licensed.",
   ]),
 };
 

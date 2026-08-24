@@ -1,14 +1,14 @@
 {
  "schema": "FILM_RECEIPT",
  "schema_version": 1,
- "generated_at": "2026-08-24T18:12:22.240Z",
+ "generated_at": "2026-08-24T19:57:00.936Z",
  "generated_by": "presentation/scripts/report-table.ts",
  "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so nothing written by hand can disagree with it about the same film.",
  "composition": {
-  "beats": 8,
-  "frames": 4260,
+  "beats": 10,
+  "frames": 4788,
   "fps": 30,
-  "seconds": 142,
+  "seconds": 159.6,
   "width": 1920,
   "height": 1080,
   "audio": true
@@ -16,58 +16,71 @@
  "beats": [
   {
    "name": "Title",
-   "frames": 150,
-   "seconds": 5,
-   "narration": "TraceTriage. Which satellite passes are worth a reviewer's time."
+   "frames": 180,
+   "seconds": 6,
+   "narration": "Of everything a ground station recorded last night, what should a person open first?"
   },
   {
    "name": "Problem",
-   "frames": 540,
-   "seconds": 18,
-   "narration": "Volunteers point radios at satellites, then judge what came back by eye. This frozen snapshot holds two thousand seven hundred and twenty seven captures. Only 739 carry a decisive verdict. The rest were recorded, and nobody read them."
-  },
-  {
-   "name": "Queue",
-   "frames": 660,
-   "seconds": 22,
-   "narration": "So the queue ranks 407 observations by what a reviewer would learn, and spends a fixed budget of 50 on the top of it. Not the loudest signals. The ones where the evidence disagrees with itself: 17 stale catalogue frequencies, and 3 where the model and the network label do not match."
+   "frames": 462,
+   "seconds": 15.4,
+   "narration": "Volunteers point radios at satellites and judge what came back by eye. This frozen snapshot holds two thousand seven hundred and twenty seven captures. Only 739 carry a decisive verdict. The rest were recorded, and nobody read them."
   },
   {
    "name": "Physics",
-   "frames": 900,
-   "seconds": 30,
-   "narration": "The shape is the test. From this pass's own orbital elements, propagated with S G P 4, the expected Doppler curve spans seventeen thousand two hundred and ninety hertz. Slide that curve 113 pixels and it lands on the trace. The gap is the measurement: plus thirteen thousand nine hundred and eighty five hertz, plus 32.05 parts per million. This station had already taken the Doppler out, and nothing in the observation record says so."
+   "frames": 654,
+   "seconds": 21.8,
+   "narration": "From this pass's own orbital elements, propagated with S G P 4, the expected Doppler curve spans seventeen thousand two hundred and ninety hertz. Slide that curve 113 pixels and it lands on the trace. The gap is the measurement. plus thirteen thousand nine hundred and eighty five hertz, plus 32.05 parts per million. This station had already taken the Doppler out, and nothing in the observation record says so."
+  },
+  {
+   "name": "Queue",
+   "frames": 492,
+   "seconds": 16.4,
+   "narration": "So the queue ranks 407 observations by what a reviewer would learn, and spends a fixed budget of 50 on the top of it. Not the loudest signals. The ones where the evidence disagrees with itself: 17 stale catalogue frequencies, and 3 where the model and the network label do not match."
+  },
+  {
+   "name": "Session",
+   "frames": 624,
+   "seconds": 20.8,
+   "narration": "Any agent can drive this over the Model Context Protocol. 7 read-only tools over the committed receipts, 5 more that measure a pass recorded today. Write a downlink frequency this observation does not have and the checker refuses it, naming the reason. Write only what its own packet prints and it passes. The recorded session ran 12 steps and 12 came back as documented."
   },
   {
    "name": "Result",
-   "frames": 690,
-   "seconds": 23,
+   "frames": 558,
+   "seconds": 18.6,
    "narration": "The gate written down in advance asked the queue to find one and a half times as many conflicts as random ordering at the same budget. It found 20 where random expects 12.6. That is a lift of 1.58. The interval runs 1.35 to 1.74, so it straddles the bar, and this is published as not established."
   },
   {
    "name": "Gates",
-   "frames": 480,
-   "seconds": 16,
-   "narration": "Six gates, with their thresholds, written down before anything was measured. 3 of 6 were met. A point estimate above the bar whose interval crosses it counts as a failure here, which is stricter than the brief asked for."
+   "frames": 438,
+   "seconds": 14.6,
+   "narration": "Six gates, with their thresholds, written down before anything was measured. 3 of 6 were met. A point estimate above the bar whose interval crosses it counts as a failure here, which is stricter than the brief asked for. Nothing was moved to make a verdict look better."
   },
   {
    "name": "Established",
-   "frames": 660,
-   "seconds": 22,
-   "narration": "Three results did come back decided. Read-only evidence tools take a local Granite model from 2 of 24 right to 22 of 24. The grounding checker caught 525 of 525 planted falsehoods, and refused 0 of 175 clean drafts. On ground stations the queue was never fitted to, lift is 2.25, and that one passes."
+   "frames": 612,
+   "seconds": 20.4,
+   "narration": "Three results came back decided. Read-only evidence tools take a local Granite model from 2 of 24 right to 22 of 24. The grounding checker caught 525 of 525 planted falsehoods, and refused 0 of 175 clean drafts. On stations the queue never saw, lift is 2.25, and that one clears."
+  },
+  {
+   "name": "Bob",
+   "frames": 540,
+   "seconds": 18,
+   "narration": "IBM Bob built the load-bearing pipeline. The data contracts, the immutable snapshot, the waterfall parser, the physics corridor, the label provenance, the baselines, the grouped splits and the queue: 10 dated units, each with the files it changed and what failed first. Every measurement here is computed on what those units produced."
   },
   {
    "name": "Colophon",
-   "frames": 180,
-   "seconds": 6,
-   "narration": "The waterfall in this film is a public SatNOGS capture, cited and licensed."
+   "frames": 228,
+   "seconds": 7.6,
+   "narration": "Every figure you heard was read out of a receipt. The waterfall is a public SatNOGS capture, cited and licensed."
   }
  ],
  "claims": {
-  "total": 140,
-  "drawn": 114,
-  "read_but_not_drawn": 26,
+  "total": 182,
+  "drawn": 155,
+  "read_but_not_drawn": 27,
   "per_file": {
+   "apps/web/public/data/bob.json": 32,
    "apps/web/public/data/cards.json": 14,
    "apps/web/public/data/provenance.json": 31,
    "artifacts/AGENT_RECEIPT.json": 8,
@@ -77,11 +90,13 @@
    "artifacts/EXPLAIN_RECEIPT.json": 6,
    "artifacts/GATE3_RECEIPT.json": 12,
    "artifacts/NARRATION_RECEIPT.json": 3,
+   "artifacts/OPERATOR_SESSION.json": 10,
    "artifacts/QUEUE_RECEIPT.json": 44
   },
   "reading": "A claim is a value resolved from a key path in one of the files below at build time. The ones read and never drawn are cross-checks the test suite uses, not figures on screen."
  },
  "reads": [
+  "apps/web/public/data/bob.json",
   "apps/web/public/data/cards.json",
   "apps/web/public/data/provenance.json",
   "artifacts/AGENT_RECEIPT.json",
@@ -91,17 +106,18 @@
   "artifacts/EXPLAIN_RECEIPT.json",
   "artifacts/GATE3_RECEIPT.json",
   "artifacts/NARRATION_RECEIPT.json",
+  "artifacts/OPERATOR_SESSION.json",
   "artifacts/QUEUE_RECEIPT.json"
  ],
  "render": {
   "path": "presentation/out/tracetriage-film.mp4",
-  "bytes": 11034834,
-  "sha256": "d1364130f2e768bdccefeea8fa42178669d2c05f49b0d186ddb88ab3dd1e8915"
+  "bytes": 21424394,
+  "sha256": "0b964616a1a099b680ee71fc5d49b0d86681e7cc4c0c37e9f76769ae3e4b34b7"
  },
  "poster": {
   "path": "presentation/out/tracetriage-film-poster.jpg",
-  "bytes": 234868,
-  "sha256": "3336210b0a70bad8cc9e7d5500654d7ddcbbdc937c5e7c1ec3b35f8679c249ab"
+  "bytes": 868511,
+  "sha256": "3a41be1706f2df38ca94f920fc02f7f57fec6c7d88c5e654acb16bd79a325d44"
  },
  "what_this_does_not_measure": [
   "Whether the film is any good, or whether a viewer follows it.",
