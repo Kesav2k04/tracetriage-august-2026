@@ -235,7 +235,7 @@ A reusable measurement routine lives at `scripts/recon/measure_axis.py`. It is r
 2. Whether the waterfall time axis starts at `start` or at first-sample time, and the size of that offset.
 3. Whether the corridor centre sits at axis zero or is offset by `lo-offset` / `ppm` when those are non-null.
 
-The master plan is explicit that drawing a raw S-curve over an already-corrected waterfall is false evidence. Item 1 decides which curve is correct. **Test it against known-good passes before building anything on top of it.**
+Drawing a raw S-curve over an already-corrected waterfall would be false evidence. Item 1 decides which curve is correct. **Test it against known-good passes before building anything on top of it.**
 
 ---
 

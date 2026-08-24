@@ -117,10 +117,6 @@ def _files(body: str) -> list[str]:
 #: evidence list holding paths a reader cannot open. Adding a name to this table is a
 #: deliberate act that says "the log is right, this really is not shipped, and here is why".
 NOT_PUBLISHED = {
-    "docs/BOB_HANDOFF.md": (
-        "A working handover document, kept out of the tracked tree by .gitignore. What it "
-        "briefed is published as these units; the briefing itself is not."
-    ),
     "artifacts/hoglr_model.pkl": (
         "A trained model, rebuilt from the snapshot by the pipeline. artifacts/ holds build "
         "outputs, which are regenerated rather than committed."

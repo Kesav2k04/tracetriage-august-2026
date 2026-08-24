@@ -1,9 +1,9 @@
 {
  "schema": "FILM_RECEIPT",
  "schema_version": 1,
- "generated_at": "2026-08-23T13:42:41.839Z",
+ "generated_at": "2026-08-24T18:12:22.240Z",
  "generated_by": "presentation/scripts/report-table.ts",
- "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so REPORT.md and this receipt cannot disagree about the same film.",
+ "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so nothing written by hand can disagree with it about the same film.",
  "composition": {
   "beats": 8,
   "frames": 4260,
@@ -105,7 +105,7 @@
  },
  "what_this_does_not_measure": [
   "Whether the film is any good, or whether a viewer follows it.",
-  "Whether the rendered file plays. The digests say the committed bytes are the bytes this receipt was written about; presentation/REPORT.md records the container probe.",
+  "Whether the rendered file plays. The digests say only that the committed bytes are the bytes this receipt was written about.",
   "Whether the numbers are right. They are the receipts' own numbers, and each receipt's own study is what establishes them. This receipt establishes only that the film reads them rather than restating them."
  ]
 }

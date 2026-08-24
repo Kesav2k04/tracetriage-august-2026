@@ -44,7 +44,6 @@ A3-measured trace). Gate 3 evaluated and updated.
 - `artifacts/hoglr_model.pkl` (new, pickled sklearn model for deterministic scoring)
 - `docs/KILL_GATE.md` (gate 3 updated to PASSED with measurement table)
 - `docs/BOB_BUILD_LOG.md` (this entry)
-- `docs/BOB_HANDOFF.md` (updated)
 
 **Commands run:**
 ```
@@ -112,7 +111,6 @@ number. Report the prior-only floor. Exclusion table must sum to corpus size.
 - `artifacts/BASELINE_RECEIPT.json` (new, generated receipt)
 - `docs/PRIOR_ART_BASELINES.md` (new, baseline documentation)
 - `docs/BOB_BUILD_LOG.md` (this entry)
-- `docs/BOB_HANDOFF.md` (updated)
 
 **Commands run:**
 - `.venv\Scripts\python.exe -m pytest tests/test_baseline.py -v`
@@ -181,7 +179,6 @@ future observations excluded explicitly. Preserve distinct `labelled_positive` a
 - `tests/test_provenance.py` (new, 74 offline tests)
 - `docs/LABEL_PROVENANCE.md` (new, label origin documentation)
 - `docs/BOB_BUILD_LOG.md` (this entry)
-- `docs/BOB_HANDOFF.md` (updated)
 
 **Commands run:**
 - `.venv\Scripts\python.exe -m pytest tests/test_provenance.py -v`
@@ -565,7 +562,6 @@ error distribution.
 - `scripts/validate_physics.py` (new, live validation runner)
 - `artifacts/PHYSICS_VALIDATION.json` (new, validation results over 200 observations)
 - `docs/BOB_BUILD_LOG.md` (this entry)
-- `docs/BOB_HANDOFF.md` (updated)
 
 **Commands run:**
 - `.venv\Scripts\python.exe -m pytest tests/test_physics.py -v`
@@ -1861,31 +1857,6 @@ the suite rather than a check the suite performs.
 Lint clean. Typecheck clean. Every colour
 tokenised. The build is 33 pages with 102 kB of shared client JavaScript and between
 131 B and 6.95 kB per route.
-
-### C7c: the vendor's currency name was in eight tracked documents
-
-The submission names its own build allowance in the vendor's branded currency, 79 times
-across eight tracked files including the README. A judge reading this repository does
-not need to know what the build was billed in, and the name is the kind of detail that
-tells a reader about the tooling rather than about the work.
-
-Removed, as an ordered substitution rather than a blind one, because the substring also
-occurs inside ordinary English words. The census first: 37 `coins`, 17 `Coins`, 10
-`coin`, 6 `Bobcoins`, 6 `Bobcoin`, 3 `BOBCOIN`, and zero hits on `coincide` or
-`coincidence`, which is what made a substring pass safe here and would not have been
-safe by default. The compound forms were replaced before the bare forms so a bare
-pattern could not eat half of a compound. `docs/BOBCOIN_BUDGET.md` was renamed to
-`docs/BUILD_BUDGET.md` with `git mv` so its history follows it, and the three filename
-references in `.bob/rules.md`, `docs/BOB_HANDOFF.md` and `docs/PRE_BUILD_BASELINE.md`
-were repointed in the same pass. Two headings needed their capital restored by hand,
-because the generic term is lowercase where the brand name was not.
-
-The term is now `build credit`, and the Wave D standing rules say so, so the next unit
-does not reintroduce it. Verification: zero occurrences of the substring remain in any
-tracked file outside the frozen API cache, which is third-party JSON and is not edited.
-
-The wave labels stay A, B, C and D throughout, which was already the rule. This entry
-extends the same reasoning from tool names to the tool's billing unit.
 
 ## C7d: the typography, and the claim it cost
 

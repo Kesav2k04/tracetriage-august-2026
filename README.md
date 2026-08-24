@@ -272,9 +272,6 @@ Bob's work is recorded rather than asserted:
   environment is `NOT_CHECKED` with a stated reason, and the verdict refuses to sign while any
   check has failed.
 
-`docs/PRE_BUILD_BASELINE.md` lists exactly what existed before Bob's first task, so the line
-between scaffolding and Bob's work is auditable rather than implied.
-
 
 ---
 
@@ -567,8 +564,8 @@ tracetriage station 1696 --budget 6  # a station's own frequency error, across s
 
 **From your own agent**, with no credential. `.mcp.json` at the root registers both servers,
 so a clone has them with nothing to configure.
-[`docs/USE_WITH_YOUR_AGENT.md`](docs/USE_WITH_YOUR_AGENT.md) has a config block for Claude
-Code, Claude Desktop, Cursor, Windsurf and Zed.
+[`docs/USE_WITH_YOUR_AGENT.md`](docs/USE_WITH_YOUR_AGENT.md) carries the IBM Bob setup and
+the generic stdio block any other MCP client reads.
 
 | Server | Answers from | Auto-approved, and what asks first |
 |---|---|---|
@@ -628,7 +625,6 @@ same budget, the correct outcome is to stop and document it. That is `docs/KILL_
 | [`docs/ACTOR_AND_PERMISSION_CONTRACT.md`](docs/ACTOR_AND_PERMISSION_CONTRACT.md) | What this system is permitted to do, enforced by test |
 | [`docs/USE_WITH_YOUR_AGENT.md`](docs/USE_WITH_YOUR_AGENT.md) | Both MCP servers, with a config block per client |
 | [`mobile/README.md`](mobile/README.md) | The Android client, how to build it, and how to check what signed the APK |
-| [`presentation/REPORT.md`](presentation/REPORT.md) | What the film claims, card by card, with the receipt key each figure was resolved from |
 
 ## Licence
 

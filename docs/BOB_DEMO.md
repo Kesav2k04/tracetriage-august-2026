@@ -153,7 +153,7 @@ over dated Bob-account units rather than from `line.startswith("## ")`.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Neither server appears | Bob read a different config | `.bob/mcp.json` is the project file Bob reads. The root `.mcp.json` is for Cursor and Claude Code and Bob never loads it. |
+| Neither server appears | Bob read a different config | `.bob/mcp.json` is the project file Bob reads. The root `.mcp.json` is the generic stdio config and Bob never loads it. |
 | `tracetriage-live` has no tools | the virtual environment is missing | Run the two commands at the top of this file, or set `TRACETRIAGE_PYTHON`. |
 | Step 10 times out | one waterfall is a few megabytes | Retry with another id from step 9. The endpoint and the tool both cache per id, so a retry on the same id is cheap. |
 | Step 10 returns `NO_WATERFALL` | that observation stored no image | Pick another id from step 9. `has_waterfall` is in the listing for this reason. |

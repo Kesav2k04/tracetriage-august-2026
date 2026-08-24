@@ -5,8 +5,7 @@ What this exists for. The palette is derived with checked contrast ratios by
 accessibility property in the repository that anything measured. Colour is the one a
 generator can get right by construction; the ones that break under editing are whether a
 control can be reached without a mouse and whether it says what it is when it is reached.
-A June grand prize in this challenge went partly on accessibility, so the gap was worth
-closing with a check rather than an assertion.
+The gap was worth closing with a check rather than an assertion.
 
 Two defects it was written against, both real and both fixed in the same commit:
 

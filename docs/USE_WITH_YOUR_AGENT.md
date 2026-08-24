@@ -15,14 +15,14 @@ Clone it, open the folder in Bob, and paste the prompt in `docs/BOB_DEMO.md`. No
 can rank the queue, refuse an invented downlink frequency, measure a pass recorded in the
 last hour and refuse a sentence about that measurement too.
 
-That file is the one to copy. The root `.mcp.json` is the same two servers in the shape
-Cursor, Claude Code and Windsurf read, and Bob never loads it: a judge who follows the wrong
-file gets a project that looks like it has no tools.
+That file is the one to copy. The root `.mcp.json` is the same two servers in the generic
+shape a stdio MCP client reads, and Bob never loads it: a judge who follows the wrong file
+gets a project that looks like it has no tools.
 
 | Client | File it reads |
 |---|---|
 | IBM Bob | `.bob/mcp.json` |
-| Cursor, Claude Code, Windsurf | `.mcp.json` |
+| Any other MCP client over stdio | `.mcp.json` |
 | LangFlow | `flows/tracetriage_grounding.json`, `flows/tracetriage_granite_agent.json` |
 
 This table had a fourth row until 2026-08-22, reading `watsonx Orchestrate` against
@@ -75,13 +75,10 @@ were scored against a frozen corpus, and no tool call can confuse the two.
 
 The live tools are prefixed `live_` for the same reason.
 
-### Claude Code
+### Any MCP client that speaks stdio
 
-```bash
-claude mcp add tracetriage-live -- tracetriage mcp-live
-```
-
-Or, for both, in `.mcp.json` at the root of your project:
+Both servers go in one config. This is `.mcp.json` at the root of your project, and the
+same block works wherever your client keeps its server list:
 
 ```json
 {
@@ -93,22 +90,6 @@ Or, for both, in `.mcp.json` at the root of your project:
     "tracetriage": {
       "command": "tracetriage",
       "args": ["mcp", "--repo", "/path/to/tracetriage-august-2026"]
-    }
-  }
-}
-```
-
-### Claude Desktop
-
-`claude_desktop_config.json` (macOS:
-`~/Library/Application Support/Claude/`, Windows: `%APPDATA%\Claude\`):
-
-```json
-{
-  "mcpServers": {
-    "tracetriage-live": {
-      "command": "tracetriage",
-      "args": ["mcp-live"]
     }
   }
 }
@@ -129,11 +110,9 @@ this repository, because the wheel ships `pipeline/tracetriage` as the top-level
 }
 ```
 
-### Cursor, Windsurf, Zed, and anything else that speaks MCP over stdio
-
-Same shape. The server reads newline-delimited JSON-RPC 2.0 on stdin and writes it to
-stdout, with no SDK dependency: `initialize`, `tools/list`, `tools/call`. You can drive it
-by hand, which is the fastest way to check a config problem is yours and not the server's:
+The server reads newline-delimited JSON-RPC 2.0 on stdin and writes it to stdout, with no
+SDK dependency: `initialize`, `tools/list`, `tools/call`. You can drive it by hand, which
+is the fastest way to check a config problem is yours and not the server's:
 
 ```bash
 printf '%s\n%s\n' \

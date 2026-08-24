@@ -449,13 +449,30 @@ def test_no_judge_facing_document_quotes_a_superseded_number(rules: list[Rule]) 
     )
 
 
+#: Rules whose only subject was `presentation/REPORT.md`, a working document that is no
+#: longer in the tree. They are kept rather than deleted because the quantities are still
+#: real and a document could state them again, and they are named here rather than let
+#: through by a zero-hit tolerance, because a rule that quietly stops checking is the
+#: defect this file exists to prevent. The set is exact in both directions: a rule that
+#: regains a subject has to leave this list, and a rule that loses one has to join it.
+_NO_SUBJECT_IN_THE_TREE = frozenset(
+    {
+        "the film's size in bytes",
+        "the poster frame's size in bytes",
+        "gate 3's bound in the sentence that states its bar",
+        "the bar gate 3's bound is read against",
+    }
+)
+
+
 def test_every_rule_is_actually_exercised(rules: list[Rule]) -> None:
     """A rule matching nothing would not have caught its own defect.
 
     The failure this prevents is a subject pattern tightened until the test passes. Every
-    rule has to find its quantity stated correctly somewhere, or it is decoration.
+    rule has to find its quantity stated correctly somewhere, or it is decoration, and the
+    exceptions are enumerated rather than tolerated by a count.
     """
-    unmatched = []
+    unmatched = set()
     files = _scanned()
     for rule in rules:
         hits = 0
@@ -466,10 +483,11 @@ def test_every_rule_is_actually_exercised(rules: list[Rule]) -> None:
                 ):
                     hits += 1
         if hits == 0:
-            unmatched.append(f"{rule.what}: expected {rule.value}, matched no line")
-    assert not unmatched, (
-        "these rules never see their quantity stated correctly, so they are not checking "
-        "anything:\n  " + "\n  ".join(unmatched)
+            unmatched.add(rule.what)
+    assert unmatched == _NO_SUBJECT_IN_THE_TREE, (
+        "the set of rules with no subject in the tree is not the recorded one.\n"
+        f"  newly checking nothing: {sorted(unmatched - _NO_SUBJECT_IN_THE_TREE)}\n"
+        f"  has a subject again: {sorted(_NO_SUBJECT_IN_THE_TREE - unmatched)}"
     )
 
 

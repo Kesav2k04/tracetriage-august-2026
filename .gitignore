@@ -68,17 +68,6 @@ desktop.ini
 .idea/
 .vscode/
 
-# working brief, not part of the judged submission
-BOB_START_HERE.md
-
-# Adversarial review notes written against this repository. They quote internal
-# scoring and name planning documents that are not part of the submission, and a
-# single `git add -A` before the visibility flip would publish all of it. Excluded
-# by name rather than left to a catch-all, because there is no catch-all here that
-# would have caught it: scripts/gate.py fails on any `git status --porcelain`
-# output, so an untracked directory here also turns this repository's own gate red.
-internal_docs/
-
 # --- A3 investigation cache: API pages and waterfall PNGs, not evidence ---
 .a3_cache/
 
@@ -98,45 +87,6 @@ apps/web/tsconfig.tsbuildinfo
 # reviewer needs.
 /media/
 
-# A received critique, kept out of the tree on purpose. It is the input to a unit rather
-# than a claim this project makes, and every statement worth keeping from it has been
-# answered in docs/BOB_BUILD_LOG.md or in a claim register row. Ignored rather than
-# deleted, because the file is still the record of what was asked for.
-HANDOVER_*.md
-
-# --- internal working notes, deliberately untracked ---
-# Working documents kept out of the tracked tree: task prompts, a session-to-session
-# handoff, a requirements checklist, a credit budget and the operator's machine
-# specification. None of them is evidence about the product, and several carry counts
-# the tree has since moved past, so tracking them would put two files in disagreement
-# about one measured quantity. How the product was built is answered by
-# docs/BOB_BUILD_LOG.md, docs/BOB_DEMO.md and docs/USE_WITH_YOUR_AGENT.md.
-#
-# Seven names, four files. BUILD_BUDGET, SUBMISSION_CHECKLIST, WAVE_C1_PROMPT and
-# WAVE_D_PROMPT exist and are held outside the repository. BOB_HANDOFF,
-# BOB_TASK_PROMPTS and HARDWARE_PROFILE do not exist anywhere; their names stay here
-# so that recreating one cannot commit it by accident. This block used to claim seven
-# withheld documents with copies outside, and that was wrong in both halves.
-#
-# This block used to summarise what each one contained, which put a description of every
-# withheld document into the one tracked file every reader opens.
-docs/BOB_HANDOFF.md
-docs/BOB_TASK_PROMPTS.md
-docs/BUILD_BUDGET.md
-docs/HARDWARE_PROFILE.md
-docs/SUBMISSION_CHECKLIST.md
-docs/WAVE_C1_PROMPT.md
-docs/WAVE_D_PROMPT.md
-
 # The gate 3 pool build appends finished records here so a run that dies can resume.
 # The assembled receipt beside it is what gets committed.
 artifacts/*.partial.jsonl
-.bob/SESSION_STATE.md
-.bob/AGY_PROPOSAL_ASSESSMENT.md
-
-# Build logistics and internal review, kept outside this repository.
-# These describe how the work was organised rather than what the product measures,
-# so a reader of the tracked tree gains nothing from them.
-.bob/rules.md
-docs/REVIEW_*.md
-docs/OPERATOR_BUILD_LOG.md

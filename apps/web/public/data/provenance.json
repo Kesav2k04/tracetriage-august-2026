@@ -137,8 +137,8 @@
   },
   {
    "name": "FILM_RECEIPT.json",
-   "sha256": "e639304f572d33c5a755858fce3f1ed97e5c3f875d2f37a056201dab45d102cf",
-   "bytes": 5064,
+   "sha256": "9f42363dad9cb456f968613555a23e4159e925bdd8fdd16fa78046578fdb61ef",
+   "bytes": 5024,
    "rewritten_after_this_payload": false
   },
   {
@@ -185,8 +185,8 @@
   },
   {
    "name": "GATE4_RECEIPT.json",
-   "sha256": "36282b4bf0ba44e17aeb37e091790d28199aec71d267ae3e19cd636a8ce540d2",
-   "bytes": 74956,
+   "sha256": "16ca34b7ed81bd418d1147adce1eecc7d45d56c6993bc5e73b0568ad66e0f0a0",
+   "bytes": 74928,
    "rewritten_after_this_payload": false
   },
   {

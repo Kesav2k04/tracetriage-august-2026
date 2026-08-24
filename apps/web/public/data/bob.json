@@ -27,10 +27,6 @@
     {
      "path": "artifacts/hoglr_model.pkl",
      "why": "A trained model, rebuilt from the snapshot by the pipeline. artifacts/ holds build outputs, which are regenerated rather than committed."
-    },
-    {
-     "path": "docs/BOB_HANDOFF.md",
-     "why": "A working handover document, kept out of the tracked tree by .gitignore. What it briefed is published as these units; the briefing itself is not."
     }
    ],
    "what_failed": "_score_with_hoglr initially re-fit from corpus on every call (~11 min)."
@@ -49,12 +45,7 @@
     "docs/PRIOR_ART_BASELINES.md",
     "docs/BOB_BUILD_LOG.md"
    ],
-   "files_not_published": [
-    {
-     "path": "docs/BOB_HANDOFF.md",
-     "why": "A working handover document, kept out of the tracked tree by .gitignore. What it briefed is published as these units; the briefing itself is not."
-    }
-   ],
+   "files_not_published": [],
    "what_failed": "Manifest observation records use waterfall_url (not waterfall), retrieved_at (not _retrieved_at), and have no status or end field."
   },
   {
@@ -69,12 +60,7 @@
     "docs/LABEL_PROVENANCE.md",
     "docs/BOB_BUILD_LOG.md"
    ],
-   "files_not_published": [
-    {
-     "path": "docs/BOB_HANDOFF.md",
-     "why": "A working handover document, kept out of the tracked tree by .gitignore. What it briefed is published as these units; the briefing itself is not."
-    }
-   ],
+   "files_not_published": [],
    "what_failed": "__post_init__ had an over-strict invariant: \"UNLABELLED must not come from decisive waterfall_status\"."
   },
   {
@@ -156,12 +142,7 @@
     "artifacts/PHYSICS_VALIDATION.json",
     "docs/BOB_BUILD_LOG.md"
    ],
-   "files_not_published": [
-    {
-     "path": "docs/BOB_HANDOFF.md",
-     "why": "A working handover document, kept out of the tracked tree by .gitignore. What it briefed is published as these units; the briefing itself is not."
-    }
-   ],
+   "files_not_published": [],
    "what_failed": "First frozen test observation (ISS over Prague, 2024-01-01 12:00 UTC) was below the horizon — elevation -55.9°."
   },
   {

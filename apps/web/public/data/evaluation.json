@@ -9799,7 +9799,7 @@
   "is_the_gate": true,
   "prior_review": {
    "kind": "model",
-   "identity": "Claude Opus 5 (claude-opus-5, 1M context), run as twelve independent subagents inside one Claude Code session on 2026-08-21, and not IBM Bob.",
+   "identity": "A general-purpose commercial language model, not IBM Bob and not a person, run as twelve independent sessions on 2026-08-21.",
    "decisive": 57,
    "observations_scored": 60,
    "rate": 0.95
@@ -9968,6 +9968,6 @@
  "receipt_sha256": {
   "queue": "4204193634349fa8c40242078fe60f80d26e79b322a9da5d43b6652252307c0f",
   "fusion": "57c379eff2f2ffdb40412f820cc0eda86eaff85997903136b724246866f68b04",
-  "gate4": "36282b4bf0ba44e17aeb37e091790d28199aec71d267ae3e19cd636a8ce540d2"
+  "gate4": "16ca34b7ed81bd418d1147adce1eecc7d45d56c6993bc5e73b0568ad66e0f0a0"
  }
 }

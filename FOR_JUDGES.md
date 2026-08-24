@@ -23,18 +23,16 @@ times as many actionable conflicts as random ordering at the same budget, interv
 particular way.
 
 This page is a map, not a summary. Each claim below names the file that carries the
-evidence and, where it can, the command that regenerates it. The gates it reports are a
-research bar rather than a feature list: a gate is met only when a 95% interval clears its
-threshold, so a point estimate above the bar whose interval straddles it is published as a
-failure. Of the 6 kill gates declared before the build, 3 were met and 3 came back
-inconclusive. That tally is read from the receipts by the console rather than typed here,
-and the split matters: 2 of the 3 are the PRE_PASSED feasibility checks answered before
-any pipeline code was written, and 1 is a substantive gate that cleared its threshold on
-the sample it was pre-registered on, gate 4. So of the 4 gates that ask whether the idea
-works, 1 passed and the rest are reported as they came back. Why the intervals are that
-wide is derived rather than pleaded: on the split gate 6 was pre-registered on, a perfect
-oracle caps at 1.740 times random against a threshold of 1.5, so the whole room any
-ordering had to win in was 0.240 wide.
+evidence and, where it can, the command that regenerates it. A gate is met only when a 95%
+interval clears its threshold, so a point estimate above the bar whose interval straddles
+it is published as a failure. Of the 6 kill gates declared before the build, 3 were met
+and 3 came back inconclusive, and the split matters: 2 of the 3 are the PRE_PASSED
+feasibility checks answered before any pipeline code was written, and 1 is a substantive
+gate that cleared its threshold on the sample it was pre-registered on, gate 4. So of the
+4 gates that ask whether the idea works, 1 passed and the rest are reported as they came
+back. Why the intervals are that wide is derived rather than pleaded: on the split gate 6
+was pre-registered on, a perfect oracle caps at 1.740 times random against a threshold of
+1.5, so the whole room any ordering had to win in was 0.240 wide.
 
 ## Seven checks worth running first
 
@@ -50,53 +48,43 @@ ordering had to win in was 0.240 wide.
 
 **Six of the seven need no GPU, no model runtime and no network connection, and
 the live measurement is the exception on purpose.** That row fetches one waterfall from the
-public SatNOGS API, without a credential, because a check that measures an observation
-recorded today cannot be offline and still be that check. Every number this page prints comes
-from the other six.
-`tracetriage note` reads frozen drafts and the verdicts the checker recorded against them.
-`scripts/run_agent_study.py` and `scripts/run_explanations.py` publish from committed
-fixtures and talk to a model only under `--freeze`, which is a step for re-measuring rather
-than for reading. So a machine with no local runtime reproduces the same numbers this page
-prints. `scripts/gate.py` builds the console as one of its steps, so that one wants Node as
-well as Python.
+public SatNOGS API without a credential, because a check that measures an observation
+recorded today cannot be offline and still be that check. Every number this page prints
+comes from the other six: the drafts are frozen, and `scripts/run_agent_study.py` and
+`scripts/run_explanations.py` publish from committed fixtures, talking to a model only
+under `--freeze`. `scripts/gate.py` builds the console, so that one wants Node as well as Python.
 
-`python` above means the interpreter built by the Setup section of `README.md`, which on
-this machine is `.venv/Scripts/python.exe`. The offline suite's own pytest options include
-`-q`, so a second `-q` suppresses the summary line: that is worth knowing before reading a
-run as having collected nothing.
+`python` above means the interpreter built by the Setup section of `README.md`. The offline
+suite already passes `-q`, so a second one suppresses the summary line.
 
 No test failed in that run. The count is published with its zero rather than as a pass,
 because a summary that prints only what went right cannot be read as a summary of what
 happened.
 
-The agent layer is measured against a control rather than demonstrated.
-`scripts/run_agent_study.py` puts 24 questions to the same local model twice, once with
-the five MCP tools available over stdio JSON-RPC and once with no tools at all, and grades
-both against ground truth derived from the files the console ships. With the tools: 22 of
-24 correct, 95% interval [0.7602, 0.985], and every number in every answer appeared in
-something the agent had read. Without them: 2 of 24, with 18 questions declined as unknown
-and 3 answers carrying a number nothing supported. Of the 20 questions the arms disagreed
-on, the tool arm was right on 20: an exact one-sided p of 1e-06. Before any model was
-graded, each question was proved answerable in a single tool call, because a question the
-tools cannot serve would otherwise be scored as a failure of the policy.
+The agent layer is measured against a control. `scripts/run_agent_study.py` puts 24
+questions to the same local model twice, once with the five MCP tools over stdio JSON-RPC
+and once with none, grading both against ground truth derived from the files the console
+ships. With tools: 22 of 24 correct, 95% interval [0.7602, 0.985], every number in every
+answer traceable to something the agent had read. Without: 2 of 24, 18 declined as unknown
+and 3 answers carrying a number nothing supported. The arms disagreed on 20 questions and
+the tool arm was right on 20, an exact one-sided p of 1e-06. Each question was proved
+answerable in a single tool call before any model was graded.
 
-The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, taken from a
-fresh clone of commit `6e80080` with every non-loopback socket refused: 16 of 16 steps
-succeeded. The transcript carries each step's exit code and the tail of its output, so the
-reason is readable rather than summarised. The test counts above are from the pass with
-the snapshot directory hidden, which is a judge's case rather than this machine's, and
-they are the count at that commit rather than at the tip of the branch.
+The full clean-clone reproduction is `artifacts/CLEAN_CLONE_TRANSCRIPT.json`, from a fresh
+clone of commit `6e80080` with every non-loopback socket refused: 16 of 16 steps
+succeeded, each with its exit code and the tail of its output. The test counts above come
+from that pass with the snapshot directory hidden, which is a judge's case rather than
+this machine's, and they are the count at that commit rather than at the tip.
 
 Two things about that run are worth knowing before it is trusted. The clone built its own
-Python environment, inside itself, with the network refused, resolving the pinned set from
+Python environment inside itself, with the network refused, resolving the pinned set from
 a local package cache rather than from an index, so a judge with a cold cache needs one
 online install before this step reproduces. The transcript records which cache it read,
-because a run that resolves from a warm cache and a run that resolves from nothing are
-different claims. And `apps/web/node_modules` was installed into the clone by `npm ci
---offline`, which builds the locked tree out of npm's own cache without reaching the
-registry, against the lockfile whose sha256 is `b3c0cba83c9f`. A judge whose npm cache is
-cold needs one online install before that step reproduces, in the same way the Python side
-does. The socket refusal itself is a Python-level patch loaded through `PYTHONPATH`, so it
+because resolving from a warm cache and resolving from nothing are different claims. And
+`apps/web/node_modules` came from `npm ci --offline`, which builds the locked tree out of
+npm's own cache without reaching the registry, against the lockfile whose sha256 is
+`b3c0cba83c9f`. A cold npm cache needs the same one online install the Python side does.
+The socket refusal itself is a Python-level patch loaded through `PYTHONPATH`, so it
 reaches every Python child process and constrains nothing else: the Node steps are outside
 it, and that is a limit of the guard rather than a claim about them.
 
@@ -137,36 +125,27 @@ weaken a claim. A technology is listed here only if something measures it workin
 
 ## The judged criteria, and what to look at
 
-The Official Rules score four criteria, each 1 to 5, for a maximum of 20. Each heading
-below is a criterion as the rules write it and the line under it is the rules' own wording,
-so a scoring sheet and this page read in the same order.
-
-The challenge page states the criteria a second time and lists five, adding **Real-World
-Impact** and shortening the fourth to Feasibility. The two lists are answered here rather
-than one of them being picked: Real-World Impact is a heading at the same level as the other
-four, so a judge scoring from either list finds their heading and the same evidence under it.
-Only four are scored, and this page does not imply a fifth score.
+The Official Rules score four criteria, each 1 to 5, for a maximum of 20. Each heading below
+is a criterion as the rules write it, with the rules' own wording under it, so a scoring
+sheet and this page read in the same order. The challenge page lists five, adding
+**Real-World Impact**, so that is a peer heading here as well and a judge scoring from
+either list finds their heading. Only four are scored.
 
 ### Technical Execution
 
 > Effective use of IBM Bob and additional technologies, functional and well-structured
 > solution.
 
-IBM Bob built the load-bearing pipeline, and the log names which units those were rather
-than asserting a total. `docs/BOB_BUILD_LOG.md` carries 10 dated Bob-account units, A7,
-A6, A5, A0, A0b-INT, A1, A2, A4, B1, C1: the data contracts, the immutable snapshot, the
-waterfall artifact parser, the physics corridor, label provenance, the image-only
-baselines, the end-to-end triage slice, the grouped splits with their leakage audit, and
-the review-value queue with kill gate 6. That snapshot, those splits and those parsed
-artifacts are what every measurement in this submission is computed from. Each unit names
-the files it changed, the commands that were run, the Bob task id and what failed before
-it was accepted. Bob also operates the product: `.bob/mcp.json` registers the evidence
-server and the live measurement server, so a Bob session can measure a pass recorded today
-and have the same grounding checker refuse a sentence about it. `.bob/TOOL_SPECS.md` and
-`.bob/mcp.json` are the tool contracts and MCP registration each task ran under, tracked
-so the conditions of the work are readable and not only its output.
-`docs/PRE_BUILD_BASELINE.md` records what existed before the first Bob task, so the line
-between scaffolding and built work is auditable rather than asserted.
+IBM Bob built the load-bearing pipeline. `docs/BOB_BUILD_LOG.md` names each unit and what
+it produced: the data contracts, the immutable snapshot, the waterfall artifact parser,
+the physics corridor, label provenance, the image-only baselines, the end-to-end triage
+slice, the grouped splits with their leakage audit, and the review-value queue with kill
+gate 6. That snapshot, those splits and those parsed artifacts are what every measurement
+in this submission is computed from, and each entry carries the files it changed, the
+commands that were run, the Bob task id and what failed before it was accepted. Bob also
+operates the product: `.bob/mcp.json` registers the evidence server and the live
+measurement server, so a Bob session can measure a pass recorded today and have the same
+grounding checker refuse a sentence about it.
 
 The pipeline is measured rather than demonstrated. 2727 observations from snapshot
 `snap-20260817-stage1`, 4 splits of which 3 hold out stations or transmitters the model
@@ -241,25 +220,18 @@ captures a day the network produced across the span this snapshot covers. That i
 times the whole network's daily output on a single core, or 0.093 of one to keep up, and
 `artifacts/THROUGHPUT_RECEIPT.json` names the artifact each timing was taken from.
 Ingestion is the slower half at 1.82 seconds an observation, and it is slow on purpose:
-that figure is dominated by the 0.4-second courtesy interval this project holds between
-requests to a volunteer-run API. The multiple is the weakest number in that paragraph and
-the receipt says why in its own words, so they are repeated here rather than left one file
-away: the network rate comes from a 9.4-hour capture span, which is one observation of
-that rate and not a long-run average; the elapsed time covers the corridor fit and the
-second-trace survey only, because SGP4, the fusion forward pass and the queue sort are
-cheaper per observation and Granite is not per observation at all; the core count is a
-division and not a measured parallel speed-up; and no figure here is a claim about
-latency, because the queue is a batch reading order and nothing in this project has to
-answer inside a pass.
+that figure is dominated by the 0.4-second courtesy interval held between requests to a
+volunteer-run API. The multiple is the weakest number here and carries four limits. The
+network rate comes from a 9.4-hour capture span, so it is one observation of that rate and
+not a long-run average. The elapsed time covers the corridor fit and the second-trace
+survey only, because SGP4, the fusion forward pass and the queue sort are cheaper per
+observation and Granite is not per observation at all. The core count is a division rather
+than a measured parallel speed-up. And no figure here is a claim about latency: the queue
+is a batch reading order, and nothing in this project has to answer inside a pass.
 
 ### Real-World Impact
 
 > Ability to create meaningful value and address real-world needs.
-
-The fifth criterion on the challenge page, which the Official Rules fold into the fourth and
-do not score separately. It is a peer heading rather than a subheading because the challenge
-page sets the five out as equals, and a judge scanning this page's headings against that list
-should find five and not four. The evidence under it is the same either way.
 
 The honest claim is narrow. The queue's lift over random selection on the primary
 chronological split is 1.582x with a 95% interval of [1.353, 1.740], which is above the
@@ -282,17 +254,17 @@ anything about a second reader: one person's judgment is one person's judgment, 
 instrument is reproducible from its seed so that a second reader can be run rather than
 argued about.
 
-**What it takes to close it, exactly.** The protocol and the review page are committed at
-`apps/web/public/gate4/worksheet.md` and `apps/web/public/gate4/review.html`, which the
-console serves at /gate4/worksheet.md and /gate4/review.html, and its evaluation page
-carries the same handoff. The 72 plates are not published: 113 MB of full-resolution
-waterfalls, and every way of shrinking them changes what the reviewer is being asked to
-judge, so they travel as one file. `scripts/pack_gate4_bundle.py` re-hashed every image on
-disk, recomputed all 72 commitments against `artifacts/GATE4_WORKSHEET.json`, and wrote
+**What a second reader would need, exactly.** The protocol and the review page are
+committed at `apps/web/public/gate4/worksheet.md` and `apps/web/public/gate4/review.html`,
+served by the console at /gate4/worksheet.md and /gate4/review.html. The 72 plates are not
+published: 113 MB of full-resolution waterfalls, and every way of shrinking them changes
+what the reviewer is being asked to judge, so they travel as one file.
+`scripts/pack_gate4_bundle.py` re-hashed every image on disk, recomputed all 72
+commitments against `artifacts/GATE4_WORKSHEET.json`, and wrote
 `tracetriage_gate4_bundle.zip`: 113,238,991 bytes, sha256
-`c426e1d978b66cf62a8d024a2305c30ee374d3711eef91912a4bf181f4535643`. A reviewer checks what
-arrives against that digest, opens the page, answers 72 items and returns one CSV. Nothing
-else is missing, and until that CSV exists the verdict stays as the receipt reports it.
+`c426e1d978b66cf62a8d024a2305c30ee374d3711eef91912a4bf181f4535643`. Check what arrives
+against that digest, open the page, answer 72 items, return one CSV. Nothing else stands
+between this instrument and an independent reading of it.
 
 ## Why the gates that are not met are not met
 

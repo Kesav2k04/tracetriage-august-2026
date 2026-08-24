@@ -228,7 +228,7 @@ const receipt = (): Record<string, unknown> => ({
   what_this_is:
     "The presentation film, described by the sources that build it. Every field below is " +
     "derived from presentation/src at generation time rather than read from a document, " +
-    "so REPORT.md and this receipt cannot disagree about the same film.",
+    "so nothing written by hand can disagree with it about the same film.",
   composition: {
     beats: BEATS.length,
     frames: FILM_FRAMES,
@@ -263,8 +263,8 @@ const receipt = (): Record<string, unknown> => ({
   poster: rendered(POSTER),
   what_this_does_not_measure: [
     "Whether the film is any good, or whether a viewer follows it.",
-    "Whether the rendered file plays. The digests say the committed bytes are the bytes " +
-      "this receipt was written about; presentation/REPORT.md records the container probe.",
+    "Whether the rendered file plays. The digests say only that the committed bytes are " +
+      "the bytes this receipt was written about.",
     "Whether the numbers are right. They are the receipts' own numbers, and each " +
       "receipt's own study is what establishes them. This receipt establishes only that " +
       "the film reads them rather than restating them.",
@@ -293,13 +293,16 @@ const replaceRegion = (
   return text.slice(0, start) + body + text.slice(end + close.length);
 };
 
-const current = readFileSync(REPORT, "utf-8");
-const next = replaceRegion(
-  replaceRegion(current, OPEN, CLOSE, region()),
-  TESTS_OPEN,
-  TESTS_CLOSE,
-  testsRegion(suite()),
-);
+const current = existsSync(REPORT) ? readFileSync(REPORT, "utf-8") : null;
+const next =
+  current === null
+    ? null
+    : replaceRegion(
+        replaceRegion(current, OPEN, CLOSE, region()),
+        TESTS_OPEN,
+        TESTS_CLOSE,
+        testsRegion(suite()),
+      );
 const payload = receipt();
 const serialised = `${JSON.stringify(payload, null, 1)}\n`;
 const claimCount = Object.keys(ALL_CLAIMS).length;
@@ -311,7 +314,7 @@ const receiptChanged =
 
 if (process.argv.includes("--check")) {
   const problems: string[] = [];
-  if (next !== current) {
+  if (current !== null && next !== current) {
     problems.push(
       "REPORT.md's generated regions are not what presentation/src and the suite produce",
     );
@@ -328,12 +331,12 @@ if (process.argv.includes("--check")) {
     process.exit(1);
   }
   console.log(
-    `REPORT.md and FILM_RECEIPT.json match presentation/src ` +
+    `FILM_RECEIPT.json matches presentation/src ` +
       `(${claimCount} claims, ${BEATS.length} beats, ${FILM_FRAMES} frames)`,
   );
 } else {
   const wrote: string[] = [];
-  if (next !== current) {
+  if (next !== null && next !== current) {
     writeFileSync(REPORT, next, { encoding: "utf-8" });
     wrote.push("REPORT.md");
   }
