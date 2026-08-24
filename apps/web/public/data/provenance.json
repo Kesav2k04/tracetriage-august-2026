@@ -95,7 +95,7 @@
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "a62c3af4878e4cccd57aa3d24503a9367b1feb33947aba1d943bbdd5f84448a0",
+   "sha256": "ab486add4efb574be72cabd8228a808df7de1bd6c14ee110b79efe3b68b8b164",
    "bytes": 85738,
    "rewritten_after_this_payload": true
   },
@@ -113,8 +113,8 @@
   },
   {
    "name": "CLEAN_CLONE_TRANSCRIPT.json",
-   "sha256": "b30fc9be2b7b9e79d2d10ff280c961b0f93aa47c8ec426c68a65ea69e1da8e5b",
-   "bytes": 15239,
+   "sha256": "312237a9855220ebab1ca9945f9ee18ed7f35b938bf13586e0ee35c23a1c6056",
+   "bytes": 14794,
    "rewritten_after_this_payload": false
   },
   {
@@ -269,8 +269,8 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "3bb4cf88442e91a324e2682aa2fd3ab45bedf6a413f589285597c1592636e303",
-   "bytes": 5142,
+   "sha256": "6b437358a4e641685538641674c9e7c12791b9c031bd4a63a16e3fe65d798337",
+   "bytes": 5141,
    "rewritten_after_this_payload": true
   },
   {
@@ -287,13 +287,13 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "f84cb04fbdc81d15ecd3344744255302ef92dad2b9680e06500b8237769f4ddc",
+   "sha256": "37f5cc883cc46231591b24e9afbba8cc1039e0de465aedf0b0c9cd6dfee61699",
    "bytes": 1053,
    "rewritten_after_this_payload": true
   },
   {
    "name": "SIGNOFF_RECEIPT.json",
-   "sha256": "f761159307762b7690287ce257e1ec480804d389ddc4f8f4d74454abf02e559e",
+   "sha256": "f2be37a82102134631a4e204dbce1ac07c18c919383b1ea2c8e3a7d089b18132",
    "bytes": 3791,
    "rewritten_after_this_payload": true
   },
