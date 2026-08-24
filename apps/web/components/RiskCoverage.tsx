@@ -183,9 +183,6 @@ export default function RiskCoverage({
             label already on the chart carries the pointer. */}
         The vertical bar through the marked point is the 95% interval on the error rate
         at that operating point.
-        Whether the ceiling held is decided on the top of that interval, not on the
-        point estimate, because the promise to a reviewer is about the worst plausible
-        error rate rather than the luckiest one.
       </figcaption>
     </figure>
   );

@@ -388,6 +388,30 @@ export function Note({
   );
 }
 
+/** Method that stays on the page without spending a screen on it.
+ *
+ * Every argument this wraps is still in the served HTML, still selectable, still
+ * found by ctrl-F and still read by a screen reader in document order; a native
+ * <details> costs nothing when closed and nothing to open. It exists so a section
+ * can lead with what was measured and keep the defence of how it was measured one
+ * click below, rather than making every reader walk through the second to reach
+ * the first. Nothing that a verdict turns on belongs in here.
+ */
+export function Details({
+  summary,
+  children,
+}: {
+  summary: string;
+  children: ReactNode;
+}) {
+  return (
+    <details className="disclosure">
+      <summary>{summary}</summary>
+      <div className="disclosure-body">{children}</div>
+    </details>
+  );
+}
+
 export function Table({
   head,
   children,

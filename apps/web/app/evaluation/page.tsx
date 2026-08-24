@@ -22,6 +22,7 @@ import RiskCoverage from "@/components/RiskCoverage";
 import gate4Bundle from "@/public/gate4/BUNDLE.json";
 import {
   Cell,
+  Details,
   IntervalBar,
   Note,
   Section,
@@ -51,6 +52,19 @@ const circularity = evaluation.circularity;
 // hand. Absence is named: if gate 4 ever stops being listed, the orientation block says
 // so instead of asserting OPEN, because a hardcoded verdict outlives the study that
 // earned it.
+/** The gates the sidebar counts as met, and how many of those were pre-passed.
+ *
+ * The paragraph below used to say "the sidebar's two of six" in words. Gate 4 was
+ * answered, the sidebar moved to three, and the sentence explaining the sidebar did
+ * not, so the page told a reader the header said something it no longer said. Both
+ * numbers now come from the summary the sidebar itself counts.
+ */
+const gatesMet = provenance.gate_summary.n_met;
+const gatesTotal = provenance.gate_summary.n_gates;
+const gatesPrePassed = provenance.gate_summary.gates.filter(
+  (g) => g.verdict === "PRE_PASSED",
+);
+
 const gate4Verdict =
   provenance.gate_summary.gates.find((g) => g.gate === 4)?.verdict ??
   "not listed in the gate summary";
@@ -238,7 +252,7 @@ function GateSixSplit({ name, split }: { name: string; split: SplitGate6 }) {
         <dt style={{ color: "var(--text-03)" }}>Reported</dt>
         <dd style={{ margin: 0 }}>
           {split.governing_interval === "union_of_episode_and_station"
-            ? "the union of the two, which is the wider claim"
+            ? "the union of the two"
             : split.governing_interval}
         </dd>
 
@@ -387,9 +401,12 @@ export default function EvaluationPage() {
           spans it on the split that was named in advance. Gate 5 improves the Brier
           score and its interval contains zero. Both are recorded as{" "}
           <span className="mono">NOT_ESTABLISHED</span>, because a point estimate above
-          a bar whose interval straddles the bar is not a pass. The sidebar&rsquo;s two
-          of six counts the feasibility gates, 1 and 2, which asked whether the data
-          and the physics could be obtained at all and were answered before any
+          a bar whose interval straddles the bar is not a pass. Of the{" "}
+          <span className="num">
+            {gatesMet} of {gatesTotal}
+          </span>{" "}
+          the sidebar counts as met, {gatesPrePassed.length} are the feasibility gates{" "}
+          {gatesPrePassed.map((g) => g.gate).join(" and ")}, answered before any
           pipeline code existed. What the two gates below are up against is a scale
           that stops at{" "}
           <span className="num">{fmt(circularity.ceiling.lift, 3)}&times;</span> for a
@@ -910,7 +927,9 @@ export default function EvaluationPage() {
           ))}
         </div>
 
-        <Note tone="warn">{ablation.why_the_corrected_rule_decides}</Note>
+        <Details summary="Why the corrected rule decides, and that it was tightened after a number was seen">
+          <p>{ablation.why_the_corrected_rule_decides}</p>
+        </Details>
 
         {recommendation && !recommendation.agree && (
           <Note tone="limit">{recommendation.note}</Note>
@@ -946,22 +965,24 @@ export default function EvaluationPage() {
 
         <Note tone="limit">{ablation.caveat as string}</Note>
 
-        <Note tone="limit">
+        <Details summary="Which splits the verdict used, and which fell below the training floor">
           {/* Both lists were joined raw, so a sentence about which splits decided the
               verdict read "chronological, cold_station, cold_transmitter". SPLIT_LABELS
               is at the top of this file and the table above already uses it. */}
-          Splits used for the ablation verdict:{" "}
-          {(ablation.splits_used as string[])
-            .map((name) => SPLIT_LABELS[name] ?? name)
-            .join(", ")}
-          . Below the {String(ablation.min_train_for_verdict)}-row training floor and
-          therefore excluded:{" "}
-          {(ablation.splits_below_training_floor as string[])
-            .map((name) => SPLIT_LABELS[name] ?? name)
-            .join(", ")}
-          .{" "}
-          {String(ablation.min_train_justification)}
-        </Note>
+          <p>
+            Splits used for the ablation verdict:{" "}
+            {(ablation.splits_used as string[])
+              .map((name) => SPLIT_LABELS[name] ?? name)
+              .join(", ")}
+            . Below the {String(ablation.min_train_for_verdict)}-row training floor and
+            therefore excluded:{" "}
+            {(ablation.splits_below_training_floor as string[])
+              .map((name) => SPLIT_LABELS[name] ?? name)
+              .join(", ")}
+            .{" "}
+            {String(ablation.min_train_justification)}
+          </p>
+        </Details>
       </Section>
 
       {/*
@@ -1072,8 +1093,8 @@ export default function EvaluationPage() {
         }
         description={
           gate4Answered
-            ? "The one gate in this project that no amount of compute closes. A person has now answered the committed sample, so this section is the review rather than the request: what was committed to before it began, what the scorer re-checked from disk, and the two rates it produced."
-            : "The one gate in this project that no amount of compute closes. The worksheet has been answered once and not by a person, so the gate is still OPEN: the arm below says the sample supports a decision, and it cannot say a reader would reach one."
+            ? "The one gate no amount of compute closes. A person has answered the committed sample, so this is the review rather than the request."
+            : "The one gate no amount of compute closes. The worksheet has been answered once and not by a person, so the gate is still OPEN: the arm below says the sample supports a decision, not that a reader would reach one."
         }
       >
         <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
@@ -1081,19 +1102,18 @@ export default function EvaluationPage() {
           reviewed with the network&rsquo;s labels and every model output hidden, must
           support a decisive judgment. The sample is{" "}
           <strong>{gate4Bundle.n_items} items over {gate4Bundle.n_unique_observations}{" "}
-          observations</strong>, {gate4Bundle.n_repeats} of them repeated under a second
-          item id so intra-rater agreement can be measured without telling the reviewer
-          which are repeats. Sixty rather than thirty-six because the verdict reads the
-          interval: at 36 a true decisive rate of 0.90 could not clear the bar however
-          the review went.
+          observations</strong>, {gate4Bundle.n_repeats} repeated under a second item id
+          so intra-rater agreement can be measured without telling the reviewer which.
+          Sixty rather than thirty-six because the verdict reads the interval, and at 36
+          even a true rate of 0.90 could not clear the bar.
         </p>
         <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
-          The sample is committed to rather than promised. A 32-byte salt and the
-          item-to-observation mapping live outside the repository; what is committed is
-          one sha256 per item over the salt, the item id, the observation id and the
-          digest of the image file. Before the review nobody can invert that. After it,
-          the scorer re-hashes every image from disk, recomputes every commitment,
-          refuses outright if one fails, and publishes the salt and the mapping.{" "}
+          The sample is committed to rather than promised: before the review, one
+          salted sha256 per item over the item id, the observation id and the image
+          digest, with the 32-byte salt and the item-to-observation mapping held outside
+          the repository. Afterwards the scorer re-hashes every image from disk, refuses
+          outright if one commitment fails, and publishes the salt and the mapping so
+          anyone can recheck.{" "}
           <strong>
             All {gate4Bundle.commitments_checked} were verified against the images on
             disk when the bundle was packed.
@@ -1132,9 +1152,7 @@ export default function EvaluationPage() {
             </p>
           </video>
           <figcaption>
-            The commitment is the part of this gate a reader cannot check by running
-            the code, because the claim is about the order events happened in. Every
-            number in the clip is in{" "}
+            Every number in the clip is in{" "}
             <code>artifacts/GATE4_RECEIPT.json</code>, and{" "}
             <code>tests/test_explainer_gate4_values.py</code> fails if the scene and
             the receipt ever disagree.
@@ -1145,19 +1163,16 @@ export default function EvaluationPage() {
             <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
               {gate4Arm.is_the_gate ? (
                 <>
-                  <strong style={{ color: "var(--text-01)" }}>
-                    A person has answered the blinded worksheet, so this gate is
-                    decided.
-                  </strong>{" "}
+                  <strong style={{ color: "var(--text-01)" }}>This gate is decided.</strong>{" "}
                   {gate4Arm.reviewer.identity} {gate4Arm.reviewer.independence}
                   {gate4Arm.prior_review ? (
                     <>
                       {" "}
                       A {gate4Arm.prior_review.kind} answered the same committed
                       plates first, at {gate4Arm.prior_review.decisive}/
-                      {gate4Arm.prior_review.observations_scored}, and that review is
-                      kept rather than overwritten: the two are the same instrument
-                      read by two different kinds of reviewer.
+                      {gate4Arm.prior_review.observations_scored}. That review is kept
+                      rather than overwritten: the same instrument, two kinds of
+                      reviewer.
                     </>
                   ) : null}
                 </>
@@ -1263,20 +1278,35 @@ export default function EvaluationPage() {
             sentence, because a judge who wonders why the plates are not simply shown
             deserves the answer. What was cut is the arithmetic of how much a lossless
             pass would have saved, which nobody acts on. */}
+        {/* This note used to be written for the state before the review, and it kept
+            rendering after it: the section heading said the gate was answered and
+            PASSED, and four hundred words below it the same page said the verdict
+            stays OPEN until a person answers. Both branches are now written out, so
+            the instruction matches the verdict above it. */}
         <Note>
           The plates are not on this page because both ways of shrinking them are
           wrong: lossless re-encoding breaks the digests the commitment rests on, and
-          lossy re-encoding smooths the faint traces the reviewer is being asked to
-          judge. So the archive travels whole, as one file with a digest. Open{" "}
-          <code>review.html</code> from the unpacked folder, answer{" "}
-          {gate4Bundle.n_items} items, send back one CSV.{" "}
-          <strong>
-            Until a person does that the verdict stays OPEN, and it stays OPEN for a
-            review by anything that is not a person.
-          </strong>{" "}
+          lossy re-encoding smooths the faint traces the reviewer is asked to judge. So
+          the archive travels whole, as one file with a digest.{" "}
+          {gate4Answered ? (
+            <>
+              A second reviewer can repeat the review on the same plates: open{" "}
+              <code>review.html</code> from the unpacked folder, answer{" "}
+              {gate4Bundle.n_items} items, send back one CSV.
+            </>
+          ) : (
+            <>
+              Open <code>review.html</code> from the unpacked folder, answer{" "}
+              {gate4Bundle.n_items} items, send back one CSV.{" "}
+              <strong>
+                Until a person does that the verdict stays OPEN, and it stays OPEN for
+                a review by anything that is not a person.
+              </strong>
+            </>
+          )}{" "}
           The scorer will not publish a rate without a declaration of who produced it:
-          for a reviewer that is not a person it files every number under{" "}
-          <code>arm</code> and leaves the gate&rsquo;s own verdict alone.
+          a reviewer that is not a person is filed under <code>arm</code> and does not
+          move the gate&rsquo;s own verdict.
         </Note>
       </Section>
 

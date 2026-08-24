@@ -3064,6 +3064,42 @@ main .shell > section > h2::before {
   color: var(--text-02);
 }
 
+/* Collapsed method. Sized off the same scale as the notes it sits beside, so an
+   open disclosure does not read as a different kind of content from the section
+   around it. The marker stays native: a custom triangle here would be one more
+   thing to keep in sync with the two themes. */
+.disclosure {
+  margin-top: var(--sp-05);
+  padding: var(--sp-04) var(--sp-05);
+  border-left: 3px solid var(--border-strong);
+  background: var(--ui-01);
+  max-width: 58rem;
+}
+
+.disclosure > summary {
+  font-size: var(--type-caption);
+  color: var(--text-02);
+  cursor: pointer;
+}
+
+.disclosure > summary:hover {
+  color: var(--text-01);
+}
+
+.disclosure-body {
+  margin-top: var(--sp-04);
+  color: var(--text-02);
+  line-height: 1.7;
+}
+
+.disclosure-body > p {
+  margin: 0 0 var(--sp-04);
+}
+
+.disclosure-body > p:last-child {
+  margin-bottom: 0;
+}
+
 .claim-packet {
   margin-top: var(--sp-05);
   padding: var(--sp-04) var(--sp-05);

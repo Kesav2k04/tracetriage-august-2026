@@ -217,10 +217,7 @@ export default function QueuePage() {
           <span className="num">{groundingScore.adversarialTotal}</span> planted
           falsehoods and refused{" "}
           <span className="num">{groundingScore.cleanRefused}</span> of{" "}
-          <span className="num">{groundingScore.cleanTotal}</span> clean drafts. On
-          stations the model never saw, the queue clears its threshold at{" "}
-          <span className="num">{fmt(coldStation.lift_point, 3)}</span>
-          <sup>&times;</sup>.
+          <span className="num">{groundingScore.cleanTotal}</span> clean drafts.
         </p>
 
         {/* Five signposts, and the reason they exist.
@@ -242,8 +239,8 @@ export default function QueuePage() {
               <span className="readpath-index" aria-hidden="true">01</span>
               <Link href="#queue">What it is</Link>
               <span className="readpath-fact">
-                a ranked queue of {queue.entries.length}, the top{" "}
-                {queue.review_budget.n_observations} is the budget
+                {queue.entries.length} ranked, top{" "}
+                {queue.review_budget.n_observations} reviewed
               </span>
             </li>
             {/* Second, and this page had no prose link to it at all.
@@ -256,8 +253,7 @@ export default function QueuePage() {
               <span className="readpath-index" aria-hidden="true">02</span>
               <Link href="/live/">Watch it measure one</Link>
               <span className="readpath-fact">
-                paste an id recorded today; the offset comes back in seconds, from the
-                public API, with no key
+                paste an id recorded today, the offset comes back in seconds
               </span>
             </li>
             <li>
@@ -276,9 +272,9 @@ export default function QueuePage() {
                     established after correction. The landing page's own summary was
                     making a stronger claim than the page it linked to. */}
                 <span className="num">{fmt(primary.lift_point, 2)}&times;</span> over
-                random on the pre-registered split, interval{" "}
-                <span className="num">{fmtInterval(primary.lift_ci95, 3)}</span>, which does
-                not clear the threshold
+                random, interval{" "}
+                <span className="num">{fmtInterval(primary.lift_ci95, 3)}</span>, short
+                of the threshold
               </span>
             </li>
             <li>
@@ -294,7 +290,6 @@ export default function QueuePage() {
               <span className="readpath-index" aria-hidden="true">05</span>
               <Link href="/provenance">How to check it</Link>
               <span className="readpath-fact">
-                every number names a receipt;{" "}
                 <span className="num">
                   {provenance.gate_summary.n_met} of {provenance.gate_summary.n_gates}
                 </span>{" "}
@@ -391,15 +386,12 @@ export default function QueuePage() {
                 and a queue nobody tested is a preference. That belongs next to the
                 verdicts rather than next to the product sentence. */}
             <p className="lede-body">
-              This ranks passes by how likely a human is to find something wrong, then
-              measures whether that ranking beats picking at random. The measurement is
-              the point. A queue nobody tested is a preference.
+              The measurement is the point. A queue nobody tested is a preference.
             </p>
             <p className="lede-body" style={{ marginTop: "var(--sp-05)" }}>
-              The split that decides the gate is the chronological one, because it was
-              named in advance. The cold-station split holds out every station the
-              model never trained on, and there the same queue clears the threshold.
-              One split passing is not the gate passing, and it is not nothing either.
+              The chronological split decides the gate because it was named in
+              advance. One split passing is not the gate passing, and it is not
+              nothing either.
             </p>
             {/* The measured win, at the same weight as the failure.
                 Every number in this paragraph comes from the circularity receipt's
@@ -427,14 +419,14 @@ export default function QueuePage() {
               <span className="num">
                 {circularity.random_ordering_control.p_value_permutation.toFixed(4)}
               </span>
-              ). The interval spans the threshold because a budget of{" "}
-              {circularity.reproduction.budget} over{" "}
+              ). The interval spans the threshold because the arithmetic caps it:{" "}
+              {circularity.reproduction.budget} slots over{" "}
               {circularity.reproduction.n_population} observations holding{" "}
-              {circularity.reproduction.n_conflicts} conflicts caps every possible
-              ordering at{" "}
+              {circularity.reproduction.n_conflicts} conflicts put a perfect oracle at{" "}
               <span className="num">{fmt(circularity.ceiling.lift, 3)}</span>
-              <sup>&times;</sup>, so the whole distance between the bar and a perfect
-              oracle is <span className="num">{fmt(circularity.ceiling.headroom_between_threshold_and_perfection, 3)}</span>.{" "}
+              <sup>&times;</sup>, leaving{" "}
+              <span className="num">{fmt(circularity.ceiling.headroom_between_threshold_and_perfection, 3)}</span>{" "}
+              between the bar and perfection.{" "}
               <Link href="/evaluation/#circularity">How that bound was computed</Link>.
             </p>
           </div>
@@ -706,7 +698,7 @@ export default function QueuePage() {
 
       <Section
         title="Concentration caps"
-        description="A queue that spends its whole budget on one station has found one station's problem, not the corpus's. Caps are applied before the budget is filled, and what they displaced is recorded rather than dropped."
+        description="A queue that spends its whole budget on one station has found one station's problem, not the corpus's."
       >
         <Table
           head={["Cap", "Share of budget", "Entries at budget", "Displaced", "Binding"]}
@@ -749,8 +741,8 @@ export default function QueuePage() {
               {fmtInterval(primary.uncapped_reference.lift_ci95_episode)}
             </span>
             , which would be {primary.uncapped_reference.verdict_if_it_were_eligible}.
-            It is reported here and is not the result: the caps were fixed before
-            measuring, so the capped queue is the one that counts.{" "}
+            The caps were fixed before measuring, so the capped queue is the one that
+            counts.{" "}
             {primary.uncapped_reference.note}
           </Note>
         )}

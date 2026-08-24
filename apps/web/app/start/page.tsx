@@ -187,10 +187,9 @@ export default function StartPage() {
             Six kill gates were written down, with their thresholds, before any of them was
             measured. {PRE_PASSED} asked whether the project was feasible at all and were
             answered before the first line of pipeline code. The other four ask whether the
-            idea works, and none of them cleared its threshold with the interval to prove
-            it. That is published as the verdict word each receipt uses, and{" "}
-            <Link href="/evaluation/">the evaluation page</Link> is where the intervals
-            are.
+            idea works, and none of them cleared its threshold with the interval to
+            prove it. <Link href="/evaluation/">The evaluation page</Link> has the
+            intervals.
           </>
         }
       >
@@ -243,8 +242,8 @@ export default function StartPage() {
           <span className="num">
             {circularity.random_ordering_control.p_value_permutation.toFixed(4)}
           </span>
-          . The gate is not met. The threshold was set for a corpus that could not have
-          proved it either way, which is a finding about the instrument and is{" "}
+          . The threshold was set for a corpus that could not have proved it either
+          way, which is a finding about the instrument and is{" "}
           <Link href="/evaluation/#circularity">derived rather than asserted</Link>.
         </Note>
       </Section>

@@ -227,7 +227,7 @@ export default function ProvenancePage() {
       <Section
         id="receipts"
         title="Receipts"
-        description="Each one is the output of a stage, validated against its contract before it reached disk."
+        description="One per stage, each with the digest of the file as it stood when this payload was built."
       >
         <Table
           head={["File", "SHA-256", "Bytes", "As of"]}
@@ -277,7 +277,7 @@ export default function ProvenancePage() {
       <Section
         id="contracts"
         title="Contracts"
-        description="A schema is ratified before the script that writes against it runs. A receipt that violates its contract never reaches disk, so a malformed measurement cannot be published and then noticed later."
+        description="A schema is ratified before the script that writes against it runs, so a receipt that violates its contract never reaches disk."
       >
         <Table
           head={["Contract", "Version", "Status", "SHA-256"]}
@@ -392,17 +392,16 @@ export default function ProvenancePage() {
             and the waterfall viewer says so on every card.
           </li>
           <li>
-            No analytics about you, no cookies, no storage. Nothing is collected
-            about a reader, nothing is stored on their machine, and there is
-            nothing to consent to. The font counter above reports that a licence
-            was used; it is told nothing about who used it.
+            No analytics about you, no cookies, no storage, and nothing to consent
+            to. The font host is told that a licence was used; it is told nothing
+            about who used it.
           </li>
         </ul>
       </Section>
 
       <Section
         title="Degraded states"
-        description="What the console shows when something is missing, and whether any observation it ships actually puts the console into that state. The right-hand column is counted from the shipped cards rather than asserted, because a failure path nobody has walked is a claim, not a feature."
+        description="What the console shows when something is missing, and whether any observation it ships actually puts the console into that state."
       >
         <Table
           head={["When", "What the console shows", "Shipped cards in this state"]}
@@ -429,10 +428,10 @@ export default function ProvenancePage() {
             became an instruction addressed to whoever is reading. A page that speaks
             to one class of reader tells every other reader they are not it. */}
         <Note tone="limit">
-          Every count is zero, which is worth saying rather than leaving in a table. The
-          observations this console ships are the top of a queue, so they have the
-          cleanest geometry. The degraded paths are covered by the offline suite; to see
-          one here, block the waterfall image and the page will say what it lost.
+          Every count is zero, which is worth saying rather than leaving in a table:
+          the observations this console ships are the top of a queue, so they have the
+          cleanest geometry. To see a degraded path here, block the waterfall image and
+          the page will say what it lost.
         </Note>
       </Section>
 
