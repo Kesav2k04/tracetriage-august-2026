@@ -553,7 +553,7 @@ export default function QueuePage() {
               the split the two are for. */}
           <video
             controls
-            preload="none"
+            preload="metadata"
             playsInline
             aria-label={
               "Twenty-four seconds, no narration: the predicted Doppler corridor " +

@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 43 JSON artifacts, 8 contracts, 61 scripts, 29 package modules and 1517 test functions across 86 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 43 JSON artifacts, 8 contracts, 61 scripts, 29 package modules and 1519 test functions across 87 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -24,7 +24,7 @@ file that no longer exists in that form.
 | Artifact | Schema | Version | Contract | Bytes | sha256 | Named by | Named in tests |
 |---|---|---|---|---|---|---|---|
 | `AGENT_RECEIPT.json` | AGENT_RECEIPT | 1 | none | 29,212 | `e98402dd20e1a396` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/run_agent_study.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_agent.py`, `test_receipt_digests.py` |
-| `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 87,442 | `b56018da296f804c` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
+| `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 87,442 | `ad7d5994034f99b3` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `AXIS_READER_AUDIT.json` | tracetriage/axis-reader-audit | 1 | none | 15,640 | `01592786df3cb33c` | `scripts/audit_pool_axes.py` | `test_axis_reader_audit.py`, `test_receipt_digests.py` |
 | `BASELINE_RECEIPT.json` | BASELINE_RECEIPT | 0.1.0 | none | 8,803 | `f2796822ec53b590` | `scripts/build_architecture_diagram.py`, `scripts/run_baseline.py`, `scripts/run_triage_slice.py` | `test_baseline.py`, `test_receipt_digests.py` |
 | `CIRCULARITY_RECEIPT.json` | tracetriage/circularity/v1 | 1.0.0 | none | 11,376 | `8e6f893a005e3bcc` | `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/run_circularity_check.py`, `scripts/run_gate_power.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_circularity.py`, `test_gate_power.py`, `test_receipt_digests.py` |
@@ -55,10 +55,10 @@ file that no longer exists in that form.
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 63,045 | `6dc5302b24363528` | `pipeline/tracetriage/physics.py`, `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
 | `PRECEDENT_RECEIPT.json` | PRECEDENT_RECEIPT | 1 | none | 9,549 | `7cc6b2fde7059111` | `scripts/build_console_data.py`, `scripts/check_receipt_digests.py`, `scripts/run_precedent_study.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_console_export.py`, `test_precedent.py`, `test_receipt_digests.py` |
 | `QUEUE_RECEIPT.json` | QUEUE_RECEIPT | 0.3.0 | `contracts/queue_receipt.schema.json` | 259,290 | `4204193634349fa8` | `scripts/annotate.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/export_satellite_names.py`, `scripts/gate.py`, `scripts/run_agent_study.py`, `scripts/run_circularity_check.py`, `scripts/run_gate_power.py`, `scripts/run_langchain_check.py`, `scripts/run_queue.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_circularity.py`, `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_demo_script.py`, `test_freshness_outcomes.py`, `test_gate_power.py`, `test_kill_gate_sync.py`, `test_mcp_server.py`, `test_queue_concentration.py`, `test_receipt_digests.py`, `test_reference_sync.py`, `test_satellite_names.py` |
-| `REPO_WEIGHT.json` | REPO_WEIGHT | 0.1.0 | none | 5,138 | `8add34cac9dac4aa` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
+| `REPO_WEIGHT.json` | REPO_WEIGHT | 0.1.0 | none | 5,138 | `d99beae38b78bce2` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `SATELLITE_NAMES.json` | SATELLITE_NAMES/1 | n/a | none | 12,328 | `196ad682c56350b8` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/export_satellite_names.py` | `test_satellite_names.py` |
 | `SECOND_TRACE_SURVEY.json` | SECOND_TRACE_SURVEY | 0.1.0 | none | 334,073 | `ef43f2ad5bc160be` | `scripts/audit_release.py`, `scripts/build_architecture_diagram.py`, `scripts/clean_clone_check.py`, `scripts/measure_second_trace.py`, `scripts/measure_throughput.py` | `test_failure_injection.py` |
-| `SECRET_SCAN.json` | SECRET_SCAN | 0.1.0 | none | 1,053 | `631d8a9ac369da6a` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_reference_sync.py`, `test_release_audit.py` |
+| `SECRET_SCAN.json` | SECRET_SCAN | 0.1.0 | none | 1,053 | `3596eb4bcea98bbe` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_reference_sync.py`, `test_release_audit.py` |
 | `SIGNOFF_RECEIPT.json` | SIGNOFF_RECEIPT | 0.1.0 | none | 3,829 | `dc2280012b556543` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/gate.py`, `scripts/signoff.py` | `test_freshness_outcomes.py`, `test_gate_tally.py`, `test_signoff.py` |
 | `SPLIT_MANIFEST.json` | none declared | 0.5.0 | none | 223,247 | `c0f8cd3a5dd5fbf9` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_splits.py`, `scripts/check_artifact_freshness.py`, `scripts/check_receipt_digests.py`, `scripts/clean_clone_check.py`, `scripts/run_fusion.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py` | `test_contracts.py`, `test_receipt_digests.py`, `test_splits.py` |
 | `THROUGHPUT_RECEIPT.json` | THROUGHPUT_RECEIPT | 1 | none | 3,112 | `8434514de99fd625` | `scripts/measure_throughput.py`, `scripts/sync_for_judges.py` | **none** |
@@ -245,6 +245,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_live_api.py` | 9 | The live endpoint: what it validates, what it caches, and what it may not do. |
 | `tests/test_live_shelf.py` | 9 | The frozen shelf says what it is, and every entry is what it says. |
 | `tests/test_mcp_server.py` | 40 | The evidence server, driven through its own transport (unit E3). |
+| `tests/test_media_faststart.py` | 2 | Every video this repository publishes can start before it has finished downloading. |
 | `tests/test_mobile_client.py` | 10 | The Android client, and the four ways it could quietly disagree with the console. |
 | `tests/test_operator_session.py` | 8 | The recorded twelve-step session, and the document it is supposed to be a run of. |
 | `tests/test_package_imports.py` | 4 | How `pipeline/tracetriage` spells its own imports, and which files are allowed to differ. |

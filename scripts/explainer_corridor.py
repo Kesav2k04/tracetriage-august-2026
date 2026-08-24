@@ -23,6 +23,15 @@ in this docstring alone:
 
 Render:
     manim -qh scripts/explainer_corridor.py CorridorExplainer
+    ffmpeg -i <manim output>.mp4 -c copy -movflags +faststart \
+        apps/web/public/media/corridor-explainer.mp4
+
+The second command is not optional. Manim writes the `moov` atom after `mdat`, so the
+index a player needs to start sits at the end of the file. A browser cannot begin
+playback until it has fetched far enough to find it, which on the landing page read as
+a video that does nothing when clicked. `-c copy` is a stream copy: the decoded frames
+are bit-identical afterwards, which `tests/test_film_palette.py` depends on.
+`tests/test_media_faststart.py` fails if a file without faststart is ever committed.
 
 The values below are duplicated from the export rather than imported, because this
 scene has to keep rendering from a checkout that has no receipts built. They are
