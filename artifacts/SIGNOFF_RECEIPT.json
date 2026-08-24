@@ -1,8 +1,8 @@
 {
  "schema": "SIGNOFF_RECEIPT",
  "schema_version": "0.1.0",
- "measured_at_commit": "636986b97136456c2be0e53f01e360e3d8a318a8",
- "measured_at_commit_date": "2026-08-24T04:47:00+05:30",
+ "measured_at_commit": "61e6c44c61679517e8500e70f2957f8084cfe509",
+ "measured_at_commit_date": "2026-08-24T05:23:27+05:30",
  "note_on_the_commit": "This receipt is written at the commit named above and then committed, so the commit it lands in is one later. It cannot name that one, and saying so is better than implying it measured itself.",
  "commits_behind_head_when_written": 0,
  "verdict": "SIGNED",
@@ -17,7 +17,7 @@
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\gate.py",
    "status": "PASSED",
    "detail": "30/30 standing gates pass",
-   "seconds": 305.9,
+   "seconds": 369.3,
    "why_not_checked": null
   },
   {
@@ -41,15 +41,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run typecheck",
    "status": "PASSED",
    "detail": "> tsc --noEmit",
-   "seconds": 2.3,
+   "seconds": 3.5,
    "why_not_checked": null
   },
   {
    "check": "console tests",
    "command": "C:\\Program Files\\nodejs\\npm.CMD run test",
    "status": "PASSED",
-   "detail": "\u001b[2m   Duration \u001b[22m 1.23s\u001b[2m (transform 936ms, setup 0ms, collect 3.09s, tests 722ms, environment 4ms, prepare 3.81s)\u001b[22m",
-   "seconds": 2.5,
+   "detail": "\u001b[2m   Duration \u001b[22m 1.52s\u001b[2m (transform 1.77s, setup 0ms, collect 4.10s, tests 806ms, environment 4ms, prepare 5.87s)\u001b[22m",
+   "seconds": 4.1,
    "why_not_checked": null
   },
   {
@@ -57,7 +57,7 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run build",
    "status": "PASSED",
    "detail": "34 index.html files emitted to apps/web/out",
-   "seconds": 20.4,
+   "seconds": 33.6,
    "why_not_checked": null
   },
   {
@@ -65,7 +65,7 @@
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\audit_release.py",
    "status": "PASSED",
    "detail": "0 secret findings, 0 files short of their attribution, 59.75 MB tracked",
-   "seconds": 11.1,
+   "seconds": 12.6,
    "why_not_checked": null
   },
   {
@@ -96,8 +96,8 @@
    "check": "deployed console is this tree",
    "command": null,
    "status": "PASSED",
-   "detail": "HTTP 200, served provenance.json sha256 a0bd2a8f9b7a against a0bd2a8f9b7a committed",
-   "seconds": 0.6,
+   "detail": "HTTP 200, served provenance.json sha256 1080b8fe4881 against 1080b8fe4881 committed",
+   "seconds": 0.1,
    "why_not_checked": null
   }
  ],
