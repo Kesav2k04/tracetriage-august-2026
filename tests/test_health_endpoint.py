@@ -20,6 +20,7 @@ enforced by running it under an interpreter with no site-packages at all, the sa
 
 from __future__ import annotations
 
+import fnmatch
 import hashlib
 import io
 import json
@@ -169,10 +170,31 @@ def test_it_answers_under_an_interpreter_with_no_installed_packages() -> None:
 
 
 def test_the_deployment_gives_the_function_the_file_it_hashes() -> None:
-    """Without this line in vercel.json the endpoint deploys and reports `present: false`."""
+    """Without this line in vercel.json the endpoint deploys and reports `present: false`.
+
+    It did. The first version declared the bare path
+    `apps/web/public/data/provenance.json`, nothing was bundled, and the deployed function
+    answered `present: false` on the one question it exists to answer. `api/live.py` beside
+    it declares `pipeline/**` and gets its files, so the pattern has to glob.
+
+    So this asserts two properties rather than a literal string: the pattern contains a glob
+    character, and it matches the path of the file the function actually reads. Pinning the
+    string is what let the bare path through, because the string was exactly what its author
+    intended.
+    """
     config = json.loads(VERCEL.read_text(encoding="utf-8"))
     declared = config["functions"]["api/health.py"]
-    assert declared["includeFiles"] == "apps/web/public/data/provenance.json"
+    pattern = declared["includeFiles"]
+    assert any(ch in pattern for ch in "*?["), (
+        f"includeFiles is {pattern!r}, a bare path. Vercel bundles nothing for it, and the "
+        "function deploys reporting present: false."
+    )
+    target = "apps/web/public/data/provenance.json"
+    assert (REPO / target).is_file(), f"{target} is not in the tree, so nothing can include it"
+    assert fnmatch.fnmatch(target, pattern) or fnmatch.fnmatch(target, pattern + "/**"), (
+        f"includeFiles {pattern!r} does not match {target!r}, which is the file the function "
+        "hashes"
+    )
     # The console is exported with `trailingSlash: true`, so a link to /api/health/ is what
     # a reader will follow. Vercel routes the function at /api/health.
     sources = {rule["source"] for rule in config["rewrites"]}

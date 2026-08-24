@@ -74,9 +74,20 @@ def _provenance() -> dict[str, Any]:
     hour is a statement about the past.
     """
     if not _PROVENANCE.is_file():
+        # The first deployment of this function landed here. `vercel.json` named the file as a
+        # bare path, `apps/web/public/data/provenance.json`, and nothing was bundled;
+        # `api/live.py` beside it uses `pipeline/**` and gets its files, so the pattern needs a
+        # glob to match. The three fields below exist because diagnosing that took a deploy
+        # cycle: without them the answer is "present: false" and no way to tell a missing
+        # include from a wrong path, and each round trip is a push and a rebuild.
         return {
             "file": "apps/web/public/data/provenance.json",
             "present": False,
+            "looked_at": str(_PROVENANCE),
+            "function_root": str(_REPO),
+            "root_entries": sorted(p.name for p in _REPO.iterdir())[:20]
+            if _REPO.is_dir()
+            else [],
             "why_it_matters": (
                 "this function was deployed without the data file, so it cannot say "
                 "whether the console beside it is this repository. See includeFiles in "
