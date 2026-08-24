@@ -1,8 +1,8 @@
 {
  "schema": "SIGNOFF_RECEIPT",
  "schema_version": "0.1.0",
- "measured_at_commit": "8714d443e89b395be37a47094fec36bcc3992466",
- "measured_at_commit_date": "2026-08-24T07:12:12+05:30",
+ "measured_at_commit": "89c6435a3728a73d18eea62423a6580943113b9b",
+ "measured_at_commit_date": "2026-08-24T07:50:47+05:30",
  "note_on_the_commit": "This receipt is written at the commit named above and then committed, so the commit it lands in is one later. It cannot name that one, and saying so is better than implying it measured itself.",
  "commits_behind_head_when_written": 0,
  "verdict": "SIGNED",
@@ -17,7 +17,7 @@
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\gate.py",
    "status": "PASSED",
    "detail": "31/31 standing gates pass",
-   "seconds": 314.7,
+   "seconds": 371.7,
    "why_not_checked": null
   },
   {
@@ -48,7 +48,7 @@
    "check": "console tests",
    "command": "C:\\Program Files\\nodejs\\npm.CMD run test",
    "status": "PASSED",
-   "detail": "\u001b[2m   Duration \u001b[22m 1.22s\u001b[2m (transform 1.12s, setup 0ms, collect 3.33s, tests 691ms, environment 4ms, prepare 3.50s)\u001b[22m",
+   "detail": "\u001b[2m   Duration \u001b[22m 1.20s\u001b[2m (transform 1.25s, setup 0ms, collect 3.54s, tests 698ms, environment 4ms, prepare 3.54s)\u001b[22m",
    "seconds": 2.5,
    "why_not_checked": null
   },
@@ -57,15 +57,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run build",
    "status": "PASSED",
    "detail": "34 index.html files emitted to apps/web/out",
-   "seconds": 20.8,
+   "seconds": 20.4,
    "why_not_checked": null
   },
   {
    "check": "release audit re-run at this commit",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\audit_release.py",
    "status": "PASSED",
-   "detail": "0 secret findings, 0 files short of their attribution, 59.77 MB tracked",
-   "seconds": 11.4,
+   "detail": "0 secret findings, 0 files short of their attribution, 59.79 MB tracked",
+   "seconds": 11.5,
    "why_not_checked": null
   },
   {
@@ -89,7 +89,7 @@
    "command": null,
    "status": "PASSED",
    "detail": "HTTP 200, 430,837 bytes from https://tracetriage.vercel.app",
-   "seconds": 1.0,
+   "seconds": 1.6,
    "why_not_checked": null
   },
   {
@@ -97,7 +97,7 @@
    "command": null,
    "status": "PASSED",
    "detail": "HTTP 200, served provenance.json sha256 c35e39d5f1f1 against c35e39d5f1f1 committed",
-   "seconds": 0.6,
+   "seconds": 0.7,
    "why_not_checked": null
   }
  ],
