@@ -1,8 +1,8 @@
 {
  "schema": "SIGNOFF_RECEIPT",
  "schema_version": "0.1.0",
- "measured_at_commit": "6c90e3cf7960374fce4dcf74dc8b6fc2380a0bb3",
- "measured_at_commit_date": "2026-08-24T09:58:17+05:30",
+ "measured_at_commit": "fe0273809b8e283de9a8c5bee1bda55f8fcca2a1",
+ "measured_at_commit_date": "2026-08-24T15:09:29+05:30",
  "note_on_the_commit": "This receipt is written at the commit named above and then committed, so the commit it lands in is one later. It cannot name that one, and saying so is better than implying it measured itself.",
  "commits_behind_head_when_written": 0,
  "verdict": "SIGNED",
@@ -16,8 +16,8 @@
    "check": "standing gates",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\gate.py",
    "status": "PASSED",
-   "detail": "30/30 standing gates pass, 2 rows omitted for a missing precondition: artifacts match their builders; sign-off receipt present and signed",
-   "seconds": 356.6,
+   "detail": "32/32 standing gates pass, 1 row omitted for a missing precondition: sign-off receipt present and signed",
+   "seconds": 367.7,
    "why_not_checked": null
   },
   {
@@ -48,7 +48,7 @@
    "check": "console tests",
    "command": "C:\\Program Files\\nodejs\\npm.CMD run test",
    "status": "PASSED",
-   "detail": "Duration  1.32s (transform 1.29s, setup 0ms, collect 3.82s, tests 789ms, environment 5ms, prepare 3.55s)",
+   "detail": "Duration  1.32s (transform 1.11s, setup 0ms, collect 3.48s, tests 792ms, environment 5ms, prepare 3.68s)",
    "seconds": 2.7,
    "why_not_checked": null
   },
@@ -57,15 +57,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run build",
    "status": "PASSED",
    "detail": "34 index.html files emitted to apps/web/out",
-   "seconds": 23.6,
+   "seconds": 26.0,
    "why_not_checked": null
   },
   {
    "check": "release audit re-run at this commit",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\audit_release.py",
    "status": "PASSED",
-   "detail": "0 secret findings, 0 files short of their attribution, 59.82 MB tracked",
-   "seconds": 11.6,
+   "detail": "0 secret findings, 0 files short of their attribution, 60.36 MB tracked",
+   "seconds": 13.9,
    "why_not_checked": null
   },
   {
@@ -88,16 +88,16 @@
    "check": "deployed console responds",
    "command": null,
    "status": "PASSED",
-   "detail": "HTTP 200, 430,837 bytes from https://tracetriage.vercel.app",
-   "seconds": 0.8,
+   "detail": "HTTP 200, 431,997 bytes from https://tracetriage.vercel.app",
+   "seconds": 0.9,
    "why_not_checked": null
   },
   {
    "check": "deployed console is this tree",
    "command": null,
    "status": "PASSED",
-   "detail": "HTTP 200, served provenance.json sha256 13977d84098a against 13977d84098a committed",
-   "seconds": 0.3,
+   "detail": "HTTP 200, served provenance.json sha256 6be5d1b04197 against 6be5d1b04197 committed",
+   "seconds": 0.6,
    "why_not_checked": null
   }
  ],
