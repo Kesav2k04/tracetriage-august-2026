@@ -477,6 +477,48 @@ def _comparable(receipt: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+# The four keys granite_agent only carries because it reached a model. Everything else it
+# records (the flow file digest, the node set, the edge count, the model name, the endpoint)
+# is built from Python objects and does not need the runtime to be up, so a move in any of
+# them is a real disagreement and stays red.
+_RUN_ONLY = ("outcome", "question", "n_outputs", "expected_observation_id")
+
+
+def _model_runtime_absent(committed: dict[str, Any], fresh: dict[str, Any]) -> bool:
+    """True when the only disagreement is that granite_agent could not reach a model here.
+
+    The receipt was written on a machine with Ollama serving `granite3.1-dense:8b`, so it
+    records `RAN`. A clean clone has `.venv-langflow` but no model runtime, rebuilds the same
+    flow, and gets `NOT_CHECKED`. Reporting that as a FAIL manufactures a regression out of a
+    precondition the docstring above already declares optional, and it is the same defect as
+    reporting green: both answer a question that was never asked.
+
+    So this returns True only for that exact shape. `FAILED` is a model that answered wrongly
+    or threw, which is measured and wrong, and it stays a FAIL. A disagreement anywhere
+    outside `flows.granite_agent`, including in the grounding flow that needs no runtime,
+    stays a FAIL. And the flow's own structure must still match, because none of it depends
+    on the model being reachable.
+    """
+    committed_rest = {k: v for k, v in committed.items() if k != "flows"}
+    fresh_rest = {k: v for k, v in fresh.items() if k != "flows"}
+    if committed_rest != fresh_rest:
+        return False
+
+    committed_flows = dict(committed.get("flows") or {})
+    fresh_flows = dict(fresh.get("flows") or {})
+    if set(committed_flows) != set(fresh_flows):
+        return False
+    for name in committed_flows:
+        if name != "granite_agent" and committed_flows[name] != fresh_flows[name]:
+            return False
+
+    was = dict(committed_flows.get("granite_agent") or {})
+    now = dict(fresh_flows.get("granite_agent") or {})
+    if was.get("outcome") != "RAN" or now.get("outcome") != "NOT_CHECKED":
+        return False
+    differing = {k for k in set(was) | set(now) if was.get(k) != now.get(k)}
+    return differing.issubset(set(_RUN_ONLY))
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -493,9 +535,25 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[FAIL] {RECEIPT.relative_to(REPO)} is missing. Run this script.")
             return 1
         committed = json.loads(RECEIPT.read_text(encoding="utf-8"))
-        if _comparable(committed) == _comparable(fresh):
+        left, right = _comparable(committed), _comparable(fresh)
+        if left == right:
             print("[PASS] langflow receipt matches this tree")
             return 0
+        if _model_runtime_absent(left, right):
+            reason = (fresh["flows"]["granite_agent"].get("reason") or "").strip()
+            print(
+                "[NOT CHECKED] granite_agent needs a model runtime this machine does not "
+                f"have, so its outcome rebuilt as NOT_CHECKED against the RAN in "
+                f"{RECEIPT.relative_to(REPO)}. The grounding flow, both flow files and "
+                "every node set match."
+            )
+            if reason:
+                print(f"  the runtime said: {reason}")
+            print(
+                "  to measure it here: serve granite3.1-dense:8b on a local Ollama, then "
+                "re-run this script without --check."
+            )
+            return 3
         print(
             f"[FAIL] {RECEIPT.relative_to(REPO)} disagrees with a rebuild. "
             f"Re-run scripts/run_langflow_check.py."

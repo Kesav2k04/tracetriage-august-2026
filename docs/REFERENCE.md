@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 43 JSON artifacts, 8 contracts, 61 scripts, 29 package modules and 1510 test functions across 86 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 43 JSON artifacts, 8 contracts, 61 scripts, 29 package modules and 1513 test functions across 86 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -240,7 +240,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_hero_window.py` | 5 | The hero plate's display window, checked against the image it windows. |
 | `tests/test_kill_gate_sync.py` | 13 | docs/KILL_GATE.md must equal what its generator renders from the receipts. |
 | `tests/test_langchain_tools.py` | 10 | The LangChain adapter offers the MCP server's tools, and not copies of them. |
-| `tests/test_langflow_flows.py` | 10 | The committed LangFlow flows are files LangFlow wrote, and the receipt describes them. |
+| `tests/test_langflow_flows.py` | 13 | The committed LangFlow flows are files LangFlow wrote, and the receipt describes them. |
 | `tests/test_live.py` | 9 | The live path measures what gate 3 measured, on gate 3's own observations. |
 | `tests/test_live_api.py` | 9 | The live endpoint: what it validates, what it caches, and what it may not do. |
 | `tests/test_live_shelf.py` | 9 | The frozen shelf says what it is, and every entry is what it says. |

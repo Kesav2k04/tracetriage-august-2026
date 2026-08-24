@@ -39,8 +39,10 @@ text rather than trusted.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import re
+import sys
 import tomllib
 from pathlib import Path
 
@@ -238,3 +240,131 @@ def test_the_flows_directory_holds_nothing_that_did_not_come_from_a_run(receipt)
         f"flow file this project has never run is exactly what docs/USE_WITH_YOUR_AGENT.md "
         f"declines to ship."
     )
+
+
+def _checker():
+    """Import the runner's comparison helper without importing LangFlow.
+
+    `run_langflow_check.py` shells out to a separate interpreter for every LangFlow call, so
+    the module itself imports under the project venv. That is what lets the exemption below
+    be tested from the offline suite, which is where a rule about when a gate may go quiet
+    belongs.
+    """
+    path = REPO / "scripts" / "run_langflow_check.py"
+    spec = importlib.util.spec_from_file_location("run_langflow_check_for_tests", path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module._model_runtime_absent
+
+
+def _pair() -> tuple[dict, dict]:
+    """A committed receipt that reached a model, and the rebuild a machine without one gets.
+
+    Shaped from the real receipt rather than invented: the keys that vanish when the runtime
+    is unreachable are the four the runner names, and everything else survives because it is
+    built from Python objects.
+    """
+    committed = {
+        "schema": "LANGFLOW_RECEIPT",
+        "runtime": {"langflow": "1.7.2"},
+        "flows": {
+            "grounding": {
+                "file": "flows/tracetriage_grounding.json",
+                "sha256": "a" * 64,
+                "outcome": "RAN",
+                "runs": [{"label": "clean", "verdict": "PASSED"}],
+            },
+            "granite_agent": {
+                "file": "flows/tracetriage_granite_agent.json",
+                "sha256": "b" * 64,
+                "nodes": ["ChatInput-1", "AgentComponent-1"],
+                "n_edges": 4,
+                "model": "granite3.1-dense:8b",
+                "endpoint": "http://127.0.0.1:11434",
+                "outcome": "RAN",
+                "question": "Which observation is at rank 1?",
+                "n_outputs": 1,
+                "expected_observation_id": "14746092",
+            },
+        },
+    }
+    fresh = json.loads(json.dumps(committed))
+    agent = fresh["flows"]["granite_agent"]
+    agent["outcome"] = "NOT_CHECKED"
+    for key in ("question", "n_outputs", "expected_observation_id"):
+        del agent[key]
+    return committed, fresh
+
+
+def test_a_missing_model_runtime_is_not_reported_as_a_disagreement():
+    """The case the exemption exists for, so its absence would be caught here first."""
+    committed, fresh = _pair()
+    assert _checker()(committed, fresh), (
+        "a clean clone with no Ollama rebuilds granite_agent as NOT_CHECKED, and calling "
+        "that a FAIL manufactures a regression out of a precondition the runner declares "
+        "optional"
+    )
+
+
+@pytest.mark.parametrize(
+    "mutate,why",
+    [
+        (
+            lambda fresh: fresh["flows"]["granite_agent"].__setitem__("outcome", "FAILED"),
+            "a model that answered wrongly or threw is measured and wrong",
+        ),
+        (
+            lambda fresh: fresh["flows"]["granite_agent"].__setitem__("sha256", "c" * 64),
+            "the flow file moved, which needs no runtime to notice",
+        ),
+        (
+            lambda fresh: fresh["flows"]["granite_agent"].__setitem__("nodes", ["ChatInput-1"]),
+            "the node set is built from Python objects and does not depend on the model",
+        ),
+        (
+            lambda fresh: fresh["flows"]["granite_agent"].__setitem__("n_edges", 3),
+            "the wiring changed",
+        ),
+        (
+            lambda fresh: fresh["flows"]["granite_agent"].__setitem__("model", "llama3:8b"),
+            "the flow is pointed at a different model than the receipt records",
+        ),
+        (
+            lambda fresh: fresh["flows"]["grounding"]["runs"][0].__setitem__(
+                "verdict", "REFUSED"
+            ),
+            "the grounding flow needs no runtime, so any move in it is real",
+        ),
+        (
+            lambda fresh: fresh["flows"].__delitem__("grounding"),
+            "a flow stopped being described at all",
+        ),
+        (
+            lambda fresh: fresh["runtime"].__setitem__("langflow", "1.0.0"),
+            "the LangFlow version the receipt was written under changed",
+        ),
+    ],
+)
+def test_the_exemption_covers_nothing_but_the_absent_runtime(mutate, why):
+    """Eight ways the rebuild can be genuinely wrong, none of which may go quiet.
+
+    An exemption is only as good as what it refuses. This is the half that keeps
+    `[NOT CHECKED]` from becoming a second name for green.
+    """
+    committed, fresh = _pair()
+    mutate(fresh)
+    assert not _checker()(committed, fresh), f"should stay a FAIL: {why}"
+
+
+def test_a_receipt_that_never_ran_cannot_claim_the_exemption():
+    """NOT_CHECKED on both sides is equality, and equality is the PASS branch, not this one.
+
+    Written because the shape that would hide a real regression is a receipt committed while
+    the runtime happened to be down: if that were exempt too, the gate could never go red on
+    this row again.
+    """
+    committed, fresh = _pair()
+    committed["flows"]["granite_agent"]["outcome"] = "NOT_CHECKED"
+    assert not _checker()(committed, fresh)

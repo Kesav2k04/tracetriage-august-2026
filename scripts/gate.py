@@ -401,6 +401,19 @@ def main() -> int:
             "langflow flows match their receipt",
             ".venv-langflow is not present in this checkout.",
         )
+    elif rc == 3 and "[NOT CHECKED]" in out:
+        # The second missing precondition, and a narrower one than the first: the environment
+        # is here, both flows rebuilt, the grounding flow and every digest matched, and the
+        # only disagreement is that granite_agent reached no model. The runner decides that,
+        # not this row, and it refuses the exemption for a FAILED outcome or for a move
+        # anywhere the model cannot reach. Eight of those refusals are held in
+        # tests/test_langflow_flows.py so the quiet outcome cannot widen unnoticed.
+        omit(
+            omitted,
+            "langflow flows match their receipt",
+            "granite3.1-dense:8b is not being served here, so the agent flow rebuilt as "
+            "NOT_CHECKED.",
+        )
     else:
         results.append(
             check(
