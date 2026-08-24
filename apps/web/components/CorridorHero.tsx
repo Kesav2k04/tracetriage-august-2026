@@ -236,7 +236,7 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
             Open this observation
           </Link>
           , or read{" "}
-          <Link href="/provenance">how every number here was generated</Link>.
+          <Link href="/provenance/">how every number here was generated</Link>.
         </p>
       </div>
     </section>

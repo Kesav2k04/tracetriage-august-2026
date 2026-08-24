@@ -258,7 +258,7 @@ export default function QueuePage() {
             </li>
             <li>
               <span className="readpath-index" aria-hidden="true">03</span>
-              <Link href="/evaluation">Whether it worked</Link>
+              <Link href="/evaluation/">Whether it worked</Link>
               <span className="readpath-fact">
                 {/* Two decimals on the point estimate and three on the interval, matching
                     the verdict tile a few hundred pixels below. The first cut used the
@@ -279,7 +279,7 @@ export default function QueuePage() {
             </li>
             <li>
               <span className="readpath-index" aria-hidden="true">04</span>
-              <Link href="/precedent">Whether the model earned it</Link>
+              <Link href="/precedent/">Whether the model earned it</Link>
               <span className="readpath-fact">
                 <span className="num">{fmt(GRANITE_RETRIEVAL, 3)}</span> against{" "}
                 <span className="num">{fmt(NUMERIC_RETRIEVAL, 3)}</span>, a margin that does
@@ -288,7 +288,7 @@ export default function QueuePage() {
             </li>
             <li>
               <span className="readpath-index" aria-hidden="true">05</span>
-              <Link href="/provenance">How to check it</Link>
+              <Link href="/provenance/">How to check it</Link>
               <span className="readpath-fact">
                 <span className="num">
                   {provenance.gate_summary.n_met} of {provenance.gate_summary.n_gates}
