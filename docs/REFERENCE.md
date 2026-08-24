@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 41 JSON artifacts, 8 contracts, 59 scripts, 29 package modules and 1469 test functions across 82 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 41 JSON artifacts, 8 contracts, 59 scripts, 29 package modules and 1472 test functions across 82 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -251,7 +251,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_queue_concentration.py` | 22 | Entity-concentration caps, clustering measurement and the governing interval (C2). |
 | `tests/test_queue_lift_bootstrap.py` | 16 | Tests for the grouped lift bootstrap and its consistency guard (unit C2). |
 | `tests/test_queue_replay.py` | 17 | Active-selection replay against every baseline, paired within each draw (C4). |
-| `tests/test_readme_claims.py` | 6 | Every repository path the README names must exist and carry something. |
+| `tests/test_readme_claims.py` | 9 | Every repository path the README names must exist and carry something. |
 | `tests/test_receipt_digests.py` | 5 | The digest audit, and the three ways it could pass while meaning nothing. |
 | `tests/test_reference_sync.py` | 10 | `docs/REFERENCE.md` is generated, and the generator has to notice things changing. |
 | `tests/test_release_audit.py` | 12 | The three release-audit receipts, and whether the checks that produced them can fail. |

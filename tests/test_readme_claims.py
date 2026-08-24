@@ -273,3 +273,122 @@ def test_the_readme_names_the_tools_that_are_actually_auto_approved():
             f"{server}: the README's alwaysAllow clause names {sorted(extra)}, which "
             f".bob/mcp.json does not auto-approve: {claim.strip()!r}"
         )
+
+
+#: The sections the challenge's submission requirements name for the repository README.
+#: Typed here rather than read from a receipt, because the requirement comes from outside
+#: this repository and nothing in the tree could be its source of truth. The two published
+#: lists disagree: the Official Rules name three ("Problem statement, AI/technical approach,
+#: Solution description") and the challenge page names five. This is the superset, so
+#: satisfying it satisfies both, which is the same rule the submission uses everywhere else
+#: the two documents differ.
+_REQUIRED_SECTIONS = (
+    "## Problem statement",
+    "## Solution description",
+    "## AI approach and architecture",
+    "## Selected challenge theme",
+    "## How IBM Bob was used",
+)
+
+#: How much prose a section needs before it counts as answering anything. Low on purpose:
+#: the check is against an empty or stub section, not a judgement about depth.
+_MIN_SECTION_CHARS = 200
+
+
+def _sections(text: str) -> dict[str, str]:
+    """Every `## ` heading mapped to the text under it, up to the next `## `."""
+    out: dict[str, str] = {}
+    current = None
+    body: list[str] = []
+    for line in text.splitlines():
+        if line.startswith("## "):
+            if current is not None:
+                out[current] = "\n".join(body)
+            current = line.rstrip()
+            body = []
+        elif current is not None:
+            body.append(line)
+    if current is not None:
+        out[current] = "\n".join(body)
+    return out
+
+
+def _shortfalls(text: str) -> tuple[list[str], dict[str, int]]:
+    """Which required sections are absent, and which are present but nearly empty.
+
+    Split out from the test so the test can be shown to fire. A check that reads one file
+    and asserts it is fine has no failing case anyone has seen, which this session spent a
+    while learning the hard way.
+    """
+    found = _sections(text)
+    missing = [name for name in _REQUIRED_SECTIONS if name not in found]
+    thin = {
+        name: len(found[name].strip())
+        for name in _REQUIRED_SECTIONS
+        if name in found and len(found[name].strip()) < _MIN_SECTION_CHARS
+    }
+    return missing, thin
+
+
+def test_the_section_check_fires_on_a_readme_that_would_fail_the_requirement():
+    """The self-proof: a renamed heading and an emptied section are both caught.
+
+    The first case is the realistic one. "How IBM Bob was used" is the section a tidy-up
+    would most plausibly reword, and the requirement quotes it.
+    """
+    good = (REPO / "README.md").read_text(encoding="utf-8")
+    assert _shortfalls(good) == ([], {}), "the real README should have no shortfall"
+
+    renamed = good.replace("## How IBM Bob was used", "## Building this with Bob")
+    missing, _ = _shortfalls(renamed)
+    assert missing == ["## How IBM Bob was used"], missing
+
+    lines = good.splitlines()
+    start = lines.index("## Problem statement")
+    end = next(
+        i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")
+    )
+    emptied = "\n".join(lines[: start + 1] + ["", "TBD.", ""] + lines[end:])
+    missing, thin = _shortfalls(emptied)
+    assert not missing, missing
+    assert "## Problem statement" in thin, thin
+
+
+def test_the_readme_carries_every_section_the_submission_requires():
+    """The eligibility requirement a rename would break in silence.
+
+    Requirement 3 of the entry is a public repository with a README containing these
+    sections. Nothing else in this suite reads a heading, so until this test the entry
+    rested on nobody rewording one, and a heading is exactly what gets reworded while
+    tidying. The cost of getting it wrong is not a red test, it is a submission judged
+    against a section a reader could not find.
+
+    Presence is not enough, so each one also has to carry prose. A heading over nothing
+    satisfies a substring search and answers no requirement.
+    """
+    text = (REPO / "README.md").read_text(encoding="utf-8")
+    missing, thin = _shortfalls(text)
+    assert not missing, (
+        f"README.md is missing sections the submission requires: {missing}. The headings "
+        f"it does have: {sorted(_sections(text))}"
+    )
+    assert not thin, (
+        f"these required sections exist but carry almost nothing, so they answer the "
+        f"requirement in name only: {thin}"
+    )
+
+
+def test_the_required_sections_appear_in_the_order_a_reader_needs_them():
+    """Problem before solution, solution before architecture.
+
+    Not a stated requirement, which is why this asserts only the two orderings that would
+    read as wrong to anyone: a solution described before the problem it answers, and an
+    architecture given before the solution it implements. Everything else about the order
+    is a choice, and this test does not have an opinion about it.
+    """
+    text = (REPO / "README.md").read_text(encoding="utf-8")
+    at = {name: text.index(name) for name in _REQUIRED_SECTIONS if name in text}
+    assert at.get("## Problem statement", -1) < at.get("## Solution description", -1), at
+    assert (
+        at.get("## Solution description", -1) < at.get("## AI approach and architecture", -1)
+    ), at
