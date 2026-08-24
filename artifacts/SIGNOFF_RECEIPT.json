@@ -1,14 +1,14 @@
 {
  "schema": "SIGNOFF_RECEIPT",
  "schema_version": "0.1.0",
- "measured_at_commit": "b00387ac4a1a164c8951d7cee2fd9c3c6426071f",
- "measured_at_commit_date": "2026-08-24T09:19:51+05:30",
+ "measured_at_commit": "0b247cf8d6420755378b86b5b3f16d1585fe9ebf",
+ "measured_at_commit_date": "2026-08-24T09:32:42+05:30",
  "note_on_the_commit": "This receipt is written at the commit named above and then committed, so the commit it lands in is one later. It cannot name that one, and saying so is better than implying it measured itself.",
  "commits_behind_head_when_written": 0,
- "verdict": "NOT_SIGNED",
+ "verdict": "SIGNED",
  "counts": {
-  "PASSED": 10,
-  "FAILED": 1,
+  "PASSED": 11,
+  "FAILED": 0,
   "NOT_CHECKED": 0
  },
  "checks": [
@@ -17,7 +17,7 @@
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\gate.py",
    "status": "PASSED",
    "detail": "30/30 standing gates pass, 2 rows omitted for a missing precondition: artifacts match their builders; sign-off receipt present and signed",
-   "seconds": 293.8,
+   "seconds": 305.7,
    "why_not_checked": null
   },
   {
@@ -33,7 +33,7 @@
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\sync_kill_gate.py --check",
    "status": "PASSED",
    "detail": "KILL_GATE.md is in sync with the receipts",
-   "seconds": 0.1,
+   "seconds": 0.2,
    "why_not_checked": null
   },
   {
@@ -41,15 +41,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run typecheck",
    "status": "PASSED",
    "detail": "> tsc --noEmit",
-   "seconds": 2.8,
+   "seconds": 2.7,
    "why_not_checked": null
   },
   {
    "check": "console tests",
    "command": "C:\\Program Files\\nodejs\\npm.CMD run test",
    "status": "PASSED",
-   "detail": "Duration  1.34s (transform 1.50s, setup 0ms, collect 3.64s, tests 762ms, environment 5ms, prepare 3.48s)",
-   "seconds": 2.8,
+   "detail": "Duration  1.17s (transform 1.03s, setup 0ms, collect 3.28s, tests 725ms, environment 4ms, prepare 3.36s)",
+   "seconds": 2.4,
    "why_not_checked": null
   },
   {
@@ -57,7 +57,7 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run build",
    "status": "PASSED",
    "detail": "34 index.html files emitted to apps/web/out",
-   "seconds": 22.7,
+   "seconds": 21.7,
    "why_not_checked": null
   },
   {
@@ -65,7 +65,7 @@
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\audit_release.py",
    "status": "PASSED",
    "detail": "0 secret findings, 0 files short of their attribution, 59.82 MB tracked",
-   "seconds": 12.1,
+   "seconds": 12.3,
    "why_not_checked": null
   },
   {
@@ -89,14 +89,14 @@
    "command": null,
    "status": "PASSED",
    "detail": "HTTP 200, 430,837 bytes from https://tracetriage.vercel.app",
-   "seconds": 0.5,
+   "seconds": 0.9,
    "why_not_checked": null
   },
   {
    "check": "deployed console is this tree",
    "command": null,
-   "status": "FAILED",
-   "detail": "HTTP 200, served provenance.json sha256 c35e39d5f1f1 against 13977d84098a committed. The deployment is not this tree: push, wait for READY.",
+   "status": "PASSED",
+   "detail": "HTTP 200, served provenance.json sha256 13977d84098a against 13977d84098a committed",
    "seconds": 0.4,
    "why_not_checked": null
   }
