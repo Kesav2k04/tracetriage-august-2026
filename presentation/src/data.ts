@@ -23,6 +23,7 @@ import circularityJson from "../../artifacts/CIRCULARITY_RECEIPT.json";
 import narrationJson from "../../artifacts/NARRATION_RECEIPT.json";
 import sessionJson from "../../artifacts/OPERATOR_SESSION.json";
 import bobJson from "../../apps/web/public/data/bob.json";
+import takeJson from "../../artifacts/LIVE_TAKE.json";
 
 import {
   Claim,
@@ -50,6 +51,7 @@ export const FILE = {
   narration: "artifacts/NARRATION_RECEIPT.json",
   session: "artifacts/OPERATOR_SESSION.json",
   bob: "apps/web/public/data/bob.json",
+  take: "artifacts/LIVE_TAKE.json",
 } as const;
 
 const manifest = manifestJson as unknown;
@@ -61,6 +63,7 @@ const attribution = attributionJson as unknown;
 const narration = narrationJson as unknown;
 const session = sessionJson as unknown;
 const bob = bobJson as unknown;
+const take = takeJson as unknown;
 const agent = agentJson as unknown;
 const explain = explainJson as unknown;
 const circularity = circularityJson as unknown;
@@ -89,6 +92,8 @@ const se = <T,>(path: string, format: (v: T) => string) =>
   read<T>(session, FILE.session, path, format);
 const bo = <T,>(path: string, format: (v: T) => string) =>
   read<T>(bob, FILE.bob, path, format);
+const tk = <T,>(path: string, format: (v: T) => string) =>
+  read<T>(take, FILE.take, path, format);
 
 // ---------------------------------------------------------------------------
 // Beat 1. The corpus, and how much of it carries a human verdict.
@@ -636,6 +641,46 @@ export const bobUnits = {
   })),
 } as const;
 
+/**
+ * The one filmed take. Left of the card is a screen recording of the deployed console
+ * measuring an observation; right of it is what came back beside what this repository
+ * already held for the same observation, so a viewer can see the two columns are the
+ * same digits rather than take the word of a voice-over.
+ *
+ * The displays are bare numbers, including the two playback rates, because a claim's
+ * display is the figure and the unit belongs to whatever draws it. A satellite name
+ * arrives from the API with its catalogue zero in front of it, which is the record's
+ * numbering rather than part of the name.
+ */
+const withoutCatalogueZero = (s: string): string => s.replace(/^0\s+/, "");
+
+export const liveTake = {
+  obsId: tk<number>("observation.id", identifier),
+  satellite: tk<string>("observation.satellite", withoutCatalogueZero),
+  recorded: tk<string>("observation.start", identity),
+  verdict: tk<string>("measured_live.verdict", identity),
+  offsetPpm: tk<number>("measured_live.offset_ppm", signedFixed(2)),
+  fitSigma: tk<number>("measured_live.fit_sigma", fixed(2)),
+  detectFrac: tk<number>("measured_live.detect_frac", fixed(3)),
+  pValue: tk<number>("measured_live.p_value", fixed(3)),
+  nulls: tk<number>("measured_live.nulls_n", identifier),
+  heldOffsetPpm: tk<number>(
+    "committed.corridor_features.fitted_offset_ppm",
+    signedFixed(2),
+  ),
+  heldFitSigma: tk<number>("committed.corridor_features.sigma_curved", fixed(2)),
+  heldDetectFrac: tk<number>(
+    "committed.corridor_features.detect_frac_curved",
+    fixed(3),
+  ),
+  exact: tk<number>("agreement.n_exact", identifier),
+  differs: tk<number>("agreement.n_differs", identifier),
+  takes: tk<number>("take.edit.takes", identifier),
+  rateFirst: tk<number>("take.edit.rate_before_handover", identifier),
+  rateSecond: tk<number>("take.edit.rate_after_handover", identifier),
+  seconds: tk<number>("take.video.seconds", fixed(1)),
+} as const;
+
 /** Everything above, flattened, for the test to walk. */
 export const ALL_CLAIMS: Record<string, Claim<unknown>> = {};
 const collect = (prefix: string, node: unknown): void => {
@@ -666,3 +711,4 @@ collect("provenanceLine", provenanceLine);
 collect("colophon", colophon);
 collect("agentSession", agentSession);
 collect("bobUnits", bobUnits);
+collect("liveTake", liveTake);

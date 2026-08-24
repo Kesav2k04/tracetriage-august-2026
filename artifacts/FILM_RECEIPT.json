@@ -1,14 +1,14 @@
 {
  "schema": "FILM_RECEIPT",
  "schema_version": 1,
- "generated_at": "2026-08-24T19:57:00.936Z",
+ "generated_at": "2026-08-24T21:05:09.978Z",
  "generated_by": "presentation/scripts/report-table.ts",
  "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so nothing written by hand can disagree with it about the same film.",
  "composition": {
-  "beats": 10,
-  "frames": 4788,
+  "beats": 11,
+  "frames": 5204,
   "fps": 30,
-  "seconds": 159.6,
+  "seconds": 173.467,
   "width": 1920,
   "height": 1080,
   "audio": true
@@ -37,6 +37,12 @@
    "frames": 492,
    "seconds": 16.4,
    "narration": "So the queue ranks 407 observations by what a reviewer would learn, and spends a fixed budget of 50 on the top of it. Not the loudest signals. The ones where the evidence disagrees with itself: 17 stale catalogue frequencies, and 3 where the model and the network label do not match."
+  },
+  {
+   "name": "Live",
+   "frames": 416,
+   "seconds": 13.867,
+   "narration": "Everything so far was frozen in August. The deployed console remeasures one of those observations in one take: minus 24.45 parts per million, at 6.92 sigma. The receipt holds the same digits."
   },
   {
    "name": "Session",
@@ -76,9 +82,9 @@
   }
  ],
  "claims": {
-  "total": 182,
-  "drawn": 155,
-  "read_but_not_drawn": 27,
+  "total": 200,
+  "drawn": 170,
+  "read_but_not_drawn": 30,
   "per_file": {
    "apps/web/public/data/bob.json": 32,
    "apps/web/public/data/cards.json": 14,
@@ -89,6 +95,7 @@
    "artifacts/DATASET_MANIFEST.json": 8,
    "artifacts/EXPLAIN_RECEIPT.json": 6,
    "artifacts/GATE3_RECEIPT.json": 12,
+   "artifacts/LIVE_TAKE.json": 18,
    "artifacts/NARRATION_RECEIPT.json": 3,
    "artifacts/OPERATOR_SESSION.json": 10,
    "artifacts/QUEUE_RECEIPT.json": 44
@@ -105,14 +112,15 @@
   "artifacts/DATASET_MANIFEST.json",
   "artifacts/EXPLAIN_RECEIPT.json",
   "artifacts/GATE3_RECEIPT.json",
+  "artifacts/LIVE_TAKE.json",
   "artifacts/NARRATION_RECEIPT.json",
   "artifacts/OPERATOR_SESSION.json",
   "artifacts/QUEUE_RECEIPT.json"
  ],
  "render": {
   "path": "presentation/out/tracetriage-film.mp4",
-  "bytes": 21424394,
-  "sha256": "0b964616a1a099b680ee71fc5d49b0d86681e7cc4c0c37e9f76769ae3e4b34b7"
+  "bytes": 24672364,
+  "sha256": "6c86410ded2370329ea6457146daffd4f3ae14fe9d45e93462eef9b0f96226fa"
  },
  "poster": {
   "path": "presentation/out/tracetriage-film-poster.jpg",

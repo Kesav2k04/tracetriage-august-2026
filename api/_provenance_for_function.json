@@ -95,7 +95,7 @@
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "4e3566fdf2d69b0e847468e4b16504fc2cfa27ca7eabb8fc20658e19b12bdf1b",
+   "sha256": "cfbe66a209efb58e9b5769ace8c0044cfe89595923b446bdbc524efe2a7bbda1",
    "bytes": 88577,
    "rewritten_after_this_payload": true
   },
@@ -137,8 +137,8 @@
   },
   {
    "name": "FILM_RECEIPT.json",
-   "sha256": "a8db60958f2aa658b620e16beb7275179027c623f78bbae6cfbe872e10d4ffc6",
-   "bytes": 6130,
+   "sha256": "ce715c1cca09a44edddc44c9d04b6e9d338edb480fbc32410bf84d6e8ea2a70a",
+   "bytes": 6475,
    "rewritten_after_this_payload": false
   },
   {
@@ -232,6 +232,12 @@
    "rewritten_after_this_payload": false
   },
   {
+   "name": "LIVE_TAKE.json",
+   "sha256": "c77a0ef0ed94ff958636184f5ea82232b93e775750d9a17de637f9c54a56a1aa",
+   "bytes": 7765,
+   "rewritten_after_this_payload": false
+  },
+  {
    "name": "MOTION_AA_CONTROL.json",
    "sha256": "144edd40ad9380f961937a7a4d4984c6edd7fab4bc1c670ddfe6d178b8e6e900",
    "bytes": 11217,
@@ -245,8 +251,8 @@
   },
   {
    "name": "NARRATION_RECEIPT.json",
-   "sha256": "360eb66fc54b9bbcd246d83adbfc3861979a8f0dabf0dfd34c5c090cf1100038",
-   "bytes": 17928,
+   "sha256": "c451750434fd628dcad15f66e49d597d1cf51997234149150eb8adaa928270a4",
+   "bytes": 19117,
    "rewritten_after_this_payload": false
   },
   {
@@ -281,8 +287,8 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "340d89ab05826364021b6482a2498f37a7b4b1ba2efb9089fa2f6bbd61c6deb5",
-   "bytes": 5129,
+   "sha256": "d1e34eb935b8d1095ffba051dce38340498f1b2687084b78ab0575594233dc4a",
+   "bytes": 5133,
    "rewritten_after_this_payload": true
   },
   {
@@ -299,7 +305,7 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "f854153c5a6238074cc1f6ceedccf443660e1b0cfe4365466173891b24b44f04",
+   "sha256": "8859a7c54ca5c69e914dfe212819643df3141c795e9dcd2ca682efeaba2bfc49",
    "bytes": 1053,
    "rewritten_after_this_payload": true
   },

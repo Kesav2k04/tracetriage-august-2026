@@ -83,13 +83,12 @@ Three things that will waste an afternoon otherwise:
   unsupported class file version, which reads like a corrupt dependency.
 - **`apksigner` is per build-tools version.** The script picks the newest one that has it,
   because an SDK accumulates several and the oldest is usually the one on `PATH`.
-- **A long repository path decides what this app may depend on.** React Native's codegen
-  writes object file names that embed the full source path. Under a directory as deep as
-  `D:\IBM August Challenge\tracetriage-august-2026\mobile`, adding
-  `react-native-safe-area-context` produced a 268-character name and ninja failed with
-  `Filename longer than 260 characters`, twenty minutes into a build that was otherwise
-  working. Building through a junction does not help, because CMake canonicalises the path
-  before ninja sees it. So the system-bar inset is computed in JavaScript from
+- **A long checkout path decides what this app may depend on.** React Native's codegen
+  writes object file names that embed the full source path, so from a deep directory
+  `react-native-safe-area-context` produces a 268-character name and ninja fails with
+  `Filename longer than 260 characters`. Building through a junction does not help, because
+  CMake canonicalises the path before ninja sees it. So the system-bar inset is computed in
+  JavaScript from
   `StatusBar.currentHeight` instead, and `src/App.tsx` states the one approximation that
   costs: the bottom inset is a constant, correct for gesture navigation and 24px short on a
   three-button device.

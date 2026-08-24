@@ -1,23 +1,23 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-25T00:14:26+05:30",
- "commit": "9a8c4595166dfd736e2f23d5c135f06cda82b978",
- "tracked_files": 512,
- "tracked_bytes": 69936389,
- "tracked_megabytes": 66.7,
+ "measured_at_commit_date": "2026-08-25T01:48:15+05:30",
+ "commit": "26a12bc6ceb80cf7d8fdbd2787e88b6680dbf9b1",
+ "tracked_files": 528,
+ "tracked_bytes": 82006355,
+ "tracked_megabytes": 78.21,
  "by_directory": [
   {
    "path": "presentation/out",
-   "megabytes": 21.26
+   "megabytes": 24.36
+  },
+  {
+   "path": "apps/web",
+   "megabytes": 16.93
   },
   {
    "path": "artifacts/a3_overlays",
    "megabytes": 16.45
-  },
-  {
-   "path": "apps/web",
-   "megabytes": 8.56
   },
   {
    "path": "tests/fixtures",
@@ -69,15 +69,15 @@
   }
  ],
  "by_directory_remainder": {
-  "groups": 253,
-  "bytes": 4907831,
-  "megabytes": 4.68,
+  "groups": 256,
+  "bytes": 4961594,
+  "megabytes": 4.73,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
   {
    "path": "presentation/out/tracetriage-film.mp4",
-   "megabytes": 20.432
+   "megabytes": 23.529
   },
   {
    "path": "artifacts/GATE3_POOL.json",
@@ -96,6 +96,10 @@
    "megabytes": 1.953
   },
   {
+   "path": "apps/web/public/film/live-take.mp4",
+   "megabytes": 1.921
+  },
+  {
    "path": "tests/fixtures/waterfall_836px_client_v2.3.png",
    "megabytes": 1.823
   },
@@ -112,28 +116,24 @@
    "megabytes": 1.047
   },
   {
+   "path": "apps/web/public/audio/narration-2-physics.wav",
+   "megabytes": 0.937
+  },
+  {
+   "path": "apps/web/public/audio/narration-5-session.wav",
+   "megabytes": 0.887
+  },
+  {
+   "path": "apps/web/public/audio/narration-8-established.wav",
+   "megabytes": 0.875
+  },
+  {
    "path": "presentation/out/tracetriage-film-poster.jpg",
    "megabytes": 0.828
   },
   {
-   "path": "artifacts/a3_overlays/overlay_14737186.png",
-   "megabytes": 0.784
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14746055.png",
-   "megabytes": 0.775
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14746118.png",
-   "megabytes": 0.741
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14737408.png",
-   "megabytes": 0.738
-  },
-  {
-   "path": "artifacts/a3_overlays/overlay_14744577.png",
-   "megabytes": 0.737
+   "path": "apps/web/public/audio/narration-6-result.wav",
+   "megabytes": 0.793
   }
  ],
  "proposals": [
@@ -175,8 +175,8 @@
   {
    "path": "presentation/out/",
    "files": 2,
-   "bytes": 22292905,
-   "megabytes": 21.26,
+   "bytes": 25540875,
+   "megabytes": 24.36,
    "keep_because": "the rendered film and its poster, 142 seconds at 1920x1080 with narration. The source beside it reads every figure from the receipts rather than restating them, so the film's content is reproducible from this tree; the bytes are not, and presentation/REPORT.md gives the measurement. It is kept because a reader who watches it should not first have to install a renderer, and because an mp4 is the one artifact here that no diff can check after the fact."
   }
  ],

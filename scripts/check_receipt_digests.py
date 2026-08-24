@@ -157,6 +157,13 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
         Bytes.BINARY,
         "presentation/scripts/report-table.ts",
     ),
+    (
+        "artifacts/LIVE_TAKE.json",
+        "take.sha256",
+        "apps/web/public/film/live-take.mp4",
+        Bytes.BINARY,
+        "scripts/record_live_take.py",
+    ),
 ]
 
 

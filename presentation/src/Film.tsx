@@ -4,6 +4,7 @@ import { Bob } from "./beats/Bob";
 import { Colophon } from "./beats/Colophon";
 import { Established } from "./beats/Established";
 import { Gates } from "./beats/Gates";
+import { Live } from "./beats/Live";
 import { Physics } from "./beats/Physics";
 import { Problem } from "./beats/Problem";
 import { Queue } from "./beats/Queue";
@@ -43,16 +44,19 @@ import { FPS, LEAD_IN_SECONDS, token } from "./theme";
  * next six frames, so a card holds for as long as it is being spoken over and no
  * longer. `scripts/render_narration.py --check` fails if a line ever outgrows its card.
  *
- * Two cards were added rather than the same argument being restated. "Session" is the
+ * Three cards were added rather than the same argument being restated. "Live" is a
+ * screen recording of the deployed console measuring an observation from the frozen
+ * corpus, beside the figures this repository already held for it. "Session" is the
  * product being driven over MCP, refusal and all, read out of the recorded session
  * receipt. "Bob" is what IBM Bob built, read out of the same unit list the console
- * serves. Neither is a claim the other seven cards were already making.
+ * serves. None of the three is a claim the other seven cards were already making.
  */
 export const BEATS = [
   { name: "Title", component: Title, durationInFrames: 180 },
   { name: "Problem", component: Problem, durationInFrames: 462 },
   { name: "Physics", component: Physics, durationInFrames: 654 },
   { name: "Queue", component: Queue, durationInFrames: 492 },
+  { name: "Live", component: Live, durationInFrames: 416 },
   { name: "Session", component: Session, durationInFrames: 624 },
   { name: "Result", component: Result, durationInFrames: 558 },
   { name: "Gates", component: Gates, durationInFrames: 438 },

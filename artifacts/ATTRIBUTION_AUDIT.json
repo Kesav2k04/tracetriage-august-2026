@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-25T00:14:26+05:30",
- "commit": "9a8c4595166dfd736e2f23d5c135f06cda82b978",
+ "measured_at_commit_date": "2026-08-25T01:48:15+05:30",
+ "commit": "26a12bc6ceb80cf7d8fdbd2787e88b6680dbf9b1",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -26,10 +26,10 @@
   "console_ui_links_the_licence": true
  },
  "counts": {
-  "media_files_tracked": 89,
-  "satnogs_derived": 77,
+  "media_files_tracked": 90,
+  "satnogs_derived": 78,
   "not_satnogs_derived": 12,
-  "distinct_observations": 43,
+  "distinct_observations": 44,
   "distinct_ground_stations": 22,
   "incomplete": 0
  },
@@ -47,6 +47,31 @@
    "retrieved_at": "2026-08-16T20:14:03.180818+00:00",
    "source_sha256": "e496d34e0021e6d7306ffc9602f062a56a8403feed58b0ae866be7c5825ae0cd",
    "ground_station": 91,
+   "license": "CC BY-SA 4.0",
+   "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "satnogs_derived": true,
+   "obligations": {
+    "attribution": true,
+    "record_source_url": true,
+    "artifact_source_url": true,
+    "retrieval_timestamp": true,
+    "source_sha256": true,
+    "modification_notice": true
+   },
+   "complete": true
+  },
+  {
+   "file": "apps/web/public/film/live-take.mp4",
+   "bytes": 2014515,
+   "observation_id": 14742699,
+   "observation_id_from": "declared",
+   "in_dataset_manifest": true,
+   "modification_notice": "a screen recording of the deployed console measuring one observation, in which that observation's waterfall appears scaled to a figure with the predicted Doppler corridor drawn over it, played at 4x and then 2x with its final frame held, and re-encoded from VP8 to H.264",
+   "source_url": "https://network.satnogs.org/api/observations/14742699/",
+   "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/9/22/14742699/waterfall_14742699_2026-08-09T22-19-02.png",
+   "retrieved_at": "2026-08-16T20:22:53.683942+00:00",
+   "source_sha256": "efb5be3937d0889918bdb9d49b6c5263591ab232905748952fbc155f1b2f816c",
+   "ground_station": 4451,
    "license": "CC BY-SA 4.0",
    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "satnogs_derived": true,
@@ -2067,7 +2092,7 @@
   },
   {
    "file": "presentation/out/tracetriage-film.mp4",
-   "bytes": 21424394,
+   "bytes": 24672364,
    "observation_id": 14740031,
    "observation_id_from": "declared",
    "in_dataset_manifest": true,

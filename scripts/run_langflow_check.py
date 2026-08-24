@@ -454,12 +454,11 @@ _VOLATILE = ("generated_at",)
 def _interpreter_for_receipt() -> str:
     """The interpreter that ran, named without the operator's drive layout.
 
-    This receipt is published, and the absolute path recorded here was
-    `D:/IBM August Challenge/tracetriage-august-2026/.venv-langflow/Scripts/python.exe`,
-    which is no credential and no use to a reader: it says where one machine keeps its
-    files. An interpreter inside the repository is reported relative to it, which is the
-    part that is reproducible, and one outside is reported as its filename alone, because
-    the fact worth recording is that this did not run under the project venv.
+    This receipt is published, and an absolute path in it is no credential and no use to
+    a reader: it says where one machine keeps its files. An interpreter inside the
+    repository is reported relative to it, which is the part that is reproducible, and
+    one outside is reported as its filename alone, because the fact worth recording is
+    that this did not run under the project venv.
     """
     path = _interpreter()
     try:

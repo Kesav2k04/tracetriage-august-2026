@@ -53,7 +53,7 @@ def test_the_table_is_not_empty_and_every_row_is_well_formed():
     a digest is deliberately removed from the audit, this number moves in the same commit
     and the reason lands in the diff beside it.
     """
-    assert len(CHECKS) == 11
+    assert len(CHECKS) == 12
     for receipt, field, file_rel, how, writer in CHECKS:
         assert receipt.startswith("artifacts/"), receipt
         assert field and not field.startswith("."), field
@@ -160,6 +160,17 @@ def test_every_sha256_field_that_names_a_file_is_either_audited_or_explained():
         # under `prior_review` for the earlier review that a human answer carries forward.
         # All three are listed rather than matched by suffix, so a fourth place a salt could
         # appear fails here until someone says what it is.
+        # The camera original of the filmed take is not tracked, on purpose: it is the
+        # same frames at a quarter of the useful pixels per byte. Its digest is published
+        # so the cut that is tracked can be tied back to it.
+        ("LIVE_TAKE.json", "take.source.raw_sha256"): (
+            "the untracked camera original the published cut came from"
+        ),
+        # SatNOGS serves the waterfall; this repository does not carry that observation's
+        # image. The digest is what a reader would compare their own download against.
+        ("LIVE_TAKE.json", "measured_live.waterfall_sha256"): (
+            "the image SatNOGS served, not a repo file"
+        ),
         ("GATE4_RECEIPT.json", "arm.reveal.salt"): "a random salt",
         ("GATE4_RECEIPT.json", "reveal.salt"): "a random salt, from the human review",
         ("GATE4_RECEIPT.json", "prior_review.reveal.salt"): (

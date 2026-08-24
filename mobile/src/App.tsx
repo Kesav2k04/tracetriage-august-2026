@@ -47,12 +47,11 @@ const TABS: { id: Tab; label: string }[] = [
  * clean, and nobody had looked at a screenshot.
  *
  * The right library for this is `react-native-safe-area-context`, and it cannot be built
- * here. Its codegen writes object files whose names embed the full source path, and under
- * "D:\IBM August Challenge\tracetriage-august-2026\mobile" the longest is 268 characters:
- * ninja fails with "Filename longer than 260 characters" twenty minutes into an otherwise
- * successful build. Building through a junction does not help, because CMake canonicalises
- * the path before ninja sees it. A dependency that cannot be built from a clone in a
- * directory with a space in its name is not a dependency this app can carry.
+ * from a deep checkout. Its codegen writes object files whose names embed the full source
+ * path, and the longest here is 268 characters: ninja fails with "Filename longer than 260
+ * characters". Building through a junction does not help, because CMake canonicalises the
+ * path before ninja sees it. A dependency that cannot be built from a clone in a directory
+ * with a space in its name is not a dependency this app can carry.
  *
  * So: `StatusBar.currentHeight` for the top, which Android reports exactly, and a constant
  * for the bottom. The constant is the honest weakness here and it is stated rather than

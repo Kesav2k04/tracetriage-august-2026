@@ -27,6 +27,7 @@ import {
   established,
   gates,
   lift,
+  liveTake,
   physics,
   reviewQueue,
 } from "./data";
@@ -191,6 +192,15 @@ export const NARRATION: Readonly<Record<string, Line>> = {
     " stale catalogue frequencies, and ",
     reviewQueue.criteria[0].firedInBudget,
     " where the model and the network label do not match.",
+  ]),
+
+  Live: line([
+    "Everything so far was frozen in August. The deployed console remeasures one of ",
+    "those observations in one take: ",
+    liveTake.offsetPpm,
+    " parts per million, at ",
+    liveTake.fitSigma,
+    " sigma. The receipt holds the same digits.",
   ]),
 
   Session: line([

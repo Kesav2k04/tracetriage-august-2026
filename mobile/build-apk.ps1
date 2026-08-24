@@ -42,13 +42,12 @@ $ExpectedFingerprint = "98B530887C396BD9780B1F487154613DB3B6B5761794D7B737834A9C
 $mobile = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # On MAX_PATH, because it decides what this app is allowed to depend on. React Native's
-# codegen writes object files whose names embed the full source path, and this repository lives
-# under "D:\IBM August Challenge\tracetriage-august-2026\mobile". Any dependency with C++
-# codegen deep enough to push one of those names past 260 characters fails here with
-# "ninja: error: Filename longer than 260 characters", twenty minutes into an otherwise
-# successful build. Building through a junction does not fix it: CMake canonicalises the path
-# before ninja sees it. `src/App.tsx` names the one dependency this ruled out and what it does
-# instead. Nothing in this script works around it, because there is no working workaround.
+# codegen writes object files whose names embed the full source path, so any dependency with
+# C++ codegen deep enough to push one of those names past 260 characters fails with
+# "ninja: error: Filename longer than 260 characters". Building through a junction does not
+# fix it: CMake canonicalises the path before ninja sees it. `src/App.tsx` names the one
+# dependency this ruled out and what it does instead. Nothing in this script works around it,
+# because there is no working workaround.
 
 $android = Join-Path $mobile "android"
 $jbr = "D:\Android Studio\jbr"

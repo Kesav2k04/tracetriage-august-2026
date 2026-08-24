@@ -283,6 +283,10 @@ _EMBEDDED_OBSERVATION: dict[str, int] = {
     # 14740031's waterfall with the fitted corridor over it, so the screenshot carries
     # the same redistributed pixels the film does and owes the same notice.
     "apps/web/public/film/console.webp": 14740031,
+    # A screen recording of the console measuring observation 14742699. The result card
+    # it ends on draws that observation's waterfall, so the video redistributes those
+    # pixels and owes the same notice the stills do.
+    "apps/web/public/film/live-take.mp4": 14742699,
 }
 
 #: What was done to the bytes, per location. The licence requires a notice of every
@@ -302,6 +306,16 @@ _MODIFICATION_NOTICE: list[tuple[str, str]] = [
         "apps/web/public/media/",
         "one observation's corridor animation, rendered to video from the same overlay "
         "geometry and re-encoded",
+    ),
+    # More specific than the directory below it, and above it for that reason:
+    # `_notice_for` returns the first prefix that matches, and a recording and a
+    # screenshot were not modified in the same way.
+    (
+        "apps/web/public/film/live-take.mp4",
+        "a screen recording of the deployed console measuring one observation, in which "
+        "that observation's waterfall appears scaled to a figure with the predicted "
+        "Doppler corridor drawn over it, played at 4x and then 2x with its final frame "
+        "held, and re-encoded from VP8 to H.264",
     ),
     (
         "apps/web/public/film/",

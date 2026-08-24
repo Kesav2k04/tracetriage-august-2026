@@ -16,26 +16,30 @@ Queue
 00:00:43.550 --> 00:00:59.300
 So the queue ranks 407 observations by what a reviewer would learn, and spends a fixed budget of 50 on the top of it. Not the loudest signals. The ones where the evidence disagrees with itself: 17 stale catalogue frequencies, and 3 where the model and the network label do not match.
 
+Live
+00:00:59.950 --> 00:01:13.167
+Everything so far was frozen in August. The deployed console remeasures one of those observations in one take: minus 24.45 parts per million, at 6.92 sigma. The receipt holds the same digits.
+
 Session
-00:00:59.950 --> 00:01:20.100
+00:01:13.817 --> 00:01:33.967
 Any agent can drive this over the Model Context Protocol. 7 read-only tools over the committed receipts, 5 more that measure a pass recorded today. Write a downlink frequency this observation does not have and the checker refuses it, naming the reason. Write only what its own packet prints and it passes. The recorded session ran 12 steps and 12 came back as documented.
 
 Result
-00:01:20.750 --> 00:01:38.700
+00:01:34.617 --> 00:01:52.567
 The gate written down in advance asked the queue to find one and a half times as many conflicts as random ordering at the same budget. It found 20 where random expects 12.6. That is a lift of 1.58. The interval runs 1.35 to 1.74, so it straddles the bar, and this is published as not established.
 
 Gates
-00:01:39.350 --> 00:01:53.300
+00:01:53.217 --> 00:02:07.167
 Six gates, with their thresholds, written down before anything was measured. 3 of 6 were met. A point estimate above the bar whose interval crosses it counts as a failure here, which is stricter than the brief asked for. Nothing was moved to make a verdict look better.
 
 Established
-00:01:53.950 --> 00:02:13.700
+00:02:07.817 --> 00:02:27.567
 Three results came back decided. Read-only evidence tools take a local Granite model from 2 of 24 right to 22 of 24. The grounding checker caught 525 of 525 planted falsehoods, and refused 0 of 175 clean drafts. On stations the queue never saw, lift is 2.25, and that one clears.
 
 Bob
-00:02:14.350 --> 00:02:31.700
+00:02:28.217 --> 00:02:45.567
 IBM Bob built the load-bearing pipeline. The data contracts, the immutable snapshot, the waterfall parser, the physics corridor, the label provenance, the baselines, the grouped splits and the queue: 10 dated units, each with the files it changed and what failed first. Every measurement here is computed on what those units produced.
 
 Colophon
-00:02:32.350 --> 00:02:39.300
+00:02:46.217 --> 00:02:53.167
 Every figure you heard was read out of a receipt. The waterfall is a public SatNOGS capture, cited and licensed.

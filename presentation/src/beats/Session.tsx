@@ -57,8 +57,8 @@ const Exchange: React.FC<{
   start: number;
   over: number;
   verdictAt: number;
-  frame: number;
-}> = ({ tool, text, verdict, code, start, over, verdictAt, frame }) => {
+}> = ({ tool, text, verdict, code, start, over, verdictAt }) => {
+  const frame = useCurrentFrame();
   const shown = typed(text, frame, start, over);
   const settled = frame >= verdictAt;
   const refused = verdict === "REFUSED";
@@ -119,88 +119,90 @@ const Exchange: React.FC<{
   );
 };
 
-export const Session: React.FC = () => {
-  const frame = useCurrentFrame();
-  return (
-    <Frame
-      eyebrow="Driven, not described"
-      sources={[agentSession.stepsMet, agentSession.refusedVerdict]}
-    >
-      <Heading size={62}>An agent can run this, and be refused</Heading>
-      <Body width={1180} size={27}>
-        {agentSession.evidenceTools.display} read-only tools over the committed
-        receipts, {agentSession.liveTools.display} more that measure a pass recorded
-        today. The same grounding rule that decides whether this project publishes its
-        own sentence decides whether it accepts yours.
-      </Body>
+/*
+ * Expression-bodied on purpose. test/claims.test.ts scans a beat for figures typed by
+ * hand, and it does that by collapsing every brace pair to a placeholder. A statement
+ * body is one brace pair around the whole component, so it collapses the copy too and
+ * the scan passes over an empty string. The frame this used to read is read inside
+ * Exchange, which is the only thing that wanted it.
+ */
+export const Session: React.FC = () => (
+  <Frame
+    eyebrow="Driven, not described"
+    sources={[agentSession.stepsMet, agentSession.refusedVerdict]}
+  >
+    <Heading size={62}>An agent can run this, and be refused</Heading>
+    <Body width={1180} size={27}>
+      {agentSession.evidenceTools.display} read-only tools over the committed
+      receipts, {agentSession.liveTools.display} more that measure a pass recorded
+      today. The same grounding rule that decides whether this project publishes its
+      own sentence decides whether it accepts yours.
+    </Body>
 
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 26,
+        marginTop: 34,
+      }}
+    >
+      <Exchange
+        tool="check_claim"
+        text={agentSession.refusedText.display}
+        verdict={agentSession.refusedVerdict.display}
+        code={agentSession.refusedCode.display}
+        start={TYPE_START}
+        over={TYPE_FRAMES}
+        verdictAt={VERDICT_AT}
+      />
+      <Exchange
+        tool="check_claim"
+        text={agentSession.groundedText.display}
+        verdict={agentSession.groundedVerdict.display}
+        start={GROUNDED_START}
+        over={GROUNDED_FRAMES}
+        verdictAt={GROUNDED_VERDICT_AT}
+      />
+    </div>
+
+    <Reveal delay={GROUNDED_VERDICT_AT + 18} rise={8}>
+      <div style={{ marginTop: 32 }}>
+        <Eyebrow colour={token.text03}>
+          the live server, which measures rather than reads
+        </Eyebrow>
+        <div style={{ marginTop: 12 }}>
+          <Mono size={25} colour={token.live01}>
+            {agentSession.liveToolNames.display}
+          </Mono>
+        </div>
+      </div>
+    </Reveal>
+
+    <Reveal delay={GROUNDED_VERDICT_AT + 34} rise={8}>
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 26,
-          marginTop: 34,
+          marginTop: 30,
+          paddingTop: 22,
+          borderTop: `1px solid ${token.borderSubtle}`,
+          display: "flex",
+          alignItems: "baseline",
+          gap: 16,
         }}
       >
-        <Exchange
-          tool="check_claim"
-          text={agentSession.refusedText.display}
-          verdict={agentSession.refusedVerdict.display}
-          code={agentSession.refusedCode.display}
-          start={TYPE_START}
-          over={TYPE_FRAMES}
-          verdictAt={VERDICT_AT}
-          frame={frame}
-        />
-        <Exchange
-          tool="check_claim"
-          text={agentSession.groundedText.display}
-          verdict={agentSession.groundedVerdict.display}
-          start={GROUNDED_START}
-          over={GROUNDED_FRAMES}
-          verdictAt={GROUNDED_VERDICT_AT}
-          frame={frame}
-        />
-      </div>
-
-      <Reveal delay={GROUNDED_VERDICT_AT + 18} rise={8}>
-        <div style={{ marginTop: 32 }}>
-          <Eyebrow colour={token.text03}>
-            the live server, which measures rather than reads
-          </Eyebrow>
-          <div style={{ marginTop: 12 }}>
-            <Mono size={25} colour={token.live01}>
-              {agentSession.liveToolNames.display}
-            </Mono>
-          </div>
-        </div>
-      </Reveal>
-
-      <Reveal delay={GROUNDED_VERDICT_AT + 34} rise={8}>
-        <div
+        <Eyebrow colour={token.text03}>recorded session</Eyebrow>
+        <span
           style={{
-            marginTop: 30,
-            paddingTop: 22,
-            borderTop: `1px solid ${token.borderSubtle}`,
-            display: "flex",
-            alignItems: "baseline",
-            gap: 16,
+            fontFamily: font.sans,
+            fontSize: 28,
+            color: token.text01,
+            ...numeric,
           }}
         >
-          <Eyebrow colour={token.text03}>recorded session</Eyebrow>
-          <span
-            style={{
-              fontFamily: font.sans,
-              fontSize: 28,
-              color: token.text01,
-              ...numeric,
-            }}
-          >
-            {agentSession.stepsMet.display} of {agentSession.stepsRun.display} steps
-            came back with what the demo says they will
-          </span>
-        </div>
-      </Reveal>
-    </Frame>
-  );
-};
+          {agentSession.stepsMet.display} of {agentSession.stepsRun.display} steps
+          came back with what the demo says they will
+        </span>
+      </div>
+    </Reveal>
+  </Frame>
+);

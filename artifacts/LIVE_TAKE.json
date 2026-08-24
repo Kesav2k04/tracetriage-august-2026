@@ -1,0 +1,198 @@
+{
+  "schema": "artifacts/LIVE_TAKE.json",
+  "schema_version": 1,
+  "what_this_is": "The one filmed take of the deployed console measuring an observation, with the numbers it returned and the numbers this repository already held for the same observation.",
+  "what_this_does_not_measure": "Nothing here says the method is right. It says the path a reader can drive returns what the committed receipts say, for one observation, on one day.",
+  "generated_at": "2026-08-24T21:31:44+00:00",
+  "generated_by": "scripts/record_live_take.py",
+  "observation": {
+    "id": 14742699,
+    "satellite": "0 SEEDS",
+    "station": 4451,
+    "station_name": "(\u00af`\u00b7._.\u00b7(\u00af`\u00b7._.\u00b7 I LOVE BALI \u00b7._.\u00b7\u00b4\u00af)\u00b7._.\u00b7\u00b4\u00af)",
+    "start": "2026-08-09T22:19:02Z",
+    "end": "2026-08-09T22:22:02Z",
+    "waterfall_status": "with-signal",
+    "observation_status": "good",
+    "in_frozen_corpus": true
+  },
+  "take": {
+    "path": "apps/web/public/film/live-take.mp4",
+    "bytes": 2014515,
+    "sha256": "83482f941bcc0c36718f8991de785ec54385480bd31d454a476103a526e66ffb",
+    "video": {
+      "codec": "h264",
+      "width": 1920,
+      "height": 1080,
+      "frames": 391,
+      "fps": "30/1",
+      "seconds": 13.033333
+    },
+    "edit": {
+      "takes": 1,
+      "cut_from_s": 10.8,
+      "handover_s": 30.0,
+      "rate_before_handover": 4,
+      "rate_after_handover": 2,
+      "hold_last_frame_s": 3.5,
+      "note": "one take. The recording runs from 10.8 s to 30.0 s at 4x and from 30.0 s to its end at 2x, then the final frame is held for 3.5 s. Nothing is cut out of the middle, so the wait for the endpoint is compressed rather than removed."
+    },
+    "source": {
+      "tool": "playwright chromium, record_video at 1920x1080",
+      "site": "https://tracetriage.vercel.app/live/",
+      "raw_seconds": 39.48,
+      "raw_sha256": "13e13e47b87925a942687b96566d9959551b96ffa2a94095de52a8423387cbad",
+      "raw_is_tracked": false,
+      "raw_note": "the camera original is not tracked: it is 3.6 MB of the same frames at a quarter of the useful pixels per byte. Its digest is here so the published cut can be tied back to it."
+    }
+  },
+  "measured_live": {
+    "measured_at_utc": "2026-08-24T21:31:44+00:00",
+    "verdict": "UNCORRECTED",
+    "why": "energy follows the predicted Doppler curve: 30.8 sigma against 7.1 for the best vertical line",
+    "mode_sigma_curved": 30.831295830518123,
+    "mode_sigma_vertical": 7.130313745426956,
+    "offset_hz": -10695.046078056652,
+    "offset_ppm": -24.446618662179475,
+    "fit_sigma": 6.9157795259821135,
+    "detect_frac": 0.9136924075275795,
+    "nulls_n": 200,
+    "p_value": 0.004975124378109453,
+    "waterfall_sha256": "efb5be3937d0889918bdb9d49b6c5263591ab232905748952fbc155f1b2f816c",
+    "waterfall_bytes": 1766069,
+    "hz_per_px": 79.81377670191532,
+    "axis_confidence": 0.9413040216917499
+  },
+  "committed": {
+    "corridor_features": {
+      "obs_id": 14742699,
+      "degraded": null,
+      "sigma_curved": 6.9157795259821135,
+      "sigma_vertical": 1.706867796591985,
+      "sigma_advantage_curved": 5.208911729390128,
+      "fitted_offset_hz": -10695.046078056652,
+      "fitted_offset_ppm": -24.446618662179475,
+      "vertical_offset_hz": -1596.2755340383064,
+      "coverage_curved": 1.0,
+      "coverage_vertical": 0.6704438149197356,
+      "detect_frac_curved": 0.9136924075275795,
+      "detect_frac_vertical": 0.6872160934458144,
+      "residual_p50_hz": 25.18159070987129,
+      "residual_p95_hz": 72.52091381790045,
+      "offset_at_bound": false,
+      "corridor_hit_curved": true,
+      "hz_per_px": 79.81377670191532,
+      "flat_row_frac": 0.0,
+      "n_flat_rows": 0,
+      "min_row_mad": 2.9651999473571777,
+      "predicted_swing_hz": 4984.175236318123
+    },
+    "gate3_pool": {
+      "obs_id": 14742699,
+      "family": "2.1.2",
+      "station": 4451,
+      "station_name": "(\u00af`\u00b7._.\u00b7(\u00af`\u00b7._.\u00b7 I LOVE BALI \u00b7._.\u00b7\u00b4\u00af)\u00b7._.\u00b7\u00b4\u00af)",
+      "norad_cat_id": 32791,
+      "transmitter_uuid": "N7SGiqMhkHpjfjeGh42wvX",
+      "start": "2026-08-09T22:19:02Z",
+      "max_altitude": 20.0,
+      "rx_freq_hz": 437485700.0,
+      "waterfall_status": "with-signal",
+      "observation_status": "good",
+      "predicted_swing_hz": 4378.185397498155,
+      "sgp4_max_elevation_deg": 20.013653502817828,
+      "derivation": "axis_ticks_ocr",
+      "hz_per_px": 79.81377670191532,
+      "centre_px": 302.0,
+      "pass_duration_s": 180.0,
+      "trace_q75": 13.405518531799316,
+      "trace_median": 12.225122451782227,
+      "trace_max": 18.098834991455078,
+      "n_rows": 1545,
+      "n_rows_unmeasurable": 0,
+      "sigma_vertical": 7.109972216605104,
+      "sigma_curved": 30.724893699318947,
+      "frequency_axis_sign": -1,
+      "sigma_curved_by_sign": {
+        "1": 4.806185862155309,
+        "-1": 30.724893699318947
+      },
+      "vertical_column_offset_hz": 1755.903087442137,
+      "curved_offset_hz": 10854.673631460482,
+      "status": "ok",
+      "verdict": "UNCORRECTED",
+      "reason": "energy follows the predicted Doppler curve: 30.7 sigma against 7.1 for the best vertical line",
+      "pool_a": true,
+      "pool_b": true
+    }
+  },
+  "agreement": {
+    "n_exact": 8,
+    "n_differs": 2,
+    "exact": [
+      {
+        "quantity": "offset_hz",
+        "measured_live": -10695.046078056652,
+        "committed": -10695.046078056652,
+        "committed_in": "corridor_features.json"
+      },
+      {
+        "quantity": "offset_ppm",
+        "measured_live": -24.446618662179475,
+        "committed": -24.446618662179475,
+        "committed_in": "corridor_features.json"
+      },
+      {
+        "quantity": "sigma",
+        "measured_live": 6.9157795259821135,
+        "committed": 6.9157795259821135,
+        "committed_in": "corridor_features.json"
+      },
+      {
+        "quantity": "detect_frac",
+        "measured_live": 0.9136924075275795,
+        "committed": 0.9136924075275795,
+        "committed_in": "corridor_features.json"
+      },
+      {
+        "quantity": "residual_p50_hz",
+        "measured_live": 25.18159070987129,
+        "committed": 25.18159070987129,
+        "committed_in": "corridor_features.json"
+      },
+      {
+        "quantity": "residual_p95_hz",
+        "measured_live": 72.52091381790045,
+        "committed": 72.52091381790045,
+        "committed_in": "corridor_features.json"
+      },
+      {
+        "quantity": "coverage",
+        "measured_live": 1.0,
+        "committed": 1.0,
+        "committed_in": "corridor_features.json"
+      },
+      {
+        "quantity": "mode.verdict",
+        "measured_live": "UNCORRECTED",
+        "committed": "UNCORRECTED",
+        "committed_in": "GATE3_POOL.json"
+      }
+    ],
+    "differs": [
+      {
+        "quantity": "mode.sigma_curved",
+        "measured_live": 30.831295830518123,
+        "committed": 30.724893699318947,
+        "committed_in": "GATE3_POOL.json"
+      },
+      {
+        "quantity": "mode.sigma_vertical",
+        "measured_live": 7.130313745426956,
+        "committed": 7.109972216605104,
+        "committed_in": "GATE3_POOL.json"
+      }
+    ],
+    "reading": "The offset fit reproduces to the last digit because it is the same function over the same downloaded image, and the offset is quantised to whole pixels of the waterfall. The two mode scores do not. GATE3_POOL.json is written by scripts/build_gate3_pool.py and the live figure by pipeline/tracetriage/live.py, and the two score the corrected corridor against the uncorrected one with different filter settings. Both return the same verdict. Two consecutive live measurements of this observation came back bit-identical, so the gap is between the two writers rather than between two runs."
+  }
+}
