@@ -1740,6 +1740,36 @@ should find five and not four. The evidence under it is the same either way.
 
 ## How IBM Bob was used
 
+{N_BUILD_LOG_ENTRIES} of the {N_BUILD_LOG_ENTRIES + N_OPERATOR_UNITS} dated units are Bob's
+and {N_OPERATOR_UNITS} are the operator working from Cursor and Claude Code. That ratio is
+published rather than softened, and it invites an obvious question, so this section answers
+it directly: **which {N_BUILD_LOG_ENTRIES}.**
+
+Bob built the measurement path. The data contracts (A0) and the integration review forced by
+an upstream change to them (A0b-INT). The immutable snapshot (A1). The waterfall parser that
+turns an image into features (A2). The physics corridor (A4). The label provenance builder
+(A5). The image-only baselines everything later is measured against (A6). The end-to-end
+triage slice (A7). The grouped splits and the leakage audit that decide whether any result
+generalises (B1). And the review-value queue with the kill gate it was pre-registered against
+(C1), which is the thing this entry is about.
+
+The consequence is checkable rather than rhetorical: every measured result this submission
+reports about satellite observations is computed on the snapshot A1 built, from features A2
+parsed, over the splits B1 defined. The numbers that do not pass through those units are the
+ones about the repository itself, its weight, its test count and its secret scan. Remove
+Bob's units and what is left is a console with nothing measured to show in it.
+
+The operator's {N_OPERATOR_UNITS} are not cosmetic and are not described as such. They are
+the console, the calibration and abstention blocks, the fusion ladder, the ablations and the
+review waves. Each is labelled operator-side in the actor field of its own heading, which is
+why the count above can be stated at all.
+
+Each Bob unit carries the task id of the account that ran it, and those ids are records
+inside IBM Bob rather than assertions in this repository. `apps/web/public/data/bob.json` is
+the machine-readable list, generated from the build log by `scripts/export_bob_units.py`.
+A judge who distrusts a self-authored log can check them against the account's own history,
+which is the one form of evidence a repository cannot manufacture for itself.
+
 `docs/BOB_BUILD_LOG.md` has an entry per unit: what was asked, what came back, what failed and
 what repaired it. It holds every Bob-account unit and nothing else of consequence, because
 the operator-side waves were moved to `docs/OPERATOR_BUILD_LOG.md` once the single file
