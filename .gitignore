@@ -105,13 +105,18 @@ apps/web/tsconfig.tsbuildinfo
 HANDOVER_*.md
 
 # --- internal working notes, deliberately untracked ---
-# Seven working documents are kept out of the tracked tree: task prompts, a
-# session-to-session handoff, a requirements checklist, a credit budget and the
-# operator's machine specification. None of them is evidence about the product, and
-# several carry counts the tree has since moved past, so tracking them would put two
-# files in disagreement about one measured quantity. How the product was built is
-# answered by docs/BOB_BUILD_LOG.md, docs/BOB_DEMO.md and docs/USE_WITH_YOUR_AGENT.md.
-# Copies live outside the repository, so nothing is lost.
+# Working documents kept out of the tracked tree: task prompts, a session-to-session
+# handoff, a requirements checklist, a credit budget and the operator's machine
+# specification. None of them is evidence about the product, and several carry counts
+# the tree has since moved past, so tracking them would put two files in disagreement
+# about one measured quantity. How the product was built is answered by
+# docs/BOB_BUILD_LOG.md, docs/BOB_DEMO.md and docs/USE_WITH_YOUR_AGENT.md.
+#
+# Seven names, four files. BUILD_BUDGET, SUBMISSION_CHECKLIST, WAVE_C1_PROMPT and
+# WAVE_D_PROMPT exist and are held outside the repository. BOB_HANDOFF,
+# BOB_TASK_PROMPTS and HARDWARE_PROFILE do not exist anywhere; their names stay here
+# so that recreating one cannot commit it by accident. This block used to claim seven
+# withheld documents with copies outside, and that was wrong in both halves.
 #
 # This block used to summarise what each one contained, which put a description of every
 # withheld document into the one tracked file every reader opens.

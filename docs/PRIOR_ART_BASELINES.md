@@ -22,12 +22,13 @@ as written in `docs/BOB_BUILD_LOG.md` asked for "the first two rungs of the mode
 ladder as the honest baseline everything later must beat: a centre-energy
 heuristic and HOG+regularised logistic regression, both calibrated". An external
 reproduction was never in that unit's scope. Nothing in
-`docs/BOB_BUILD_LOG.md`, `docs/BUILD_BUDGET.md` or `docs/PRE_BUILD_BASELINE.md`
-records a decision to attempt one, to defer one, or to drop one. The build ran on
-40 credits per trial account with roughly 20 planned for the whole of Wave A
-across eight units (`docs/BUILD_BUDGET.md`), so no budget was set aside for it
-either. That is all the record supports, and it is stated here rather than
-replaced with a tidier reason.
+`docs/BOB_BUILD_LOG.md` or `docs/PRE_BUILD_BASELINE.md` records a decision to
+attempt one, to defer one, or to drop one, and neither does the build's credit
+plan, which is a working document this repository does not publish. That plan ran
+on 40 credits per trial account and allocated roughly 20 of the first account's to
+the whole of Wave A across eight units, so no budget was set aside for an external
+reproduction either. That is all the record supports, and it is stated here rather
+than replaced with a tidier reason.
 
 Two consequences a reader should carry into the gate 5 result. HOG dates from
 2005, so it is a weak stand-in for the CNN classifiers the README concedes

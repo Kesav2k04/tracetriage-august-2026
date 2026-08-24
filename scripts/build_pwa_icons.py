@@ -16,7 +16,11 @@ No new dependency. Pillow is already here for the pipeline's imagery, and the tw
 cubic Beziers sampled directly rather than handed to an SVG renderer, which would have meant
 adding cairo or a headless browser to the build for five files.
 
-`--check` re-renders into memory and compares bytes, so it is a gate row rather than a habit.
+`--check` re-renders into memory and compares the decoded pixels, not the encoded PNG bytes.
+Byte equality was the first version of this gate and it was wrong: Pillow's wheels link
+different deflate backends per platform (zlib-ng 2.3.3 here, plain zlib on the Linux runner),
+so the same drawing encodes to different bytes and the gate failed on CI while passing locally.
+Pixels are what a phone shows, so pixels are what this compares.
 """
 
 from __future__ import annotations
@@ -178,10 +182,41 @@ def _render(size: int, maskable: bool) -> Image.Image:
 
 def _png_bytes(img: Image.Image) -> bytes:
     buf = io.BytesIO()
-    # No timestamp chunk, so two runs of this script produce the same bytes and `--check`
-    # is comparing the drawing rather than the clock.
+    # No timestamp chunk, so two runs of this script on one machine produce the same bytes.
     img.save(buf, format="PNG", optimize=True)
     return buf.getvalue()
+
+
+def _disagreement(path: Path, want: Image.Image) -> str | None:
+    """Describe how the file on disk differs from the mark, or None if it does not.
+
+    Compares decoded pixels. A deflate backend change moves the bytes without moving a
+    single pixel, and that is not staleness; a palette or geometry change moves pixels, and
+    that is. On a real difference this reports how many pixels and how far, so the failure
+    says whether the mark drifted or the rasteriser did.
+    """
+    with Image.open(path) as fh:
+        got = fh.convert("RGB")
+        if got.size != want.size:
+            return f"is {got.width}x{got.height}, the mark is {want.width}x{want.height}"
+        a, b = got.tobytes(), want.tobytes()
+        if a == b:
+            return None
+        # One pass: both images are RGB at a size already checked equal, so the two buffers
+        # are the same length and index // 3 is the pixel a channel sample belongs to.
+        channels = 0
+        worst = 0
+        differing_pixels: set[int] = set()
+        for i, (x, y) in enumerate(zip(a, b, strict=True)):
+            if x != y:
+                channels += 1
+                worst = max(worst, abs(x - y))
+                differing_pixels.add(i // 3)
+        return (
+            f"differs from the mark: {len(differing_pixels):,} of "
+            f"{want.width * want.height:,} pixels, {channels:,} channel samples, "
+            f"worst channel off by {worst}/255"
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -194,17 +229,24 @@ def main(argv: list[str] | None = None) -> int:
     stale: list[str] = []
     for directory, name, size, maskable in SIZES:
         directory.mkdir(parents=True, exist_ok=True)
-        want = _png_bytes(_render(size, maskable))
+        want = _render(size, maskable)
         path = directory / name
+        rel = path.relative_to(REPO).as_posix()
         if args.check:
-            rel = path.relative_to(REPO).as_posix()
             if not path.exists():
                 stale.append(f"{rel} is missing")
-            elif path.read_bytes() != want:
-                stale.append(f"{rel} does not match the mark")
+            else:
+                how = _disagreement(path, want)
+                if how is not None:
+                    stale.append(f"{rel} {how}")
+        elif path.exists() and _disagreement(path, want) is None:
+            # Already the right drawing. Rewriting it here would only swap in this machine's
+            # deflate output and dirty the tree for no visible change.
+            print(f"  {rel}  unchanged")
         else:
-            path.write_bytes(want)
-            print(f"  {path.relative_to(REPO).as_posix()}  {len(want):,} bytes")
+            payload = _png_bytes(want)
+            path.write_bytes(payload)
+            print(f"  {rel}  {len(payload):,} bytes")
 
     if args.check:
         if stale:

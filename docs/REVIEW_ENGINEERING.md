@@ -3,7 +3,7 @@
 Scope was the data path (`scripts/build_console_data.py`, `scripts/run_queue.py`,
 `scripts/run_fusion.py`, `pipeline/tracetriage/splits.py`), the JSON Schema contracts, the console
 under `apps/web/`, the test suite, and release hygiene (`scripts/gate.py`, `.gitignore`,
-`apps/web/vercel.json`). Commands run, all from the repository root unless noted:
+`vercel.json`). Commands run, all from the repository root unless noted:
 `.venv/Scripts/python.exe -m pytest -q` (744 passed, 1 xfailed, 158 s);
 `npx tsc --noEmit -p tsconfig.json` in `apps/web` (exit 0, no diagnostics);
 `npx next build` in `apps/web` (exit 0, 33 pages);
@@ -661,7 +661,7 @@ headings, and the discrepancy is logged in `docs/CLAIM_REGISTER.md` under C7h.
 ### [MINOR] The three evidence links download a file rather than opening a document
 
 - **Where**: `apps/web/components/Colophon.tsx:86-90`, `apps/web/app/provenance/page.tsx:239-257`,
-  `apps/web/vercel.json`
+  `vercel.json`
 - **What is wrong**: the three documents are served as `text/markdown` with `nosniff`, which the most
   common browser does not render, so following the footer's "Gates" link downloads a 34 kB file. One
   other browser family renders it as plain text, so the behaviour differs for the links a judge is most

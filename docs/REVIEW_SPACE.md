@@ -340,7 +340,8 @@ Counts: 5 BLOCKING, 9 SERIOUS, 11 MINOR.
 ### [SERIOUS] The API supplies two unrounded geometry fields, the project's own recon required validating against them, and it was never done
 
 - **Where**: `scripts/validate_physics.py` (validates `max_altitude` only),
-  against `docs/SATNOGS_API_RECON.md:272` and `docs/BOB_TASK_PROMPTS.md:325`.
+  against `docs/SATNOGS_API_RECON.md:272`, and against the unit's own task prompt,
+  which is a working document this repository does not publish.
 
 - **What is wrong**: the recon document states the production module should "be tested against
   the API's own `max_altitude`, `rise_azimuth` and `set_azimuth` on a few hundred observations
