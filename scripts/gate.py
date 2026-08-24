@@ -14,7 +14,9 @@ the code that wrote it with every gate still passing. A missing apps/web/node_mo
 is reported as a failure rather than skipped, because a skipped check that reads as a
 pass is the same defect one level up.
 
-Exit code 0 = all standing gates pass. Non-zero = something is wrong.
+Exit code 0 = all standing gates pass. Non-zero = something is wrong. The tally at
+the bottom counts the rows this environment could ask, and names the ones it could
+not, so the number never reads as complete when a precondition was missing.
 """
 
 from __future__ import annotations
@@ -74,9 +76,50 @@ def check(name: str, ok: bool, detail: str = "") -> bool:
     return ok
 
 
+#: `scripts/signoff.py` keeps the last non-empty line of this script's output as the
+#: `detail` of its "standing gates" row, truncated to 160 characters, and that string is
+#: what a judge reads in `artifacts/SIGNOFF_RECEIPT.json`. So the whole disclosure has to
+#: fit inside 160 characters, or the receipt keeps half a sentence.
+#: `tests/test_gate_tally.py` holds the two ends together.
+_SIGNOFF_DETAIL_CAP = 160
+
+
+def omit(omitted: list[str], name: str, reason: str) -> None:
+    """Print a check that could not be asked here, and record that it was not asked.
+
+    A precondition this checkout does not meet is not a failure. Reporting it as one would
+    manufacture a regression on every clean clone, which is why these rows exist at all.
+    But it is not nothing either, and for a long time it was treated as nothing: the tally
+    counts rows that ran, so an omission quietly moved the denominator down and "30/30
+    standing gates pass" reached a published receipt with no sign that a 31st question had
+    existed. Recording the label here is what lets `tally_line` say so.
+    """
+    print(f"  [ -- ] {name}  omitted: {reason}")
+    omitted.append(name)
+
+
+def tally_line(passed: int, total: int, omitted: list[str]) -> str:
+    """The one line that survives into a receipt, so it must not read as complete.
+
+    Names the omitted rows when they fit inside what `signoff.py` keeps, and reports how
+    many there were and that each was printed above when they do not. The count is the
+    disclosure; the names are the convenience.
+    """
+    head = f"{passed}/{total} standing gates pass"
+    if not omitted:
+        return head
+    noun = "row" if len(omitted) == 1 else "rows"
+    lead = f"{head}, {len(omitted)} {noun} omitted for a missing precondition"
+    named = f"{lead}: " + "; ".join(omitted)
+    return named if len(named) <= _SIGNOFF_DETAIL_CAP else f"{lead}, each printed above"
+
+
 def main() -> int:
     print("standing gates\n")
     results = []
+    # Labels of the checks this environment could not ask. Printed as they happen and named
+    # again in the tally, because the tally is the line that gets quoted somewhere else.
+    omitted: list[str] = []
 
     rc, out = run([str(PY), "-m", "pytest", "-m", "not network and not ocr and not llm", "-q"])
     tail = out.splitlines()[-1] if out else ""
@@ -337,9 +380,10 @@ def main() -> int:
     # "cannot be measured here" from "measured and wrong".
     rc, out = run([str(PY), str(REPO / "scripts" / "run_langflow_check.py"), "--check"])
     if rc != 0 and "No interpreter with LangFlow was found" in out:
-        print(
-            "  [ -- ] langflow flows match their receipt  "
-            "omitted: .venv-langflow is not present in this checkout."
+        omit(
+            omitted,
+            "langflow flows match their receipt",
+            ".venv-langflow is not present in this checkout.",
         )
     else:
         results.append(
@@ -385,19 +429,24 @@ def main() -> int:
     # clone has not run `npm install` there and a FAIL row would be a regression nobody
     # caused. The tally counts checks that were performed.
     presentation = REPO / "presentation"
+    film_checks = (
+        ("presentation film matches its receipts", [NPM, "test", "--silent"]),
+        (
+            "film report and receipt match presentation/src",
+            [NPM, "run", "report", "--silent", "--", "--check"],
+        ),
+    )
     if not (presentation / "node_modules").is_dir():
-        print(
-            "  [ -- ] presentation film matches its receipts  "
-            "omitted: presentation/node_modules is not present. Run npm install there."
-        )
+        # Both rows, not just the first. One printed omission for two skipped checks
+        # understates the count by one, and the count is what the tally discloses.
+        for label, _argv in film_checks:
+            omit(
+                omitted,
+                label,
+                "presentation/node_modules is not present. Run npm install there.",
+            )
     else:
-        for label, argv in (
-            ("presentation film matches its receipts", [NPM, "test", "--silent"]),
-            (
-                "film report and receipt match presentation/src",
-                [NPM, "run", "report", "--silent", "--", "--check"],
-            ),
-        ):
+        for label, argv in film_checks:
             rc, out = run(argv, cwd=presentation)
             lines = [line for line in out.strip().splitlines() if line.strip()]
             results.append(
@@ -441,7 +490,7 @@ def main() -> int:
     )
     if not_configured:
         reason = not_configured[len(_FRESHNESS_SKIP) :].strip()
-        print(f"  [ -- ] artifacts match their builders  omitted: {reason[:110]}")
+        omit(omitted, "artifacts match their builders", reason[:110])
     else:
         results.append(
             check(
@@ -514,9 +563,10 @@ def main() -> int:
         # in a repository impossible. The row is omitted rather than counted green, and the
         # omission is printed, because a check quietly treated as passing is the defect this
         # file exists to prevent.
-        print(
-            "  [ -- ] sign-off receipt present and signed  omitted: this gate is running "
-            "inside scripts/signoff.py, which writes that receipt after it"
+        omit(
+            omitted,
+            "sign-off receipt present and signed",
+            "this gate is running inside scripts/signoff.py, which writes it afterwards",
         )
     else:
         if _signoff.exists():
@@ -536,7 +586,7 @@ def main() -> int:
     )
 
     passed = sum(results)
-    print(f"\n{passed}/{len(results)} standing gates pass")
+    print(f"\n{tally_line(passed, len(results), omitted)}")
     if passed < len(results):
         print("\nDo not start the next unit until these are green.")
     return 0 if passed == len(results) else 1

@@ -450,7 +450,12 @@ GATE_TIMEOUT_S = 900
 #: `gate.py` prints one line per check in exactly this shape. Parsed rather than re-derived,
 #: because re-deriving the verdicts here would be a second acceptance script.
 _GATE_LINE = re.compile(r"^\s*\[(PASS|FAIL| -- )\]\s+(.+?)(?:\s\s+(.*))?$")
-_GATE_TALLY = re.compile(r"^(\d+)/(\d+) standing gates pass$", re.M)
+# Anchored on the count and not on the end of the line. The gate's tally now appends how
+# many rows it could not ask and why, and `$` here would have returned None for exactly the
+# runs where that suffix exists, reporting no tally at all on a machine missing a
+# precondition. The suffix is kept, because it is the half of the line that says the count
+# is over the rows that ran.
+_GATE_TALLY = re.compile(r"^(\d+)/(\d+) standing gates pass.*", re.M)
 
 
 def summarise_gate_output(stdout: str, returncode: int) -> dict[str, Any]:
