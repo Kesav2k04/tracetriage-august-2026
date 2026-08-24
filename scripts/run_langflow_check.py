@@ -420,7 +420,7 @@ def build() -> dict[str, Any]:
         "runtime": {
             "langflow": child.get("langflow_version"),
             "langflow_base": child.get("langflow_base_version"),
-            "interpreter": str(_interpreter()).replace("\\", "/"),
+            "interpreter": _interpreter_for_receipt(),
             "is_a_dependency_of_this_project": False,
         },
         "how_these_were_produced": (
@@ -450,6 +450,22 @@ def build() -> dict[str, Any]:
 
 _VOLATILE = ("generated_at",)
 
+
+def _interpreter_for_receipt() -> str:
+    """The interpreter that ran, named without the operator's drive layout.
+
+    This receipt is published, and the absolute path recorded here was
+    `D:/IBM August Challenge/tracetriage-august-2026/.venv-langflow/Scripts/python.exe`,
+    which is no credential and no use to a reader: it says where one machine keeps its
+    files. An interpreter inside the repository is reported relative to it, which is the
+    part that is reproducible, and one outside is reported as its filename alone, because
+    the fact worth recording is that this did not run under the project venv.
+    """
+    path = _interpreter()
+    try:
+        return str(path.relative_to(REPO)).replace("\\", "/")
+    except ValueError:
+        return path.name
 
 def _comparable(receipt: dict[str, Any]) -> dict[str, Any]:
     out = {key: value for key, value in receipt.items() if key not in _VOLATILE}

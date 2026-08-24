@@ -3,8 +3,9 @@
     .venv/Scripts/python.exe scripts/gate.py
 
 Checks the things that apply to every unit, so a unit is never accepted on
-"Bob said it passed". Unit-specific acceptance criteria are in BOB_START_HERE.md
-section 7 and still need reading; this covers the standing gates.
+"Bob said it passed". Each unit's own acceptance criteria were carried in the task
+prompt it was given and are recorded per unit in docs/BOB_BUILD_LOG.md; this covers
+only the standing gates, which is the smaller half.
 
 Three checks were added on 2026-08-19, all of them closing a way for this script to
 report green over a real defect. The console had no mechanical cover at all: no type
