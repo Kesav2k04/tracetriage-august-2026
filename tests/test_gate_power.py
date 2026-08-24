@@ -94,10 +94,20 @@ def test_every_unmet_gate_carries_a_closure_condition(receipt):
         if gate["met"]:
             continue
         closure = gate["closure"]
-        assert closure["kind"] in {"exact", "extrapolated"}, (
+        # Three kinds, and the distinction the assertion protects is arithmetic against
+        # projection. `not_a_shortfall` is the third: arithmetic, and the answer is that
+        # there is no count to add. It was omitted here while no gate produced it, so the
+        # first gate that did failed this test rather than the one checking its content.
+        assert closure["kind"] in {"exact", "extrapolated", "not_a_shortfall"}, (
             f"gate {gate['gate']} closure is {closure['kind']!r}, and a reader has to be "
-            f"able to tell an arithmetic result from a projection"
+            f"able to tell an arithmetic result from a projection from a gate that is not "
+            f"short of anything"
         )
+        if closure["kind"] == "not_a_shortfall":
+            assert closure["shortfall"] == 0, (
+                f"gate {gate['gate']} says it is not short of anything and then reports a "
+                f"shortfall of {closure['shortfall']}"
+            )
         assert closure["statement"].strip()
 
 
@@ -175,6 +185,33 @@ def test_gate3_needs_nine_testable_observations(script, receipt):
         assert closure["shortfall"] == max(
             0, closure["required_n"] - closure["have_n"]
         )
+    elif constraint == "grouped_rate_below_the_bar":
+        # The state this branch exists for: more independent episodes than a perfect run
+        # would need, and a rate over them that is under the bar. Reported as a shortfall
+        # of 9 against 68 once, which an outside judge read as a claim that 9 episodes had
+        # all discriminated. So the two group counts are asserted, not just the kind.
+        assert closure["kind"] == "not_a_shortfall"
+        assert closure["shortfall"] == 0
+        assert closure["have_n"] == gate3["measured"]["groups_scored"]
+        need_k = closure["required_discriminating_groups"]
+        have_k = closure["have_discriminating_groups"]
+        assert isinstance(need_k, int) and isinstance(have_k, int)
+        assert have_k < need_k <= closure["have_n"], (need_k, have_k, closure["have_n"])
+        # The number quoted has to be the smallest that clears, or it is not the answer.
+        threshold = gate3["measured"]["threshold"]
+        assert script.exact_lower_bound(need_k, closure["have_n"]) >= threshold
+        assert script.exact_lower_bound(need_k - 1, closure["have_n"]) < threshold
+        # And the count it reports as observed has to reproduce the published bound.
+        source = json.loads((ARTIFACTS / "GATE3_RECEIPT.json").read_text(encoding="utf-8"))
+        grouping = source["entity_grouping"]
+        assert have_k == round(
+            grouping["grouped_discriminating_rate"] * grouping["groups_scored"]
+        )
+        assert script.exact_lower_bound(have_k, closure["have_n"]) == pytest.approx(
+            grouping["grouped_rate_lower_bound_95"]
+        )
+        # The sentence must not offer a sample size as the lever.
+        assert "Not more episodes" in closure["statement"]
     elif constraint == "measured_rate_below_the_bar":
         # Not a shortfall. More observations of the same kind move the interval towards
         # a number that is already under the bar.
@@ -434,7 +471,7 @@ def test_exactly_one_closure_is_an_extrapolation(receipt):
 
 
 def _g3_receipt(verdict, scored, hits, bound, threshold=0.70, groups=None,
-                grouped_bound=None):
+                grouped_bound=None, grouped_rate=None):
     """The fields `_gate3` reads, and nothing else."""
     return {
         "threshold": threshold,
@@ -447,6 +484,7 @@ def _g3_receipt(verdict, scored, hits, bound, threshold=0.70, groups=None,
         "entity_grouping": {
             "groups_scored": groups,
             "grouped_rate_lower_bound_95": grouped_bound,
+            "grouped_discriminating_rate": grouped_rate,
         },
     }
 
@@ -496,9 +534,37 @@ def test_clearing_on_observations_but_not_on_groups_is_its_own_constraint():
         groups=4, grouped_bound=0.4729,
     ))
     assert g["met"] is False
+    # Four episodes is the state where the count really does bind: even 4 of 4 leaves the
+    # bound at 0.05 ** (1/4) = 0.473, so no rate over four episodes clears a 0.7 bar.
     assert g["binding_constraint"] == "independent_episodes"
     assert g["closure"]["have_n"] == 4
     assert "more stations and more nights" in g["closure"]["what_it_would_take"]
+    assert "no rate over them clears" in g["closure"]["statement"]
+
+
+def test_a_sufficient_episode_count_with_a_short_rate_names_the_rate():
+    """The other state behind the same verdict, and the one the real receipt is in.
+
+    68 episodes is past the point where the count binds, so offering a count as the lever
+    is pointing a reader at something they already have seven times over. This is the case
+    an outside judge misread as a claim that 9 episodes had all discriminated.
+    """
+    from scripts.run_gate_power import _gate3
+
+    g = _gate3(_g3_receipt(
+        "PASSED_UNGROUPED_ONLY", scored=289, hits=224, bound=0.7309,
+        groups=68, grouped_bound=0.3662, grouped_rate=32 / 68,
+    ))
+    assert g["met"] is False
+    assert g["binding_constraint"] == "grouped_rate_below_the_bar"
+    closure = g["closure"]
+    assert closure["kind"] == "not_a_shortfall"
+    assert closure["shortfall"] == 0
+    assert closure["required_discriminating_groups"] == 55
+    assert closure["have_discriminating_groups"] == 32
+    assert closure["statement"].startswith("Not more episodes")
+    assert "9 all-discriminating episodes" in closure["statement"]
+    assert "not more episodes" in closure["what_it_would_take"]
 
 
 def test_an_imperfect_rate_is_counted_rather_than_called_perfect():

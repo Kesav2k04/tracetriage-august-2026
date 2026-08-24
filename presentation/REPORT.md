@@ -492,8 +492,10 @@ and says which one is missing rather than passing quietly when either is not.
 Frames were also extracted from the encoded mp4 with ffmpeg at 3, 15, 30, 58, 75, 92 and
 100 seconds and read, so the checks above are on the delivered file and not only on the
 composition. That sampling predates the eighth card and does not reach it; the card's own
-figures are covered by the claim table above and by the render being byte-identical across
-three runs.
+figures are covered by the claim table above. Not by a byte-identical re-render: this
+sentence used to say so, and the measurement above is that no two of three renders agree on
+the whole file. What covers the eighth card is that every figure on it is resolved from a
+receipt at build time and asserted against that receipt by the claim table.
 
 ## Deliverables
 

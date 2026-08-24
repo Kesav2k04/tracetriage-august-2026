@@ -882,7 +882,10 @@ def _gate_power() -> str:
             "is nothing outstanding, so it is empty rather than kept as decoration."
         )
 
-    exact = sum(1 for g in unmet if g["closure"]["kind"] == "exact")
+    # Arithmetic, whether or not it found a shortfall. See the same note in
+    # scripts/sync_readme_results.py: gate 3's 55 of 68 is computed, not projected.
+    arithmetic = {"exact", "not_a_shortfall"}
+    exact = sum(1 for g in unmet if g["closure"]["kind"] in arithmetic)
     out = [
         _para(
             f"{len(unmet)} of the {power['n_gates']} gates did not come back met, and none "
@@ -905,7 +908,7 @@ def _gate_power() -> str:
                     f"`{g['verdict']}`",
                     " ".join(g["bound_by_in_one_line"].split()),
                     " ".join(g["closure"]["statement"].split())
-                    + ("" if g["closure"]["kind"] == "exact" else " *(projected)*"),
+                    + ("" if g["closure"]["kind"] in arithmetic else " *(projected)*"),
                 )
                 for g in unmet
             ]

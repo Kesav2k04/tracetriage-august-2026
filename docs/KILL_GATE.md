@@ -329,10 +329,16 @@ which clears it. The manifest publishes those numbers as
 `what_this_sample_size_can_establish`, computed from the same bounds the verdict uses, so the
 sizing is a number a reader can check rather than a judgment they have to accept.
 
-**The receipt says NOT_RUN, which is this table's OPEN with a receipt behind it.**
+**The receipt says PASSED, and a person produced the answers.** The generated block below
+is the current state and this paragraph is about the machinery that got it there, which is
+worth keeping because the gate spent most of its life in the other outcome. This paragraph
+said "the receipt says NOT_RUN" for weeks after the human arm landed fourteen lines below it,
+which is the drift a document with a generated region invites: the region moved and the prose
+around it did not.
+
 NOT_RUN is a distinct outcome from FAILED on purpose: a worksheet no person has answered is a
-fact about the world, and folding it into a failure would manufacture the measurement this
-gate is missing. `scripts/score_gate4.py` will not publish a rate without a
+fact about the world, and folding it into a failure would manufacture the measurement the
+gate would then be missing. `scripts/score_gate4.py` will not publish a rate without a
 `REVIEWER.json` saying who produced it, and for a reviewer that is not a person it puts every
 number under `arm` and leaves the gate's own verdict alone. That is deliberate: the console's
 gate table, `scripts/sync_kill_gate.py` and the MCP `gate_status` tool all read `verdict` and
@@ -709,8 +715,10 @@ now fails for the reason stated rather than for a defect. `point_in_ci` was adde
 this shape cannot be narrated again: a point estimate outside its own interval is
 reported as NOT_MEASURABLE with both numbers and the gap.
 
-*Gate 4 remains unmet, which is not the same as unattempted and not the same as passing.
-One arm has been measured and its reviewer was not a person; see the gate 4 section above.*
+*Written while gate 4 had one arm and no human reviewer, and left as written because the
+failure log is a record rather than a status board. Superseded on 2026-08-22: a person
+answered the committed worksheet, the receipt reads PASSED at 60 of 60 decidable, and the
+model arm is kept beside it as `prior_review`. The gate 4 section above is the current state.*
 
 **2026-08-18, correction to this document.** The status summary at the top of this
 file and the failure-log entry above both carried gate numbers from an earlier run,

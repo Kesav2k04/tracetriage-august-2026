@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a judge does not have is worse than no page.
 
-At this commit: 41 JSON artifacts, 8 contracts, 59 scripts, 29 package modules and 1452 test functions across 80 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 41 JSON artifacts, 8 contracts, 59 scripts, 29 package modules and 1453 test functions across 80 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -40,7 +40,7 @@ file that no longer exists in that form.
 | `GATE4_BUNDLE.json` | tracetriage/gate4-bundle | 0.1.0 | none | 1,509 | `4a4411de5b4ea76c` | `scripts/pack_gate4_bundle.py`, `scripts/sync_for_judges.py` | `test_explainer_gate4_values.py`, `test_receipt_digests.py` |
 | `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 74,956 | `36282b4bf0ba44e1` | `scripts/build_console_data.py`, `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/run_agent_study.py`, `scripts/run_gate_power.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_explainer_gate4_values.py`, `test_gate4.py`, `test_gate_power.py`, `test_receipt_digests.py` |
 | `GATE4_WORKSHEET.json` | GATE4_WORKSHEET | 1 | none | 11,481 | `44cc11bd27d624f1` | `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py` | `test_explainer_gate4_values.py`, `test_gate4.py`, `test_gate4_bundle.py` |
-| `GATE_POWER_RECEIPT.json` | GATE_POWER_RECEIPT | 1 | none | 10,814 | `22748c4cb33ebed7` | `scripts/build_console_data.py`, `scripts/run_gate_power.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_gate_power.py` |
+| `GATE_POWER_RECEIPT.json` | GATE_POWER_RECEIPT | 1 | none | 11,321 | `21868767aa13d6c0` | `scripts/build_console_data.py`, `scripts/run_gate_power.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_gate_power.py` |
 | `HERO_NULLS.json` | none declared | n/a | none | 24,553 | `905e748cd0b0f945` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/sync_demo.py` | `test_hero_nulls.py`, `test_hero_window.py` |
 | `LANGCHAIN_RECEIPT.json` | tracetriage/langchain | 0.1.0 | none | 4,069 | `043c8239286dee16` | `pipeline/tracetriage/langchain_tools.py`, `scripts/run_langchain_check.py`, `scripts/sync_for_judges.py` | `test_langchain_tools.py` |
 | `LANGFLOW_RECEIPT.json` | none declared | n/a | none | 3,862 | `e1b89120a51596fe` | `pipeline/tracetriage/langflow_components.py`, `scripts/check_receipt_digests.py`, `scripts/run_langflow_check.py`, `scripts/sync_for_judges.py` | `test_langflow_flows.py` |
@@ -226,7 +226,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_gate3_sensitivity.py` | 9 | The sensitivity table has to agree with the receipt it describes, or it is noise. |
 | `tests/test_gate4.py` | 38 | The gate 4 instrument, tested where it could quietly stop being blinded (unit E6). |
 | `tests/test_gate4_bundle.py` | 4 | What the reviewer bundle may and may not contain. |
-| `tests/test_gate_power.py` | 29 | Every unmet gate must carry a reason, and the reason must be derivable without the script. |
+| `tests/test_gate_power.py` | 30 | Every unmet gate must carry a reason, and the reason must be derivable without the script. |
 | `tests/test_glyph_axis.py` | 7 | The template matcher reads the same frequency axis the neural model read. |
 | `tests/test_grounding_parity.py` | 9 | The two grounding checkers decide the same thing, and the answer key still checks. |
 | `tests/test_hero_nulls.py` | 12 | The opening frame draws the nulls that were scored, and this is the proof. |

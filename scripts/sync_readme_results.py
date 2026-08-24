@@ -647,7 +647,11 @@ def _why_block() -> str:
             "explain what was is gone rather than kept as decoration."
         )
 
-    _exact = sum(1 for g in unmet if g["closure"]["kind"] == "exact")
+    # `not_a_shortfall` is arithmetic, not a projection. Counting it with the projections
+    # labelled gate 3's exactly-computed 55-of-68 as "(projected)" and undercounted the
+    # exact column, which is the opposite of what the label exists to protect.
+    _ARITHMETIC = {"exact", "not_a_shortfall"}
+    _exact = sum(1 for g in unmet if g["closure"]["kind"] in _ARITHMETIC)
     room = next(
         (g for g in power["gates"] if g["gate"] == 6 and "the_room_rule" in g), None
     )
@@ -668,7 +672,7 @@ def _why_block() -> str:
     ]
     for gate in unmet:
         closure = gate["closure"]
-        kind = "" if closure["kind"] == "exact" else " *(projected)*"
+        kind = "" if closure["kind"] in _ARITHMETIC else " *(projected)*"
         lines.append(
             f"| {gate['gate']} | **{gate['verdict']}** | "
             f"{_oneline(gate['bound_by_in_one_line'])} | "

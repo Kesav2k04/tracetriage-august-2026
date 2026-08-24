@@ -94,6 +94,94 @@ def smallest_n_clearing(threshold: float, confidence: float = 0.95) -> int:
     return math.ceil(math.log(alpha) / math.log(threshold))
 
 
+def smallest_k_clearing(trials: int, threshold: float, confidence: float = 0.95) -> int | None:
+    """The fewest successes out of ``trials`` whose exact lower bound clears ``threshold``.
+
+    The companion to `smallest_n_clearing`, and the one gate 3 actually needs. That
+    function answers "how many perfect trials would be enough", which is the right
+    question only while the observed rate is perfect. Once it is not, the sample size
+    stops being the constraint and the rate becomes it, and a reader told the gate needs
+    9 episodes when the corpus already holds 68 has been pointed at the wrong lever.
+
+    Same estimator as `scripts/run_gate3.py::rate_lower_bound`, so the number this returns
+    and the bound the receipt published are the same arithmetic. Returns None when no k
+    clears, which cannot happen for a threshold under one but is not worth asserting away.
+    """
+    if trials <= 0:
+        return None
+    alpha = 1.0 - confidence
+    from scipy.stats import beta
+
+    for k in range(1, trials + 1):
+        if k == trials:
+            bound = alpha ** (1.0 / trials)
+        else:
+            bound = float(beta.ppf(alpha, k, trials - k + 1))
+        if bound >= threshold:
+            return k
+    return None
+
+
+def exact_lower_bound(successes: int, trials: int, confidence: float = 0.95) -> float | None:
+    """One value of the same estimator, for reporting the rung below the one that clears."""
+    if trials <= 0 or successes < 0 or successes > trials:
+        return None
+    alpha = 1.0 - confidence
+    if successes == 0:
+        return 0.0
+    if successes == trials:
+        return float(alpha ** (1.0 / trials))
+    from scipy.stats import beta
+
+    return float(beta.ppf(alpha, successes, trials - successes + 1))
+
+
+def _grouped_rate_closure(
+    *,
+    groups: int,
+    grouped_hits: int | None,
+    grouped_bound: float | None,
+    need_k: int,
+    below: float | None,
+    needed: int,
+    threshold: float,
+    bound: float,
+) -> dict[str, Any]:
+    """The closure for a gate whose episode count is sufficient and whose rate is not.
+
+    Kept out of `_gate3` so the two states that share the PASSED_UNGROUPED_ONLY verdict
+    read as two things. `not_a_shortfall` is the honest kind: there is no count to add.
+    """
+    return {
+        "kind": "not_a_shortfall",
+        "frozen_by_pre_registration": False,
+        "required_n": needed,
+        "have_n": groups,
+        "shortfall": 0,
+        "required_discriminating_groups": need_k,
+        "have_discriminating_groups": grouped_hits,
+        "statement": (
+            f"Not more episodes. This corpus has {groups} independent (station, date) "
+            f"episodes, which already exceeds the {needed} all-discriminating episodes "
+            f"that would clear a {threshold} bar on their own, and {grouped_hits} of the "
+            f"{groups} discriminate on every capture, putting the grouped bound at "
+            f"{grouped_bound:.3f}. Clearing {threshold} at {groups} episodes takes "
+            f"{need_k} of them"
+            + (f", and at {need_k - 1} the bound is {below:.3f}" if below is not None else "")
+            + f". The observation-level bound clears {threshold} at {bound:.3f}; the "
+            f"plan's rule is to group, so the observation-level pass is reported and not "
+            f"claimed."
+        ),
+        "what_it_would_take": (
+            "Episodes in which every capture discriminates, not more episodes. A hundred "
+            "more passes over the same receiver on the same night is one episode measured "
+            "a hundred times, and the pre-registered statistic counts an episode with one "
+            "failure among twenty the same as one with twenty, so it is stricter than the "
+            "gate's own wording and it decides."
+        ),
+    }
+
+
 def _gate3(receipt: dict[str, Any]) -> dict[str, Any]:
     """What is actually holding gate 3 open, which is not always the same thing.
 
@@ -138,26 +226,59 @@ def _gate3(receipt: dict[str, Any]) -> dict[str, Any]:
             f"interval rather than the point estimate."
         )
     elif verdict == "PASSED_UNGROUPED_ONLY":
-        constraint = "independent_episodes"
+        # Two different states wear this verdict, and telling them apart is the whole job
+        # of this branch. If the episode count is small enough that no achievable rate
+        # clears the bar, the count binds. If the count is already past that point, the
+        # rate binds and offering a count is pointing at the wrong lever. This used to
+        # report the count in both cases, publishing `required_n` = 9 beside `have_n` = 68
+        # and a shortfall of 0; an outside judge read that cell as a claim that 9 episodes
+        # had all discriminated.
         groups = grouping.get("groups_scored")
-        closure = {
-            "kind": "exact",
-            "frozen_by_pre_registration": False,
-            "required_n": needed,
-            "have_n": groups if groups is not None else testable,
-            "shortfall": max(0, needed - (groups or 0)),
-            "statement": (
-                f"{needed} independent (station, date) episodes, all discriminating. The "
-                f"observation-level bound already clears {threshold}; the grouped one, "
-                f"over {groups} episodes, does not. The plan's rule is to group, so the "
-                f"observation-level pass is reported and not claimed."
-            ),
-            "what_it_would_take": (
-                "Observations from more stations and more nights, not more observations. "
-                "A hundred more passes over the same receiver on the same night is one "
-                "episode measured a hundred times."
-            ),
-        }
+        grouped_rate = grouping.get("grouped_discriminating_rate")
+        grouped_bound = grouping.get("grouped_rate_lower_bound_95")
+        grouped_hits = (
+            round(grouped_rate * groups)
+            if grouped_rate is not None and groups is not None
+            else None
+        )
+        need_k = smallest_k_clearing(groups, threshold) if groups else None
+        below = exact_lower_bound(need_k - 1, groups) if need_k and need_k > 1 else None
+        if need_k is None:
+            # No number of all-discriminating episodes clears the bar at this count, so
+            # the count is what binds and more episodes is the honest answer.
+            constraint = "independent_episodes"
+            closure = {
+                "kind": "exact",
+                "frozen_by_pre_registration": False,
+                "required_n": needed,
+                "have_n": groups if groups is not None else testable,
+                "shortfall": max(0, needed - (groups or 0)),
+                "statement": (
+                    f"{needed} independent (station, date) episodes, all discriminating. "
+                    f"At the {groups} this corpus has, no rate over them clears "
+                    f"{threshold}: even all {groups} discriminating leaves the bound at "
+                    f"{exact_lower_bound(groups, groups):.3f}. The observation-level bound "
+                    f"already clears {threshold} at {bound:.3f}; the plan's rule is to "
+                    f"group, so the observation-level pass is reported and not claimed."
+                ),
+                "what_it_would_take": (
+                    "Observations from more stations and more nights, not more "
+                    "observations. A hundred more passes over the same receiver on the "
+                    "same night is one episode measured a hundred times."
+                ),
+            }
+        else:
+            constraint = "grouped_rate_below_the_bar"
+            closure = _grouped_rate_closure(
+                groups=groups,
+                grouped_hits=grouped_hits,
+                grouped_bound=grouped_bound,
+                need_k=need_k,
+                below=below,
+                needed=needed,
+                threshold=threshold,
+                bound=bound,
+            )
         why = (
             f"{counted}, and the observation-level bound of {bound:.4f} clears the "
             f"{threshold} bar while the grouped bound over {groups} independent episodes "
@@ -505,6 +626,10 @@ _SHORTFALL_IN_A_PHRASE = {
     "independent_episodes": (
         "short of independent station-nights rather than of observations, which is not a "
         "shortfall more of the same passes can close"
+    ),
+    "grouped_rate_below_the_bar": (
+        "not short of anything: it holds more independent station-nights than a perfect "
+        "run would need, and the rate over them came in under the bar"
     ),
     "measured_rate_below_the_bar": (
         "not short of anything: its rate came in under the bar, which is a measurement "

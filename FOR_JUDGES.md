@@ -314,7 +314,7 @@ arithmetic; the rest are projections and are labelled as such. Regenerate the lo
 
 | Gate | Verdict | What bound it | What would close it |
 | --- | --- | --- | --- |
-| 3 | `PASSED_UNGROUPED_ONLY` | 289 of 303 testable observations scored, 224 discriminating. The exact bound is 0.731 against a 0.7 bar. | 9 independent (station, date) episodes, all discriminating. The observation-level bound already clears 0.7; the grouped one, over 68 episodes, does not. The plan's rule is to group, so the observation-level pass is reported and not claimed. |
+| 3 | `PASSED_UNGROUPED_ONLY` | 289 of 303 testable observations scored, 224 discriminating. The exact bound is 0.731 against a 0.7 bar. | Not more episodes. This corpus has 68 independent (station, date) episodes, which already exceeds the 9 all-discriminating episodes that would clear a 0.7 bar on their own, and 32 of the 68 discriminate on every capture, putting the grouped bound at 0.366. Clearing 0.7 at 68 episodes takes 55 of them, and at 54 the bound is 0.697. The observation-level bound clears 0.7 at 0.731; the plan's rule is to group, so the observation-level pass is reported and not claimed. |
 | 5 | `NOT_ESTABLISHED` | 88 test observations. The interval's lower arm is 1.63 times the margin it has to clear. | About 233 test observations at the same margin, against the 88 this split has. That is 2.6 times the chronological test set. *(projected)* |
 | 6 | `NOT_ESTABLISHED` | 87 observations at a budget of 50 cap every ordering at 1.740x, leaving 0.240 of room for an interval 0.387 wide. | A split whose room exceeds the interval it produces. cold_station already does: room 2.673 against an interval 1.939 wide, and it passed at 2.253. |
 
