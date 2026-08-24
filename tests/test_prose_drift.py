@@ -42,9 +42,9 @@ only the literal current phrasing, say "224 of 289 testable observations", and t
 test still passes, the exercise test still passes, and a future "223 of 289" walks through.
 One rule is template-bound and says so in the table.
 
-Dated logs are out of scope as a class. ``docs/BOB_BUILD_LOG.md`` records what was true on a date, and editing an entry to
-match today would destroy the thing they exist to be. The two pre-registrations are out for
-the same reason and a stronger one.
+Dated logs are out of scope as a class. ``docs/BOB_BUILD_LOG.md`` records what was true on
+a date, and editing an entry to match today would destroy the thing they exist to be. The
+two pre-registrations are out for the same reason and a stronger one.
 
 **What was declined, and what replaced it.** Both extensions were implemented and run over
 the tree before being accepted, because an untested idea about coverage is what put the
