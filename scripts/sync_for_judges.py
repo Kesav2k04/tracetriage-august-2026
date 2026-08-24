@@ -1700,8 +1700,8 @@ Bob's units and what is left is a console with nothing measured to show in it.
 Each Bob unit carries the task id of the account that ran it, and those ids are records
 inside IBM Bob rather than assertions in this repository. `apps/web/public/data/bob.json` is
 the machine-readable list, generated from the build log by `scripts/export_bob_units.py`.
-A judge who distrusts a self-authored log can check them against the account's own history,
-which is the one form of evidence a repository cannot manufacture for itself.
+Those ids resolve against the account's own history, which is the one form of evidence a
+repository cannot manufacture for itself.
 
 `docs/BOB_BUILD_LOG.md` has an entry per unit: what was asked, what came back, what failed
 and what repaired it.

@@ -16,8 +16,7 @@ can rank the queue, refuse an invented downlink frequency, measure a pass record
 last hour and refuse a sentence about that measurement too.
 
 That file is the one to copy. The root `.mcp.json` is the same two servers in the generic
-shape a stdio MCP client reads, and Bob never loads it: a judge who follows the wrong file
-gets a project that looks like it has no tools.
+shape a stdio MCP client reads. Bob does not load it.
 
 | Client | File it reads |
 |---|---|
@@ -25,13 +24,8 @@ gets a project that looks like it has no tools.
 | Any other MCP client over stdio | `.mcp.json` |
 | LangFlow | `flows/tracetriage_grounding.json`, `flows/tracetriage_granite_agent.json` |
 
-This table had a fourth row until 2026-08-22, reading `watsonx Orchestrate` against
-`orchestrate/toolkits/*.yaml`. **No such directory has ever existed in this repository.** It
-is removed rather than built, because a document written for a judge that points at an
-absent path is the one defect that makes every other path in it worth doubting, and this
-project's whole argument is that its claims can be opened. What watsonx actually is here
-is one text-generation backend with a runner and a dated receipt:
-`scripts/run_watsonx_check.py`.
+watsonx is a text-generation backend here rather than an orchestration layer: one runner
+with a dated receipt, `scripts/run_watsonx_check.py`.
 
 ## The one-minute version
 
@@ -284,10 +278,9 @@ than an integration.
 | base install | 166 MB | Hz and ppm |
 | `pip install 'tracetriage[full]'` | 4,643 MB | the whole reproduction pipeline |
 
-Measured by summing installed files per distribution in this project's own virtualenv. The
-base install used to be the second row, because easyocr, torch, torchvision, opencv,
-scikit-learn, scikit-image, matplotlib, polars and pyarrow were all base dependencies. Torch
-alone is 4,171 MB of that.
+Measured by summing installed files per distribution in this project's own virtualenv.
+easyocr, torch, torchvision, opencv, scikit-learn, scikit-image, matplotlib, polars and
+pyarrow are all in the extra rather than the base, and torch alone is 4,171 MB of it.
 
 Reporting a frequency needs the frequency axis, and the axis is printed on the waterfall as
 tick labels. `pipeline/tracetriage/glyph_axis.py` reads them with a template matcher instead

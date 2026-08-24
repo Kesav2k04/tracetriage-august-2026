@@ -3,7 +3,7 @@
  "schema_version": 1,
  "unit": "why each kill gate landed where it did, and the exact condition that would move it",
  "generated_by": "scripts/run_gate_power.py",
- "generated_at": "2026-08-24T00:53:50.798039+00:00",
+ "generated_at": "2026-08-24T18:32:02.026009+00:00",
  "question": "Of the gates that are not met, which are facts about the project and which are facts about the measurement?",
  "reads": [
   "artifacts/GATE3_RECEIPT.json",
@@ -72,7 +72,7 @@
     "shortfall": 0,
     "required_discriminating_groups": 55,
     "have_discriminating_groups": 32,
-    "statement": "Not more episodes. This corpus has 68 independent (station, date) episodes, which already exceeds the 9 all-discriminating episodes that would clear a 0.7 bar on their own, and 32 of the 68 discriminate on every capture, putting the grouped bound at 0.366. Clearing 0.7 at 68 episodes takes 55 of them, and at 54 the bound is 0.697. The observation-level bound clears 0.7 at 0.731; the plan's rule is to group, so the observation-level pass is reported and not claimed.",
+    "statement": "Not more episodes. This corpus has 68 independent (station, date) episodes, which already exceeds the 9 all-discriminating episodes that would clear a 0.7 bar on their own, and 32 of the 68 discriminate on every capture, putting the grouped bound at 0.366. Clearing 0.7 at 68 episodes takes 55 of them, and at 54 the bound is 0.697. The observation-level bound clears 0.7 at 0.731; the pre-registration's rule is to group, so the observation-level pass is reported and not claimed.",
     "what_it_would_take": "Episodes in which every capture discriminates, not more episodes. A hundred more passes over the same receiver on the same night is one episode measured a hundred times, and the pre-registered statistic counts an episode with one failure among twenty the same as one with twenty, so it is stricter than the gate's own wording and it decides."
    }
   },

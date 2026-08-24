@@ -57,10 +57,9 @@ That fingerprint is the public half of a 4096-bit RSA key held outside this repo
 published so a download can be checked, and pinned in `build-apk.ps1` so a build signed by
 anything else fails before it can be released rather than after.
 
-There is no iOS build. It needs a paid Apple Developer account, and a submission with a dead
-TestFlight link in it is worse than one with no iOS row. The console is an installable PWA
-instead: on iOS Safari, Share then Add to Home Screen, and the eight pages work with no
-network after the first load. That is measured, in `artifacts/OFFLINE_RECEIPT.json`.
+Android only. On iOS the console installs as a PWA instead: Share, then Add to Home
+Screen, and the eight pages work with no network after the first load. That is measured, in
+`artifacts/OFFLINE_RECEIPT.json`.
 
 ## Build it yourself
 

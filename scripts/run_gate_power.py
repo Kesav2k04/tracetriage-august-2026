@@ -169,7 +169,8 @@ def _grouped_rate_closure(
             f"{need_k} of them"
             + (f", and at {need_k - 1} the bound is {below:.3f}" if below is not None else "")
             + f". The observation-level bound clears {threshold} at {bound:.3f}; the "
-            f"plan's rule is to group, so the observation-level pass is reported and not "
+            f"pre-registration's rule is to group, so the observation-level pass is "
+            f"reported and not "
             f"claimed."
         ),
         "what_it_would_take": (
@@ -258,7 +259,8 @@ def _gate3(receipt: dict[str, Any]) -> dict[str, Any]:
                     f"At the {groups} this corpus has, no rate over them clears "
                     f"{threshold}: even all {groups} discriminating leaves the bound at "
                     f"{exact_lower_bound(groups, groups):.3f}. The observation-level bound "
-                    f"already clears {threshold} at {bound:.3f}; the plan's rule is to "
+                    f"already clears {threshold} at {bound:.3f}; the pre-registration's rule is "
+                    f"to "
                     f"group, so the observation-level pass is reported and not claimed."
                 ),
                 "what_it_would_take": (

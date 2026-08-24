@@ -34,11 +34,6 @@ ablations the README's document index calls it: the ten-arm ladder is in
 `artifacts/FUSION_RECEIPT.json`, and the six items the README lists under prior
 art are the components of the combination claim, not baselines.
 
-The filename is unchanged because `README.md`,
-`apps/web/public/data/bob.json` and `docs/BOB_BUILD_LOG.md` all reference it by
-that name, and a broken link is worse than a filename with a correction at the
-top of the file it names.
-
 `artifacts/BASELINE_RECEIPT.json` is the source of truth for every number here.
 It carries the snapshot id, the manifest sha256, the seed, the full exclusion
 table and the split audit. If this document and the receipt ever disagree, the

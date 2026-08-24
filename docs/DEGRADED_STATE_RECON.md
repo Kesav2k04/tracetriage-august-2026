@@ -11,9 +11,7 @@ count. As first measured at `a41b87e`: five modes satisfied it, three were teste
 the wrong input, and four were not implemented at all. As of D8 and D8b, six of the twelve are
 COVERED, three are PARTIAL, and three have no named reason or no test at all: mode 6 (wrong
 start offset), mode 9 (missing model artifact) and mode 11 (empty queue after filtering).
-An earlier version of this line said all twelve had a named reason and a test that asserts
-it, which its own table nine lines below contradicted in six rows. The status column is the
-answer and this sentence now counts it rather than summarising it optimistically.
+The status column in the table below is the answer, and this sentence counts it.
 
 **Re-read on 2026-08-24 at `202dc85`.** Modes 9 and 11 were closed after the line above was
 written, in `tests/test_failure_injection.py` at `TestMissingModelArtifact:254` and

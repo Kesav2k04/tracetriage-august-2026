@@ -62,7 +62,7 @@ Quote tool output fields verbatim, and name the tool you got each number from.
 12. Read the resource receipt://GATE6 and quote its verdict.
 ```
 
-**Step 9 needs `status`, and this document did not say so until 2026-08-21.** Without it
+**Step 9 needs `status`.** Without it
 the network answers with the newest observations it holds, and the newest are passes that
 have not happened yet: `status: future`, dated days ahead, `has_waterfall: false` on every
 one, because a waterfall exists only after a station has recorded something. A session that

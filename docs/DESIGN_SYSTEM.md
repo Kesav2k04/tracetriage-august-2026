@@ -61,12 +61,6 @@ marker's form as well as its value: a filled disc for decided, a hollow ring for
 inconclusive, a dash for no measurement at all. The verdict word is printed in capitals
 beside every one of them, so hue is never the only channel carrying the state.
 
-**What was wrong before.** `globals.css` used to say `--verdict-passed` was chosen to sit in
-the same family as the viridis ramp the waterfalls are rendered in. The waterfalls are not
-rendered in viridis. They are grey, and the ramp was being applied by the console rather than
-found in the data, so a documented rationale rested on a false premise about its own input.
-The note is recorded in the stylesheet rather than deleted.
-
 **Two checks hold it.** `scripts/check_contrast.py` recomputes all 26 rendered pairs from the
 token block and `tests/test_contrast.py` fails the suite if one drops below its floor, so the
 next person to reach for a nicer amber finds out immediately rather than at an accessibility

@@ -137,7 +137,7 @@ def _tracked() -> set[str]:
         raise SystemExit(
             "git ls-files failed, so this cannot tell a published file from a local one. "
             "It refuses rather than describing the working tree, because a page listing "
-            "files a clone does not have is worse than no page."
+            "files a clone does not have describes something else."
         )
     return {line.strip() for line in proc.stdout.splitlines() if line.strip()}
 
@@ -279,7 +279,7 @@ def render() -> str:
         "",
         "It describes the **tracked** tree, which is what a clone gets. A file present in",
         "a working copy and not published does not appear here, because a page listing",
-        "files a judge does not have is worse than no page.",
+        "files a clone does not have describes something else.",
         "",
         (
             f"At this commit: {len(artifacts)} JSON artifacts, {len(contracts)} contracts, "
