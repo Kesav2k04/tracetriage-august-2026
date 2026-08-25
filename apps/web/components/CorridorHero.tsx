@@ -219,6 +219,10 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
           The corridor the orbit predicts, and {d.n_nulls} that were built from the
           same numbers.
         </h2>
+        {/* Both paragraphs in one cell. `.hero-plate-body` is placed explicitly at column
+            one, row two, so a second one landed on top of the first: 572 by 72 pixels of
+            overprinted text on the landing page. They stack inside a wrapper instead. */}
+        <div className="hero-plate-bodies">
         <p className="hero-plate-body">
           Observation {data.obs_id}, a real SatNOGS capture. The white path is the
           Doppler shift computed from the satellite&rsquo;s orbit, shifted by one
@@ -237,6 +241,7 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
           pipeline computed. The colour is a map applied for legibility and changes no
           pixel&rsquo;s rank against another.
         </p>
+        </div>
         <dl className="hero-plate-readout">
           <div>
             <dt>Fitted corridor</dt>
