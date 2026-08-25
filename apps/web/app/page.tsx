@@ -695,7 +695,7 @@ export default function QueuePage() {
               marginTop: "var(--sp-05)",
               color: "var(--text-02)",
               lineHeight: 1.7,
-              maxWidth: "62rem",
+              maxWidth: "62ch",
             }}
           >
             {queue.conflict_definition.caveats.map((caveat) => (
@@ -804,7 +804,7 @@ export default function QueuePage() {
           decision that had already been corrected. The rule is one sentence and
           the receipt is where the fields live. */}
       <Section title="Deduplication" description="One row per pass, not one row per capture.">
-        <p style={{ color: "var(--text-02)", lineHeight: 1.7, maxWidth: "62rem" }}>
+        <p style={{ color: "var(--text-02)", lineHeight: 1.7, maxWidth: "62ch" }}>
           A pass is one ground station, one satellite and one orbital revolution.
           Where a station published several captures of the same pass, the
           highest-scoring one is the row and the rest are dropped, so the budget is

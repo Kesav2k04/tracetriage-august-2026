@@ -77,7 +77,7 @@ const FIRST_CARD = showcaseIds[0];
 export default function StartPage() {
   return (
     <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
-      <header style={{ maxWidth: "62rem" }}>
+      <header style={{ maxWidth: "62ch" }}>
         <p className="lede-kicker">
           AI Builders Challenge with IBM Bob · August theme, Advance Space Exploration
           with AI
@@ -193,7 +193,7 @@ export default function StartPage() {
           </>
         }
       >
-        <div style={{ display: "grid", gap: "var(--sp-04)", maxWidth: "62rem" }}>
+        <div style={{ display: "grid", gap: "var(--sp-04)", maxWidth: "62ch" }}>
           {GATE_ROWS.map((gate) => (
             <div
               key={gate.gate}
@@ -250,7 +250,7 @@ export default function StartPage() {
           + "row quoting the wording it came from."
         }
       >
-        <div style={{ display: "grid", gap: "var(--sp-05)", maxWidth: "62rem" }}>
+        <div style={{ display: "grid", gap: "var(--sp-05)", maxWidth: "62ch" }}>
           {[
             {
               criterion: "Technical Execution",

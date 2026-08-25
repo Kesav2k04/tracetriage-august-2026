@@ -203,7 +203,7 @@ export default function ReplayPage() {
 
   return (
     <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
-      <header style={{ maxWidth: "62rem" }}>
+      <header style={{ maxWidth: "62ch" }}>
         <h1 style={{ fontSize: "var(--type-heading-05)" }}>
           The queue against the baselines
         </h1>

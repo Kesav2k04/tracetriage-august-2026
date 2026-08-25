@@ -21,7 +21,7 @@ export function Section({
   id?: string;
 }) {
   return (
-    <section id={id} style={{ marginTop: "var(--sp-09)" }}>
+    <section id={id} style={{ marginTop: "var(--sp-10)" }}>
       <h2
         style={{
           fontSize: "var(--type-heading-03)",
@@ -33,8 +33,8 @@ export function Section({
       {description && (
         <p
           style={{
-            margin: "0 0 var(--sp-05)",
-            maxWidth: "58rem",
+            margin: "0 0 var(--sp-06)",
+            maxWidth: "62ch",
             color: "var(--text-02)",
             lineHeight: 1.6,
           }}
@@ -380,7 +380,7 @@ export function Note({
         background: "var(--ui-01)",
         color: "var(--text-02)",
         lineHeight: 1.6,
-        maxWidth: "58rem",
+        maxWidth: "62ch",
       }}
     >
       {children}

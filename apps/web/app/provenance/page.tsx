@@ -91,7 +91,7 @@ export default function ProvenancePage() {
 
   return (
     <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
-      <header style={{ maxWidth: "62rem" }}>
+      <header style={{ maxWidth: "62ch" }}>
         <h1 style={{ fontSize: "var(--type-heading-05)" }}>Provenance</h1>
         <p
           style={{
@@ -348,7 +348,7 @@ export default function ProvenancePage() {
             paddingLeft: "1.1rem",
             lineHeight: 1.9,
             color: "var(--text-02)",
-            maxWidth: "62rem",
+            maxWidth: "62ch",
           }}
         >
           {/* Five bullets became two, and no claim was dropped.
@@ -433,10 +433,10 @@ export default function ProvenancePage() {
       </Section>
 
       <Section title="Data and attribution">
-        <p style={{ maxWidth: "62rem", lineHeight: 1.7, color: "var(--text-02)" }}>
+        <p style={{ maxWidth: "62ch", lineHeight: 1.7, color: "var(--text-02)" }}>
           {cards.attribution}
         </p>
-        <p style={{ maxWidth: "62rem", lineHeight: 1.7, color: "var(--text-02)" }}>
+        <p style={{ maxWidth: "62ch", lineHeight: 1.7, color: "var(--text-02)" }}>
           {cards.intensity_note}
         </p>
       </Section>

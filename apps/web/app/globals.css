@@ -248,6 +248,11 @@
   --sp-07: 2rem;
   --sp-08: 2.5rem;
   --sp-09: 3rem;
+  /* Two steps above the old ceiling. Thirteen sections separated by the same 3rem as a
+     paragraph gave the page one rhythm and therefore no hierarchy: a reader could not
+     see where a topic ended. --sp-10 is the section break, --sp-11 the part break. */
+  --sp-10: 4.5rem;
+  --sp-11: 6rem;
   --sp-10: 4rem;
   --sp-12: 6rem;
 
@@ -3478,4 +3483,16 @@ main .shell > section > h2::before {
    heading arrives with the ground above it visible. */
 section[id] {
   scroll-margin-top: var(--sp-07);
+}
+
+/* Measure, for the prose the components do not own.
+ *
+ * A line of body text is comfortable to read at roughly 45 to 75 characters, because
+ * past that the eye loses its place on the return sweep and every paragraph costs more
+ * than it should. Measured on /evaluation/ before this rule: 26 of 36 paragraphs ran
+ * past 105 characters and the worst ran 181. Section and Note carry their own 62ch cap
+ * inline; these two containers had none, so they inherited the full column. */
+.disclosure-body p,
+.colophon-rule p {
+  max-width: 68ch;
 }

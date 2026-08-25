@@ -385,7 +385,7 @@ export default function EvaluationPage() {
 
   return (
     <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
-      <header style={{ maxWidth: "62rem" }}>
+      <header style={{ maxWidth: "62ch" }}>
         <h1 style={{ fontSize: "var(--type-heading-05)" }}>Evaluation</h1>
         <p
           style={{
@@ -476,7 +476,7 @@ export default function EvaluationPage() {
           </>
         }
       >
-        <p style={{ maxWidth: "62rem", lineHeight: 1.7 }}>
+        <p style={{ maxWidth: "62ch", lineHeight: 1.7 }}>
           Each one names what actually bound the measurement and the condition that would
           move it, computed by <code>scripts/run_gate_power.py</code> from the same receipts
           that decided the verdicts. That script refuses to write its receipt at all while an
@@ -534,7 +534,7 @@ export default function EvaluationPage() {
         </div>
         {gatePower.room_rule ? (
           <>
-            <p style={{ maxWidth: "62rem", lineHeight: 1.7, marginTop: "var(--sp-06)" }}>
+            <p style={{ maxWidth: "62ch", lineHeight: 1.7, marginTop: "var(--sp-06)" }}>
               <strong style={{ color: "var(--text-01)" }}>
                 Gate 6&rsquo;s verdict is predicted by the split it was taken on, not by the
                 queue.
@@ -582,7 +582,7 @@ export default function EvaluationPage() {
                 </tr>
               ))}
             </Table>
-            <p style={{ maxWidth: "62rem", lineHeight: 1.7, marginTop: "var(--sp-05)" }}>
+            <p style={{ maxWidth: "62ch", lineHeight: 1.7, marginTop: "var(--sp-05)" }}>
               The obvious next thought does not follow, and the counterexample is in this
               corpus: <code>cold_transmitter</code> holds more observations than{" "}
               <code>chronological</code> and still fails, because its interval came back wider
@@ -610,7 +610,7 @@ export default function EvaluationPage() {
             decided on the {SPLIT_LABELS[gate6.decided_on] ?? gate6.decided_on} split
           </span>
         </div>
-        <p style={{ maxWidth: "62rem", lineHeight: 1.7 }}>{gate6.statement}</p>
+        <p style={{ maxWidth: "62ch", lineHeight: 1.7 }}>{gate6.statement}</p>
 
         <div
           style={{
@@ -640,7 +640,7 @@ export default function EvaluationPage() {
         description="The ranking score and the definition of a conflict read the same quantities, so part of the lift is true by construction. This bounds that part rather than arguing about it."
       >
         <Details summary="Which quantities the score and the conflict definition share">
-          <p style={{ lineHeight: 1.7, maxWidth: "62rem" }}>
+          <p style={{ lineHeight: 1.7, maxWidth: "62ch" }}>
             {circularity.shared_signals.reading}
           </p>
         </Details>
@@ -761,7 +761,7 @@ export default function EvaluationPage() {
 
         <Note tone="limit">{circularity.what_this_does_not_establish}</Note>
         <Details summary="How the random-ordering control was run">
-          <p style={{ lineHeight: 1.7, maxWidth: "62rem" }}>
+          <p style={{ lineHeight: 1.7, maxWidth: "62ch" }}>
             {circularity.random_ordering_control.reading}
           </p>
         </Details>
@@ -786,7 +786,7 @@ export default function EvaluationPage() {
             {SPLIT_LABELS[gate5.decided_on] ?? gate5.decided_on}
           </span>
         </div>
-        <p style={{ maxWidth: "62rem", lineHeight: 1.7 }}>{gate5.statement}</p>
+        <p style={{ maxWidth: "62ch", lineHeight: 1.7 }}>{gate5.statement}</p>
 
         <Table
           head={[
@@ -1099,7 +1099,7 @@ export default function EvaluationPage() {
             : "The one gate no amount of compute closes. The worksheet has been answered once and not by a person, so the gate is still OPEN: the arm below says the sample supports a decision, not that a reader would reach one."
         }
       >
-        <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
+        <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62ch" }}>
           The threshold was fixed before the build: at least 80% of a balanced sample,
           reviewed with the network&rsquo;s labels and every model output hidden, must
           support a decisive judgment. The sample is{" "}
@@ -1109,7 +1109,7 @@ export default function EvaluationPage() {
           Sixty rather than thirty-six because the verdict reads the interval, and at 36
           even a true rate of 0.90 could not clear the bar.
         </p>
-        <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
+        <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62ch" }}>
           The sample is committed to rather than promised: before the review, one
           salted sha256 per item over the item id, the observation id and the image
           digest, with the 32-byte salt and the item-to-observation mapping held outside
@@ -1172,7 +1172,7 @@ export default function EvaluationPage() {
         </figure>
         {gate4Arm && (
           <>
-            <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62rem" }}>
+            <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62ch" }}>
               {gate4Arm.is_the_gate ? (
                 <>
                   <strong style={{ color: "var(--text-01)" }}>This gate is decided.</strong>{" "}
