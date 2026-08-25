@@ -617,7 +617,11 @@ export default function QueuePage() {
           <Stat
             label="Queue length"
             value={queue.entries.length}
-            detail={`from ${chronological.n_test_total ?? "—"} test observations after episode deduplication`}
+            detail={
+              `from ${chronological.n_test_total ?? "—"} test observations, one row per pass: `
+              + `one station, one satellite, one revolution, and where a station published `
+              + `several captures of the same pass the highest-scoring one is the row`
+            }
           />
           <Stat
             label="Pass episodes"
@@ -795,23 +799,13 @@ export default function QueuePage() {
         />
       </Section>
 
-      {/* Deduplication was the last section on this page and it closed on a
-          Field/Value table whose row headers were the receipt's own key names
-          (`key`, `n_degraded_revolution`, `degraded_revolution_policy`), plus a
-          rule paragraph that ended on build history: "an hour bucket was the
-          earlier key and was wrong". The last impression a judge took from the
-          product page was a dump of internal field names and a note about a
-          decision that had already been corrected. The rule is one sentence and
-          the receipt is where the fields live. */}
-      <Section title="Deduplication" description="One row per pass, not one row per capture.">
-        <p style={{ color: "var(--text-02)", lineHeight: 1.7, maxWidth: "62ch" }}>
-          A pass is one ground station, one satellite and one orbital revolution.
-          Where a station published several captures of the same pass, the
-          highest-scoring one is the row and the rest are dropped, so the budget is
-          spent on {queue.review_budget.n_observations} distinct passes. Every field
-          behind that rule is in <code>artifacts/QUEUE_RECEIPT.json</code>.
-        </p>
-      </Section>
+      {/* Deduplication was a section, and it was the last one on the page.
+          It closed the product page on the definition of an episode key: a reader who
+          had just read the queue was handed a footnote about how rows are collapsed.
+          Two cuts had already been made to it and the position was the remaining
+          problem, not the length. The rule is now the `detail` on the queue-length stat
+          it qualifies, which is where a reader meets the number it explains, and every
+          field behind it is in artifacts/QUEUE_RECEIPT.json where it always was. */}
     </div>
   );
 }

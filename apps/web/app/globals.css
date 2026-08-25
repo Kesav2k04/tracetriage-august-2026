@@ -1539,6 +1539,13 @@ code,
   color: var(--text-03);
 }
 
+/* The theme line. Quieter than the paragraph above it and directly under it, because
+   it names the challenge rather than the project. */
+.colophon-theme {
+  margin-top: var(--sp-03);
+  color: var(--text-03);
+}
+
 .colophon-rule p {
   margin: 0;
 }
@@ -1739,30 +1746,54 @@ code,
  * sweep, so nothing is withheld from a reader who asked for less movement.
  * ======================================================================== */
 .hero-plate {
-  display: grid;
-  gap: var(--sp-06);
-  grid-template-columns: minmax(0, 1fr);
+  display: block;
   padding: var(--sp-07) 0;
   border-bottom: 1px solid var(--border-subtle);
 }
 
-@media (min-width: 62rem) {
-  .hero-plate {
-    grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
-    gap: var(--sp-08);
-    align-items: start;
-  }
-}
-
+/* The plate is a landscape band and the caption sits under it.
+   It was a 360px column with the caption beside it, which is a shape a 620 by 1540
+   plate cannot take: at 360px it stands 894px tall, so `max-height` cropped it, and
+   the crop kept the top fifth of one pass. The frame turned a quarter turn instead
+   (see CorridorHero), which makes it 2.48 to 1 and lets the full width of the shell
+   carry the whole pass with nothing hidden and no cap to reach. */
 .hero-plate-frame {
+  position: relative;
   background: var(--waterfall-ground);
   border: 1px solid var(--border-subtle);
-  /* The waterfall is 620 by 1540, so a column that let it run to its natural
-     height would be over 900px tall next to six lines of caption. Capped, and the
-     cap is on the frame rather than the image so the aspect ratio is never
-     touched: a squeezed waterfall would misstate the Doppler slope. */
-  max-height: 72vh;
-  overflow: hidden;
+}
+
+/* The axes, said out loud on the frame.
+   A waterfall is conventionally read with time down the page, and this one is turned,
+   so the frame cannot rely on the convention to tell a reader which way it runs. Two
+   labels in the corners cost one line each and remove the whole ambiguity. They sit on
+   the plate rather than in the caption because that is where the question is asked. */
+.hero-plate-axis {
+  position: absolute;
+  z-index: 1;
+  margin: 0;
+  padding: var(--sp-03) var(--sp-04);
+  font-family: var(--font-label);
+  font-size: var(--type-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-02);
+  /* The plate under these two corners is receiver noise mapped to near-black, so the
+     panel is there to guarantee the contrast rather than to be seen: measured against
+     the darkest and the brightest pixel either label can sit over. */
+  background: rgb(3 4 6 / 0.72);
+  pointer-events: none;
+}
+
+.hero-plate-axis-time {
+  left: 0;
+  bottom: 0;
+}
+
+.hero-plate-axis-freq {
+  right: 0;
+  top: 0;
 }
 
 .hero-plate-svg {
@@ -1914,10 +1945,55 @@ code,
   }
 }
 
+/* Under a full-width band, a caption set in one column leaves half the shell empty.
+   Two columns of roughly a measure each: what the frame shows on the left, what it
+   does not establish on the right, and the readout as a rule-bounded strip across
+   both. Below 62rem it collapses to the single column it was. */
+.hero-plate-caption {
+  margin-top: var(--sp-06);
+}
+
+@media (min-width: 62rem) {
+  .hero-plate-caption {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--sp-08);
+    align-items: start;
+  }
+
+  /* Placed explicitly, every one of them. Auto-placement reads DOM order, which is
+     title, body, readout, limit, so the limit landed in a fourth row under the readout
+     and the second column stayed empty for the whole height of the body. Rows here are
+     the layout; the DOM stays in the order a screen reader should hear it. */
+  .hero-plate-title {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .hero-plate-body {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  /* Beside the body, not under it: both are commentary on the same frame and neither
+     is a consequence of the other. */
+  .hero-plate-limit {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: var(--sp-05);
+  }
+
+  .hero-plate-readout {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+}
+
 .hero-plate-title {
   margin: 0;
   font-size: var(--type-heading-04);
   line-height: 1.25;
+  max-width: 34ch;
 }
 
 .hero-plate-body {
@@ -2184,8 +2260,17 @@ code,
        footer's shell too. Flatten `.colophon-grid` and this rule, and the float
        containment below, both start matching the footer silently. Revealing a footer
        column as it enters animates the last thing on the page for no reader benefit. */
+    /* `.chart` and `.orbit-field` are figures nested inside a section rather than
+       children of the shell, so the two child combinators above never reached them and
+       the new figures were the only things on the page that did not arrive. One
+       animated element per figure, the same two composited properties as everything
+       else here: a figure is revealed as a whole and its contents are never animated
+       individually, because a per-mark animation inside an SVG re-rasterises the whole
+       drawing on every frame. */
     main .shell > section,
     main .shell > figure,
+    .chart,
+    .orbit-field,
     .instrument {
       animation: reveal-in linear both;
       animation-timeline: view();
@@ -2284,11 +2369,30 @@ main a:not(.rail-link):not(.rail-mark):not(.queue-more):not(.skip-link):focus-vi
  * ------------------------------------------------------------------------- */
 
 main tbody tr {
-  position: relative;
   transition: background-color var(--dur-fast-02) var(--ease-productive-standard);
 }
 
-main tbody tr::before {
+/* The bar hangs off the row's FIRST CELL, not off the row.
+ *
+ * It was on `main tbody tr::before`, and a `tr` is `display: table-row`, which may
+ * contain nothing but table-cells. A generated box inside one is therefore wrapped in
+ * an ANONYMOUS TABLE CELL during table fix-up, and that happens before `position:
+ * absolute` is resolved, so the anonymous cell still counted as a column. Every table
+ * body on this console was one column wider than its own header: measured on
+ * /precedent/ at 1440px, the head cells laid out at 232-356, 356-970 and 970-1125
+ * while the body cells laid out at 356-970, 970-1125 and 1125-1416, so "COLD" sat
+ * over the warm column, the warm header sat over an empty gutter, and the last column
+ * of every table on the site had no header above it at all.
+ *
+ * A cell is an ordinary block container and its pseudo-element generates no anonymous
+ * anything. `position: relative` on the cell makes it the containing block, and a cell
+ * is exactly as tall as its row, so the bar still spans the row. The animation is
+ * unchanged: `scaleX` on a pseudo-element, which composites and reflows nothing. */
+main tbody tr > *:first-child {
+  position: relative;
+}
+
+main tbody tr > *:first-child::before {
   content: "";
   position: absolute;
   left: 0;
@@ -2305,8 +2409,8 @@ main tbody tr:hover {
   background-color: var(--hover-ui);
 }
 
-main tbody tr:hover::before,
-main tbody tr:focus-within::before {
+main tbody tr:hover > *:first-child::before,
+main tbody tr:focus-within > *:first-child::before {
   transform: scaleX(1);
 }
 
@@ -2804,6 +2908,12 @@ main .shell > section > h2::before {
   overflow-x: auto;
 }
 
+/* Three across, so six cards fill two rows exactly.
+   `auto-fit` with a 14rem minimum put four on the first row and two on the second at
+   every desktop width, which leaves half a row of nothing under a panel that is the
+   last thing on the page. The shelf holds a fixed six, baked into the build, so the
+   column count can be chosen for the count rather than derived from a width that does
+   not know it. */
 .live-shelf {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
@@ -2811,6 +2921,12 @@ main .shell > section > h2::before {
   margin: var(--sp-05) 0 0;
   padding: 0;
   list-style: none;
+}
+
+@media (min-width: 52rem) {
+  .live-shelf {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .live-shelf-button {
@@ -3498,15 +3614,136 @@ section[id] {
   max-width: 68ch;
 }
 
-/* The orbital figure. Sized by aspect rather than cropped, so it cannot letterbox, and
-   deliberately unbordered: the shader fades to --ui-background at its lower edge, which
-   closes the frame without adding another rule to a page that had 28 of them. */
+/* The orbital figure.
+   Two panels on one time axis, drawn as SVG. It carries a rule the way every other
+   instrument on this console does, because it is one: the version that faded to the
+   page colour and wore no border was a shader with no axis on either curve, and a
+   borderless frame was the right answer for a decoration and the wrong one for a
+   chart a reader is invited to read values off. */
 .orbit-field {
   position: relative;
+  margin: 0;
 }
 
-.orbit-field canvas {
-  background: var(--ui-background);
+.orbit-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #06080e;
+  border: 1px solid var(--border-subtle);
+}
+
+/* The axis furniture. Uppercase, tracked and set in the label face, which is the same
+   treatment every other label on this console gets: a chart that invented its own
+   would read as a picture of a chart. */
+.orbit-axis {
+  font-family: var(--font-label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: var(--text-03);
+}
+
+.orbit-axis-end {
+  text-anchor: end;
+}
+
+/* Tabular, because these are numbers on an axis and an axis whose digits change width
+   is an axis that appears to move. */
+.orbit-tick {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-03);
+}
+
+/* ===========================================================================
+ * The chart primitives.
+ *
+ * Five routes shipped with no figure on them at all, and the finding on each was a
+ * shape published only as digits in a table. `components/charts.tsx` draws the shapes;
+ * this is the type and the rules they are set in, and they are the interface's own
+ * rather than a chart library's, because a figure that brought its own typography
+ * reads as a picture of a chart pasted into the page.
+ * ======================================================================== */
+.chart {
+  margin: var(--sp-06) 0 0;
+}
+
+.chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--ui-01);
+  border: 1px solid var(--border-subtle);
+  padding: var(--sp-05);
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.chart figcaption {
+  margin-top: var(--sp-04);
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  line-height: 1.7;
+  max-width: 68ch;
+}
+
+.chart-row-label {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  fill: var(--text-01);
+}
+
+.chart-row-sub {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  fill: var(--text-03);
+}
+
+/* Tabular on every number in every chart. A digit that changes width is a mark that
+   appears to move when the value it prints did not. */
+.chart-tick,
+.chart-value,
+.chart-in-bar {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-tick {
+  font-size: 13px;
+  fill: var(--text-03);
+}
+
+.chart-value {
+  font-size: 15px;
+  fill: var(--text-01);
+}
+
+/* Set on the fill it sits on, not on the page. These land inside a bar drawn in an
+   accent, and a token meant for the page ground has no contrast against one. */
+.chart-in-bar {
+  font-size: 13px;
+  fill: #0a0c11;
+  font-weight: 600;
+}
+
+.chart-legend {
+  font-family: var(--font-label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  fill: var(--text-03);
+}
+
+.chart-mid {
+  text-anchor: middle;
+}
+
+.chart-end {
+  text-anchor: end;
 }
 
 .orbit-field figcaption {
@@ -3557,7 +3794,14 @@ section[id] {
      than its own note, which is why /evaluation/ looked fine while /start/ did not.
      `flow-root` also removes the gaps the next heading's `clear` was opening, because
      the overhang becomes section height instead of dead space in the text column. */
-  main .shell > section {
+  /* Scoped to the sections that actually carry a float. Written as
+     `main .shell > section` this also overrode the display of every section that lays
+     itself out, and one does: `.hero-plate` is a plate plus a caption and `flow-root`
+     collapsed its grid to a single column, which stretched a 620 by 1540 waterfall
+     across the full shell and left `max-height` to crop away four fifths of it.
+     Measured at 1440px: the frame showed 22% of the image. A rule whose whole job is
+     to contain a float has no business setting `display` on a section that has none. */
+  main .shell > section:has(> p.note) {
     display: flow-root;
   }
 

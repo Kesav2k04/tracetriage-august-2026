@@ -10,6 +10,7 @@
  * mix rather than the retriever.
  */
 import { precedent, fmt } from "@/lib/data";
+import { Dumbbell } from "@/components/charts";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export const metadata = { title: "Precedent" };
@@ -41,13 +42,60 @@ export default function PrecedentPage() {
   return (
     <main className="shell" style={{ paddingBlock: "var(--sp-07)" }}>
       <h1 style={{ marginBottom: "var(--sp-03)" }}>Precedent, warm and cold</h1>
+      {/* The question, and then the design behind the first figure rather than in
+          front of it. Both are receipt fields and both are printed in full; what changed
+          is that a reader now meets the question, then the shape of the answer, and then
+          the four-arm design that produced it. Stacked ahead of the first number they
+          were 60 words of method before anything had been claimed. */}
       <p style={{ maxWidth: "62ch", color: "var(--text-02)" }}>{precedent.question}</p>
-      <p style={{ maxWidth: "62ch", color: "var(--text-02)" }}>{precedent.design}</p>
 
       <Section
         title="Agreement at 5, per arm"
         description={`${precedent.candidate_pool.observations} decisively labelled passes from ${precedent.candidate_pool.stations} stations and ${precedent.candidate_pool.satellites} satellites. Chance is ${fmt(warm.chance_level, 3)}, which is the label mix alone.`}
       >
+        {/* The finding, before the digits that support it.
+            Warm and cold were two columns of a table, and the thing this page is
+            actually reporting is the distance between them: three arms clear chance
+            warm and every one of them falls back to it cold. That is a length, and a
+            reader should not have to do four subtractions to see it. The table is
+            still below, because a length is not a value and the values are the
+            receipt. */}
+        <Dumbbell
+          rows={arms.map((arm) => ({
+            label: ARM_LABELS[arm] ?? arm,
+            a: warm.arms[arm]?.agreement_at_k ?? null,
+            b: cold.arms[arm]?.agreement_at_k ?? null,
+            missingNote: "no cold definition",
+          }))}
+          aName="Warm"
+          bName="Cold"
+          rules={[
+            {
+              at: warm.chance_level,
+              label: `chance ${fmt(warm.chance_level, 3)}`,
+            },
+          ]}
+          format={(v) => fmt(v, 3)}
+          label={
+            `Agreement at 5 for four retrieval arms, warm and cold, against a chance ` +
+            `level of ${fmt(warm.chance_level, 3)}.`
+          }
+          caption={
+            `Each line is one arm. The filled mark is the warm condition, which allows ` +
+            `any neighbour; the hollow mark is cold, which forbids the query's own ` +
+            `station and satellite. The dashed rule is the label mix alone. The length ` +
+            `of a line is what the entity restriction costs that arm.`
+          }
+        />
+        <p
+          style={{
+            maxWidth: "62ch",
+            color: "var(--text-02)",
+            margin: "var(--sp-06) 0 var(--sp-05)",
+          }}
+        >
+          {precedent.design}
+        </p>
         <Table
           head={["Arm", "Warm", "Cold"]}
           headAlign={["left", "right", "right"]}

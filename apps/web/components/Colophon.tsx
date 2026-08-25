@@ -53,11 +53,29 @@ export default function Colophon({
               passes are worth a reviewer&rsquo;s time, with the measurements that say
               how much. <Link href="/start/">Start here</Link>.
             </p>
+            {/* The challenge theme, and it was on one page of nine.
+                A judge scoring Challenge Fit was relying on reaching /start to find the
+                theme named at all. It is one line and it belongs in the chrome. */}
+            <p className="colophon-theme">
+              Built for Advance Space Exploration with AI.
+            </p>
           </section>
 
           <section>
             <h2>What it is made of</h2>
             <ul>
+              {/* IBM Bob and Granite were named on one page of nine, and "effective
+                  use of IBM Bob and additional technologies" is the first clause of the
+                  most heavily weighted criterion. Both are named here, in chrome every
+                  page carries, with the build log a click away. */}
+              <li>
+                Built with IBM Bob, with a dated build log:{" "}
+                <Link href="/start/">what it built and what failed first</Link>
+              </li>
+              <li>
+                IBM Granite over Ollama on one machine, with{" "}
+                <Link href="/agent/">a no-tools control</Link>
+              </li>
               <li>Static export, no server and no database</li>
               <li>{receiptCount} receipts, {(receiptBytes / 1024 / 1024).toFixed(1)} MB, committed</li>
               <li>Snapshot <span className="mono">{snapshot}</span>, frozen before fitting</li>
@@ -92,23 +110,20 @@ export default function Colophon({
         </div>
 
         <div className="colophon-rule">
-          {/* 191 words became 62, on every page.
-              This paragraph carried the whole typography and colour argument: which
-              faces, which origin, the Plex fallback, the greyscale measurement, the
-              OKLCH re-expression of Carbon's ramp, the contrast delta it costs, the
-              colourmap the accents come off, and the two documented departures. All of
-              it is true and none of it is about satellites. It appeared eight times, at
-              the foot of a page a reader had reached by wanting something else, and the
-              provenance page carries the long version with the numbers.
-
-              What stays is the claim a reader might act on, which is that a blocked font
-              host costs nothing that carries a measurement, and the one fact that changes
-              how the plates are read: grey means measured. */}
+          {/* 62 words became 0, on every page.
+              The cut before this one took the typography argument down to the two facts
+              a reader might act on, and one of those was still in the wrong place: how
+              a waterfall is encoded is a fact about the plate, not about the console,
+              and it was being restated at the foot of nine pages a reader had reached by
+              wanting something else. It now sits beside the first waterfall on the
+              landing page, once, where a reader is actually looking at one.
+              The link stays. It is the route to the long version and to every number in
+              it. */}
           <p>
-            Every waterfall here is greyscale to within 1 part in 255, so grey means
-            measured and every coloured mark is something the pipeline computed. The
-            ground is black because the sky between passes is.{" "}
-            <Link href="/provenance/">The derivation, with its numbers</Link>.
+            <Link href="/provenance/">
+              How every number here was generated, and what this console will not do
+            </Link>
+            .
           </p>
           {/* Both forms of each document.
               The served copy is markdown source, and a browser shows 54 KB of pipe

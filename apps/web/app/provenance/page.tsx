@@ -7,6 +7,7 @@
  * the other pages are the ones inside these files rather than a retelling.
  */
 import { cards, evaluation, isBuilt, provenance, queue } from "@/lib/data";
+import { SplitBars } from "@/components/charts";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export const metadata = { title: "Provenance" };
@@ -199,6 +200,38 @@ export default function ProvenancePage() {
         title="Splits"
         description="Four ways of holding data back, because a chronological split alone cannot tell you whether the model learned the task or learned the stations."
       >
+        {/* The four splits at one scale, and the fourth one is the point.
+            As five columns of digits, cold_combined reads as another row. Drawn
+            against the same axis it is visibly the shortest bar on the page with the
+            largest excluded block beside it, which is the honest summary: the split
+            that holds back both entity kinds keeps a third of the corpus and throws
+            away 1,489 observations rather than assign them to a partition whose
+            guarantee they would break. */}
+        <SplitBars
+          rows={provenance.splits.map((split) => ({
+            label: split.name,
+            values: [
+              split.counts.train ?? 0,
+              split.counts.calibration ?? 0,
+              split.counts.test ?? 0,
+              split.counts.excluded ?? 0,
+            ],
+          }))}
+          parts={[
+            { name: "Train", ink: "var(--interactive-01)" },
+            { name: "Calibration", ink: "#7c5cff" },
+            { name: "Test", ink: "#4589ff" },
+            { name: "Excluded", ink: "#3a3f4b" },
+          ]}
+          label={
+            "Train, calibration, test and excluded counts for four splits, on one scale."
+          }
+          caption={
+            "One scale across all four rows, so a split that keeps fewer observations " +
+            "is drawn shorter. The number at the right of each row is that split's " +
+            "total, and every total is the same corpus."
+          }
+        />
         <Table
           head={["Split", "Train", "Calibration", "Test", "Excluded"]}
           caption={`All four are defined in SPLIT_MANIFEST.json, digest ${provenance.split_manifest_sha256.slice(0, 16)}…`}
@@ -366,19 +399,20 @@ export default function ProvenancePage() {
               measured both ways. The harness, the two face lists, the five rounds and
               the declined alternative are in artifacts/FONT_PAINT_RECEIPT.json, which
               is the file that would have to be read to verify any of it anyway. */}
+          {/* Cut again, and the reason is the same one that took it from 890 words
+              to five bullets: this is a site about satellite passes and the paragraph
+              was about a typeface. What a reader has to know to check the claim is that
+              exactly one third-party origin exists, that it carries no data, and that
+              the browser enforces it. The measurement, the harness and the declined
+              alternative are in artifacts/FONT_PAINT_RECEIPT.json, which is the file
+              anyone verifying this would have to read anyway. */}
           <li>
-            No request for <em>data</em> to any origin but its own, before or after
-            load. Two licensed display families are the one exception and they are not
-            data: Adobe&rsquo;s terms forbid serving the files from anywhere else. The
-            content security policy in <code>vercel.json</code> names both hosts, so any
-            third origin is refused by the browser. Every digit of every measurement here
-            is set in IBM Plex served from this site, so the font host cannot hold the
-            first paint: <code>artifacts/FONT_PAINT_RECEIPT.json</code>.
-          </li>
-          <li>
-            The router does prefetch the next page&rsquo;s data when a link enters
-            the viewport, which is a request to this site for a file that is
-            already public.
+            No request for <em>data</em> to any origin but its own, before or after load.
+            Two licensed display faces are the one exception and they carry no data; the
+            content security policy in <code>vercel.json</code> names the only hosts a
+            browser is permitted to reach, and every digit of every measurement is set in
+            IBM Plex served from this site:{" "}
+            <code>artifacts/FONT_PAINT_RECEIPT.json</code>.
           </li>
           <li>
             No model runs in the browser. The probabilities shown were fitted offline
@@ -391,7 +425,6 @@ export default function ProvenancePage() {
           </li>
           <li>
             No analytics about you, no cookies, no storage, and nothing to consent to.
-            The font host is told a licence was used and nothing about who used it.
           </li>
         </ul>
       </Section>

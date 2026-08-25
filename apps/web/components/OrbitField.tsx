@@ -1,47 +1,64 @@
-"use client";
-
 /*
- * A pass, propagated: the limb, the sky track over it, and the corridor that track implies.
+ * A pass, propagated: elevation above the horizon and the Doppler shift that same
+ * pass implies, drawn against each other on one time axis.
  *
- * Why this exists. Seven of the eight pages on this console opened on a heading and a
- * paragraph, so they read as one undifferentiated document and a reader arrived at each
- * one already tired. `DeepField` gave the landing route a visual anchor and nothing else
- * had one. This is the second anchor, and it draws the thing the whole project is about:
- * a satellite crosses, the received frequency sweeps because it is moving, and the sweep
- * has a shape fixed by the geometry rather than by anything a model chose.
+ * Why it exists. Seven of the eight pages on this console opened on a heading and a
+ * paragraph, so they read as one undifferentiated document and a reader arrived at
+ * each one already tired. This is the anchor for the pages that argue from geometry,
+ * and it draws the thing the whole project is about: a satellite crosses, the
+ * received frequency sweeps because it is moving, and the sweep has a shape fixed by
+ * the geometry rather than by anything a model chose.
  *
- * The first draft of this file drew a parabola and a tanh, because both are one line and
- * both look approximately right. On a page whose entire claim is that the corridor's
- * shape is fixed by geometry, a figure of that shape which was really two convenient
- * closed forms is the worst defect it could carry. So the curves below are propagated: a
- * circular orbit under a two-body field, a rotating station on the surface beneath it,
- * elevation and slant range sampled across the visible window, and the Doppler shift
- * taken from the range rate that falls out of the same integration. Nothing is fitted and
- * nothing is placed by eye.
+ * What changed, and why the first version was wrong. It was one fragment shader over
+ * one triangle: two amber curves, a dot, a star field and a faint limb. Rendered, it
+ * was two similar squiggles floating in a black rectangle with no axis, no unit and
+ * no label on either one, so a reader could not tell which curve was which without
+ * reading four lines of caption, and could not read a value off either at all. A
+ * figure on a page whose entire claim is that numbers come from somewhere cannot be a
+ * decoration that resembles a chart. It is an instrument now: two panels on a shared
+ * time axis, both scaled, both labelled, with the horizon drawn as a horizon and the
+ * ground under it.
+ *
+ * The propagation is unchanged and is still the point. A circular orbit under a
+ * two-body field, a rotating station on the surface beneath it, elevation and slant
+ * range sampled across the visible window, and the Doppler shift taken from the range
+ * rate that falls out of the same integration. Nothing is fitted and nothing is placed
+ * by eye. An earlier draft drew a parabola and a tanh, because both are one line and
+ * both look approximately right; on a page arguing that the corridor's shape is fixed
+ * by geometry, a figure of that shape which was really two convenient closed forms is
+ * the worst defect it could carry.
  *
  * What it is and is not. It is a propagation of the orbit given to it, and its caption
  * says so. It is NOT a measurement of any observation in the corpus: no receipt is read
  * here, no number on any page comes from this file, and nothing it draws is quoted
- * anywhere. That distinction is the reason the console is worth reading, so a decorative
- * element that blurred it would cost more than it gave.
+ * anywhere. That distinction is the reason the console is worth reading, so a
+ * decorative element that blurred it would cost more than it gave. The corridor is
+ * drawn in the same white the hero plate uses for its fitted corridor, because it is
+ * the same quantity, and the reader who noticed that on the landing page should be
+ * right about it here.
  *
- * One fragment shader over one triangle. The curves are propagated once on the CPU and
- * handed down as two arrays; the per-pixel work is distance-to-polyline over 48 points.
- * No geometry is uploaded, no path is tessellated, and no buffer is rewritten between
- * frames, so a frame is one fullscreen pass. The alternative, a stroked SVG path animated
- * per frame, rasterises its whole promoted layer on every tick.
+ * No client JavaScript, and no WebGL. The old version needed a context, a compile, a
+ * link, an IntersectionObserver, a `visibilitychange` listener and a reduced-motion
+ * listener, and returned nothing at all on a driver that refused the context. This is
+ * a server component: the curves are propagated once at build time and emitted as SVG,
+ * and the only motion is three CSS animations whose keyframes are generated from the
+ * same samples. Every one of them animates `transform` alone, so a frame costs a
+ * composite and no layout, no paint and no path re-raster.
  *
- * It must not run when nobody is looking. The same three guards `DeepField` uses, for the
- * same reasons: an IntersectionObserver stops the loop when the canvas leaves the
- * viewport, `visibilitychange` stops it on a hidden tab, and `prefers-reduced-motion`
- * draws exactly one frame and never schedules another. Under reduce the evidence is the
- * frame, not the sweep, so nothing is withheld from a reader who asked for less movement.
+ * The three moving marks share one keyframe schedule rather than an `offset-path`
+ * each. `offset-distance` advances along arc length, and the elevation hump and the
+ * Doppler sweep have different arc lengths per unit of time, so two marks driven that
+ * way drift apart visibly by the middle of the pass. Explicit stops at the same
+ * sample indices cannot drift: mark and read-head are on sample i at the same instant
+ * by construction.
+ *
+ * Under `prefers-reduced-motion: reduce` the marks are placed at culmination and
+ * nothing animates. The evidence is the frame, not the sweep, so nothing is withheld
+ * from a reader who asked for less movement.
  */
 
-import { useEffect, useMemo, useRef } from "react";
+import type { CSSProperties } from "react";
 
-/** Points per curve. 48 is where the polyline stops reading as a polyline at this size,
- *  and it keeps both arrays well inside the uniform budget of any WebGL2 device. */
 const SAMPLES = 48;
 
 const MU = 398600.4418; // km^3 s^-2, WGS-84 gravitational parameter
@@ -50,8 +67,10 @@ const OMEGA_E = 7.2921159e-5; // rad/s, Earth rotation
 const C_KM_S = 299792.458;
 
 type Track = {
-  arc: number[];
-  corridor: number[];
+  /** Elevation in radians, one per sample, across the visible window. */
+  elevations: number[];
+  /** Doppler shift in Hz, one per sample, same instants. */
+  shifts: number[];
   peakElevationDeg: number;
   maxShiftHz: number;
   durationS: number;
@@ -60,14 +79,15 @@ type Track = {
 type Vec3 = [number, number, number];
 
 /**
- * Propagate one pass and reduce it to two polylines.
+ * Propagate one pass and reduce it to two sampled series.
  *
- * A circular orbit is enough, and saying so is the point: the corridor's shape comes from
- * the geometry of a crossing, not from the eccentricity of any particular object, so a
- * circular orbit shows the shape without inviting a reader to think a specific satellite
- * is being modelled. Range rate is taken by central difference on the slant range rather
- * than by projecting the velocity vector, because the two agree well below a pixel here
- * and a finite difference cannot disagree with the range actually plotted.
+ * A circular orbit is enough, and saying so is the point: the corridor's shape comes
+ * from the geometry of a crossing, not from the eccentricity of any particular object,
+ * so a circular orbit shows the shape without inviting a reader to think a specific
+ * satellite is being modelled. Range rate is taken by central difference on the slant
+ * range rather than by projecting the velocity vector, because the two agree well
+ * below a pixel here and a finite difference cannot disagree with the range actually
+ * plotted.
  */
 function propagate(
   altitudeKm: number,
@@ -95,9 +115,9 @@ function propagate(
     ];
   };
 
-  // The station turns with the Earth. Over a ten-minute pass that is about 2.5 degrees of
-  // longitude: small, but leaving it out tilts the corridor, which is the one feature of
-  // the curve the figure exists to show.
+  // The station turns with the Earth. Over a ten-minute pass that is about 2.5 degrees
+  // of longitude: small, but leaving it out tilts the corridor, which is the one
+  // feature of the curve the figure exists to show.
   const stationAt = (t: number): Vec3 => {
     const lon = OMEGA_E * t;
     return [
@@ -151,8 +171,8 @@ function propagate(
     const { elevationRad } = geometry(t);
     const dt = 0.5;
     const rateKmS = (geometry(t + dt).range - geometry(t - dt).range) / (2 * dt);
-    // Classical one-way Doppler, in the sign convention the console uses: a closing range
-    // raises the received frequency.
+    // Classical one-way Doppler, in the sign convention the console uses: a closing
+    // range raises the received frequency.
     shifts.push((-rateKmS / C_KM_S) * frequencyMHz * 1e6);
     elevations.push(elevationRad);
     peak = Math.max(peak, elevationRad);
@@ -161,214 +181,80 @@ function propagate(
   let maxShift = 0;
   for (const s of shifts) maxShift = Math.max(maxShift, Math.abs(s));
 
-  // Into frame coordinates. The track rides between two fixed rails so a low pass and a
-  // high one both read, and the corridor is normalised to its own extreme so its shape
-  // stays legible at any frequency.
-  // Normalised, not framed. The first version baked frame coordinates in here, which
-  // put 24 of the 48 corridor samples below the bottom of the canvas and squeezed both
-  // curves into 42% of its width. Where a curve sits in the frame depends on the frame's
-  // aspect ratio, which only the shader knows, so that decision belongs there.
-  const arc: number[] = [];
-  const corridor: number[] = [];
-  for (let i = 0; i < SAMPLES; i++) {
-    const x = -1 + 2 * (i / (SAMPLES - 1));
-    arc.push(x, (elevations[i] ?? 0) / (peak || 1)); //  0 at the horizon, 1 at culmination
-    corridor.push(x, (shifts[i] ?? 0) / (maxShift || 1)); // -1 to 1 across the sweep
-  }
-
   return {
-    arc,
-    corridor,
+    elevations,
+    shifts,
     peakElevationDeg: (peak * 180) / Math.PI,
     maxShiftHz: maxShift,
     durationS: span,
   };
 }
 
-const VERT = `#version 300 es
-/* One oversized triangle rather than a quad. Three vertices, no index buffer, and no
-   diagonal seam down the middle where two triangles would have met. */
-void main() {
-  vec2 p = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
-  gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
-}`;
+/* ---------------------------------------------------------------------------
+ * The frame.
+ *
+ * One viewBox, two panels, one time axis. Every constant below is a coordinate in
+ * that box rather than a pixel, so the figure is resolution independent and the
+ * caller's `height` only decides how large it is drawn.
+ * ------------------------------------------------------------------------ */
+const VB_W = 1000;
+const VB_H = 356;
 
-const FRAG = `#version 300 es
-precision highp float;
+const PLOT_L = 62; // room for the elevation and frequency labels, inside the frame
+const PLOT_R = 986;
 
-#define SAMPLES 48
+const SKY_TOP = 22; // the zenith end of the elevation panel
+const HORIZON = 196; // elevation 0, and the line the ground starts at
+const GROUND_H = 13;
 
-uniform vec2  uResolution;
-uniform float uTime;
-uniform float uIntro;   /* 0 to 1, once, so the mark draws itself in rather than blinking on */
-uniform vec3  uInk;     /* the accent, read from the stylesheet so the palette stays single-sourced */
-uniform vec3  uPaper;
-uniform float uAspect;  /* width over height, so the curves can fill whatever box they get */
-uniform vec2  uArc[SAMPLES];   /* x in -1..1, y 0 at the horizon and 1 at the zenith */
-uniform vec2  uCorr[SAMPLES];  /* x in -1..1, y -1..1 across the sweep */
+const DOP_TOP = 232; // the most positive shift
+const DOP_ZERO = 279;
+const DOP_BOT = 326; // the most negative shift
 
-out vec4 fragColour;
-
-/* Cheap hash. Used only for the star field, where the requirement is "no visible
-   lattice", not "statistically sound". */
-float hash(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
+/** Two decimals: this is drawn in a 1000-unit box, so a hundredth of a unit is far
+ *  below a device pixel and it keeps the emitted markup small. */
+function path(points: Array<[number, number]>): string {
+  return "M " + points.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" L ");
 }
 
-/* Distance to a segment. Every stroke below is built from this. */
-float segment(vec2 p, vec2 a, vec2 b) {
-  vec2 pa = p - a, ba = b - a;
-  float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-  return length(pa - ba * h);
-}
-
-/* Framing. uv.y runs -0.5 to 0.5 whatever the box, and uv.x runs to half the aspect, so
-   these two are where a normalised curve becomes a placed one. The track lands in
-   0.08..0.28 and the corridor in -0.36..-0.04, both inside uv.y's -0.5..0.5 at every
-   aspect, and both above the limb's top edge at y = -0.42 so the sweep is never drawn
-   into the Earth.
-   The points are transformed rather than the space: scaling uv would stretch every
-   stroke into an ellipse. */
-vec2 arcPoint(int i) {
-  return vec2(uArc[i].x * uAspect * 0.36, 0.08 + uArc[i].y * 0.20);
-}
-
-vec2 corrPoint(int i) {
-  return vec2(uCorr[i].x * uAspect * 0.36, -0.20 + uCorr[i].y * 0.16);
-}
-
-float arcDistUpTo(vec2 p, float frac) {
-  float best = 1e9;
-  float limit = frac * float(SAMPLES - 1);
-  for (int i = 0; i < SAMPLES - 1; i++) {
-    if (float(i) > limit) break;
-    best = min(best, segment(p, arcPoint(i), arcPoint(i + 1)));
+/** A deterministic star field. Static, so it costs one paint and never a frame.
+ *  The requirement is "no visible lattice", not "statistically sound", so a hash is
+ *  enough and a seeded generator keeps the build reproducible: the same input has to
+ *  emit the same bytes or the artifact digests this project publishes would move for
+ *  a reason that is not a change. */
+function stars(count: number) {
+  const out: Array<{ x: number; y: number; r: number; o: number }> = [];
+  let seed = 0x2f6e2b1;
+  const rnd = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 0x100000000;
+  };
+  for (let i = 0; i < count; i++) {
+    const x = 6 + rnd() * (VB_W - 12);
+    const y = 6 + rnd() * (HORIZON - 20);
+    // Thin them out near the horizon, where the atmosphere plate is brightest and a
+    // star would read as a stuck pixel rather than as a star.
+    if (rnd() < (y / HORIZON) * 0.75) continue;
+    out.push({ x, y, r: 0.5 + rnd() * 0.9, o: 0.12 + rnd() * 0.3 });
   }
-  return best;
+  return out;
 }
 
-float corrDist(vec2 p) {
-  float best = 1e9;
-  for (int i = 0; i < SAMPLES - 1; i++) best = min(best, segment(p, corrPoint(i), corrPoint(i + 1)));
-  return best;
-}
-
-vec2 arcAt(float f) {
-  float g = clamp(f, 0.0, 1.0) * float(SAMPLES - 1);
-  int i = int(floor(g));
-  int j = min(i + 1, SAMPLES - 1);
-  return mix(arcPoint(i), arcPoint(j), fract(g));
-}
-
-void main() {
-  vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution) / uResolution.y;  /* y-normalised */
-  vec3 col = uPaper;
-
-  /* --- Star field -------------------------------------------------------------
-     Two octaves so the field has depth rather than one flat sprinkle. The near layer
-     drifts, which gives the frame a sense of being looked out of rather than at. */
-  for (int layer = 0; layer < 2; layer++) {
-    float scale = layer == 0 ? 26.0 : 44.0;
-    float drift = uTime * (layer == 0 ? 0.006 : 0.0022);
-    vec2 gv = (uv + vec2(drift, 0.0)) * scale;
-    vec2 id = floor(gv);
-    float rnd = hash(id);
-    if (rnd > 0.955) {
-      vec2 offset = vec2(hash(id + 1.7), hash(id + 3.1)) - 0.5;
-      float d = length(fract(gv) - 0.5 - offset * 0.6);
-      /* Per-star phase, so the field never pulses in unison. */
-      float tw = 0.75 + 0.25 * sin(uTime * 1.1 + rnd * 40.0);
-      col += smoothstep(0.055, 0.0, d) * (layer == 0 ? 0.5 : 0.28) * tw * vec3(0.82, 0.86, 1.0);
-    }
-  }
-
-  /* --- Earth's limb -----------------------------------------------------------
-     A circle centred far below the frame, so only its top crosses: the horizon a ground
-     station actually sees. The rim has a tighter falloff than the body, which is what
-     reads as atmosphere rather than as a stroked circle. */
-  float d = length(uv - vec2(0.0, -3.72)) - 3.30;
-  col = mix(col, uPaper * 0.30 + vec3(0.012, 0.018, 0.030), smoothstep(0.004, -0.02, d) * 0.92);
-  col += exp(-abs(d) * 46.0) * vec3(0.16, 0.30, 0.52) * 0.85;
-  col += exp(-max(d, 0.0) * 7.5) * vec3(0.05, 0.11, 0.22) * 0.55;
-
-  /* --- The sky track ----------------------------------------------------------- */
-  float arcD = arcDistUpTo(uv, clamp(uIntro * 1.15, 0.0, 1.0));
-  col += smoothstep(0.0075, 0.0, arcD) * uInk * 0.30;
-  col += smoothstep(0.0500, 0.0, arcD) * uInk * 0.05;
-
-  /* --- The satellite -----------------------------------------------------------
-     One period is deliberately long. This sits near text a reader is trying to read, and
-     a fast mark in the corner of the eye is a cost, not a feature. */
-  float phase = fract(uTime * 0.055);
-  vec2 sat = arcAt(phase);
-
-  /* A trail, not a comet tail: the part of the track already covered, fading out. */
-  float trailD = 1e9;
-  for (int i = 0; i < 14; i++) {
-    float t0 = max(phase - float(i)     * 0.008, 0.0);
-    float t1 = max(phase - float(i + 1) * 0.008, 0.0);
-    trailD = min(trailD, segment(uv, arcAt(t0), arcAt(t1)));
-  }
-  col += smoothstep(0.010, 0.0, trailD) * uInk * 0.34 * uIntro;
-
-  float satD = length(uv - sat);
-  col += smoothstep(0.013, 0.0, satD) * vec3(1.0) * 0.95 * uIntro;
-  col += smoothstep(0.075, 0.0, satD) * uInk * 0.30 * uIntro;
-
-  /* --- The corridor ------------------------------------------------------------
-     Under the track: the shape the sweep traces on a waterfall. It brightens where the
-     satellite is, which is the one piece of coupling in the frame and the only thing the
-     figure is trying to say. */
-  float corrD = corrDist(uv);
-  float lead = smoothstep(0.42, 0.0, abs(uv.x - sat.x));
-  col += smoothstep(0.0055, 0.0, corrD) * uInk * (0.16 + 0.40 * lead) * uIntro;
-  col += smoothstep(0.0380, 0.0, corrD) * uInk * 0.055 * uIntro;
-
-  /* --- Frame -------------------------------------------------------------------
-     Vignette, then a fade at the lower edge so the canvas ends in the page colour and
-     needs no border to sit in. A border here would have been one more box on a page that
-     already had 28 of them. */
-  /* Blend toward the paper rather than multiplying down to black. Multiplying darkened
-     the paper itself, so a borderless canvas sat as a visibly darker rectangle on the
-     page: measured rgb(7,9,11) at the sides against a page of rgb(12,14,18). Each of the
-     four edges now resolves to exactly uPaper, which is what lets the figure carry no
-     border on a page that already had 28 of them. */
-  float vig = smoothstep(1.28, 0.30, length(uv * vec2(0.42, 1.0)));
-  col = mix(uPaper, col, mix(0.55, 1.0, vig));
-  col = mix(uPaper, col, smoothstep(-0.50, -0.36, uv.y));
-  col = mix(uPaper, col, smoothstep(0.50, 0.36, uv.y));
-  col = mix(uPaper, col, smoothstep(uAspect * 0.5, uAspect * 0.5 - 0.40, abs(uv.x)));
-
-  fragColour = vec4(col, 1.0);
-}`;
-
-function compile(gl: WebGL2RenderingContext, kind: number, source: string) {
-  const shader = gl.createShader(kind);
-  if (!shader) return null;
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    gl.deleteShader(shader);
-    return null;
-  }
-  return shader;
-}
-
-/** A CSS colour resolved to 0-1 RGB, so the shader reads the stylesheet rather than a
- *  second copy of the palette that would drift from it. */
-function parseColour(value: string, fallback: [number, number, number]): [number, number, number] {
-  const hex = value.trim().match(/^#?([0-9a-fA-F]{6})$/);
-  if (hex) {
-    const n = parseInt(hex[1] ?? "000000", 16);
-    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
-  }
-  const parts = value.match(/[0-9.]+/g);
-  if (parts && parts.length >= 3) {
-    return [Number(parts[0]) / 255, Number(parts[1]) / 255, Number(parts[2]) / 255];
-  }
-  return fallback;
+/**
+ * The keyframe schedule the three marks share.
+ *
+ * `transform` only. A keyframe that moved `cx` or `x` would invalidate the path and
+ * repaint the layer every frame; a translate is a composite and costs the same at any
+ * size. Both marks and the read line are emitted at the origin and translated into
+ * place, which is why every stop below is an absolute position rather than a delta.
+ */
+function keyframes(name: string, points: Array<[number, number]>): string {
+  const last = points.length - 1;
+  const stops = points.map(([x, y], i) => {
+    const pct = ((i / last) * 100).toFixed(3);
+    return `${pct}%{transform:translate(${x.toFixed(2)}px,${y.toFixed(2)}px)}`;
+  });
+  return `@keyframes ${name}{${stops.join("")}}`;
 }
 
 export default function OrbitField({
@@ -376,187 +262,278 @@ export default function OrbitField({
   inclinationDeg = 97.6,
   stationLatDeg = 52.2,
   frequencyMHz = 437,
-  height = 280,
   label,
 }: {
   altitudeKm?: number;
   inclinationDeg?: number;
   stationLatDeg?: number;
   frequencyMHz?: number;
-  height?: number;
-  /** Said out loud under the frame. A drawing that could be mistaken for a measurement on
-   *  a page of measurements has to name itself. */
+  /** Said out loud under the frame. A drawing that could be mistaken for a measurement
+   *  on a page of measurements has to name itself. */
   label?: string;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const track = propagate(altitudeKm, inclinationDeg, stationLatDeg, frequencyMHz);
+  const peakRad = (track.peakElevationDeg * Math.PI) / 180;
 
-  const track = useMemo(
-    () => propagate(altitudeKm, inclinationDeg, stationLatDeg, frequencyMHz),
-    [altitudeKm, inclinationDeg, stationLatDeg, frequencyMHz],
-  );
+  const xAt = (i: number) => PLOT_L + (i / (SAMPLES - 1)) * (PLOT_R - PLOT_L);
+  // The elevation axis is linear in degrees and topped at the pass's own culmination,
+  // which is why a low pass and a high one both fill the panel. The number is printed
+  // on the axis, so the scale can never be mistaken for a fixed one.
+  const yEl = (rad: number) => HORIZON - (rad / (peakRad || 1)) * (HORIZON - SKY_TOP);
+  // Symmetric about zero on purpose. A Doppler sweep is very nearly antisymmetric and
+  // an axis that was not would put the crossing off centre and imply a bias the
+  // geometry does not have.
+  //
+  // The 1.12 is headroom, and it is not cosmetic. Scaled to the extreme exactly, the
+  // sweep's first and last samples land on the panel's own top and bottom edge, where a
+  // 2px stroke is half outside the box and the read-head is a half-disc. A twelfth of
+  // the range keeps every sample and both marks inside the frame they are drawn in.
+  const DOP_HEADROOM = 1.12;
+  const yDop = (hz: number) =>
+    DOP_ZERO -
+    (hz / ((track.maxShiftHz || 1) * DOP_HEADROOM)) * (DOP_ZERO - DOP_TOP);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const elPoints: Array<[number, number]> = track.elevations.map((e, i) => [
+    xAt(i),
+    yEl(e),
+  ]);
+  const dopPoints: Array<[number, number]> = track.shifts.map((s, i) => [
+    xAt(i),
+    yDop(s),
+  ]);
+  const readPoints: Array<[number, number]> = track.shifts.map((_, i) => [xAt(i), 0]);
 
-    const gl = canvas.getContext("webgl2", {
-      antialias: false,
-      depth: false,
-      stencil: false,
-      alpha: false,
-      powerPreference: "low-power",
-    });
-    // No WebGL2, or a driver that refuses the context. The figure is an illustration, so
-    // the right behaviour is to leave the box empty and cost the reader nothing.
-    if (!gl) return;
+  const elPath = path(elPoints);
+  const dopPath = path(dopPoints);
+  // Closed down to the horizon: the area under an elevation curve is the part of the
+  // pass the station can actually hear, and shading it says that in one mark.
+  const elArea = `${elPath} L ${PLOT_R.toFixed(2)},${HORIZON} L ${PLOT_L.toFixed(2)},${HORIZON} Z`;
 
-    const vs = compile(gl, gl.VERTEX_SHADER, VERT);
-    const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG);
-    if (!vs || !fs) return;
+  // Culmination, for the reduced-motion resting position and for the peak label.
+  let peakIndex = 0;
+  track.elevations.forEach((e, i) => {
+    if (e > (track.elevations[peakIndex] ?? 0)) peakIndex = i;
+  });
 
-    const program = gl.createProgram();
-    if (!program) return;
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      gl.deleteProgram(program);
-      return;
-    }
-    gl.useProgram(program);
+  const minutes = track.durationS / 60;
+  const kHz = track.maxShiftHz / 1000;
+  // Gridlines for the pass this figure was given, not for a pass it was not. The
+  // elevation axis is topped at the culmination, so a fixed 30/60 set draws nothing at
+  // all below 36 degrees: at the default 550 km orbit the peak is 26.2, and the panel
+  // shipped with no gridline and no readable elevation anywhere between 0 and the top.
+  const gridDegs = [5, 10, 15, 20, 30, 45, 60, 75]
+    .filter((d) => d < track.peakElevationDeg - 4)
+    .reverse()
+    .filter((_, i, all) => all.length <= 3 || i % Math.ceil(all.length / 3) === 0)
+    .slice(0, 3);
 
-    const uResolution = gl.getUniformLocation(program, "uResolution");
-    const uTime = gl.getUniformLocation(program, "uTime");
-    const uIntro = gl.getUniformLocation(program, "uIntro");
-    const uAspect = gl.getUniformLocation(program, "uAspect");
-
-    const styles = getComputedStyle(document.documentElement);
-    gl.uniform3fv(
-      gl.getUniformLocation(program, "uInk"),
-      parseColour(styles.getPropertyValue("--interactive-01"), [0.988, 0.647, 0.039]),
-    );
-    gl.uniform3fv(
-      gl.getUniformLocation(program, "uPaper"),
-      parseColour(styles.getPropertyValue("--ui-background"), [0.047, 0.055, 0.071]),
-    );
-    // Uploaded once: the propagation does not change between frames, so neither does this.
-    gl.uniform2fv(gl.getUniformLocation(program, "uArc"), new Float32Array(track.arc));
-    gl.uniform2fv(gl.getUniformLocation(program, "uCorr"), new Float32Array(track.corridor));
-
-    // 1.5 is where another pixel stops buying anything visible on a field of soft marks,
-    // and it is the clamp DeepField already settled on.
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-
-    function resize() {
-      if (!canvas || !gl) return;
-      const w = Math.max(1, Math.round(canvas.clientWidth * dpr));
-      const h = Math.max(1, Math.round(canvas.clientHeight * dpr));
-      if (canvas.width === w && canvas.height === h) return;
-      canvas.width = w;
-      canvas.height = h;
-      gl.viewport(0, 0, w, h);
-      gl.uniform2f(uResolution, w, h);
-      gl.uniform1f(uAspect, w / h);
-    }
-
-    let raf = 0;
-    let running = false;
-    let visible = false;
-    const started = performance.now();
-
-    function draw(now: number) {
-      if (!gl) return;
-      resize();
-      const seconds = (now - started) / 1000;
-      gl.uniform1f(uTime, seconds);
-      gl.uniform1f(uIntro, Math.min(1, seconds / 1.15));
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }
-
-    function tick(now: number) {
-      draw(now);
-      raf = requestAnimationFrame(tick);
-    }
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    function start() {
-      if (running || !visible || !gl) return;
-      if (reduced.matches) {
-        // One frame, fully drawn in, and no loop is ever scheduled.
-        resize();
-        gl.uniform1f(uTime, 6);
-        gl.uniform1f(uIntro, 1);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-        return;
-      }
-      running = true;
-      raf = requestAnimationFrame(tick);
-    }
-
-    function stop() {
-      running = false;
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        visible = entries.some((entry) => entry.isIntersecting);
-        if (visible) start();
-        else stop();
-      },
-      { rootMargin: "120px" },
-    );
-    observer.observe(canvas);
-
-    const onVisibility = () => {
-      if (document.hidden) stop();
-      else start();
-    };
-    const onMotionChange = () => {
-      stop();
-      start();
-    };
-    const onResize = () => {
-      if (!running) {
-        resize();
-        draw(performance.now());
-      }
-    };
-
-    document.addEventListener("visibilitychange", onVisibility);
-    reduced.addEventListener("change", onMotionChange);
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      stop();
-      observer.disconnect();
-      document.removeEventListener("visibilitychange", onVisibility);
-      reduced.removeEventListener("change", onMotionChange);
-      window.removeEventListener("resize", onResize);
-      gl.deleteProgram(program);
-      gl.deleteShader(vs);
-      gl.deleteShader(fs);
-    };
-  }, [track]);
+  const css = [
+    keyframes("orbit-sat", elPoints),
+    keyframes("orbit-read", dopPoints),
+    keyframes("orbit-scrub", readPoints),
+    // One duration, one timing function, one iteration count, declared once and shared,
+    // because three marks that are meant to be the same instant must not be able to
+    // drift apart in a stylesheet edit.
+    `.orbit-mark{animation-duration:26s;animation-timing-function:linear;` +
+      `animation-iteration-count:infinite;animation-fill-mode:both}`,
+    `.orbit-sat{animation-name:orbit-sat}`,
+    `.orbit-read{animation-name:orbit-read}`,
+    `.orbit-scrub{animation-name:orbit-scrub}`,
+    // The resting frame. `reduce` is not "the same thing, faster": it is the pass at
+    // its culmination with every mark where a reader would put a ruler.
+    `@media (prefers-reduced-motion: reduce){.orbit-mark{animation:none;` +
+      `transform:translate(var(--rest-x),var(--rest-y))}}`,
+  ].join("");
 
   const caption =
     label ??
-    `A ${altitudeKm} km circular orbit at ${inclinationDeg} degrees, propagated over one pass above a ` +
-      `station at ${stationLatDeg} degrees north: ${Math.round(track.durationS / 60)} minutes above the ` +
-      `horizon, peaking at ${track.peakElevationDeg.toFixed(1)} degrees. The curve beneath it is the ` +
-      `Doppler shift that pass's range rate implies at ${frequencyMHz} MHz, plus or minus ` +
-      `${(track.maxShiftHz / 1000).toFixed(1)} kHz. Propagated for this figure, not measured: every ` +
+    `A ${altitudeKm} km circular orbit at ${inclinationDeg} degrees, propagated over one ` +
+      `pass above a station at ${stationLatDeg} degrees north: ${Math.round(minutes)} minutes ` +
+      `above the horizon, peaking at ${track.peakElevationDeg.toFixed(1)} degrees. The lower ` +
+      `curve is the Doppler shift that pass's range rate implies at ${frequencyMHz} MHz, ` +
+      `plus or minus ${kHz.toFixed(1)} kHz. Propagated for this figure, not measured: every ` +
       `number this console publishes comes from a receipt.`;
 
   return (
     <figure className="orbit-field">
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        style={{ display: "block", width: "100%", height: `${height}px` }}
-      />
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+      {/* Sized by its own aspect, and there is no height prop to override it.
+          There was one, and with a width of 100% and a fixed height both set, the
+          default `xMidYMid meet` fitted a 2.81 to 1 viewBox into a 3.95 to 1 box by
+          height: the drawing came out 843px wide inside a 1184px frame with 170px of
+          empty black down each side. A viewBox has an aspect ratio and a caller who
+          also names a height is telling it two different things. */}
+      <svg
+        className="orbit-svg"
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        role="img"
+        aria-label={caption}
+      >
+        <defs>
+          <linearGradient id="orbit-air" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3d6ea8" stopOpacity="0" />
+            <stop offset="70%" stopColor="#3d6ea8" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#7fb2e6" stopOpacity="0.42" />
+          </linearGradient>
+          <linearGradient id="orbit-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--interactive-01)" stopOpacity="0.30" />
+            <stop offset="100%" stopColor="var(--interactive-01)" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+
+        {/* --- the sky ------------------------------------------------------- */}
+        <rect x="0" y="0" width={VB_W} height={HORIZON} fill="#06080e" />
+        {stars(150).map((s, i) => (
+          <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#cfe0ff" opacity={s.o} />
+        ))}
+        {/* Airglow. It is the one purely pictorial mark in the frame and it earns its
+            place: without it the horizon is a rule across a black box and the panel
+            does not read as looking up at anything. */}
+        <rect x="0" y={HORIZON - 58} width={VB_W} height={58} fill="url(#orbit-air)" />
+
+        {/* --- elevation gridlines ------------------------------------------- */}
+        {gridDegs.map((d) => {
+          const y = yEl((d * Math.PI) / 180);
+          return (
+            <g key={d}>
+              <line
+                x1={PLOT_L}
+                y1={y}
+                x2={PLOT_R}
+                y2={y}
+                stroke="var(--border-subtle)"
+                strokeWidth="1"
+                strokeDasharray="2 6"
+                opacity="0.7"
+              />
+              <text x="8" y={y + 4} className="orbit-tick">
+                {d}
+                {"°"}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* --- the pass ------------------------------------------------------- */}
+        <path d={elArea} fill="url(#orbit-fill)" />
+        <path
+          d={elPath}
+          fill="none"
+          stroke="var(--interactive-01)"
+          strokeWidth="2"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+
+        {/* --- the horizon, and the ground under it ---------------------------- */}
+        <rect x="0" y={HORIZON} width={VB_W} height={GROUND_H} fill="#0a0c11" />
+        <line
+          x1="0"
+          y1={HORIZON}
+          x2={VB_W}
+          y2={HORIZON}
+          stroke="#4a5a72"
+          strokeWidth="1"
+        />
+        <text x="8" y={HORIZON - 7} className="orbit-tick">
+          0{"°"}
+        </text>
+
+        {/* --- the Doppler panel ----------------------------------------------- */}
+        <line
+          x1={PLOT_L}
+          y1={DOP_ZERO}
+          x2={PLOT_R}
+          y2={DOP_ZERO}
+          stroke="var(--border-subtle)"
+          strokeWidth="1"
+          strokeDasharray="2 6"
+        />
+        <text x="8" y={yDop(track.maxShiftHz) + 4} className="orbit-tick">
+          +{kHz.toFixed(1)}k
+        </text>
+        <text x="8" y={DOP_ZERO + 4} className="orbit-tick">
+          0
+        </text>
+        <text x="8" y={yDop(-track.maxShiftHz) + 4} className="orbit-tick">
+          {"−"}
+          {kHz.toFixed(1)}k
+        </text>
+        {/* Cased, then drawn. The same treatment the hero plate gives its fitted
+            corridor, and for the same reason: this is that quantity. */}
+        <path
+          d={dopPath}
+          fill="none"
+          stroke="#05070c"
+          strokeWidth="5"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        <path
+          d={dopPath}
+          fill="none"
+          stroke="#f4f4f4"
+          strokeWidth="2"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+
+        {/* --- the marks, all three on one schedule ---------------------------- */}
+        <g
+          className="orbit-mark orbit-scrub"
+          style={
+            {
+              "--rest-x": `${xAt(peakIndex).toFixed(2)}px`,
+              "--rest-y": "0px",
+            } as CSSProperties
+          }
+        >
+          <line
+            x1="0"
+            y1={SKY_TOP}
+            x2="0"
+            y2={DOP_BOT}
+            stroke="var(--interactive-01)"
+            strokeWidth="1"
+            opacity="0.34"
+          />
+        </g>
+        <g
+          className="orbit-mark orbit-sat"
+          style={
+            {
+              "--rest-x": `${xAt(peakIndex).toFixed(2)}px`,
+              "--rest-y": `${yEl(track.elevations[peakIndex] ?? 0).toFixed(2)}px`,
+            } as CSSProperties
+          }
+        >
+          <circle r="11" fill="var(--interactive-01)" opacity="0.18" />
+          <circle r="4.5" fill="#ffffff" />
+        </g>
+        <g
+          className="orbit-mark orbit-read"
+          style={
+            {
+              "--rest-x": `${xAt(peakIndex).toFixed(2)}px`,
+              "--rest-y": `${yDop(track.shifts[peakIndex] ?? 0).toFixed(2)}px`,
+            } as CSSProperties
+          }
+        >
+          <circle r="3.4" fill="#ffffff" stroke="#05070c" strokeWidth="1.4" />
+        </g>
+
+        {/* --- what each panel is ---------------------------------------------- */}
+        <text x={PLOT_L} y={SKY_TOP - 6} className="orbit-axis">
+          Elevation, peak {track.peakElevationDeg.toFixed(1)}
+          {"°"}
+        </text>
+        <text x={PLOT_L} y={DOP_TOP - 8} className="orbit-axis">
+          Doppler shift at {frequencyMHz} MHz
+        </text>
+        <text x={PLOT_R} y={VB_H - 6} className="orbit-axis orbit-axis-end">
+          One pass, {minutes.toFixed(0)} min, time {String.fromCharCode(0x2192)}
+        </text>
+      </svg>
       <figcaption>{caption}</figcaption>
     </figure>
   );

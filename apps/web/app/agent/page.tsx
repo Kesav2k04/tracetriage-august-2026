@@ -8,6 +8,7 @@
  * with any single grade.
  */
 import { agent, fmt, fmtInterval } from "@/lib/data";
+import { OutcomeStrip } from "@/components/charts";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export const metadata = { title: "Agent" };
@@ -19,7 +20,11 @@ const paired = agent.paired;
 const controlInvented = agent.questions.filter((row) => !row.control_grounded).length;
 
 function Verdict({ correct, children }: { correct: boolean; children: string }) {
-  return <Tag tone={correct ? "action" : "muted"}>{children}</Tag>;
+  return (
+    <Tag tone={correct ? "action" : "muted"} wrap>
+      {children}
+    </Tag>
+  );
 }
 
 export default function AgentPage() {
@@ -63,6 +68,42 @@ export default function AgentPage() {
       </Section>
 
       <Section title="The paired comparison" description={paired.method}>
+        {/* The pairing, drawn as the pairing.
+            A two-by-two of counts is the correct summary and it is right below this,
+            but it throws away the thing that makes this result readable: the two arms
+            answered the SAME 24 questions, and a reader can see all 24 at once. Twenty
+            cells filled on one row and hollow on the other is the discordance the
+            exact test is computed from, and it is the same twenty either way. */}
+        <OutcomeStrip
+          arms={[
+            {
+              name: "With the tools",
+              sub: "may read this project's own files",
+              cells: agent.questions.map((q) => ({
+                state: q.tools_correct,
+                title: `${q.task_id}: ${q.tools_correct ? "correct" : "wrong"} with tools`,
+              })),
+            },
+            {
+              name: "With no tools",
+              sub: "the same model, answering from what it knows",
+              cells: agent.questions.map((q) => ({
+                state: q.control_correct,
+                title: `${q.task_id}: ${q.control_correct ? "correct" : "wrong"} with no tools`,
+              })),
+            },
+          ]}
+          itemLabel={`One cell is one of the ${agent.tasks} questions, in the same order on both rows.`}
+          label={
+            `Twenty-four questions, answered by the same model with and without this ` +
+            `project's tools. Filled is correct.`
+          }
+          caption={
+            `Both rows are the same questions in the same order, so a column is one ` +
+            `question under both conditions. ${paired.discordant_pairs} columns differ ` +
+            `between the rows, and the tool arm holds ${paired.tools_only.length} of them.`
+          }
+        />
         <Table head={["", "Control right", "Control wrong"]}>
           <tr>
             <Cell align="left">Tools right</Cell>

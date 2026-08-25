@@ -5,9 +5,63 @@
  * reader without adding a layer of interpretation, so these components format
  * and label; none of them computes anything.
  */
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { verdictColour } from "@/lib/format";
+
+/**
+ * Break a long string into its sentences, so a wall of prose becomes paragraphs.
+ *
+ * Nothing is added, removed or reworded. This is typesetting: the longest blocks on
+ * this console are receipt-derived caveats that a reader has to get through, and
+ * measured on the rendered DOM the worst of them ran 171, 161, 149, 123 and 103 words
+ * in a single unbroken block. A caveat nobody finishes is a caveat that was not made,
+ * so the fix is paragraph breaks rather than an edit that would change what the
+ * sentence says.
+ *
+ * The rule under-splits on purpose. A break is taken only where a full stop follows a
+ * letter or a closing bracket AND is followed by a space and a capital, so
+ * `0.036 Brier`, `p = 0.0005`, `1.740x` and every other decimal on this console are
+ * left alone: a digit before the stop is never a sentence end here. Missing a
+ * legitimate break costs a slightly long paragraph. Taking a wrong one would split a
+ * number down the middle, and one of those is recoverable and the other is not.
+ *
+ * Short strings are returned whole. Below the threshold a break is noise, and most
+ * descriptions on this console are one or two sentences by design.
+ */
+export function sentences(text: string, minWords = 55): string[] {
+  if (text.trim().split(/\s+/).length < minWords) return [text];
+  const parts = text.split(/(?<=[a-z)\]])\.\s+(?=[A-Z])/g);
+  return parts.map((part, i) => (i === parts.length - 1 ? part : part + "."));
+}
+
+/** The same, as paragraphs. Exported, because the long strings on this console arrive
+ *  from three directions: a `Section` description, a `Note`, and a receipt field a page
+ *  drops straight into a `<p>`. All three are the same problem. */
+export function Prose({
+  text,
+  className,
+  style,
+}: {
+  text: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const parts = sentences(text);
+  return (
+    <>
+      {parts.map((part, i) => (
+        <p
+          key={i}
+          className={className}
+          style={{ ...style, marginTop: i === 0 ? 0 : "var(--sp-04)" }}
+        >
+          {part}
+        </p>
+      ))}
+    </>
+  );
+}
 
 export function Section({
   title,
@@ -31,16 +85,30 @@ export function Section({
         {title}
       </h2>
       {description && (
-        <p
-          style={{
-            margin: "0 0 var(--sp-06)",
-            maxWidth: "62ch",
-            color: "var(--text-02)",
-            lineHeight: 1.6,
-          }}
-        >
-          {description}
-        </p>
+        <div style={{ margin: "0 0 var(--sp-06)" }}>
+          {typeof description === "string" ? (
+            <Prose
+              text={description}
+              style={{
+                margin: 0,
+                maxWidth: "62ch",
+                color: "var(--text-02)",
+                lineHeight: 1.6,
+              }}
+            />
+          ) : (
+            <p
+              style={{
+                margin: 0,
+                maxWidth: "62ch",
+                color: "var(--text-02)",
+                lineHeight: 1.6,
+              }}
+            >
+              {description}
+            </p>
+          )}
+        </div>
       )}
       {children}
     </section>
@@ -130,10 +198,13 @@ export function Tag({
   children,
   tone = "neutral",
   title,
+  wrap = false,
 }: {
   children: ReactNode;
   tone?: "neutral" | "action" | "muted" | "warn";
   title?: string;
+  /** A tag holding a sentence rather than a token has to break, or it widens the table. */
+  wrap?: boolean;
 }) {
   const palette = {
     neutral: { fg: "var(--text-02)", bd: "var(--border-strong)" },
@@ -149,11 +220,12 @@ export function Tag({
       title={title}
       style={{
         display: "inline-block",
-        padding: "1px var(--sp-03)",
+        // A wrapped tag runs to several lines, and 1px of leading looks like a mistake there.
+        padding: wrap ? "var(--sp-02) var(--sp-03)" : "1px var(--sp-03)",
         border: `1px solid ${palette.bd}`,
         color: palette.fg,
         fontSize: "var(--type-caption)",
-        whiteSpace: "nowrap",
+        whiteSpace: wrap ? "normal" : "nowrap",
       }}
     >
       {children}
@@ -371,17 +443,30 @@ export function Note({
     warn: "var(--support-03)",
     limit: "var(--text-03)",
   }[tone];
+  const style = {
+    padding: "var(--sp-04) var(--sp-05)",
+    borderLeft: `3px solid ${colour}`,
+    background: "var(--ui-01)",
+    color: "var(--text-02)",
+    maxWidth: "62ch",
+  } as CSSProperties;
+
+  // A note carrying one long string is set as paragraphs. Anything else is a tree the
+  // caller composed, and re-flowing someone else's markup is not this component's job.
+  if (typeof children === "string" && sentences(children).length > 1) {
+    return (
+      <div className="note note-block" style={style}>
+        {sentences(children).map((part, i) => (
+          <p key={i} style={{ margin: i === 0 ? 0 : "var(--sp-04) 0 0" }}>
+            {part}
+          </p>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <p
-      className="note"
-      style={{
-        padding: "var(--sp-04) var(--sp-05)",
-        borderLeft: `3px solid ${colour}`,
-        background: "var(--ui-01)",
-        color: "var(--text-02)",
-        maxWidth: "62ch",
-      }}
-    >
+    <p className="note" style={style}>
       {children}
     </p>
   );
@@ -519,7 +604,27 @@ export function Cell({
         borderBottom: "1px solid var(--border-subtle)",
         fontWeight: header ? 400 : undefined,
         color: header ? "var(--text-01)" : "var(--text-02)",
-        whiteSpace: "nowrap",
+        // Numbers never wrap; sentences always may.
+        //
+        // `nowrap` on every cell is right for a figure, whose digits must stay on one
+        // line, and wrong for a cell holding a clause. The tables that hold both were
+        // sized by their longest sentence and overflowed their own container: on
+        // /agent/ the question column pushed three of five columns past the fold, and on
+        // /provenance/ the "what the console shows" column was cut mid-word on six of
+        // eight rows. The scroll region behind them is a fallback for a genuinely wide
+        // table, not a licence to make every table wide.
+        //
+        // Alignment is the discriminator and it already carries the meaning: this
+        // component defaults `align` to right, and every call site that passes "left" is
+        // passing a label or a sentence. Nothing here decides by measuring the content,
+        // so a cell cannot change behaviour when its data does.
+        whiteSpace: align === "left" ? "normal" : "nowrap",
+        // A cap on the prose column, because letting it wrap is not the same as letting
+        // it be narrow. Auto table layout gives a wrapping column as much width as it
+        // wants before it starts wrapping, so /agent/'s question column still took 1,428
+        // of 1,184 available pixels and pushed two columns past the fold. 48ch is inside
+        // the 45-to-75 comfortable measure and leaves the value columns their own width.
+        maxWidth: align === "left" ? "48ch" : undefined,
       }}
     >
       {children}

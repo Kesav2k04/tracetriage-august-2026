@@ -26,6 +26,7 @@
 import type { Metadata } from "next";
 
 import LiveConsole from "@/components/LiveConsole";
+import OrbitField from "@/components/OrbitField";
 import shelfJson from "@/public/data/live_shelf.json";
 
 export const metadata: Metadata = {
@@ -73,6 +74,16 @@ export default function LivePage() {
           the answer that says skip this one.
         </p>
       </header>
+
+      {/* The anchor this page had none of, and the one page on the console where the
+          figure is the subject rather than an illustration of it: everything the
+          endpoint below does to an observation id, it does to a pass, and this is a
+          pass. Propagated rather than measured, which the caption says, because a
+          drawing that could be mistaken for the live result would undo the whole
+          distinction this page is built on. */}
+      <OrbitField
+        label="What the endpoint is looking at: one pass over one station, propagated from a 550 km circular orbit at 97.6 degrees. The upper panel is elevation above the horizon; the lower one is the Doppler shift that pass's range rate implies at 437 MHz, which is the corridor the measurement below fits an offset to. Propagated for this figure and not measured: every number this console publishes comes from a receipt."
+      />
 
       <LiveConsole
         shelf={shelf.observations}

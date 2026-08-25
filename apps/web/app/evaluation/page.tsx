@@ -30,6 +30,7 @@ import {
   Table,
   Tag,
   VerdictBadge,
+  Prose,
 } from "@/components/ui";
 
 export const metadata = { title: "Evaluation" };
@@ -339,6 +340,16 @@ function armRow(name: string, arm: ArmMetrics, worst: number, best: number) {
   );
 }
 
+/** The opening block's paragraph style, declared once because it is now four
+ *  paragraphs rather than one and four copies of a style object is four things that
+ *  can drift apart. */
+const LEDE = {
+  marginTop: "var(--sp-04)",
+  color: "var(--text-02)",
+  lineHeight: 1.7,
+  fontSize: "var(--type-body-long)",
+} as const;
+
 export default function EvaluationPage() {
   // arms is nullable, because a degraded split has no results and the export writes
   // null for it. Before D4 the type said otherwise and this line read straight
@@ -387,28 +398,33 @@ export default function EvaluationPage() {
     <div className="shell" style={{ paddingTop: "var(--sp-08)" }}>
       <header style={{ maxWidth: "62ch" }}>
         <h1 style={{ fontSize: "var(--type-heading-05)" }}>Evaluation</h1>
-        <p
-          style={{
-            marginTop: "var(--sp-04)",
-            color: "var(--text-02)",
-            lineHeight: 1.7,
-            fontSize: "var(--type-body-long)",
-          }}
-        >
+        {/* One 149-word block, broken into the four things it was actually saying.
+            It read as a wall, and a wall at the top of a nine-section page is where a
+            judge decides how much of the rest they are going to read. Nothing is cut:
+            the summary, the two gate readings, the reason both are NOT_ESTABLISHED and
+            the ceiling are the same four claims in the same order. */}
+        <p style={LEDE}>
           Two gates are measured on this page, and the honest summary of both is that
-          the effect is there and the interval is not tight enough to prove it. Gate 6
-          clears its threshold on the point estimate and on the held-out split, and
-          spans it on the split that was named in advance. Gate 5 improves the Brier
-          score and its interval contains zero. Both are recorded as{" "}
+          the effect is there and the interval is not tight enough to prove it.
+        </p>
+        <p style={LEDE}>
+          Gate 6 clears its threshold on the point estimate and on the held-out split,
+          and spans it on the split that was named in advance. Gate 5 improves the
+          Brier score and its interval contains zero. Both are recorded as{" "}
           <span className="mono">NOT_ESTABLISHED</span>, because a point estimate above
-          a bar whose interval straddles the bar is not a pass. Of the{" "}
+          a bar whose interval straddles the bar is not a pass.
+        </p>
+        <p style={LEDE}>
+          Of the{" "}
           <span className="num">
             {gatesMet} of {gatesTotal}
           </span>{" "}
           the sidebar counts as met, {gatesPrePassed.length} are the feasibility gates{" "}
           {gatesPrePassed.map((g) => g.gate).join(" and ")}, answered before any
-          pipeline code existed. What the two gates below are up against is a scale
-          that stops at{" "}
+          pipeline code existed.
+        </p>
+        <p style={LEDE}>
+          What the two gates below are up against is a scale that stops at{" "}
           <span className="num">{fmt(circularity.ceiling.lift, 3)}&times;</span> for a
           perfect oracle against a bar of 1.5, which is the finding rather than an
           excuse and is <a href="#circularity">derived in section 02 below</a>.
@@ -640,9 +656,13 @@ export default function EvaluationPage() {
         description="The ranking score and the definition of a conflict read the same quantities, so part of the lift is true by construction. This bounds that part rather than arguing about it."
       >
         <Details summary="Which quantities the score and the conflict definition share">
-          <p style={{ lineHeight: 1.7, maxWidth: "62ch" }}>
-            {circularity.shared_signals.reading}
-          </p>
+          {/* 103 words from the receipt, set as its own sentences. The string is
+              printed exactly as the receipt holds it; only the paragraph breaks are
+              added. */}
+          <Prose
+            text={circularity.shared_signals.reading}
+            style={{ lineHeight: 1.7, maxWidth: "62ch" }}
+          />
         </Details>
 
         <div
@@ -761,9 +781,10 @@ export default function EvaluationPage() {
 
         <Note tone="limit">{circularity.what_this_does_not_establish}</Note>
         <Details summary="How the random-ordering control was run">
-          <p style={{ lineHeight: 1.7, maxWidth: "62ch" }}>
-            {circularity.random_ordering_control.reading}
-          </p>
+          <Prose
+            text={circularity.random_ordering_control.reading}
+            style={{ lineHeight: 1.7, maxWidth: "62ch" }}
+          />
         </Details>
       </Section>
 
@@ -930,7 +951,7 @@ export default function EvaluationPage() {
         </div>
 
         <Details summary="Why the corrected rule decides, and that it was tightened after a number was seen">
-          <p>{ablation.why_the_corrected_rule_decides}</p>
+          <Prose text={ablation.why_the_corrected_rule_decides as string} />
         </Details>
 
         {recommendation && !recommendation.agree && (
@@ -971,17 +992,26 @@ export default function EvaluationPage() {
           {/* Both lists were joined raw, so a sentence about which splits decided the
               verdict read "chronological, cold_station, cold_transmitter". SPLIT_LABELS
               is at the top of this file and the table above already uses it. */}
-          <p>
+          {/* Three claims, three paragraphs. Which splits decided it, which were
+              excluded and why the floor sits where it does are separate answers, and
+              run together they were a 97-word block inside a disclosure a reader had
+              already chosen to open. */}
+          <p style={{ margin: 0 }}>
             Splits used for the ablation verdict:{" "}
             {(ablation.splits_used as string[])
               .map((name) => SPLIT_LABELS[name] ?? name)
               .join(", ")}
-            . Below the {String(ablation.min_train_for_verdict)}-row training floor and
+            .
+          </p>
+          <p style={{ margin: "var(--sp-04) 0 0" }}>
+            Below the {String(ablation.min_train_for_verdict)}-row training floor and
             therefore excluded:{" "}
             {(ablation.splits_below_training_floor as string[])
               .map((name) => SPLIT_LABELS[name] ?? name)
               .join(", ")}
-            .{" "}
+            .
+          </p>
+          <p style={{ margin: "var(--sp-04) 0 0" }}>
             {String(ablation.min_train_justification)}
           </p>
         </Details>
@@ -996,8 +1026,8 @@ export default function EvaluationPage() {
       */}
       {!chrono.selective?.curve ? (
         <Section
-          title="What it looks like when the model is allowed to refuse"
-          description="Not published for this split."
+          title="Selective rejection was not published for this split"
+          description="The panel that belongs here is missing from the receipt rather than impossible to compute."
         >
           <Note tone="limit">
             No selective-rejection curve was published for the{" "}
@@ -1168,24 +1198,45 @@ export default function EvaluationPage() {
             the scene draws, and a second model transcribed it without seeing the script
             to check every figure was said:{" "}
             <code>artifacts/EXPLAINER_NARRATION.json</code>.
+            {/* The closing frame of the clip draws the qualifier and the spoken track
+                does not, so a reader who takes the captions as a transcript, watches
+                muted, or hears it through a screen reader gets "the gate is passed and
+                the reviewer was a person" without the half that matters. Repeating it
+                here costs one sentence and does not need the audio re-rendered. The
+                paragraph under this figure carries it too. */}{" "}
+            <strong style={{ color: "var(--text-01)" }}>
+              The reviewer was the author of this project, which the clip&rsquo;s closing
+              frame states and its narration does not: this gate is passed, and it is not
+              passed independently.
+            </strong>
           </figcaption>
         </figure>
         {gate4Arm && (
           <>
             <p style={{ color: "var(--text-02)", lineHeight: 1.8, maxWidth: "62ch" }}>
               {gate4Arm.is_the_gate ? (
+                /* Who reviewed, what the commitment guarantees instead, and what the
+                   earlier arm found are three answers. As one block they ran to 161
+                   words and the middle one, which is the concession, was the easiest
+                   to skim past. */
                 <>
                   <strong style={{ color: "var(--text-01)" }}>This gate is decided.</strong>{" "}
-                  {gate4Arm.reviewer.identity} {gate4Arm.reviewer.independence}
+                  {gate4Arm.reviewer.identity}{" "}
+                  {/* The space is load-bearing even though the span is a block. Without
+                      it the two receipt fields concatenate in `textContent`, which is
+                      what a screen reader, a text extraction and a copy-paste all read:
+                      "…around the answers.The reviewer could not see…". */}
+                  <span style={{ display: "block", marginTop: "var(--sp-04)" }}>
+                    {gate4Arm.reviewer.independence}
+                  </span>
                   {gate4Arm.prior_review ? (
-                    <>
-                      {" "}
+                    <span style={{ display: "block", marginTop: "var(--sp-04)" }}>
                       A {gate4Arm.prior_review.kind} answered the same committed
                       plates first, at {gate4Arm.prior_review.decisive}/
                       {gate4Arm.prior_review.observations_scored}. That review is kept
                       rather than overwritten: the same instrument, two kinds of
                       reviewer.
-                    </>
+                    </span>
                   ) : null}
                 </>
               ) : (

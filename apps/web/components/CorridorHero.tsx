@@ -58,9 +58,22 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
 
   return (
     <section className="hero-plate" aria-labelledby="hero-plate-title">
+      {/* Landscape, and the axes are swapped with it. The stored plate is 620 by 1540:
+          upright in a reading column it is either 800px tall or cropped, and cropped it
+          showed the top fifth of one pass as a wall of noise with the corridor's shape
+          entirely outside the frame. Turned a quarter turn the whole pass fits a band,
+          time reads left to right the way every other time axis on this console does,
+          and the one thing the frame exists to show, a smooth curve against six that
+          wander, is legible at a glance.
+
+          Nothing is cropped and nothing is scaled unevenly: the group inside is a rigid
+          rotation, so every pixel and every path point keeps its place.
+          `tests/test_hero_frame.py` maps the image corners and the corridor's own
+          extremes through the same transform and fails if any of them leaves the
+          frame. */}
       <div className="hero-plate-frame">
         <svg
-          viewBox={`0 0 ${width} ${height}`}
+          viewBox={`0 0 ${height} ${width}`}
           className="hero-plate-svg"
           role="img"
           aria-label={
@@ -148,6 +161,10 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
               <feFuncB type="table" tableValues="0.014 0.141 0.291 0.396 0.429 0.432 0.415 0.381 0.330 0.266 0.194 0.115 0.035 0.065 0.206 0.411 0.645" />
             </feComponentTransfer>
           </filter>
+          {/* (col, row) -> (height - row, col). Right-to-left, as SVG composes them:
+              rotate first, then translate the result back into the viewBox. Row 0 is
+              the end of the pass, so this puts the start of the pass on the left. */}
+          <g transform={`translate(${height} 0) rotate(90)`}>
           <image
             href={`/waterfalls/${data.obs_id}.webp`}
             x={0}
@@ -187,7 +204,14 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
             pathLength={1}
             className="hero-corridor"
           />
+          </g>
         </svg>
+        <p className="hero-plate-axis hero-plate-axis-time">
+          Time, {String.fromCharCode(0x2192)} one pass
+        </p>
+        <p className="hero-plate-axis hero-plate-axis-freq">
+          Received frequency {String.fromCharCode(0x2191)}
+        </p>
       </div>
 
       <div className="hero-plate-caption">
@@ -203,6 +227,15 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
           identical offset search. They keep every frequency value and the whole
           swing, and lose only the shape. {data.drawn.length} of the {d.n_nulls} are drawn,
           including the closest one.
+        </p>
+        {/* Moved here from the colophon, where it was restated at the foot of all nine
+            pages. How a plate is encoded is a fact about the plate, and this is the
+            first one a reader meets. */}
+        <p className="hero-plate-body">
+          The plate is greyscale as the network published it, to within 1 part in 255, so
+          every grey is a measured intensity and every coloured mark is something the
+          pipeline computed. The colour is a map applied for legibility and changes no
+          pixel&rsquo;s rank against another.
         </p>
         <dl className="hero-plate-readout">
           <div>

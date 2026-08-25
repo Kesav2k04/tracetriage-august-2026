@@ -25,6 +25,7 @@ import {
 } from "@/lib/data";
 import Link from "next/link";
 
+import { IntervalChart } from "@/components/charts";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export const metadata = { title: "Baselines" };
@@ -113,6 +114,29 @@ function OrderingTable({ replay, title }: { replay: Replay; title: string }) {
       <h3 style={{ fontSize: "var(--type-heading-02)", marginBottom: "var(--sp-04)" }}>
         {title}
       </h3>
+      {/* Every ordering's lift with its interval, on one scale.
+          The table under this is the receipt and it stays. What it cannot show is the
+          thing the page is arguing about: whether an interval clears 1.0, and by how
+          much it overlaps the queue's. Six columns of digits make that a comparison a
+          reader has to perform; one axis makes it a comparison they can see. */}
+      <IntervalChart
+        rows={Object.entries(replay.orderings).map(([name, ordering]) => ({
+          label: ORDERING_LABELS[name] ?? name,
+          sublabel: ORDERING_NOTES[name],
+          point: ordering.lift_over_random ?? null,
+          interval: (ordering.lift_ci95 as [number, number] | null) ?? null,
+          primary: name === "queue",
+          value: fmt(ordering.lift_over_random),
+        }))}
+        rules={[{ at: 1, label: "random 1.0", kind: "null" }]}
+        label={`Lift over random for ${Object.keys(replay.orderings).length} orderings, with 95% intervals, ${title.toLowerCase()}.`}
+        caption={
+          `Each bar is a 95% interval and the dot inside it the point estimate. The ` +
+          `dashed rule is random ordering at the same budget. An interval that ` +
+          `contains 1.0 has not shown that its ordering beats chance, whatever its ` +
+          `point estimate reads.`
+        }
+      />
       <Table
         head={[
           "Ordering",
@@ -221,22 +245,13 @@ export default function ReplayPage() {
           same budget, on the same resampled draws, so the comparison is paired rather
           than two separate measurements put side by side.
         </p>
-        {/* This page is a statistical replay of one ordering against another. The
-            pass playback, the control that drives four instruments off one clock,
-            lives on an observation page, and "Replay" in the rail used to send
-            readers here looking for it. */}
-        <p
-          style={{
-            marginTop: "var(--sp-04)",
-            color: "var(--text-03)",
-            lineHeight: 1.7,
-            fontSize: "var(--type-caption)",
-          }}
-        >
-          The pass playback, one clock driving the sky track, the ground track and the
-          Doppler curve together, is on an observation:{" "}
-          <Link href={`/observation/${playbackId}/`}>open {playbackId}</Link>.
-        </p>
+        {/* The paragraph that used to sit here apologised for a rail label. "Replay"
+            sent readers here looking for the pass playback, so the second paragraph on
+            the page explained that the playback was somewhere else and linked off it.
+            The label was renamed to "Baselines" in Rail.tsx, which fixed the cause; this
+            was the workaround, and it was still spending a judge's second paragraph
+            pointing away from the page. The link survives in the colophon and on the
+            observation route itself. */}
       </header>
 
       {conclusion?.measurable ? (

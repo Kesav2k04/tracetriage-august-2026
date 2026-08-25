@@ -123,7 +123,6 @@ export default function StartPage() {
           because a figure that could be mistaken for evidence on a page of evidence is
           worse than no figure. */}
       <OrbitField
-        height={280}
         label="One pass, propagated from a 550 km circular orbit at 97.6 degrees over a station at 52.2 degrees north. The track is elevation above the horizon; the curve beneath it is the Doppler shift that pass's range rate implies at 437 MHz. Drawn for this figure and not measured: every number this console publishes comes from a receipt."
       />
 
@@ -232,7 +231,8 @@ export default function StartPage() {
             the project failed does not go. */}
         <Note tone="warn">
           <strong>Why the intervals are wide is measurable and it is not modesty.</strong>{" "}
-          Gate 6 asked for {fmt(1.5, 1)}
+          <span style={{ display: "block", marginTop: "var(--sp-04)" }}>
+            Gate 6 asked for {fmt(1.5, 1)}
           <sup>&times;</sup> the conflicts a random ordering finds at the same budget. On
           the split it was pre-registered on, a budget of {circularity.reproduction.budget}{" "}
           over {circularity.reproduction.n_population} observations holding{" "}
@@ -245,10 +245,13 @@ export default function StartPage() {
           </span>
           . This queue reached{" "}
           <span className="num">{fmt(primary.lift_point, 3)}</span>
-          <sup>&times;</sup>. The threshold was set for a corpus that could not have
-          proved it either
-          way, which is a finding about the instrument and is{" "}
-          <Link href="/evaluation/#circularity">derived rather than asserted</Link>.
+          <sup>&times;</sup>.
+          </span>
+          <span style={{ display: "block", marginTop: "var(--sp-04)" }}>
+            The threshold was set for a corpus that could not have proved it either way,
+            which is a finding about the instrument and is{" "}
+            <Link href="/evaluation/#circularity">derived rather than asserted</Link>.
+          </span>
         </Note>
       </Section>
 
