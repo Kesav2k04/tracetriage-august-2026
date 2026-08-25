@@ -48,9 +48,8 @@ ever disagrees with them.
 from pathlib import Path
 
 import numpy as np
-from manim import *
-
 from explainer_timing import NarratedScene
+from manim import *
 
 # The console self-hosts IBM Plex through @fontsource, which ships web formats only,
 # and Pango needs an outline font. `make explainer` converts the same woff2 files the

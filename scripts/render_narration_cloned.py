@@ -39,7 +39,6 @@ import importlib.util
 import json
 import sys
 import wave
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 

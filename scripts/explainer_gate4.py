@@ -37,9 +37,8 @@ them.
 # confined to the render scripts, which nothing else imports.
 from pathlib import Path
 
-from manim import *
-
 from explainer_timing import NarratedScene
+from manim import *
 
 # ---------------------------------------------------------------------------
 # Typeface. Same arrangement as scripts/explainer_corridor.py: the console self-hosts

@@ -86,7 +86,7 @@ def _mix(a: str, b: str, t: float) -> tuple[int, int, int]:
     """Blend two #rrggbb tokens. Used for the lit state, so no new colour is invented."""
     ai = tuple(int(a.lstrip("#")[i : i + 2], 16) for i in (0, 2, 4))
     bi = tuple(int(b.lstrip("#")[i : i + 2], 16) for i in (0, 2, 4))
-    return tuple(round(x + (y - x) * t) for x, y in zip(ai, bi))
+    return tuple(round(x + (y - x) * t) for x, y in zip(ai, bi, strict=True))
 
 
 def frames() -> list:
