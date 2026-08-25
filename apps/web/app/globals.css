@@ -3076,7 +3076,7 @@ main .shell > section > h2::before {
   padding: var(--sp-04) var(--sp-05);
   border-left: 3px solid var(--border-strong);
   background: var(--ui-01);
-  max-width: 58rem;
+  max-width: 72ch;
 }
 
 .disclosure > summary {
@@ -3540,11 +3540,19 @@ section[id] {
  *
  * Below 1200px there is no margin to move anything into, so none of this applies and the
  * notes sit back in the flow where they were written. */
+.note {
+  margin: var(--sp-05) 0 0;
+  line-height: 1.6;
+}
+
 @media (min-width: 1200px) {
   main .shell > section > p.note {
     float: right;
     clear: right;
     width: 44ch;
+    /* The left margin is the gap that holds the prose off the note. It lived in the
+       component's inline style before, where no stylesheet could reach it, so the float
+       sat flush against the text it was meant to annotate. */
     margin: 0 0 var(--sp-06) var(--sp-07);
     font-size: var(--type-caption);
     line-height: 1.65;

@@ -88,7 +88,7 @@ The five sections the submission asks for: [Problem statement](#problem-statemen
 
 | | |
 | --- | --- |
-| [`apps/web/`](apps/web) | 151 files. The console, Next.js, statically exported to Vercel |
+| [`apps/web/`](apps/web) | 152 files. The console, Next.js, statically exported to Vercel |
 | [`mobile/`](mobile) | 17 files. The Expo client |
 | [`flows/`](flows) | 2 files. LangFlow graphs, committed as files LangFlow wrote and can re-import |
 

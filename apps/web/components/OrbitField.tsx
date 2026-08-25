@@ -164,12 +164,16 @@ function propagate(
   // Into frame coordinates. The track rides between two fixed rails so a low pass and a
   // high one both read, and the corridor is normalised to its own extreme so its shape
   // stays legible at any frequency.
+  // Normalised, not framed. The first version baked frame coordinates in here, which
+  // put 24 of the 48 corridor samples below the bottom of the canvas and squeezed both
+  // curves into 42% of its width. Where a curve sits in the frame depends on the frame's
+  // aspect ratio, which only the shader knows, so that decision belongs there.
   const arc: number[] = [];
   const corridor: number[] = [];
   for (let i = 0; i < SAMPLES; i++) {
-    const x = -1.15 + 2.3 * (i / (SAMPLES - 1));
-    arc.push(x, ((elevations[i] ?? 0) / (Math.PI / 2)) * 0.34 - 0.14);
-    corridor.push(x, ((shifts[i] ?? 0) / (maxShift || 1)) * 0.3 - 0.5);
+    const x = -1 + 2 * (i / (SAMPLES - 1));
+    arc.push(x, (elevations[i] ?? 0) / (peak || 1)); //  0 at the horizon, 1 at culmination
+    corridor.push(x, (shifts[i] ?? 0) / (maxShift || 1)); // -1 to 1 across the sweep
   }
 
   return {
@@ -199,8 +203,9 @@ uniform float uTime;
 uniform float uIntro;   /* 0 to 1, once, so the mark draws itself in rather than blinking on */
 uniform vec3  uInk;     /* the accent, read from the stylesheet so the palette stays single-sourced */
 uniform vec3  uPaper;
-uniform vec2  uArc[SAMPLES];   /* sky track, propagated */
-uniform vec2  uCorr[SAMPLES];  /* the Doppler shift that track's range rate implies */
+uniform float uAspect;  /* width over height, so the curves can fill whatever box they get */
+uniform vec2  uArc[SAMPLES];   /* x in -1..1, y 0 at the horizon and 1 at the zenith */
+uniform vec2  uCorr[SAMPLES];  /* x in -1..1, y -1..1 across the sweep */
 
 out vec4 fragColour;
 
@@ -219,28 +224,40 @@ float segment(vec2 p, vec2 a, vec2 b) {
   return length(pa - ba * h);
 }
 
-float polyDist(vec2 p, vec2 pts[SAMPLES]) {
-  float best = 1e9;
-  for (int i = 0; i < SAMPLES - 1; i++) best = min(best, segment(p, pts[i], pts[i + 1]));
-  return best;
+/* Framing. uv.y runs -0.5 to 0.5 whatever the box, and uv.x runs to half the aspect, so
+   these two are where a normalised curve becomes a placed one. Both bands sit above the
+   limb's top edge at y = -0.32, and both stay inside the canvas at every aspect.
+   The points are transformed rather than the space: scaling uv would stretch every
+   stroke into an ellipse. */
+vec2 arcPoint(int i) {
+  return vec2(uArc[i].x * uAspect * 0.36, 0.08 + uArc[i].y * 0.20);
 }
 
-/* The same distance, but only over the part of the track drawn so far. */
-float polyDistUpTo(vec2 p, vec2 pts[SAMPLES], float frac) {
+vec2 corrPoint(int i) {
+  return vec2(uCorr[i].x * uAspect * 0.36, -0.20 + uCorr[i].y * 0.16);
+}
+
+float arcDistUpTo(vec2 p, float frac) {
   float best = 1e9;
   float limit = frac * float(SAMPLES - 1);
   for (int i = 0; i < SAMPLES - 1; i++) {
     if (float(i) > limit) break;
-    best = min(best, segment(p, pts[i], pts[i + 1]));
+    best = min(best, segment(p, arcPoint(i), arcPoint(i + 1)));
   }
   return best;
 }
 
-vec2 atFraction(vec2 pts[SAMPLES], float f) {
+float corrDist(vec2 p) {
+  float best = 1e9;
+  for (int i = 0; i < SAMPLES - 1; i++) best = min(best, segment(p, corrPoint(i), corrPoint(i + 1)));
+  return best;
+}
+
+vec2 arcAt(float f) {
   float g = clamp(f, 0.0, 1.0) * float(SAMPLES - 1);
   int i = int(floor(g));
   int j = min(i + 1, SAMPLES - 1);
-  return mix(pts[i], pts[j], fract(g));
+  return mix(arcPoint(i), arcPoint(j), fract(g));
 }
 
 void main() {
@@ -269,13 +286,13 @@ void main() {
      A circle centred far below the frame, so only its top crosses: the horizon a ground
      station actually sees. The rim has a tighter falloff than the body, which is what
      reads as atmosphere rather than as a stroked circle. */
-  float d = length(uv - vec2(0.0, -3.62)) - 3.30;
+  float d = length(uv - vec2(0.0, -3.72)) - 3.30;
   col = mix(col, uPaper * 0.30 + vec3(0.012, 0.018, 0.030), smoothstep(0.004, -0.02, d) * 0.92);
   col += exp(-abs(d) * 46.0) * vec3(0.16, 0.30, 0.52) * 0.85;
   col += exp(-max(d, 0.0) * 7.5) * vec3(0.05, 0.11, 0.22) * 0.55;
 
   /* --- The sky track ----------------------------------------------------------- */
-  float arcD = polyDistUpTo(uv, uArc, clamp(uIntro * 1.15, 0.0, 1.0));
+  float arcD = arcDistUpTo(uv, clamp(uIntro * 1.15, 0.0, 1.0));
   col += smoothstep(0.0075, 0.0, arcD) * uInk * 0.30;
   col += smoothstep(0.0500, 0.0, arcD) * uInk * 0.05;
 
@@ -283,14 +300,14 @@ void main() {
      One period is deliberately long. This sits near text a reader is trying to read, and
      a fast mark in the corner of the eye is a cost, not a feature. */
   float phase = fract(uTime * 0.055);
-  vec2 sat = atFraction(uArc, phase);
+  vec2 sat = arcAt(phase);
 
   /* A trail, not a comet tail: the part of the track already covered, fading out. */
   float trailD = 1e9;
   for (int i = 0; i < 14; i++) {
     float t0 = max(phase - float(i)     * 0.008, 0.0);
     float t1 = max(phase - float(i + 1) * 0.008, 0.0);
-    trailD = min(trailD, segment(uv, atFraction(uArc, t0), atFraction(uArc, t1)));
+    trailD = min(trailD, segment(uv, arcAt(t0), arcAt(t1)));
   }
   col += smoothstep(0.010, 0.0, trailD) * uInk * 0.34 * uIntro;
 
@@ -302,7 +319,7 @@ void main() {
      Under the track: the shape the sweep traces on a waterfall. It brightens where the
      satellite is, which is the one piece of coupling in the frame and the only thing the
      figure is trying to say. */
-  float corrD = polyDist(uv, uCorr);
+  float corrD = corrDist(uv);
   float lead = smoothstep(0.42, 0.0, abs(uv.x - sat.x));
   col += smoothstep(0.0055, 0.0, corrD) * uInk * (0.16 + 0.40 * lead) * uIntro;
   col += smoothstep(0.0380, 0.0, corrD) * uInk * 0.055 * uIntro;
@@ -311,8 +328,16 @@ void main() {
      Vignette, then a fade at the lower edge so the canvas ends in the page colour and
      needs no border to sit in. A border here would have been one more box on a page that
      already had 28 of them. */
-  col *= mix(0.62, 1.0, smoothstep(1.28, 0.30, length(uv * vec2(0.78, 1.0))));
-  col = mix(uPaper, col, smoothstep(-0.62, -0.40, uv.y));
+  /* Blend toward the paper rather than multiplying down to black. Multiplying darkened
+     the paper itself, so a borderless canvas sat as a visibly darker rectangle on the
+     page: measured rgb(7,9,11) at the sides against a page of rgb(12,14,18). Each of the
+     four edges now resolves to exactly uPaper, which is what lets the figure carry no
+     border on a page that already had 28 of them. */
+  float vig = smoothstep(1.28, 0.30, length(uv * vec2(0.42, 1.0)));
+  col = mix(uPaper, col, mix(0.55, 1.0, vig));
+  col = mix(uPaper, col, smoothstep(-0.50, -0.36, uv.y));
+  col = mix(uPaper, col, smoothstep(0.50, 0.36, uv.y));
+  col = mix(uPaper, col, smoothstep(uAspect * 0.5, uAspect * 0.5 - 0.40, abs(uv.x)));
 
   fragColour = vec4(col, 1.0);
 }`;
@@ -349,7 +374,7 @@ export default function OrbitField({
   inclinationDeg = 97.6,
   stationLatDeg = 52.2,
   frequencyMHz = 437,
-  height = 240,
+  height = 280,
   label,
 }: {
   altitudeKm?: number;
@@ -401,6 +426,7 @@ export default function OrbitField({
     const uResolution = gl.getUniformLocation(program, "uResolution");
     const uTime = gl.getUniformLocation(program, "uTime");
     const uIntro = gl.getUniformLocation(program, "uIntro");
+    const uAspect = gl.getUniformLocation(program, "uAspect");
 
     const styles = getComputedStyle(document.documentElement);
     gl.uniform3fv(
@@ -428,6 +454,7 @@ export default function OrbitField({
       canvas.height = h;
       gl.viewport(0, 0, w, h);
       gl.uniform2f(uResolution, w, h);
+      gl.uniform1f(uAspect, w / h);
     }
 
     let raf = 0;

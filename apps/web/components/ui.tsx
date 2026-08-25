@@ -375,12 +375,10 @@ export function Note({
     <p
       className="note"
       style={{
-        margin: "var(--sp-05) 0 0",
         padding: "var(--sp-04) var(--sp-05)",
         borderLeft: `3px solid ${colour}`,
         background: "var(--ui-01)",
         color: "var(--text-02)",
-        lineHeight: 1.6,
         maxWidth: "62ch",
       }}
     >

@@ -123,7 +123,7 @@ export default function StartPage() {
           because a figure that could be mistaken for evidence on a page of evidence is
           worse than no figure. */}
       <OrbitField
-        height={220}
+        height={280}
         label="One pass, propagated from a 550 km circular orbit at 97.6 degrees over a station at 52.2 degrees north. The track is elevation above the horizon; the curve beneath it is the Doppler shift that pass's range rate implies at 437 MHz. Drawn for this figure and not measured: every number this console publishes comes from a receipt."
       />
 
