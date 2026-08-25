@@ -2178,9 +2178,12 @@ code,
        `audit/motion-probe.js` now counts the elements the selector reaches, so a
        rule that stops matching is reported instead of quietly doing nothing.
 
-       `.colophon` is excluded by the child combinator on `.shell`: the footer's four
-       columns are sections too, and revealing a footer column as it enters animates
-       the last thing on the page for no reader benefit. */
+       `.colophon` is excluded because its four sections sit inside `.colophon-grid`
+       rather than directly under a `.shell`, so the child combinator does not reach
+       them. It is NOT excluded by being outside `main`: `main .shell` matches the
+       footer's shell too. Flatten `.colophon-grid` and this rule, and the float
+       containment below, both start matching the footer silently. Revealing a footer
+       column as it enters animates the last thing on the page for no reader benefit. */
     main .shell > section,
     main .shell > figure,
     .instrument {
@@ -3546,6 +3549,18 @@ section[id] {
 }
 
 @media (min-width: 1200px) {
+  /* Contain the float inside its own section.
+     Nothing between a section and the root established a block formatting context, so a
+     note that was the last child of the last section hung past `main` entirely and
+     overlapped the footer's top rule: measured on /start/ at 1707px as a 343 by 26px
+     collision with `.colophon`. It only showed on pages whose final section is shorter
+     than its own note, which is why /evaluation/ looked fine while /start/ did not.
+     `flow-root` also removes the gaps the next heading's `clear` was opening, because
+     the overhang becomes section height instead of dead space in the text column. */
+  main .shell > section {
+    display: flow-root;
+  }
+
   main .shell > section > p.note {
     float: right;
     clear: right;

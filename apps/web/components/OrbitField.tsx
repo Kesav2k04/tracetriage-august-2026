@@ -225,8 +225,10 @@ float segment(vec2 p, vec2 a, vec2 b) {
 }
 
 /* Framing. uv.y runs -0.5 to 0.5 whatever the box, and uv.x runs to half the aspect, so
-   these two are where a normalised curve becomes a placed one. Both bands sit above the
-   limb's top edge at y = -0.32, and both stay inside the canvas at every aspect.
+   these two are where a normalised curve becomes a placed one. The track lands in
+   0.08..0.28 and the corridor in -0.36..-0.04, both inside uv.y's -0.5..0.5 at every
+   aspect, and both above the limb's top edge at y = -0.42 so the sweep is never drawn
+   into the Earth.
    The points are transformed rather than the space: scaling uv would stretch every
    stroke into an ellipse. */
 vec2 arcPoint(int i) {

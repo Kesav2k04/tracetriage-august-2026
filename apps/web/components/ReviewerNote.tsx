@@ -114,7 +114,7 @@ export default function ReviewerNote({
       <p
         style={{
           margin: "var(--sp-05) 0 0",
-          fontSize: "var(--type-body-02)",
+          fontSize: "var(--type-body)",
           lineHeight: 1.65,
           maxWidth: "52rem",
           color: "var(--text-01)",
