@@ -143,27 +143,6 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
         Bytes.RAW,
         "scripts/run_langflow_check.py",
     ),
-    (
-        "artifacts/FILM_RECEIPT.json",
-        "render.sha256",
-        "../film-local/out/tracetriage-film.mp4",
-        Bytes.BINARY,
-        "presentation/scripts/report-table.ts",
-    ),
-    (
-        "artifacts/FILM_RECEIPT.json",
-        "poster.sha256",
-        "../film-local/out/tracetriage-film-poster.jpg",
-        Bytes.BINARY,
-        "presentation/scripts/report-table.ts",
-    ),
-    (
-        "artifacts/LIVE_TAKE.json",
-        "take.sha256",
-        "apps/web/public/film/live-take.mp4",
-        Bytes.BINARY,
-        "scripts/record_live_take.py",
-    ),
 ]
 
 

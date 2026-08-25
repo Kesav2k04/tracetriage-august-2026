@@ -46,7 +46,6 @@ NOTE = {
     "tests": "the offline suite, including the checks that read the receipts back",
     "docs": "pre-registrations, the kill-gate log, and the build log",
     "contracts": "JSON Schemas the data plane is validated against",
-    "presentation": "the film, rendered from the same receipts the console serves",
     "flows": "LangFlow graphs, committed as files LangFlow wrote and can re-import",
     "mobile": "the Expo client",
     "api": "the two Python functions the live measurement runs on",
@@ -70,10 +69,6 @@ FOLD = {
     "flows",
     "mobile",
     "pipeline/tracetriage",
-    "presentation/narration",
-    "presentation/scripts",
-    "presentation/src",
-    "presentation/test",
     "scripts",
     "tests",
 }
@@ -84,7 +79,7 @@ FOLD = {
 HIDE_SUFFIX = (
     ".gitignore", ".gitattributes", ".env.example", "-lock.json",
     "next-env.d.ts", "next.config.mjs", "eslint.config.mjs",
-    "tsconfig.json", "vitest.config.ts", "remotion.config.ts",
+    "tsconfig.json", "vitest.config.ts",
     "package.json", "vercel.json", "pyproject.toml", "json.d.ts",
 )
 

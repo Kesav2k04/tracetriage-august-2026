@@ -179,7 +179,7 @@ def _json_safe(node: Any, path: str = "", found: list[str] | None = None) -> Any
 
     `json.dumps` writes the bare token `NaN` by default, which is not JSON. One
     observation of 303 carried `a3_reference.sigma_curved: NaN` and made this receipt
-    unparseable by `jq`, by `JSON.parse` and by the presentation film's build, which is
+    unparseable by `jq` and by `JSON.parse`, which is
     where it surfaced. Every other consumer in this repository is Python, so nothing else
     had noticed.
 

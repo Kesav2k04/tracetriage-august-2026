@@ -101,23 +101,6 @@ throughput = _receipt("THROUGHPUT_RECEIPT.json")
 agent = _receipt("AGENT_RECEIPT.json")
 precedent = _receipt("PRECEDENT_RECEIPT.json")
 circularity = _receipt("CIRCULARITY_RECEIPT.json")
-# The presentation film, described by the sources that build it. Read here because the
-# film was the one deliverable in this repository with no receipt: its length and its
-# claim count were typed into a report, and the rendered file sat committed with nothing
-# comparing it to anything.
-film = _receipt("FILM_RECEIPT.json")
-_FILM = film["composition"]
-_FILM_CLAIMS = film["claims"]
-# The narration, for the same reason. This page called the film "silent" in two places for
-# a while after it stopped being silent, because both sentences typed the word instead of
-# asking the receipt. Whether there is a spoken track is now read, and so is what the
-# verification of it found.
-narration = _receipt("NARRATION_RECEIPT.json")
-_SPOKEN = bool(_FILM["audio"])
-_REMOTION = json.loads(
-    (REPO / "presentation" / "package.json").read_text(encoding="utf-8")
-)["dependencies"]["remotion"]
-
 # The precedent study's cold condition is the negative result on this page that a reader is
 # most likely to be shown the flattering half of. Both halves are read from the receipt so
 # the sentence cannot keep the warm margin after a re-run moves it.
@@ -741,27 +724,16 @@ REQUIREMENTS: list[tuple[str, ...]] = [
         "Demo or presentation video",
         "`docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated "
         "from the receipts so no spoken number can drift from what the console shows. "
-        # The word "film" has to reach the frame count without a full stop between them,
-        # because tests/test_prose_drift.py finds this sentence by that span and a decimal
-        # point ends it. Writing the runtime before the frame count put 177.2 in the way
-        # and the rule guarding the frame count silently began checking nothing.
-        f"The film itself is a {'narrated' if _SPOKEN else 'silent'} cut over the same "
-        f"receipts: {_FILM['beats']} cards, {_FILM['frames']} frames, "
-        f"{_FILM['seconds']:g} seconds, and {_FILM_CLAIMS['total']} figures each "
-        "resolved from a receipt key "
-        "path at build time rather than typed. It is published as a link and renders "
-        "outside the tree, because it is a 4K mp4 tens of megabytes long carrying a "
-        "voice recording, and a clone needs neither to check a number; the chapter list in "
-        "`README.md` is generated from its own beat table. "
-        "`artifacts/FILM_RECEIPT.json` records its size and digest and "
-        "`scripts/check_receipt_digests.py`, a standing gate, checks the bytes against "
-        "it wherever the render is present. The narration is spoken offline by "
-        f"{narration['renderer']['model']}, {narration['renderer']['licence']}, "
-        "and held to the same rule as the cards: a second model transcribes the rendered "
-        f"audio back without seeing the script, and all "
-        f"{narration['totals']['figures_checked']} figures it names were heard, with "
-        f"{narration['totals']['beats_overrunning_their_card']} lines overrunning the card "
-        "they are spoken over. `artifacts/NARRATION_RECEIPT.json`",
+        "The console carries two short explainer clips of its own, one on the landing page "
+        "and one on `/evaluation`, and every figure either of them states is read from a "
+        "receipt key path by the scene file that draws it rather than typed. Both are "
+        "spoken, and a spoken figure is one a viewer cannot check against the frame it is "
+        "on, so a second model transcribes the rendered audio back without seeing the "
+        "script and each figure is looked for in what it heard. "
+        "`artifacts/EXPLAINER_CLIPS.json` records the clips and their captions and "
+        "`artifacts/EXPLAINER_NARRATION.json` records what was said against what was "
+        "heard; `scripts/build_explainers.py --check` and "
+        "`scripts/render_explainer_narration.py --check` are both standing gates",
     ),
     ("Public repository", "This one"),
 ]
@@ -1521,21 +1493,6 @@ STACK: list[tuple[str, ...]] = [
         "watsonx.ai",
         "`scripts/run_watsonx_check.py`",
         _WATSONX_CELL,
-    ),
-    (
-        "Remotion",
-        "`presentation/`, rendered offline to a workspace beside the repository",
-        f"The presentation film. {_FILM['beats']} cards, {_FILM['frames']} frames, "
-        f"{_FILM['seconds']:g} seconds at {_FILM['fps']} fps, and "
-        f"{narration['totals']['spoken_seconds']:.0f} seconds of narration over them. "
-        f"Every figure on "
-        f"screen is resolved from a receipt key path at build time by "
-        f"`presentation/src/data.ts`, so a number in the film cannot disagree with the "
-        f"artifact it came from: {_FILM_CLAIMS['total']} claims over "
-        f"{len(film['reads'])} committed JSON files, of which {_FILM_CLAIMS['drawn']} are "
-        f"drawn and "
-        f"{_FILM_CLAIMS['read_but_not_drawn']} are read only for cross-checks. Remotion "
-        f"{_REMOTION}. `artifacts/FILM_RECEIPT.json`",
     ),
     (
         "Next.js, Vercel, WebGL",

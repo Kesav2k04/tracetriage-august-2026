@@ -3,8 +3,8 @@
 Every generated document here has a ``--check`` that fails on drift, and every one of them
 protects only the region between its markers. Fourteen commits on 2026-08-24 corrected
 eleven published claims and every single one sat outside a marked region: a gate described
-as open after a person had answered it, a film's byte count from a superseded render, an
-install line naming an extra that pulls 4.5 GB the judged path does not need. Two outside
+as open after a person had answered it, a byte count from a superseded render, an install
+line naming an extra that pulls 4.5 GB the judged path does not need. Two outside
 reviewers independently ranked "reconcile the prose with the receipts and add a drift test"
 as the highest-value work left. This is that test.
 
@@ -12,19 +12,18 @@ as the highest-value work left. This is that test.
 deciding whether a line is talking about that quantity, the shape the value takes in prose,
 and the receipt field the value comes from. A line in scope carrying a value of the right
 shape has to carry the right one. A line in scope with no value is not a finding, because
-plenty of sentences mention the film without giving its size.
+plenty of sentences mention a quantity without giving its value.
 
 **The value is never typed here.** It is read from the receipt at test time, so this file
 cannot be the thing that goes stale, and every rule carries the receipt and the field it
 came from in its ``source``. ``test_every_rule_names_where_its_value_came_from`` resolves
-each plain path against the receipt on disk; three of the fifteen rules derive their value
+each plain path against the receipt on disk; two of the eleven rules derive their value
 by arithmetic and say so in the same string. A rule whose receipt field disappears fails
 loudly rather than passing vacuously.
 
-**Fifteen rules.** Ten quantities (the film's bytes, its poster's bytes, its frame count,
-the number of receipts it reads, gate 3's scored and discriminating observations, its
-episode count and discriminating episodes, its bound and the bar that bound is read
-against) and the verdict in each of the five hand-written gate headings.
+**Eleven rules.** Six quantities (gate 3's scored and discriminating observations, its
+episode count and discriminating episodes, its bound and the bar that bound is read against)
+and the verdict in each of the five hand-written gate headings.
 
 **Exemptions are load-bearing or they are gone.** The table is empty today, which is a
 measurement. Three exemptions lived in it, each written while a rule was still loose, each
@@ -237,20 +236,15 @@ def _allowed(rel: str, line: str) -> str | None:
 
 
 def _rules() -> list[Rule]:
-    film = _receipt("FILM_RECEIPT.json")
     gate3 = _receipt("GATE3_RECEIPT.json")
     grouped = gate3["entity_grouping"]
     power = _receipt("GATE_POWER_RECEIPT.json")
     verdicts = {g["gate"]: g["verdict"] for g in power["gates"]}
 
-    render_bytes = _dig(film, "render.bytes")
-    poster_bytes = _dig(film, "poster.bytes")
-    frames = _dig(film, "composition.frames")
     scored = gate3["observations_scored"]
     hits = round(gate3["discriminating_rate"] * scored)
     groups = grouped["groups_scored"]
     grouped_hits = round(grouped["grouped_discriminating_rate"] * groups)
-    reads = len(film["reads"])
 
     # Five of the six gate headings in `docs/KILL_GATE.md` are written by hand. Gate 3's is
     # generated between comment markers and its `--check` already refuses to let it drift,
@@ -276,47 +270,6 @@ def _rules() -> list[Rule]:
     ]
 
     return heading_rules + [
-        Rule(
-            what="the film's size in bytes",
-            # `size=` catches the pasted ffprobe block, which is where this went wrong
-            # once: it read size=11108910, a number matching neither the film nor the
-            # silent cut, and no rule phrased around the word "bytes" would see it.
-            subject=r"tracetriage-film\.mp4|the film[^.]{0,60}bytes|"
-            r"bytes[^.]{0,30}the film|^size=\d+",
-            shape=r"\b\d{1,3}(?:,\d{3}){2,}\b|\b\d{8}\b",
-            value=f"{render_bytes:,}",
-            source="FILM_RECEIPT.json render.bytes",
-            why="the byte count published for the file a judge downloads",
-        ),
-        Rule(
-            what="the poster frame's size in bytes",
-            # Scoped to the film's poster. Bare "poster" also matched the home page's
-            # explainer clip in docs/CLAIM_REGISTER.md, which has its own poster and its
-            # own receipt, and reported that as drift.
-            subject=r"tracetriage-film-poster|poster frame is|"
-            r"poster[^.]{0,40}film|film[^.]{0,40}poster",
-            # The lookarounds stop this matching 034,834 inside 11,034,834, which reported
-            # the film's own correct byte count as a wrong poster size.
-            shape=r"(?<![,\d])\d{3},\d{3}(?![,\d])",
-            value=f"{poster_bytes:,}",
-            source="FILM_RECEIPT.json poster.bytes",
-            why="the poster is the still a judge sees before pressing play",
-        ),
-        Rule(
-            what="the film's frame count",
-            # `Rendered N/M` is its own case. The stale transcript said "Rendered
-            # 3544/3540" on a line holding neither the word "frames" nor the word "film",
-            # so every phrasing-based subject walked past the most quotable number in it.
-            subject=r"(?:composition|film|rendered)[^.]{0,80}frames|frames[^.]{0,40}"
-            r"(?:composition|film)|^Rendered \d+/\d+|nb_frames=",
-            # Only the denominator of `Rendered N/M`. The numerator is legitimately higher
-            # than the film's length whenever the font-handle retry re-renders a group, so
-            # checking it would fail on a correct transcript.
-            shape=r"^Rendered \d+/(\d{4})|nb_frames=(\d{4})|\b(\d{4})\b(?![/\d])",
-            value=str(frames),
-            source="FILM_RECEIPT.json composition.frames",
-            why="the frame count is what fixes the film's length",
-        ),
         Rule(
             what="gate 3's scored observations",
             subject=r"gate 3|corridor (?:intersects|lands)",
@@ -364,20 +317,6 @@ def _rules() -> list[Rule]:
                 " * entity_grouping.groups_scored)"
             ),
             why="the grouped numerator",
-        ),
-        Rule(
-            what="the number of receipts the film is built from",
-            # An outside reviewer picked this one out of the candidates, and it earns the
-            # place: the count was published as eight, then nine, while the receipt held
-            # ten. It is a reproducibility claim, it has one clean source, and the two
-            # lines carrying it are written in different hands (a digit and a word).
-            subject=r"committed JSON|receipts? (?:it |the film )?reads|"
-            r"reads[^|]{0,30}receipt",
-            shape=r"\b(seven|eight|nine|ten|eleven|twelve|\d{1,2})\s+"
-            r"(?:committed )?(?:JSON|receipt)",
-            value=str(reads),
-            source="FILM_RECEIPT.json len(reads)",
-            why="the film's reproducibility claim is the list of receipts it reads",
         ),
         Rule(
             what="gate 3's bound in the sentence that states its bar",
@@ -449,16 +388,14 @@ def test_no_judge_facing_document_quotes_a_superseded_number(rules: list[Rule]) 
     )
 
 
-#: Rules whose only subject was `presentation/REPORT.md`, a working document that is no
-#: longer in the tree. They are kept rather than deleted because the quantities are still
-#: real and a document could state them again, and they are named here rather than let
+#: Rules whose subject is not in the current tree. They are kept rather than deleted because
+#: the quantities are still real and a document could state them again, and they are named
+#: here rather than let
 #: through by a zero-hit tolerance, because a rule that quietly stops checking is the
 #: defect this file exists to prevent. The set is exact in both directions: a rule that
 #: regains a subject has to leave this list, and a rule that loses one has to join it.
 _NO_SUBJECT_IN_THE_TREE = frozenset(
     {
-        "the film's size in bytes",
-        "the poster frame's size in bytes",
         "gate 3's bound in the sentence that states its bar",
         "the bar gate 3's bound is read against",
     }
@@ -539,18 +476,6 @@ def test_every_exemption_suppresses_a_real_finding(
 #: added without a planted pair fails `test_every_rule_fires_on_planted_drift` rather than
 #: joining the suite unproven.
 _PLANTED: dict[str, tuple[str, str]] = {
-    "the film's size in bytes": (
-        "The film, `presentation/out/tracetriage-film.mp4`, is 12,345,678 bytes.",
-        "The film, `presentation/out/tracetriage-film.mp4`, is {v} bytes.",
-    ),
-    "the poster frame's size in bytes": (
-        "The poster frame is 999,111 bytes.",
-        "The poster frame is {v} bytes.",
-    ),
-    "the film's frame count": (
-        "The film composition is 1234 frames long.",
-        "The film composition is {v} frames long.",
-    ),
     "gate 3's scored observations": (
         "Gate 3 scored 224 of 301 testable observations.",
         "Gate 3 scored 224 of {v} testable observations.",
@@ -566,10 +491,6 @@ _PLANTED: dict[str, tuple[str, str]] = {
     "gate 3's discriminating episode count": (
         "Of those, 11 of the 68 discriminate on every capture.",
         "Of those, {v} of the 68 discriminate on every capture.",
-    ),
-    "the number of receipts the film is built from": (
-        "The film is built from eight committed JSON files.",
-        "The film is built from {v} committed JSON files.",
     ),
     "gate 3's bound in the sentence that states its bar": (
         "Gate 3 reached a 95% lower bound of 0.11 against a threshold of 0.70.",
@@ -603,12 +524,6 @@ for _gate in (1, 2, 4, 5, 6):
 #: "N of the 68 discriminate on every capture", so its second wording is the same phrase with
 #: a different lead-in. Naming that is better than pretending otherwise.
 _PLANTED_REPHRASED: dict[str, tuple[str, str]] = {
-    "the film's size in bytes": ("size=99999999", "size={v}"),
-    "the poster frame's size in bytes": (
-        "`presentation/out/tracetriage-film-poster.jpg` weighs 111,222 bytes.",
-        "`presentation/out/tracetriage-film-poster.jpg` weighs {v} bytes.",
-    ),
-    "the film's frame count": ("nb_frames=1234", "nb_frames={v}"),
     "gate 3's scored observations": (
         "Gate 3: 301 observations scored under the pre-registered plan.",
         "Gate 3: {v} observations scored under the pre-registered plan.",
@@ -624,10 +539,6 @@ _PLANTED_REPHRASED: dict[str, tuple[str, str]] = {
     "gate 3's discriminating episode count": (
         "Only 21 of the 68 discriminate on every capture.",
         "Only {v} of the 68 discriminate on every capture.",
-    ),
-    "the number of receipts the film is built from": (
-        "It reads 9 receipts and draws nothing from outside them.",
-        "It reads {v} receipts and draws nothing from outside them.",
     ),
     "gate 3's bound in the sentence that states its bar": (
         "The exact one-sided lower bound of 0.55 against a 0.7 bar.",
@@ -719,17 +630,6 @@ _SHIPPED_DRIFT: tuple[tuple[str, str], ...] = (
         "ESTABLISHED.",
         "gate 3's discriminating observations",
     ),
-    ("Rendered 3544/3540", "the film's frame count"),
-    (
-        "Output 4,850,926 bytes, which is 4.63 MiB. The poster frame is 275,349 bytes.",
-        "the poster frame's size in bytes",
-    ),
-    ("size=11108910", "the film's size in bytes"),
-    (
-        "| `presentation/out/tracetriage-film.mp4` | The film. 11,108,910 bytes, 142.06 s, "
-        "1920x1080, 30 fps, h264 video and AAC narration, 48 kHz stereo. |",
-        "the film's size in bytes",
-    ),
 )
 
 
@@ -805,16 +705,12 @@ def test_every_rule_names_where_its_value_came_from(rules: list[Rule]) -> None:
 #: rules: eight findings, all in one document. A rule added later may raise the count, so the
 #: number is a floor, but the document and the seven quantities are exact.
 _AS_PUBLISHED_COMMIT = "202dc85"
-_AS_PUBLISHED_FLOOR = 8
+_AS_PUBLISHED_FLOOR = 6
 _AS_PUBLISHED_DOCUMENT = "presentation/REPORT.md"
 _AS_PUBLISHED_QUANTITIES = frozenset(
     {
-        "the film's size in bytes",
-        "the poster frame's size in bytes",
-        "the film's frame count",
         "gate 3's scored observations",
         "gate 3's discriminating observations",
-        "the number of receipts the film is built from",
         "gate 3's bound in the sentence that states its bar",
     }
 )

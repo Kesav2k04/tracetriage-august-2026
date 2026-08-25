@@ -39,7 +39,6 @@ _BUDGET_MINUTES = {
     "offline-replay": 30,
     "network-recon": 10,
     "console": 15,
-    "presentation": 15,
 }
 
 
@@ -130,7 +129,7 @@ def test_the_live_api_job_is_daily_and_on_request(workflow, triggers):
 def test_the_offline_gate_still_runs_on_every_commit(workflow, triggers):
     """The half that must not be traded away for a quieter inbox."""
     assert "push" in triggers and "pull_request" in triggers, sorted(triggers)
-    for name in ("offline-replay", "console", "presentation"):
+    for name in ("offline-replay", "console"):
         assert "if" not in workflow["jobs"][name], (
             f"{name} has grown a condition. The offline replay, the console build and "
             f"the presentation claim tests are the standing gates and they run on every "

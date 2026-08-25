@@ -62,6 +62,6 @@ worse than a narrow one. The six obligations above are checked per row as
 `source_sha256` and `modification_notice`; the licence link is checked once, at the
 `published_where` level, because it is a property of the repository rather than of a
 file. And a file whose source cannot be resolved to an observation carries no
-obligation and says so in its row. Two files reach an observation only by
-declaration, because a renderer's output does not carry the id: the film and its
-poster, both listed with `observation_id_from: declared`.
+obligation and says so in its row. No file in the tree reaches an observation by
+declaration today: the table that allows it is kept because a renderer's output does not
+carry the id, so a composed render committed later would otherwise owe nothing.

@@ -8,7 +8,7 @@ This one carried two. `artifacts/GATE3_POOL.json` held a NaN in the `trace_q75` 
 one observation, `scripts/run_gate3.py` copied it into
 `artifacts/GATE3_RECEIPT.json`, and both files became unreadable by `jq`, by a browser's
 `JSON.parse`, and by anything else a judge might reasonably reach for. It surfaced only
-because the presentation film imports the receipt through a bundler, whose JSON plugin is
+because the console imports the receipt through a bundler, whose JSON plugin is
 strict, and the failure it produced said "Failed to parse JSON file" with no line number.
 
 The whole argument of this project is that a reader can open the receipts and check the

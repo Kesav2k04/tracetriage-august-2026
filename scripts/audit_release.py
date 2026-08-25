@@ -266,34 +266,23 @@ _MEDIA_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".mp4", ".webm"}
 #: Files that embed an observation their own name does not mention.
 #:
 #: The id is read out of the filename everywhere else, which works for every artifact
-#: this pipeline writes and not at all for one a renderer composed. The film draws
-#: observation 14740031's waterfall on its physics card and the poster frame is taken from
-#: that card, so both are derived works of a ShareAlike dataset whose filenames say
-#: nothing. Before this table they resolved to no observation and the audit reported them
-#: as owing nothing, which is the failure a licence audit exists to prevent: `clean: true`
-#: on the two largest redistributed files in the repository.
+#: this pipeline writes and not at all for one a renderer composed. A composed clip draws an
+#: observation's waterfall into a frame whose filename says nothing about it, so it is a
+#: derived work of a ShareAlike dataset that resolves to no observation. Before this table
+#: those files resolved to nothing and the audit reported them as owing nothing, which is the
+#: failure a licence audit exists to prevent: `clean: true` on redistributed pixels.
 #:
 #: A declaration rather than a probe. Reading the id back out of an encoded mp4 is not
 #: possible, so the honest alternative to naming it here is not measuring it, and the row
 #: records `observation_id_from` so a reader can see which of the two happened.
-_EMBEDDED_OBSERVATION: dict[str, int] = {
-    # The film and its poster. Neither is tracked: the film is published as a link and
-    # renders outside the tree, so these two lines match nothing today. They are kept
-    # rather than deleted because the audit reads the id out of the filename everywhere
-    # else, and a renderer's output does not name the observation it drew. Deleting them
-    # would mean a render committed later owes nothing again, which is the exact bug this
-    # table was written to close.
-    "presentation/out/tracetriage-film.mp4": 14740031,
-    "presentation/out/tracetriage-film-poster.jpg": 14740031,
-    # A capture of the deployed console. The page it photographs draws observation
-    # 14740031's waterfall with the fitted corridor over it, so the screenshot carries
-    # the same redistributed pixels the film does and owes the same notice.
-    "apps/web/public/film/console.webp": 14740031,
-    # A screen recording of the console measuring observation 14742699. The result card
-    # it ends on draws that observation's waterfall, so the video redistributes those
-    # pixels and owes the same notice the stills do.
-    "apps/web/public/film/live-take.mp4": 14742699,
-}
+#: Empty today, and that is a measurement rather than an oversight. Every composed render
+#: that redistributed waterfall pixels under a filename naming no observation has been
+#: removed from this repository. The two explainer clips the console still plays draw vector
+#: graphics from figures rather than compositing a waterfall, so neither embeds an
+#: observation's pixels for this table to declare. A render committed later that does will
+#: resolve to no observation and be reported as owing nothing, which is what this table
+#: exists to close, so it is kept rather than deleted.
+_EMBEDDED_OBSERVATION: dict[str, int] = {}
 
 #: What was done to the bytes, per location. The licence requires a notice of every
 #: modification, and "resized" is not the same claim as "recoloured and overlaid".
@@ -313,31 +302,7 @@ _MODIFICATION_NOTICE: list[tuple[str, str]] = [
         "one observation's corridor animation, rendered to video from the same overlay "
         "geometry and re-encoded",
     ),
-    # More specific than the directory below it, and above it for that reason:
-    # `_notice_for` returns the first prefix that matches, and a recording and a
-    # screenshot were not modified in the same way.
-    (
-        "apps/web/public/film/live-take.mp4",
-        "a screen recording of the deployed console measuring one observation, in which "
-        "that observation's waterfall appears scaled to a figure with the predicted "
-        "Doppler corridor drawn over it, played at 4x and then 2x with its final frame "
-        "held, and re-encoded from VP8 to H.264",
-    ),
-    (
-        "apps/web/public/film/",
-        "a screenshot of the deployed console, in which one observation's waterfall "
-        "appears scaled to a figure with the predicted Doppler corridor drawn over it, "
-        "re-encoded from PNG to WebP",
-    ),
     ("tests/fixtures/", "synthetic or reduced fixture, used only by the test suite"),
-    (
-        # Matches nothing while the film is published as a link. Kept for the same reason
-        # the embedded-observation rows above are kept.
-        "presentation/out/",
-        "one observation's waterfall scaled to the frame with the predicted Doppler "
-        "corridor drawn over it, composited into a 1920x1080 film alongside figures read "
-        "from this repository's receipts, and encoded to H.264 with AAC narration",
-    ),
 ]
 
 #: The fixture notice, by name. This used to be `_MODIFICATION_NOTICE[3][1]`, which meant
@@ -492,14 +457,11 @@ _WEIGHT_NOTES: list[tuple[str, str]] = [
         "the 10 of 182 checkable.",
     ),
     (
-        # Matches nothing today: the render lives beside the repository, not in it.
-        "presentation/out/",
-        "the rendered film and its poster, if either is ever committed. The source beside "
-        "them reads every figure from the receipts rather than restating them, so the "
-        "film's content is reproducible from this tree; the bytes are not, and "
-        "presentation/REPORT.md gives the measurement. The render itself is published as "
-        "a link, because it is a 4K mp4 tens of megabytes long carrying a voice "
-        "recording, and a clone needs neither in order to check a number.",
+        "apps/web/public/media/",
+        "the two explainer clips the console plays, their poster stills and their captions. "
+        "Every figure either clip states is read from a receipt key path by the scene file "
+        "that draws it, so the content is reproducible from this tree even though the "
+        "encoded bytes are not.",
     ),
 ]
 

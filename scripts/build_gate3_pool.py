@@ -764,7 +764,7 @@ def _json_safe(node, path: str = "", found: list[str] | None = None):
 
     `json.dumps` writes `NaN`, which is not JSON. This file carried one, inherited into
     `artifacts/GATE3_RECEIPT.json`, and made both unreadable by `jq`, by `JSON.parse` and
-    by the presentation film's build. Every other consumer here is Python, so nothing had
+    by any JavaScript consumer. Every other consumer here is Python, so nothing had
     noticed for as long as the pool had existed.
 
     A NaN means the statistic could not be computed for that observation. JSON spells that

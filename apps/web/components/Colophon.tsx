@@ -152,16 +152,6 @@ export default function Colophon({
               (raw)
             </a>
             {" · "}
-            {/* The presentation film, which is published as a link and is not in the
-                repository or in this export: it is a 4K mp4 tens of megabytes long
-                carrying a voice recording, and a copy here would be that weight again,
-                which the release audit counts twice for one artifact. This points at the section of the README
-                that carries the chapter list and the address, so it stays a live link
-                whatever the film is hosted on. A judge who arrives at the deployed URL
-                had no signposted way to it at all, which is the worse of the two
-                problems: a film nothing links to is a film nobody watches. */}
-            <a href={`${REPO}/blob/main/README.md#the-film`}>Film</a>
-            {" · "}
             <a href={REPO}>Repository</a>
           </p>
         </div>

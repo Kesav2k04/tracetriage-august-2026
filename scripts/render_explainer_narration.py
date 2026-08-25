@@ -3,7 +3,7 @@
 The clips on the console explain a measurement and a review protocol, and until now they
 did it silently, with the explanation sitting in captions a reader has to keep up with
 while the animation moves under them. A reader who looks away loses the thread. So the
-same words are spoken, in the same voice the film uses, and each section of each scene
+same words are spoken, in one consistent voice, and each section of each scene
 holds for exactly as long as its own line takes rather than for a duration somebody
 guessed while watching a mute render.
 
@@ -17,8 +17,8 @@ narration's does not, there is no second copy to move.
     .venv-tts/Scripts/python.exe scripts/render_explainer_narration.py --check
 
 Then a second model transcribes what was rendered, without seeing the script, and every
-figure is looked for in that transcript with the whole-token matcher `render_narration.py`
-uses for the film. A clip that sounds fine and says a different number fails here.
+figure is looked for in that transcript with the whole-token matcher in
+`scripts/spoken_figures.py`. A clip that sounds fine and says a different number fails here.
 """
 
 from __future__ import annotations
@@ -26,7 +26,6 @@ from __future__ import annotations
 import argparse
 import ast
 import hashlib
-import importlib.util
 import json
 import os
 import re
@@ -36,18 +35,22 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from spoken_figures import figure_in
+
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / "scripts"
 #: The narration is a voice recording, so it is rendered into a workspace beside the
 #: repository rather than into the console's public directory, where it would be committed
-#: and served. scripts/film_workspace.py owns that path; this resolves it the same way so
-#: TRACETRIAGE_FILM_LOCAL moves both together.
-FILM_LOCAL = Path(os.environ.get("TRACETRIAGE_FILM_LOCAL") or REPO.parent / "film-local")
-AUDIO_DIR = FILM_LOCAL / "public" / "audio" / "explainer"
+#: and served. It is a sibling of the repository rather than an ignored directory inside it:
+#: an ignore rule is a line saying a path exists and is being hidden, while a sibling is not
+#: part of the tree at all, so a stray `git add -f` cannot put a voice recording in a commit.
+#: Set TRACETRIAGE_CLIP_LOCAL to move it.
+CLIP_LOCAL = Path(os.environ.get("TRACETRIAGE_CLIP_LOCAL") or REPO.parent / "clip-local")
+AUDIO_DIR = CLIP_LOCAL / "public" / "audio" / "explainer"
 RECEIPT = REPO / "artifacts" / "EXPLAINER_NARRATION.json"
 
-#: The same seed, exaggeration and reference clip as the film, so the console and the
-#: film are one speaker rather than two. Pinned for the same reason: without it every run
+#: One seed, exaggeration and reference clip for both clips, so the console speaks with one
+#: voice rather than two. Pinned for the same reason: without it every run
 #: is a new take and the receipt's digests say nothing.
 SEED = 20260825
 EXAGGERATION = 0.5
@@ -90,8 +93,7 @@ def spell_integer(n: int) -> str:
 def say(display: str) -> str:
     """The spoken form of a figure, derived from the way the scene displays it.
 
-    The three rules the film's narration arrived at, for the same three reasons, and
-    they are here rather than imported because the film's copy is TypeScript.
+    Three rules, for three reasons a spoken figure can go wrong.
 
     Integers of three digits or more are spelled: a grouped display comes back as a
     different number ("two, seven twenty seven" for 2,727), and a bare three-digit one
@@ -267,31 +269,12 @@ def _seconds(path: Path) -> float:
         return round(handle.getnframes() / handle.getframerate(), 2)
 
 
-def _film_matcher():
-    """Borrow the film's transcript matcher rather than writing a second one.
-
-    Two matchers drift, and the one that drifts is the one that stops catching things.
-    """
-    spec = importlib.util.spec_from_file_location(
-        "_film_narration", SCRIPTS / "render_narration.py"
-    )
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    # Registered before it is executed. `render_narration.py` defines a dataclass, and
-    # dataclasses resolves its own annotations through `sys.modules[cls.__module__]`,
-    # which is None for a module loaded from a spec and never registered.
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module.figure_in
-
-
 def render(reference: Path) -> dict[str, Any]:
     import soundfile  # noqa: PLC0415
     import torch  # noqa: PLC0415
     from chatterbox.tts import ChatterboxTTS  # noqa: PLC0415
     from faster_whisper import WhisperModel  # noqa: PLC0415
 
-    figure_in = _film_matcher()
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     tts = ChatterboxTTS.from_pretrained(device="cuda")
     whisper = WhisperModel("small.en", device="cpu", compute_type="int8")
@@ -333,7 +316,7 @@ def render(reference: Path) -> dict[str, Any]:
                 {
                     "key": cue.key,
                     "text": cue.text,
-                    "audio": out.relative_to(FILM_LOCAL).as_posix(),
+                    "audio": out.relative_to(CLIP_LOCAL).as_posix(),
                     "seconds": _seconds(out),
                     "sha256": _sha256(out),
                     "heard": heard,
@@ -404,7 +387,7 @@ def check() -> int:
         for cue, section in zip(cues, clip["sections"], strict=True):
             if cue.text != section["text"]:
                 problems.append(f"{clip['clip']}/{cue.key}: line changed since render")
-            path = FILM_LOCAL / section["audio"]
+            path = CLIP_LOCAL / section["audio"]
             if not path.exists():
                 problems.append(f"{clip['clip']}/{cue.key}: {section['audio']} missing")
             elif _sha256(path) != section["sha256"]:

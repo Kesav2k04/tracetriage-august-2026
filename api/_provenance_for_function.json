@@ -131,8 +131,8 @@
   },
   {
    "name": "EXPLAINER_CLIPS.json",
-   "sha256": "88a46cdc10a763a9b37efa12b2ee519e03aef0e69ffd5429cb3c805783b03aec",
-   "bytes": 1011,
+   "sha256": "93894cd4dddd73eff5e7962df62a02677e00f1c6398138d94210f852ed393de9",
+   "bytes": 984,
    "rewritten_after_this_payload": false
   },
   {
@@ -145,12 +145,6 @@
    "name": "EXPLAIN_RECEIPT.json",
    "sha256": "49f9a2f902c2b1fb3b28d26bfdcc069839447bc11d09bd04dbda1918517e792c",
    "bytes": 24954,
-   "rewritten_after_this_payload": false
-  },
-  {
-   "name": "FILM_RECEIPT.json",
-   "sha256": "4952747ab9c2a058ac14bbd5f3bf274b561f15b64a408301f553c7e3498dfdb0",
-   "bytes": 6579,
    "rewritten_after_this_payload": false
   },
   {
@@ -244,12 +238,6 @@
    "rewritten_after_this_payload": false
   },
   {
-   "name": "LIVE_TAKE.json",
-   "sha256": "668a82b377e7d6b8f451a19a28bd5684516e6ca8e7ec5d36b5e182b2033ea48d",
-   "bytes": 7787,
-   "rewritten_after_this_payload": false
-  },
-  {
    "name": "MOTION_AA_CONTROL.json",
    "sha256": "144edd40ad9380f961937a7a4d4984c6edd7fab4bc1c670ddfe6d178b8e6e900",
    "bytes": 11217,
@@ -259,12 +247,6 @@
    "name": "MOTION_RECEIPT.json",
    "sha256": "7848414e2567859de6ec3da143eba2a4d951780ec878a0da5a07dfbbfb3d03aa",
    "bytes": 13006,
-   "rewritten_after_this_payload": false
-  },
-  {
-   "name": "NARRATION_RECEIPT.json",
-   "sha256": "ec41246139ab5c341afdbc5e6fbc3a4f41a9b541bc18e17b9f433e6a3e5f441d",
-   "bytes": 18536,
    "rewritten_after_this_payload": false
   },
   {
@@ -343,12 +325,6 @@
    "name": "TRIAGE_RECEIPT.json",
    "sha256": "5884eb5dc9b6d1a72a7590534106a5bd432b27eb2a4f8dc4ee8055d790589a2e",
    "bytes": 3775,
-   "rewritten_after_this_payload": false
-  },
-  {
-   "name": "VOICE_CASTING.json",
-   "sha256": "de4b9e6a02164e4b52210aa39d8a02ea898a09392deebc68a9930fc1f6c4ede5",
-   "bytes": 43849,
    "rewritten_after_this_payload": false
   },
   {

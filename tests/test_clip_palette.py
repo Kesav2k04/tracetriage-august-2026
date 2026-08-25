@@ -1,23 +1,18 @@
-"""Every rendered video carries the console's ground, measured in pixels.
+"""Every committed clip carries the console's ground, measured in pixels.
 
-The presentation film was rendered at a navy palette, the palette then moved to black, and
-nothing noticed for eight hours. Every check in the chain agreed: `presentation/src/theme.ts`
-said `#0c0e12`, the claim test compared those pins against `globals.css` and passed, the film
-receipt's digest matched the committed bytes exactly, and the committed bytes were still
-`#050d21`. Each of those compares two things that were both updated, or a file against a
-digest taken of that same file. None of them looks at a pixel.
-
-The two Manim explainers were worse, and for the same reason. They read their palette out of
-`globals.css` at render time, so the source of truth was never in question; they had simply
-not been rendered since. One carried the navy and the other carried a ground from a palette
-older than that, `#140d1b`, which no stylesheet in this repository has defined for months.
+Both Manim explainers went stale without a single check noticing. They read their palette out
+of `globals.css` at render time, so the source of truth was never in question; they had simply
+not been rendered since it moved. One carried a navy ground and the other carried `#140d1b`,
+from a palette no stylesheet in this repository has defined for months. Everything around them
+agreed, because each of those checks compares two things that were both updated, or a file
+against a digest taken of that same file. None of them looks at a pixel.
 
 So this reads pixels. Each video is sampled in the outer margin of one frame and compared
 against the hex the stylesheet defines for the ground, with a tolerance rather than an exact
 match, because neither H.264 at yuv420p nor JPEG gives back the value it was handed. Each
 poster is sampled the same way at the frame it was taken from, and compared against its own
 video as well as against the pin, because a poster is rendered by a separate command and a
-fresh poster over a stale film would otherwise read as clean.
+fresh poster over a stale clip would otherwise read as clean.
 
 What this does not measure: whether the sampled frame is representative. It takes five points
 in the outer margin and requires them to agree with each other before it compares any of them
@@ -28,7 +23,6 @@ lucky pixel.
 from __future__ import annotations
 
 import json
-import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,7 +31,6 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 CSS = REPO / "apps" / "web" / "app" / "globals.css"
-THEME = REPO / "presentation" / "src" / "theme.ts"
 
 #: Lossy encoding moves a flat colour by a little. The measured JPEG shift on these stills is
 #: 1 to 3 in one channel; H.264 with 4:2:0 chroma has more room to drift, and 8 is still far
@@ -75,32 +68,7 @@ def _explainer_clips() -> list[tuple[str, str, dict]]:
     ]
 
 
-def _film() -> list[Clip]:
-    """The presentation film, when this machine has one.
-
-    It renders into a workspace beside the repository rather than into the tree, so a
-    clone has no film to sample and this contributes no clips at all. That is the same
-    shape `_explainer_clips` uses for a checkout that has not rendered.
-    """
-    local = Path(os.environ.get("TRACETRIAGE_FILM_LOCAL") or REPO.parent / "film-local")
-    video = local / "out" / "tracetriage-film.mp4"
-    poster = local / "out" / "tracetriage-film-poster.jpg"
-    if not video.is_file() or not poster.is_file():
-        return []
-    return [
-        Clip(
-            name="presentation film",
-            video=video,
-            poster=poster,
-            # The frame presentation/package.json renders the poster from.
-            frame=1730,
-            rebuild="npm run workspace, render, poster and report in presentation/",
-        )
-    ]
-
-
 CLIPS = (
-    *_film(),
     *(
         Clip(
             name=f"{label} explainer",
@@ -233,24 +201,4 @@ def test_the_video_and_its_poster_agree_at_the_frame_they_share(clip) -> None:
     assert apart <= TOLERANCE, (
         f"the {clip.name} reads {_hex(video)} at frame {clip.frame} and its poster, which is "
         f"that frame, reads {_hex(poster)}. One of the two was not re-rendered."
-    )
-
-
-def test_the_films_own_theme_file_pins_the_stylesheets_ground(pin) -> None:
-    """The film renders from theme.ts, so that file is a second place the ground can drift.
-
-    The presentation suite already compares the whole pin block against `globals.css`. This
-    repeats one line of it here so that a failure in the video checks above can be read
-    without opening another test runner: if this passes and those fail, the sources are right
-    and the render is stale.
-    """
-    match = re.search(
-        r'uiBackground:\s*"#([0-9a-fA-F]{6})"', THEME.read_text(encoding="utf-8")
-    )
-    assert match, "presentation/src/theme.ts no longer pins uiBackground as a six-digit hex"
-    value = match.group(1)
-    pinned = (int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16))
-    assert pinned == pin, (
-        f"theme.ts pins {_hex(pinned)} and globals.css defines {_hex(pin)}, so the film is "
-        "rendered against a ground the console does not use"
     )

@@ -1,7 +1,7 @@
 """Lay the spoken track onto the two explainer clips, and write their captions.
 
 The scenes are rendered by Manim and then left alone. Their video stream is copied, not
-re-encoded: `tests/test_film_palette.py` reads colours out of the committed file and
+re-encoded: `tests/test_clip_palette.py` reads colours out of the committed file and
 compares them to the console's stylesheet, and a re-encode moves them. So this adds an
 audio stream, moves the index to the front of the file, and touches nothing else.
 
@@ -43,7 +43,7 @@ CLIPS = {"corridor": "CorridorExplainer", "gate4": "Gate4Explainer"}
 #: The section whose card the poster is taken from: the one holding the answer, so
 #: the still a reader sees before pressing play is already the result rather than a
 #: title. The exact frame is written into the receipt, because `tests/
-#: test_film_palette.py` compares the poster against that frame of the video and it
+#: test_clip_palette.py` compares the poster against that frame of the video and it
 #: has to read the number rather than hold a second copy of it.
 POSTER_SECTION = {"corridor": "measure", "gate4": "result"}
 RECEIPT = REPO / "artifacts" / "EXPLAINER_CLIPS.json"
@@ -59,9 +59,9 @@ PAGES = {
 
 #: Speech only, so a low bitrate is transparent and the page pays almost nothing for it.
 #: The narration wavs are a voice recording, so they live in a workspace beside
-#: the repository rather than in the tree. scripts/film_workspace.py owns that
+#: the repository rather than in the tree. render_explainer_narration.py owns that
 #: path; this resolves it the same way. Only the muxed clip is committed.
-FILM_LOCAL = Path(os.environ.get("TRACETRIAGE_FILM_LOCAL") or REPO.parent / "film-local")
+CLIP_LOCAL = Path(os.environ.get("TRACETRIAGE_CLIP_LOCAL") or REPO.parent / "clip-local")
 
 AUDIO_BITRATE = "112k"
 
@@ -153,7 +153,7 @@ def build(clip: str) -> None:
     filters: list[str] = []
     labels: list[str] = []
     for index, row in enumerate(rows, start=1):
-        inputs += ["-i", str(FILM_LOCAL / row["audio"])]
+        inputs += ["-i", str(CLIP_LOCAL / row["audio"])]
         delay = int(round(starts[row["key"]] * 1000))
         filters.append(f"[{index}:a]adelay={delay}|{delay},aresample=48000[a{index}]")
         labels.append(f"[a{index}]")

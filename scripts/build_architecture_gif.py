@@ -90,7 +90,7 @@ def _diagram():
 def _font(size: int, bold: bool = False, mono: bool = False):
     from PIL import ImageFont  # noqa: PLC0415
 
-    # IBM Plex is what the console and the film are set in. Falling back to the default
+    # IBM Plex is what the console is set in. Falling back to the default
     # bitmap font would draw a different project, so the fallback is only reached on a
     # machine that has neither, and the diagram says so by being obviously plainer.
     if mono:

@@ -2,7 +2,7 @@
  * Every locale-sensitive formatter must name its locale.
  *
  * The rule is already written down twice in this repository, at
- * `components/LiveConsole.tsx:114` and at `presentation/src/claim.ts:53`. What was
+ * `components/LiveConsole.tsx:114`. What was
  * missing was anything that enforced it.
  *
  * `apps/web/app/evaluation/page.tsx` called `bytes.toLocaleString()` with no

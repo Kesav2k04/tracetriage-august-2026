@@ -96,32 +96,6 @@ onnx = [
     "onnx>=1.17,<2",
     "onnxruntime>=1.20,<2",
 ]
-# The film's narration track, and the instrument that checks it. Kokoro 82M speaks the
-# lines and faster-whisper transcribes the result so every spoken figure can be checked
-# against the receipt it came from. Optional because neither is needed to run the gate,
-# build the console or reproduce a measurement: they produce one media artifact, and the
-# committed wavs plus artifacts/NARRATION_RECEIPT.json are what a reader checks instead.
-# The Kokoro weights are 354 MB and are not committed; scripts/render_narration.py names
-# the two commands that fetch them.
-narration = [
-    # Pinned exactly, and this one is worth explaining because a range looks safer and is
-    # not. The duration of each spoken line is a published measurement: the receipt records
-    # it, and a standing gate fails when a line overruns the card it is spoken over. That
-    # duration is decided by how kokoro-onnx chunks a long line and how espeakng-loader
-    # phonemises it, so a version bump inside a compatible range silently re-times the
-    # audio. It did: the Physics line was 17.5 seconds of speech under one version and 25.2
-    # under the next, same text, same voice, same speed. espeakng-loader is a transitive
-    # dependency of kokoro-onnx and is named here anyway, because it is the half that
-    # decides the phoneme count.
-    "kokoro-onnx==0.6.1",
-    "espeakng-loader==0.2.4",
-    "faster-whisper>=1.1,<2",
-    "soundfile>=0.12,<1",
-]
-# The LangChain adapter in pipeline/tracetriage/langchain_tools.py. Optional on purpose,
-# for the same reason as the vector index: it adapts tools that already exist and reach the
-# same handlers, so a clean clone without it installs, runs the suite and reproduces every
-# published number. tests/test_langchain_tools.py skips and says why.
 agent = [
     "langchain-core>=0.3,<2",
 ]

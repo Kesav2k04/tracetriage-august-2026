@@ -13,7 +13,7 @@ faststart, which is why exactly one of the three misbehaved and the cause read a
 file rather than as a container layout.
 
 The check is on the committed bytes rather than on the renderer, because the renderer is
-`manim` for one file and Remotion for another and neither is a dependency of the offline
+`manim`, which is not a dependency of the offline
 suite. What matters is the property, whoever produced it.
 """
 
@@ -35,7 +35,7 @@ MP4_SUFFIXES = {".mp4", ".m4v", ".mov"}
 def _tracked_videos() -> list[Path]:
     """Committed video files, read from git rather than by walking the tree.
 
-    A walk would pick up renderer scratch output under `presentation/out` and `media/` that
+    A walk would pick up renderer scratch output under `media/` that
     is gitignored and never published, and failing on a file no reader can fetch would be a
     regression nobody caused.
     """

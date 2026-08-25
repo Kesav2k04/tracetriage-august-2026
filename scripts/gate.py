@@ -65,9 +65,9 @@ def check(name: str, ok: bool, detail: str = "") -> bool:
     cp1252 whenever it is redirected to a file. A failing row whose detail carried a
     character cp1252 cannot encode therefore raised UnicodeEncodeError *inside the print*,
     so the gate died with a traceback at the row it was trying to report and said nothing
-    about the other rows. It happened on the first presentation-test failure, because
-    vitest draws its summary with box characters: the one row that had something to say was
-    the one that could not say it.
+    about the other rows. It happened on the first vitest failure, because vitest draws its
+    summary with box characters: the one row that had something to say was the one that
+    could not say it.
 
     Encoding-safe now, and the substitution is visible rather than silent.
     """
@@ -258,10 +258,10 @@ def main() -> int:
         )
     )
 
-    # The two page explainers are spoken now, and a spoken figure is one a viewer cannot
-    # check against the frame it is on. So both are held to the film's standard: every
-    # number in the track is read from the scene file that draws it, and a second model
-    # transcribed the audio without seeing the script. This re-reads that receipt.
+    # The two page explainers are spoken, and a spoken figure is one a viewer cannot check
+    # against the frame it is on. So both are held to the same standard as a drawn one:
+    # every number in the track is read from the scene file that draws it, and a second
+    # model transcribed the audio without seeing the script. This re-reads that receipt.
     rc, out = run(
         [str(PY), str(REPO / "scripts" / "render_explainer_narration.py"), "--check"]
     )
@@ -289,11 +289,6 @@ def main() -> int:
     # clone receives rather than what this working directory holds. It is checked here
     # because a tree is the one diagram a reader trusts without verifying, and a file
     # added or removed without re-running the generator would leave it quietly wrong.
-    rc, out = run([str(PY), str(REPO / "scripts" / "sync_film_chapters.py"), "--check"])
-    results.append(
-        check("README chapter list matches the cut", rc == 0, out.strip().splitlines()[-1][:70])
-    )
-
     rc, out = run([str(PY), str(REPO / "scripts" / "sync_readme_tree.py"), "--check"])
     results.append(
         check(
@@ -486,9 +481,9 @@ def main() -> int:
     # Added after QUEUE_RECEIPT.json and FUSION_RECEIPT.json were both found publishing a
     # split_manifest_sha256 that no committed file produces: the value was the manifest with
     # CRLF endings, taken on a Windows tree before git normalised the file, and nothing
-    # re-derived it. Two receipts, one console page and a claim in the film carried it, and
-    # all 26 rows here were green. Nothing else in this repository compares a recorded hash
-    # to the bytes git actually publishes.
+    # re-derived it. Two receipts and one console page carried it, and all 26 rows here were
+    # green. Nothing else in this repository compares a recorded hash to the bytes git
+    # actually publishes.
     rc, out = run([str(PY), str(REPO / "scripts" / "check_receipt_digests.py")])
     lines = [line for line in out.strip().splitlines() if line.strip()]
     results.append(
@@ -501,76 +496,6 @@ def main() -> int:
             )[:70],
         )
     )
-
-    # The presentation film, and the same third outcome for the same reason.
-    #
-    # The film's checks live in presentation/test/ and none of them ran here until now:
-    # they were reachable only by remembering to cd into the package. That is how a
-    # figure goes stale inside an mp4 that no diff can read. Two commands, because they
-    # fail differently. `npm test` walks every key path the film prints and re-resolves it
-    # against the receipt; `npm run report -- --check` fails if REPORT.md's generated
-    # regions are no longer what src/data.ts and the suite produce. How many checks there
-    # are is one of the things that check covers, so it is not written down here.
-    #
-    # Omitted rather than failed when the package has no node_modules, because a clean
-    # clone has not run `npm install` there and a FAIL row would be a regression nobody
-    # caused. The tally counts checks that were performed.
-    presentation = REPO / "presentation"
-    film_checks = (
-        ("presentation film matches its receipts", [NPM, "test", "--silent"]),
-        (
-            "film report and receipt match presentation/src",
-            [NPM, "run", "report", "--silent", "--", "--check"],
-        ),
-    )
-    if not (presentation / "node_modules").is_dir():
-        # Both rows, not just the first. One printed omission for two skipped checks
-        # understates the count by one, and the count is what the tally discloses.
-        for label, _argv in film_checks:
-            omit(
-                omitted,
-                label,
-                "presentation/node_modules is not present. Run npm install there.",
-            )
-    else:
-        for label, argv in film_checks:
-            rc, out = run(argv, cwd=presentation)
-            lines = [line for line in out.strip().splitlines() if line.strip()]
-            results.append(
-                check(label, rc == 0, "" if rc == 0 else (lines[-1] if lines else "")[:70])
-            )
-
-    # The narration track. `--check` re-reads the committed receipt, re-digests every wav
-    # it names and re-measures each one against its beat's frame budget, so it needs
-    # neither the 354 MB of speech weights nor a network. That is what makes it a standing
-    # gate rather than a step in the render.
-    #
-    # The check it adds that nothing else has: `check_receipt_digests.py` skips per-row
-    # digests inside a list, on the reasoning that a row digest is data rather than a claim
-    # about a tracked file. For fourteen of these rows that reasoning is wrong, because the
-    # receipt names a file with a digest, so without this the receipt could describe audio
-    # nobody has and every other gate would stay green.
-    #
-    # The audio itself is not committed. It is a voice recording, and it renders into a
-    # workspace beside the repository, so this row verifies it where that workspace exists
-    # and is omitted where it does not. Omitted rather than passed: a clone that skipped
-    # this silently would report the same green as a machine that measured it.
-    rc, out = run([str(PY), str(REPO / "scripts" / "render_narration.py"), "--check"])
-    lines = [line for line in out.strip().splitlines() if line.strip()]
-    if rc == 3:
-        omit(
-            omitted,
-            "narration audio matches its receipt",
-            "the film workspace is not on this machine. Run scripts/film_workspace.py.",
-        )
-    else:
-        results.append(
-            check(
-                "narration audio matches its receipt",
-                rc == 0,
-                (lines[-1] if lines else "")[:70],
-            )
-        )
 
     # Artifact freshness. Every other check here can pass while a committed artifact
     # disagrees with the code that produced it, which is exactly what happened in D0:

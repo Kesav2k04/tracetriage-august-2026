@@ -160,30 +160,6 @@ def test_no_omitted_row_bypasses_the_counter():
     )
 
 
-def test_the_film_precondition_omits_both_of_its_rows():
-    """One precondition, two checks. The count has to be two.
-
-    `presentation/node_modules` gates both the vitest run and the report `--check`, and the
-    absent-directory branch used to print a single row naming only the first. The tally was
-    then short by one on every clean clone, which is the same defect one level down.
-    """
-    source = GATE_SRC.read_text(encoding="utf-8")
-    tree = ast.parse(source)
-    labels = []
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Assign):
-            continue
-        target = node.targets[0]
-        if isinstance(target, ast.Name) and target.id == "film_checks":
-            labels = [
-                element.elts[0].value
-                for element in node.value.elts
-                if isinstance(element, ast.Tuple)
-            ]
-    assert len(labels) == 2, labels
-    assert "for label, _argv in film_checks:" in source
-
-
 def test_the_parser_that_reads_this_line_still_reads_it(gate):
     """The tally has one machine consumer, and its pattern was anchored to end of line.
 
