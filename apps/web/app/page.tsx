@@ -459,6 +459,7 @@ export default function QueuePage() {
       <CorridorHero />
 
       <div
+        className="gate6-panel"
         style={{
           marginTop: "var(--sp-07)",
           padding: "var(--sp-06)",
@@ -466,7 +467,6 @@ export default function QueuePage() {
           background: "var(--ui-01)",
           display: "grid",
           gap: "var(--sp-06)",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(18rem, 22rem)",
           alignItems: "start",
         }}
       >
@@ -601,7 +601,7 @@ export default function QueuePage() {
           style={{
             display: "grid",
             gap: "var(--sp-05)",
-            gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(13rem, 100%), 1fr))",
           }}
         >
           <Stat

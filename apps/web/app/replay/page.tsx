@@ -264,7 +264,7 @@ export default function ReplayPage() {
               style={{
                 display: "grid",
                 gap: "var(--sp-05)",
-                gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(13rem, 100%), 1fr))",
               }}
             >
               <Stat
@@ -306,7 +306,7 @@ export default function ReplayPage() {
               style={{
                 display: "grid",
                 gap: "var(--sp-05)",
-                gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(20rem, 100%), 1fr))",
                 marginTop: "var(--sp-06)",
               }}
             >

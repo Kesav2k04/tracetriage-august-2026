@@ -167,7 +167,7 @@ export default function PrecedentPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(13rem, 100%), 1fr))",
             gap: "var(--sp-05)",
           }}
         >

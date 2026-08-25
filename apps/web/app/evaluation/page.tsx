@@ -618,6 +618,7 @@ export default function EvaluationPage() {
             display: "flex",
             gap: "var(--sp-05)",
             alignItems: "center",
+            flexWrap: "wrap",
             marginBottom: "var(--sp-05)",
           }}
         >
@@ -632,7 +633,7 @@ export default function EvaluationPage() {
           style={{
             display: "grid",
             gap: "var(--sp-05)",
-            gridTemplateColumns: "repeat(auto-fit, minmax(28rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(28rem, 100%), 1fr))",
             marginTop: "var(--sp-06)",
           }}
         >
@@ -669,7 +670,7 @@ export default function EvaluationPage() {
           style={{
             display: "grid",
             gap: "var(--sp-05)",
-            gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(14rem, 100%), 1fr))",
             marginBottom: "var(--sp-06)",
           }}
         >
@@ -798,6 +799,7 @@ export default function EvaluationPage() {
             display: "flex",
             gap: "var(--sp-05)",
             alignItems: "center",
+            flexWrap: "wrap",
             marginBottom: "var(--sp-05)",
           }}
         >
@@ -861,7 +863,7 @@ export default function EvaluationPage() {
           style={{
             display: "grid",
             gap: "var(--sp-05)",
-            gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(20rem, 100%), 1fr))",
           }}
         >
           {[
@@ -962,7 +964,7 @@ export default function EvaluationPage() {
           style={{
             display: "grid",
             gap: "var(--sp-05)",
-            gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(13rem, 100%), 1fr))",
             marginTop: "var(--sp-06)",
           }}
         >
@@ -1073,7 +1075,7 @@ export default function EvaluationPage() {
                 style={{
                   display: "grid",
                   gap: "var(--sp-05)",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(min(13rem, 100%), 1fr))",
                   marginTop: "var(--sp-06)",
                 }}
               >

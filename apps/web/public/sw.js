@@ -57,6 +57,7 @@ const DOCUMENTS = [
 /** Small, stable, and referenced from metadata rather than from the page body. */
 const FIXED = [
   "/manifest.webmanifest",
+  "/icon.svg",
   "/og.png",
   "/icons/apple-touch-icon.png",
   "/icons/icon-192.png",

@@ -105,7 +105,7 @@ export default function ReviewerNote({
           {generated ? "generated, checked" : "deterministic"}
         </Tag>
         {record.refused_codes.map((code) => (
-          <Tag key={code} tone="neutral" title="grounding check violation code">
+          <Tag key={code} tone="neutral" title="grounding check violation code" wrap>
             {code}
             {VIOLATION_MEANING[code] ? ` · ${VIOLATION_MEANING[code]}` : ""}
           </Tag>

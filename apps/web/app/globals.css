@@ -1666,7 +1666,7 @@ code,
 .replay-readout {
   display: grid;
   gap: var(--sp-04) var(--sp-05);
-  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(8.5rem, 100%), 1fr));
   margin: var(--sp-05) 0 0;
 }
 
@@ -2798,7 +2798,7 @@ main .shell > section > h2::before {
 
 .live-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
   gap: 1px;
   /* One-pixel gaps over a rule colour: the grid's own background draws every divider,
      so four figures read as one module rather than as four cards. */
@@ -2875,7 +2875,7 @@ main .shell > section > h2::before {
 
 .live-provenance dl {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
   gap: var(--sp-05);
   margin: 0;
 }
@@ -2916,7 +2916,7 @@ main .shell > section > h2::before {
    not know it. */
 .live-shelf {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
   gap: var(--sp-04);
   margin: var(--sp-05) 0 0;
   padding: 0;
@@ -3465,7 +3465,7 @@ main .shell > section > h2::before {
 .stat-grid {
   display: grid;
   gap: var(--sp-05);
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
 }
 
 .stat {
@@ -3623,6 +3623,31 @@ section[id] {
 .orbit-field {
   position: relative;
   margin: 0;
+}
+
+.orbit-scroll {
+  overflow-x: auto;
+}
+
+/* Nothing to scroll at this width, so no focus ring either: the tab stop is the price of
+   the narrow case and there is no reason to charge a desktop reader for it. */
+@media (min-width: 48rem) {
+  .orbit-scroll:focus-visible {
+    outline: none;
+  }
+}
+
+/* Below the split the frame stops shrinking and the panel scrolls instead, with the axis
+   furniture set larger so a tick label lands near 11px rendered rather than 4.7px. */
+@media (max-width: 47.99rem) {
+  .orbit-svg {
+    min-width: 42rem;
+  }
+
+  .orbit-axis,
+  .orbit-tick {
+    font-size: 16px;
+  }
 }
 
 .orbit-svg {
@@ -3819,5 +3844,25 @@ section[id] {
 
   main .shell > section > :not(p) {
     clear: right;
+  }
+}
+
+/*
+ * The kill gate 6 panel: the wording on the left, the interval on the right.
+ *
+ * The second track carried an 18rem floor as an inline style, with no breakpoint to
+ * turn it off. A 320px phone leaves 216px of content width inside the panel's own
+ * padding, so the floor won: the first track collapsed to zero and the panel pushed
+ * 33px of the page off the right edge. One column until there is room for two: at
+ * 48rem the wording column came out narrower than the interval beside it, which
+ * inverts the reading order the panel is built on, so the split waits until 56rem.
+ */
+.gate6-panel {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 56rem) {
+  .gate6-panel {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
   }
 }

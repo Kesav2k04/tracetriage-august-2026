@@ -81,6 +81,10 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   icons: {
+    // Naming `apple` here suppresses Next's `app/icon.svg` file convention, so the export
+    // shipped no `rel="icon"` at all and every cold load fell back to a `/favicon.ico`
+    // this site does not serve: one 404 in the console on a first visit. Both are named.
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
 };

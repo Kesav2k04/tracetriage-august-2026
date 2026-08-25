@@ -357,7 +357,7 @@ export default function WaterfallViewer({
             // that explains what the three lines over the flagship image are.
             // 13.5rem fits the longest option at the body size, and auto-fit
             // still collapses to one column on a narrow screen.
-            gridTemplateColumns: "repeat(auto-fit, minmax(13.5rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(13.5rem, 100%), 1fr))",
             marginTop: "var(--sp-05)",
             padding: "var(--sp-05)",
             background: "var(--ui-01)",

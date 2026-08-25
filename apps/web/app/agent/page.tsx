@@ -40,7 +40,7 @@ export default function AgentPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(15rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(15rem, 100%), 1fr))",
             gap: "var(--sp-05)",
           }}
         >
@@ -131,7 +131,7 @@ export default function AgentPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(11rem, 100%), 1fr))",
             gap: "var(--sp-05)",
           }}
         >

@@ -363,6 +363,17 @@ export default function OrbitField({
           height: the drawing came out 843px wide inside a 1184px frame with 170px of
           empty black down each side. A viewBox has an aspect ratio and a caller who
           also names a height is telling it two different things. */}
+      {/* A 1000-unit frame squeezed into a 358px phone renders its 13px axis labels at
+          4.7px, which is a picture of an axis rather than an axis. Below 48rem the frame
+          keeps a floor and this scrolls, the same treatment and the same reason as every
+          table on this console: a scroll container nobody can reach with a keyboard is a
+          column nobody can read. WCAG 2.1.1. */}
+      <div
+        className="orbit-scroll"
+        tabIndex={0}
+        role="region"
+        aria-label="Pass geometry and Doppler, scrollable"
+      >
       <svg
         className="orbit-svg"
         viewBox={`0 0 ${VB_W} ${VB_H}`}
@@ -534,6 +545,7 @@ export default function OrbitField({
           One pass, {minutes.toFixed(0)} min, time {String.fromCharCode(0x2192)}
         </text>
       </svg>
+      </div>
       <figcaption>{caption}</figcaption>
     </figure>
   );
