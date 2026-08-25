@@ -648,10 +648,9 @@ One engine, six surfaces. Every row is reachable now, with no account.
 | **Health and provenance** | `/api/health/` returns the SHA-256 of the `provenance.json` this deployment serves, so a judge can prove the site is this repository rather than take a screenshot's word for it. | `api/health.py` |
 | **Two MCP servers and a CLI** | 12 tools, 11 read-only, registered in `.mcp.json` so a clone needs no configuration. Plus a LangChain adapter over the same function objects and two LangFlow flows. | `docs/USE_WITH_YOUR_AGENT.md` |
 
-Eight pages: start, queue, live, evaluation, agent, precedent, baselines and provenance. The
-live one is the single exception to "fetches nothing at runtime": it calls `api/live.py`, which
-pulls one waterfall from the public SatNOGS API on demand and measures it. No number this
-project was scored on comes from that path.
+The live page is the eighth: it calls `api/live.py`, which pulls one waterfall from the
+public SatNOGS API on demand and measures it. No number this project was scored on comes
+from that path.
 
 ## Run it yourself
 
@@ -695,7 +694,7 @@ the generic stdio block any other MCP client reads.
 ## How this repository keeps itself honest
 
 Every number in this file is generated from a frozen artifact under `artifacts/` and carries a
-row in `docs/CLAIM_REGISTER.md`. Three mechanisms do most of the work:
+row in `docs/CLAIM_REGISTER.md`. Four mechanisms do most of the work:
 
 - **Claims are compared against artifacts, not against a register.** `tests/test_claim_drift.py`
   reads each quoted value out of the receipt it came from. Editing the AUC row from 0.875 to
