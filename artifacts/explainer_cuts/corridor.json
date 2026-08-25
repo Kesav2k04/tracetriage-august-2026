@@ -1,0 +1,30 @@
+{
+  "clip": "corridor",
+  "seconds": 54.017,
+  "sections": [
+    {
+      "key": "intro",
+      "start": 0.0
+    },
+    {
+      "key": "assumption",
+      "start": 7.267
+    },
+    {
+      "key": "geometry",
+      "start": 16.567
+    },
+    {
+      "key": "slide",
+      "start": 26.067
+    },
+    {
+      "key": "measure",
+      "start": 34.567
+    },
+    {
+      "key": "closing",
+      "start": 44.633
+    }
+  ]
+}

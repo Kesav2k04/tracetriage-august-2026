@@ -288,13 +288,24 @@ def canonical_digitwise(text: str) -> str:
     return _DIGIT_RUNS.sub("", " ".join(out))
 
 
-def figure_in(transcript: str, spoken: str) -> tuple[bool, str]:
+def figure_in(transcript: str, spoken: str, display: str | None = None) -> tuple[bool, str]:
     """Is the figure the narration says actually in what the audio was heard to say?
 
     Matched on whole tokens rather than as a substring, so the figure 2 does not match
     the 2 inside 2727 and report a number as spoken that never was.
+
+    `display` is the string the card draws, and it is a second reading rather than a
+    looser one. A spelled decimal folds badly: "plus thirty two point zero five" reduces
+    to "plus 32 point 5", because the fold reads "zero five" as a quantity and leaves the
+    word "point" standing, while the transcript's own "plus 32.05" reduces to "plus
+    3205". Both are the same figure and neither is wrong; they just do not meet. The
+    display reaches the transcript's form directly. It admits nothing a mis-reading could
+    reach: audio heard as "32.5" reduces to "325" and matches neither needle, which is
+    the failure this check exists for.
     """
     readings = [(canonical(transcript), canonical(spoken))]
+    if display is not None and display != spoken:
+        readings.append((canonical(transcript), canonical(display)))
     if "." in spoken:
         readings.append((canonical_digitwise(transcript), canonical_digitwise(spoken)))
     for haystack, needle in readings:
@@ -359,7 +370,9 @@ def transcribe(results: list[BeatResult], cues: list[dict[str, Any]]) -> None:
         segments, _ = model.transcribe(str(REPO / result.path), beam_size=5)
         result.transcript = " ".join(s.text.strip() for s in segments)
         for claim in by_index[result.index]["claims"]:
-            found, form = figure_in(result.transcript, claim["spoken"])
+            found, form = figure_in(
+                result.transcript, claim["spoken"], claim["display"]
+            )
             result.figures.append(
                 {
                     "file": claim["file"],
@@ -531,8 +544,16 @@ def check(cues: list[dict[str, Any]]) -> int:
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
     rows = {row["beat"]: row for row in receipt["beats"]}
     failures = 0
-    if receipt["renderer"]["voice"] != VOICE:
-        print(f"receipt voice {receipt['renderer']['voice']} is not {VOICE}")
+    # Two renderers write this receipt now: this file, which speaks the script in a
+    # released Kokoro voice, and `render_narration_cloned.py`, which speaks it in the
+    # builder's own. Everything below is renderer-independent, because it re-measures the
+    # committed wavs against the committed script and asks the same questions of both.
+    # The voice is the one field that is not, so it is only held to this file's constant
+    # when this file is what produced the receipt. Asserting it unconditionally failed a
+    # correct receipt and said nothing about the audio.
+    renderer = receipt["renderer"]
+    if renderer.get("model", "").startswith("Kokoro") and renderer["voice"] != VOICE:
+        print(f"receipt voice {renderer['voice']} is not {VOICE}")
         failures += 1
     for cue in cues:
         row = rows.get(cue["beat"])

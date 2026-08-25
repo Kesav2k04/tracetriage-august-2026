@@ -528,14 +528,16 @@ export default function QueuePage() {
 
       <Section
         title="What the measurement actually is"
-        description="Twenty-four seconds, no narration: one pass measured against the curve its own orbit predicts."
+        description="54 seconds, narrated: one pass measured against the curve its own orbit predicts."
       >
         <figure className="explainer">
-          {/* preload="none" so the 1.6 MB costs nothing until a reader asks for it,
-              and a poster frame drawn from the video itself rather than a title card,
-              so the still already shows the measurement. No autoplay: a page that
-              starts moving on load takes the decision away from the reader, and this
-              one is 24 seconds of someone else talking. */}
+          {/* preload="metadata" so the clip costs an index and nothing else until a
+              reader asks for it, and a poster drawn from the frame the measurement is
+              on screen rather than a title card. No autoplay: the clip is spoken, and a
+              page that starts talking on load takes the decision away from the reader.
+              `scripts/build_explainers.py` writes the poster, the captions and the
+              length in `artifacts/EXPLAINER_CLIPS.json`, and its --check fails if the
+              number stated here stops matching the file. */}
           {/* An accessible name, because the element had none. `audit/a11y-probe.js`
               reported the landing page's video as the one unlabelled media element on
               the console: the fallback paragraph inside it describes the content, but
@@ -548,7 +550,7 @@ export default function QueuePage() {
             preload="metadata"
             playsInline
             aria-label={
-              "Twenty-four seconds, no narration: the predicted Doppler corridor " +
+              "54 seconds, narrated and captioned: the predicted Doppler corridor " +
               "for observation 14745984 slid across its waterfall to the best " +
               "match, a shift of 61 pixels, which at 92.6 hertz per pixel is " +
               "5,648 hertz, or 13.0 parts per million of the receive frequency."
@@ -558,6 +560,13 @@ export default function QueuePage() {
             height={1080}
           >
             <source src="/media/corridor-explainer.mp4" type="video/mp4" />
+            <track
+              kind="captions"
+              src="/media/corridor-explainer.vtt"
+              srcLang="en"
+              label="English"
+              default
+            />
             <p>
               Your browser cannot play this video. It shows the predicted Doppler
               corridor for observation 14745984 being slid across the waterfall to its
@@ -572,7 +581,10 @@ export default function QueuePage() {
             best match gives one number: how far off the capture was. For observation
             14745984 that is 61 pixels, 5,648 Hz, 13.0 ppm. The frequency axis is
             cropped and exaggerated against the time axis so a 61 pixel shift on a 620
-            pixel image is visible at all, and the video says so on screen.
+            pixel image is visible at all, and the video says so on screen. Every figure
+            spoken in it is read out of the scene that draws it, and a second model
+            transcribed the track without seeing the script to check it was said:{" "}
+            <code>artifacts/EXPLAINER_NARRATION.json</code>.
           </figcaption>
         </figure>
       </Section>

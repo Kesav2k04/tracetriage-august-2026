@@ -95,7 +95,7 @@
   },
   {
    "name": "ATTRIBUTION_AUDIT.json",
-   "sha256": "ab2eb8351c312797d46677ced0a99f8b8a82fc3145e807d79d02fe96d900be59",
+   "sha256": "701f496e3713cf71e5352d803d0e3a06ff574f82fde3af94ba4ae50baff59f53",
    "bytes": 89806,
    "rewritten_after_this_payload": true
   },
@@ -130,6 +130,18 @@
    "rewritten_after_this_payload": false
   },
   {
+   "name": "EXPLAINER_CLIPS.json",
+   "sha256": "88a46cdc10a763a9b37efa12b2ee519e03aef0e69ffd5429cb3c805783b03aec",
+   "bytes": 1011,
+   "rewritten_after_this_payload": false
+  },
+  {
+   "name": "EXPLAINER_NARRATION.json",
+   "sha256": "ab725001fbe8f1259a764cfaffb9823de77a1ae61e16a18c080fad1d9a702a9c",
+   "bytes": 11201,
+   "rewritten_after_this_payload": false
+  },
+  {
    "name": "EXPLAIN_RECEIPT.json",
    "sha256": "49f9a2f902c2b1fb3b28d26bfdcc069839447bc11d09bd04dbda1918517e792c",
    "bytes": 24954,
@@ -137,8 +149,8 @@
   },
   {
    "name": "FILM_RECEIPT.json",
-   "sha256": "6bbb90aed6df07794adafa222ccaa3bb07176c18578fde2768b6fb9f334ec243",
-   "bytes": 6475,
+   "sha256": "9b34292b06323e057312818b759fc9dfe8c6ad6c801e6febd4b6ebbd36f7ea92",
+   "bytes": 6242,
    "rewritten_after_this_payload": false
   },
   {
@@ -251,8 +263,8 @@
   },
   {
    "name": "NARRATION_RECEIPT.json",
-   "sha256": "c451750434fd628dcad15f66e49d597d1cf51997234149150eb8adaa928270a4",
-   "bytes": 19117,
+   "sha256": "85a794c9b6ee5eb8d54e2f6e19dba04b75c88b4ed65962cbd7941bfaaa777908",
+   "bytes": 17235,
    "rewritten_after_this_payload": false
   },
   {
@@ -287,7 +299,7 @@
   },
   {
    "name": "REPO_WEIGHT.json",
-   "sha256": "27cb76eb5b482983dd7e7a659ab1af945edaac2d674df736b17f7923f1448b0c",
+   "sha256": "a698de4bdabfc3a09e2b428081f30372900f00abf2ab4655af2ec873406ee3b1",
    "bytes": 5138,
    "rewritten_after_this_payload": true
   },
@@ -305,7 +317,7 @@
   },
   {
    "name": "SECRET_SCAN.json",
-   "sha256": "13c2776a7d58ef2760c63f0fadef7568cd26f8cdaf4997e57006b6ded60f0e28",
+   "sha256": "6e5d726166b351c7d2748adc47d30bfefbd418de301640d5e1442287428af180",
    "bytes": 1053,
    "rewritten_after_this_payload": true
   },

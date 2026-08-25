@@ -104,7 +104,11 @@ const PLAIN_PATH = /^[A-Za-z_][A-Za-z0-9_]*(\[\d+\]|\.[A-Za-z_][A-Za-z0-9_]*)*$/
  * unchecked: an exemption with no number attached to it stops being an exemption.
  */
 const DERIVED = [
+  "coldOpen.passMinutes",
   "corpus.noVerdict",
+  "flow.agentNodes",
+  "flow.inventedObsId",
+  "flow.inventedReason",
   "reviewQueue.criteria.0.firedInBudget",
   "reviewQueue.criteria.1.firedInBudget",
   "reviewQueue.criteria.2.firedInBudget",
@@ -127,7 +131,7 @@ describe("every claim names a key that still exists", () => {
       (name) => !PLAIN_PATH.test(ALL_CLAIMS[name].path),
     );
     expect(derived.sort()).toEqual([...DERIVED].sort());
-    expect(derived).toHaveLength(9);
+    expect(derived).toHaveLength(13);
   });
 
   it.each(
@@ -414,6 +418,7 @@ describe("no measurement is typed into a beat by hand", () => {
     "sha256 of the bytes", // the hash algorithm, a name
     "scaled to the frame, corridor overlay drawn on top, encoded to H.264", // a codec
     "95%", // the confidence level, and it is in the receipt keys: lift_ci95
+    "github.com/Kesav2k04/tracetriage-august-2026", // an address, and the year is in it
   ]);
 
   // Every beat the film actually plays, rather than a list kept by hand. Three beats
@@ -511,7 +516,11 @@ describe("the film is the length and shape the brief asked for", () => {
     const order = BEATS.map((beat) => beat.name);
     expect(order.indexOf("Gates")).toBeGreaterThan(order.indexOf("Result"));
     expect(order.indexOf("Established")).toBeGreaterThan(order.indexOf("Gates"));
-    expect(order[order.length - 1]).toBe("Colophon");
+    expect(order[order.length - 1]).toBe("Thanks");
+    expect(order.indexOf("Colophon")).toBe(order.length - 2);
+    // The cold open runs before everything, including the title. It exists to put a
+    // real capture on screen before any claim is made about the corpus it came from.
+    expect(order[0]).toBe("Hello");
   });
 
   /**
@@ -531,12 +540,19 @@ describe("the film is the length and shape the brief asked for", () => {
     expect([WIDTH, HEIGHT, FPS]).toEqual([1920, 1080, 30]);
   });
 
-  it("spends the most time on the physics and the least on the title", () => {
+  it("spends the most time on the physics and the least on the cards with no figure", () => {
     const byName = Object.fromEntries(
       BEATS.map((beat) => [beat.name, beat.durationInFrames]),
     );
     expect(byName.Physics).toBe(Math.max(...BEATS.map((b) => b.durationInFrames)));
-    expect(byName.Title).toBe(Math.min(...BEATS.map((b) => b.durationInFrames)));
+    // The three shortest cards are the ones that state no measurement: the title, the
+    // sign-off, and the one line that names the violation the recording just showed.
+    const shortest = [...BEATS]
+      .sort((a, b) => a.durationInFrames - b.durationInFrames)
+      .slice(0, 3)
+      .map((beat) => beat.name)
+      .sort();
+    expect(shortest).toEqual(["Session", "Thanks", "Title"]);
   });
 });
 

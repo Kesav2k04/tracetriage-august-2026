@@ -39,6 +39,8 @@ from pathlib import Path
 
 from manim import *
 
+from explainer_timing import NarratedScene
+
 # ---------------------------------------------------------------------------
 # Typeface. Same arrangement as scripts/explainer_corridor.py: the console self-hosts
 # IBM Plex as woff2, Pango needs an outline font, and `make explainer` converts the
@@ -163,11 +165,14 @@ def plate(index: int) -> VGroup:
     return VGroup(box)
 
 
-class Gate4Explainer(Scene):
+class Gate4Explainer(NarratedScene):
+    clip = "gate4"
+
     def construct(self) -> None:
         self.camera.background_color = PAPER
 
         # ---- 1. the question -------------------------------------------------
+        self.section("intro")
         title = Text("Kill gate 4", font_size=34, color=INK, font=SANS)
         title.to_edge(UP, buff=0.5).to_edge(LEFT, buff=0.7)
         sub = Text(
@@ -197,10 +202,11 @@ class Gate4Explainer(Scene):
             run_time=1.2,
         )
         self.play(FadeIn(answers), FadeIn(first), run_time=0.7)
-        self.wait(1.8)
+        self.hold(1.8)
         self.play(FadeOut(axes), FadeOut(answers), FadeOut(first), run_time=0.5)
 
         # ---- 2. why the obvious version proves nothing ------------------------
+        self.section("protocol")
         problem = VGroup(
             Text("Run the review. Report the rate.", font_size=26, color=INK, font=SANS),
             Text(
@@ -214,10 +220,11 @@ class Gate4Explainer(Scene):
         self.play(FadeIn(problem[0]), run_time=0.7)
         self.wait(0.7)
         self.play(FadeIn(problem[1], shift=UP * 0.15), run_time=0.8)
-        self.wait(1.9)
+        self.hold(1.9)
         self.play(FadeOut(problem), run_time=0.5)
 
         # ---- 3. the commitment ------------------------------------------------
+        self.section("commit")
         formula = Text(
             "sha256( salt | item | observation | image digest )",
             font_size=23,
@@ -250,10 +257,11 @@ class Gate4Explainer(Scene):
             f"One per item, all {COMMITMENTS_CHECKED} published before the review began."
         )
         self.play(FadeIn(bind), run_time=0.6)
-        self.wait(1.5)
+        self.hold(1.5)
         self.play(FadeOut(formula), FadeOut(digest), FadeOut(outside), FadeOut(bind), run_time=0.5)
 
         # ---- 4. the sample ----------------------------------------------------
+        self.section("sample")
         strip = VGroup(*[plate(i) for i in range(18)]).arrange(RIGHT, buff=0.14)
         strip.move_to(UP * 0.55)
         counts = Text(
@@ -278,10 +286,11 @@ class Gate4Explainer(Scene):
         self.play(FadeIn(counts), FadeIn(schematic), run_time=0.7)
         blind = caption("No label. No model output. No way to tell which are the repeats.")
         self.play(FadeIn(blind), run_time=0.6)
-        self.wait(2.0)
+        self.hold(2.0)
         self.play(FadeOut(strip), FadeOut(counts), FadeOut(schematic), FadeOut(blind), run_time=0.5)
 
         # ---- 5. scoring refuses before it scores ------------------------------
+        self.section("scoring")
         steps = VGroup(
             Text("re-hash every image from disk", font_size=22, color=INK, font=MONO),
             Text(
@@ -298,10 +307,11 @@ class Gate4Explainer(Scene):
             LaggedStart(*[FadeIn(s, shift=RIGHT * 0.25) for s in steps], lag_ratio=0.35),
             run_time=1.9,
         )
-        self.wait(1.9)
+        self.hold(1.9)
         self.play(FadeOut(steps), run_time=0.45)
 
         # ---- 6. what came back ------------------------------------------------
+        self.section("result")
         headline = Text(
             f"{DECISIVE} of {N_OBSERVATIONS} decidable",
             font_size=44,
@@ -334,9 +344,10 @@ class Gate4Explainer(Scene):
         self.play(FadeIn(headline, shift=UP * 0.2), run_time=0.9)
         self.play(FadeIn(interval), run_time=0.7)
         self.play(FadeIn(bar), FadeIn(agree), run_time=0.7)
-        self.wait(2.2)
+        self.hold(2.2)
 
         # ---- 7. and the gate is open ------------------------------------------
+        self.section("verdict")
         self.play(
             FadeOut(headline), FadeOut(interval), FadeOut(bar), FadeOut(agree), run_time=0.5
         )
@@ -375,4 +386,4 @@ class Gate4Explainer(Scene):
         self.play(FadeIn(verdict, shift=UP * 0.2), run_time=0.9)
         self.play(FadeIn(because), run_time=0.7)
         self.play(FadeIn(rule), run_time=0.9)
-        self.wait(3.0)
+        self.hold(3.0)

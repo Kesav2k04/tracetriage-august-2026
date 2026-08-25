@@ -1,0 +1,19 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:06.720
+This is one real pass, recorded by a volunteer station. It reached 70.7 degrees at its highest.
+
+00:00:07.267 --> 00:00:16.027
+A detector that assumes the trace is vertical looks for energy in one column. On a moving satellite there is nothing in that column to find.
+
+00:00:16.567 --> 00:00:25.527
+The satellite is moving, so the received frequency sweeps. The corridor is curved, and its shape is fixed by the geometry of the pass, not by anything a model chose.
+
+00:00:26.067 --> 00:00:34.027
+Slide that same curve across the image until it best matches the energy, and it gives up one number: how far off the capture was.
+
+00:00:34.567 --> 00:00:44.087
+That shift is 61 pixels, which on this image is five thousand six hundred and forty eight hertz, or 13 parts per million of the receive frequency.
+
+00:00:44.633 --> 00:00:53.473
+The gap between the two curves is the measurement. Not a score a model produced: a frequency error, in hertz, that a reviewer can check against the image itself.

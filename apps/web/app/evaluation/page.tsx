@@ -1135,7 +1135,7 @@ export default function EvaluationPage() {
             preload="none"
             playsInline
             aria-label={
-              "Thirty-seven seconds, no narration: how gate 4's sample was committed " +
+              "69 seconds, narrated and captioned: how gate 4's sample was committed " +
               "to before the review, what the scorer checks before it reads an " +
               "answer, the rate that came back, and who produced it."
             }
@@ -1144,6 +1144,13 @@ export default function EvaluationPage() {
             height={1080}
           >
             <source src="/media/gate4-explainer.mp4" type="video/mp4" />
+            <track
+              kind="captions"
+              src="/media/gate4-explainer.vtt"
+              srcLang="en"
+              label="English"
+              default
+            />
             <p>
               Your browser cannot play this video. It shows how the gate 4 sample was
               committed to with one salted sha256 per item before any review began,
@@ -1155,7 +1162,10 @@ export default function EvaluationPage() {
             Every number in the clip is in{" "}
             <code>artifacts/GATE4_RECEIPT.json</code>, and{" "}
             <code>tests/test_explainer_gate4_values.py</code> fails if the scene and
-            the receipt ever disagree.
+            the receipt ever disagree. The spoken track is read from the same constants
+            the scene draws, and a second model transcribed it without seeing the script
+            to check every figure was said:{" "}
+            <code>artifacts/EXPLAINER_NARRATION.json</code>.
           </figcaption>
         </figure>
         {gate4Arm && (

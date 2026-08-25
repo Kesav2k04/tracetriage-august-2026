@@ -246,6 +246,58 @@ def main() -> int:
         )
     )
 
+    # The animated diagram is drawn from the same stage table as the still, so it can go
+    # stale in exactly the same way and is checked in exactly the same way. It is the
+    # picture the README leads with, which makes it the one most worth not being wrong.
+    rc, out = run([str(PY), str(REPO / "scripts" / "build_architecture_gif.py"), "--check"])
+    results.append(
+        check(
+            "animated architecture diagram matches the pipeline",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
+    # The two page explainers are spoken now, and a spoken figure is one a viewer cannot
+    # check against the frame it is on. So both are held to the film's standard: every
+    # number in the track is read from the scene file that draws it, and a second model
+    # transcribed the audio without seeing the script. This re-reads that receipt.
+    rc, out = run(
+        [str(PY), str(REPO / "scripts" / "render_explainer_narration.py"), "--check"]
+    )
+    results.append(
+        check(
+            "every figure spoken in the explainer clips was heard in it",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
+    # And the clips themselves: that the track is on the file a reader gets, that the
+    # captions carry the same lines, that the index is at the front so a browser can
+    # start, and that the page still states the length the file actually runs for.
+    rc, out = run([str(PY), str(REPO / "scripts" / "build_explainers.py"), "--check"])
+    results.append(
+        check(
+            "the explainer clips carry their narration and captions",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
+    # The README's file tree is generated from `git ls-files`, so it describes what a
+    # clone receives rather than what this working directory holds. It is checked here
+    # because a tree is the one diagram a reader trusts without verifying, and a file
+    # added or removed without re-running the generator would leave it quietly wrong.
+    rc, out = run([str(PY), str(REPO / "scripts" / "sync_readme_tree.py"), "--check"])
+    results.append(
+        check(
+            "README file tree matches the tracked tree",
+            rc == 0,
+            "" if rc == 0 else out.strip().splitlines()[0][:70],
+        )
+    )
+
     # The judges' page is generated from the receipts for the same reason as the README
     # table, and it is the file most likely to be read and least likely to be re-derived.
     rc, out = run([str(PY), str(REPO / "scripts" / "sync_for_judges.py"), "--check"])

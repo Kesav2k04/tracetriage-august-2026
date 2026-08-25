@@ -27,6 +27,7 @@ lucky pixel.
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -57,6 +58,22 @@ class Clip:
     rebuild: str
 
 
+def _explainer_clips() -> list[tuple[str, str, dict]]:
+    """The two Manim clips, read from the receipt the build script writes.
+
+    Their poster frames move whenever the narration is re-cut, so holding them here as
+    constants meant the test compared the poster against a frame it was not taken from.
+    """
+    receipt = REPO / "artifacts" / "EXPLAINER_CLIPS.json"
+    if not receipt.is_file():
+        return []
+    scenes = {"corridor": "CorridorExplainer", "gate4": "Gate4Explainer"}
+    return [
+        (entry["clip"].replace("gate4", "gate 4"), scenes[entry["clip"]], entry)
+        for entry in json.loads(receipt.read_text(encoding="utf-8"))["clips"]
+    ]
+
+
 CLIPS = (
     Clip(
         name="presentation film",
@@ -66,20 +83,22 @@ CLIPS = (
         frame=1730,
         rebuild="npm run render, npm run poster and npm run report in presentation/",
     ),
-    Clip(
-        name="corridor explainer",
-        video=REPO / "apps" / "web" / "public" / "media" / "corridor-explainer.mp4",
-        poster=REPO / "apps" / "web" / "public" / "media" / "corridor-explainer-poster.jpg",
-        # Recovered by matching the committed still against every frame of the clip.
-        frame=1200,
-        rebuild="manim -qh scripts/explainer_corridor.py CorridorExplainer",
-    ),
-    Clip(
-        name="gate 4 explainer",
-        video=REPO / "apps" / "web" / "public" / "media" / "gate4-explainer.mp4",
-        poster=REPO / "apps" / "web" / "public" / "media" / "gate4-explainer-poster.jpg",
-        frame=1980,
-        rebuild="manim -qh scripts/explainer_gate4.py Gate4Explainer",
+    *(
+        Clip(
+            name=f"{label} explainer",
+            video=REPO / entry["video"],
+            poster=REPO / entry["poster"],
+            # Written by the script that cuts the still, so the frame this compares
+            # against is the frame the still was taken from. It used to be a constant
+            # here, recovered by matching the committed image against every frame, and
+            # a re-cut clip moved the still without moving the constant.
+            frame=entry["poster_frame"],
+            rebuild=(
+                f"manim -qh scripts/explainer_{entry['clip']}.py {scene}, then "
+                f"scripts/build_explainers.py"
+            ),
+        )
+        for label, scene, entry in _explainer_clips()
     ),
 )
 

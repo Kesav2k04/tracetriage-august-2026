@@ -199,6 +199,18 @@ def test_every_sha256_field_that_names_a_file_is_either_audited_or_explained():
         ("NARRATION_RECEIPT.json", "renderer.model_sha256.voices-v1.0.bin"): (
             "a released voice pack this repository does not publish"
         ),
+        # The recording the narration voice is cloned from. It is a few seconds of a real
+        # person speaking, which is a biometric, so it is not committed and never will be.
+        # The digest is here so a reader can tell whether two renders were conditioned on
+        # the same source without the source being published, and so can a future render:
+        # the same clip and the same seed reproduce the committed wavs, and those wavs are
+        # audited above. Nothing that could reconstruct the voice is in this repository.
+        ("NARRATION_RECEIPT.json", "renderer.reference_sha256"): (
+            "a private voice recording this repository deliberately does not publish"
+        ),
+        ("EXPLAINER_NARRATION.json", "renderer.reference_sha256"): (
+            "the same private voice recording, so the console and the film are one speaker"
+        ),
     }
     # The four split partitions, each a digest over that split's test-set observation ids
     # rather than over a file. scripts/build_splits.py calls them "what prove the partitions

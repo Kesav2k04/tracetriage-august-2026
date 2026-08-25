@@ -6,7 +6,7 @@
   "scripts": {
     "studio": "remotion studio",
     "render": "remotion render Film out/tracetriage-film.mp4 --concurrency=4 --pixel-format=yuv420p --scale=2 --crf=18",
-    "poster": "remotion still Film out/tracetriage-film-poster.jpg --frame=1200 --jpeg-quality=92 --scale=2",
+    "poster": "remotion still Poster out/tracetriage-thumbnail.jpg --jpeg-quality=94 --scale=2",
     "test": "vitest run",
     "report": "vite-node scripts/report-table.ts",
     "narration": "vite-node scripts/build-narration.ts"

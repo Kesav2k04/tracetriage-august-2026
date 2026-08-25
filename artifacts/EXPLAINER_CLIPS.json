@@ -1,0 +1,27 @@
+{
+  "what_this_is": "The two explainer clips as committed: how long each one runs, the frame its poster was taken from, and that it carries an audio stream. The spoken lines and what a transcriber heard are in artifacts/EXPLAINER_NARRATION.json.",
+  "clips": [
+    {
+      "clip": "corridor",
+      "video": "apps/web/public/media/corridor-explainer.mp4",
+      "poster": "apps/web/public/media/corridor-explainer-poster.jpg",
+      "captions": "apps/web/public/media/corridor-explainer.vtt",
+      "seconds": 54.02,
+      "fps": 60.0,
+      "poster_frame": 2502,
+      "spoken_sections": 6,
+      "audio_codec": "aac"
+    },
+    {
+      "clip": "gate4",
+      "video": "apps/web/public/media/gate4-explainer.mp4",
+      "poster": "apps/web/public/media/gate4-explainer-poster.jpg",
+      "captions": "apps/web/public/media/gate4-explainer.vtt",
+      "seconds": 69.02,
+      "fps": 60.0,
+      "poster_frame": 3497,
+      "spoken_sections": 7,
+      "audio_codec": "aac"
+    }
+  ]
+}

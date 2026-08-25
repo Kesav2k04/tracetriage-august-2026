@@ -18,6 +18,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { BEATS, FILM_FRAMES } from "../src/Film";
+import { physics } from "../src/data";
 import {
   NARRATED,
   NARRATION,
@@ -83,18 +84,30 @@ describe("the spoken form of a figure", () => {
     // decided how to show, and speaking the value would disagree with the screen.
     const spoken = NARRATED.flatMap((beat) => beat.line.claims.map((c) => say(c)));
     expect(spoken).toContain("seventeen thousand two hundred and ninety");
-    expect(spoken).toContain("plus thirteen thousand nine hundred and eighty five");
-    expect(spoken).toContain("plus 32.05");
-    expect(spoken).toContain("113");
+    expect(spoken).toContain("plus thirty two point zero five");
+    expect(spoken).toContain("one hundred and thirteen");
+    // offsetHz is drawn on the Physics card and not spoken, so it is checked here on
+    // the claim rather than in the script. Its value is -13985.xx and its display is
+    // the rounded, signed +13,985 the card shows; speaking the value would disagree
+    // with the screen in both the sign and the digits.
+    expect(say(physics.offsetHz)).toBe(
+      "plus thirteen thousand nine hundred and eighty five",
+    );
   });
 
-  it("spells every grouped integer and leaves smaller ones as digits", () => {
+  it("spells every integer of three digits and leaves smaller ones as digits", () => {
     for (const beat of NARRATED) {
       for (const claim of beat.line.claims) {
         const bare = claim.display.replace(/^[+-]/, "");
-        if (/^\d{1,3}(,\d{3})+$/.test(bare)) {
+        if (/^\d{3,}$/.test(bare.replace(/,/g, ""))) {
           expect(say(claim)).toMatch(/[a-z]/);
           expect(say(claim)).not.toContain(",");
+        } else if (/^[A-Z][A-Z0-9]*(_[A-Z0-9]+)+$/.test(bare)) {
+          expect(say(claim)).toBe(bare.toLowerCase().replace(/_/g, " "));
+        } else if (/^\d+\.0\d*$/.test(bare)) {
+          // A zero straight after the point is the one the reader drops, so it is
+          // spelled. Everything else keeps its digits.
+          expect(say(claim)).toMatch(/ point (zero|one|two|three|four|five|six|seven|eight|nine)/);
         } else {
           expect(say(claim).replace(/^(plus|minus) /, "")).toBe(
             bare.includes(".") ? bare.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "") : bare,
@@ -182,7 +195,9 @@ describe("the rendered audio's receipt", () => {
   it("records a voice that runs offline under a licence a reader can check", () => {
     const r = receipt();
     expect(r.renderer.runs_offline).toBe(true);
-    expect(r.renderer.licence).toBe("Apache-2.0");
+    // Both voices this film has shipped are permissive and locally runnable, which is
+    // the property that matters: nobody has to take the audio's provenance on trust.
+    expect(["Apache-2.0", "MIT"]).toContain(r.renderer.licence);
     expect(r.renderer.voice.length).toBeGreaterThan(0);
   });
 

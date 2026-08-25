@@ -24,6 +24,7 @@ import narrationJson from "../../artifacts/NARRATION_RECEIPT.json";
 import sessionJson from "../../artifacts/OPERATOR_SESSION.json";
 import bobJson from "../../apps/web/public/data/bob.json";
 import takeJson from "../../artifacts/LIVE_TAKE.json";
+import langflowJson from "../../artifacts/LANGFLOW_RECEIPT.json";
 
 import {
   Claim,
@@ -52,6 +53,7 @@ export const FILE = {
   session: "artifacts/OPERATOR_SESSION.json",
   bob: "apps/web/public/data/bob.json",
   take: "artifacts/LIVE_TAKE.json",
+  langflow: "artifacts/LANGFLOW_RECEIPT.json",
 } as const;
 
 const manifest = manifestJson as unknown;
@@ -64,6 +66,7 @@ const narration = narrationJson as unknown;
 const session = sessionJson as unknown;
 const bob = bobJson as unknown;
 const take = takeJson as unknown;
+const langflow = langflowJson as unknown;
 const agent = agentJson as unknown;
 const explain = explainJson as unknown;
 const circularity = circularityJson as unknown;
@@ -94,6 +97,8 @@ const bo = <T,>(path: string, format: (v: T) => string) =>
   read<T>(bob, FILE.bob, path, format);
 const tk = <T,>(path: string, format: (v: T) => string) =>
   read<T>(take, FILE.take, path, format);
+const lf = <T,>(path: string, format: (v: T) => string) =>
+  read<T>(langflow, FILE.langflow, path, format);
 
 // ---------------------------------------------------------------------------
 // Beat 1. The corpus, and how much of it carries a human verdict.
@@ -682,6 +687,91 @@ export const liveTake = {
   seconds: tk<number>("take.video.seconds", fixed(1)),
 } as const;
 
+// ---------------------------------------------------------------------------
+// The cold open. One real pass, named, before any of the argument starts.
+//
+// Nothing new is measured here. Every field is the hero observation's own record,
+// already resolved above for the physics card, re-read under names that say what the
+// opening shot is doing with them: this is a real capture, by a real station, on a
+// real night, and the network's verdict for it is two words.
+// ---------------------------------------------------------------------------
+
+const passSeconds =
+  (Date.parse(resolve(cards, `${CARD}.end`) as string) -
+    Date.parse(resolve(cards, `${CARD}.start`) as string)) /
+  1000;
+
+export const coldOpen = {
+  /**
+   * How long the pass ran, from the record's own two timestamps.
+   *
+   * The only claim this block adds. Everything else the opening card draws is the hero
+   * observation's own record, and the card reads it from `physics` directly rather than
+   * through an alias here: a second name for a claim is a second claim as far as the
+   * registry is concerned, and `test/claims.test.ts` walks the registry.
+   */
+  passMinutes: {
+    file: FILE.cards,
+    path: `${CARD}.end - ${CARD}.start, in minutes`,
+    value: Math.round(passSeconds / 60),
+    display: String(Math.round(passSeconds / 60)),
+  } as Claim<number>,
+} as const;
+
+// ---------------------------------------------------------------------------
+// The flow, running, and the model getting it wrong on camera.
+//
+// This receipt is the one place in the repository where a generated answer is
+// published beside the fact it was supposed to carry and does not. The film shows
+// that rather than hiding it, because the refusal in the next shot is only worth
+// anything if the failure it catches is real and on screen.
+// ---------------------------------------------------------------------------
+
+export const flow = {
+  version: lf<string>("runtime.langflow", identity),
+  model: lf<string>("flows.granite_agent.model", identity),
+  endpoint: lf<string>("flows.granite_agent.endpoint", identity),
+  outcome: lf<string>("flows.granite_agent.outcome", identity),
+  question: lf<string>("flows.granite_agent.question", identity),
+  answer: lf<string>("flows.granite_agent.answer", identity),
+  trueObsId: lf<string>("flows.granite_agent.expected_observation_id", identity),
+  /** The id the model returned, read out of the JSON it actually produced. */
+  inventedObsId: {
+    file: FILE.langflow,
+    path: "flows.granite_agent.answer, observation_id",
+    value: Number(
+      JSON.parse(resolve(langflow, "flows.granite_agent.answer") as string)
+        .observation_id,
+    ),
+    display: String(
+      JSON.parse(resolve(langflow, "flows.granite_agent.answer") as string)
+        .observation_id,
+    ),
+  } as Claim<number>,
+  inventedReason: {
+    file: FILE.langflow,
+    path: "flows.granite_agent.answer, reason",
+    value: JSON.parse(resolve(langflow, "flows.granite_agent.answer") as string)
+      .reason as string,
+    display: JSON.parse(resolve(langflow, "flows.granite_agent.answer") as string)
+      .reason as string,
+  } as Claim<string>,
+  groundedVerdict: lf<string>("flows.grounding.runs[0].verdict", identity),
+  groundedInput: lf<string>("flows.grounding.runs[0].input", identity),
+  refusedVerdict: lf<string>("flows.grounding.runs[1].verdict", identity),
+  refusedInput: lf<string>("flows.grounding.runs[1].input", identity),
+  refusedCode: lf<string>("flows.grounding.runs[1].codes[0]", identity),
+  agentNodes: {
+    file: FILE.langflow,
+    path: "flows.granite_agent.nodes, length",
+    value: (resolve(langflow, "flows.granite_agent.nodes") as string[]).length,
+    display: String(
+      (resolve(langflow, "flows.granite_agent.nodes") as string[]).length,
+    ),
+  } as Claim<number>,
+  notMeasured: lf<string>("what_this_does_not_measure", firstSentence),
+} as const;
+
 /** Everything above, flattened, for the test to walk. */
 export const ALL_CLAIMS: Record<string, Claim<unknown>> = {};
 const collect = (prefix: string, node: unknown): void => {
@@ -713,3 +803,5 @@ collect("colophon", colophon);
 collect("agentSession", agentSession);
 collect("bobUnits", bobUnits);
 collect("liveTake", liveTake);
+collect("coldOpen", coldOpen);
+collect("flow", flow);

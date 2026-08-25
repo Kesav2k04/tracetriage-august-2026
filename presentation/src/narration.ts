@@ -21,10 +21,11 @@
 
 import { Claim } from "./claim";
 import {
-  agentSession,
   bobUnits,
+  coldOpen,
   corpus,
   established,
+  flow,
   gates,
   lift,
   liveTake,
@@ -92,6 +93,19 @@ export const spellInteger = (n: number): string => {
 };
 
 /**
+ * Spell a decimal whose fraction starts with a zero, digit by digit after the point.
+ *
+ * `32.05` was transcribed as `32.5`. The zero after the point carries no stress and a
+ * reader drops it, which turns a figure into a different figure ten times its size in
+ * the fraction. Reading the fraction as separate digits puts a word on the zero, and
+ * "thirty two point zero five" came back as `32.05`. Only decimals with that leading
+ * zero are spelled: `2.25` and `12.6` have a stressed first fraction digit and read
+ * correctly as they are, and spelling them would sound like a phone number.
+ */
+export const spellLeadingZeroDecimal = (whole: number, fraction: string): string =>
+  `${spellInteger(whole)} point ${[...fraction].map((d) => ONES[Number(d)]).join(" ")}`;
+
+/**
  * The spoken form of a claim, derived from the claim rather than written beside it.
  *
  * Derived from `display` and not from `value`, which is deliberate and was a bug
@@ -103,18 +117,33 @@ export const spellInteger = (n: number): string => {
  * a pure function of the value, so speaking the display keeps one chain from the
  * receipt to the screen to the sound instead of forking it in two.
  *
- * Integers of four digits or more are spelled into words. Kokoro reads a grouped
- * display inconsistently: `2,727` came back as "two, seven twenty seven", which is a
- * different number rather than an odd reading, and the transcription check caught it.
- * Smaller integers and decimals read correctly as digits and are left alone, because
- * "one point five eight" spelled out reads worse than it sounds.
+ * Integers of three digits or more are spelled into words. A grouped display is read
+ * inconsistently: `2,727` came back as "two, seven twenty seven", which is a different
+ * number rather than an odd reading. Three digits fail a second way, because that is
+ * where a reader starts choosing between "one hundred and thirteen" and "one thirteen":
+ * `113` was transcribed as `1130`. Spelling removes the choice. Two digits and below
+ * have no such fork and are left alone, as are decimals, because "one point five eight"
+ * spelled out reads worse than it sounds.
  */
 export const say = (claim: Claim<unknown>): string => {
+  // A verdict or violation code is stored the way the receipt stores it, in screaming
+  // snake case, and read aloud that way it comes back as something else entirely: the
+  // transcription check caught "UNGROUNDED_NUMBER" being spoken as "Who grew Undead
+  // Number". Speaking the words the code is made of is a function of the code rather
+  // than a second spelling kept beside it, and `canonical()` reduces the code and the
+  // spoken form to the same string, so the check still compares against the receipt.
+  if (/^[A-Z][A-Z0-9]*(_[A-Z0-9]+)+$/.test(claim.display)) {
+    return claim.display.toLowerCase().replace(/_/g, " ");
+  }
   const display = trimPaddedDecimal(claim.display);
   const sign = display.startsWith("+") ? "plus " : display.startsWith("-") ? "minus " : "";
   const bare = display.replace(/^[+-]/, "");
-  if (/^\d{1,3}(,\d{3})+$/.test(bare)) {
+  if (/^\d{3,}$/.test(bare.replace(/,/g, ""))) {
     return `${sign}${spellInteger(Number(bare.replace(/,/g, "")))}`;
+  }
+  const zeroLed = /^(\d+)\.(0\d*)$/.exec(bare);
+  if (zeroLed) {
+    return `${sign}${spellLeadingZeroDecimal(Number(zeroLed[1]), zeroLed[2])}`;
   }
   return `${sign}${bare}`;
 };
@@ -153,130 +182,114 @@ const line = (
 // ---------------------------------------------------------------------------
 
 export const NARRATION: Readonly<Record<string, Line>> = {
+  Hello: line([
+    "Hello everyone. This one is real. On a Sunday night in August, a volunteer pointed ",
+    "a radio at the sky and caught ",
+    coldOpen.passMinutes,
+    " minutes of a satellite. The record for it says two words. ",
+    physics.status,
+    ".",
+  ]),
+
   Title: line([
-    "Of everything a ground station recorded last night, what should a person open ",
-    "first?",
+    "Nobody went back to it. It is one of ",
+    corpus.observations,
+    ".",
   ]),
 
   Problem: line([
-    "Volunteers point radios at satellites and judge what came back by eye. This ",
-    "frozen snapshot holds ",
-    corpus.observations,
-    " captures. Only ",
+    "Only ",
     corpus.decisive,
-    " carry a decisive verdict. The rest were recorded, and nobody read them.",
+    " carry a human verdict. The rest were kept and never read, because there is no ",
+    "order to work through them in.",
   ]),
 
   Physics: line([
-    "From this pass's own orbital elements, propagated with ",
-    "S G P 4, the expected Doppler curve spans ",
+    "A pass shifts the frequency you hear. The orbit predicts that curve, spanning ",
     physics.corridorSpanHz,
-    " hertz. Slide that curve ",
+    " hertz. Slide it ",
     physics.shiftPx,
-    " pixels and it lands on the trace. The gap is the measurement. ",
-    physics.offsetHz,
-    " hertz, ",
+    " pixels and it lands on the trace. The gap, as a fraction of the frequency, is ",
     physics.offsetPpm,
-    " parts per million. This station had already taken the Doppler out, and ",
-    "nothing in the observation record says so.",
+    " parts per million. This station had already corrected for Doppler, and nothing in ",
+    "the record says so.",
   ]),
 
   Queue: line([
-    "So the queue ranks ",
+    "That is what the queue ranks on. ",
     reviewQueue.length,
-    " observations by what a reviewer would learn, and spends a fixed budget of ",
+    " observations against a budget of ",
     reviewQueue.budget,
-    " on the top of it. Not the loudest signals. The ones where the evidence ",
-    "disagrees with itself: ",
-    reviewQueue.criteria[1].firedInBudget,
-    " stale catalogue frequencies, and ",
-    reviewQueue.criteria[0].firedInBudget,
-    " where the model and the network label do not match.",
+    ". Not the loudest. The ones where the evidence disagrees with itself.",
   ]),
 
   Live: line([
-    "Everything so far was frozen in August. The deployed console remeasures one of ",
-    "those observations in one take: ",
-    liveTake.offsetPpm,
-    " parts per million, at ",
-    liveTake.fitSigma,
-    " sigma. The receipt holds the same digits.",
+    "All of that was frozen in August. Here is the live console measuring one again. Of ",
+    liveTake.compared,
+    " quantities, ",
+    liveTake.exact,
+    " match the archived digits exactly.",
+  ]),
+
+  Flow: line([
+    "You can drive the same evidence from a LangFlow canvas. Watch. A sentence goes in ",
+    "with a frequency this observation does not have. One take, no cut. The checker ",
+    "refuses it and names why.",
   ]),
 
   Session: line([
-    "Any agent can drive this over the Model Context Protocol. ",
-    agentSession.evidenceTools,
-    " read-only tools over the committed receipts, ",
-    agentSession.liveTools,
-    " more that measure a pass recorded today. Write a downlink frequency this ",
-    "observation does not have and the checker refuses it, naming the reason. Write ",
-    "only what its own packet prints and it passes. The recorded session ran ",
-    agentSession.stepsRun,
-    " steps and ",
-    agentSession.stepsMet,
-    " came back as documented.",
+    flow.refusedCode,
+    ". That is the same checker that decides whether our own generated notes ship.",
+  ]),
+
+  Result: line([
+    "Now the part demos skip. Six gates, with thresholds, written before anything was ",
+    "measured. The headline one wanted half again as many conflicts as random. This ",
+    "queue found ",
+    lift.queueConflicts,
+    " of them. Random ordering, at the same budget, expects ",
+    lift.randomConflicts,
+    ". We publish that as not established.",
+  ]),
+
+  Gates: line([
+    "The point estimate is ",
+    lift.point,
+    ", and the interval straddles the bar, so it fails here. ",
+    gates.met,
+    " of ",
+    gates.total,
+    " gates met, and nothing was moved.",
   ]),
 
   Established: line([
-    "Three results came back decided. Read-only evidence tools take a local Granite ",
-    "model from ",
+    "Three did come back decided. Evidence tools take a local Granite model from ",
     established.withoutTools,
     " of ",
     established.trials,
     " right to ",
     established.withTools,
-    " of ",
-    established.trials,
-    ". The grounding checker caught ",
-    established.adversarialCaught,
-    " of ",
+    ". The checker caught every one of ",
     established.adversarialChecks,
-    " planted falsehoods, and refused ",
-    established.controlRefused,
-    " of ",
-    established.controlChecks,
-    " clean drafts. On stations the queue never saw, lift is ",
+    " planted falsehoods. And on stations the queue never saw, lift clears at ",
     established.coldLift,
-    ", and that one clears.",
-  ]),
-
-  Result: line([
-    "The gate written down in advance asked the queue to find one and a half times ",
-    "as many conflicts as random ordering at the same budget. It found ",
-    lift.queueConflicts,
-    " where random expects ",
-    lift.randomConflicts,
-    ". That is a lift of ",
-    lift.point,
-    ". The interval runs ",
-    lift.ciLow,
-    " to ",
-    lift.ciHigh,
-    ", so it straddles the bar, and this is published as not established.",
-  ]),
-
-  Gates: line([
-    "Six gates, with their thresholds, written down before anything was measured. ",
-    gates.met,
-    " of ",
-    gates.total,
-    " were met. A point estimate above the bar whose interval crosses it counts as ",
-    "a failure here, which is stricter than the brief asked for. Nothing was moved ",
-    "to make a verdict look better.",
+    ".",
   ]),
 
   Bob: line([
-    "IBM Bob built the load-bearing pipeline. The data contracts, the immutable ",
-    "snapshot, the waterfall parser, the physics corridor, the label provenance, the ",
-    "baselines, the grouped splits and the queue: ",
+    "IBM Bob built the load-bearing pipeline: contracts, snapshot, parser, corridor, ",
+    "baselines, queue. ",
     bobUnits.count,
-    " dated units, each with the files it changed and what failed first. Every ",
-    "measurement here is computed on what those units produced.",
+    " dated units, each naming what it changed and what failed first.",
   ]),
 
   Colophon: line([
-    "Every figure you heard was read out of a receipt. The waterfall is a public ",
-    "SatNOGS capture, cited and licensed.",
+    "Every figure you heard came out of a receipt. The waterfall is public, cited and ",
+    "licensed.",
+  ]),
+
+  Thanks: line([
+    "That is TraceTriage. Thank you for watching. Go and check a number.",
   ]),
 };
 

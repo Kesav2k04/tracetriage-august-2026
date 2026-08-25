@@ -1,0 +1,34 @@
+{
+  "clip": "gate4",
+  "seconds": 69.017,
+  "sections": [
+    {
+      "key": "intro",
+      "start": 0.0
+    },
+    {
+      "key": "protocol",
+      "start": 7.683
+    },
+    {
+      "key": "commit",
+      "start": 15.967
+    },
+    {
+      "key": "sample",
+      "start": 27.45
+    },
+    {
+      "key": "scoring",
+      "start": 38.767
+    },
+    {
+      "key": "result",
+      "start": 51.083
+    },
+    {
+      "key": "verdict",
+      "start": 61.233
+    }
+  ]
+}

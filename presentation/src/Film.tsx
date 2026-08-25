@@ -3,13 +3,16 @@ import { AbsoluteFill, Audio, Sequence, staticFile } from "remotion";
 import { Bob } from "./beats/Bob";
 import { Colophon } from "./beats/Colophon";
 import { Established } from "./beats/Established";
+import { Flow } from "./beats/Flow";
 import { Gates } from "./beats/Gates";
+import { Hello } from "./beats/Hello";
 import { Live } from "./beats/Live";
 import { Physics } from "./beats/Physics";
 import { Problem } from "./beats/Problem";
 import { Queue } from "./beats/Queue";
 import { Result } from "./beats/Result";
 import { Session } from "./beats/Session";
+import { Thanks } from "./beats/Thanks";
 import { Title } from "./beats/Title";
 import { FPS, LEAD_IN_SECONDS, token } from "./theme";
 
@@ -52,17 +55,20 @@ import { FPS, LEAD_IN_SECONDS, token } from "./theme";
  * serves. None of the three is a claim the other seven cards were already making.
  */
 export const BEATS = [
-  { name: "Title", component: Title, durationInFrames: 180 },
-  { name: "Problem", component: Problem, durationInFrames: 462 },
-  { name: "Physics", component: Physics, durationInFrames: 654 },
-  { name: "Queue", component: Queue, durationInFrames: 492 },
-  { name: "Live", component: Live, durationInFrames: 416 },
-  { name: "Session", component: Session, durationInFrames: 624 },
-  { name: "Result", component: Result, durationInFrames: 558 },
-  { name: "Gates", component: Gates, durationInFrames: 438 },
-  { name: "Established", component: Established, durationInFrames: 612 },
-  { name: "Bob", component: Bob, durationInFrames: 540 },
-  { name: "Colophon", component: Colophon, durationInFrames: 228 },
+  { name: "Hello", component: Hello, durationInFrames: 462 },
+  { name: "Title", component: Title, durationInFrames: 174 },
+  { name: "Problem", component: Problem, durationInFrames: 294 },
+  { name: "Physics", component: Physics, durationInFrames: 756 },
+  { name: "Queue", component: Queue, durationInFrames: 336 },
+  { name: "Live", component: Live, durationInFrames: 420 },
+  { name: "Flow", component: Flow, durationInFrames: 498 },
+  { name: "Session", component: Session, durationInFrames: 210 },
+  { name: "Result", component: Result, durationInFrames: 582 },
+  { name: "Gates", component: Gates, durationInFrames: 282 },
+  { name: "Established", component: Established, durationInFrames: 438 },
+  { name: "Bob", component: Bob, durationInFrames: 372 },
+  { name: "Colophon", component: Colophon, durationInFrames: 210 },
+  { name: "Thanks", component: Thanks, durationInFrames: 168 },
 ] as const;
 
 export const FILM_FRAMES = BEATS.reduce(

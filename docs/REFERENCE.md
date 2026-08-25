@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a clone does not have describes something else.
 
-At this commit: 44 JSON artifacts, 8 contracts, 62 scripts, 29 package modules and 1516 test functions across 87 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 46 JSON artifacts, 8 contracts, 68 scripts, 29 package modules and 1516 test functions across 87 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -30,8 +30,10 @@ file that no longer exists in that form.
 | `CIRCULARITY_RECEIPT.json` | tracetriage/circularity/v1 | 1.0.0 | none | 11,376 | `8e6f893a005e3bcc` | `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/run_circularity_check.py`, `scripts/run_gate_power.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_circularity.py`, `test_gate_power.py`, `test_receipt_digests.py` |
 | `CLEAN_CLONE_TRANSCRIPT.json` | CLEAN_CLONE_TRANSCRIPT | 0.1.0 | none | 14,794 | `312237a9855220eb` | `scripts/check_receipt_digests.py`, `scripts/clean_clone_check.py`, `scripts/sync_for_judges.py` | `test_clean_clone.py`, `test_for_judges.py`, `test_freshness_outcomes.py` |
 | `DATASET_MANIFEST.json` | none declared | 0.2.1 | none | 2,309,369 | `7029e2a8b3bef5fd` | `pipeline/tracetriage/baseline.py`, `pipeline/tracetriage/snapshot.py`, `pipeline/tracetriage/splits.py`, `scripts/audit_release.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_gate3_pool.py`, `scripts/build_live_shelf.py`, `scripts/build_splits.py`, `scripts/measure_throughput.py`, `scripts/run_baseline.py`, `scripts/run_gate3.py`, `scripts/run_precedent_study.py`, `scripts/run_triage_slice.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py` | `test_base_rates.py`, `test_baseline.py`, `test_contracts.py`, `test_gate3_pool.py`, `test_live_take.py`, `test_snapshot.py`, `test_snapshot_isolation.py`, `test_splits.py` |
+| `EXPLAINER_CLIPS.json` | none declared | n/a | none | 1,011 | `88a46cdc10a763a9` | `scripts/build_explainers.py` | `test_film_palette.py` |
+| `EXPLAINER_NARRATION.json` | none declared | n/a | none | 11,201 | `ab725001fbe8f125` | `scripts/build_explainers.py`, `scripts/explainer_timing.py`, `scripts/render_explainer_narration.py` | `test_receipt_digests.py` |
 | `EXPLAIN_RECEIPT.json` | none declared | n/a | none | 24,954 | `49f9a2f902c2b1fb` | `pipeline/tracetriage/cli.py`, `scripts/build_architecture_diagram.py`, `scripts/check_receipt_digests.py`, `scripts/run_agent_study.py`, `scripts/run_explanations.py`, `scripts/sync_demo.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_cli_note.py`, `test_explain_receipt.py`, `test_receipt_digests.py` |
-| `FILM_RECEIPT.json` | FILM_RECEIPT | 1 | none | 6,475 | `6bbb90aed6df0779` | `scripts/check_receipt_digests.py`, `scripts/sync_for_judges.py` | `test_film_receipt.py`, `test_prose_drift.py` |
+| `FILM_RECEIPT.json` | FILM_RECEIPT | 1 | none | 6,242 | `9b34292b06323e05` | `scripts/check_receipt_digests.py`, `scripts/sync_for_judges.py` | `test_film_receipt.py`, `test_prose_drift.py` |
 | `FONT_PAINT_RECEIPT.json` | tracetriage/font-paint | 0.2.0 | none | 6,377 | `cf9a8a36448599c1` | `apps/web/audit/font-paint-ab.mjs`, `apps/web/audit/paint-probe.js`, `scripts/build_font_ab.py` | **none** |
 | `FUSION_RECEIPT.json` | FUSION_RECEIPT | 0.1.0 | `contracts/fusion_receipt.schema.json` | 270,666 | `57c379eff2f2ffdb` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/check_receipt_digests.py`, `scripts/gate.py`, `scripts/run_fusion.py`, `scripts/run_gate_power.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_fusion.py`, `test_gate_power.py`, `test_kill_gate_sync.py` |
 | `GATE3_POOL.json` | GATE3_POOL | 1 | none | 3,017,898 | `dc6529a2eb4a22ff` | `scripts/audit_pool_axes.py`, `scripts/audit_release.py`, `scripts/build_gate3_pool.py`, `scripts/gate3_sensitivity.py`, `scripts/record_live_take.py`, `scripts/run_gate3.py`, `scripts/sync_kill_gate.py` | `test_artifacts_are_json.py`, `test_axis_reader_audit.py`, `test_gate3_pool.py`, `test_gate3_sensitivity.py` |
@@ -50,7 +52,7 @@ file that no longer exists in that form.
 | `LIVE_TAKE.json` | artifacts/LIVE_TAKE.json | 1 | none | 7,787 | `668a82b377e7d6b8` | `scripts/check_receipt_digests.py`, `scripts/record_live_take.py` | `test_live_take.py`, `test_receipt_digests.py` |
 | `MOTION_AA_CONTROL.json` | tracetriage/motion-perf | 0.1.0 | none | 11,217 | `144edd40ad9380f9` | `scripts/measure_motion_perf.py` | **none** |
 | `MOTION_RECEIPT.json` | tracetriage/motion-perf | 0.1.0 | none | 13,006 | `7848414e2567859d` | `scripts/measure_motion_perf.py` | **none** |
-| `NARRATION_RECEIPT.json` | none declared | n/a | none | 19,117 | `c451750434fd628d` | `scripts/cast_narration_voice.py`, `scripts/render_narration.py`, `scripts/sync_for_judges.py` | `test_receipt_digests.py` |
+| `NARRATION_RECEIPT.json` | none declared | n/a | none | 17,235 | `85a794c9b6ee5eb8` | `scripts/cast_narration_voice.py`, `scripts/render_narration.py`, `scripts/render_narration_cloned.py`, `scripts/sync_for_judges.py` | `test_receipt_digests.py` |
 | `OFFLINE_RECEIPT.json` | tracetriage/offline-install | 0.1.0 | none | 3,727 | `e869ab82c1b7bdae` | `apps/web/audit/offline-probe.mjs`, `scripts/sync_docs.py` | `test_pwa_install.py` |
 | `OPERATOR_SESSION.json` | tracetriage/operator-session | 0.1.0 | none | 6,829 | `69564bde019b6783` | `scripts/run_operator_session.py` | `test_operator_session.py` |
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 63,045 | `6dc5302b24363528` | `pipeline/tracetriage/physics.py`, `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
@@ -130,7 +132,9 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/audit_pool_axes.py` | Re-read every gate 3 pool axis with the reader that cannot invent a value. |
 | `scripts/audit_release.py` | Release audit: tracked secrets, redistribution attribution, and repository weight. |
 | `scripts/build_architecture_diagram.py` | Generate the architecture diagram, from the stages that actually exist. |
+| `scripts/build_architecture_gif.py` | Animate the architecture diagram, from the same stage table the SVG is drawn from. |
 | `scripts/build_console_data.py` | Build the static evidence console's data and imagery (unit C5). |
+| `scripts/build_explainers.py` | Lay the spoken track onto the two explainer clips, and write their captions. |
 | `scripts/build_font_ab.py` | Build the three font-loading conditions the paint measurement compares. |
 | `scripts/build_gate3_pool.py` | Grow gate 3's testable pool from the frozen snapshot, with two selection rules. |
 | `scripts/build_gate4_worksheet.py` | Build the blinded worksheet kill gate 4 asks for, and commit to it before anyone reads it. |
@@ -148,6 +152,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/derive_palette.py` | Derive the console's neutral ramp, and prove the derivation costs no contrast. |
 | `scripts/explainer_corridor.py` | Manim scene: what the Doppler corridor is, and what the fitted offset measures. |
 | `scripts/explainer_gate4.py` | Manim scene: how gate 4 was made falsifiable, and how it came out. |
+| `scripts/explainer_timing.py` | Hold each section of an explainer for as long as its own narration takes. |
 | `scripts/export_bob_units.py` | Export the Bob-account units from the build log for the console to render. |
 | `scripts/export_grounding_golden.py` | Export what the Python grounding checker decides, so the TypeScript port can be held to it. |
 | `scripts/export_hero_nulls.py` | Export the null corridors gate 3 actually scored, as drawable pixel paths. |
@@ -163,7 +168,9 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/pack_gate4_bundle.py` | Verify the gate 4 bundle against its commitment, then pack it into one transportable file. |
 | `scripts/record_live_take.py` | Record what the deployed console returned in one filmed take, and what the tree holds. |
 | `scripts/render_evidence_card.py` | Render a static evidence card for one observation triage receipt. |
+| `scripts/render_explainer_narration.py` | Give the two page explainers a voice, and check what that voice actually said. |
 | `scripts/render_narration.py` | Speak the film's narration, then check that the audio says what the receipts hold. |
+| `scripts/render_narration_cloned.py` | Speak the film's narration in the builder's own voice, and check what it said. |
 | `scripts/run_agent_study.py` | Ask the same questions twice, with the evidence server and without it, and grade both. |
 | `scripts/run_baseline.py` | CLI runner for A6: image-only baselines. |
 | `scripts/run_circularity_check.py` | How much of the queue's lift is guaranteed by the way the queue was built. |
@@ -186,6 +193,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/sync_for_judges.py` | Generate FOR_JUDGES.md from the receipts, so the page a judge reads cannot go stale. |
 | `scripts/sync_kill_gate.py` | Regenerate the parts of docs/KILL_GATE.md that must agree with the receipts. |
 | `scripts/sync_readme_results.py` | Regenerate README.md's results tables from the receipts. |
+| `scripts/sync_readme_tree.py` | Draw the repository's own file tree into the README, from the tracked tree. |
 | `scripts/validate_physics.py` | A4 physics validation: max_altitude and azimuth agreement over >=200 observations. |
 
 ## Tests

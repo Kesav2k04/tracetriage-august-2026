@@ -1,45 +1,57 @@
 WEBVTT
 
+Hello
+00:00:00.350 --> 00:00:15.100
+Hello everyone. This one is real. On a Sunday night in August, a volunteer pointed a radio at the sky and caught 4 minutes of a satellite. The record for it says two words. with-signal.
+
 Title
-00:00:00.350 --> 00:00:05.700
-Of everything a ground station recorded last night, what should a person open first?
+00:00:15.750 --> 00:00:20.900
+Nobody went back to it. It is one of two thousand seven hundred and twenty seven.
 
 Problem
-00:00:06.350 --> 00:00:21.100
-Volunteers point radios at satellites and judge what came back by eye. This frozen snapshot holds two thousand seven hundred and twenty seven captures. Only 739 carry a decisive verdict. The rest were recorded, and nobody read them.
+00:00:21.550 --> 00:00:30.700
+Only seven hundred and thirty nine carry a human verdict. The rest were kept and never read, because there is no order to work through them in.
 
 Physics
-00:00:21.750 --> 00:00:42.900
-From this pass's own orbital elements, propagated with S G P 4, the expected Doppler curve spans seventeen thousand two hundred and ninety hertz. Slide that curve 113 pixels and it lands on the trace. The gap is the measurement. plus thirteen thousand nine hundred and eighty five hertz, plus 32.05 parts per million. This station had already taken the Doppler out, and nothing in the observation record says so.
+00:00:31.350 --> 00:00:55.900
+A pass shifts the frequency you hear. The orbit predicts that curve, spanning seventeen thousand two hundred and ninety hertz. Slide it one hundred and thirteen pixels and it lands on the trace. The gap, as a fraction of the frequency, is plus thirty two point zero five parts per million. This station had already corrected for Doppler, and nothing in the record says so.
 
 Queue
-00:00:43.550 --> 00:00:59.300
-So the queue ranks 407 observations by what a reviewer would learn, and spends a fixed budget of 50 on the top of it. Not the loudest signals. The ones where the evidence disagrees with itself: 17 stale catalogue frequencies, and 3 where the model and the network label do not match.
+00:00:56.550 --> 00:01:07.100
+That is what the queue ranks on. four hundred and seven observations against a budget of 50. Not the loudest. The ones where the evidence disagrees with itself.
 
 Live
-00:00:59.950 --> 00:01:13.167
-Everything so far was frozen in August. The deployed console remeasures one of those observations in one take: minus 24.45 parts per million, at 6.92 sigma. The receipt holds the same digits.
+00:01:07.750 --> 00:01:21.100
+All of that was frozen in August. Here is the live console measuring one again. Of 10 quantities, 8 match the archived digits exactly.
+
+Flow
+00:01:21.750 --> 00:01:37.700
+You can drive the same evidence from a LangFlow canvas. Watch. A sentence goes in with a frequency this observation does not have. One take, no cut. The checker refuses it and names why.
 
 Session
-00:01:13.817 --> 00:01:33.967
-Any agent can drive this over the Model Context Protocol. 7 read-only tools over the committed receipts, 5 more that measure a pass recorded today. Write a downlink frequency this observation does not have and the checker refuses it, naming the reason. Write only what its own packet prints and it passes. The recorded session ran 12 steps and 12 came back as documented.
+00:01:38.350 --> 00:01:44.700
+ungrounded number. That is the same checker that decides whether our own generated notes ship.
 
 Result
-00:01:34.617 --> 00:01:52.567
-The gate written down in advance asked the queue to find one and a half times as many conflicts as random ordering at the same budget. It found 20 where random expects 12.6. That is a lift of 1.58. The interval runs 1.35 to 1.74, so it straddles the bar, and this is published as not established.
+00:01:45.350 --> 00:02:04.100
+Now the part demos skip. Six gates, with thresholds, written before anything was measured. The headline one wanted half again as many conflicts as random. This queue found 20 of them. Random ordering, at the same budget, expects 12.6. We publish that as not established.
 
 Gates
-00:01:53.217 --> 00:02:07.167
-Six gates, with their thresholds, written down before anything was measured. 3 of 6 were met. A point estimate above the bar whose interval crosses it counts as a failure here, which is stricter than the brief asked for. Nothing was moved to make a verdict look better.
+00:02:04.750 --> 00:02:13.500
+The point estimate is 1.58, and the interval straddles the bar, so it fails here. 3 of 6 gates met, and nothing was moved.
 
 Established
-00:02:07.817 --> 00:02:27.567
-Three results came back decided. Read-only evidence tools take a local Granite model from 2 of 24 right to 22 of 24. The grounding checker caught 525 of 525 planted falsehoods, and refused 0 of 175 clean drafts. On stations the queue never saw, lift is 2.25, and that one clears.
+00:02:14.150 --> 00:02:28.100
+Three did come back decided. Evidence tools take a local Granite model from 2 of 24 right to 22. The checker caught every one of five hundred and twenty five planted falsehoods. And on stations the queue never saw, lift clears at 2.25.
 
 Bob
-00:02:28.217 --> 00:02:45.567
-IBM Bob built the load-bearing pipeline. The data contracts, the immutable snapshot, the waterfall parser, the physics corridor, the label provenance, the baselines, the grouped splits and the queue: 10 dated units, each with the files it changed and what failed first. Every measurement here is computed on what those units produced.
+00:02:28.750 --> 00:02:40.500
+IBM Bob built the load-bearing pipeline: contracts, snapshot, parser, corridor, baselines, queue. 10 dated units, each naming what it changed and what failed first.
 
 Colophon
-00:02:46.217 --> 00:02:53.167
-Every figure you heard was read out of a receipt. The waterfall is a public SatNOGS capture, cited and licensed.
+00:02:41.150 --> 00:02:47.500
+Every figure you heard came out of a receipt. The waterfall is public, cited and licensed.
+
+Thanks
+00:02:48.150 --> 00:02:53.100
+That is TraceTriage. Thank you for watching. Go and check a number.

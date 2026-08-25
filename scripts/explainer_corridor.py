@@ -50,6 +50,8 @@ from pathlib import Path
 import numpy as np
 from manim import *
 
+from explainer_timing import NarratedScene
+
 # The console self-hosts IBM Plex through @fontsource, which ships web formats only,
 # and Pango needs an outline font. `make explainer` converts the same woff2 files the
 # site serves into media/fonts and registers them here, so the video and the page it
@@ -161,7 +163,9 @@ def to_point(col: float, row: float, dx: float = 0.0) -> np.ndarray:
     return np.array([x, y, 0.0])
 
 
-class CorridorExplainer(Scene):
+class CorridorExplainer(NarratedScene):
+    clip = "corridor"
+
     def construct(self) -> None:
         self.camera.background_color = PAPER
 
@@ -185,8 +189,10 @@ class CorridorExplainer(Scene):
         )
         sub.next_to(title, DOWN, buff=0.16).align_to(title, LEFT)
 
+        self.section("intro")
         self.play(FadeIn(title, shift=UP * 0.2), FadeIn(sub), run_time=0.9)
         self.play(Create(frame), FadeIn(axis_freq), FadeIn(axis_time), run_time=1.1)
+        self.hold(0.3)
 
         # ---- 1. The assumption -------------------------------------------------
         vertical = DashedLine(
@@ -208,10 +214,11 @@ class CorridorExplainer(Scene):
         )
         step1.next_to(frame, RIGHT, buff=0.5).shift(UP * 0.9)
 
+        self.section("assumption")
         self.play(Create(vertical), run_time=0.8)
         self.play(FadeIn(v_label), Create(v_lead), run_time=0.6)
         self.play(FadeIn(step1, shift=UP * 0.15), run_time=0.9)
-        self.wait(1.6)
+        self.hold(1.6)
 
         # ---- 2. What the geometry says ----------------------------------------
         predicted = VMobject(color=PREDICTED, stroke_width=4)
@@ -225,10 +232,11 @@ class CorridorExplainer(Scene):
         )
         step2.next_to(frame, RIGHT, buff=0.5).shift(UP * 0.75)
 
+        self.section("geometry")
         self.play(FadeOut(step1), run_time=0.35)
         self.play(Create(predicted), run_time=2.0)
         self.play(FadeIn(step2, shift=UP * 0.15), run_time=0.8)
-        self.wait(1.8)
+        self.hold(1.8)
 
         # ---- 3. Sliding it to the best match ----------------------------------
         fitted = VMobject(color=FITTED, stroke_width=4.5)
@@ -254,6 +262,7 @@ class CorridorExplainer(Scene):
         )
         step3.next_to(frame, RIGHT, buff=0.5).shift(UP * 0.75)
 
+        self.section("slide")
         self.play(FadeOut(step2), run_time=0.35)
         self.play(FadeIn(step3, shift=UP * 0.15), run_time=0.7)
 
@@ -266,7 +275,7 @@ class CorridorExplainer(Scene):
         self.remove(ghost)
         self.add(fitted)
         self.play(FadeIn(band), run_time=0.6)
-        self.wait(0.8)
+        self.hold(0.8)
 
         # ---- 4. The measurement ------------------------------------------------
         pred_by_row = dict(PRED)
@@ -286,6 +295,7 @@ class CorridorExplainer(Scene):
         chain = Text(f"1 px = {HZ_PER_PX:.1f} Hz on this image", font_size=17, color=DIM, font=MONO)
         chain.next_to(gap_label, DOWN, buff=0.22).align_to(gap_label, LEFT)
 
+        self.section("measure")
         self.play(FadeOut(step3), run_time=0.3)
         self.play(GrowFromCenter(gap), run_time=0.7)
         self.play(
@@ -295,7 +305,7 @@ class CorridorExplainer(Scene):
             run_time=1.4,
         )
         self.play(FadeIn(chain), run_time=0.5)
-        self.wait(1.4)
+        self.hold(1.4)
 
         closing = Text(
             "The gap between the two curves is the measurement.\n"
@@ -313,10 +323,11 @@ class CorridorExplainer(Scene):
         )
         scale_note.to_edge(DOWN, buff=0.16)
 
+        self.section("closing")
         self.play(
             FadeOut(gap), FadeOut(gap_label), FadeOut(chain),
             FadeOut(v_label), FadeOut(v_lead),
             run_time=0.6,
         )
         self.play(FadeIn(closing, shift=UP * 0.2), FadeIn(scale_note), run_time=1.0)
-        self.wait(2.6)
+        self.hold(2.6)

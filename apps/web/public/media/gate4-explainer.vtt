@@ -1,0 +1,22 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:06.640
+Kill gate 4 asks the question the whole project rests on. Can a person decide anything from the image at all?
+
+00:00:07.683 --> 00:00:14.923
+Three axes, and unsure is an answer rather than a failure to give one. Run the review, and report the rate.
+
+00:00:15.967 --> 00:00:26.407
+The sample was committed to first. One salted digest for every item, all 72 of them published before the review began, so nothing could be chosen after the answers were known.
+
+00:00:27.450 --> 00:00:37.730
+60 observations, with 12 of them shown twice: 72 items in all. No label, no model output, and no way to tell which ones are the repeats.
+
+00:00:38.767 --> 00:00:50.087
+Before the scorer reads a single answer it re-hashes every image from disk and recomputes all 72 commitments. Any mismatch and it refuses outright.
+
+00:00:51.083 --> 00:01:00.683
+It came back decisive on 60 of them. The bar written down beforehand was 0.8. The interval's lower bound is 0.9513.
+
+00:01:01.233 --> 00:01:08.473
+The gate is passed, and the reviewer was a person, answering plates they had never seen against a sample nobody could still change.
