@@ -373,6 +373,7 @@ export function Note({
   }[tone];
   return (
     <p
+      className="note"
       style={{
         margin: "var(--sp-05) 0 0",
         padding: "var(--sp-04) var(--sp-05)",

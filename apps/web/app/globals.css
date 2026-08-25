@@ -248,11 +248,9 @@
   --sp-07: 2rem;
   --sp-08: 2.5rem;
   --sp-09: 3rem;
-  /* Two steps above the old ceiling. Thirteen sections separated by the same 3rem as a
-     paragraph gave the page one rhythm and therefore no hierarchy: a reader could not
-     see where a topic ended. --sp-10 is the section break, --sp-11 the part break. */
-  --sp-10: 4.5rem;
-  --sp-11: 6rem;
+  /* --sp-10 is the section break. Thirteen sections separated by the same 3rem as a
+     paragraph gave the page one rhythm and therefore no hierarchy, so a reader could not
+     see where a topic ended. Carbon already had this step; nothing needed adding. */
   --sp-10: 4rem;
   --sp-12: 6rem;
 
@@ -3495,4 +3493,64 @@ section[id] {
 .disclosure-body p,
 .colophon-rule p {
   max-width: 68ch;
+}
+
+/* The orbital figure. Sized by aspect rather than cropped, so it cannot letterbox, and
+   deliberately unbordered: the shader fades to --ui-background at its lower edge, which
+   closes the frame without adding another rule to a page that had 28 of them. */
+.orbit-field {
+  position: relative;
+}
+
+.orbit-field canvas {
+  background: var(--ui-background);
+}
+
+.orbit-field figcaption {
+  margin-top: var(--sp-04);
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  line-height: 1.7;
+  max-width: 68ch;
+}
+
+/* The margin column, and the hole it fills.
+ *
+ * Capping the measure at 62ch fixed the line length and created a second problem: the
+ * prose column came out 577px wide inside a 1216px shell, so every paragraph had 639px
+ * of nothing to its right, wider than the paragraph itself. Measured on /start/ at a
+ * 1707px viewport.
+ *
+ * Rather than narrow the shell to hide the gap, the gap becomes a margin and the asides
+ * move into it. An aside is by definition the thing a reader may skip, so taking it out
+ * of the vertical flow shortens the page for the reader who skips it and costs the
+ * reader who wants it nothing. Document order does not change, so a screen reader still
+ * hears each note exactly where it was written.
+ *
+ * A float, not a grid, and the first attempt here was the grid. A two-column grid ties
+ * the two columns into shared rows, so a note taller than the paragraph beside it makes
+ * its whole row that tall and punches a hole in the text column. Measured on
+ * /evaluation/: seven holes over 40px, 1,962px of dead vertical space in total, the
+ * worst of them 819px. A float has no rows, so the text simply continues underneath it.
+ *
+ * Everything that is not a paragraph clears the float. Sections here hold card grids and
+ * full-bleed tables, and a grid container beside a float would be squeezed into whatever
+ * width was left rather than flowing past it. Only prose sits alongside a note, which is
+ * the whole intent.
+ *
+ * Below 1200px there is no margin to move anything into, so none of this applies and the
+ * notes sit back in the flow where they were written. */
+@media (min-width: 1200px) {
+  main .shell > section > p.note {
+    float: right;
+    clear: right;
+    width: 44ch;
+    margin: 0 0 var(--sp-06) var(--sp-07);
+    font-size: var(--type-caption);
+    line-height: 1.65;
+  }
+
+  main .shell > section > :not(p) {
+    clear: right;
+  }
 }

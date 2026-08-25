@@ -43,6 +43,7 @@ import {
   requireGate6Split,
   showcaseIds,
 } from "@/lib/data";
+import OrbitField from "@/components/OrbitField";
 import { Cell, Note, Section, Stat, Table, VerdictBadge } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -88,7 +89,7 @@ export default function StartPage() {
         <p
           style={{
             marginTop: "var(--sp-05)",
-            maxWidth: "58rem",
+            maxWidth: "62ch",
             color: "var(--text-02)",
             fontSize: "var(--type-body-long)",
             lineHeight: 1.7,
@@ -105,7 +106,7 @@ export default function StartPage() {
         <p
           style={{
             marginTop: "var(--sp-05)",
-            maxWidth: "58rem",
+            maxWidth: "62ch",
             color: "var(--text-02)",
             lineHeight: 1.7,
           }}
@@ -116,6 +117,15 @@ export default function StartPage() {
           down, what does a person open first.
         </p>
       </header>
+
+      {/* The visual anchor this page had none of. It draws the geometry the rest of the
+          page argues from, and its caption says it is propagated rather than measured,
+          because a figure that could be mistaken for evidence on a page of evidence is
+          worse than no figure. */}
+      <OrbitField
+        height={220}
+        label="One pass, propagated from a 550 km circular orbit at 97.6 degrees over a station at 52.2 degrees north. The track is elevation above the horizon; the curve beneath it is the Doppler shift that pass's range rate implies at 437 MHz. Drawn for this figure and not measured: every number this console publishes comes from a receipt."
+      />
 
       <Section
         title="What was measured, and holds"
@@ -448,7 +458,7 @@ export default function StartPage() {
           style={{
             margin: 0,
             paddingLeft: "1.2rem",
-            maxWidth: "58rem",
+            maxWidth: "62ch",
             color: "var(--text-02)",
             lineHeight: 1.9,
           }}
