@@ -31,6 +31,7 @@ attribution, under the terms in DATA_LICENSE.md.
 from __future__ import annotations
 
 import argparse
+import ast
 import datetime
 import hashlib
 import json
@@ -106,6 +107,96 @@ def _require_present(doc: dict[str, Any], key: str) -> Any:
             "The export must not read an absent field as a null measurement."
         )
     return doc[key]
+
+
+def _module_constants(tree: ast.Module) -> dict[str, Any]:
+    """Module-level names bound to a literal, so an f-string description can be read back.
+
+    Two of the live server's descriptions interpolate a budget constant. Publishing the
+    constant parts alone would drop the number, and dropping a number from a description
+    that exists to state one is worse than not publishing it.
+    """
+    out: dict[str, Any] = {}
+    for node in tree.body:
+        targets = (
+            node.targets
+            if isinstance(node, ast.Assign)
+            else [node.target] if isinstance(node, ast.AnnAssign) else []
+        )
+        for target in targets:
+            if isinstance(target, ast.Name) and node.value is not None:
+                try:
+                    out[target.id] = ast.literal_eval(node.value)
+                except (ValueError, SyntaxError, TypeError):
+                    continue
+    return out
+
+
+def _mcp_tool_description(node: ast.expr, constants: dict[str, Any]) -> str:
+    """The description string a server sends, whether it is a literal or an f-string."""
+    try:
+        return str(ast.literal_eval(node))
+    except (ValueError, SyntaxError, TypeError):
+        pass
+    if not isinstance(node, ast.JoinedStr):
+        raise TypeError("an MCP tool description is neither a literal nor an f-string")
+    parts: list[str] = []
+    for piece in node.values:
+        if isinstance(piece, ast.Constant):
+            parts.append(str(piece.value))
+        elif isinstance(piece, ast.FormattedValue) and isinstance(piece.value, ast.Name):
+            name = piece.value.id
+            if name not in constants:
+                raise KeyError(f"an MCP tool description interpolates {name!r}, which is "
+                               f"not a module-level literal")
+            parts.append(str(constants[name]))
+        else:
+            raise TypeError("an MCP tool description interpolates an expression")
+    return "".join(parts)
+
+
+def _mcp_server(rel: str) -> dict[str, Any]:
+    """The tool catalogue of one MCP server, read from its source rather than typed here.
+
+    Parsed rather than imported: importing either server module pulls in the pipeline and
+    reads the snapshot, which this builder must not need. `ast` gives the same two facts
+    the console shows, the tool's name and the description the server itself sends in
+    `tools/list`, and it fails loudly if either dict stops being a literal, which is the
+    right outcome for a page claiming to list what a client would receive.
+    """
+    tree = ast.parse((_REPO / rel).read_text(encoding="utf-8"))
+    constants = _module_constants(tree)
+    name: str | None = None
+    tools: list[dict[str, str]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)) or node.value is None:
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        for target in targets:
+            if not isinstance(target, ast.Name):
+                continue
+            if target.id == "SERVER_NAME" and isinstance(node.value, ast.Constant):
+                name = str(node.value.value)
+            if target.id == "TOOLS" and isinstance(node.value, ast.Dict):
+                for key, value in zip(node.value.keys, node.value.values, strict=True):
+                    if not isinstance(key, ast.Constant) or not isinstance(value, ast.Dict):
+                        raise TypeError(f"{rel}: TOOLS is no longer a literal dict of dicts")
+                    described = [
+                        v
+                        for k, v in zip(value.keys, value.values, strict=True)
+                        if isinstance(k, ast.Constant) and k.value == "description"
+                    ]
+                    if not described:
+                        raise KeyError(f"{rel}: tool {key.value!r} carries no description")
+                    tools.append(
+                        {
+                            "name": str(key.value),
+                            "description": _mcp_tool_description(described[0], constants),
+                        }
+                    )
+    if name is None or not tools:
+        raise KeyError(f"{rel}: no SERVER_NAME or no TOOLS found")
+    return {"server": name, "module": rel, "tools": tools}
 
 
 def _digest(path: Path) -> str:
@@ -1178,6 +1269,111 @@ def main(argv: list[str] | None = None) -> int:
                     "than dropped."
                 ),
                 "receipt_sha256": _digest(_ARTIFACTS / "PRECEDENT_RECEIPT.json"),
+            },
+            indent=1,
+        ),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    # ---- mcp -------------------------------------------------------------
+    #
+    # The tool layer was one clause of one sentence on /start: "two MCP servers answer 12
+    # tools". A reader could not see what the twelve are. Read out of each server's own
+    # TOOLS dict, so the page lists what a client receives from `tools/list` rather than a
+    # description of it that could go stale on its own.
+    (data_dir / "mcp.json").write_text(
+        json.dumps(
+            {
+                "servers": [
+                    _mcp_server("scripts/mcp_server.py"),
+                    _mcp_server("pipeline/tracetriage/mcp_live.py"),
+                ],
+            },
+            indent=1,
+        ),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    # ---- throughput ------------------------------------------------------
+    #
+    # Scalability is half the wording of one scored criterion and it lived only in
+    # `docs/SCALABILITY.md`, `FOR_JUDGES.md` and the README. A reader who never leaves the
+    # console could not check it. Every field here is copied from the receipt, including
+    # its own readings: the page states what was measured and this file does no arithmetic
+    # of its own, so there is nothing here that the receipt could disagree with.
+    throughput = _load("THROUGHPUT_RECEIPT.json")
+    network = _require(throughput, "what_the_network_produces")
+    costs = _require(throughput, "what_one_observation_costs")
+    ingestion = _require(throughput, "what_ingestion_costs")
+    headroom = _require(throughput, "headroom")
+    constraint = _require(throughput, "the_actual_constraint")
+    (data_dir / "throughput.json").write_text(
+        json.dumps(
+            {
+                "network": {
+                    "captures_per_day": _require(network, "captures_per_day"),
+                    "span_hours": _require(network, "span_hours"),
+                    "captures_timestamped": _require(network, "captures_timestamped"),
+                    "observations_without_a_waterfall": _require(
+                        network, "observations_without_a_waterfall"
+                    ),
+                    "reading": _require(network, "reading"),
+                },
+                "stages": [
+                    {
+                        "name": name,
+                        "artifact": _require(stage, "artifact"),
+                        "observations": _require(stage, "observations"),
+                        "elapsed_s": _require(stage, "elapsed_s"),
+                        "seconds_per_observation": _require(
+                            stage, "seconds_per_observation"
+                        ),
+                        "observations_per_day_one_core": _require(
+                            stage, "observations_per_day_one_core"
+                        ),
+                    }
+                    for name, stage in costs.items()
+                ],
+                "ingestion": {
+                    "seconds_per_observation": _require(
+                        ingestion, "seconds_per_observation"
+                    ),
+                    "request_interval_seconds": _require(
+                        ingestion, "request_interval_seconds"
+                    ),
+                    "reading": _require(ingestion, "reading"),
+                },
+                "headroom": {
+                    "dominant_stage": _require(headroom, "dominant_stage"),
+                    "seconds_per_observation": _require(
+                        headroom, "seconds_per_observation"
+                    ),
+                    "observations_per_day_one_core": _require(
+                        headroom, "observations_per_day_one_core"
+                    ),
+                    "network_observations_per_day": _require(
+                        headroom, "network_observations_per_day"
+                    ),
+                    "cores_to_keep_up": _require(headroom, "cores_to_keep_up"),
+                    "headroom_multiple": _require(headroom, "headroom_multiple"),
+                    "reading": _require(headroom, "reading"),
+                },
+                "constraint": {
+                    "compute_seconds_per_observation": _require(
+                        constraint, "compute_seconds_per_observation"
+                    ),
+                    "ingestion_seconds_per_observation": _require(
+                        constraint, "ingestion_seconds_per_observation"
+                    ),
+                    "ratio": _require(constraint, "ratio"),
+                    "reading": _require(constraint, "reading"),
+                },
+                "what_this_does_not_measure": _require(
+                    throughput, "what_this_does_not_measure"
+                ),
+                "receipt_sha256": _digest(_ARTIFACTS / "THROUGHPUT_RECEIPT.json"),
             },
             indent=1,
         ),

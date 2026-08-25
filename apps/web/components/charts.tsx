@@ -74,6 +74,10 @@ const VB_W = 1000;
  *  markup small on a page that ships several of these. */
 const n2 = (v: number) => v.toFixed(2);
 
+/** A count, grouped. The locale is named because a builder set to en-IN would
+ *  otherwise publish lakh grouping; `tests/locale-formatting.test.ts` requires it. */
+const grouped = (v: number) => v.toLocaleString("en-GB");
+
 function Frame({
   height,
   label,
@@ -606,14 +610,14 @@ export function SplitBars({
                       y={y + 24}
                       className="chart-in-bar chart-mid"
                     >
-                      {v}
+                      {grouped(v)}
                     </text>
                   ) : null}
                 </g>
               );
             })}
             <text x={VB_W} y={y + 25} className="chart-value chart-end">
-              {total}
+              {grouped(total)}
             </text>
           </g>
         );

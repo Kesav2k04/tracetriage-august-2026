@@ -3866,3 +3866,38 @@ section[id] {
     grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
   }
 }
+
+/*
+ * The MCP tool catalogue on /agent/.
+ *
+ * A table put a 300px name column beside a description running to 112 characters, which
+ * is nearly twice the measure the rest of this console sets. Two contained cards to a row
+ * bring the line back to about 62 characters and use the width a capped table column
+ * would have left empty beside it.
+ */
+.tool-grid {
+  display: grid;
+  gap: var(--sp-05);
+  grid-template-columns: repeat(auto-fit, minmax(min(24rem, 100%), 1fr));
+}
+
+.tool-card {
+  padding: var(--sp-04) var(--sp-05);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--interactive-01);
+  background: var(--ui-01);
+}
+
+.tool-card-name {
+  margin: 0 0 var(--sp-03);
+  font-family: var(--font-mono);
+  font-size: var(--type-body);
+  color: var(--text-01);
+}
+
+.tool-card-body {
+  margin: 0;
+  color: var(--text-02);
+  font-size: var(--type-caption);
+  line-height: 1.6;
+}

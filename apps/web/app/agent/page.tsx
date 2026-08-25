@@ -7,7 +7,7 @@
  * of it, and the per-question table carries both answers so a reader can disagree
  * with any single grade.
  */
-import { agent, fmt, fmtInterval } from "@/lib/data";
+import { agent, fmt, fmtInterval, mcp } from "@/lib/data";
 import { OutcomeStrip } from "@/components/charts";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
@@ -16,6 +16,8 @@ export const metadata = { title: "Agent" };
 const tools = agent.arms.tools;
 const control = agent.arms.control;
 const paired = agent.paired;
+
+const toolCount = mcp.servers.reduce((total, server) => total + server.tools.length, 0);
 
 const controlInvented = agent.questions.filter((row) => !row.control_grounded).length;
 
@@ -186,6 +188,48 @@ export default function AgentPage() {
             </tr>
           ))}
         </Table>
+      </Section>
+
+      {/* The tool layer was one clause on /start: "two MCP servers answer 12 tools". A
+          reader could not see what the twelve are, and the tool arm above is scored on
+          five of them. Read out of each server's own TOOLS dict by
+          scripts/build_console_data.py, so this is the catalogue a client receives from
+          `tools/list` rather than a description of it that could go stale alone. */}
+      <Section
+        id="tools"
+        title="The tool layer"
+        description={`${toolCount} tools across ${mcp.servers.length} MCP servers. One reads the receipts this console ships; the other measures a pass from the network while you wait.`}
+      >
+        {mcp.servers.map((server) => (
+          <div key={server.server} style={{ marginBottom: "var(--sp-06)" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "var(--sp-04)",
+                alignItems: "baseline",
+                flexWrap: "wrap",
+                marginBottom: "var(--sp-04)",
+              }}
+            >
+              <span className="num" style={{ color: "var(--text-01)" }}>
+                {server.server}
+              </span>
+              <span
+                style={{ fontSize: "var(--type-caption)", color: "var(--text-03)" }}
+              >
+                {server.module}
+              </span>
+            </div>
+            <div className="tool-grid">
+              {server.tools.map((tool) => (
+                <div key={tool.name} className="tool-card">
+                  <p className="tool-card-name">{tool.name}</p>
+                  <p className="tool-card-body">{tool.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </Section>
 
       <Section title="What this does not measure">

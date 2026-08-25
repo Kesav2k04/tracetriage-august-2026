@@ -1,0 +1,64 @@
+{
+ "servers": [
+  {
+   "server": "tracetriage-evidence",
+   "module": "scripts/mcp_server.py",
+   "tools": [
+    {
+     "name": "queue_top",
+     "description": "The top of the physics-conditioned review queue, in rank order, with the reason code that flagged each observation."
+    },
+    {
+     "name": "observation",
+     "description": "Every measured field for one observation, and the reviewer note that shipped for it, including whether a generated draft was refused and why."
+    },
+    {
+     "name": "check_claim",
+     "description": "Check a sentence about one observation against its evidence packet. Returns GROUNDED or REFUSED with a violation code per problem. This is the same checker that decides whether this project's own generated notes ship."
+    },
+    {
+     "name": "gate_status",
+     "description": "The kill gates and their verdicts, each read from the receipt rather than typed here, because a tally in a description is a number that can go stale."
+    },
+    {
+     "name": "receipt",
+     "description": "The scalar summary of one receipt under artifacts/, with the size of each collection it holds. Never the whole file."
+    },
+    {
+     "name": "queue_size",
+     "description": "How many observations the queue ranks in total, named apart from the per-call cap and the review budget. Ask this rather than queue_top when the total is the whole question: the three numbers are different and two of them are 50."
+    },
+    {
+     "name": "run_acceptance",
+     "description": "Run this repository's standing gates (scripts/gate.py) and report the verdict per check plus the tally. The one tool here that computes rather than reads, so it takes minutes, and the one that is not read-only with respect to the working tree: the gate builds the console. Nothing under artifacts/ is rewritten, because every generator the gate calls runs with --check."
+    }
+   ]
+  },
+  {
+   "server": "tracetriage-live",
+   "module": "pipeline/tracetriage/mcp_live.py",
+   "tools": [
+    {
+     "name": "live_triage_observation",
+     "description": "Measure one SatNOGS observation recorded at any time, including today. Propagates the pass from the TLE in the observation's own record, reads the frequency axis off the waterfall's tick labels, measures whether the capture was Doppler-corrected, fits the frequency offset, and scores it against permuted-Doppler nulls built from that same pass. Returns the offset in Hz and ppm with a p-value, or a named refusal. Every input is named with its URL and sha256 so the result can be recomputed."
+    },
+    {
+     "name": "live_list_observations",
+     "description": "Recent public observations, filtered by satellite, station or status. Metadata only: nothing in the result is measured, and SatNOGS's own with-signal flag is not a detection."
+    },
+    {
+     "name": "live_check_claim",
+     "description": "Check a sentence against an observation this server measured, including one recorded today. Same checker as the offline check_claim tool, which answers UNKNOWN_OBSERVATION for an id outside the committed corpus: this one builds the packet from the live measurement instead, so a false downlink frequency on this morning's pass is refused with a code rather than unanswerable. Reuses the measurement from this session when there is one, and says which."
+    },
+    {
+     "name": "live_station",
+     "description": "One ground station's recent captures, measured now, with the median offset in ppm split by Doppler-correction mode and the number of distinct satellites behind each median. Refuses a mixed-mode median, because corrected and uncorrected captures measure different things, and refuses to call any of it a calibration under three distinct satellites inside one mode. Costs two HTTP fetches per observation, so the ceiling is 6."
+    },
+    {
+     "name": "live_rank_observations",
+     "description": "Measure up to 10 recent observations for one satellite or station and rank them: settled first, then by the size of the frequency offset. The triage question, asked of today's captures rather than of a snapshot."
+    }
+   ]
+  }
+ ]
+}

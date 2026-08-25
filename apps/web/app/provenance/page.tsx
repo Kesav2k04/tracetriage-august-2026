@@ -6,11 +6,18 @@
  * not that a judge will hash them; it is that they could, and that the numbers on
  * the other pages are the ones inside these files rather than a retelling.
  */
-import { cards, evaluation, isBuilt, provenance, queue } from "@/lib/data";
+import { cards, evaluation, isBuilt, provenance, queue, throughput } from "@/lib/data";
+import { fmt } from "@/lib/format";
 import { SplitBars } from "@/components/charts";
 import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export const metadata = { title: "Provenance" };
+
+/** Thousands grouping with the locale named, which `tests/locale-formatting.test.ts`
+ *  requires: a builder set to en-IN would otherwise publish lakh grouping. */
+function grouped(value: number): string {
+  return value.toLocaleString("en-GB");
+}
 
 function Digest({ value }: { value: string }) {
   return (
@@ -368,6 +375,99 @@ export default function ProvenancePage() {
             </Cell>
           </tr>
         </Table>
+      </Section>
+
+      {/* Scalability is half the wording of one scored criterion and it lived only in
+          docs/SCALABILITY.md, FOR_JUDGES.md and the README. A reader who never leaves the
+          console could not check it. Every figure here is read from throughput.json, which
+          scripts/build_console_data.py copies out of artifacts/THROUGHPUT_RECEIPT.json,
+          readings included: this page states the measurement and computes nothing. */}
+      <Section
+        id="cost"
+        title="What it costs to run"
+        description="One core, timed over a real batch rather than a benchmark loop."
+      >
+        <div
+          style={{
+            display: "grid",
+            gap: "var(--sp-05)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(13rem, 100%), 1fr))",
+            marginBottom: "var(--sp-06)",
+          }}
+        >
+          <Stat
+            label="One observation"
+            value={`${fmt(throughput.headroom.seconds_per_observation, 2)} s`}
+            detail="at the slowest measured stage"
+          />
+          <Stat
+            label="One core, one day"
+            value={grouped(throughput.headroom.observations_per_day_one_core)}
+            detail="observations, at that rate"
+          />
+          <Stat
+            label="The network, one day"
+            value={grouped(throughput.headroom.network_observations_per_day)}
+            detail={`captures with a waterfall, over ${throughput.network.span_hours} hours`}
+          />
+          <Stat
+            label="Headroom"
+            value={`${fmt(throughput.headroom.headroom_multiple, 2)}×`}
+            detail={`${fmt(throughput.headroom.cores_to_keep_up, 3)} of a core keeps up`}
+          />
+        </div>
+
+        <SplitBars
+          rows={[
+            {
+              label: "One core",
+              sublabel: "what the pipeline can process",
+              values: [throughput.headroom.observations_per_day_one_core],
+            },
+            {
+              label: "The network",
+              sublabel: "what it produced in this snapshot",
+              values: [throughput.headroom.network_observations_per_day],
+            },
+          ]}
+          parts={[{ name: "Observations a day", ink: "var(--interactive-01)" }]}
+          label="Daily capacity of one core against the network's daily output, on one scale."
+          caption={throughput.headroom.reading}
+        />
+
+        <Table
+          head={[
+            "Stage",
+            "Observations",
+            "Wall clock",
+            "Per observation",
+            "One core, one day",
+          ]}
+          headAlign={["left", "right", "right", "right", "right"]}
+          caption="Both stages were timed over the same batch. The slower one sets the rate above, because a pipeline runs no faster than its slowest stage."
+        >
+          {throughput.stages.map((stage) => (
+            <tr key={stage.name}>
+              <Cell align="left" header>
+                {stage.name.replace(/_/g, " ")}
+              </Cell>
+              <Cell mono>{grouped(stage.observations)}</Cell>
+              <Cell mono>{`${grouped(Math.round(stage.elapsed_s))} s`}</Cell>
+              <Cell mono>{`${fmt(stage.seconds_per_observation, 2)} s`}</Cell>
+              <Cell mono>{grouped(stage.observations_per_day_one_core)}</Cell>
+            </tr>
+          ))}
+        </Table>
+
+        <Note tone="info">{throughput.constraint.reading}</Note>
+
+        <Note tone="limit" block>
+          {throughput.what_this_does_not_measure.map((line) => (
+            <span key={line} style={{ display: "block", marginBottom: "var(--sp-03)" }}>
+              {line}
+            </span>
+          ))}
+        </Note>
       </Section>
 
       <Section

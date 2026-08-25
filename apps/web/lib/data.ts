@@ -17,6 +17,8 @@ import queueJson from "@/public/data/queue.json";
 import agentJson from "@/public/data/agent.json";
 import precedentJson from "@/public/data/precedent.json";
 import bobJson from "@/public/data/bob.json";
+import throughputJson from "@/public/data/throughput.json";
+import mcpJson from "@/public/data/mcp.json";
 
 export {
   NON_ACTIONABLE,
@@ -1080,6 +1082,81 @@ export interface PrecedentStudy {
 }
 
 export const precedent = precedentJson as unknown as PrecedentStudy;
+
+/** One measured stage, with the wall clock it was measured over. */
+export interface ThroughputStage {
+  name: string;
+  artifact: string;
+  observations: number;
+  elapsed_s: number;
+  seconds_per_observation: number;
+  observations_per_day_one_core: number;
+}
+
+/**
+ * What one observation costs and what the network produces, from
+ * `artifacts/THROUGHPUT_RECEIPT.json`.
+ *
+ * Every number is copied through `scripts/build_console_data.py`, readings included. The
+ * page states them and computes nothing, so the console and the receipt cannot drift into
+ * two different answers to the same question.
+ */
+export interface Throughput {
+  network: {
+    captures_per_day: number;
+    span_hours: number;
+    captures_timestamped: number;
+    observations_without_a_waterfall: number;
+    reading: string;
+  };
+  stages: ThroughputStage[];
+  ingestion: {
+    seconds_per_observation: number;
+    request_interval_seconds: number;
+    reading: string;
+  };
+  headroom: {
+    dominant_stage: string;
+    seconds_per_observation: number;
+    observations_per_day_one_core: number;
+    network_observations_per_day: number;
+    cores_to_keep_up: number;
+    headroom_multiple: number;
+    reading: string;
+  };
+  constraint: {
+    compute_seconds_per_observation: number;
+    ingestion_seconds_per_observation: number;
+    ratio: number;
+    reading: string;
+  };
+  what_this_does_not_measure: string[];
+  receipt_sha256: string;
+}
+
+export const throughput = throughputJson as unknown as Throughput;
+
+/** One tool, as its server advertises it in `tools/list`. */
+export interface McpTool {
+  name: string;
+  description: string;
+}
+
+/**
+ * The tool catalogue of both MCP servers, read out of their sources by
+ * `scripts/build_console_data.py` rather than typed into a page.
+ *
+ * A hand-written list is a second source of truth, and the one that goes stale is always
+ * the one nobody runs. This one is rebuilt with the rest of the console data and the
+ * freshness check fails if it drifts from the servers.
+ */
+export interface McpCatalogue {
+  servers: Array<{ server: string; module: string; tools: McpTool[] }>;
+}
+
+export const mcp = mcpJson as unknown as McpCatalogue;
+
+
 
 /**
  * One arm of one condition, or a thrown error naming what the receipt does hold.

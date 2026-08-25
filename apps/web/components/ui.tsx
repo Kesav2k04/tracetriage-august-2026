@@ -434,9 +434,18 @@ export function IntervalBar({
 export function Note({
   children,
   tone = "info",
+  block = false,
 }: {
   children: ReactNode;
   tone?: "info" | "warn" | "limit";
+  /**
+   * Set the note in the column rather than floating it in the margin.
+   *
+   * A composed tree defaults to the float, which is right for one aside and wrong for
+   * a list of four. Two floats in a row left 180px of dead column between them on the
+   * provenance page, which is the shape this prop exists to avoid.
+   */
+  block?: boolean;
 }) {
   const colour = {
     info: "var(--support-04)",
@@ -453,14 +462,17 @@ export function Note({
 
   // A note carrying one long string is set as paragraphs. Anything else is a tree the
   // caller composed, and re-flowing someone else's markup is not this component's job.
-  if (typeof children === "string" && sentences(children).length > 1) {
+  const asParagraphs = typeof children === "string" && sentences(children).length > 1;
+  if (asParagraphs || block) {
     return (
       <div className="note note-block" style={style}>
-        {sentences(children).map((part, i) => (
-          <p key={i} style={{ margin: i === 0 ? 0 : "var(--sp-04) 0 0" }}>
-            {part}
-          </p>
-        ))}
+        {asParagraphs
+          ? sentences(children as string).map((part, i) => (
+              <p key={i} style={{ margin: i === 0 ? 0 : "var(--sp-04) 0 0" }}>
+                {part}
+              </p>
+            ))
+          : children}
       </div>
     );
   }
