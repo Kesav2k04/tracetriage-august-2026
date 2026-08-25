@@ -648,9 +648,9 @@ One engine, six surfaces. Every row is reachable now, with no account.
 | **Health and provenance** | `/api/health/` returns the SHA-256 of the `provenance.json` this deployment serves, so a judge can prove the site is this repository rather than take a screenshot's word for it. | `api/health.py` |
 | **Two MCP servers and a CLI** | 12 tools, 11 read-only, registered in `.mcp.json` so a clone needs no configuration. Plus a LangChain adapter over the same function objects and two LangFlow flows. | `docs/USE_WITH_YOUR_AGENT.md` |
 
-The live page is the eighth: it calls `api/live.py`, which pulls one waterfall from the
-public SatNOGS API on demand and measures it. No number this project was scored on comes
-from that path.
+Eight pages: the live one calls `api/live.py`, which pulls one waterfall from the public
+SatNOGS API on demand and measures it. No number this project was scored on comes from
+that path.
 
 ## Run it yourself
 
