@@ -28,6 +28,7 @@ import ast
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import sys
 import wave
@@ -37,7 +38,12 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / "scripts"
-AUDIO_DIR = REPO / "apps" / "web" / "public" / "audio" / "explainer"
+#: The narration is a voice recording, so it is rendered into a workspace beside the
+#: repository rather than into the console's public directory, where it would be committed
+#: and served. scripts/film_workspace.py owns that path; this resolves it the same way so
+#: TRACETRIAGE_FILM_LOCAL moves both together.
+FILM_LOCAL = Path(os.environ.get("TRACETRIAGE_FILM_LOCAL") or REPO.parent / "film-local")
+AUDIO_DIR = FILM_LOCAL / "public" / "audio" / "explainer"
 RECEIPT = REPO / "artifacts" / "EXPLAINER_NARRATION.json"
 
 #: The same seed, exaggeration and reference clip as the film, so the console and the
@@ -327,7 +333,7 @@ def render(reference: Path) -> dict[str, Any]:
                 {
                     "key": cue.key,
                     "text": cue.text,
-                    "audio": out.relative_to(REPO).as_posix(),
+                    "audio": out.relative_to(FILM_LOCAL).as_posix(),
                     "seconds": _seconds(out),
                     "sha256": _sha256(out),
                     "heard": heard,
@@ -398,7 +404,7 @@ def check() -> int:
         for cue, section in zip(cues, clip["sections"], strict=True):
             if cue.text != section["text"]:
                 problems.append(f"{clip['clip']}/{cue.key}: line changed since render")
-            path = REPO / section["audio"]
+            path = FILM_LOCAL / section["audio"]
             if not path.exists():
                 problems.append(f"{clip['clip']}/{cue.key}: {section['audio']} missing")
             elif _sha256(path) != section["sha256"]:

@@ -56,22 +56,26 @@ NOTE = {
 #: Directories shown as a single folded line with their tracked file count. These hold
 #: many files of one kind, and listing them would bury the entries a reader needs.
 FOLD = {
-    "apps/web/public",
+    ".github",
+    "api",
     "apps/web/app",
+    "apps/web/audit",
     "apps/web/components",
     "apps/web/lib",
-    "apps/web/audit",
-    "tests",
-    "scripts",
+    "apps/web/public",
+    "apps/web/tests",
     "artifacts",
+    "contracts",
+    "docs",
+    "flows",
     "mobile",
+    "pipeline/tracetriage",
+    "presentation/narration",
+    "presentation/scripts",
     "presentation/src",
     "presentation/test",
-    "presentation/scripts",
-    "presentation/narration",
-    "pipeline/tracetriage/data",
-    "apps/web/tests",
-    ".github",
+    "scripts",
+    "tests",
 }
 
 #: Build and tooling configuration. Real files, and a judge reading this tree to find the

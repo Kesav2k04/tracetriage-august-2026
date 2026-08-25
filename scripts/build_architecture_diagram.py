@@ -303,7 +303,10 @@ def render() -> str:
         '<title id="arch-title">TraceTriage pipeline architecture</title>',
         '<desc id="arch-desc">'
         + escape(
-            "Ten stages running top to bottom. A frozen SatNOGS snapshot feeds SGP4 "
+            # Counted, not typed. It read "Ten" for as long as the table held thirteen,
+            # because the number was a sentence and the stages were a tuple.
+            f"{len(STAGES)} stages running top to bottom. A frozen SatNOGS snapshot "
+            "feeds SGP4 "
             "physics, then four frozen splits. Two evidence channels run side by side, "
             "image processing into features and a bounded corridor fit into a "
             "calibrated image-only baseline arm. Both feed a small calibrated fusion "

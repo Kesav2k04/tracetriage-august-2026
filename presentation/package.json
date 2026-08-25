@@ -5,8 +5,10 @@
   "description": "Remotion presentation film for TraceTriage. Every number on screen is read at build time from a receipt in this repository.",
   "scripts": {
     "studio": "remotion studio",
-    "render": "remotion render Film out/tracetriage-film.mp4 --concurrency=4 --pixel-format=yuv420p --scale=2 --crf=18",
-    "poster": "remotion still Poster out/tracetriage-thumbnail.jpg --jpeg-quality=94 --scale=2",
+    "workspace": "python ../scripts/film_workspace.py",
+    "render": "remotion render Film ../../film-local/out/tracetriage-film.mp4 --concurrency=4 --pixel-format=yuv420p --crf=18",
+    "film-poster": "remotion still Film ../../film-local/out/tracetriage-film-poster.jpg --frame=1730 --jpeg-quality=94",
+    "poster": "remotion still Poster ../../film-local/out/tracetriage-thumbnail.jpg --jpeg-quality=94 --scale=2",
     "test": "vitest run",
     "report": "vite-node scripts/report-table.ts",
     "narration": "vite-node scripts/build-narration.ts"

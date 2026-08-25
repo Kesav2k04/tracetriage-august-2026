@@ -83,8 +83,18 @@ const ffprobe = (select: string, entries: string): { streams: Record<string, str
   );
 
 const REPO = join(__dirname, "..", "..");
-const OUT = join(__dirname, "..", "out", "tracetriage-film.mp4");
-const POSTER = join(__dirname, "..", "out", "tracetriage-film-poster.jpg");
+
+/**
+ * The film renders into a workspace beside the repository, not into it: it is a 4K mp4
+ * tens of megabytes long carrying a voice recording, and it is published as a link. A
+ * clone therefore has
+ * no render to measure, and the three checks below say so rather than assert against a
+ * file that was never going to be there.
+ */
+const LOCAL =
+  process.env.TRACETRIAGE_FILM_LOCAL ?? join(__dirname, "..", "..", "..", "film-local");
+const OUT = join(LOCAL, "out", "tracetriage-film.mp4");
+const POSTER = join(LOCAL, "out", "tracetriage-film-poster.jpg");
 
 const receipt = (file: string): unknown =>
   JSON.parse(readFileSync(join(REPO, file), "utf-8"));
@@ -485,11 +495,16 @@ describe("the film is the length and shape the brief asked for", () => {
    * The competition's published ceiling for a presentation video is three minutes. The
    * film's own bound sits below it by enough that a re-cut has somewhere to go.
    *
-   * That bound has moved twice and both times the content moved first. It was 105 when
-   * the film had seven beats. It was the demo script's 160 while every card was drawn
-   * from receipt data. The "Live" beat is a screen recording of the deployed console
-   * measuring an observation, which is not a restatement of any other card, so the film
-   * grew and the bound followed. What did not move is the ceiling it is measured
+   * That bound has moved three times and every time the content moved first. It was 105
+   * when the film had seven beats. It was the demo script's 160 while every card was
+   * drawn from receipt data. The "Live" beat is a screen recording of the deployed
+   * console measuring an observation, which is not a restatement of any other card, so
+   * the film grew and the bound followed to 174. It is 178 now because the beat lengths
+   * stopped being chosen and started being measured: each card holds its own narration
+   * as rendered plus one second, and the sum of that is 177.2. Buying the old bound back
+   * would mean taking three seconds of air out of lines whose real duration is known,
+   * which is how a delivery starts sounding rushed. What did not move is the ceiling it
+   * is measured
    * against, which is the rules'. docs/DEMO_SCRIPT.md still budgets 160 seconds, because
    * that budget is for the live presentation and this is a different artefact.
    *
@@ -497,7 +512,7 @@ describe("the film is the length and shape the brief asked for", () => {
    * measurement and the interval around it.
    */
   const RULES_CEILING_SECONDS = 180;
-  const FILM_BUDGET_SECONDS = 174;
+  const FILM_BUDGET_SECONDS = 178;
 
   it("runs between 75 seconds and the bound it sets itself", () => {
     const seconds = FILM_FRAMES / FPS;
@@ -545,14 +560,16 @@ describe("the film is the length and shape the brief asked for", () => {
       BEATS.map((beat) => [beat.name, beat.durationInFrames]),
     );
     expect(byName.Physics).toBe(Math.max(...BEATS.map((b) => b.durationInFrames)));
-    // The three shortest cards are the ones that state no measurement: the title, the
-    // sign-off, and the one line that names the violation the recording just showed.
+    // The three shortest cards are the ones that state no measurement: the sign-off, the
+    // colophon, and the one line that names the violation the recording just showed. The
+    // title used to be in this set and is not any more, because it stopped being a title
+    // card and started speaking the size of the corpus.
     const shortest = [...BEATS]
       .sort((a, b) => a.durationInFrames - b.durationInFrames)
       .slice(0, 3)
       .map((beat) => beat.name)
       .sort();
-    expect(shortest).toEqual(["Session", "Thanks", "Title"]);
+    expect(shortest).toEqual(["Colophon", "Session", "Thanks"]);
   });
 });
 
@@ -569,10 +586,12 @@ describe("the rendered file", () => {
   });
 
   /**
-   * The composition is authored at 1920x1080 and delivered at twice that, because the
-   * upload target is a 4K stream and every card here is type on a flat ground, which is
-   * exactly the content that gains from the extra pixels and costs almost nothing to
-   * encode. The multiplier is not written here: it is read out of the render script in
+   * The composition is authored at 1920x1080 and delivered at that size. It was rendered
+   * at twice it for a while, on the reasoning that type on a flat ground gains from the
+   * pixels and costs almost nothing to encode; the encode was cheap and the render was
+   * not, and it exhausted this machine's memory at frame 5,188 of 5,316. The upload is
+   * upscaled afterwards instead. The multiplier is not written here: it is read out of
+   * the render script in
    * package.json, so the assertion is tied to the command that produced the file rather
    * than to a second copy of the number. Rendering at a different scale and forgetting
    * to say so fails this.

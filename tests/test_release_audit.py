@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -322,13 +323,15 @@ def _film_resolution() -> str | None:
     """`WIDTHxHEIGHT` of the committed film, read off the file with ffprobe.
 
     A licence notice that names a resolution is making a claim about the bytes it sits
-    beside, so the check reads the bytes. The composition is authored at 1920x1080 and
-    delivered at twice that, so the receipt's composition block is the wrong source
-    here and the file is the only right one. Where ffprobe is absent the resolution is
+    beside, so the check reads the bytes rather than the receipt's composition block,
+    which describes the authored size and not necessarily the delivered one. The film
+    renders outside the tree, so this looks where it is put. Where ffprobe is absent or
+    no render is on this machine the resolution is
     simply not checked, which is stated by returning None rather than by asserting a
     number nothing measured.
     """
-    film = _REPO / "presentation" / "out" / "tracetriage-film.mp4"
+    local = Path(os.environ.get("TRACETRIAGE_FILM_LOCAL") or _REPO.parent / "film-local")
+    film = local / "out" / "tracetriage-film.mp4"
     if not film.exists() or shutil.which("ffprobe") is None:
         return None
     out = subprocess.run(
@@ -345,8 +348,14 @@ def _film_resolution() -> str | None:
 _FILM_RESOLUTION = _film_resolution()
 
 
+_FILM_MEDIA = (
+    "presentation/out/tracetriage-film.mp4",
+    "presentation/out/tracetriage-film-poster.jpg",
+)
+
+
 def test_a_redistributed_film_is_audited_as_the_derived_work_it_is(attribution: dict) -> None:
-    """The two largest committed media files carry the obligations, not an exemption.
+    """A committed render carries the obligations, not an exemption.
 
     The id is read out of the filename everywhere else in this audit, which is why these
     two passed for a while as owing nothing: a renderer's output does not mention the
@@ -356,12 +365,28 @@ def test_a_redistributed_film_is_audited_as_the_derived_work_it_is(attribution: 
 
     Pinned per file rather than in aggregate. A count would still pass if one of the two
     lost its declaration, and the poster is the frame that shows the waterfall.
+
+    The film is now published as a link and renders outside the tree, so on this checkout
+    there is usually nothing here to audit. That is skipped with the count rather than
+    passed, and the skip first refuses an untracked copy sitting in the working tree,
+    which is a `git add -A` away from being redistributed with no declaration at all.
     """
+    tracked = set(
+        subprocess.run(
+            ["git", "ls-files", *_FILM_MEDIA],
+            cwd=_REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split()
+    )
+    if not tracked:
+        loose = [rel for rel in _FILM_MEDIA if (_REPO / rel).exists()]
+        assert not loose, f"{loose} is in the working tree but not tracked; move or delete it"
+        pytest.skip(f"0 of {len(_FILM_MEDIA)} film files are tracked here")
+
     by_file = {r["file"]: r for r in attribution["rows"]}
-    for rel in (
-        "presentation/out/tracetriage-film.mp4",
-        "presentation/out/tracetriage-film-poster.jpg",
-    ):
+    for rel in sorted(tracked):
         row = by_file.get(rel)
         assert row is not None, f"{rel} is tracked media the audit did not scan"
         assert row["satnogs_derived"] is True, rel
@@ -370,9 +395,9 @@ def test_a_redistributed_film_is_audited_as_the_derived_work_it_is(attribution: 
         assert all(row["obligations"].values()), rel
         # The notice has to say what the film did, not merely that something happened,
         # and the resolution it names has to be the resolution of the file on disk.
-        # It was hardcoded here until the film moved to 4K, at which point this test
-        # was the only thing that noticed, and what it noticed was its own copy of the
-        # number rather than a wrong notice.
+        # It was hardcoded here until the film moved to 4K and back, and both times
+        # this test was the only thing that noticed, and what it noticed was its own
+        # copy of the number rather than a wrong notice.
         notice = row["modification_notice"] or ""
         wanted = ["corridor", "H.264"]
         if _FILM_RESOLUTION is not None:

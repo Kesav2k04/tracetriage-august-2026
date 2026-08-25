@@ -28,6 +28,7 @@ lucky pixel.
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -74,15 +75,32 @@ def _explainer_clips() -> list[tuple[str, str, dict]]:
     ]
 
 
+def _film() -> list[Clip]:
+    """The presentation film, when this machine has one.
+
+    It renders into a workspace beside the repository rather than into the tree, so a
+    clone has no film to sample and this contributes no clips at all. That is the same
+    shape `_explainer_clips` uses for a checkout that has not rendered.
+    """
+    local = Path(os.environ.get("TRACETRIAGE_FILM_LOCAL") or REPO.parent / "film-local")
+    video = local / "out" / "tracetriage-film.mp4"
+    poster = local / "out" / "tracetriage-film-poster.jpg"
+    if not video.is_file() or not poster.is_file():
+        return []
+    return [
+        Clip(
+            name="presentation film",
+            video=video,
+            poster=poster,
+            # The frame presentation/package.json renders the poster from.
+            frame=1730,
+            rebuild="npm run workspace, render, poster and report in presentation/",
+        )
+    ]
+
+
 CLIPS = (
-    Clip(
-        name="presentation film",
-        video=REPO / "presentation" / "out" / "tracetriage-film.mp4",
-        poster=REPO / "presentation" / "out" / "tracetriage-film-poster.jpg",
-        # The frame presentation/package.json renders the poster from.
-        frame=1730,
-        rebuild="npm run render, npm run poster and npm run report in presentation/",
-    ),
+    *_film(),
     *(
         Clip(
             name=f"{label} explainer",

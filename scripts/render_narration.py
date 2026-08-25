@@ -73,7 +73,12 @@ NARRATION_JSON = REPO / "presentation" / "narration" / "narration.json"
 # public directory at the console's, so staticFile() serves the exact asset the site
 # ships and there is no second copy to go stale. The narration follows that rule, so
 # the console can offer the narrated film with its captions from the same origin.
-AUDIO_DIR = REPO / "apps" / "web" / "public" / "audio"
+#: The narration is a voice recording, so it is rendered into a workspace beside the
+#: repository rather than into the console's public directory, where it would be committed
+#: and served. scripts/film_workspace.py owns that path; this resolves it the same way so
+#: TRACETRIAGE_FILM_LOCAL moves both together.
+FILM_LOCAL = Path(os.environ.get("TRACETRIAGE_FILM_LOCAL") or REPO.parent / "film-local")
+AUDIO_DIR = FILM_LOCAL / "public" / "audio"
 RECEIPT = REPO / "artifacts" / "NARRATION_RECEIPT.json"
 
 #: The voice, fixed. Kokoro is deterministic at a given voice and speed, so naming it
@@ -347,7 +352,7 @@ def render(cues: list[dict[str, Any]], model_dir: Path) -> list[BeatResult]:
                 beat=cue["beat"],
                 index=cue["index"],
                 text=cue["text"],
-                path=str(out.relative_to(REPO)).replace("\\", "/"),
+                path=out.relative_to(FILM_LOCAL).as_posix(),
                 seconds=round(wav_seconds(out), 3),
                 budget_seconds=cue["budgetSeconds"],
                 sha256=sha256_of(out),
@@ -367,7 +372,7 @@ def transcribe(results: list[BeatResult], cues: list[dict[str, Any]]) -> None:
     model = WhisperModel("small.en", device="cpu", compute_type="int8")
     by_index = {cue["index"]: cue for cue in cues}
     for result in results:
-        segments, _ = model.transcribe(str(REPO / result.path), beam_size=5)
+        segments, _ = model.transcribe(str(FILM_LOCAL / result.path), beam_size=5)
         result.transcript = " ".join(s.text.strip() for s in segments)
         for claim in by_index[result.index]["claims"]:
             found, form = figure_in(
@@ -446,7 +451,9 @@ def main() -> int:
         json.dumps(
             {
                 "what_this_is": (
-                    "The narration track of presentation/out/tracetriage-film.mp4. "
+                    "The narration track of the presentation film, which is published "
+                    "as a link and renders outside this tree. The audio paths below are "
+                    "relative to that workspace; scripts/film_workspace.py resolves it. "
                     "Text generated from the film's own claims by "
                     "presentation/scripts/build-narration.ts, spoken locally, then "
                     "transcribed and checked figure by figure against what the "
@@ -536,11 +543,26 @@ def main() -> int:
     return 1 if failures else 0
 
 
+#: What `check` returns when the audio it would measure is not on this machine at all.
+#: Distinct from a failure: a clone has the receipt and the script but not the voice, and
+#: reporting that as a broken narration would be a red gate on every checkout but one.
+NO_AUDIO_HERE = 3
+
+
 def check(cues: list[dict[str, Any]]) -> int:
-    """Re-measure the committed audio against the committed receipt."""
+    """Re-measure the rendered audio against the committed receipt.
+
+    The audio is not in the repository. It renders into a workspace beside it, so this
+    verifies it where that workspace exists and reports `NO_AUDIO_HERE` where it does not.
+    The receipt is checked either way: the text, the budgets and the transcript are the
+    part that travels, and they are compared before a single wav is opened.
+    """
     if not RECEIPT.is_file():
         print(f"{RECEIPT.relative_to(REPO)} is missing")
         return 1
+    if not AUDIO_DIR.is_dir():
+        print(f"no rendered narration at {AUDIO_DIR}")
+        return NO_AUDIO_HERE
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
     rows = {row["beat"]: row for row in receipt["beats"]}
     failures = 0
@@ -567,7 +589,7 @@ def check(cues: list[dict[str, Any]]) -> int:
         if abs(row["budget_seconds"] - cue["budgetSeconds"]) > 1e-6:
             print(f"{cue['beat']}: the beat's budget moved since the audio was made")
             failures += 1
-        audio = REPO / row["audio"]
+        audio = FILM_LOCAL / row["audio"]
         if not audio.is_file():
             print(f"{cue['beat']}: {row['audio']} is missing")
             failures += 1

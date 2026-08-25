@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -57,6 +58,11 @@ PAGES = {
 }
 
 #: Speech only, so a low bitrate is transparent and the page pays almost nothing for it.
+#: The narration wavs are a voice recording, so they live in a workspace beside
+#: the repository rather than in the tree. scripts/film_workspace.py owns that
+#: path; this resolves it the same way. Only the muxed clip is committed.
+FILM_LOCAL = Path(os.environ.get("TRACETRIAGE_FILM_LOCAL") or REPO.parent / "film-local")
+
 AUDIO_BITRATE = "112k"
 
 
@@ -147,7 +153,7 @@ def build(clip: str) -> None:
     filters: list[str] = []
     labels: list[str] = []
     for index, row in enumerate(rows, start=1):
-        inputs += ["-i", str(REPO / row["audio"])]
+        inputs += ["-i", str(FILM_LOCAL / row["audio"])]
         delay = int(round(starts[row["key"]] * 1000))
         filters.append(f"[{index}:a]adelay={delay}|{delay},aresample=48000[a{index}]")
         labels.append(f"[a{index}]")

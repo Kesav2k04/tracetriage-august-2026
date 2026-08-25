@@ -183,36 +183,38 @@ const line = (
 
 export const NARRATION: Readonly<Record<string, Line>> = {
   Hello: line([
-    "Hello everyone. This one is real. On a Sunday night in August, a volunteer pointed ",
-    "a radio at the sky and caught ",
+    "Somewhere tonight, a team is waiting to hear from a satellite they built. For ",
     coldOpen.passMinutes,
-    " minutes of a satellite. The record for it says two words. ",
+    " minutes it passes overhead, and a volunteer with an antenna in a back garden ",
+    "records everything it says. This is that recording. And this, this is everything ",
+    "anyone ever wrote down about it. ",
     physics.status,
-    ".",
+    ". Two words.",
   ]),
 
   Title: line([
-    "Nobody went back to it. It is one of ",
+    "And it is one of ",
     corpus.observations,
-    ".",
+    ". TraceTriage is what decides which of them a person opens first.",
   ]),
 
   Problem: line([
-    "Only ",
+    "Now, only ",
     corpus.decisive,
-    " carry a human verdict. The rest were kept and never read, because there is no ",
-    "order to work through them in.",
+    " of them carry a human verdict. The rest were kept, and never read. Not because ",
+    "nobody cared. Because there is no order to work through them in.",
   ]),
 
   Physics: line([
-    "A pass shifts the frequency you hear. The orbit predicts that curve, spanning ",
+    "So we stop guessing, and measure. A satellite coming toward you raises the frequency ",
+    "you hear, and lowers it as it leaves. The orbit predicts that curve, spanning ",
     physics.corridorSpanHz,
     " hertz. Slide it ",
     physics.shiftPx,
-    " pixels and it lands on the trace. The gap, as a fraction of the frequency, is ",
+    " pixels and it lands on the trace. That gap is a measurement, not an opinion. ",
     physics.offsetPpm,
-    " parts per million. This station had already corrected for Doppler, and nothing in ",
-    "the record says so.",
+    " parts per million. This station had already corrected for Doppler. Nothing in the ",
+    "record says so.",
   ]),
 
   Queue: line([
@@ -224,7 +226,7 @@ export const NARRATION: Readonly<Record<string, Line>> = {
   ]),
 
   Live: line([
-    "All of that was frozen in August. Here is the live console measuring one again. Of ",
+    "All of that was frozen in August. Here is the live console measuring one now. Of ",
     liveTake.compared,
     " quantities, ",
     liveTake.exact,
@@ -232,19 +234,20 @@ export const NARRATION: Readonly<Record<string, Line>> = {
   ]),
 
   Flow: line([
-    "You can drive the same evidence from a LangFlow canvas. Watch. A sentence goes in ",
-    "with a frequency this observation does not have. One take, no cut. The checker ",
-    "refuses it and names why.",
+    "And you can drive the same evidence from a LangFlow canvas. Watch. A sentence goes ",
+    "in carrying a frequency this observation does not have. One take, no cut. The ",
+    "checker refuses it, and names why.",
   ]),
 
   Session: line([
+    "And there it is. ",
     flow.refusedCode,
     ". That is the same checker that decides whether our own generated notes ship.",
   ]),
 
   Result: line([
-    "Now the part demos skip. Six gates, with thresholds, written before anything was ",
-    "measured. The headline one wanted half again as many conflicts as random. This ",
+    "Now, the part demos skip. Six gates, with thresholds, written down before anything ",
+    "was measured. The headline one wanted half again as many conflicts as random. This ",
     "queue found ",
     lift.queueConflicts,
     " of them. Random ordering, at the same budget, expects ",
@@ -253,7 +256,7 @@ export const NARRATION: Readonly<Record<string, Line>> = {
   ]),
 
   Gates: line([
-    "The point estimate is ",
+    "So, the point estimate is ",
     lift.point,
     ", and the interval straddles the bar, so it fails here. ",
     gates.met,
@@ -263,7 +266,7 @@ export const NARRATION: Readonly<Record<string, Line>> = {
   ]),
 
   Established: line([
-    "Three did come back decided. Evidence tools take a local Granite model from ",
+    "But three did come back decided. Evidence tools take a local Granite model from ",
     established.withoutTools,
     " of ",
     established.trials,
@@ -277,19 +280,19 @@ export const NARRATION: Readonly<Record<string, Line>> = {
   ]),
 
   Bob: line([
-    "IBM Bob built the load-bearing pipeline: contracts, snapshot, parser, corridor, ",
+    "And IBM Bob built the load-bearing pipeline. Contracts, snapshot, parser, corridor, ",
     "baselines, queue. ",
     bobUnits.count,
     " dated units, each naming what it changed and what failed first.",
   ]),
 
   Colophon: line([
-    "Every figure you heard came out of a receipt. The waterfall is public, cited and ",
-    "licensed.",
+    "Every figure you just heard came out of a receipt. The waterfall is public, cited ",
+    "and licensed.",
   ]),
 
   Thanks: line([
-    "That is TraceTriage. Thank you for watching. Go and check a number.",
+    "That is TraceTriage. Nothing in it asks to be believed. Thank you for watching.",
   ]),
 };
 

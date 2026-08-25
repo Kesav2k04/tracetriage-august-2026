@@ -1,11 +1,22 @@
 import { Config } from "@remotion/cli/config";
 
 /**
- * The film's assets are the console's assets. Pointing the public directory at
- * apps/web/public means staticFile() serves the exact waterfall the console ships,
- * with no copy in this package to fall out of date.
+ * The film renders out of a workspace that is a sibling of the repository, not a
+ * directory inside it. Its narration is a voice recording and its output is a fifteen
+ * mp4 tens of megabytes long, and neither belongs in a clone; the film is published as a
+ * link instead.
+ *
+ * The console's own assets are copied into that workspace from the tracked files by
+ * scripts/film_workspace.py before every render, so staticFile() still serves the exact
+ * waterfall the site ships and there is no second copy here to fall out of date.
+ * TRACETRIAGE_FILM_LOCAL moves the whole workspace; everything that reads or writes any
+ * part of it resolves the same way.
  */
-Config.setPublicDir("../apps/web/public");
+Config.setPublicDir(
+  process.env.TRACETRIAGE_FILM_LOCAL
+    ? `${process.env.TRACETRIAGE_FILM_LOCAL}/public`
+    : "../../film-local/public",
+);
 // PNG intermediates rather than JPEG: this film is almost entirely small type on
 // a dark ground, which is exactly where JPEG ringing shows. It also keeps the
 // output in limited-range yuv420p instead of the full-range yuvj420p a JPEG

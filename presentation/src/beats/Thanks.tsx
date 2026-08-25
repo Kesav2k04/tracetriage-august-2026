@@ -112,7 +112,7 @@ export const Thanks: React.FC = () => (
           <Eyebrow colour={token.interactive01}>Thank you for watching</Eyebrow>
         </Reveal>
         <Reveal delay={8}>
-          <Heading size={92}>Go and check a number.</Heading>
+          <Heading size={92}>Nothing here asks to be believed.</Heading>
         </Reveal>
         <Reveal delay={16}>
           <div style={{ width: 700 }}>

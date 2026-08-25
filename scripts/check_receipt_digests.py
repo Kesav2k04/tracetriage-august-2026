@@ -146,14 +146,14 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
     (
         "artifacts/FILM_RECEIPT.json",
         "render.sha256",
-        "presentation/out/tracetriage-film.mp4",
+        "../film-local/out/tracetriage-film.mp4",
         Bytes.BINARY,
         "presentation/scripts/report-table.ts",
     ),
     (
         "artifacts/FILM_RECEIPT.json",
         "poster.sha256",
-        "presentation/out/tracetriage-film-poster.jpg",
+        "../film-local/out/tracetriage-film-poster.jpg",
         Bytes.BINARY,
         "presentation/scripts/report-table.ts",
     ),

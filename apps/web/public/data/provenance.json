@@ -137,8 +137,8 @@
   },
   {
    "name": "EXPLAINER_NARRATION.json",
-   "sha256": "ab725001fbe8f1259a764cfaffb9823de77a1ae61e16a18c080fad1d9a702a9c",
-   "bytes": 11201,
+   "sha256": "7426a0e2187c710de3c55dee1a83341f39258ef9d34fe32c0f89648bb8042319",
+   "bytes": 10836,
    "rewritten_after_this_payload": false
   },
   {
@@ -149,8 +149,8 @@
   },
   {
    "name": "FILM_RECEIPT.json",
-   "sha256": "9b34292b06323e057312818b759fc9dfe8c6ad6c801e6febd4b6ebbd36f7ea92",
-   "bytes": 6242,
+   "sha256": "4952747ab9c2a058ac14bbd5f3bf274b561f15b64a408301f553c7e3498dfdb0",
+   "bytes": 6579,
    "rewritten_after_this_payload": false
   },
   {
@@ -263,8 +263,8 @@
   },
   {
    "name": "NARRATION_RECEIPT.json",
-   "sha256": "85a794c9b6ee5eb8d54e2f6e19dba04b75c88b4ed65962cbd7941bfaaa777908",
-   "bytes": 17235,
+   "sha256": "ec41246139ab5c341afdbc5e6fbc3a4f41a9b541bc18e17b9f433e6a3e5f441d",
+   "bytes": 18536,
    "rewritten_after_this_payload": false
   },
   {

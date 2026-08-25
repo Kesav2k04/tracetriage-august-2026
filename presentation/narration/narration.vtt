@@ -1,57 +1,57 @@
 WEBVTT
 
 Hello
-00:00:00.350 --> 00:00:15.100
-Hello everyone. This one is real. On a Sunday night in August, a volunteer pointed a radio at the sky and caught 4 minutes of a satellite. The record for it says two words. with-signal.
+00:00:00.350 --> 00:00:16.500
+Somewhere tonight, a team is waiting to hear from a satellite they built. For 4 minutes it passes overhead, and a volunteer with an antenna in a back garden records everything it says. This is that recording. And this, this is everything anyone ever wrote down about it. with-signal. Two words.
 
 Title
-00:00:15.750 --> 00:00:20.900
-Nobody went back to it. It is one of two thousand seven hundred and twenty seven.
+00:00:17.150 --> 00:00:25.300
+And it is one of two thousand seven hundred and twenty seven. TraceTriage is what decides which of them a person opens first.
 
 Problem
-00:00:21.550 --> 00:00:30.700
-Only seven hundred and thirty nine carry a human verdict. The rest were kept and never read, because there is no order to work through them in.
+00:00:25.950 --> 00:00:36.500
+Now, only seven hundred and thirty nine of them carry a human verdict. The rest were kept, and never read. Not because nobody cared. Because there is no order to work through them in.
 
 Physics
-00:00:31.350 --> 00:00:55.900
-A pass shifts the frequency you hear. The orbit predicts that curve, spanning seventeen thousand two hundred and ninety hertz. Slide it one hundred and thirteen pixels and it lands on the trace. The gap, as a fraction of the frequency, is plus thirty two point zero five parts per million. This station had already corrected for Doppler, and nothing in the record says so.
+00:00:37.150 --> 00:01:02.700
+So we stop guessing, and measure. A satellite coming toward you raises the frequency you hear, and lowers it as it leaves. The orbit predicts that curve, spanning seventeen thousand two hundred and ninety hertz. Slide it one hundred and thirteen pixels and it lands on the trace. That gap is a measurement, not an opinion. plus thirty two point zero five parts per million. This station had already corrected for Doppler. Nothing in the record says so.
 
 Queue
-00:00:56.550 --> 00:01:07.100
+00:01:03.350 --> 00:01:12.500
 That is what the queue ranks on. four hundred and seven observations against a budget of 50. Not the loudest. The ones where the evidence disagrees with itself.
 
 Live
-00:01:07.750 --> 00:01:21.100
-All of that was frozen in August. Here is the live console measuring one again. Of 10 quantities, 8 match the archived digits exactly.
+00:01:13.150 --> 00:01:26.500
+All of that was frozen in August. Here is the live console measuring one now. Of 10 quantities, 8 match the archived digits exactly.
 
 Flow
-00:01:21.750 --> 00:01:37.700
-You can drive the same evidence from a LangFlow canvas. Watch. A sentence goes in with a frequency this observation does not have. One take, no cut. The checker refuses it and names why.
+00:01:27.150 --> 00:01:43.100
+And you can drive the same evidence from a LangFlow canvas. Watch. A sentence goes in carrying a frequency this observation does not have. One take, no cut. The checker refuses it, and names why.
 
 Session
-00:01:38.350 --> 00:01:44.700
-ungrounded number. That is the same checker that decides whether our own generated notes ship.
+00:01:43.750 --> 00:01:50.900
+And there it is. ungrounded number. That is the same checker that decides whether our own generated notes ship.
 
 Result
-00:01:45.350 --> 00:02:04.100
-Now the part demos skip. Six gates, with thresholds, written before anything was measured. The headline one wanted half again as many conflicts as random. This queue found 20 of them. Random ordering, at the same budget, expects 12.6. We publish that as not established.
+00:01:51.550 --> 00:02:08.700
+Now, the part demos skip. Six gates, with thresholds, written down before anything was measured. The headline one wanted half again as many conflicts as random. This queue found 20 of them. Random ordering, at the same budget, expects 12.6. We publish that as not established.
 
 Gates
-00:02:04.750 --> 00:02:13.500
-The point estimate is 1.58, and the interval straddles the bar, so it fails here. 3 of 6 gates met, and nothing was moved.
+00:02:09.350 --> 00:02:18.900
+So, the point estimate is 1.58, and the interval straddles the bar, so it fails here. 3 of 6 gates met, and nothing was moved.
 
 Established
-00:02:14.150 --> 00:02:28.100
-Three did come back decided. Evidence tools take a local Granite model from 2 of 24 right to 22. The checker caught every one of five hundred and twenty five planted falsehoods. And on stations the queue never saw, lift clears at 2.25.
+00:02:19.550 --> 00:02:33.500
+But three did come back decided. Evidence tools take a local Granite model from 2 of 24 right to 22. The checker caught every one of five hundred and twenty five planted falsehoods. And on stations the queue never saw, lift clears at 2.25.
 
 Bob
-00:02:28.750 --> 00:02:40.500
-IBM Bob built the load-bearing pipeline: contracts, snapshot, parser, corridor, baselines, queue. 10 dated units, each naming what it changed and what failed first.
+00:02:34.150 --> 00:02:44.100
+And IBM Bob built the load-bearing pipeline. Contracts, snapshot, parser, corridor, baselines, queue. 10 dated units, each naming what it changed and what failed first.
 
 Colophon
-00:02:41.150 --> 00:02:47.500
-Every figure you heard came out of a receipt. The waterfall is public, cited and licensed.
+00:02:44.750 --> 00:02:50.900
+Every figure you just heard came out of a receipt. The waterfall is public, cited and licensed.
 
 Thanks
-00:02:48.150 --> 00:02:53.100
-That is TraceTriage. Thank you for watching. Go and check a number.
+00:02:51.550 --> 00:02:56.900
+That is TraceTriage. Nothing in it asks to be believed. Thank you for watching.

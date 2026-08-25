@@ -1,6 +1,6 @@
 {
   "what_this_is": "The spoken track for the two explainer clips on the console, and what a second model heard when it transcribed that track without seeing the script. Every figure is read from the scene file that draws it.",
-  "generated_at": "2026-08-25T07:27:26+00:00",
+  "generated_at": "2026-08-25T11:38:12+00:00",
   "renderer": {
     "model": "Chatterbox TTS (Resemble AI)",
     "licence": "MIT",
@@ -36,7 +36,7 @@
         {
           "key": "intro",
           "text": "This is one real pass, recorded by a volunteer station. It reached 70.7 degrees at its highest.",
-          "audio": "apps/web/public/audio/explainer/corridor-0-intro.wav",
+          "audio": "public/audio/explainer/corridor-0-intro.wav",
           "seconds": 6.72,
           "sha256": "35300de2c8d8259813fcce23a7a01d2b3793474fb032e032b3f80f430313a5cd",
           "heard": "This is one real pass recorded by a volunteer station. It reached 70.7 degrees at its highest.",
@@ -52,7 +52,7 @@
         {
           "key": "assumption",
           "text": "A detector that assumes the trace is vertical looks for energy in one column. On a moving satellite there is nothing in that column to find.",
-          "audio": "apps/web/public/audio/explainer/corridor-1-assumption.wav",
+          "audio": "public/audio/explainer/corridor-1-assumption.wav",
           "seconds": 8.76,
           "sha256": "119de5249693457509fe4b0afffe3755be999ddca360af8b8ed550d157b6449f",
           "heard": "A detector that assumes the trace is vertical looks for energy in one column.  On a moving satellite, there is nothing in that column to find.",
@@ -61,7 +61,7 @@
         {
           "key": "geometry",
           "text": "The satellite is moving, so the received frequency sweeps. The corridor is curved, and its shape is fixed by the geometry of the pass, not by anything a model chose.",
-          "audio": "apps/web/public/audio/explainer/corridor-2-geometry.wav",
+          "audio": "public/audio/explainer/corridor-2-geometry.wav",
           "seconds": 8.96,
           "sha256": "b1e7195c7bcf9a53f75bed5511575d16d7cdd5e14108411b11659265385410b9",
           "heard": "The satellite is moving, so the received frequency sweeps.  The corridor is curved and its shape is fixed by the geometry of the pass, not by anything a model chose.",
@@ -70,7 +70,7 @@
         {
           "key": "slide",
           "text": "Slide that same curve across the image until it best matches the energy, and it gives up one number: how far off the capture was.",
-          "audio": "apps/web/public/audio/explainer/corridor-3-slide.wav",
+          "audio": "public/audio/explainer/corridor-3-slide.wav",
           "seconds": 7.96,
           "sha256": "1563ccef14767cd03ea50861b6599dd78bf0b6a66e9c29791364187ccb4b64a6",
           "heard": "Slide that same curve across the image until it best matches the energy and it gives up one number how far off the capture was.",
@@ -79,7 +79,7 @@
         {
           "key": "measure",
           "text": "That shift is 61 pixels, which on this image is five thousand six hundred and forty eight hertz, or 13 parts per million of the receive frequency.",
-          "audio": "apps/web/public/audio/explainer/corridor-4-measure.wav",
+          "audio": "public/audio/explainer/corridor-4-measure.wav",
           "seconds": 9.52,
           "sha256": "8c54265bf92896a42630cd42bb1f9bf15db0e7384c4b2fbdbbb570b751ef1e9e",
           "heard": "That shift is 61 pixels which on this image is 5648 Hz or 13 parts per million of the received frequency.",
@@ -107,7 +107,7 @@
         {
           "key": "closing",
           "text": "The gap between the two curves is the measurement. Not a score a model produced: a frequency error, in hertz, that a reviewer can check against the image itself.",
-          "audio": "apps/web/public/audio/explainer/corridor-5-closing.wav",
+          "audio": "public/audio/explainer/corridor-5-closing.wav",
           "seconds": 8.84,
           "sha256": "81afe468be1a78cb25508d16e4b2f6d4331719ff75d33d4bc504a8d58a11b0cd",
           "heard": "The gap between the two curves is the measurement not a score a model produced a frequency error in Hertz that a reviewer can check against the image itself",
@@ -123,7 +123,7 @@
         {
           "key": "intro",
           "text": "Kill gate 4 asks the question the whole project rests on. Can a person decide anything from the image at all?",
-          "audio": "apps/web/public/audio/explainer/gate4-0-intro.wav",
+          "audio": "public/audio/explainer/gate4-0-intro.wav",
           "seconds": 6.64,
           "sha256": "33ea2b93d27ca36ba8cf3ffbcd7a9fd736118cc8d7ad5dcfe363ce6f6d4c2e59",
           "heard": "Kin Gate 4 asks the question. The whole project rests on. Can a person decide anything from the  image at all?",
@@ -132,7 +132,7 @@
         {
           "key": "protocol",
           "text": "Three axes, and unsure is an answer rather than a failure to give one. Run the review, and report the rate.",
-          "audio": "apps/web/public/audio/explainer/gate4-1-protocol.wav",
+          "audio": "public/audio/explainer/gate4-1-protocol.wav",
           "seconds": 7.24,
           "sha256": "8a8e653e27d32dd21d3585f172f3c2bfc6b66ad733544b589b87bcebd93bcb58",
           "heard": "3 access and unsure is an answer rather than a failure to give one.  Run the review and report the rate.",
@@ -141,7 +141,7 @@
         {
           "key": "commit",
           "text": "The sample was committed to first. One salted digest for every item, all 72 of them published before the review began, so nothing could be chosen after the answers were known.",
-          "audio": "apps/web/public/audio/explainer/gate4-2-commit.wav",
+          "audio": "public/audio/explainer/gate4-2-commit.wav",
           "seconds": 10.44,
           "sha256": "91533fd2bee46d9c236a65ac43f3682ed455ed7bc3fb9ec66ac6f51c281f38f2",
           "heard": "The sample was committed to first, one salted digest for every item, all 72 of them published  before the review began, so nothing could be chosen after the answers were known.",
@@ -157,7 +157,7 @@
         {
           "key": "sample",
           "text": "60 observations, with 12 of them shown twice: 72 items in all. No label, no model output, and no way to tell which ones are the repeats.",
-          "audio": "apps/web/public/audio/explainer/gate4-3-sample.wav",
+          "audio": "public/audio/explainer/gate4-3-sample.wav",
           "seconds": 10.28,
           "sha256": "bca242ea39d713b0a7a296525e0744830cd5621b735a7d6d10c1789d57fc3f1e",
           "heard": "60 observations, with 12 of them shown twice, 72 items in all.  No label, no model output, and no way to tell which ones are the repeats.",
@@ -185,7 +185,7 @@
         {
           "key": "scoring",
           "text": "Before the scorer reads a single answer it re-hashes every image from disk and recomputes all 72 commitments. Any mismatch and it refuses outright.",
-          "audio": "apps/web/public/audio/explainer/gate4-4-scoring.wav",
+          "audio": "public/audio/explainer/gate4-4-scoring.wav",
           "seconds": 11.32,
           "sha256": "5d781c5bbdd36f623fbca5305a3e934da68f9548382ca1da4cbce30e959b2c30",
           "heard": "Before the score reads a single answer, it rehashes every image from disk and recomputes all 72 commitments.  Any mismatch and it refuses outright.",
@@ -201,7 +201,7 @@
         {
           "key": "result",
           "text": "It came back decisive on 60 of them. The bar written down beforehand was 0.8. The interval's lower bound is 0.9513.",
-          "audio": "apps/web/public/audio/explainer/gate4-5-result.wav",
+          "audio": "public/audio/explainer/gate4-5-result.wav",
           "seconds": 9.6,
           "sha256": "e0568601bca6b55e0cebc4b41e56395377d7ee9edf70f0ad620fdb1de9c61097",
           "heard": "It came back decisive on 60 of them. The bar written down beforehand was 0.8. The interval's lower bound is 0.9513.",
@@ -229,7 +229,7 @@
         {
           "key": "verdict",
           "text": "The gate is passed, and the reviewer was a person, answering plates they had never seen against a sample nobody could still change.",
-          "audio": "apps/web/public/audio/explainer/gate4-6-verdict.wav",
+          "audio": "public/audio/explainer/gate4-6-verdict.wav",
           "seconds": 7.24,
           "sha256": "f1f4096634c97045b0292593b0e37eb03218993ab19572ae69003151d2be5189",
           "heard": "The gate is passed and the reviewer was a person, answering plates they had never seen  against a sample, nobody could still change.",

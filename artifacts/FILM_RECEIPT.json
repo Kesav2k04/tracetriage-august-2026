@@ -1,14 +1,14 @@
 {
  "schema": "FILM_RECEIPT",
  "schema_version": 1,
- "generated_at": "2026-08-25T08:32:12.677Z",
+ "generated_at": "2026-08-25T12:59:33.877Z",
  "generated_by": "presentation/scripts/report-table.ts",
  "what_this_is": "The presentation film, described by the sources that build it. Every field below is derived from presentation/src at generation time rather than read from a document, so nothing written by hand can disagree with it about the same film.",
  "composition": {
   "beats": 14,
-  "frames": 5202,
+  "frames": 5316,
   "fps": 30,
-  "seconds": 173.4,
+  "seconds": 177.2,
   "width": 1920,
   "height": 1080,
   "audio": true
@@ -16,87 +16,87 @@
  "beats": [
   {
    "name": "Hello",
-   "frames": 462,
-   "seconds": 15.4,
-   "narration": "Hello everyone. This one is real. On a Sunday night in August, a volunteer pointed a radio at the sky and caught 4 minutes of a satellite. The record for it says two words. with-signal."
+   "frames": 504,
+   "seconds": 16.8,
+   "narration": "Somewhere tonight, a team is waiting to hear from a satellite they built. For 4 minutes it passes overhead, and a volunteer with an antenna in a back garden records everything it says. This is that recording. And this, this is everything anyone ever wrote down about it. with-signal. Two words."
   },
   {
    "name": "Title",
-   "frames": 174,
-   "seconds": 5.8,
-   "narration": "Nobody went back to it. It is one of two thousand seven hundred and twenty seven."
+   "frames": 264,
+   "seconds": 8.8,
+   "narration": "And it is one of two thousand seven hundred and twenty seven. TraceTriage is what decides which of them a person opens first."
   },
   {
    "name": "Problem",
-   "frames": 294,
-   "seconds": 9.8,
-   "narration": "Only seven hundred and thirty nine carry a human verdict. The rest were kept and never read, because there is no order to work through them in."
+   "frames": 336,
+   "seconds": 11.2,
+   "narration": "Now, only seven hundred and thirty nine of them carry a human verdict. The rest were kept, and never read. Not because nobody cared. Because there is no order to work through them in."
   },
   {
    "name": "Physics",
-   "frames": 756,
-   "seconds": 25.2,
-   "narration": "A pass shifts the frequency you hear. The orbit predicts that curve, spanning seventeen thousand two hundred and ninety hertz. Slide it one hundred and thirteen pixels and it lands on the trace. The gap, as a fraction of the frequency, is plus thirty two point zero five parts per million. This station had already corrected for Doppler, and nothing in the record says so."
+   "frames": 786,
+   "seconds": 26.2,
+   "narration": "So we stop guessing, and measure. A satellite coming toward you raises the frequency you hear, and lowers it as it leaves. The orbit predicts that curve, spanning seventeen thousand two hundred and ninety hertz. Slide it one hundred and thirteen pixels and it lands on the trace. That gap is a measurement, not an opinion. plus thirty two point zero five parts per million. This station had already corrected for Doppler. Nothing in the record says so."
   },
   {
    "name": "Queue",
-   "frames": 336,
-   "seconds": 11.2,
+   "frames": 294,
+   "seconds": 9.8,
    "narration": "That is what the queue ranks on. four hundred and seven observations against a budget of 50. Not the loudest. The ones where the evidence disagrees with itself."
   },
   {
    "name": "Live",
    "frames": 420,
    "seconds": 14,
-   "narration": "All of that was frozen in August. Here is the live console measuring one again. Of 10 quantities, 8 match the archived digits exactly."
+   "narration": "All of that was frozen in August. Here is the live console measuring one now. Of 10 quantities, 8 match the archived digits exactly."
   },
   {
    "name": "Flow",
    "frames": 498,
    "seconds": 16.6,
-   "narration": "You can drive the same evidence from a LangFlow canvas. Watch. A sentence goes in with a frequency this observation does not have. One take, no cut. The checker refuses it and names why."
+   "narration": "And you can drive the same evidence from a LangFlow canvas. Watch. A sentence goes in carrying a frequency this observation does not have. One take, no cut. The checker refuses it, and names why."
   },
   {
    "name": "Session",
-   "frames": 210,
-   "seconds": 7,
-   "narration": "ungrounded number. That is the same checker that decides whether our own generated notes ship."
+   "frames": 234,
+   "seconds": 7.8,
+   "narration": "And there it is. ungrounded number. That is the same checker that decides whether our own generated notes ship."
   },
   {
    "name": "Result",
-   "frames": 582,
-   "seconds": 19.4,
-   "narration": "Now the part demos skip. Six gates, with thresholds, written before anything was measured. The headline one wanted half again as many conflicts as random. This queue found 20 of them. Random ordering, at the same budget, expects 12.6. We publish that as not established."
+   "frames": 534,
+   "seconds": 17.8,
+   "narration": "Now, the part demos skip. Six gates, with thresholds, written down before anything was measured. The headline one wanted half again as many conflicts as random. This queue found 20 of them. Random ordering, at the same budget, expects 12.6. We publish that as not established."
   },
   {
    "name": "Gates",
-   "frames": 282,
-   "seconds": 9.4,
-   "narration": "The point estimate is 1.58, and the interval straddles the bar, so it fails here. 3 of 6 gates met, and nothing was moved."
+   "frames": 306,
+   "seconds": 10.2,
+   "narration": "So, the point estimate is 1.58, and the interval straddles the bar, so it fails here. 3 of 6 gates met, and nothing was moved."
   },
   {
    "name": "Established",
    "frames": 438,
    "seconds": 14.6,
-   "narration": "Three did come back decided. Evidence tools take a local Granite model from 2 of 24 right to 22. The checker caught every one of five hundred and twenty five planted falsehoods. And on stations the queue never saw, lift clears at 2.25."
+   "narration": "But three did come back decided. Evidence tools take a local Granite model from 2 of 24 right to 22. The checker caught every one of five hundred and twenty five planted falsehoods. And on stations the queue never saw, lift clears at 2.25."
   },
   {
    "name": "Bob",
-   "frames": 372,
-   "seconds": 12.4,
-   "narration": "IBM Bob built the load-bearing pipeline: contracts, snapshot, parser, corridor, baselines, queue. 10 dated units, each naming what it changed and what failed first."
+   "frames": 318,
+   "seconds": 10.6,
+   "narration": "And IBM Bob built the load-bearing pipeline. Contracts, snapshot, parser, corridor, baselines, queue. 10 dated units, each naming what it changed and what failed first."
   },
   {
    "name": "Colophon",
-   "frames": 210,
-   "seconds": 7,
-   "narration": "Every figure you heard came out of a receipt. The waterfall is public, cited and licensed."
+   "frames": 204,
+   "seconds": 6.8,
+   "narration": "Every figure you just heard came out of a receipt. The waterfall is public, cited and licensed."
   },
   {
    "name": "Thanks",
-   "frames": 168,
-   "seconds": 5.6,
-   "narration": "That is TraceTriage. Thank you for watching. Go and check a number."
+   "frames": 180,
+   "seconds": 6,
+   "narration": "That is TraceTriage. Nothing in it asks to be believed. Thank you for watching."
   }
  ],
  "claims": {
@@ -138,14 +138,14 @@
   "artifacts/QUEUE_RECEIPT.json"
  ],
  "render": {
-  "path": "presentation/out/tracetriage-film.mp4",
-  "bytes": 37064452,
-  "sha256": "86fcff8776d1c9000392e120de74837cf606a2d0fc097686028898cef9568c29"
+  "path": "../film-local/out/tracetriage-film.mp4",
+  "bytes": 22518177,
+  "sha256": "411948688d94ad80762f79da811aa6fc5b9ad29eb297a17ce8be8406a38509e2"
  },
  "poster": {
-  "path": "presentation/out/tracetriage-film-poster.jpg",
-  "bytes": 308924,
-  "sha256": "09ba43f04bcefadc19d1368eca0d4f5f4cf8f894310aa7b357ba72d2575a8949"
+  "path": "../film-local/out/tracetriage-film-poster.jpg",
+  "bytes": 333170,
+  "sha256": "de9b05eb755746477bb9ac9f4a5a92b095902d9757374c7cad3086ce4cb3dd3f"
  },
  "what_this_does_not_measure": [
   "Whether the film is any good, or whether a viewer follows it.",

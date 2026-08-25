@@ -37,6 +37,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import sys
 import wave
 from pathlib import Path
@@ -44,7 +45,12 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 NARRATION_JSON = REPO / "presentation" / "narration" / "narration.json"
-AUDIO_DIR = REPO / "apps" / "web" / "public" / "audio"
+#: The narration is a voice recording, so it is rendered into a workspace beside the
+#: repository rather than into the console's public directory, where it would be committed
+#: and served. scripts/film_workspace.py owns that path; this resolves it the same way so
+#: TRACETRIAGE_FILM_LOCAL moves both together.
+FILM_LOCAL = Path(os.environ.get("TRACETRIAGE_FILM_LOCAL") or REPO.parent / "film-local")
+AUDIO_DIR = FILM_LOCAL / "public" / "audio"
 RECEIPT = REPO / "artifacts" / "NARRATION_RECEIPT.json"
 
 #: Fixed so a re-render reproduces the committed bytes. Chatterbox is deterministic at a
@@ -114,6 +120,78 @@ def toolchain() -> dict[str, str]:
     return out
 
 
+#: The longest silence a line is allowed to keep inside it. A speaker pauses between
+#: clauses; a speech model sometimes stops for two and a half seconds in the middle of a
+#: sentence and then carries on, which reads as the file having stalled rather than as
+#: anyone thinking. Measured against the takes this film is cut from: the real pauses a
+#: person takes here run 0.2 to 0.35 seconds and the pathological ones run past 0.6.
+MAX_PAUSE_S = 0.34
+
+#: What every line opens and closes on. The card is already on screen when the voice
+#: starts, and the next card is waiting, so the silence at each end is dead air that the
+#: beat's own frame budget already provides.
+LEAD_S = 0.06
+TAIL_S = 0.12
+
+#: How far below the line's own loud level counts as silence. A fixed dBFS threshold
+#: fails on a quiet take and eats consonants on a loud one.
+SILENCE_BELOW_DB = 32.0
+
+
+def tighten(samples: Any, rate: int) -> tuple[Any, int, float]:
+    """Cap the pauses inside a rendered line and trim its ends.
+
+    Returns the audio, how many pauses were capped, and how many seconds came out. The
+    counts go into the receipt: this changes the audio a viewer hears, so it is reported
+    rather than done quietly, and the transcription check runs on the result rather than
+    on what the model first produced.
+    """
+    import numpy as np  # noqa: PLC0415
+
+    y = np.asarray(samples, dtype=np.float32).reshape(-1)
+    hop = max(1, int(0.01 * rate))
+    frames = len(y) // hop
+    if frames < 3:
+        return y, 0, 0.0
+    rms = np.sqrt((y[: frames * hop].reshape(frames, hop) ** 2).mean(axis=1) + 1e-12)
+    db = 20.0 * np.log10(rms + 1e-9)
+    quiet = db < (np.percentile(db, 95) - SILENCE_BELOW_DB)
+
+    runs: list[tuple[int, int]] = []
+    i = 0
+    while i < frames:
+        if quiet[i]:
+            j = i
+            while j < frames and quiet[j]:
+                j += 1
+            runs.append((i, j))
+            i = j
+        else:
+            i += 1
+    if not runs:
+        return y, 0, 0.0
+
+    cap = int(MAX_PAUSE_S * rate / hop)
+    lead = int(LEAD_S * rate / hop)
+    tail = int(TAIL_S * rate / hop)
+    keep = np.ones(frames, dtype=bool)
+    capped = 0
+    for start, stop in runs:
+        length = stop - start
+        allowed = lead if start == 0 else tail if stop == frames else cap
+        if length > allowed:
+            # Keep the silence closest to the speech on both sides, so a capped pause
+            # still decays and attacks rather than being spliced mid-breath.
+            head = allowed if start == 0 or stop == frames else allowed // 2
+            keep[start + head : stop - (allowed - head)] = False
+            if start > 0 and stop < frames:
+                capped += 1
+    mask = np.repeat(keep, hop)
+    mask = np.concatenate([mask, np.ones(len(y) - len(mask), dtype=bool)])
+    out = y[mask]
+    return out, capped, round((len(y) - len(out)) / rate, 2)
+
+
 def render(cues: list[dict[str, Any]], reference: Path) -> list[dict[str, Any]]:
     import soundfile  # noqa: PLC0415
     import torch  # noqa: PLC0415
@@ -141,17 +219,22 @@ def render(cues: list[dict[str, Any]], reference: Path) -> list[dict[str, Any]]:
         # other narration file in this repository is in: the stdlib `wave` module cannot
         # read float WAV at all, so the duration check that decides whether a line fits
         # its card would have failed on a file the renderer had just written.
-        soundfile.write(str(out), wav.squeeze(0).cpu().numpy(), model.sr, subtype="PCM_16")
+        audio, capped, removed = tighten(wav.squeeze(0).cpu().numpy(), model.sr)
+        soundfile.write(str(out), audio, model.sr, subtype="PCM_16")
+        if capped:
+            print(f"  {cue['beat']}: capped {capped} pause(s), {removed:.2f}s removed")
         seconds = wav_seconds(out)
         results.append(
             {
                 "beat": cue["beat"],
                 "index": cue["index"],
                 "text": cue["text"],
-                "path": str(out.relative_to(REPO)).replace("\\", "/"),
+                "path": out.relative_to(FILM_LOCAL).as_posix(),
                 "seconds": round(seconds, 3),
                 "budget_seconds": cue["budgetSeconds"],
                 "fits": seconds <= cue["budgetSeconds"],
+                "pauses_capped": capped,
+                "dead_air_removed_seconds": removed,
                 "sha256": sha256_of(out),
             }
         )
@@ -170,7 +253,7 @@ def transcribe(results: list[dict[str, Any]], cues: list[dict[str, Any]]) -> Non
     model = WhisperModel("small.en", device="cpu", compute_type="int8")
     by_index = {cue["index"]: cue for cue in cues}
     for result in results:
-        segments, _ = model.transcribe(str(REPO / result["path"]), beam_size=5)
+        segments, _ = model.transcribe(str(FILM_LOCAL / result["path"]), beam_size=5)
         result["transcript"] = " ".join(s.text.strip() for s in segments)
         result["figures"] = []
         for claim in by_index[result["index"]]["claims"]:
@@ -263,7 +346,10 @@ def main() -> int:
                     "The script is generated from the same claim objects the film draws, "
                     "so this renderer reads no receipt and holds no figure of its own. "
                     "Every figure below was looked for in a transcript produced without "
-                    "sight of the script."
+                    "sight of the script. The audio itself is a voice recording and is "
+                    "not in the repository: the paths below are relative to the "
+                    "workspace scripts/film_workspace.py resolves, and the film is "
+                    "published as a link."
                 ),
                 "what_this_does_not_establish": (
                     "That the narration is well delivered. Nothing here scores warmth or "
@@ -311,6 +397,10 @@ def main() -> int:
                     # report the film that exists rather than the one it recommended.
                     "film_seconds": round(payload["totalFrames"] / fps, 3),
                     "beats_overrunning_their_card": len(over),
+                    "pauses_capped": sum(r["pauses_capped"] for r in results),
+                    "dead_air_removed_seconds": round(
+                        sum(r["dead_air_removed_seconds"] for r in results), 2
+                    ),
                     "figures_checked": sum(len(r["figures"]) for r in results),
                     "figures_not_heard": len(missing),
                 },

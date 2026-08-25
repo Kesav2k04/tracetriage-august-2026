@@ -277,6 +277,12 @@ _MEDIA_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".mp4", ".webm"}
 #: possible, so the honest alternative to naming it here is not measuring it, and the row
 #: records `observation_id_from` so a reader can see which of the two happened.
 _EMBEDDED_OBSERVATION: dict[str, int] = {
+    # The film and its poster. Neither is tracked: the film is published as a link and
+    # renders outside the tree, so these two lines match nothing today. They are kept
+    # rather than deleted because the audit reads the id out of the filename everywhere
+    # else, and a renderer's output does not name the observation it drew. Deleting them
+    # would mean a render committed later owes nothing again, which is the exact bug this
+    # table was written to close.
     "presentation/out/tracetriage-film.mp4": 14740031,
     "presentation/out/tracetriage-film-poster.jpg": 14740031,
     # A capture of the deployed console. The page it photographs draws observation
@@ -325,9 +331,11 @@ _MODIFICATION_NOTICE: list[tuple[str, str]] = [
     ),
     ("tests/fixtures/", "synthetic or reduced fixture, used only by the test suite"),
     (
+        # Matches nothing while the film is published as a link. Kept for the same reason
+        # the embedded-observation rows above are kept.
         "presentation/out/",
         "one observation's waterfall scaled to the frame with the predicted Doppler "
-        "corridor drawn over it, composited into a 3840x2160 film alongside figures read "
+        "corridor drawn over it, composited into a 1920x1080 film alongside figures read "
         "from this repository's receipts, and encoded to H.264 with AAC narration",
     ),
 ]
@@ -484,13 +492,14 @@ _WEIGHT_NOTES: list[tuple[str, str]] = [
         "the 10 of 182 checkable.",
     ),
     (
+        # Matches nothing today: the render lives beside the repository, not in it.
         "presentation/out/",
-        "the rendered film and its poster, 142 seconds at 1920x1080 with narration. The "
-        "source beside it reads every figure from the receipts rather than restating "
-        "them, so the film's content is reproducible from this tree; the bytes are not, "
-        "and presentation/REPORT.md gives the measurement. It is kept because a reader "
-        "who watches it should not first have to install a renderer, and because an mp4 "
-        "is the one artifact here that no diff can check after the fact.",
+        "the rendered film and its poster, if either is ever committed. The source beside "
+        "them reads every figure from the receipts rather than restating them, so the "
+        "film's content is reproducible from this tree; the bytes are not, and "
+        "presentation/REPORT.md gives the measurement. The render itself is published as "
+        "a link, because it is a 4K mp4 tens of megabytes long carrying a voice "
+        "recording, and a clone needs neither in order to check a number.",
     ),
 ]
 

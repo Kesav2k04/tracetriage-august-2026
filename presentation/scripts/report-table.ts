@@ -58,9 +58,19 @@ const CLOSE = "<!-- claim-table:end -->";
 const TESTS_OPEN = "<!-- test-counts:start -->";
 const TESTS_CLOSE = "<!-- test-counts:end -->";
 
-/** Repository-relative, because a receipt naming an absolute path names one machine. */
-const RENDER = "presentation/out/tracetriage-film.mp4";
-const POSTER = "presentation/out/tracetriage-film-poster.jpg";
+/**
+ * The film renders into a workspace beside the repository, not into it: it is a 4K mp4
+ * tens of megabytes long carrying a voice recording, and it is published as a link. The
+ * receipt still records its size and digest, because that is what the prose about it is
+ * checked against, and a checkout without the workspace records null rather than a digest
+ * of nothing. Written relative to this package so the receipt still names no machine.
+ */
+// Resolved against the repository root by `rendered()` below, not against this
+// package, so one `..` and not two. It recorded `null` for a film that was sitting
+// right there until this said `../`.
+const LOCAL = process.env.TRACETRIAGE_FILM_LOCAL ?? "../film-local";
+const RENDER = `${LOCAL}/out/tracetriage-film.mp4`;
+const POSTER = `${LOCAL}/out/tracetriage-film-poster.jpg`;
 
 /** A cell that will not break the pipe table around it. */
 const cell = (text: string): string => text.replace(/\|/g, "\\|").replace(/\n/g, " ");

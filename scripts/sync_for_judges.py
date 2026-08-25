@@ -741,13 +741,21 @@ REQUIREMENTS: list[tuple[str, ...]] = [
         "Demo or presentation video",
         "`docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated "
         "from the receipts so no spoken number can drift from what the console shows. "
-        f"`presentation/out/tracetriage-film.mp4` is a rendered {_FILM['seconds']:g} "
-        f"second {'narrated' if _SPOKEN else 'silent'} film over the same receipts: "
-        f"{_FILM['beats']} cards, {_FILM['frames']} "
-        f"frames, and {_FILM_CLAIMS['total']} figures each resolved from a receipt key "
-        f"path at build time rather than typed. `artifacts/FILM_RECEIPT.json` records its "
-        "digest and `scripts/check_receipt_digests.py`, a standing gate, checks the "
-        f"committed bytes against it. The narration is spoken offline by "
+        # The word "film" has to reach the frame count without a full stop between them,
+        # because tests/test_prose_drift.py finds this sentence by that span and a decimal
+        # point ends it. Writing the runtime before the frame count put 177.2 in the way
+        # and the rule guarding the frame count silently began checking nothing.
+        f"The film itself is a {'narrated' if _SPOKEN else 'silent'} cut over the same "
+        f"receipts: {_FILM['beats']} cards, {_FILM['frames']} frames, "
+        f"{_FILM['seconds']:g} seconds, and {_FILM_CLAIMS['total']} figures each "
+        "resolved from a receipt key "
+        "path at build time rather than typed. It is published as a link and renders "
+        "outside the tree, because it is a 4K mp4 tens of megabytes long carrying a "
+        "voice recording, and a clone needs neither to check a number; the chapter list in "
+        "`README.md` is generated from its own beat table. "
+        "`artifacts/FILM_RECEIPT.json` records its size and digest and "
+        "`scripts/check_receipt_digests.py`, a standing gate, checks the bytes against "
+        "it wherever the render is present. The narration is spoken offline by "
         f"{narration['renderer']['model']}, {narration['renderer']['licence']}, "
         "and held to the same rule as the cards: a second model transcribes the rendered "
         f"audio back without seeing the script, and all "
@@ -1516,7 +1524,7 @@ STACK: list[tuple[str, ...]] = [
     ),
     (
         "Remotion",
-        "`presentation/`, rendered offline",
+        "`presentation/`, rendered offline to a workspace beside the repository",
         f"The presentation film. {_FILM['beats']} cards, {_FILM['frames']} frames, "
         f"{_FILM['seconds']:g} seconds at {_FILM['fps']} fps, and "
         f"{narration['totals']['spoken_seconds']:.0f} seconds of narration over them. "

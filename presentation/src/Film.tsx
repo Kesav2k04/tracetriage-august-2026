@@ -55,20 +55,20 @@ import { FPS, LEAD_IN_SECONDS, token } from "./theme";
  * serves. None of the three is a claim the other seven cards were already making.
  */
 export const BEATS = [
-  { name: "Hello", component: Hello, durationInFrames: 462 },
-  { name: "Title", component: Title, durationInFrames: 174 },
-  { name: "Problem", component: Problem, durationInFrames: 294 },
-  { name: "Physics", component: Physics, durationInFrames: 756 },
-  { name: "Queue", component: Queue, durationInFrames: 336 },
+  { name: "Hello", component: Hello, durationInFrames: 504 },
+  { name: "Title", component: Title, durationInFrames: 264 },
+  { name: "Problem", component: Problem, durationInFrames: 336 },
+  { name: "Physics", component: Physics, durationInFrames: 786 },
+  { name: "Queue", component: Queue, durationInFrames: 294 },
   { name: "Live", component: Live, durationInFrames: 420 },
   { name: "Flow", component: Flow, durationInFrames: 498 },
-  { name: "Session", component: Session, durationInFrames: 210 },
-  { name: "Result", component: Result, durationInFrames: 582 },
-  { name: "Gates", component: Gates, durationInFrames: 282 },
+  { name: "Session", component: Session, durationInFrames: 234 },
+  { name: "Result", component: Result, durationInFrames: 534 },
+  { name: "Gates", component: Gates, durationInFrames: 306 },
   { name: "Established", component: Established, durationInFrames: 438 },
-  { name: "Bob", component: Bob, durationInFrames: 372 },
-  { name: "Colophon", component: Colophon, durationInFrames: 210 },
-  { name: "Thanks", component: Thanks, durationInFrames: 168 },
+  { name: "Bob", component: Bob, durationInFrames: 318 },
+  { name: "Colophon", component: Colophon, durationInFrames: 204 },
+  { name: "Thanks", component: Thanks, durationInFrames: 180 },
 ] as const;
 
 export const FILM_FRAMES = BEATS.reduce(
