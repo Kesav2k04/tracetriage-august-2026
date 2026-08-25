@@ -753,7 +753,8 @@ export default function QueuePage() {
             </span>
             , which would be {primary.uncapped_reference.verdict_if_it_were_eligible}.
             The caps were fixed before measuring, so the capped queue is the one that
-            counts.
+            counts.{" "}
+            {primary.uncapped_reference.note}
           </Note>
         )}
       </Section>
@@ -806,8 +807,9 @@ export default function QueuePage() {
         <p style={{ color: "var(--text-02)", lineHeight: 1.7, maxWidth: "62rem" }}>
           A pass is one ground station, one satellite and one orbital revolution.
           Where a station published several captures of the same pass, the
-          highest-scoring one is the row and the rest are dropped. Every field behind
-          that rule is in <code>artifacts/QUEUE_RECEIPT.json</code>.
+          highest-scoring one is the row and the rest are dropped, so the budget is
+          spent on {queue.review_budget.n_observations} distinct passes. Every field
+          behind that rule is in <code>artifacts/QUEUE_RECEIPT.json</code>.
         </p>
       </Section>
     </div>
