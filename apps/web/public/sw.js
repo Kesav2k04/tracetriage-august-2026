@@ -186,8 +186,17 @@ async function cacheFirst(request, cacheName) {
   if (held) return held;
   const response = await fetch(request);
   if (response.ok) {
-    await cache.put(request, response.clone());
-    if (cacheName === RUNTIME) await trim(cache);
+    // Storing is best effort, and deliberately cannot fail the request it was storing.
+    // `cache.put` rejects for a response the Cache API declines to hold, and an
+    // unhandled rejection here is not a missing cache entry: it is the promise handed
+    // to `respondWith`, so the browser reports a network error for a response that was
+    // already fetched and was fine. The reader gets the response either way.
+    try {
+      await cache.put(request, response.clone());
+      if (cacheName === RUNTIME) await trim(cache);
+    } catch {
+      // Not cacheable. Nothing else follows from that.
+    }
   }
   return response;
 }
@@ -229,6 +238,24 @@ self.addEventListener("fetch", (event) => {
   // The measurement endpoint answers or it does not. A cached answer would be a
   // measurement attributed to a run that never happened.
   if (url.pathname.startsWith("/api/")) return;
+
+  // Media is left to the browser, and this is the rule the explainer clips needed.
+  //
+  // A `<video>` does not ask for a file, it asks for bytes: Chrome opens every clip
+  // with `Range: bytes=0-` and keeps asking for ranges as the reader scrubs. The
+  // network answers 206, and the Cache API refuses to store a 206 by specification, so
+  // `cacheFirst` threw inside the handler and the browser saw a network error. Both
+  // clips under `/media/` showed their poster and would not play. Answering a range
+  // request out of a stored 200 fails for the same reason pointing the other way, so
+  // the cache was never the right answer here in either direction.
+  //
+  // Serving media offline would mean implementing partial content against a stored
+  // body. Two clips do not earn that, and the honest fallback for a clip on a dead
+  // connection is the poster and the captions, both of which are small, cached by the
+  // rules below, and carry what the clip says. So the worker stands aside and the
+  // request behaves exactly as it would with no worker installed.
+  if (request.headers.has("range")) return;
+  if (request.destination === "video" || request.destination === "audio") return;
 
   if (request.mode === "navigate") {
     event.respondWith(serveDocument(request));
