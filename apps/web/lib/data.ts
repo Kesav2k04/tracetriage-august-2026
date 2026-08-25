@@ -1222,7 +1222,6 @@ export interface BobAccounting {
   source: string;
   generated_by: string;
   n_bob_units: number;
-  what_is_not_bobs: string;
   units: BobUnit[];
 }
 

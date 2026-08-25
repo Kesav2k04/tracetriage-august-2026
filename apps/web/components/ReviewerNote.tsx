@@ -122,7 +122,9 @@ export default function ReviewerNote({
       >
         {record.note}
       </p>
-      <Note tone={generated ? "info" : "limit"}>{noteCaption(record, model)}</Note>
+      <Note tone={generated ? "info" : "limit"} block>
+        {noteCaption(record, model)}
+      </Note>
     </Section>
   );
 }

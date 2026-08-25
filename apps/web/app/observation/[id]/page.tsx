@@ -546,7 +546,7 @@ export default async function ObservationPage({
               )),
             )}
           </Table>
-          <Note tone="limit">
+          <Note tone="limit" block>
             This pass carries the network label <strong>{card.waterfall_status}</strong>,
             station {card.ground_station ?? "not recorded"}, satellite{" "}
             {satelliteName(card.satellite)} (NORAD{" "}

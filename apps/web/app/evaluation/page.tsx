@@ -988,7 +988,7 @@ export default function EvaluationPage() {
           />
         </div>
 
-        <Note tone="limit">{ablation.caveat as string}</Note>
+        <Note tone="limit" block>{ablation.caveat as string}</Note>
 
         <Details summary="Which splits the verdict used, and which fell below the training floor">
           {/* Both lists were joined raw, so a sentence about which splits decided the
@@ -1348,7 +1348,7 @@ export default function EvaluationPage() {
             PASSED, and four hundred words below it the same page said the verdict
             stays OPEN until a person answers. Both branches are now written out, so
             the instruction matches the verdict above it. */}
-        <Note>
+        <Note block>
           The plates are not on this page because both ways of shrinking them are
           wrong: lossless re-encoding breaks the digests, lossy re-encoding smooths the
           faint traces the reviewer is asked to judge. So the archive travels whole, as

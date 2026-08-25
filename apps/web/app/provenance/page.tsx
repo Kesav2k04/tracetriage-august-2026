@@ -9,7 +9,7 @@
 import { cards, evaluation, isBuilt, provenance, queue, throughput } from "@/lib/data";
 import { fmt } from "@/lib/format";
 import { SplitBars } from "@/components/charts";
-import { Cell, Note, Section, Stat, Table, Tag } from "@/components/ui";
+import { Cell, Details, Note, Section, Stat, Table, Tag } from "@/components/ui";
 
 export const metadata = { title: "Provenance" };
 
@@ -256,7 +256,7 @@ export default function ProvenancePage() {
           ))}
         </Table>
 
-        <Note tone="limit">
+        <Note tone="limit" block>
           The cold combined split excludes rather than assigns the observations that
           would break its own guarantee. An observation whose station is held out but
           whose transmitter is not cannot sit in a partition that promises both are
@@ -533,36 +533,41 @@ export default function ProvenancePage() {
         title="Degraded states"
         description="What the console shows when something is missing, and whether any observation it ships actually puts the console into that state."
       >
-        <Table
-          head={["When", "What the console shows", "Shipped cards in this state"]}
-          headAlign={["left", "left", "right"]}
-          caption={`Counted over the ${cards.n_built} observations with imagery. A zero means the path is covered by the offline suite and by a forced check, not by this corpus.`}
-        >
-          {DEGRADED_STATES.map((state) => (
-            <tr key={state.when}>
-              <Cell align="left" header>
-                {state.when}
-              </Cell>
-              <Cell align="left">{state.shows}</Cell>
-              <Cell mono>
-                {state.count === null ? (
-                  <span style={{ color: "var(--text-03)" }}>not from data</span>
-                ) : (
-                  state.count
-                )}
-              </Cell>
-            </tr>
-          ))}
-        </Table>
         {/* Ninety words became forty-eight, and the sentence addressed to "a judge"
             became an instruction addressed to whoever is reading. A page that speaks
             to one class of reader tells every other reader they are not it. */}
-        <Note tone="limit">
+        <Note tone="limit" block>
           Every count is zero, which is worth saying rather than leaving in a table:
           the observations this console ships are the top of a queue, so they have the
           cleanest geometry. To see a degraded path here, block the waterfall image and
           the page will say what it lost.
         </Note>
+        {/* Nine rows and every count zero. The conclusion is the note above it, so the
+            table is the evidence for a reader who wants to check the nine rather than
+            nine rows of the same number in front of one who does not. */}
+        <Details summary="Every state, and the count in this corpus">
+          <Table
+            head={["When", "What the console shows", "Shipped cards in this state"]}
+            headAlign={["left", "left", "right"]}
+            caption={`Counted over the ${cards.n_built} observations with imagery. A zero means the path is covered by the offline suite and by a forced check, not by this corpus.`}
+          >
+            {DEGRADED_STATES.map((state) => (
+              <tr key={state.when}>
+                <Cell align="left" header>
+                  {state.when}
+                </Cell>
+                <Cell align="left">{state.shows}</Cell>
+                <Cell mono>
+                  {state.count === null ? (
+                    <span style={{ color: "var(--text-03)" }}>not from data</span>
+                  ) : (
+                    state.count
+                  )}
+                </Cell>
+              </tr>
+            ))}
+          </Table>
+        </Details>
       </Section>
 
       <Section title="Data and attribution">

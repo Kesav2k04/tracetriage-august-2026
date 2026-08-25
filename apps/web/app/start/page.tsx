@@ -179,7 +179,7 @@ export default function StartPage() {
             }
           />
         </div>
-        <Note tone="info">
+        <Note tone="info" block>
           The models are a guardrail on what a sentence may claim, not the ranker.{" "}
           {agent.model.name} answers questions over the evidence and{" "}
           {precedent.embedding_model.name} retrieves a pass&rsquo;s precedents, both on one
@@ -229,7 +229,7 @@ export default function StartPage() {
             verdicts rather than below them. It used to be four paragraphs into the
             landing page's gate section, which is where a reader who has already decided
             the project failed does not go. */}
-        <Note tone="warn">
+        <Note tone="warn" block>
           <strong>Why the intervals are wide is measurable and it is not modesty.</strong>{" "}
           <span style={{ display: "block", marginTop: "var(--sp-04)" }}>
             Gate 6 asked for {fmt(1.5, 1)}
@@ -450,7 +450,12 @@ export default function StartPage() {
           ))}
         </Table>
 
-        <Note tone="limit">{bob.what_is_not_bobs}</Note>
+        <Note tone="limit" block>
+          Every unit the build log records is in this table. Work that is not listed
+          is not claimed as Bob&rsquo;s, and the Files column counts the paths the log
+          names rather than the paths this repository happens to ship: the two differ,
+          and the difference is on the row that carries it.
+        </Note>
       </Section>
 
       <Section
@@ -489,7 +494,7 @@ export default function StartPage() {
             same count on this page: the sidebar carries it, the pre-registration
             section above carries it with every verdict. A number said three times
             reads as insistence rather than evidence. */}
-        <Note>
+        <Note block>
           Nothing on this console is claimed that a file in the repository does not carry.
           {gate6.verdict === "NOT_ESTABLISHED" && gate5.verdict === "NOT_ESTABLISHED" ? (
             <>

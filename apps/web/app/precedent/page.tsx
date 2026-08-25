@@ -113,7 +113,7 @@ export default function PrecedentPage() {
           ))}
         </Table>
         {cold.arms.same_station?.not_applicable ? (
-          <Note tone="limit">{cold.arms.same_station.not_applicable}</Note>
+          <Note tone="limit" block>{cold.arms.same_station.not_applicable}</Note>
         ) : null}
       </Section>
 
@@ -152,7 +152,7 @@ export default function PrecedentPage() {
             ),
           )}
         </Table>
-        <Note>
+        <Note block>
           Warm, all three retrievers beat chance and survive the correction. Cold, none of
           them does: the interval contains zero. The embedding also does not beat seven
           standardised numbers under either condition. That is the finding, and it is the

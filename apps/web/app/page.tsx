@@ -636,7 +636,7 @@ export default function QueuePage() {
             register, which is where it still is. A reader of this page needs the one
             fact the section turns on: the point clears the bar and the interval does
             not. */}
-        <Note tone="warn">
+        <Note tone="warn" block>
           The point estimate <span className="num">{fmt(primary.lift_point)}</span> is
           above the threshold and the interval is not, so this gate reads{" "}
           <span className="mono">NOT_ESTABLISHED</span>.{" "}
@@ -748,7 +748,7 @@ export default function QueuePage() {
         )}
 
         {primary.uncapped_reference && (
-          <Note tone="info">
+          <Note tone="info" block>
             Without the caps the same queue would score{" "}
             <span className="num">{fmt(primary.uncapped_reference.lift_point)}</span>{" "}
             with interval{" "}
