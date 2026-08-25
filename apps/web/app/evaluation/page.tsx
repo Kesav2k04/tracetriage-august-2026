@@ -587,10 +587,6 @@ export default function EvaluationPage() {
               corpus: <code>cold_transmitter</code> holds more observations than{" "}
               <code>chronological</code> and still fails, because its interval came back wider
               too. So no required sample size is published for gate 6, only the condition.
-              Gates 5 and 6 are both short of test rows and both were fixed before their
-              results were read, so growing either now is the one thing pre-registration
-              exists to prevent, and the shortfall is recorded as the reason they stay open
-              rather than as work outstanding.
             </p>
           </>
         ) : null}
@@ -643,9 +639,11 @@ export default function EvaluationPage() {
         title="How much of that lift is guaranteed by the way the queue was built"
         description="The ranking score and the definition of a conflict read the same quantities, so part of the lift is true by construction. This bounds that part rather than arguing about it."
       >
-        <p style={{ margin: "0 0 var(--sp-05)", lineHeight: 1.7, maxWidth: "62rem" }}>
-          {circularity.shared_signals.reading}
-        </p>
+        <Details summary="Which quantities the score and the conflict definition share">
+          <p style={{ lineHeight: 1.7, maxWidth: "62rem" }}>
+            {circularity.shared_signals.reading}
+          </p>
+        </Details>
 
         <div
           style={{
@@ -762,7 +760,11 @@ export default function EvaluationPage() {
         </Table>
 
         <Note tone="limit">{circularity.what_this_does_not_establish}</Note>
-        <Note tone="info">{circularity.random_ordering_control.reading}</Note>
+        <Details summary="How the random-ordering control was run">
+          <p style={{ lineHeight: 1.7, maxWidth: "62rem" }}>
+            {circularity.random_ordering_control.reading}
+          </p>
+        </Details>
       </Section>
 
       <Section
@@ -1295,9 +1297,9 @@ export default function EvaluationPage() {
             the instruction matches the verdict above it. */}
         <Note>
           The plates are not on this page because both ways of shrinking them are
-          wrong: lossless re-encoding breaks the digests the commitment rests on, and
-          lossy re-encoding smooths the faint traces the reviewer is asked to judge. So
-          the archive travels whole, as one file with a digest.{" "}
+          wrong: lossless re-encoding breaks the digests, lossy re-encoding smooths the
+          faint traces the reviewer is asked to judge. So the archive travels whole, as
+          one file with a digest.{" "}
           {gate4Answered ? (
             <>
               A second reviewer can repeat the review on the same plates: open{" "}
@@ -1314,16 +1316,14 @@ export default function EvaluationPage() {
               </strong>
             </>
           )}{" "}
-          The scorer will not publish a rate without a declaration of who produced it:
-          a reviewer that is not a person is filed under <code>arm</code> and does not
-          move the gate&rsquo;s own verdict.
+          The scorer will not publish a rate without naming who produced it.
         </Note>
       </Section>
 
       {sizeMatched && (
         <Section
           title="The size-matched control"
-          description="A cold split has fewer training rows than the chronological one, so a difference between them could be the split or could be the sample size. This control holds the size fixed and changes only the split, which is the only way to tell those apart."
+          description="A cold split has fewer training rows than the chronological one, so a difference could be the split or could be the sample size. This control holds size fixed and changes only the split."
         >
           <Table head={["Partition", "Rows"]} caption={`Split: ${sizeMatched.split}.`}>
             {Object.entries(sizeMatched.counts).map(([partition, n]) => (

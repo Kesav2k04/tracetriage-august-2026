@@ -70,8 +70,7 @@ export default function LivePage() {
           else. Three outcomes are normal and distinct: an uncorrected capture gets an
           offset and a p value, a corrected one gets an offset with no null test, and an
           image that does not settle which gets <span className="mono">UNRESOLVED</span>,
-          which on a real queue is the common case and is the answer that says skip this
-          one.
+          the answer that says skip this one.
         </p>
       </header>
 

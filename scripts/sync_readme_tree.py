@@ -155,13 +155,72 @@ def build(paths: list[str], all_paths: list[str] | None = None) -> list[str]:
         lines.append(row.rstrip())
     return lines
 
+#: The four questions a reader arrives with, and the directories that answer each. An
+#: ASCII tree answered a different question. It showed nesting, which nobody asked about,
+#: and it put `pipeline/` between two licence files where a judge had to hunt for it.
+#: Ordered by what gets opened first.
+GROUPS: list[tuple[str, tuple[str, ...]]] = [
+    ("What it measures", ("pipeline/tracetriage", "scripts", "api")),
+    ("What the numbers rest on", ("artifacts", "docs", "tests", "contracts")),
+    ("What you can open", ("apps/web", "mobile", "flows")),
+    ("How it was built", (".bob",)),
+]
+
+
+def counted(all_paths: list[str]) -> dict[str, int]:
+    """Tracked files under each grouped directory, counted over the unfiltered tree.
+
+    The number beside a directory is what a clone receives, so a file hidden from the
+    picture by HIDE_SUFFIX must not quietly subtract itself from the count.
+    """
+    return {
+        path: sum(1 for q in all_paths if q.startswith(path + "/"))
+        for _, paths in GROUPS
+        for path in paths
+    }
+
 
 def region(paths: list[str]) -> str:
-    # Counted over every tracked path, including the ones HIDE_SUFFIX keeps out of the
-    # picture. A folded directory's number is what a clone gets, so hiding a file from
-    # the diagram must not quietly subtract it from the count beside the diagram.
-    body = "\n".join(build(paths, all_tracked()))
-    return f"{BEGIN}\n\n```\n{body}\n```\n\n{END}"
+    all_paths = all_tracked()
+    counts = counted(all_paths)
+
+    # A directory named here but holding nothing is a typo in GROUPS, and it would
+    # publish a row reading "0 files". Fail instead of writing it.
+    missing = sorted(path for path, n in counts.items() if n == 0)
+    if missing:
+        raise SystemExit(f"GROUPS names paths that hold no tracked files: {missing}")
+
+    listed = {path for _, group in GROUPS for path in group}
+    top = sorted({q.split("/")[0] for q in paths if "/" in q})
+    unlisted = [
+        d
+        for d in top
+        if not any(path == d or path.startswith(d + "/") for path in listed)
+    ]
+
+    out = [BEGIN, ""]
+    for heading, group in GROUPS:
+        out.append(f"**{heading}**")
+        out.append("")
+        out.append("| | |")
+        out.append("| --- | --- |")
+        for path in group:
+            note = NOTE.get(path, "")
+            sentence = note[:1].upper() + note[1:] if note else ""
+            out.append(f"| [`{path}/`]({path}) | {counts[path]} files. {sentence} |")
+        out.append("")
+
+    # Named rather than hidden, so the picture stays honest about being a selection.
+    if unlisted:
+        out.append(
+            "Also tracked: "
+            + ", ".join(f"`{d}/`" for d in unlisted)
+            + "."
+        )
+        out.append("")
+
+    out.append(END)
+    return "\n".join(out)
 
 
 def main() -> int:

@@ -235,14 +235,8 @@ export default function StartPage() {
           </span>
           . This queue reached{" "}
           <span className="num">{fmt(primary.lift_point, 3)}</span>
-          <sup>&times;</sup>, and{" "}
-          {circularity.random_ordering_control.n_permutations_at_or_above_observed} of{" "}
-          {circularity.random_ordering_control.n_permutations} random orderings of the same
-          observations matched it, a permutation p of{" "}
-          <span className="num">
-            {circularity.random_ordering_control.p_value_permutation.toFixed(4)}
-          </span>
-          . The threshold was set for a corpus that could not have proved it either
+          <sup>&times;</sup>. The threshold was set for a corpus that could not have
+          proved it either
           way, which is a finding about the instrument and is{" "}
           <Link href="/evaluation/#circularity">derived rather than asserted</Link>.
         </Note>
@@ -309,11 +303,11 @@ export default function StartPage() {
               answer: (
                 <>
                   A static export, so it cannot break in front of you because a backend
-                  went down. <Link href="/replay/">Baselines</Link> is the queue against
-                  the orderings a reviewer could have used instead, and{" "}
+                  went down. <Link href="/replay/">Baselines</Link> replays the queue
+                  against the orderings a reviewer could have used instead.{" "}
                   <Link href="/provenance/">Provenance</Link> names the receipt behind
-                  every figure and the command that regenerates it. Pointing it at
-                  observations of your own is a written path rather than an offer:{" "}
+                  every figure. Pointing it at observations of your own is a written path
+                  rather than an offer:{" "}
                   <a href="/data/USE_WITH_YOUR_AGENT.md">the guide</a> names the same
                   tools the agent study measured.
                 </>
@@ -336,10 +330,10 @@ export default function StartPage() {
                   <span className="num">{fmt(coldStation.lift_point, 3)}x</span> the rate
                   of random review, interval{" "}
                   {fmtInterval(coldStation.lift_ci95, 3)}, and that split{" "}
-                  <strong>PASSED</strong>. What has not been measured is whether a human
-                  reviewer is faster or better for reading the note, which is why{" "}
-                  <Link href="/evaluation/">Evaluation</Link> carries an explicit
-                  unmeasured row rather than an estimate.
+                  <strong>PASSED</strong>. Whether a reviewer is faster or better for
+                  reading the note is unmeasured, which is why{" "}
+                  <Link href="/evaluation/">Evaluation</Link> carries a row saying so
+                  rather than an estimate.
                 </>
               ),
             },

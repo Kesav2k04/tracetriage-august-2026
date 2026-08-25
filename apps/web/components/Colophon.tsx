@@ -51,11 +51,7 @@ export default function Colophon({
             <p>
               A review-value queue for SatNOGS waterfalls, ranking which satellite
               passes are worth a reviewer&rsquo;s time, with the measurements that say
-              how much. The {gatesTotal} kill gates it set itself are a research bar and
-              all {gatesTotal} are on the record: {gatesMet} met,{" "}
-              {gatesPrePassed === gatesMet ? "both" : String(gatesPrePassed)} of those
-              feasibility checks answered before any pipeline code existed.{" "}
-              <Link href="/start/">Start here</Link>.
+              how much. <Link href="/start/">Start here</Link>.
             </p>
           </section>
 

@@ -369,13 +369,11 @@ export default function ProvenancePage() {
           <li>
             No request for <em>data</em> to any origin but its own, before or after
             load. Two licensed display families are the one exception and they are not
-            data: Adobe&rsquo;s terms forbid serving the files from anywhere else. Those
-            two hosts are the complete list, the content security policy in{" "}
-            <code>vercel.json</code> names both, so a request to any third origin is
-            refused by the browser. Every digit of every measurement on this site is set
-            in IBM Plex served from here, and the font host cannot hold the first paint:
-            the bytes, the paint measurements and the alternative that was declined are
-            in <code>artifacts/FONT_PAINT_RECEIPT.json</code>.
+            data: Adobe&rsquo;s terms forbid serving the files from anywhere else. The
+            content security policy in <code>vercel.json</code> names both hosts, so any
+            third origin is refused by the browser. Every digit of every measurement here
+            is set in IBM Plex served from this site, so the font host cannot hold the
+            first paint: <code>artifacts/FONT_PAINT_RECEIPT.json</code>.
           </li>
           <li>
             The router does prefetch the next page&rsquo;s data when a link enters
@@ -387,14 +385,13 @@ export default function ProvenancePage() {
             on the training partition of the split named beside them.
           </li>
           <li>
-            No number on any page is computed by the console. The one thing the
-            browser calculates is how to map stored intensities to screen colours,
-            and the waterfall viewer says so on every card.
+            No number on any page is computed by the console, except the map from
+            stored intensities to screen colours, which the waterfall viewer states on
+            every card.
           </li>
           <li>
-            No analytics about you, no cookies, no storage, and nothing to consent
-            to. The font host is told that a licence was used; it is told nothing
-            about who used it.
+            No analytics about you, no cookies, no storage, and nothing to consent to.
+            The font host is told a licence was used and nothing about who used it.
           </li>
         </ul>
       </Section>

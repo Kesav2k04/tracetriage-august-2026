@@ -325,7 +325,7 @@ export default function QueuePage() {
           <span className="num">{precedent.embedding_model.name}</span> retrieves a
           pass&rsquo;s precedents, measured against a numeric baseline that{" "}
           <Link href="/precedent/">ties with it</Link>. Both run on one machine over
-          Ollama. No hosted inference, no paid service and no credential.
+          Ollama, with no hosted inference and no credential.
         </p>
         </div>
         <GateLedger />
@@ -494,7 +494,6 @@ export default function QueuePage() {
           >
             “{gate6.wording}”
           </p>
-          <p style={{ margin: "var(--sp-05) 0 0", lineHeight: 1.7 }}>{gate6.statement}</p>
         </div>
 
         <div>
@@ -635,8 +634,8 @@ export default function QueuePage() {
             not. */}
         <Note tone="warn">
           The point estimate <span className="num">{fmt(primary.lift_point)}</span> is
-          above the threshold and the interval is not, which is why this gate reads{" "}
-          <span className="mono">NOT_ESTABLISHED</span> rather than passing.{" "}
+          above the threshold and the interval is not, so this gate reads{" "}
+          <span className="mono">NOT_ESTABLISHED</span>.{" "}
           <Link href="/evaluation/#gate6">The interval, and how it was resampled</Link>.
         </Note>
       </Section>
@@ -754,8 +753,7 @@ export default function QueuePage() {
             </span>
             , which would be {primary.uncapped_reference.verdict_if_it_were_eligible}.
             The caps were fixed before measuring, so the capped queue is the one that
-            counts.{" "}
-            {primary.uncapped_reference.note}
+            counts.
           </Note>
         )}
       </Section>
@@ -808,10 +806,8 @@ export default function QueuePage() {
         <p style={{ color: "var(--text-02)", lineHeight: 1.7, maxWidth: "62rem" }}>
           A pass is one ground station, one satellite and one orbital revolution.
           Where a station published several captures of the same pass, the
-          highest-scoring one is the row and the rest are dropped, so the budget is
-          spent on {queue.review_budget.n_observations} distinct passes rather than
-          on the same pass more than once. Every field behind that rule is in{" "}
-          <code>artifacts/QUEUE_RECEIPT.json</code>.
+          highest-scoring one is the row and the rest are dropped. Every field behind
+          that rule is in <code>artifacts/QUEUE_RECEIPT.json</code>.
         </p>
       </Section>
     </div>
