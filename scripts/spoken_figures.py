@@ -10,10 +10,9 @@ collapse, and punctuation goes. That still catches the failure that matters, whi
 model saying a different number: "2,727" read aloud as "two, seven twenty seven" only
 canonicalises to 2727 on both sides if the digits really were spoken in order.
 
-This lived in the film's renderer and was loaded out of it by file path. The film is no
-longer in this repository and the explainers still need the matcher, so it is a module.
-One matcher, because two drift and the one that drifts is the one that stops catching
-things.
+This lived inside another renderer and was loaded out of it by file path, which is not a
+dependency a reader can see. It is a module now. One matcher, because two drift and the one
+that drifts is the one that stops catching things.
 """
 
 from __future__ import annotations

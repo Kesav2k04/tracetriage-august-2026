@@ -1,23 +1,19 @@
 {
  "schema": "REPO_WEIGHT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-25T03:09:36+05:30",
- "commit": "93dced5fe9821a92584d75d77ad140d5dd34850e",
- "tracked_files": 528,
- "tracked_bytes": 82010033,
- "tracked_megabytes": 78.21,
+ "measured_at_commit_date": "2026-08-25T20:14:08+05:30",
+ "commit": "b02da815a4936dbd63bf09ac5e72c4e010d6395c",
+ "tracked_files": 484,
+ "tracked_bytes": 53388508,
+ "tracked_megabytes": 50.92,
  "by_directory": [
-  {
-   "path": "presentation/out",
-   "megabytes": 24.36
-  },
-  {
-   "path": "apps/web",
-   "megabytes": 16.93
-  },
   {
    "path": "artifacts/a3_overlays",
    "megabytes": 16.45
+  },
+  {
+   "path": "apps/web",
+   "megabytes": 11.76
   },
   {
    "path": "tests/fixtures",
@@ -26,6 +22,10 @@
   {
    "path": "artifacts/GATE3_POOL.json",
    "megabytes": 2.88
+  },
+  {
+   "path": "docs/architecture.gif",
+   "megabytes": 2.65
   },
   {
    "path": "artifacts/DATASET_MANIFEST.json",
@@ -69,19 +69,27 @@
   }
  ],
  "by_directory_remainder": {
-  "groups": 256,
-  "bytes": 4963711,
-  "megabytes": 4.73,
+  "groups": 246,
+  "bytes": 4521288,
+  "megabytes": 4.31,
   "why": "everything outside the fifteen largest groups above, so that the table and tracked_bytes account for the same tree"
  },
  "largest_files": [
   {
-   "path": "presentation/out/tracetriage-film.mp4",
-   "megabytes": 23.531
+   "path": "apps/web/public/media/gate4-explainer.mp4",
+   "megabytes": 3.947
+  },
+  {
+   "path": "apps/web/public/media/corridor-explainer.mp4",
+   "megabytes": 3.198
   },
   {
    "path": "artifacts/GATE3_POOL.json",
    "megabytes": 2.878
+  },
+  {
+   "path": "docs/architecture.gif",
+   "megabytes": 2.65
   },
   {
    "path": "artifacts/DATASET_MANIFEST.json",
@@ -96,10 +104,6 @@
    "megabytes": 1.953
   },
   {
-   "path": "apps/web/public/film/live-take.mp4",
-   "megabytes": 1.921
-  },
-  {
    "path": "tests/fixtures/waterfall_836px_client_v2.3.png",
    "megabytes": 1.823
   },
@@ -108,32 +112,28 @@
    "megabytes": 1.637
   },
   {
-   "path": "apps/web/public/media/corridor-explainer.mp4",
-   "megabytes": 1.566
+   "path": "artifacts/a3_overlays/overlay_14737186.png",
+   "megabytes": 0.784
   },
   {
-   "path": "apps/web/public/media/gate4-explainer.mp4",
-   "megabytes": 1.047
+   "path": "artifacts/a3_overlays/overlay_14746055.png",
+   "megabytes": 0.775
   },
   {
-   "path": "apps/web/public/audio/narration-2-physics.wav",
-   "megabytes": 0.937
+   "path": "artifacts/a3_overlays/overlay_14746118.png",
+   "megabytes": 0.741
   },
   {
-   "path": "apps/web/public/audio/narration-5-session.wav",
-   "megabytes": 0.887
+   "path": "artifacts/a3_overlays/overlay_14737408.png",
+   "megabytes": 0.738
   },
   {
-   "path": "apps/web/public/audio/narration-8-established.wav",
-   "megabytes": 0.875
+   "path": "artifacts/a3_overlays/overlay_14744577.png",
+   "megabytes": 0.737
   },
   {
-   "path": "presentation/out/tracetriage-film-poster.jpg",
-   "megabytes": 0.828
-  },
-  {
-   "path": "apps/web/public/audio/narration-6-result.wav",
-   "megabytes": 0.793
+   "path": "artifacts/a3_overlays/overlay_14746048.png",
+   "megabytes": 0.735
   }
  ],
  "proposals": [
@@ -173,11 +173,11 @@
    "keep_because": "the second-trace incidence receipt. 743 rows; the per-row detail is what makes the 10 of 182 checkable."
   },
   {
-   "path": "presentation/out/",
-   "files": 2,
-   "bytes": 25542436,
-   "megabytes": 24.36,
-   "keep_because": "the rendered film and its poster, 142 seconds at 1920x1080 with narration. The source beside it reads every figure from the receipts rather than restating them, so the film's content is reproducible from this tree; the bytes are not, and presentation/REPORT.md gives the measurement. It is kept because a reader who watches it should not first have to install a renderer, and because an mp4 is the one artifact here that no diff can check after the fact."
+   "path": "apps/web/public/media/",
+   "files": 6,
+   "bytes": 7657833,
+   "megabytes": 7.3,
+   "keep_because": "the two explainer clips the console plays, their poster stills and their captions. Every figure either clip states is read from a receipt key path by the scene file that draws it, so the content is reproducible from this tree even though the encoded bytes are not."
   }
  ],
  "recommendation": "Nothing here is proposed for removal. The two largest groups are evidence and product: the A3 overlays back a published finding and the shipped waterfalls are what the console renders. A 30 MB repository is not a judging problem; losing the evidence behind a claim is."

@@ -1,8 +1,8 @@
 {
  "schema": "ATTRIBUTION_AUDIT",
  "schema_version": "0.1.0",
- "measured_at_commit_date": "2026-08-25T03:09:36+05:30",
- "commit": "93dced5fe9821a92584d75d77ad140d5dd34850e",
+ "measured_at_commit_date": "2026-08-25T20:14:08+05:30",
+ "commit": "b02da815a4936dbd63bf09ac5e72c4e010d6395c",
  "snapshot_id": "snap-20260817-stage1",
  "licence": {
   "name": "CC BY-SA 4.0",
@@ -26,65 +26,15 @@
   "console_ui_links_the_licence": true
  },
  "counts": {
-  "media_files_tracked": 90,
-  "satnogs_derived": 78,
-  "not_satnogs_derived": 12,
-  "distinct_observations": 44,
+  "media_files_tracked": 87,
+  "satnogs_derived": 74,
+  "not_satnogs_derived": 13,
+  "distinct_observations": 43,
   "distinct_ground_stations": 22,
   "incomplete": 0
  },
  "incomplete_files": [],
  "rows": [
-  {
-   "file": "apps/web/public/film/console.webp",
-   "bytes": 610980,
-   "observation_id": 14740031,
-   "observation_id_from": "declared",
-   "in_dataset_manifest": true,
-   "modification_notice": "a screenshot of the deployed console, in which one observation's waterfall appears scaled to a figure with the predicted Doppler corridor drawn over it, re-encoded from PNG to WebP",
-   "source_url": "https://network.satnogs.org/api/observations/14740031/",
-   "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/9/23/14740031/waterfall_14740031_2026-08-09T23-50-08.png",
-   "retrieved_at": "2026-08-16T20:14:03.180818+00:00",
-   "source_sha256": "e496d34e0021e6d7306ffc9602f062a56a8403feed58b0ae866be7c5825ae0cd",
-   "ground_station": 91,
-   "license": "CC BY-SA 4.0",
-   "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-   "satnogs_derived": true,
-   "obligations": {
-    "attribution": true,
-    "record_source_url": true,
-    "artifact_source_url": true,
-    "retrieval_timestamp": true,
-    "source_sha256": true,
-    "modification_notice": true
-   },
-   "complete": true
-  },
-  {
-   "file": "apps/web/public/film/live-take.mp4",
-   "bytes": 2014515,
-   "observation_id": 14742699,
-   "observation_id_from": "declared",
-   "in_dataset_manifest": true,
-   "modification_notice": "a screen recording of the deployed console measuring one observation, in which that observation's waterfall appears scaled to a figure with the predicted Doppler corridor drawn over it, played at 4x and then 2x with its final frame held, and re-encoded from VP8 to H.264",
-   "source_url": "https://network.satnogs.org/api/observations/14742699/",
-   "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/9/22/14742699/waterfall_14742699_2026-08-09T22-19-02.png",
-   "retrieved_at": "2026-08-16T20:22:53.683942+00:00",
-   "source_sha256": "efb5be3937d0889918bdb9d49b6c5263591ab232905748952fbc155f1b2f816c",
-   "ground_station": 4451,
-   "license": "CC BY-SA 4.0",
-   "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-   "satnogs_derived": true,
-   "obligations": {
-    "attribution": true,
-    "record_source_url": true,
-    "artifact_source_url": true,
-    "retrieval_timestamp": true,
-    "source_sha256": true,
-    "modification_notice": true
-   },
-   "complete": true
-  },
   {
    "file": "apps/web/public/icons/apple-touch-icon.png",
    "bytes": 7377,
@@ -139,7 +89,7 @@
   },
   {
    "file": "apps/web/public/media/corridor-explainer-poster.jpg",
-   "bytes": 31509,
+   "bytes": 80089,
    "observation_id": null,
    "observation_id_from": null,
    "in_dataset_manifest": false,
@@ -152,7 +102,7 @@
   },
   {
    "file": "apps/web/public/media/corridor-explainer.mp4",
-   "bytes": 1641819,
+   "bytes": 3353289,
    "observation_id": null,
    "observation_id_from": null,
    "in_dataset_manifest": false,
@@ -165,7 +115,7 @@
   },
   {
    "file": "apps/web/public/media/gate4-explainer-poster.jpg",
-   "bytes": 26553,
+   "bytes": 83250,
    "observation_id": null,
    "observation_id_from": null,
    "in_dataset_manifest": false,
@@ -178,7 +128,7 @@
   },
   {
    "file": "apps/web/public/media/gate4-explainer.mp4",
-   "bytes": 1097672,
+   "bytes": 4139019,
    "observation_id": null,
    "observation_id_from": null,
    "in_dataset_manifest": false,
@@ -2053,8 +2003,8 @@
    "complete": true
   },
   {
-   "file": "mobile/assets/icon.png",
-   "bytes": 43354,
+   "file": "docs/architecture.gif",
+   "bytes": 2778234,
    "observation_id": null,
    "observation_id_from": null,
    "in_dataset_manifest": false,
@@ -2066,52 +2016,15 @@
    "complete": true
   },
   {
-   "file": "presentation/out/tracetriage-film-poster.jpg",
-   "bytes": 868511,
-   "observation_id": 14740031,
-   "observation_id_from": "declared",
-   "in_dataset_manifest": true,
-   "modification_notice": "one observation's waterfall scaled to the frame with the predicted Doppler corridor drawn over it, composited into a 3840x2160 film alongside figures read from this repository's receipts, and encoded to H.264 with AAC narration",
-   "source_url": "https://network.satnogs.org/api/observations/14740031/",
-   "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/9/23/14740031/waterfall_14740031_2026-08-09T23-50-08.png",
-   "retrieved_at": "2026-08-16T20:14:03.180818+00:00",
-   "source_sha256": "e496d34e0021e6d7306ffc9602f062a56a8403feed58b0ae866be7c5825ae0cd",
-   "ground_station": 91,
-   "license": "CC BY-SA 4.0",
-   "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-   "satnogs_derived": true,
+   "file": "mobile/assets/icon.png",
+   "bytes": 43354,
+   "observation_id": null,
+   "observation_id_from": null,
+   "in_dataset_manifest": false,
+   "modification_notice": null,
+   "satnogs_derived": false,
    "obligations": {
-    "attribution": true,
-    "record_source_url": true,
-    "artifact_source_url": true,
-    "retrieval_timestamp": true,
-    "source_sha256": true,
-    "modification_notice": true
-   },
-   "complete": true
-  },
-  {
-   "file": "presentation/out/tracetriage-film.mp4",
-   "bytes": 24673925,
-   "observation_id": 14740031,
-   "observation_id_from": "declared",
-   "in_dataset_manifest": true,
-   "modification_notice": "one observation's waterfall scaled to the frame with the predicted Doppler corridor drawn over it, composited into a 3840x2160 film alongside figures read from this repository's receipts, and encoded to H.264 with AAC narration",
-   "source_url": "https://network.satnogs.org/api/observations/14740031/",
-   "waterfall_url": "https://s3.eu-central-1.wasabisys.com/satnogs-network/data_obs/2026/8/9/23/14740031/waterfall_14740031_2026-08-09T23-50-08.png",
-   "retrieved_at": "2026-08-16T20:14:03.180818+00:00",
-   "source_sha256": "e496d34e0021e6d7306ffc9602f062a56a8403feed58b0ae866be7c5825ae0cd",
-   "ground_station": 91,
-   "license": "CC BY-SA 4.0",
-   "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-   "satnogs_derived": true,
-   "obligations": {
-    "attribution": true,
-    "record_source_url": true,
-    "artifact_source_url": true,
-    "retrieval_timestamp": true,
-    "source_sha256": true,
-    "modification_notice": true
+    "not_applicable": "not resolvable to a SatNOGS observation"
    },
    "complete": true
   },

@@ -53,9 +53,9 @@ def test_the_table_is_not_empty_and_every_row_is_well_formed():
     a digest is deliberately removed from the audit, this number moves in the same commit
     and the reason lands in the diff beside it.
 
-    Twelve until the presentation film left this repository. Three rows went with it: the
-    render's digest, its poster's, and the screen recording the console served but linked
-    from nowhere. None of the three had a subject in the tree any more.
+    Twelve until three rendered-media rows left with their subject: two digests of a
+    render that is no longer produced here, and one of a recording the console served but
+    linked from nowhere. None of the three had a file in the tree to hash any more.
     """
     assert len(CHECKS) == 9
     for receipt, field, file_rel, how, writer in CHECKS:

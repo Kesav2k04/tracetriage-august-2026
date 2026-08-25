@@ -189,7 +189,11 @@ def main() -> int:
         print("README.md file tree matches the tracked tree.")
         return 0
 
-    README.write_text(fresh, encoding="utf-8")
+    # newline="\n" or this writes CRLF on Windows and git normalises it back on commit, so
+    # the file on disk stops matching the blob every other generator here wrote LF into.
+    # `.gitattributes` pins the whole tree to LF because receipts hash raw bytes, and this
+    # was the one writer in the family that did not say so.
+    README.write_text(fresh, encoding="utf-8", newline="\n")
     print(f"wrote the file tree, {len(tracked())} tracked paths")
     return 0
 
