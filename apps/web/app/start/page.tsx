@@ -99,7 +99,7 @@ export default function StartPage() {
           preload="none"
           playsInline
           aria-label={
-            "44 seconds, narrated and captioned: what each of the nine pages of this " +
+            "46 seconds, narrated and captioned: what each of the nine pages of this " +
             "console is for, and how one recording moves through them."
           }
           poster="/media/console-explainer-poster.jpg"
@@ -122,7 +122,7 @@ export default function StartPage() {
           </p>
         </video>
         <figcaption>
-          44 seconds, narrated and captioned. Every figure it speaks is read from the same
+          46 seconds, narrated and captioned. Every figure it speaks is read from the same
           constants the animation draws, and{" "}
           <code>scripts/build_explainers.py --check</code> fails if the clip, its captions
           and this page ever disagree. The evidence behind each page is in{" "}

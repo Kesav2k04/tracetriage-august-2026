@@ -24,7 +24,7 @@ file that no longer exists in that form.
 | Artifact | Schema | Version | Contract | Bytes | sha256 | Named by | Named in tests |
 |---|---|---|---|---|---|---|---|
 | `AGENT_RECEIPT.json` | AGENT_RECEIPT | 1 | none | 29,230 | `7927ca92bfb7f3ad` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/run_agent_study.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_agent.py`, `test_receipt_digests.py` |
-| `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 85,390 | `661213c8fed4b152` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
+| `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 85,390 | `661213c8fed4b152` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/explainer_console.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `AXIS_READER_AUDIT.json` | tracetriage/axis-reader-audit | 1 | none | 15,640 | `01592786df3cb33c` | `scripts/audit_pool_axes.py` | `test_axis_reader_audit.py`, `test_receipt_digests.py` |
 | `BASELINE_RECEIPT.json` | BASELINE_RECEIPT | 0.1.0 | none | 8,803 | `f2796822ec53b590` | `scripts/build_architecture_diagram.py`, `scripts/run_baseline.py`, `scripts/run_triage_slice.py` | `test_baseline.py`, `test_receipt_digests.py` |
 | `CIRCULARITY_RECEIPT.json` | tracetriage/circularity/v1 | 1.0.0 | none | 11,376 | `8e6f893a005e3bcc` | `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/run_circularity_check.py`, `scripts/run_gate_power.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_circularity.py`, `test_gate_power.py`, `test_receipt_digests.py` |
@@ -143,7 +143,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/check_types.py` | Run mypy over the package and fail on a new error, against a committed baseline. |
 | `scripts/clean_clone_check.py` | Reproduce this repository from a clean clone, with the network refused. |
 | `scripts/derive_palette.py` | Derive the console's neutral ramp, and prove the derivation costs no contrast. |
-| `scripts/explainer_console.py` | Manim scene: the nine pages of the console, and the one path through them. |
+| `scripts/explainer_console.py` | Manim scene: a camera tour of the nine pages of the console, and the path through them. |
 | `scripts/explainer_corridor.py` | Manim scene: what the Doppler corridor is, and what the fitted offset measures. |
 | `scripts/explainer_gate4.py` | Manim scene: how gate 4 was made falsifiable, and how it came out. |
 | `scripts/explainer_timing.py` | Hold each section of an explainer for as long as its own narration takes. |

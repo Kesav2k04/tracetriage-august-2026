@@ -261,14 +261,19 @@ def console_cues() -> list[Cue]:
     """The console map clip. It opens on the promise rather than on the problem.
 
     A visitor landing on the start page has not decided to read anything yet, so the
-    first line offers the whole thing for thirty seconds instead of describing what is
-    hard about it. Naming the difficulty first is what plants it.
+    first line offers the whole thing for a fixed, small price instead of describing what
+    is hard about it. Naming the difficulty first is what plants it.
+
+    The price it names is "under a minute" rather than a figure, because the figure would
+    have to be right: the clip is as long as this narration takes to speak, so a spoken
+    duration is a claim about a number that this text is itself an input to. The exact
+    length is on the page beside the video, where it is measured rather than promised.
     """
     c = constants("explainer_console.py")
     return [
         Cue(
             "pass",
-            "The whole console, in thirty seconds. It starts with one recording from "
+            "The whole console, in under a minute. It starts with one recording from "
             "one volunteer, and the two words anyone wrote about it.",
         ),
         Cue(
@@ -290,7 +295,8 @@ def console_cues() -> list[Cue]:
             "check",
             "Everything else is proof. Evaluation holds the gates, including the ones "
             "that did not pass. Agent is the same evidence reached by a model. "
-            "Provenance says where every number came from.",
+            "Provenance says where every number came from, and precedent says what was "
+            "already known before this.",
         ),
         Cue(
             "close",

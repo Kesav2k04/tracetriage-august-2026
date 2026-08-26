@@ -1,6 +1,6 @@
 {
   "clip": "console",
-  "seconds": 43.75,
+  "seconds": 46.417,
   "sections": [
     {
       "key": "pass",
@@ -8,19 +8,19 @@
     },
     {
       "key": "measure",
-      "start": 8.5
+      "start": 8.217
     },
     {
       "key": "queue",
-      "start": 17.4
+      "start": 17.117
     },
     {
       "key": "check",
-      "start": 26.783
+      "start": 26.5
     },
     {
       "key": "close",
-      "start": 38.2
+      "start": 40.117
     }
   ]
 }
