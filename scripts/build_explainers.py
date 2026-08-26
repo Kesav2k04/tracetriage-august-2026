@@ -53,6 +53,15 @@ CLIPS = {
 #: where the whole map is on screen and every arrow has landed. A still of any earlier
 #: beat is a half-drawn diagram, which is a worse invitation than the finished one.
 POSTER_SECTION = {"corridor": "measure", "gate4": "result", "console": "close"}
+
+#: How far into that section the still is taken, as a fraction of the section. Three
+#: quarters is right for a card whose answer is drawn early and then held. It was wrong
+#: for the console, whose closing section spends 4.6 of its 6.0 seconds pulling the
+#: camera back and landing the receipt links and the closing line: at 0.75 the still
+#: came out 0.1s before the title arrived, so the poster was a diagram with a hole in
+#: the middle and no heading, which is the half-drawn frame the section above exists to
+#: avoid. Per clip, because "the answer has landed" is a fact about each animation.
+POSTER_AT = {"corridor": 0.75, "gate4": 0.75, "console": 0.95}
 RECEIPT = REPO / "artifacts" / "EXPLAINER_CLIPS.json"
 
 #: The page each clip is embedded in. Its copy states how long the clip runs, and a
@@ -192,7 +201,7 @@ def build(clip: str) -> None:
     fps = _rate(target)
     key = POSTER_SECTION[clip]
     held = next(row["seconds"] for row in rows if row["key"] == key)
-    poster_frame = int(round((starts[key] + held * 0.75) * fps))
+    poster_frame = int(round((starts[key] + held * POSTER_AT[clip]) * fps))
     _run(
         ["ffmpeg", "-y", "-v", "error", "-i", str(target),
          "-vf", f"select=eq(n\\,{poster_frame})", "-vsync", "0",

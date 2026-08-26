@@ -1,0 +1,46 @@
+{
+  "schema": "network_scale",
+  "schema_version": 1,
+  "what_this_is": "The size of the public network TraceTriage reads, taken from that network's own public API so a reader can fetch the same endpoints and get the same order of magnitude. It is context for the README's opening, not an input to any result: no gate, split, queue or interval in this repository is computed from these numbers, and nothing here is extrapolated from the 600-observation sample onto the network.",
+  "generated_by": "scripts/fetch_network_scale.py",
+  "fetched_at": "2026-08-27T02:06:46+05:30",
+  "method": "unauthenticated GET, no token, no writes, one request per endpoint",
+  "sources": {
+    "stations": "https://network.satnogs.org/api/stations/",
+    "satellites": "https://db.satnogs.org/api/satellites/",
+    "observations": "https://network.satnogs.org/api/observations/?page_size=1"
+  },
+  "human_pages": {
+    "stations": "https://network.satnogs.org/stations/",
+    "satellites": "https://db.satnogs.org/satellites/",
+    "observations": "https://network.satnogs.org/observations/"
+  },
+  "ground_stations": {
+    "registered": 4442,
+    "by_status": {
+      "Online": 332,
+      "Testing": 141,
+      "Offline": 3969
+    },
+    "distinct_maidenhead_fields": 124
+  },
+  "observations": {
+    "total": 14398156,
+    "how": "sum of the per-station observation count over every station; each observation belongs to exactly one station, so the sum is the network total",
+    "cross_check": {
+      "newest_observation_id": 14893498,
+      "why_it_differs": "ids are issued monotonically and never reused, so the newest id runs ahead of the surviving count by whatever has been deleted since",
+      "gap_percent": 3.33,
+      "gap_percent_allowed": 10.0
+    }
+  },
+  "satellites": {
+    "in_database": 2769,
+    "alive": 1693
+  },
+  "what_this_does_not_establish": [
+    "That the undecided rate measured on 600 sampled observations holds across all of them. It was measured on the sample and is reported on the sample.",
+    "That every registered station is listening. The online count is beside the registered count for exactly this reason.",
+    "Anything about how many people depend on the satellites in that list. The live count is a count of spacecraft, not of users."
+  ]
+}
