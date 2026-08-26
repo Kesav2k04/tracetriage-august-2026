@@ -7,9 +7,14 @@
 ### Which satellite passes are worth a reviewer's time.
 
 **In a 600-observation sample of the public SatNOGS network, 426 carried no decisive human
-verdict. Volunteers record radio signals from passing satellites far faster than anyone can
-check them. TraceTriage decides which recordings are worth opening first, and shows the
+verdict: more than two in three were kept and never judged. Volunteers record radio signals
+from passing satellites far faster than anyone can check them. TraceTriage decides which recordings are worth opening first, and shows the
 evidence behind every decision rather than asking anyone to trust a score.**
+
+**The budget that does not scale is a reviewer's attention.** On ground stations the model
+never saw, a reviewer who opens 50 of 217 observations in this order finds **27 actionable
+conflicts where random ordering expects about 12**: 2.253 times as many for the same fifty
+opens, interval [1.920, 3.859]. Same hours, same headcount, more found.
 
 Open a pass and you see the recording as an image, the curve its own orbit predicts drawn
 over it, how far the capture sat from that prediction in hertz, and why it ranks where it
