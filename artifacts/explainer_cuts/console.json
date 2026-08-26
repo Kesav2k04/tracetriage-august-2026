@@ -1,0 +1,26 @@
+{
+  "clip": "console",
+  "seconds": 43.75,
+  "sections": [
+    {
+      "key": "pass",
+      "start": 0.0
+    },
+    {
+      "key": "measure",
+      "start": 8.5
+    },
+    {
+      "key": "queue",
+      "start": 17.4
+    },
+    {
+      "key": "check",
+      "start": 26.783
+    },
+    {
+      "key": "close",
+      "start": 38.2
+    }
+  ]
+}

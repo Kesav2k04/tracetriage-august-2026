@@ -257,7 +257,51 @@ def gate4_cues() -> list[Cue]:
     ]
 
 
-CLIPS = {"corridor": corridor_cues, "gate4": gate4_cues}
+def console_cues() -> list[Cue]:
+    """The console map clip. It opens on the promise rather than on the problem.
+
+    A visitor landing on the start page has not decided to read anything yet, so the
+    first line offers the whole thing for thirty seconds instead of describing what is
+    hard about it. Naming the difficulty first is what plants it.
+    """
+    c = constants("explainer_console.py")
+    return [
+        Cue(
+            "pass",
+            "The whole console, in thirty seconds. It starts with one recording from "
+            "one volunteer, and the two words anyone wrote about it.",
+        ),
+        Cue(
+            "measure",
+            "So we measure it. The observation page draws the evidence for a single "
+            "pass. The live page does the same for any pass you name.",
+        ),
+        Cue(
+            "queue",
+            "Every pass is scored on what disagrees, and ",
+            ("RANKED", spell_integer(int(c["RANKED"]))),
+            " go in order, so the ",
+            ("BUDGET", spell_integer(int(c["BUDGET"]))),
+            " a reviewer can open are the ",
+            spell_integer(int(c["BUDGET"])),
+            " worth opening.",
+        ),
+        Cue(
+            "check",
+            "Everything else is proof. Evaluation holds the gates, including the ones "
+            "that did not pass. Agent is the same evidence reached by a model. "
+            "Provenance says where every number came from.",
+        ),
+        Cue(
+            "close",
+            "That is the map. ",
+            ("PAGES", spell_integer(int(c["PAGES"]))),
+            " pages, and every arrow ends at a receipt.",
+        ),
+    ]
+
+
+CLIPS = {"corridor": corridor_cues, "gate4": gate4_cues, "console": console_cues}
 
 
 def _sha256(path: Path) -> str:

@@ -38,14 +38,21 @@ CUTS = REPO / "artifacts" / "explainer_cuts"
 #: Manim writes here. The quality flag in the render command decides the subdirectory.
 MANIM_OUT = REPO / "media" / "videos"
 
-CLIPS = {"corridor": "CorridorExplainer", "gate4": "Gate4Explainer"}
+CLIPS = {
+    "corridor": "CorridorExplainer",
+    "gate4": "Gate4Explainer",
+    "console": "ConsoleExplainer",
+}
 
 #: The section whose card the poster is taken from: the one holding the answer, so
 #: the still a reader sees before pressing play is already the result rather than a
 #: title. The exact frame is written into the receipt, because `tests/
 #: test_clip_palette.py` compares the poster against that frame of the video and it
 #: has to read the number rather than hold a second copy of it.
-POSTER_SECTION = {"corridor": "measure", "gate4": "result"}
+#: The console clip has no single answer to hold, so its poster is the closing section,
+#: where the whole map is on screen and every arrow has landed. A still of any earlier
+#: beat is a half-drawn diagram, which is a worse invitation than the finished one.
+POSTER_SECTION = {"corridor": "measure", "gate4": "result", "console": "close"}
 RECEIPT = REPO / "artifacts" / "EXPLAINER_CLIPS.json"
 
 #: The page each clip is embedded in. Its copy states how long the clip runs, and a
@@ -55,6 +62,7 @@ RECEIPT = REPO / "artifacts" / "EXPLAINER_CLIPS.json"
 PAGES = {
     "corridor": REPO / "apps" / "web" / "app" / "page.tsx",
     "gate4": REPO / "apps" / "web" / "app" / "evaluation" / "page.tsx",
+    "console": REPO / "apps" / "web" / "app" / "start" / "page.tsx",
 }
 
 #: Speech only, so a low bitrate is transparent and the page pays almost nothing for it.

@@ -61,7 +61,11 @@ def _explainer_clips() -> list[tuple[str, str, dict]]:
     receipt = REPO / "artifacts" / "EXPLAINER_CLIPS.json"
     if not receipt.is_file():
         return []
-    scenes = {"corridor": "CorridorExplainer", "gate4": "Gate4Explainer"}
+    scenes = {
+        "corridor": "CorridorExplainer",
+        "gate4": "Gate4Explainer",
+        "console": "ConsoleExplainer",
+    }
     return [
         (entry["clip"].replace("gate4", "gate 4"), scenes[entry["clip"]], entry)
         for entry in json.loads(receipt.read_text(encoding="utf-8"))["clips"]
