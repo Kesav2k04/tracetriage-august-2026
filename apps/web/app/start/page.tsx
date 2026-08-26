@@ -141,6 +141,44 @@ export default function StartPage() {
         </p>
       </header>
 
+      {/* The page opened on a drawn figure, which is the right instinct for geometry and
+          the wrong one for a first impression: the strongest thing on this page is measured,
+          not illustrated. Two public recordings, identical in the two fields that would
+          record whether a station corrected for Doppler, whose signals are opposite shapes.
+          A reader who looks at nothing else here has seen the disagreement the queue ranks
+          on, and the drawn figure still follows to explain the geometry behind it. */}
+      <figure className="explainer">
+        {/* eslint-disable-next-line @next/next/no-img-element -- this console is a static
+            export with no image optimiser behind it, so next/image would emit a loader
+            that has nothing to call. The file is a pre-sized 215 KB webp for that reason. */}
+        <img
+          src="/doppler-contradiction.webp"
+          alt={
+            "Two public SatNOGS recordings side by side. In the left waterfall the signal " +
+            "holds a straight vertical line; in the right one it sweeps diagonally across " +
+            "the pass. Both records carry doppler-correction-per-sec null and rigctl-port 4532."
+          }
+          width={1400}
+          height={1356}
+          style={{ width: "100%", height: "auto", display: "block" }}
+        />
+        <figcaption>
+          Left, the station corrected for Doppler before it recorded, so the carrier holds a
+          straight line at 54.2 sigma against 7.3 for the predicted curve. Right, it did not,
+          so the energy follows that curve at 25.1 sigma against 2.8 for a line. Both records
+          carry <code>doppler-correction-per-sec: null</code> and{" "}
+          <code>rigctl-port: 4532</code>.{" "}
+          <strong style={{ color: "var(--text-01)" }}>
+            No field in the SatNOGS record separates them.
+          </strong>{" "}
+          Measured across 24 vetted observations, 7 of which carried signal strong enough to
+          decide. The overlays are in <code>artifacts/a3_overlays/</code> and every number
+          behind this figure is in <code>artifacts/a3_overlays/summary.json</code>. Type{" "}
+          <code>14740031</code> into the live page and the same physics measures the
+          right-hand pass again.
+        </figcaption>
+      </figure>
+
       {/* The visual anchor this page had none of. It draws the geometry the rest of the
           page argues from, and its caption says it is propagated rather than measured,
           because a figure that could be mistaken for evidence on a page of evidence is

@@ -42,6 +42,27 @@ from the public SatNOGS API.
 
 ---
 
+## Thirty seconds
+
+![Two public SatNOGS recordings side by side. In the left waterfall the signal holds a
+straight vertical line; in the right one it sweeps diagonally across the pass. Both records
+carry doppler-correction-per-sec null and rigctl-port 4532.](docs/doppler-contradiction.png)
+
+Left, the signal holds a straight line, because that ground station corrected for Doppler
+before it recorded. Right, it sweeps about 17 kHz across the pass, because that one did not.
+Both records carry `doppler-correction-per-sec: null` and `rigctl-port: 4532`. **No field in
+the SatNOGS record separates them.** This project measured that across 24 vetted
+observations, 7 of which carried signal strong enough to decide
+([`docs/DOPPLER_CORRECTION_FINDING.md`](docs/DOPPLER_CORRECTION_FINDING.md), overlays in
+[`artifacts/a3_overlays/`](artifacts/a3_overlays/)).
+
+That disagreement is what TraceTriage ranks on. Where the image, the orbit and the network
+label do not agree, a reviewer learns something by opening it. Type `14740031` into
+[the live page](https://tracetriage.vercel.app/live/) and the same physics measures the
+right-hand pass again, in about twenty seconds, on the deployed site.
+
+---
+
 ## Judge quick access
 
 No account, no keys, nothing to install for any row in this table.
