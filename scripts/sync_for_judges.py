@@ -1147,7 +1147,7 @@ _BUILD_LOG_UNIT_RE = re.compile(
 #: account", "operator", or a review wave. The distinction is the
 #: whole point of the field, and collapsing it would credit Bob with diffs it did not
 #: author.
-_BOB_ACCOUNT_RE = re.compile(r"^account\s+\d+$", re.I)
+_BOB_ACCOUNT_RE = re.compile(r"^(?:account\s+\d+|bob account)$", re.I)
 
 
 #: The two build logs, in the order the work ran. Split by actor on 2026-08-23, when the

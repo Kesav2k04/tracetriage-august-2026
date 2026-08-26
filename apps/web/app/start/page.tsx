@@ -429,7 +429,7 @@ export default function StartPage() {
         <Table
           head={["Wave", "Units", "Bob task IDs"]}
           headAlign={["left", "right", "left"]}
-          caption="Every id below is a real task in the Bob account that built that wave."
+          caption="Every id is a real Bob task. Multiple Bob accounts were used across the build."
         >
           {bobWaves.map((wave) => (
             <tr key={wave}>

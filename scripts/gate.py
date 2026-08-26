@@ -98,7 +98,7 @@ _UNIT_HEADING = re.compile(
     r"(?:\d{4}-\d{2}-\d{2}|\d{1,2}\s+\w{3,9}\s+\d{4})"
     r"\s+IST\s*\|\s*(?P<actor>[^|]+?)\s*\|\s*(?P<unit>[A-Za-z]+\d[\w.-]*)"
 )
-_BOB_ACCOUNT = re.compile(r"^account\s+\d+$", re.I)
+_BOB_ACCOUNT = re.compile(r"^(?:account\s+\d+|bob account)$", re.I)
 
 
 def _bob_task_ids_stated(log: Path) -> tuple[bool, str]:

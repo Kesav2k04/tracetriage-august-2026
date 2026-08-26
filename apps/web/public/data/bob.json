@@ -3,7 +3,7 @@
  "schema_version": "0.1.0",
  "source": "docs/BOB_BUILD_LOG.md",
  "generated_by": "scripts/export_bob_units.py",
- "n_bob_units": 11,
+ "n_bob_units": 13,
  "units": [
   {
    "unit": "A7",
@@ -187,6 +187,35 @@
    ],
    "files_not_published": [],
    "what_failed": "list(set(episode_of.values())) was non-deterministic (Python set iteration order is not guaranteed)."
+  },
+  {
+   "unit": "D0",
+   "date": "2026-08-19",
+   "subject": "Engineering audit blocking fixes",
+   "bob_task_id": "ab060d2bc716584813ca5307b447442d",
+   "files": [
+    "pipeline/tracetriage/splits.py",
+    "scripts/build_console_data.py",
+    "scripts/build_splits.py",
+    "apps/web/app/observation/[id]/page.tsx",
+    "apps/web/components/PassTimeSeries.tsx",
+    "tests/test_console_export.py",
+    "tests/test_split_guarantees.py"
+   ],
+   "files_not_published": [],
+   "what_failed": "ENG-B1 reproduced first: 320 of 407 queue entries had no corridor row, starting at rank 61 on observation 14732116."
+  },
+  {
+   "unit": "E1",
+   "date": "2026-08-19",
+   "subject": "Space and physics audit fixes",
+   "bob_task_id": "942e6e38cd0b886021fd98f6d0799f8e",
+   "files": [
+    "pipeline/tracetriage/physics.py",
+    "tests/test_physics.py"
+   ],
+   "files_not_published": [],
+   "what_failed": "SPACE-B1 was an inverted guard, so an unparseable TLE epoch propagated instead of returning UNPARSEABLE_TLE_EPOCH."
   }
  ]
 }

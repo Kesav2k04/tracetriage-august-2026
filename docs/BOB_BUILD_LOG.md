@@ -2385,3 +2385,58 @@ Seven BLOCKING and twenty SERIOUS remain across both reviews.
 | Tests added | 3 |
 | Front-page numbers that were prose and are now generated | 4 |
 | Findings the two reviews between them did not contain | 2 |
+
+---
+
+### 2026-08-19 IST | Bob account | D0: Engineering audit blocking fixes
+
+**Task given:** close the blocking findings from the engineering review: ENG-B1, ENG-B2 and
+ENG-B3.
+
+**Files changed:**
+
+- `pipeline/tracetriage/splits.py`
+- `scripts/build_console_data.py`
+- `scripts/build_splits.py`
+- `apps/web/app/observation/[id]/page.tsx`
+- `apps/web/components/PassTimeSeries.tsx`
+- `tests/test_console_export.py`
+- `tests/test_split_guarantees.py`
+
+**Failures and repairs:** ENG-B1 reproduced first: 320 of 407 queue entries had no corridor
+row, starting at rank 61 on observation 14732116. Under the old `or 0.0` path such a card
+carried `fitted_offset_hz: 0.0` with `fitted_px == predicted_px`, so an absent measurement
+read as a measured zero.
+
+**Tests added:** 39. Suite 784 passed, 1 xfailed, up from 745 collected.
+
+**Bob task ID:** `ab060d2bc716584813ca5307b447442d`
+
+**Commit:** `6052bad`
+
+**Outcome:** partial. Three blocking findings closed with tests. The two physics blocking
+findings were left open and are closed at E1 below.
+
+---
+
+### 2026-08-19 IST | Bob account | E1: Space and physics audit fixes
+
+**Task given:** close the two physics blocking findings, SPACE-B1 and SPACE-B2.
+
+**Files changed:**
+
+- `pipeline/tracetriage/physics.py`
+- `tests/test_physics.py`
+
+**Failures and repairs:** SPACE-B1 was an inverted guard, so an unparseable TLE epoch
+propagated instead of returning `UNPARSEABLE_TLE_EPOCH`. SPACE-B2 dropped SGP4 errors
+silently; `n_sgp4_errors` and `n_samples_propagated` are now carried on `PhysicsResult`, so
+a partial propagation states how partial it was.
+
+**Tests added:** 8. Suite 806 passed, 1 xfailed, none failed. Lint clean. Gate 8/8.
+
+**Bob task ID:** `942e6e38cd0b886021fd98f6d0799f8e`
+
+**Commit:** `c7e4ebc`
+
+**Outcome:** accepted.
