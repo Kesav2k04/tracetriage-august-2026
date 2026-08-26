@@ -47,6 +47,17 @@ artifacts/**/*
 !artifacts/**/*.md
 !artifacts/a3_overlays/*.png
 
+# The two explainer-clip receipts, back out again. They are production detail: the
+# spoken script for the console's two video explainers, line by line, and the record of
+# what a second model heard when it transcribed the rendered audio back. A judge has
+# minutes, and a narration script is not what they are for. The narration receipt also
+# names the digest of a private voice recording, which stays unpublished for its own
+# reason. Written after the `.json` re-include above and it wins because it comes last.
+# What the site serves is untouched: the two .mp4 clips, their posters and their .vtt
+# captions under apps/web/public/media are committed and must stay that way.
+artifacts/EXPLAINER_NARRATION.json
+artifacts/EXPLAINER_CLIPS.json
+
 # Reviewer annotations are private local notes and are never committed. They are
 # already excluded by the catch-all above, but only incidentally, and a future
 # re-include written for some other .jsonl would start committing them silently.

@@ -4,6 +4,8 @@
      Do not edit by hand: scripts/gate.py and the CI offline-replay job both run this
      script with --check, and both fail if this file and the receipts disagree. -->
 
+Submitted by Kesav Kumar Jayakumar <kesavk659@gmail.com>.
+
 TraceTriage ranks SatNOGS satellite radio observations by how much a human reviewer would
 learn from opening each one, and it writes the reviewer's first sentence with a local IBM
 Granite model whose draft is thrown away unless every number in it traces back to that
@@ -98,7 +100,7 @@ it, and that is a limit of the guard rather than a claim about them.
 | Selected challenge theme | Space exploration. `README.md` states it, and `artifacts/DATASET_MANIFEST.json` records the snapshot it was built from |
 | How IBM Bob was used | `docs/BOB_BUILD_LOG.md`, one entry per unit, and `.bob/TOOL_SPECS.md` for the tool contracts each task ran under |
 | Working prototype | The static console under `apps/web`, deployed from this repository |
-| Demo or presentation video | `docs/DEMO_SCRIPT.md` is the shot list for the recorded walkthrough, generated from the receipts so no spoken number can drift from what the console shows. The console carries two short explainer clips of its own, one on the landing page and one on `/evaluation`, and every figure either of them states is read from a receipt key path by the scene file that draws it rather than typed. Both are spoken, and a spoken figure is one a viewer cannot check against the frame it is on, so a second model transcribes the rendered audio back without seeing the script and each figure is looked for in what it heard. `artifacts/EXPLAINER_CLIPS.json` records the clips and their captions and `artifacts/EXPLAINER_NARRATION.json` records what was said against what was heard; `scripts/build_explainers.py --check` and `scripts/render_explainer_narration.py --check` are both standing gates |
+| Demo or presentation video | Published on the challenge submission page, not in this repository |
 | Public repository | This one |
 
 ## The stack, and what each piece is measured doing

@@ -130,18 +130,6 @@
    "rewritten_after_this_payload": false
   },
   {
-   "name": "EXPLAINER_CLIPS.json",
-   "sha256": "93894cd4dddd73eff5e7962df62a02677e00f1c6398138d94210f852ed393de9",
-   "bytes": 984,
-   "rewritten_after_this_payload": false
-  },
-  {
-   "name": "EXPLAINER_NARRATION.json",
-   "sha256": "7426a0e2187c710de3c55dee1a83341f39258ef9d34fe32c0f89648bb8042319",
-   "bytes": 10836,
-   "rewritten_after_this_payload": false
-  },
-  {
    "name": "EXPLAIN_RECEIPT.json",
    "sha256": "49f9a2f902c2b1fb3b28d26bfdcc069839447bc11d09bd04dbda1918517e792c",
    "bytes": 24954,

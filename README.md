@@ -72,23 +72,23 @@ The five sections the submission asks for: [Problem statement](#problem-statemen
 | | |
 | --- | --- |
 | [`pipeline/tracetriage/`](pipeline/tracetriage) | 31 files. The measurement path: corridor fit, queue, baselines, grounding |
-| [`scripts/`](scripts) | 73 files. One runnable step each, and the gate that ties them together |
+| [`scripts/`](scripts) | 72 files. One runnable step each, and the gate that ties them together |
 | [`api/`](api) | 4 files. The two Python functions the live measurement runs on |
 
 **What the numbers rest on**
 
 | | |
 | --- | --- |
-| [`artifacts/`](artifacts) | 70 files. The receipts every published figure is read out of |
-| [`docs/`](docs) | 19 files. Pre-registrations, the kill-gate log, and the build log |
-| [`tests/`](tests) | 94 files. The offline suite, including the checks that read the receipts back |
+| [`artifacts/`](artifacts) | 68 files. The receipts every published figure is read out of |
+| [`docs/`](docs) | 18 files. Pre-registrations, the kill-gate log, and the build log |
+| [`tests/`](tests) | 93 files. The offline suite, including the checks that read the receipts back |
 | [`contracts/`](contracts) | 8 files. JSON Schemas the data plane is validated against |
 
 **What you can open**
 
 | | |
 | --- | --- |
-| [`apps/web/`](apps/web) | 157 files. The console, Next.js, statically exported to Vercel |
+| [`apps/web/`](apps/web) | 158 files. The console, Next.js, statically exported to Vercel |
 | [`mobile/`](mobile) | 17 files. The Expo client |
 | [`flows/`](flows) | 2 files. LangFlow graphs, committed as files LangFlow wrote and can re-import |
 

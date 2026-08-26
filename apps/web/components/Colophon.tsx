@@ -106,6 +106,12 @@ export default function Colophon({
                 CC BY-SA 4.0
               </a>
             </p>
+            {/* The author, last so the two lines above keep saying whose data this
+                is before this one says who built the thing that reads it. The name
+                was in the repository URL and nowhere a reader could see it, which
+                is a byline only for someone who hovers a link. No class: the
+                surrounding `.colophon p` rule is the style it should have. */}
+            <p>Built by Kesav Kumar Jayakumar.</p>
           </section>
         </div>
 

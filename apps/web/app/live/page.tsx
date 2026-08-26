@@ -26,7 +26,7 @@
 import type { Metadata } from "next";
 
 import LiveConsole from "@/components/LiveConsole";
-import OrbitField from "@/components/OrbitField";
+import LivePassMeasurement from "@/components/LivePassMeasurement";
 import shelfJson from "@/public/data/live_shelf.json";
 
 export const metadata: Metadata = {
@@ -75,15 +75,24 @@ export default function LivePage() {
         </p>
       </header>
 
-      {/* The anchor this page had none of, and the one page on the console where the
-          figure is the subject rather than an illustration of it: everything the
-          endpoint below does to an observation id, it does to a pass, and this is a
-          pass. Propagated rather than measured, which the caption says, because a
-          drawing that could be mistaken for the live result would undo the whole
+      {/* The one page on the console where the figure is the subject rather than an
+          illustration of it, and it took two attempts to get there.
+
+          It opened with the orbital chart the start page opens with: the same
+          component, the same default orbit, identical pixels, only the caption
+          differed. A reader arriving here from that page was shown the drawing they
+          had already read, on the page whose whole claim is that something is
+          happening that has not happened before.
+
+          What replaced it is not a nicer drawing of an orbit. It is the product: a
+          real observation, its predicted corridor laid down before any data arrives,
+          the record filling behind a scan head, and the fit closing the gap between
+          the two. Every figure on this console reports a measurement; this one
+          performs it, on numbers read out of that observation's own record. What is
+          measured and what is drawn are named separately in the caption, because a
+          schematic that could be mistaken for the live result below would undo the
           distinction this page is built on. */}
-      <OrbitField
-        label="What the endpoint is looking at: one pass over one station, propagated from a 550 km circular orbit at 97.6 degrees. The upper panel is elevation above the horizon; the lower one is the Doppler shift that pass's range rate implies at 437 MHz, which is the corridor the measurement below fits an offset to. Propagated for this figure and not measured: every number this console publishes comes from a receipt."
-      />
+      <LivePassMeasurement />
 
       <LiveConsole
         shelf={shelf.observations}

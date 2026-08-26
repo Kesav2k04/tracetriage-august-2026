@@ -36,6 +36,7 @@ import datetime
 import hashlib
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -1411,7 +1412,49 @@ def main(argv: list[str] | None = None) -> int:
     # Keyed on the POSIX string: sorting Path objects is case-insensitive on Windows and
     # case-sensitive on POSIX, and this list is written into the committed provenance.json,
     # so without the key the file's row order depended on which machine built it.
-    receipts = sorted(_ARTIFACTS.glob("*.json"), key=lambda p: p.as_posix())
+    #
+    # Tracked receipts only, and git decides which those are.
+    #
+    # The glob that used to be here described this working directory. The console publishes
+    # a digest per row and `tests/test_published_digests.py` re-hashes every unmarked one
+    # against `artifacts/`, so a receipt that exists here and is not published put a row in
+    # the payload that no clone could satisfy: the test's own words for it are "published
+    # but absent from artifacts/", and it is a FAIL rather than a skip. On this machine
+    # every file was present and every gate was green, which is the whole shape of the
+    # defect. `scripts/sync_docs.py` fixed the same bug one document over and its reasoning
+    # applies unchanged: a page describes what a judge gets, and a judge gets the tracked
+    # tree. Git being unavailable is a named failure here rather than a fallback to the
+    # working tree, because the fallback is exactly the defect.
+    _listing = subprocess.run(
+        ["git", "ls-files", "artifacts"],
+        cwd=str(_REPO),
+        capture_output=True,
+        text=True,
+    )
+    if _listing.returncode != 0:
+        raise SystemExit(
+            "git ls-files failed, so this cannot tell a published receipt from a local "
+            "one. It refuses rather than listing the working directory, because a "
+            "payload naming receipts a clone does not have publishes a digest nobody "
+            "can check."
+        )
+    # Top level only, matched on the path rather than by a pathspec: a git pathspec's `*`
+    # crosses a directory separator, so `artifacts/*.json` also returns the cut manifests
+    # under `artifacts/explainer_cuts/`, which are not receipts and have never been listed.
+    _published_receipts = {
+        rel.rsplit("/", 1)[-1]
+        for rel in (line.strip() for line in _listing.stdout.splitlines())
+        if rel.count("/") == 1 and rel.endswith(".json")
+    }
+    receipts = sorted(
+        (p for p in _ARTIFACTS.glob("*.json") if p.name in _published_receipts),
+        key=lambda p: p.as_posix(),
+    )
+    if not receipts:
+        raise SystemExit(
+            "no tracked receipt was found under artifacts/. The payload would publish an "
+            "empty provenance table, which reads as a console with no evidence behind it."
+        )
     (data_dir / "provenance.json").write_text(
         json.dumps(
             {

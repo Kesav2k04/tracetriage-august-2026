@@ -320,28 +320,57 @@ def main() -> int:
     # against the frame it is on. So both are held to the same standard as a drawn one:
     # every number in the track is read from the scene file that draws it, and a second
     # model transcribed the audio without seeing the script. This re-reads that receipt.
-    rc, out = run(
-        [str(PY), str(REPO / "scripts" / "render_explainer_narration.py"), "--check"]
+    #
+    # Both of the rows below became third outcomes when the two clip receipts stopped
+    # being published. `artifacts/EXPLAINER_NARRATION.json` and `artifacts/EXPLAINER_CLIPS.json`
+    # are the spoken script and the transcription record, and they are production detail
+    # that the repository deliberately no longer carries. The .mp4 clips, their posters and
+    # their .vtt captions are still committed and still served, so the checks are worth
+    # running wherever the receipts happen to exist; what changed is that a clone does not
+    # have them, and a FAIL there would report a regression against a file the repository
+    # never promised. Existence is tested here rather than a printed message, because a
+    # message is a string two files have to keep agreeing about.
+    _clip_receipts = {
+        "artifacts/EXPLAINER_NARRATION.json": REPO / "artifacts" / "EXPLAINER_NARRATION.json",
+        "artifacts/EXPLAINER_CLIPS.json": REPO / "artifacts" / "EXPLAINER_CLIPS.json",
+    }
+    _clips_absent = sorted(rel for rel, path in _clip_receipts.items() if not path.is_file())
+    _clips_reason = (
+        f"{' and '.join(_clips_absent)} is not published by this repository, so there is "
+        "no recorded narration to re-read here."
+        if len(_clips_absent) == 1
+        else f"{' and '.join(_clips_absent)} are not published by this repository, so "
+        "there is no recorded narration to re-read here."
     )
-    results.append(
-        check(
-            "every figure spoken in the explainer clips was heard in it",
-            rc == 0,
-            "" if rc == 0 else out.strip().splitlines()[0][:70],
+
+    if _clips_absent:
+        omit(omitted, "every figure spoken in the explainer clips was heard in it", _clips_reason)
+    else:
+        rc, out = run(
+            [str(PY), str(REPO / "scripts" / "render_explainer_narration.py"), "--check"]
         )
-    )
+        results.append(
+            check(
+                "every figure spoken in the explainer clips was heard in it",
+                rc == 0,
+                "" if rc == 0 else out.strip().splitlines()[0][:70],
+            )
+        )
 
     # And the clips themselves: that the track is on the file a reader gets, that the
     # captions carry the same lines, that the index is at the front so a browser can
     # start, and that the page still states the length the file actually runs for.
-    rc, out = run([str(PY), str(REPO / "scripts" / "build_explainers.py"), "--check"])
-    results.append(
-        check(
-            "the explainer clips carry their narration and captions",
-            rc == 0,
-            "" if rc == 0 else out.strip().splitlines()[0][:70],
+    if _clips_absent:
+        omit(omitted, "the explainer clips carry their narration and captions", _clips_reason)
+    else:
+        rc, out = run([str(PY), str(REPO / "scripts" / "build_explainers.py"), "--check"])
+        results.append(
+            check(
+                "the explainer clips carry their narration and captions",
+                rc == 0,
+                "" if rc == 0 else out.strip().splitlines()[0][:70],
+            )
         )
-    )
 
     # The README's file tree is generated from `git ls-files`, so it describes what a
     # clone receives rather than what this working directory holds. It is checked here
@@ -415,17 +444,6 @@ def main() -> int:
     results.append(
         check(
             "architecture diagram matches the pipeline",
-            rc == 0,
-            "" if rc == 0 else out.strip().splitlines()[0][:70],
-        )
-    )
-
-    # The shot list quotes measured numbers into a public, unversioned video. It is the one
-    # document here where a stale figure cannot be corrected after submission.
-    rc, out = run([str(PY), str(REPO / "scripts" / "sync_demo.py"), "--check"])
-    results.append(
-        check(
-            "demo script matches the receipts",
             rc == 0,
             "" if rc == 0 else out.strip().splitlines()[0][:70],
         )

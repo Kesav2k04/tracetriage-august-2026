@@ -548,9 +548,11 @@ export default function QueuePage() {
               reader asks for it, and a poster drawn from the frame the measurement is
               on screen rather than a title card. No autoplay: the clip is spoken, and a
               page that starts talking on load takes the decision away from the reader.
-              `scripts/build_explainers.py` writes the poster, the captions and the
-              length in `artifacts/EXPLAINER_CLIPS.json`, and its --check fails if the
-              number stated here stops matching the file. */}
+              `scripts/build_explainers.py` writes the poster and the captions, and
+              its --check fails if the number stated here stops matching the file. The
+              receipt it records the length in is a local artifact rather than a
+              published one, so the --check is a standing gate wherever that receipt
+              exists and an omitted row in a clone that does not carry it. */}
           {/* An accessible name, because the element had none. `audit/a11y-probe.js`
               reported the landing page's video as the one unlabelled media element on
               the console: the fallback paragraph inside it describes the content, but
@@ -597,7 +599,7 @@ export default function QueuePage() {
             pixel image is visible at all, and the video says so on screen. Every figure
             spoken in it is read out of the scene that draws it, and a second model
             transcribed the track without seeing the script to check it was said:{" "}
-            <code>artifacts/EXPLAINER_NARRATION.json</code>. This clip shows what the
+            <code>scripts/render_explainer_narration.py</code>. This clip shows what the
             measurement is and not that it is significant, and on this observation it is
             not: the matched filter reaches 0.396 sigma against the curved corridor and
             0.352 against a vertical line, so the fit is the best of 408 offsets on an

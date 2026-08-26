@@ -3683,6 +3683,115 @@ section[id] {
   fill: var(--text-03);
 }
 
+/* The live pass measurement, on /live and nowhere else.
+   `components/LivePassMeasurement.tsx` draws it, and everything that moves is
+   generated there, because all ten schedules are derived from one observation's own
+   time samples and a duration hand-written in this file could drift from the geometry
+   it is meant to follow.
+
+   It exists because /live opened with the orbital chart /start opens with: same
+   component, same default orbit, identical pixels, different caption. A page whose
+   claim is that a pass can be measured while you watch cannot open on a drawing the
+   reader has already been shown, and it should not settle for a figure about orbits
+   when the thing it is selling is a measurement.
+
+   Everything below is furniture, and it is the console's own: a figure that brought
+   its own typography reads as a picture of a chart pasted into the page. The colour is
+   the live cyan rather than the gold accent, deliberately. Gold is ordinal on this
+   console and would say this reading is larger than another; white belongs to the
+   fitted corridor over a real plate and would say this schematic is that. Cyan is the
+   token that means "measured just now", which is the page's whole subject. */
+.pass-field {
+  position: relative;
+  /* This sits directly above the console's first panel, which carries no top margin
+     of its own, so without this the caption butts into the panel edge. */
+  margin: 0 0 var(--sp-07);
+}
+
+.pass-scroll {
+  overflow-x: auto;
+}
+
+.pass-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--ui-background);
+  border: 1px solid var(--border-subtle);
+}
+
+.pass-axis {
+  font-family: var(--font-label);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  fill: var(--text-03);
+}
+
+.pass-tick {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-03);
+}
+
+/* The readouts. Tabular, because these are numbers that change in place and a digit
+   set whose glyphs differ in width is a readout that appears to twitch. */
+.pass-read {
+  font-family: var(--font-mono);
+  font-size: 23px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  fill: var(--live-01);
+}
+
+.pass-mid {
+  text-anchor: middle;
+}
+
+.pass-end {
+  text-anchor: end;
+}
+
+.pass-field figcaption {
+  margin-top: var(--sp-04);
+  font-size: var(--type-caption);
+  color: var(--text-03);
+  line-height: 1.7;
+  max-width: 68ch;
+}
+
+/* Nothing to scroll at this width, so no focus ring either: the tab stop is the price
+   of the narrow case and there is no reason to charge a desktop reader for it. */
+@media (min-width: 60rem) {
+  .pass-scroll:focus-visible {
+    outline: none;
+  }
+}
+
+/* Below the split the frame stops shrinking and the instrument scrolls instead.
+
+   After the rules it overrides, and that order is the whole rule. A media query adds
+   no specificity, so written above them this block sets a size and the base rules set
+   it straight back: the frame scrolls, the labels stay unreadable, and the stylesheet
+   looks like it handles the narrow case. The orbital figure above still carries that
+   defect at its own breakpoint. */
+@media (max-width: 59.99rem) {
+  .pass-svg {
+    min-width: 54rem;
+  }
+
+  .pass-axis,
+  .pass-tick {
+    font-size: 19px;
+  }
+
+  .pass-read {
+    font-size: 27px;
+  }
+}
+
 /* ===========================================================================
  * The chart primitives.
  *

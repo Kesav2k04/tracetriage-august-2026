@@ -1,7 +1,10 @@
 """The console publishes a sha256 for every receipt, and now something checks them.
 
-`apps/web/public/data/provenance.json` lists 41 receipts with a digest each, and
-`/provenance` renders the table. Nothing compared a published digest against the file it
+`apps/web/public/data/provenance.json` carries a digest for every receipt this repository
+publishes, and `/provenance` renders the table. The count used to be written here as 41 and
+is not any more: it moves whenever a receipt is added or stops being committed, and a
+number in a docstring is the one place nothing re-derives it.
+Nothing compared a published digest against the file it
 names, so a receipt regenerated after the console build kept its old digest on a public
 page. Four were in exactly that state when this test was written: the three the release
 audit rewrites and the sign-off's own receipt.
@@ -18,6 +21,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -101,12 +105,44 @@ def test_the_marked_rows_still_name_a_file_that_exists(published: list[dict]) ->
         assert row["bytes"] > 0, row["name"]
 
 
-def test_the_payload_lists_every_receipt_on_disk(published: list[dict]) -> None:
-    """A receipt with no published digest is a receipt a reader cannot check at all."""
-    on_disk = {p.name for p in ARTIFACTS.glob("*.json")}
+def test_the_payload_lists_every_receipt_this_repository_publishes(
+    published: list[dict],
+) -> None:
+    """A receipt with no published digest is a receipt a reader cannot check at all.
+
+    Tracked, not on disk. This asked git for the working directory's `artifacts/*.json`
+    until two of them stopped being committed, and the two readings had been the same set
+    for so long that the difference was invisible. They are not the same claim. A row in
+    this payload is an invitation to hash a file, so listing a receipt a clone does not
+    receive publishes a digest nobody but this machine can check, and the sibling test
+    above turns exactly that into "published but absent from artifacts/". Reading git here
+    matches `scripts/build_console_data.py`, which builds the list the same way and for the
+    same reason.
+    """
+    listing = subprocess.run(
+        ["git", "ls-files", "artifacts"],
+        cwd=str(REPO),
+        capture_output=True,
+        text=True,
+    )
+    assert listing.returncode == 0, (
+        "git ls-files failed, so this cannot tell a published receipt from a local one. "
+        "It fails rather than falling back to the working directory, because the fallback "
+        "is the thing being tested."
+    )
+    # Top level only, matched on the path rather than by a pathspec. A git pathspec's `*`
+    # crosses a directory separator, so `artifacts/*.json` also returns the four cut
+    # manifests under `artifacts/explainer_cuts/`, which the payload has never listed and
+    # should not.
+    tracked = {
+        rel.rsplit("/", 1)[-1]
+        for rel in (line.strip() for line in listing.stdout.splitlines())
+        if rel.count("/") == 1 and rel.endswith(".json")
+    }
+    assert len(tracked) >= 30, f"git listed {len(tracked)} receipts, so the pathspec broke"
     listed = {r["name"] for r in published}
-    assert on_disk == listed, (
-        f"unlisted: {sorted(on_disk - listed)}, phantom: {sorted(listed - on_disk)}"
+    assert tracked == listed, (
+        f"unlisted: {sorted(tracked - listed)}, phantom: {sorted(listed - tracked)}"
     )
 
 

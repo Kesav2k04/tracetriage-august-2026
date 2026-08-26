@@ -1212,7 +1212,7 @@ export default function EvaluationPage() {
             the receipt ever disagree. The spoken track is read from the same constants
             the scene draws, and a second model transcribed it without seeing the script
             to check every figure was said:{" "}
-            <code>artifacts/EXPLAINER_NARRATION.json</code>.
+            <code>scripts/render_explainer_narration.py</code>.
             {/* The closing frame of the clip draws the qualifier and the spoken track
                 does not, so a reader who takes the captions as a transcript, watches
                 muted, or hears it through a screen reader gets "the gate is passed and
