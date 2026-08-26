@@ -422,7 +422,9 @@ def main(argv: list[str] | None = None) -> int:
 
     receipt = render(args.reference)
     RECEIPT.parent.mkdir(parents=True, exist_ok=True)
-    RECEIPT.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+    RECEIPT.write_text(
+        json.dumps(receipt, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
     total = receipt["totals"]
     print(
         f"\n{total['sections']} sections, {total['spoken_seconds']:.1f}s of speech, "

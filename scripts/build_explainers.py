@@ -137,7 +137,12 @@ def write_captions(clip: str, rows: list[tuple[str, float, float]]) -> Path:
     body = ["WEBVTT", ""]
     for text, start, end in rows:
         body += [f"{timestamp(start)} --> {timestamp(end)}", text, ""]
-    out.write_text("\n".join(body), encoding="utf-8")
+    # newline="\n" is load-bearing rather than style. .gitattributes pins eol=lf, and
+    # this file's bytes are hashed into the digest table docs/REFERENCE.md publishes.
+    # Left to the platform default a Windows rebuild writes CRLF, the receipt records
+    # the CRLF digest and git commits the LF one, so the published hash is one no clone
+    # can reproduce. build_console_data.py passes it on every write for the same reason.
+    out.write_text("\n".join(body), encoding="utf-8", newline="\n")
     return out
 
 
@@ -284,6 +289,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     print(f"wrote {RECEIPT.relative_to(REPO)}")
     return 0

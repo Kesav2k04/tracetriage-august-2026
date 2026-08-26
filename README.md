@@ -81,7 +81,7 @@ The five sections the submission asks for: [Problem statement](#problem-statemen
 | --- | --- |
 | [`artifacts/`](artifacts) | 70 files. The receipts every published figure is read out of |
 | [`docs/`](docs) | 19 files. Pre-registrations, the kill-gate log, and the build log |
-| [`tests/`](tests) | 93 files. The offline suite, including the checks that read the receipts back |
+| [`tests/`](tests) | 94 files. The offline suite, including the checks that read the receipts back |
 | [`contracts/`](contracts) | 8 files. JSON Schemas the data plane is validated against |
 
 **What you can open**

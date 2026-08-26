@@ -83,7 +83,11 @@ class NarratedScene(Scene):
             "seconds": round(self.renderer.time, 3),
             "sections": self._cuts,
         }
-        out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        out.write_text(
+            json.dumps(payload, indent=2) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
 
     def hold(self, floor: float) -> None:
         """Wait out the rest of this section's line, or the floor, whichever is longer."""
