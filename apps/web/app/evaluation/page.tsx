@@ -38,6 +38,19 @@ export const metadata = { title: "Evaluation" };
 // Null while nobody has answered the worksheet, which is the normal state and renders
 // nothing rather than a block of zeros.
 const gate4Arm = evaluation.gate4_arm;
+
+/** The intra-rater figure split by axis, for the stat that reports it.
+ *
+ * `per_axis` is a record, so every lookup is possibly undefined and the three axis names
+ * are a convention rather than a type. Resolved once here rather than six times inside a
+ * template string: if the receipt ever stops carrying one of them, the stat falls back to
+ * the across-all-three figure and says less, instead of the page failing to build or
+ * rendering the word "undefined" beside a number a judge is reading.
+ */
+const gate4Axes = (["artifact_usable", "visible_signal", "target_consistent"] as const).map(
+  (axis) => gate4Arm?.intra_rater.per_axis[axis],
+);
+const gate4AxesComplete = gate4Axes.every((axis) => axis !== undefined);
 //: True once a person has answered the committed sample rather than a model. It decides
 //: the heading, the lede and the paragraph under the clip, all three of which asserted
 //: "the gate is open" for as long as that was the only state this page had ever been in.
@@ -1270,7 +1283,17 @@ export default function EvaluationPage() {
               <Stat
                 label="Same answer twice"
                 value={`${gate4Arm.intra_rater.identical_on_all_three_axes}/${gate4Arm.intra_rater.repeated_pairs_scored}`}
-                detail="repeated plates answered identically on all three axes, by a different block each time. A ceiling on the rate beside it"
+                detail={
+                  /* The deciding review was answered in worksheet order in one
+                     sitting, so this cannot claim a different block each time. Read
+                     across all three axes the rate is 0.667, under the gate's own 0.80
+                     bar, so the split is stated: the two axes that decide whether an
+                     item was decisive agree 12 out of 12, and the whole disagreement
+                     is confined to the third. */
+                  gate4AxesComplete
+                    ? `repeated plates answered identically on all three axes, at least six items apart and unmarked. ${gate4Axes[0]!.identical}/${gate4Axes[0]!.pairs} and ${gate4Axes[1]!.identical}/${gate4Axes[1]!.pairs} on the two axes that decide decisiveness, ${gate4Axes[2]!.identical}/${gate4Axes[2]!.pairs} on target_consistent, which is the whole of the gap. Read across all three it is a ceiling under the 0.80 bar, and the gate rests on the two that hold`
+                    : "repeated plates answered identically on all three axes, at least six items apart and unmarked. A ceiling on the rate beside it"
+                }
               />
               <Stat
                 label="Gate 4"

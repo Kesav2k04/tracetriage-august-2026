@@ -410,6 +410,18 @@ def main() -> int:
             ),
             "discriminating_rate": receipt["discriminating_rate"],
             "rate_lower_bound_95": receipt["rate_lower_bound_95"],
+            # The grouped reading, which is the one that decides the gate. The
+            # pre-registration groups by station and date, so the observation-level
+            # bound alone cannot explain PASSED_UNGROUPED_ONLY. Both readings are
+            # exported so the page can state the gate's actual reason.
+            "groups_scored": receipt["entity_grouping"]["groups_scored"],
+            "group_key": receipt["entity_grouping"]["group_key"],
+            "grouped_discriminating_rate": receipt["entity_grouping"][
+                "grouped_discriminating_rate"
+            ],
+            "grouped_rate_lower_bound_95": receipt["entity_grouping"][
+                "grouped_rate_lower_bound_95"
+            ],
         },
         "transform_residual_px": round(residual, 6),
         "transform_note": (

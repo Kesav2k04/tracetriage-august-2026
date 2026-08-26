@@ -556,7 +556,11 @@
   "observations_scored": 289,
   "observations_discriminating": 224,
   "discriminating_rate": 0.7750865051903114,
-  "rate_lower_bound_95": 0.7309344186327931
+  "rate_lower_bound_95": 0.7309344186327931,
+  "groups_scored": 68,
+  "group_key": "(ground_station, UTC date)",
+  "grouped_discriminating_rate": 0.47058823529411764,
+  "grouped_rate_lower_bound_95": 0.3662383812551562
  },
  "transform_residual_px": 0.175704,
  "transform_note": "Paths are the scorer's own columns translated by EDGE_MARGIN_PX on both axes into the card's coordinate space. The residual is the largest disagreement between that construction and the card's projection of the same corridor, and it comes from the half-row centring term evaluated over 1532 scorer rows against 1540 card rows. Above 0.5 px nothing is written.",

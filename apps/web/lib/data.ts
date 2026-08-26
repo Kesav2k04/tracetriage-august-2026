@@ -775,6 +775,10 @@ export interface HeroNulls {
     observations_discriminating: number;
     discriminating_rate: number;
     rate_lower_bound_95: number;
+    groups_scored: number;
+    group_key: string;
+    grouped_discriminating_rate: number;
+    grouped_rate_lower_bound_95: number;
   };
 }
 

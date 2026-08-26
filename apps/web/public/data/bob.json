@@ -3,13 +3,13 @@
  "schema_version": "0.1.0",
  "source": "docs/BOB_BUILD_LOG.md",
  "generated_by": "scripts/export_bob_units.py",
- "n_bob_units": 10,
+ "n_bob_units": 11,
  "units": [
   {
    "unit": "A7",
    "date": "2026-08-17",
    "subject": "End-to-end triage slice",
-   "bob_task_id": null,
+   "bob_task_id": "18a5a3e91ee4c16919e83b5f32447f57",
    "files": [
     "scripts/run_triage_slice.py",
     "scripts/render_evidence_card.py",
@@ -50,7 +50,7 @@
    "unit": "A5",
    "date": "2026-08-17",
    "subject": "Label provenance builder",
-   "bob_task_id": null,
+   "bob_task_id": "9d6f45dae36902ee959cd54fbb4c0541",
    "files": [
     "pipeline/tracetriage/provenance.py",
     "tests/test_provenance.py",
@@ -108,6 +108,20 @@
    "what_failed": "ruff: 31 lint errors on first pass (E501, UP017, F401, B017, SIM117, F841, I001)."
   },
   {
+   "unit": "A3",
+   "date": "2026-08-16",
+   "subject": "Doppler correction status resolver",
+   "bob_task_id": "1c7c56d4cfab40a7ca8f2b68cf6f8951",
+   "files": [
+    "scripts/a3_doppler_investigation.py",
+    "docs/DOPPLER_CORRECTION_FINDING.md",
+    "tests/test_a3_analysis.py",
+    "artifacts/a3_overlays/summary.json"
+   ],
+   "files_not_published": [],
+   "what_failed": null
+  },
+  {
    "unit": "A2",
    "date": "2026-08-17",
    "subject": "Waterfall artifact parser",
@@ -126,7 +140,7 @@
    "unit": "A4",
    "date": "2026-08-17",
    "subject": "Physics corridor module",
-   "bob_task_id": null,
+   "bob_task_id": "742421c4b0d0730f0007518f94fa52bc",
    "files": [
     "pipeline/tracetriage/physics.py",
     "tests/test_physics.py",

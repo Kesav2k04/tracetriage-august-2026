@@ -14,9 +14,11 @@ like the physics; it is the physics, subsampled.
 Two presentational liberties are taken, and both are stated on screen rather than
 in this docstring alone:
 
-  1. The frequency axis is cropped to columns 170 to 450 of 620. All 620 columns at
+  1. The frequency axis is cropped to columns 188 to 514 of 620. All 620 columns at
      this aspect ratio would render the whole corridor in a strip a few percent of
-     the frame wide.
+     the frame wide. The two bounds are computed from the columns that will be drawn
+     rather than chosen, so they move if the offset does, and
+     `tests/test_explainer_values.py` fails when this sentence stops matching them.
   2. Within that crop the frequency axis is exaggerated relative to the time axis,
      by the factor the code computes rather than one chosen by eye, so a 61 pixel
      shift is visible at all.
@@ -75,11 +77,13 @@ OBS_ID = 14745984
 IMG_W, IMG_H = 620, 1540
 CENTRE_PX = 310.0
 HZ_PER_PX = 92.593
-OFFSET_PX = -61.0
+OFFSET_PX = 61.0
 OFFSET_HZ = -5648.1
 OFFSET_PPM = -12.97
 HALF_WIDTH_PX = 21.6
 MAX_EL_DEG = 70.7
+SIGMA_CURVED = 0.396
+SIGMA_VERTICAL = 0.352
 
 # (row, column) of the predicted corridor at zero frequency offset. Row 0 is the
 # END of the pass: time runs bottom to top on a SatNOGS waterfall.
@@ -87,9 +91,9 @@ PRED = [
     (0, 419.77), (60, 418.99), (120, 417.97), (180, 416.63), (240, 414.85),
     (300, 412.46), (360, 409.19), (420, 404.64), (480, 398.21), (540, 389.01),
     (600, 375.82), (660, 357.44), (720, 333.55), (780, 306.12), (840, 279.32),
-    (900, 256.87), (960, 240.02), (1020, 228.07), (1080, 219.74), (1140, 213.90),
-    (1200, 209.76), (1260, 206.76), (1320, 204.55), (1380, 202.90),
-    (1440, 201.65), (1500, 200.70), (1539, 200.30),
+    (900, 256.87), (960, 240.02), (1020, 228.07), (1080, 219.74), (1140, 213.9),
+    (1200, 209.76), (1260, 206.76), (1320, 204.55), (1380, 202.9), (1440, 201.65),
+    (1500, 200.7), (1539, 200.21),
 ]
 
 # Computed from every column that will be drawn: the predicted curve, the fitted
@@ -156,9 +160,19 @@ PANEL = _P["PANEL"]
 
 
 def to_point(col: float, row: float, dx: float = 0.0) -> np.ndarray:
-    """Image column and row to scene coordinates."""
+    """Image column and row to scene coordinates.
+
+    Row 0 is the end of the pass and time runs bottom to top, so row 0 is the latest
+    sample and belongs at the TOP of the plot. Manim's y increases upward, which is why
+    the row term is subtracted rather than added: written the other way this drew the
+    pass upside down, and it was invisible because a corridor whose closest approach sits
+    at 0.499 of the pass is near odd-symmetric about its own centre, so the flipped curve
+    lands almost on top of the true one. `tests/test_explainer_values.py` checks the
+    direction rather than the label, because the on-screen label reads "time, bottom to
+    top" either way.
+    """
     x = -3.9 + ((col + dx) - X_MIN) / (X_MAX - X_MIN) * PLOT_W
-    y = -3.15 + (row / IMG_H) * PLOT_H
+    y = -3.15 + (1.0 - row / IMG_H) * PLOT_H
     return np.array([x, y, 0.0])
 
 
@@ -312,7 +326,7 @@ class CorridorExplainer(NarratedScene):
             "that a reviewer can check against the image itself.",
             font_size=20, color=INK, line_spacing=0.9, font=SANS,
         )
-        closing.to_edge(DOWN, buff=0.5)
+        closing.move_to(ORIGIN)
 
         scale_note = Text(
             f"Frequency axis cropped to columns {X_MIN:.0f} to {X_MAX:.0f} of {IMG_W}, "
@@ -320,13 +334,40 @@ class CorridorExplainer(NarratedScene):
             f"so a {abs(OFFSET_PX):.0f} px shift is visible.",
             font_size=14, color=DIM, font=SANS,
         )
-        scale_note.to_edge(DOWN, buff=0.16)
+        scale_note.next_to(closing, DOWN, buff=0.55)
+
+        # What this clip does not show, said on the clip rather than only in the
+        # caption under it. It demonstrates what the measurement is; it does not
+        # demonstrate that this one is significant, and on this observation it is not.
+        # The observation was picked for the strongest corridor curvature in the
+        # shipped set, which is what makes the shape readable at all, and a decisive
+        # pass would draw a flatter curve. The clearest picture on the site is not
+        # the strongest result on it, so the sigma belongs in frame.
+        significance_note = Text(
+            f"On this pass the fit reaches {SIGMA_CURVED:.3f} sigma against the curved "
+            f"corridor\nand {SIGMA_VERTICAL:.3f} against a vertical line. The shape is the "
+            f"clearest in the set\nand the separation is not decisive: this shows what the "
+            f"measurement is.",
+            font_size=14, color=DIM, font=SANS, line_spacing=0.9,
+        )
+        significance_note.next_to(scale_note, DOWN, buff=0.22)
 
         self.section("closing")
+        # The plot goes with them. Only 0.85 of a unit separates the plot's bottom edge
+        # from the frame's, and that strip has to hold the frequency axis label, three
+        # lines of closing text and two notes under it, so the card cannot share the
+        # frame with the curves. Clearing the plate costs nothing: by this point the
+        # curves have been on screen for forty seconds, and the card is about what they
+        # meant rather than where they are.
         self.play(
             FadeOut(gap), FadeOut(gap_label), FadeOut(chain),
             FadeOut(v_label), FadeOut(v_lead),
+            FadeOut(frame), FadeOut(axis_freq), FadeOut(axis_time),
+            FadeOut(vertical), FadeOut(predicted), FadeOut(fitted), FadeOut(band),
             run_time=0.6,
         )
-        self.play(FadeIn(closing, shift=UP * 0.2), FadeIn(scale_note), run_time=1.0)
+        self.play(
+            FadeIn(closing, shift=UP * 0.2), FadeIn(scale_note),
+            FadeIn(significance_note), run_time=1.0,
+        )
         self.hold(2.6)

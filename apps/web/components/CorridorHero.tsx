@@ -264,12 +264,16 @@ export default function CorridorHero({ data = heroNulls }: { data?: HeroNulls })
         </dl>
         <p className="hero-plate-limit">
           This is one observation. Gate 3 asked for the corridor to intersect a
-          visible trace in {fmt(g.threshold * 100, 0)}% of reviewed positives, and{" "}
-          {g.observations_discriminating} of {g.observations_scored} testable
-          observations discriminate, which still does not establish a{" "}
-          {fmt(g.threshold * 100, 0)}% rate: the exact one-sided 95% lower bound on{" "}
-          {g.observations_discriminating} of {g.observations_scored} is{" "}
-          {fmt(g.rate_lower_bound_95, 3)}. The gate is published as {g.verdict}.{" "}
+          visible trace in {fmt(g.threshold * 100, 0)}% of reviewed positives.{" "}
+          {g.observations_discriminating} of {g.observations_scored} scored
+          observations discriminate, and the exact one-sided 95% lower bound on
+          that is {fmt(g.rate_lower_bound_95, 3)}, which clears{" "}
+          {fmt(g.threshold * 100, 0)}%. The gate is still not met, because the
+          pre-registration counts groups rather than observations: over{" "}
+          {g.groups_scored} {g.group_key} groups the rate is{" "}
+          {fmt(g.grouped_discriminating_rate, 3)} with a lower bound of{" "}
+          {fmt(g.grouped_rate_lower_bound_95, 3)}. So the gate is published as{" "}
+          {g.verdict}: the observation-level pass is reported and not claimed.{" "}
           <Link href={`/observation/${data.obs_id}`}>
             Open this observation
           </Link>

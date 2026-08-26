@@ -89,8 +89,8 @@
  "receipts": [
   {
    "name": "AGENT_RECEIPT.json",
-   "sha256": "e98402dd20e1a396ebe9e83231e07431aee25961d83c647928a67887932357a8",
-   "bytes": 29212,
+   "sha256": "7927ca92bfb7f3ad8d6a591a63855b5ebd5f5c3bd12e7ab9df0593d507abd72c",
+   "bytes": 29230,
    "rewritten_after_this_payload": false
   },
   {
@@ -131,8 +131,8 @@
   },
   {
    "name": "EXPLAINER_CLIPS.json",
-   "sha256": "93894cd4dddd73eff5e7962df62a02677e00f1c6398138d94210f852ed393de9",
-   "bytes": 984,
+   "sha256": "88a46cdc10a763a9b37efa12b2ee519e03aef0e69ffd5429cb3c805783b03aec",
+   "bytes": 1011,
    "rewritten_after_this_payload": false
   },
   {
@@ -209,8 +209,8 @@
   },
   {
    "name": "HERO_NULLS.json",
-   "sha256": "905e748cd0b0f9454087ef56c8e0220f6c07a4c3e89421a2e7c4119dc7a56bf6",
-   "bytes": 24553,
+   "sha256": "6c5ed7b02bf449a1f5785578f45fbb31a0383205a5f299045d014ec445305d53",
+   "bytes": 24728,
    "rewritten_after_this_payload": false
   },
   {

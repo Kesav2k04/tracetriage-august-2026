@@ -1,5 +1,5 @@
 {
- "design": "Paired. Every question is put to the same model twice: once with the five MCP tools of scripts/mcp_server.py available over stdio JSON-RPC, once with no tools. Ground truth is derived from the files the console ships, by a different code path than the tools use, and checked against the frozen fixture before grading.",
+ "design": "Paired. Every question is put to the same model twice: once with the seven MCP tools of scripts/mcp_server.py available over stdio JSON-RPC, once with no tools. Ground truth is derived from the files the console ships, by a different code path than the tools use, and checked against the frozen fixture before grading.",
  "model": {
   "name": "granite3.1-dense:8b",
   "digest": "34d3be74ec547c3e1969a9ea125e1869f052f7cfd3d0bbbb5aa5e42ec033108c",
@@ -425,7 +425,7 @@
  "what_this_does_not_measure": [
   "Whether the answers are useful to a reviewer. These are lookups with a single correct token, chosen so grading is mechanical, and a real question is not.",
   "Whether a different model would behave the same way. One model, one seed, temperature zero, and this project has already measured that the same runtime is not reproducible run to run.",
-  "Whether the tool arm would survive questions the tools cannot answer. Every task here is answerable from the five tools, so the study measures whether the policy uses them and not whether it knows when to stop."
+  "Whether the tool arm would survive questions the tools cannot answer. Every task here is answerable from five of the seven tools offered, so the study measures whether the policy uses them and not whether it knows when to stop."
  ],
- "receipt_sha256": "e98402dd20e1a396ebe9e83231e07431aee25961d83c647928a67887932357a8"
+ "receipt_sha256": "7927ca92bfb7f3ad8d6a591a63855b5ebd5f5c3bd12e7ab9df0593d507abd72c"
 }

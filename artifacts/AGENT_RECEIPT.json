@@ -12,7 +12,7 @@
   "temperature": 0.0,
   "model_argument": "granite3.1-dense:8b"
  },
- "design": "Paired. Every question is put to the same model twice: once with the five MCP tools of scripts/mcp_server.py available over stdio JSON-RPC, once with no tools. Ground truth is derived from the files the console ships, by a different code path than the tools use, and checked against the frozen fixture before grading.",
+ "design": "Paired. Every question is put to the same model twice: once with the seven MCP tools of scripts/mcp_server.py available over stdio JSON-RPC, once with no tools. Ground truth is derived from the files the console ships, by a different code path than the tools use, and checked against the frozen fixture before grading.",
  "tasks": 24,
  "max_steps": 6,
  "prompt_version": 2,
@@ -989,6 +989,6 @@
  "what_this_does_not_measure": [
   "Whether the answers are useful to a reviewer. These are lookups with a single correct token, chosen so grading is mechanical, and a real question is not.",
   "Whether a different model would behave the same way. One model, one seed, temperature zero, and this project has already measured that the same runtime is not reproducible run to run.",
-  "Whether the tool arm would survive questions the tools cannot answer. Every task here is answerable from the five tools, so the study measures whether the policy uses them and not whether it knows when to stop."
+  "Whether the tool arm would survive questions the tools cannot answer. Every task here is answerable from five of the seven tools offered, so the study measures whether the policy uses them and not whether it knows when to stop."
  ]
 }

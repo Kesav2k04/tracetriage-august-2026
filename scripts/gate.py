@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -83,6 +84,63 @@ def check(name: str, ok: bool, detail: str = "") -> bool:
 #: fit inside 160 characters, or the receipt keeps half a sentence.
 #: `tests/test_gate_tally.py` holds the two ends together.
 _SIGNOFF_DETAIL_CAP = 160
+
+
+#: A Bob task identifier: 32 lowercase hex characters, as the Bob session prints it.
+_BOB_TASK_ID = re.compile(r"`?\b[0-9a-f]{32}\b`?")
+
+#: A unit heading in either build log: `### <date> IST | <actor> | <unit>: <title>`.
+#: Duplicated from `scripts/sync_for_judges.py` rather than imported, because the gate
+#: has to keep running in a checkout where that module cannot be imported, and
+#: `tests/test_bob_unit_count.py` holds the two patterns to the same shape.
+_UNIT_HEADING = re.compile(
+    r"^#{2,3}\s+"
+    r"(?:\d{4}-\d{2}-\d{2}|\d{1,2}\s+\w{3,9}\s+\d{4})"
+    r"\s+IST\s*\|\s*(?P<actor>[^|]+?)\s*\|\s*(?P<unit>[A-Za-z]+\d[\w.-]*)"
+)
+_BOB_ACCOUNT = re.compile(r"^account\s+\d+$", re.I)
+
+
+def _bob_task_ids_stated(log: Path) -> tuple[bool, str]:
+    """Every Bob-account unit names its task id, or says why it has none.
+
+    The README tells a judge that each unit is recorded "with the files it changed, the
+    commands run, its Bob task id and what failed before it was accepted". Three units
+    published no id at all, and their ids were sitting in a registry outside the
+    repository the whole time; a fourth has one that was never copied out of a session
+    that has since closed. Nothing checked, so the README described a record the log did
+    not keep, on the one requirement the whole entry is judged against.
+
+    An unrecoverable id is an acceptable answer and a missing field is not, so "not
+    collected" counts as stated. The two are indistinguishable in a rendered document
+    unless the log says which one it is, which is the whole reason this reads the text
+    rather than counting fields.
+    """
+    if not log.is_file():
+        return False, f"{log.name} is missing"
+    lines = log.read_text(encoding="utf-8").splitlines()
+    starts = [i for i, line in enumerate(lines) if _UNIT_HEADING.match(line)]
+    missing: list[str] = []
+    for n, i in enumerate(starts):
+        match = _UNIT_HEADING.match(lines[i])
+        assert match is not None
+        if not _BOB_ACCOUNT.match(match.group("actor").strip()):
+            continue  # operator-side units carry no Bob task id and should not claim one
+        body = "\n".join(lines[i : starts[n + 1] if n + 1 < len(starts) else len(lines)])
+        field = re.search(r"^\*\*Bob task ID:?\*\*(.*)$", body, re.MULTILINE)
+        stated = bool(field) and bool(
+            _BOB_TASK_ID.search(field.group(1))
+            or "not collected" in field.group(1).lower()
+            or "not collected" in body.lower().split("**commit")[0]
+        )
+        if not stated:
+            missing.append(match.group("unit"))
+    if missing:
+        return False, (
+            f"{len(missing)} Bob unit(s) state no task id and do not say why: "
+            f"{', '.join(missing)}"
+        )
+    return True, f"{len(starts)} units read, every Bob-account one states its id"
 
 
 def omit(omitted: list[str], name: str, reason: str) -> None:
@@ -568,15 +626,17 @@ def main() -> int:
     logged = "No Bob tasks have run yet" not in log
     results.append(check("build log has an entry", logged, "" if logged else "log still empty"))
 
+    # Every Bob unit in the log states its Bob task id, or says why it has none. This
+    # holds the claim the README makes: each unit is recorded with the files it changed,
+    # the commands run, its Bob task id and what failed before it was accepted. An absent
+    # field and an id that cannot be recovered read the same in a rendered document and
+    # are not the same thing, so the log has to say which it is.
+    ids_ok, ids_detail = _bob_task_ids_stated(REPO / "docs" / "BOB_BUILD_LOG.md")
+    results.append(check("every Bob unit states its task id", ids_ok, ids_detail))
+
     # The sign-off receipt. Its content is asserted by tests/test_signoff.py, which skip when
     # the file is absent, so presence is checked here instead: a deleted receipt has to fail
     # something rather than quieting six tests. Freshness is not checked here on purpose. The
-    # receipt is written at one commit and committed at the next, so requiring it to name HEAD
-    # would fail on every commit after the one that published it. Re-running
-    # scripts/signoff.py at the release commit is what makes it current.
-    # The sign-off receipt. Its content is asserted by tests/test_signoff.py, which skip when
-    # the file is absent, so presence is checked here instead: a deleted receipt has to fail
-    # something rather than quieting six tests. Freshness is deliberately not checked. The
     # receipt is written at one commit and committed at the next, so requiring it to name HEAD
     # would fail on every commit after the one that published it. Re-running
     # scripts/signoff.py at the release commit is what makes it current.

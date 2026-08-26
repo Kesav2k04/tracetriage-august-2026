@@ -227,7 +227,9 @@ A reusable measurement routine lives at `scripts/recon/measure_axis.py`. It is r
 
 **Established:** `doppler-correction-per-sec` exists inside `client_metadata.radio.parameters` and was `null` on every record inspected, while `rigctl-port` was populated (`"4532"`) on the same records.
 
-**Established by computation:** on observation 14513023 the stored TLE plus station coordinates reproduced the pass geometry to **0.18 degrees** of the API's own reported `max_altitude` (computed 31.18 deg, API 31.0 deg). The orbital chain is sound. See section 10.
+**Recorded, and since retracted as evidence:** on observation 14513023 the stored TLE plus station coordinates put the pass geometry 0.18 degrees from the API's reported `max_altitude` (computed 31.18 deg, API 31.0 deg), and this document read that as establishing the orbital chain. It does not. `max_altitude` is integer-valued on all 200 records (`artifacts/PHYSICS_VALIDATION.json`, `reference_quantisation`), so a single comparison against it cannot resolve better than the rounding band, whose mean absolute width is 0.25 degrees. An agreement of 0.18 on n=1 is inside that band and measures nothing. The project makes this same argument against its own 200-record figure of 0.243 degrees, and the argument applies here first.
+
+What does establish the chain is `rise_azimuth` and `set_azimuth`, which are unrounded and present on all 200 records: rise agrees to a median 0.268 degrees with a signed mean of -0.007 over n=200, and two counterfactual conventions (swapped `atan2` arguments, and a mirrored basis) were computed and do not fit. That is the check to cite. See section 10.
 
 **Not established, and Bob must verify before any physics claim:**
 

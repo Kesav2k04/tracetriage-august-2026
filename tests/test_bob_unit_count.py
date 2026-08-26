@@ -89,14 +89,40 @@ def test_a_structural_or_undated_heading_is_counted_as_neither(sync_module):
     bob, operator = sync_module._build_log_units()
     counted = set(bob) | set(operator)
 
-    for title in ("A3", "C2", "C5", "C7"):
+    for title in ("C2", "C5", "C7"):
         # These sections exist in the file as undated narrative titles. A unit id in a
-        # heading is not enough: the count needs a date and an actor.
+        # heading is not enough: the count needs a date and an actor. None of the three
+        # ran in a Bob account, so excluding them costs the Bob claim nothing.
         assert title not in counted, (
             f"{title} is an undated section title and must not be counted as a unit"
         )
     assert "## Format" not in counted
     assert "## Entries" not in counted
+
+
+def test_a3_is_counted_and_is_bob_s(sync_module):
+    """A3 was in the list above, and being there was the defect.
+
+    The rule the list encodes is right: a unit id in a heading is not enough, a count needs
+    a date and an actor. A3 was failing that rule for a formatting reason and not a factual
+    one. Its body carries `**Bob task ID:** 1c7c56d4cfab40a7ca8f2b68cf6f8951 (… account 2)`
+    and `**Commit:** c7ca696`, both of which check out against git. It is a Bob unit that
+    happened to carry a `## A3.` title while its ten siblings carried
+    `### <date> IST | <actor> | <unit>:`.
+
+    The cost of leaving it there: `scripts/export_bob_units.py` publishes the count to
+    `apps/web/public/data/bob.json`, so the console told a judge Bob ran ten units when the
+    log holds eleven, and the one it dropped answered the question that gated the physics.
+    A test asserting the undercount made the gate green over it. Undercounting the primary
+    development tool is the one direction this record cannot be wrong in, which is why this
+    is pinned as its own case rather than by deleting a line from the list above.
+    """
+    bob, operator = sync_module._build_log_units()
+    assert "A3" in set(bob), (
+        "A3 is a Bob-account unit and must be counted. If its heading has been changed "
+        "back to an undated title, the export drops it and the console understates Bob."
+    )
+    assert "A3" not in set(operator)
 
 
 def test_the_template_line_is_not_a_unit(sync_module):

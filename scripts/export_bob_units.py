@@ -74,9 +74,18 @@ def _field(body: str, names: tuple[str, ...]) -> str | None:
 def _task_id(body: str) -> str | None:
     """The Bob task hash, when the entry carries one.
 
-    Not every unit does. Two of the ten record the workspace and the account without a hash,
-    and a task id invented to fill the column would be the one field in this export that
-    cannot be checked against anything. Those two come out null and the page says so.
+    One of the eleven does not. A6's id was never copied out of its session and the session
+    has closed, so it cannot be recovered, and a task id invented to fill the column would be
+    the one field in this export that cannot be checked against anything. A6 comes out null
+    and the page says so.
+
+    This docstring read "two of the ten" and was wrong in both numbers, which is why it is
+    worth a note. Four units published null here, not two: A4 and A5 carried the workspace
+    and account with the hash left out, and A6 and A7 carried no field at all, which this
+    reader cannot tell apart from an absent unit. Three of the four were recoverable from
+    `REGISTRY.md` the whole time and are now in the log. The count was ten because A3's
+    heading did not match the shape `_units` scans for, so the export dropped a real Bob
+    unit and the console published a smaller number than the record supports.
     """
     raw = _field(body, ("Bob task ID",))
     if not raw:

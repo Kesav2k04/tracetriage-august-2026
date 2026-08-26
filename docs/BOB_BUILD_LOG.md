@@ -91,7 +91,9 @@ Full suite deferred due to EasyOCR warm-up time (~20s per run); the 221 core tes
 
 **Credits:** estimated 5, actual ~6.
 
-**Commit:** (see `git log -1`)
+**Bob task ID:** `18a5a3e91ee4c16919e83b5f32447f57` (workspace `tracetriage-august-2026`, account 3)
+
+**Commit:** `5d9b323`
 
 **Outcome:** accepted. Schema validates. Determinism confirmed. Gate 3 PASSED.
 
@@ -159,7 +161,13 @@ HOG+LR extraction and training: ~4 min.
 
 **Credits:** estimated 3, actual ~3.
 
-**Commit:** (see `git log -1`)
+**Bob task ID:** not collected. The identifier is only visible inside the live Bob
+session and this one was closed before it was copied out; it cannot be recovered. Stated
+here rather than left blank, because an absent field and an unrecoverable one read the
+same in a rendered document and are not the same thing. The unit's evidence is the commit
+and its tests.
+
+**Commit:** `aaa3464`, the unit itself, and `ff2b871` where its receipt was regenerated after three fixes
 
 **Outcome:** accepted. 46 tests pass. 368 offline tests pass. Lint clean.
 
@@ -215,7 +223,7 @@ future observations excluded explicitly. Preserve distinct `labelled_positive` a
 
 **Credits:** estimated 2, actual ~2.
 
-**Bob task ID:** (workspace `tracetriage-august-2026`, account 3)
+**Bob task ID:** `9d6f45dae36902ee959cd54fbb4c0541` (workspace `tracetriage-august-2026`, account 3)
 
 **Commit:** 68bac8c
 
@@ -417,9 +425,7 @@ waterfalls). Resumable. Manifest validates against
 
 ---
 
-## A3. Doppler correction status resolver
-
-**Date:** 2026-08-16, IST.
+### 2026-08-16 IST | Account 2 | A3: Doppler correction status resolver
 
 **Task:** resolve the blocking unknown gating A4: are SatNOGS waterfalls already
 Doppler corrected at capture? Deliver a stated answer with overlay evidence, a
@@ -435,7 +441,7 @@ recorded as UNRESOLVED with their numbers.
 
 **Files:** `scripts/a3_doppler_investigation.py`,
 `docs/DOPPLER_CORRECTION_FINDING.md`, `tests/test_a3_analysis.py`,
-`artifacts/a3_overlays/` (24 overlays and `summary.json`).
+`artifacts/a3_overlays/` (24 overlays and `artifacts/a3_overlays/summary.json`).
 
 **Failures found and repaired during the unit:**
 
@@ -617,7 +623,7 @@ error distribution.
 
 **Credits:** estimated 3–4, actual ~3.
 
-**Bob task ID:** (workspace `tracetriage-august-2026`, account 3)
+**Bob task ID:** `742421c4b0d0730f0007518f94fa52bc` (workspace `tracetriage-august-2026`, account 3)
 
 **Commit:** 0f21ce7
 
@@ -754,7 +760,7 @@ with less data and needs a size-matched control.
 first test suite, roughly 1,650 lines, and hit the account budget during the
 cold-combined repair. The ten items above were finished by the operator.
 
-**Commit:** recorded at commit time.
+**Commit:** `4f9f38c`
 
 **Outcome:** accepted with the repairs recorded. Bob's structure survived: the TLE
 revolution index, the NORAD cluster grouping, the A3 verdict join and the physics
@@ -1098,7 +1104,7 @@ Conflict definition (fixed before measuring):
 
 **Bob task ID:** 132f11e96a87ebc5c7bd1a9196322bb1
 
-**Commit:** (see `git log -1`)
+**Commit:** `0f322eb`, and `f978cb1` for the deterministic-bootstrap repair
 
 **Outcome:** accepted. 610 tests pass. Lint clean. Gate 8/8. Schema validates.
 QUEUE_RECEIPT.json written. Gate 6 recorded as NOT_ESTABLISHED on the primary

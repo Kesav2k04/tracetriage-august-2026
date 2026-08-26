@@ -3,7 +3,7 @@
 An agent demonstration is a transcript, and a transcript cannot tell a policy that read the
 tool output from one that guessed. So this runs a paired study: 24 questions whose answers are
 derived from the files the console ships, each put to the same local Granite model twice, once
-with the five MCP tools available over real stdio JSON-RPC and once with no tools at all.
+with the seven MCP tools available over real stdio JSON-RPC and once with no tools at all.
 
     .venv/Scripts/python.exe scripts/run_agent_study.py --freeze   # runs the model, writes the
                                                                    # fixture and the receipt
@@ -662,7 +662,7 @@ def main(argv: list[str] | None = None) -> int:
         "unit": "E7",
         "model": frozen["model"],
         "design": (
-            "Paired. Every question is put to the same model twice: once with the five MCP "
+            "Paired. Every question is put to the same model twice: once with the seven MCP "
             "tools of scripts/mcp_server.py available over stdio JSON-RPC, once with no tools. "
             "Ground truth is derived from the files the console ships, by a different code path "
             "than the tools use, and checked against the frozen fixture before grading."
@@ -681,8 +681,8 @@ def main(argv: list[str] | None = None) -> int:
             "temperature zero, and this project has already measured that the same runtime is "
             "not reproducible run to run.",
             "Whether the tool arm would survive questions the tools cannot answer. Every task "
-            "here is answerable from the five tools, so the study measures whether the policy "
-            "uses them and not whether it knows when to stop.",
+            "here is answerable from five of the seven tools offered, so the study measures "
+            "whether the policy uses them and not whether it knows when to stop.",
         ],
     }
     import hashlib

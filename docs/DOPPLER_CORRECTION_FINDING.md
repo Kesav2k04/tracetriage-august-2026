@@ -63,8 +63,10 @@ approach, so reversing time and flipping the frequency sign produce almost the
 same curve. The first implementation had both wrong and scored 25 sigma, and
 its overlay looked correct to the eye. **A visual check cannot catch this.**
 The measurement that did catch it: the trace on 14740031 runs -22.5 kHz at
-t=5.5 s to -5.4 kHz at t=237.7 s, an apparent rise of +85 Hz/s against real
-time, which no Doppler shift can produce.
+t=5.5 s to -5.4 kHz at t=237.7 s. That is 17.1 kHz over 232.2 s, an apparent
+rise of +73.6 Hz/s against real time. The magnitude is not the argument and is
+inside what this pass can produce: the sign is. Doppler falls through a pass as
+the range rate goes from closing to opening, so a monotonic rise cannot be one.
 
 ## Method
 
@@ -72,7 +74,10 @@ For each observation, from its own stored record and nothing else:
 
 1. Propagate the stored TLE across the pass and compute the Doppler shift from
    the range rate and `client_metadata.radio.parameters.rx-freq`. The geometry
-   chain was already verified to 0.18 degrees and is built on, not re-tested.
+   chain is built on here, not re-tested. An earlier draft cited 0.18 degrees on one
+   observation as the verification; that figure is inside the reference's own rounding
+   band and `docs/SATNOGS_API_RECON.md` now retracts it. The azimuth agreement over 200
+   records is the check that carries this.
 2. Derive `hz_per_px`, `crop_box` and `centre_px` from the rendered axis with
    the A2 parser.
 3. Normalise each image row to a median-based z-score. Nothing is normalised along
@@ -134,13 +139,20 @@ numbers, not pushed into whichever answer was more convenient.
 5. **The constant frequency offset is unexplained.** The uncorrected traces sit
    14.0, 7.1 and 7.1 kHz off the predicted curve: `curved_offset_hz` is
    -13,985.1 Hz on 14740031 and +7,148.9 Hz on both 14745664 and 14745929, which
-   is -32.1, +16.4 and +16.4 ppm of the 436.400 MHz downlink. A transmitter
+   is -32.0, +16.4 and +16.4 ppm of the 436.400 MHz downlink. The sign here is
+   the offset on the image's frequency axis, which runs against the Doppler sign,
+   so `docs/KILL_GATE.md` reports the same measurement on 14740031 as +32.0 ppm.
+   One quantity, two frames, and the magnitude is the part to compare. A transmitter
    sitting a few kHz from nominal is the ordinary explanation, but it is not
    verified here. The matched filter absorbs it by design, so the verdict does
    not depend on it, but A4 must not assume the corridor is centred on `rx-freq`.
 
-   The two 7.1 kHz figures are **identical to the decimal**, and that is not a
-   coincidence: 14745664 and 14745929 were recorded by the same ground station
+   The two 7.1 kHz figures are **the same to the pixel**, both 7,148.9361... Hz,
+   which is exactly 56 columns at this image's 127.6595... Hz per pixel. The fit
+   is quantised to whole columns, so "identical" here means the same column and
+   agreement to within one pixel, plus or minus 64 Hz, rather than agreement to
+   the decimal the shared digits suggest. That it is the same column is still not
+   a coincidence: 14745664 and 14745929 were recorded by the same ground station
    (1696) three minutes apart, so they share a receiver and therefore one
    local-oscillator error and one stale catalogue frequency. That is the
    measurement behind the dependence argument in `docs/KILL_GATE.md`, and it only

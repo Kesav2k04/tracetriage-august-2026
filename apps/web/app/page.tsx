@@ -123,6 +123,12 @@ const groundingScore = {
   adversarialTotal: notes.checker.adversarial_checks,
   cleanRefused: notes.checker.control_refused,
   cleanTotal: notes.checker.control_checks,
+  // The same two counts read as what they are. 525 is 21 hand-written adversarial
+  // drafts against 25 packets each, not 525 independent attacks, and 175 is 7 clean
+  // ones the same way, so the denominator is visible to the reader. The real-draft
+  // figure is refused-of-decided below, and it is the one that is not constructed.
+  realRefused: notes.checker.refused,
+  realDecided: notes.checker.decided,
 };
 
 /** The whole queue, encoded for the field behind the hero. Built at build time. */
@@ -217,7 +223,15 @@ export default function QueuePage() {
           <span className="num">{groundingScore.adversarialTotal}</span> planted
           falsehoods and refused{" "}
           <span className="num">{groundingScore.cleanRefused}</span> of{" "}
-          <span className="num">{groundingScore.cleanTotal}</span> clean drafts.
+          <span className="num">{groundingScore.cleanTotal}</span> clean drafts. Read
+          those two as a multiplication rather than as a count of attacks: 21
+          hand-written adversarial drafts and 7 clean ones, each against 25 packets.
+          On real drafts, which are the ones nobody wrote to be caught, it refused{" "}
+          <span className="num">{groundingScore.realRefused}</span> of{" "}
+          <span className="num">{groundingScore.realDecided}</span>. Every question in
+          the agent study is answerable from the tools it was given, so that result
+          measures whether the policy reaches for them, not whether it could have
+          answered without.
         </p>
 
         {/* Five signposts, and the reason they exist.
@@ -583,7 +597,16 @@ export default function QueuePage() {
             pixel image is visible at all, and the video says so on screen. Every figure
             spoken in it is read out of the scene that draws it, and a second model
             transcribed the track without seeing the script to check it was said:{" "}
-            <code>artifacts/EXPLAINER_NARRATION.json</code>.
+            <code>artifacts/EXPLAINER_NARRATION.json</code>. This clip shows what the
+            measurement is and not that it is significant, and on this observation it is
+            not: the matched filter reaches 0.396 sigma against the curved corridor and
+            0.352 against a vertical line, so the fit is the best of 408 offsets on an
+            image whose trace the corridor cannot separate from noise. It was chosen for
+            having the strongest corridor curvature in the shipped set, which is what
+            makes the shape legible, and a decisive example would show a larger
+            separation and a less readable curve. The gate 3 rate on{" "}
+            <a href="/evaluation/">the evaluation page</a> is measured over observations
+            that were null-calibrated; this one was not.
           </figcaption>
         </figure>
       </Section>

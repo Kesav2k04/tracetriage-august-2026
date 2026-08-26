@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a clone does not have describes something else.
 
-At this commit: 42 JSON artifacts, 8 contracts, 65 scripts, 29 package modules and 1493 test functions across 84 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 42 JSON artifacts, 8 contracts, 65 scripts, 29 package modules and 1506 test functions across 85 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -23,7 +23,7 @@ file that no longer exists in that form.
 
 | Artifact | Schema | Version | Contract | Bytes | sha256 | Named by | Named in tests |
 |---|---|---|---|---|---|---|---|
-| `AGENT_RECEIPT.json` | AGENT_RECEIPT | 1 | none | 29,212 | `e98402dd20e1a396` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/run_agent_study.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_agent.py`, `test_receipt_digests.py` |
+| `AGENT_RECEIPT.json` | AGENT_RECEIPT | 1 | none | 29,230 | `7927ca92bfb7f3ad` | `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/run_agent_study.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_agent.py`, `test_receipt_digests.py` |
 | `ATTRIBUTION_AUDIT.json` | ATTRIBUTION_AUDIT | 0.1.0 | none | 85,390 | `661213c8fed4b152` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `AXIS_READER_AUDIT.json` | tracetriage/axis-reader-audit | 1 | none | 15,640 | `01592786df3cb33c` | `scripts/audit_pool_axes.py` | `test_axis_reader_audit.py`, `test_receipt_digests.py` |
 | `BASELINE_RECEIPT.json` | BASELINE_RECEIPT | 0.1.0 | none | 8,803 | `f2796822ec53b590` | `scripts/build_architecture_diagram.py`, `scripts/run_baseline.py`, `scripts/run_triage_slice.py` | `test_baseline.py`, `test_receipt_digests.py` |
@@ -43,7 +43,7 @@ file that no longer exists in that form.
 | `GATE4_RECEIPT.json` | GATE4_RECEIPT | 1 | none | 74,928 | `16ca34b7ed81bd41` | `scripts/build_console_data.py`, `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/run_agent_study.py`, `scripts/run_gate_power.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_explainer_gate4_values.py`, `test_gate4.py`, `test_gate_power.py`, `test_receipt_digests.py` |
 | `GATE4_WORKSHEET.json` | GATE4_WORKSHEET | 1 | none | 11,481 | `44cc11bd27d624f1` | `scripts/build_gate4_worksheet.py`, `scripts/pack_gate4_bundle.py`, `scripts/score_gate4.py`, `scripts/sync_for_judges.py` | `test_explainer_gate4_values.py`, `test_gate4.py`, `test_gate4_bundle.py` |
 | `GATE_POWER_RECEIPT.json` | GATE_POWER_RECEIPT | 1 | none | 11,333 | `5912a7c8cb50b329` | `scripts/build_console_data.py`, `scripts/run_gate_power.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_gate_power.py`, `test_prose_drift.py` |
-| `HERO_NULLS.json` | none declared | n/a | none | 24,553 | `905e748cd0b0f945` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/sync_demo.py` | `test_hero_nulls.py`, `test_hero_window.py` |
+| `HERO_NULLS.json` | none declared | n/a | none | 24,728 | `6c5ed7b02bf449a1` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/clean_clone_check.py`, `scripts/export_hero_nulls.py`, `scripts/sync_demo.py` | `test_hero_nulls.py`, `test_hero_window.py` |
 | `LANGCHAIN_RECEIPT.json` | tracetriage/langchain | 0.1.0 | none | 4,069 | `043c8239286dee16` | `pipeline/tracetriage/langchain_tools.py`, `scripts/run_langchain_check.py`, `scripts/sync_for_judges.py` | `test_langchain_tools.py` |
 | `LANGFLOW_RECEIPT.json` | none declared | n/a | none | 3,018 | `71cc7dfe1826e3cb` | `pipeline/tracetriage/langflow_components.py`, `scripts/check_receipt_digests.py`, `scripts/run_langflow_check.py`, `scripts/sync_for_judges.py` | `test_langflow_flows.py` |
 | `LEAKAGE_AUDIT.json` | none declared | n/a | none | 10,942 | `ecb4aff23de89169` | `scripts/build_splits.py`, `scripts/check_artifact_freshness.py`, `scripts/gate.py`, `scripts/mcp_server.py` | `test_mcp_server.py`, `test_splits.py` |
@@ -200,7 +200,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_axis_reader_audit.py` | 7 | The axis reader audit, and what it is allowed to conclude. |
 | `tests/test_base_rates.py` | 7 | Check the documented base rates against a corpus that actually exists. |
 | `tests/test_baseline.py` | 47 | Tests for the A6 image-only baseline module. |
-| `tests/test_bob_unit_count.py` | 5 | The Bob unit count is a count of units, not of markdown headings. |
+| `tests/test_bob_unit_count.py` | 6 | The Bob unit count is a count of units, not of markdown headings. |
 | `tests/test_bob_units_export.py` | 9 | `apps/web/public/data/bob.json` is what the build log produces, and it says the hard part. |
 | `tests/test_centre_energy_feature.py` | 14 | Guards on the centre-energy feature itself, not on the pipeline around it. |
 | `tests/test_ci_workflow.py` | 7 | What CI must keep doing, asserted against the workflow rather than against a memory. |
@@ -221,6 +221,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `tests/test_explain_receipt.py` | 12 | The published note receipt has to agree with the frozen drafts and with the console. |
 | `tests/test_explain_time_claims.py` | 13 | Where a note tells a reviewer to look, and what happens when a card has no fit. |
 | `tests/test_explainer_gate4_values.py` | 10 | Every number the gate 4 clip shows, checked against the receipt it came from. |
+| `tests/test_explainer_values.py` | 12 | Every number and every axis direction the corridor clip draws, against its card. |
 | `tests/test_failure_injection.py` | 30 | Failure injection: every mode must produce a NAMED degraded state. |
 | `tests/test_font_ab_serving.py` | 3 | The font A/B harness cannot leave a server behind, and cannot hold the export open. |
 | `tests/test_for_judges.py` | 6 | FOR_JUDGES.md is generated, and these are the ways it could still lie. |
