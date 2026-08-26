@@ -1527,6 +1527,14 @@ AUTHOR = "Submitted by Kesav Kumar Jayakumar <kesavk659@gmail.com>."
 # typed, so a summary cannot drift away from the thing it summarises. That is the
 # whole reason it is generated here instead of written once at the top of the file.
 # ---------------------------------------------------------------------------
+# How big the thing is. Read from the network's own API by scripts/fetch_network_scale.py
+# rather than typed, for the same reason as every other figure on this page. It is scale,
+# not evidence: no result below is computed from it and the measured rates are reported on
+# the sample they were measured on.
+_SCALE = _receipt("NETWORK_SCALE.json")
+N_NET_OBS = f"{_SCALE['observations']['total'] / 1e6:.1f} million"
+N_NET_STATIONS = f"{_SCALE['ground_stations']['registered']:,}"
+
 _COLD_SPLIT = _receipt("QUEUE_RECEIPT.json")["gate6"]["per_split"]["cold_station"]
 N_COLD_OPENS = int(_COLD_SPLIT["n_queue_examined"])
 N_COLD_FOUND = int(_COLD_SPLIT["n_queue_conflicts"])
@@ -1535,9 +1543,10 @@ N_COLD_POOL = int(_COLD_SPLIT["station_clustering"]["n_observations"])
 
 ONE_MINUTE = f"""## One minute
 
-**What it is.** Volunteers point antennas at satellites passing overhead and publish every
-recording. Far more arrive than anyone can look at, and nothing tells a volunteer where to
-start. TraceTriage decides which recording is worth opening first and shows the evidence for
+**What it is.** Volunteers point antennas at satellites passing overhead and publish
+every recording: {N_NET_OBS} of them so far, from {N_NET_STATIONS} ground stations. Far
+more arrive than anyone can look at, and nothing tells a volunteer where to start.
+TraceTriage decides which recording is worth opening first and shows the evidence for
 every decision, rather than asking anyone to trust a score.
 
 **What it found.** Some ground stations correct for the Doppler shift before they record and

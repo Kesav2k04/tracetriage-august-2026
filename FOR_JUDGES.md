@@ -8,9 +8,10 @@ Submitted by Kesav Kumar Jayakumar <kesavk659@gmail.com>.
 
 ## One minute
 
-**What it is.** Volunteers point antennas at satellites passing overhead and publish every
-recording. Far more arrive than anyone can look at, and nothing tells a volunteer where to
-start. TraceTriage decides which recording is worth opening first and shows the evidence for
+**What it is.** Volunteers point antennas at satellites passing overhead and publish
+every recording: 14.4 million of them so far, from 4,442 ground stations. Far
+more arrive than anyone can look at, and nothing tells a volunteer where to start.
+TraceTriage decides which recording is worth opening first and shows the evidence for
 every decision, rather than asking anyone to trust a score.
 
 **What it found.** Some ground stations correct for the Doppler shift before they record and
