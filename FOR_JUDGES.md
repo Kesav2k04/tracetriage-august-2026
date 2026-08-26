@@ -6,6 +6,33 @@
 
 Submitted by Kesav Kumar Jayakumar <kesavk659@gmail.com>.
 
+## One minute
+
+**What it is.** Volunteers point antennas at satellites passing overhead and publish every
+recording. Far more arrive than anyone can look at, and nothing tells a volunteer where to
+start. TraceTriage decides which recording is worth opening first and shows the evidence for
+every decision, rather than asking anyone to trust a score.
+
+**What it found.** Some ground stations correct for the Doppler shift before they record and
+some do not, and nothing in the public record says which. Two observations can carry an
+identical `doppler-correction-per-sec: null` and `rigctl-port: 4532` while one signal holds a
+straight line and the other sweeps seventeen kilohertz across the pass. That is measurable
+from the image and invisible in the metadata, and it is what the queue ranks on.
+
+**What it is worth.** On ground stations the model never saw, 50 opens out of
+217 return 27 actionable conflicts where random ordering expects
+about 12. Same hours, same headcount, more found.
+
+**What did not work.** 6 gates were written down before anything was measured.
+3 came back met and 3 did not, and the ones that did not are published
+with their intervals instead of dropped.
+
+**Checking it takes two commands.** `python scripts/gate.py` prints one line per standing
+check. `python -m pytest -q` runs the suite with the network blocked.
+
+Everything below is the evidence for those five paragraphs, one section per judged criterion.
+
+
 TraceTriage ranks SatNOGS satellite radio observations by how much a human reviewer would
 learn from opening each one, and it writes the reviewer's first sentence with a local IBM
 Granite model whose draft is thrown away unless every number in it traces back to that
