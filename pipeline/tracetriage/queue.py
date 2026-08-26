@@ -65,7 +65,7 @@ QUEUE_REASONS: dict[str, str] = {
         "This criterion asks the offset's size and not its significance, which is its "
         "known weakness and is stated here rather than left to be found: over the 716 "
         "rows carrying both quantities, the 189 it fires on have a median matched-filter "
-        "sigma of 0.591 against 0.485 for the rows it does not fire on, and 17 of the "
+        "sigma of 0.591 against 0.482 for the rows it does not fire on, and 17 of the "
         "189, 9 percent, reach 2 sigma. So most of what it flags is an offset the "
         "corridor cannot separate from noise. It is pre-registered and it is left "
         "as written, because choosing a criterion after seeing which one helps is the "

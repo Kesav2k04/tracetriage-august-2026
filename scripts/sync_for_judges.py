@@ -822,7 +822,7 @@ _FAILED_CLAUSE = "" if not CLONE_FAILED else f". What did not: {CLONE_FAILED_STE
 
 AGENT_PARA = _para(
     f"""The agent layer is measured against a control. `scripts/run_agent_study.py` puts
-    {agent["tasks"]} questions to the same local model twice, once with the five MCP tools
+    {agent["tasks"]} questions to the same local model twice, once with the seven MCP tools
     over stdio JSON-RPC and once with none, grading both against ground truth derived from
     the files the console ships. With tools: {_AGENT_TOOLS["correct"]["successes"]} of
     {_AGENT_TOOLS["correct"]["trials"]} correct, 95% interval

@@ -62,7 +62,7 @@ because a summary that prints only what went right cannot be read as a summary o
 happened.
 
 The agent layer is measured against a control. `scripts/run_agent_study.py` puts 24
-questions to the same local model twice, once with the five MCP tools over stdio JSON-RPC
+questions to the same local model twice, once with the seven MCP tools over stdio JSON-RPC
 and once with none, grading both against ground truth derived from the files the console
 ships. With tools: 22 of 24 correct, 95% interval [0.7602, 0.985], every number in every
 answer traceable to something the agent had read. Without: 2 of 24, 18 declined as unknown

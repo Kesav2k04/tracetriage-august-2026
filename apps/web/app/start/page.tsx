@@ -46,6 +46,24 @@ import {
 import OrbitField from "@/components/OrbitField";
 import { Cell, Note, Section, Stat, Table, VerdictBadge } from "@/components/ui";
 
+/** Which waves Bob's units span, counted off the log rather than typed into the page.
+ *
+ * A single total answers "how many units" and leaves "how much of the build" open, and the
+ * second question is the one the criterion asks. Unit codes are a wave letter followed by a
+ * number, sometimes with a suffix (A0, A0b-INT, B1, C1), so the wave is the leading letter.
+ * Reading it off `bob.units` means a unit added to the build log moves this and the table
+ * below together, or moves neither.
+ */
+const bobWaveCounts = bob.units.reduce<Record<string, number>>((acc, unit) => {
+  const wave = unit.unit.charAt(0);
+  acc[wave] = (acc[wave] ?? 0) + 1;
+  return acc;
+}, {});
+const bobWaves = Object.keys(bobWaveCounts).sort();
+const bobWaveDetail = bobWaves
+  .map((wave) => `${bobWaveCounts[wave]} in ${wave}`)
+  .join(", ");
+
 export const metadata: Metadata = {
   title: "Start here",
   description:
@@ -388,8 +406,10 @@ export default function StartPage() {
       <Section
         title="What IBM Bob built, and what it did not"
         description={
-          "Read out of docs/BOB_BUILD_LOG.md by scripts/export_bob_units.py, so this "
-          + "table cannot drift from the log the way a typed count would."
+          `Bob built every unit of wave ${bobWaves[0]}, the ingestion and physics core `
+          + "every later number is computed from, and opened the waves after it. Read out "
+          + "of docs/BOB_BUILD_LOG.md by scripts/export_bob_units.py, so this table cannot "
+          + "drift from the log the way a typed count would."
         }
       >
         <div
@@ -401,6 +421,15 @@ export default function StartPage() {
           }}
         >
           <Stat label="Bob units in the build log" value={String(bob.n_bob_units)} />
+          {/* The wave spread, counted rather than typed. A single total answers "how many"
+              and leaves "how much of the build" open, which is the question the criterion
+              actually asks. Derived from the same units array the table renders, so a unit
+              added to the log moves both or neither. */}
+          <Stat
+            label="Waves Bob's units span"
+            value={bobWaves.join(", ")}
+            detail={bobWaveDetail}
+          />
         </div>
 
         <Table
