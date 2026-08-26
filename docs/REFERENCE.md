@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a clone does not have describes something else.
 
-At this commit: 40 JSON artifacts, 8 contracts, 64 scripts, 29 package modules and 1497 test functions across 84 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 40 JSON artifacts, 8 contracts, 65 scripts, 29 package modules and 1497 test functions across 84 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -52,7 +52,7 @@ file that no longer exists in that form.
 | `OPERATOR_SESSION.json` | tracetriage/operator-session | 0.1.0 | none | 6,829 | `69564bde019b6783` | `scripts/run_operator_session.py` | `test_operator_session.py` |
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 63,045 | `6dc5302b24363528` | `pipeline/tracetriage/physics.py`, `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
 | `PRECEDENT_RECEIPT.json` | PRECEDENT_RECEIPT | 1 | none | 9,549 | `7cc6b2fde7059111` | `scripts/build_console_data.py`, `scripts/check_receipt_digests.py`, `scripts/run_precedent_study.py`, `scripts/sync_for_judges.py`, `scripts/sync_readme_results.py` | `test_console_export.py`, `test_precedent.py`, `test_receipt_digests.py` |
-| `QUEUE_RECEIPT.json` | QUEUE_RECEIPT | 0.3.0 | `contracts/queue_receipt.schema.json` | 259,290 | `4204193634349fa8` | `scripts/annotate.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/export_satellite_names.py`, `scripts/gate.py`, `scripts/run_agent_study.py`, `scripts/run_circularity_check.py`, `scripts/run_gate_power.py`, `scripts/run_langchain_check.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_circularity.py`, `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_freshness_outcomes.py`, `test_gate_power.py`, `test_kill_gate_sync.py`, `test_mcp_server.py`, `test_queue_concentration.py`, `test_receipt_digests.py`, `test_reference_sync.py`, `test_satellite_names.py` |
+| `QUEUE_RECEIPT.json` | QUEUE_RECEIPT | 0.3.0 | `contracts/queue_receipt.schema.json` | 259,290 | `4204193634349fa8` | `scripts/annotate.py`, `scripts/build_architecture_diagram.py`, `scripts/build_console_data.py`, `scripts/build_og_image.py`, `scripts/check_receipt_digests.py`, `scripts/explainer_console.py`, `scripts/export_satellite_names.py`, `scripts/gate.py`, `scripts/run_agent_study.py`, `scripts/run_circularity_check.py`, `scripts/run_gate_power.py`, `scripts/run_langchain_check.py`, `scripts/run_queue.py`, `scripts/sync_for_judges.py`, `scripts/sync_kill_gate.py`, `scripts/sync_readme_results.py` | `test_circularity.py`, `test_claim_drift.py`, `test_console_export.py`, `test_contracts.py`, `test_freshness_outcomes.py`, `test_gate_power.py`, `test_kill_gate_sync.py`, `test_mcp_server.py`, `test_queue_concentration.py`, `test_receipt_digests.py`, `test_reference_sync.py`, `test_satellite_names.py` |
 | `REPO_WEIGHT.json` | REPO_WEIGHT | 0.1.0 | none | 4,927 | `b0a80699b259dd2d` | `scripts/audit_release.py`, `scripts/build_console_data.py`, `scripts/signoff.py`, `scripts/sync_for_judges.py` | `test_release_audit.py` |
 | `SATELLITE_NAMES.json` | SATELLITE_NAMES/1 | n/a | none | 12,328 | `196ad682c56350b8` | `scripts/build_console_data.py`, `scripts/check_artifact_freshness.py`, `scripts/export_satellite_names.py` | `test_satellite_names.py` |
 | `SECOND_TRACE_SURVEY.json` | SECOND_TRACE_SURVEY | 0.1.0 | none | 334,073 | `ef43f2ad5bc160be` | `scripts/audit_release.py`, `scripts/build_architecture_diagram.py`, `scripts/clean_clone_check.py`, `scripts/measure_second_trace.py`, `scripts/measure_throughput.py` | `test_failure_injection.py` |
@@ -143,6 +143,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/check_types.py` | Run mypy over the package and fail on a new error, against a committed baseline. |
 | `scripts/clean_clone_check.py` | Reproduce this repository from a clean clone, with the network refused. |
 | `scripts/derive_palette.py` | Derive the console's neutral ramp, and prove the derivation costs no contrast. |
+| `scripts/explainer_console.py` | Manim scene: the nine pages of the console, and the one path through them. |
 | `scripts/explainer_corridor.py` | Manim scene: what the Doppler corridor is, and what the fitted offset measures. |
 | `scripts/explainer_gate4.py` | Manim scene: how gate 4 was made falsifiable, and how it came out. |
 | `scripts/explainer_timing.py` | Hold each section of an explainer for as long as its own narration takes. |
