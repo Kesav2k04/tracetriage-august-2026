@@ -8,13 +8,20 @@
 
 **In a 600-observation sample of the public SatNOGS network, 426 carried no decisive human
 verdict: more than two in three were kept and never judged. Volunteers record radio signals
-from passing satellites far faster than anyone can check them. TraceTriage decides which recordings are worth opening first, and shows the
-evidence behind every decision rather than asking anyone to trust a score.**
+from passing satellites far faster than anyone can check them. TraceTriage decides which
+recordings are worth opening first, and shows the evidence behind every decision rather than
+asking anyone to trust a score.**
 
 **The budget that does not scale is a reviewer's attention.** On ground stations the model
 never saw, a reviewer who opens 50 of 217 observations in this order finds **27 actionable
 conflicts where random ordering expects about 12**: 2.253 times as many for the same fifty
 opens, interval [1.920, 3.859]. Same hours, same headcount, more found.
+
+**Who that is.** Those 600 passes came from **211 separate ground stations**, so the backlog
+is the network's normal state and not one operator's habit. The people it costs are the
+university cubesat teams waiting to confirm their own satellite was heard, and the volunteers
+whose receivers recorded it. Both want the same thing from the same hour: the pass most likely
+to matter, opened first.
 
 Open a pass and you see the recording as an image, the curve its own orbit predicts drawn
 over it, how far the capture sat from that prediction in hertz, and why it ranks where it
