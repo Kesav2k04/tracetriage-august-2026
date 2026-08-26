@@ -6,9 +6,10 @@
 
 ### Which satellite passes are worth a reviewer's time.
 
-**Volunteers around the world record radio signals from passing satellites, far faster than
-anyone can check them. TraceTriage decides which recordings are worth opening first, and
-shows the evidence behind every decision rather than asking anyone to trust a score.**
+**In a 600-observation sample of the public SatNOGS network, 426 carried no decisive human
+verdict. Volunteers record radio signals from passing satellites far faster than anyone can
+check them. TraceTriage decides which recordings are worth opening first, and shows the
+evidence behind every decision rather than asking anyone to trust a score.**
 
 Open a pass and you see the recording as an image, the curve its own orbit predicts drawn
 over it, how far the capture sat from that prediction in hertz, and why it ranks where it
@@ -35,11 +36,9 @@ from the public SatNOGS API.
 
 </div>
 
-> In a 600-observation sample of the public SatNOGS network, **426 carried no decisive human
-> verdict at all.** Ground-station networks are how university and cubesat missions are
-> actually operated, and an unreviewed pass is telemetry nobody read. There is no shortage of
-> observations. There is a shortage of attention, and nothing tells a volunteer where to spend
-> it.
+> Ground-station networks are how university and cubesat missions are actually operated, and
+> **an unreviewed pass is telemetry nobody read.** There is no shortage of observations. There
+> is a shortage of attention, and nothing tells a volunteer where to spend it.
 
 ---
 
