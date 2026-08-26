@@ -411,8 +411,8 @@ export default function StartPage() {
       <Section
         title="What IBM Bob built, and what it did not"
         description={
-          "Bob built every unit of wave A and opened B and C. Read out of "
-          + "docs/BOB_BUILD_LOG.md by scripts/export_bob_units.py."
+          "Bob's dated units by wave, read out of docs/BOB_BUILD_LOG.md by "
+          + "scripts/export_bob_units.py."
         }
       >
         <div
