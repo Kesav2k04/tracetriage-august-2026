@@ -13,7 +13,7 @@ It describes the **tracked** tree, which is what a clone gets. A file present in
 a working copy and not published does not appear here, because a page listing
 files a clone does not have describes something else.
 
-At this commit: 40 JSON artifacts, 8 contracts, 65 scripts, 29 package modules and 1497 test functions across 84 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
+At this commit: 41 JSON artifacts, 8 contracts, 66 scripts, 29 package modules and 1497 test functions across 84 test modules. Parametrised functions collect as more than one case, so pytest's collected count is higher.
 
 ## Artifacts
 
@@ -48,6 +48,7 @@ file that no longer exists in that form.
 | `LIVE_SHELF_RECEIPT.json` | LIVE_SHELF_RECEIPT | 1 | none | 2,653 | `26c7c431441925aa` | `scripts/build_live_shelf.py` | `test_live_shelf.py` |
 | `MOTION_AA_CONTROL.json` | tracetriage/motion-perf | 0.1.0 | none | 11,217 | `144edd40ad9380f9` | `scripts/measure_motion_perf.py` | **none** |
 | `MOTION_RECEIPT.json` | tracetriage/motion-perf | 0.1.0 | none | 13,006 | `7848414e2567859d` | `scripts/measure_motion_perf.py` | **none** |
+| `NETWORK_SCALE.json` | network_scale | 1 | none | 2,273 | `fcdc714fa481328a` | `scripts/fetch_network_scale.py` | **none** |
 | `OFFLINE_RECEIPT.json` | tracetriage/offline-install | 0.1.0 | none | 3,727 | `e869ab82c1b7bdae` | `apps/web/audit/offline-probe.mjs`, `scripts/sync_docs.py` | `test_pwa_install.py` |
 | `OPERATOR_SESSION.json` | tracetriage/operator-session | 0.1.0 | none | 6,829 | `69564bde019b6783` | `scripts/run_operator_session.py` | `test_operator_session.py` |
 | `PHYSICS_VALIDATION.json` | none declared | n/a | none | 63,045 | `6dc5302b24363528` | `pipeline/tracetriage/physics.py`, `scripts/build_architecture_diagram.py`, `scripts/check_artifact_freshness.py`, `scripts/sync_for_judges.py`, `scripts/validate_physics.py` | `test_claim_drift.py`, `test_physics.py` |
@@ -68,7 +69,7 @@ Files under `artifacts/` that are logs, caches or rendered output rather than re
 
 Receipts no module in this repository names, which means nothing here rebuilds them: none.
 
-Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MOTION_RECEIPT.json`, `THROUGHPUT_RECEIPT.json`.
+Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MOTION_RECEIPT.json`, `NETWORK_SCALE.json`, `THROUGHPUT_RECEIPT.json`.
 
 ## Contracts
 
@@ -153,6 +154,7 @@ Receipts no test names: `FONT_PAINT_RECEIPT.json`, `MOTION_AA_CONTROL.json`, `MO
 | `scripts/export_satellite_names.py` | The satellite name behind every observation the console ranks. |
 | `scripts/extract_corridor_features.py` | Extract per-observation corridor measurements and cache them for the fusion head. |
 | `scripts/extract_hog_cache.py` | Cache HOG feature vectors for the decisive corpus. |
+| `scripts/fetch_network_scale.py` | Record how big the public network is, from that network's own API. |
 | `scripts/gate.py` | Mechanical verification of a Bob unit. |
 | `scripts/gate3_sensitivity.py` | How gate 3's verdict moves with the presence bar that chose its pool. |
 | `scripts/mcp_server.py` | A read-only Model Context Protocol server over the committed evidence (unit E3). |

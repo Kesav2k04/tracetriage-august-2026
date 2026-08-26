@@ -17,11 +17,13 @@ never saw, a reviewer who opens 50 of 217 observations in this order finds **27 
 conflicts where random ordering expects about 12**: 2.253 times as many for the same fifty
 opens, interval [1.920, 3.859]. Same hours, same headcount, more found.
 
-**Who that is.** Those 600 passes came from **211 separate ground stations**, so the backlog
-is the network's normal state and not one operator's habit. The people it costs are the
-university cubesat teams waiting to confirm their own satellite was heard, and the volunteers
-whose receivers recorded it. Both want the same thing from the same hour: the pass most likely
-to matter, opened first.
+**The scale this sits on.** The public SatNOGS network holds
+**[14.4 million recorded observations](https://network.satnogs.org/observations/)** from
+**[4,442 ground stations](https://network.satnogs.org/stations/)**, tracking
+**[1,693 satellites still alive in orbit](https://db.satnogs.org/satellites/)** (read from its
+own public API on 2026-08-27, receipt in [`artifacts/NETWORK_SCALE.json`](artifacts/NETWORK_SCALE.json)).
+Every operator on that list, commercial and academic, asks one question after every pass, was my
+beacon heard, and answers it out of a fixed number of human hours.
 
 Open a pass and you see the recording as an image, the curve its own orbit predicts drawn
 over it, how far the capture sat from that prediction in hertz, and why it ranks where it
