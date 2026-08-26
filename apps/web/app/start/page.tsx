@@ -57,9 +57,9 @@ const bobByWave = bob.units.reduce<Record<string, { units: number; ids: string[]
     const wave = unit.unit.charAt(0);
     const bucket = (acc[wave] ??= { units: 0, ids: [] });
     bucket.units += 1;
-    // One Bob task can carry more than one unit: A0 and its acceptance unit A0b-INT ran in
-    // the same task and record the same id. Listed twice it reads as a copy-paste slip, so
-    // the row shows distinct ids.
+    // A single Bob session can carry more than one unit, and each unit records that
+    // session's id, so the same id can appear twice. Listed twice it reads as a
+    // copy-paste slip, so the row shows distinct ids.
     if (unit.bob_task_id && !bucket.ids.includes(unit.bob_task_id)) {
       bucket.ids.push(unit.bob_task_id);
     }
@@ -447,8 +447,8 @@ export default function StartPage() {
         </Table>
 
         <Table
-          head={["Unit", "What it built", "Bob task", "Files", "What failed first"]}
-          headAlign={["left", "left", "left", "right", "left"]}
+          head={["Wave", "What it built", "Files", "What failed first"]}
+          headAlign={["left", "left", "right", "left"]}
           caption={
             "Every row is a dated entry in the build log. A Files count with a +n names "
             + "files the log records that this repository does not ship. Hover it for which."
@@ -457,21 +457,9 @@ export default function StartPage() {
           {bob.units.map((unit) => (
             <tr key={unit.unit}>
               <Cell align="left" mono>
-                {unit.unit}
+                {unit.unit.charAt(0)}
               </Cell>
               <Cell align="left">{unit.subject}</Cell>
-              <Cell align="left" mono>
-                {unit.bob_task_id ? (
-                  unit.bob_task_id.slice(0, 12)
-                ) : (
-                  <span
-                    style={{ color: "var(--text-03)" }}
-                    title="This entry records no task hash"
-                  >
-                    not recorded
-                  </span>
-                )}
-              </Cell>
               <Cell mono>
                 {unit.files.length}
                 {unit.files_not_published.length > 0 && (
