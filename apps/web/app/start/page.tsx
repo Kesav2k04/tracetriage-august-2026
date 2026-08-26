@@ -46,23 +46,28 @@ import {
 import OrbitField from "@/components/OrbitField";
 import { Cell, Note, Section, Stat, Table, VerdictBadge } from "@/components/ui";
 
-/** Which waves Bob's units span, counted off the log rather than typed into the page.
+/** Bob's task ids grouped by wave, read off the log rather than typed into the page.
  *
- * A single total answers "how many units" and leaves "how much of the build" open, and the
- * second question is the one the criterion asks. Unit codes are a wave letter followed by a
- * number, sometimes with a suffix (A0, A0b-INT, B1, C1), so the wave is the leading letter.
- * Reading it off `bob.units` means a unit added to the build log moves this and the table
- * below together, or moves neither.
+ * A reader with a few minutes should not have to map A0, A0b-INT, A1 back to a wave to see
+ * how much of the build Bob holds. Unit codes are a wave letter then a number, so the wave
+ * is the leading character. Units with no recorded id are counted but contribute no id.
  */
-const bobWaveCounts = bob.units.reduce<Record<string, number>>((acc, unit) => {
-  const wave = unit.unit.charAt(0);
-  acc[wave] = (acc[wave] ?? 0) + 1;
-  return acc;
-}, {});
-const bobWaves = Object.keys(bobWaveCounts).sort();
-const bobWaveDetail = bobWaves
-  .map((wave) => `${bobWaveCounts[wave]} in ${wave}`)
-  .join(", ");
+const bobByWave = bob.units.reduce<Record<string, { units: number; ids: string[] }>>(
+  (acc, unit) => {
+    const wave = unit.unit.charAt(0);
+    const bucket = (acc[wave] ??= { units: 0, ids: [] });
+    bucket.units += 1;
+    // One Bob task can carry more than one unit: A0 and its acceptance unit A0b-INT ran in
+    // the same task and record the same id. Listed twice it reads as a copy-paste slip, so
+    // the row shows distinct ids.
+    if (unit.bob_task_id && !bucket.ids.includes(unit.bob_task_id)) {
+      bucket.ids.push(unit.bob_task_id);
+    }
+    return acc;
+  },
+  {},
+);
+const bobWaves = Object.keys(bobByWave).sort();
 
 export const metadata: Metadata = {
   title: "Start here",
@@ -406,10 +411,8 @@ export default function StartPage() {
       <Section
         title="What IBM Bob built, and what it did not"
         description={
-          `Bob built every unit of wave ${bobWaves[0]}, the ingestion and physics core `
-          + "every later number is computed from, and opened the waves after it. Read out "
-          + "of docs/BOB_BUILD_LOG.md by scripts/export_bob_units.py, so this table cannot "
-          + "drift from the log the way a typed count would."
+          "Bob built every unit of wave A and opened B and C. Read out of "
+          + "docs/BOB_BUILD_LOG.md by scripts/export_bob_units.py."
         }
       >
         <div
@@ -421,26 +424,34 @@ export default function StartPage() {
           }}
         >
           <Stat label="Bob units in the build log" value={String(bob.n_bob_units)} />
-          {/* The wave spread, counted rather than typed. A single total answers "how many"
-              and leaves "how much of the build" open, which is the question the criterion
-              actually asks. Derived from the same units array the table renders, so a unit
-              added to the log moves both or neither. */}
-          <Stat
-            label="Waves Bob's units span"
-            value={bobWaves.join(", ")}
-            detail={bobWaveDetail}
-          />
         </div>
+
+        <Table
+          head={["Wave", "Units", "Bob task IDs"]}
+          headAlign={["left", "right", "left"]}
+          caption="Every id below is a real task in the Bob account that built that wave."
+        >
+          {bobWaves.map((wave) => (
+            <tr key={wave}>
+              <Cell align="left" mono>
+                {wave}
+              </Cell>
+              <Cell mono>{bobByWave[wave]!.units}</Cell>
+              <Cell align="left" mono>
+                <span style={{ wordBreak: "break-all", lineHeight: 1.7 }}>
+                  {bobByWave[wave]!.ids.join(", ")}
+                </span>
+              </Cell>
+            </tr>
+          ))}
+        </Table>
 
         <Table
           head={["Unit", "What it built", "Bob task", "Files", "What failed first"]}
           headAlign={["left", "left", "left", "right", "left"]}
           caption={
-            "Every row names a dated entry in the build log. The task column is the "
-            + "identifier that ties the entry to a real task in the account. A Files count "
-            + "with a +n names files the log records that this repository does not ship: a "
-            + "withheld handover document and two rebuilt artifacts. Hover it for which and "
-            + "why."
+            "Every row is a dated entry in the build log. A Files count with a +n names "
+            + "files the log records that this repository does not ship. Hover it for which."
           }
         >
           {bob.units.map((unit) => (
