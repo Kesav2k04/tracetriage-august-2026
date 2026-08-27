@@ -1,8 +1,8 @@
 {
  "schema": "SIGNOFF_RECEIPT",
  "schema_version": "0.1.0",
- "measured_at_commit": "fe0273809b8e283de9a8c5bee1bda55f8fcca2a1",
- "measured_at_commit_date": "2026-08-24T15:09:29+05:30",
+ "measured_at_commit": "bfd92629c42ff6f1a00413054c85bcf012cf5e1e",
+ "measured_at_commit_date": "2026-08-27T14:50:31+05:30",
  "note_on_the_commit": "This receipt is written at the commit named above and then committed, so the commit it lands in is one later. It cannot name that one, and saying so is better than implying it measured itself.",
  "commits_behind_head_when_written": 0,
  "verdict": "SIGNED",
@@ -16,8 +16,8 @@
    "check": "standing gates",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\gate.py",
    "status": "PASSED",
-   "detail": "32/32 standing gates pass, 1 row omitted for a missing precondition: sign-off receipt present and signed",
-   "seconds": 367.7,
+   "detail": "31/31 standing gates pass, 3 rows omitted for a missing precondition, each printed above",
+   "seconds": 410.6,
    "why_not_checked": null
   },
   {
@@ -41,15 +41,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run typecheck",
    "status": "PASSED",
    "detail": "> tsc --noEmit",
-   "seconds": 2.8,
+   "seconds": 2.4,
    "why_not_checked": null
   },
   {
    "check": "console tests",
    "command": "C:\\Program Files\\nodejs\\npm.CMD run test",
    "status": "PASSED",
-   "detail": "Duration  1.32s (transform 1.11s, setup 0ms, collect 3.48s, tests 792ms, environment 5ms, prepare 3.68s)",
-   "seconds": 2.7,
+   "detail": "\u001b[2m   Duration \u001b[22m 1.20s\u001b[2m (transform 1.11s, setup 0ms, collect 3.40s, tests 757ms, environment 5ms, prepare 3.69s)\u001b[22m",
+   "seconds": 2.4,
    "why_not_checked": null
   },
   {
@@ -57,15 +57,15 @@
    "command": "C:\\Program Files\\nodejs\\npm.CMD run build",
    "status": "PASSED",
    "detail": "34 index.html files emitted to apps/web/out",
-   "seconds": 26.0,
+   "seconds": 21.6,
    "why_not_checked": null
   },
   {
    "check": "release audit re-run at this commit",
    "command": "D:\\IBM August Challenge\\tracetriage-august-2026\\.venv\\Scripts\\python.exe D:\\IBM August Challenge\\tracetriage-august-2026\\scripts\\audit_release.py",
    "status": "PASSED",
-   "detail": "0 secret findings, 0 files short of their attribution, 60.36 MB tracked",
-   "seconds": 13.9,
+   "detail": "0 secret findings, 0 files short of their attribution, 59.94 MB tracked",
+   "seconds": 10.4,
    "why_not_checked": null
   },
   {
@@ -88,16 +88,16 @@
    "check": "deployed console responds",
    "command": null,
    "status": "PASSED",
-   "detail": "HTTP 200, 431,997 bytes from https://tracetriage.vercel.app",
-   "seconds": 0.9,
+   "detail": "HTTP 200, 439,185 bytes from https://tracetriage.vercel.app",
+   "seconds": 0.8,
    "why_not_checked": null
   },
   {
    "check": "deployed console is this tree",
    "command": null,
    "status": "PASSED",
-   "detail": "HTTP 200, served provenance.json sha256 6be5d1b04197 against 6be5d1b04197 committed",
-   "seconds": 0.6,
+   "detail": "HTTP 200, served provenance.json sha256 5665b8297700 against 5665b8297700 committed",
+   "seconds": 0.5,
    "why_not_checked": null
   }
  ],
