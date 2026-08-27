@@ -720,14 +720,15 @@ REQUIREMENTS: list[tuple[str, ...]] = [
         "Working prototype",
         "The static console under `apps/web`, deployed from this repository",
     ),
-    # The video is named but not carried. The film and its shot list are deliberately not
-    # in this repository: a judge has three to five minutes, and production detail spends
-    # that budget on something other than the evidence. The row exists anyway because this
-    # table claims to say where EVERY requirement is answered, and a table that silently
-    # drops one is answering a different question from the one its heading asks. The
-    # console's own two explainer clips are a separate thing: they are still served, and
-    # `/evaluation` and the landing page say where each figure in them comes from, so they
-    # are part of the working prototype above rather than a deliverable of their own.
+    # The row points off this repository on purpose. The video is published on the
+    # submission page, which is where the requirement asks for it, and nothing about its
+    # production belongs beside the evidence a reader came here to check. The row exists
+    # anyway because this table claims to say where EVERY requirement is answered, and a
+    # table that silently drops one is answering a different question from the one its
+    # heading asks. The console's own two explainer clips are a separate thing: they are
+    # still served, and `/evaluation` and the landing page say where each figure in them
+    # comes from, so they are part of the working prototype above rather than a
+    # deliverable of their own.
     (
         "Demo or presentation video",
         "Published on the challenge submission page, not in this repository",
