@@ -17,13 +17,22 @@ never saw, a reviewer who opens 50 of 217 observations in this order finds **27 
 conflicts where random ordering expects about 12**: 2.253 times as many for the same fifty
 opens, interval [1.920, 3.859]. Same hours, same headcount, more found.
 
-**The scale this sits on.** The public SatNOGS network holds
-**[14.4 million recorded observations](https://network.satnogs.org/observations/)** from
-**[4,442 ground stations](https://network.satnogs.org/stations/)**, tracking
-**[1,693 satellites still alive in orbit](https://db.satnogs.org/satellites/)** (read from its
-own public API on 2026-08-27, receipt in [`artifacts/NETWORK_SCALE.json`](artifacts/NETWORK_SCALE.json)).
-Every operator on that list, commercial and academic, asks one question after every pass, was my
-beacon heard, and answers it out of a fixed number of human hours.
+<table>
+<tr>
+<td align="center" width="20%"><a href="https://www.spacefoundation.org/wp-content/uploads/2026/07/SF-GSE-REPORT-2026July-FOR-RELEASE.pdf"><b>$686B</b></a><br><sub>global space<br>economy, 2025</sub></td>
+<td align="center" width="20%"><a href="https://www.spacefoundation.org/wp-content/uploads/2026/07/SF-GSE-REPORT-2026July-FOR-RELEASE.pdf"><b>$139.8B</b></a><br><sub>of it ground stations<br>and equipment</sub></td>
+<td align="center" width="20%"><a href="https://db.satnogs.org/satellites/"><b>1,693</b></a><br><sub>satellites still<br>alive in orbit</sub></td>
+<td align="center" width="20%"><a href="https://network.satnogs.org/stations/"><b>4,442</b></a><br><sub>volunteer stations<br>listening to them</sub></td>
+<td align="center" width="20%"><a href="https://network.satnogs.org/observations/"><b>14.4M</b></a><br><sub>recordings published,<br>most never judged</sub></td>
+</tr>
+</table>
+
+**That is the gap this closes.** Ground stations and equipment are the largest segment of
+commercial space infrastructure, and it grew 12.7% last year ([Space Foundation, July
+2026](https://www.spacefoundation.org/wp-content/uploads/2026/07/SF-GSE-REPORT-2026July-FOR-RELEASE.pdf)). All of that spending buys the recording. Deciding whether the recording shows
+anything is still a person looking at a picture, and there are 14.4 million pictures. The
+three network figures were read from the public SatNOGS API on 2026-08-27
+([`artifacts/NETWORK_SCALE.json`](artifacts/NETWORK_SCALE.json)).
 
 Open a pass and you see the recording as an image, the curve its own orbit predicts drawn
 over it, how far the capture sat from that prediction in hertz, and why it ranks where it
@@ -185,23 +194,13 @@ but a trace sits exactly where physics predicts it.
 
 ### The gap this ranks on
 
-Both rows are published SatNOGS waterfalls, unmodified on the left and annotated on the right
-by `scripts/a3_doppler_investigation.py`. The record cannot tell them apart. The image can.
-
-<table>
-<tr>
-<td width="50%"><img src="artifacts/a3_overlays/overlay_14746118.png" alt="Observation 14746118: the received energy follows a straight vertical line, and the predicted uncorrected Doppler curve drawn in red misses it entirely." width="100%"></td>
-<td width="50%"><img src="artifacts/a3_overlays/overlay_14740031.png" alt="Observation 14740031: the received energy follows the predicted Doppler curve drawn in red, sweeping across about 16 kHz, while the corrected-hypothesis corridor drawn in magenta sits empty." width="100%"></td>
-</tr>
-<tr>
-<td><b>14746118, corrected.</b> The trace is a straight vertical line: 54.2 sigma against
-7.3 for the swept curve. The station's software had already removed the Doppler shift
-before writing the image, and nothing in the observation record says so.</td>
-<td><b>14740031, uncorrected.</b> The trace follows the predicted curve across about 16 kHz:
-25.1 sigma against 2.8 for the best vertical line. The same fields, the same client,
-the opposite convention.</td>
-</tr>
-</table>
+Observation **14746118** holds a straight vertical line, 54.2 sigma against 7.3 for the swept
+curve: that station removed the Doppler shift before it wrote the image. Observation
+**14740031** follows the predicted curve across about 16 kHz, 25.1 sigma against 2.8 for the
+best vertical line. The same fields, the same client, the opposite convention, and nothing in
+either record says which. Both annotated overlays are in
+[`artifacts/a3_overlays/`](artifacts/a3_overlays/), drawn by
+`scripts/a3_doppler_investigation.py`.
 
 A detector that assumes one of these two shapes is wrong on the other half of the corpus, and
 the observation record gives it no way to choose. Method and open questions:

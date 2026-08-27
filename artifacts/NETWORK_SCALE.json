@@ -3,7 +3,7 @@
   "schema_version": 1,
   "what_this_is": "The size of the public network TraceTriage reads, taken from that network's own public API so a reader can fetch the same endpoints and get the same order of magnitude. It is context for the README's opening, not an input to any result: no gate, split, queue or interval in this repository is computed from these numbers, and nothing here is extrapolated from the 600-observation sample onto the network.",
   "generated_by": "scripts/fetch_network_scale.py",
-  "fetched_at": "2026-08-27T02:06:46+05:30",
+  "fetched_at": "2026-08-27T11:47:06+05:30",
   "method": "unauthenticated GET, no token, no writes, one request per endpoint",
   "sources": {
     "stations": "https://network.satnogs.org/api/stations/",
@@ -18,25 +18,35 @@
   "ground_stations": {
     "registered": 4442,
     "by_status": {
-      "Online": 332,
-      "Testing": 141,
-      "Offline": 3969
+      "Online": 328,
+      "Testing": 142,
+      "Offline": 3972
     },
     "distinct_maidenhead_fields": 124
   },
   "observations": {
-    "total": 14398156,
+    "total": 14401459,
     "how": "sum of the per-station observation count over every station; each observation belongs to exactly one station, so the sum is the network total",
     "cross_check": {
-      "newest_observation_id": 14893498,
+      "newest_observation_id": 14896479,
       "why_it_differs": "ids are issued monotonically and never reused, so the newest id runs ahead of the surviving count by whatever has been deleted since",
-      "gap_percent": 3.33,
+      "gap_percent": 3.32,
       "gap_percent_allowed": 10.0
     }
   },
   "satellites": {
     "in_database": 2769,
     "alive": 1693
+  },
+  "market_context": {
+    "what_this_is": "Two figures quoted in the README's opening that are not measured here and are not inputs to any result. They are cited from a published industry report so a reader can check the source rather than the repository.",
+    "source": "Space Foundation, The State of the Global Space Economy, July 2026",
+    "url": "https://www.spacefoundation.org/wp-content/uploads/2026/07/SF-GSE-REPORT-2026July-FOR-RELEASE.pdf",
+    "read_on": "2026-08-27",
+    "ground_stations_and_equipment_usd": 139800000000,
+    "ground_stations_and_equipment_growth_percent": 12.7,
+    "global_space_economy_usd": 686000000000,
+    "quoted": "Ground Stations and Equipment constitute the largest segment of the commercial space infrastructure market, generating an estimated $139.8 billion in revenue in 2025, an increase of 12.7% from $124.1 billion in 2024."
   },
   "what_this_does_not_establish": [
     "That the undecided rate measured on 600 sampled observations holds across all of them. It was measured on the sample and is reported on the sample.",

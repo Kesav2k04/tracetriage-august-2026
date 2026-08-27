@@ -1,8 +1,10 @@
 """Record how big the public network is, from that network's own API.
 
-The README opens by saying what this problem is the size of. That sentence names three
-figures, and a figure in this repository is only allowed to exist if something rebuilds
-it, so this is the something. It writes `artifacts/NETWORK_SCALE.json`.
+The README opens on four figures saying what this problem is the size of. Three are
+measured here from the network's own API; the fourth is a market figure quoted from a
+published report and held in `MARKET` below. A figure in this repository is only allowed
+to exist if something rebuilds it, so this is the something for all four. It writes
+`artifacts/NETWORK_SCALE.json`.
 
 What it is careful about, because the numbers are easy to get subtly wrong:
 
@@ -16,8 +18,8 @@ A gap wider than `MAX_GAP` fails rather than publishes.
 
 *Stations* are counted as registered, and reported with the online/offline split beside
 them, because "4,442 ground stations" on its own reads as 4,442 receivers listening right
-now and 330 of them were. The split is not decoration; it is the difference between the
-claim being true and being marketing.
+now and about 330 of them were. The split is not decoration; it is the difference between
+the claim being true and being marketing.
 
 Nothing here feeds a result. No gate, split, queue or interval is computed from these
 figures, and the 71% undecided rate measured on 600 sampled observations is not multiplied
@@ -52,6 +54,31 @@ HUMAN = {
     "stations": "https://network.satnogs.org/stations/",
     "satellites": "https://db.satnogs.org/satellites/",
     "observations": "https://network.satnogs.org/observations/",
+}
+
+#: Two figures the README quotes that are not measured here and are not inputs to any
+#: result. They are constants rather than a fetch because they come from a published PDF
+#: report, and a citation whose value can move under it is not a citation. They live in
+#: this script rather than in the JSON so that regenerating the receipt cannot silently
+#: drop them, which is what a hand edit to a generated file always eventually does.
+MARKET = {
+    "what_this_is": (
+        "Two figures quoted in the README's opening that are not measured here and are not "
+        "inputs to any result. They are cited from a published industry report so a reader "
+        "can check the source rather than the repository."
+    ),
+    "source": "Space Foundation, The State of the Global Space Economy, July 2026",
+    "url": ("https://www.spacefoundation.org/wp-content/uploads/2026/07/"
+            "SF-GSE-REPORT-2026July-FOR-RELEASE.pdf"),
+    "read_on": "2026-08-27",
+    "ground_stations_and_equipment_usd": 139_800_000_000,
+    "ground_stations_and_equipment_growth_percent": 12.7,
+    "global_space_economy_usd": 686_000_000_000,
+    "quoted": (
+        "Ground Stations and Equipment constitute the largest segment of the commercial "
+        "space infrastructure market, generating an estimated $139.8 billion in revenue in "
+        "2025, an increase of 12.7% from $124.1 billion in 2024."
+    ),
 }
 
 USER_AGENT = "TraceTriage/1.0 (+https://github.com/Kesav2k04/tracetriage-august-2026)"
@@ -134,6 +161,7 @@ def measure() -> dict:
             "in_database": len(satellites),
             "alive": sum(1 for s in satellites if s.get("status") == "alive"),
         },
+        "market_context": MARKET,
         "what_this_does_not_establish": [
             "That the undecided rate measured on 600 sampled observations holds across "
             "all of them. It was measured on the sample and is reported on the sample.",
