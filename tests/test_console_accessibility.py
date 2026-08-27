@@ -84,6 +84,10 @@ _NO_TABLE: dict[str, str] = {
         "one input, one button and a card list. Its measurement panel is built by "
         "components/LiveConsole.tsx, which renders no table in any state"
     ),
+    "start/index.html": (
+        "a figure, a forty-four second clip and the way in. Its tables moved to "
+        "FOR_JUDGES.md so each surface does one job, per app/start/page.tsx"
+    ),
     "404/index.html": "app/not-found.tsx is a heading and a list of routes",
     "404.html": "the same not-found page, written again at the root by the static export",
 }
