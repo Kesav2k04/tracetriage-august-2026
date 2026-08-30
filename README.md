@@ -42,7 +42,7 @@ from the public SatNOGS API.
 [![CI](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/Kesav2k04/tracetriage-august-2026/actions/workflows/ci.yml)
 [![Live console](https://img.shields.io/badge/live-tracetriage.vercel.app-fca50a?style=flat-square)](https://tracetriage.vercel.app/)
 [![Judges start here](https://img.shields.io/badge/judges-start%20here-fca50a?style=flat-square)](https://tracetriage.vercel.app/start/)
-[![3-minute film](https://img.shields.io/badge/YouTube-3--minute%20film-fca50a?style=flat-square&logo=youtube&logoColor=white)](https://youtu.be/uQlwfef5Hz4)
+[![3-minute film](https://img.shields.io/badge/YouTube-3--minute%20film-FF0000?style=flat-square&logo=youtube&logoColor=white)](https://youtu.be/uQlwfef5Hz4)
 [![Android APK](https://img.shields.io/badge/Android-signed%20APK-fca50a?style=flat-square)](../../releases/latest)
 <br>
 [![Built with IBM Bob](https://img.shields.io/badge/built%20with-IBM%20Bob-0f62fe?style=flat-square)](docs/BOB_BUILD_LOG.md)
